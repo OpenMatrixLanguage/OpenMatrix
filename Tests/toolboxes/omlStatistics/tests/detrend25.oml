@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+detrend([1 32 2 4],'linear')

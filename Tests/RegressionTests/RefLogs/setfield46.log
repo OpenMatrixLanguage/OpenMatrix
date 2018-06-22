@@ -1,0 +1,8 @@
+a = struct [
+b: 2
+]
+a = struct [
+Struct array of size 1 x 2 with fields:
+b
+]
+Error: unsupported operation in call to function setfield at line number 3 in file setfield46.oml

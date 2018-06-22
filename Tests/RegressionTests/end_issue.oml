@@ -1,0 +1,4 @@
+a = 'abcdefg'
+c{1} = 'abcdefg'
+ans7 = c{1}((find (c{1} == 'd', 1) + 1) : end)
+ans8 = a((find (c{1} == 'd', 1) + 1) : end)

@@ -1,0 +1,5 @@
+x=-98653.987654987654987654987
+format('long')
+x
+format('short')
+x

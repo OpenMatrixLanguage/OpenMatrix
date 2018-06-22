@@ -1,0 +1,5 @@
+a = [Matrix] 1 x 2
+5 + 2i  1 + 1i
+b = [Matrix] 1 x 2
+0 + 5i  2 - 1i
+Error: complex matrices not supported yet at line number 3 in file comp3.oml

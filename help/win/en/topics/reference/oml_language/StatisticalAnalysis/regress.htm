@@ -1,0 +1,171 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="regress" /><meta name="abstract" content="Perform multiple linear regression using the model y = X * beta + e." /><meta name="description" content="Perform multiple linear regression using the model y = X * beta + e." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Statistical Analysis Commands" /><meta name="indexterms" content="regress" /><meta name="DC.subject" content="regress" /><meta name="keywords" content="regress" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/statistical_analysis_command_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>regress</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/StatisticalAnalysis/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/StatisticalAnalysis/statistical_analysis_command_r.htm" title="Statistical Analysis Commands">Statistical Analysis Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/StatisticalAnalysis/statistical_analysis_command_r.htm" title="Statistical Analysis Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Statistical Analysis Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">regress</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc"> Perform multiple linear regression using the model <span class="ph synph">y = X * beta + e</span>. </p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">[b,bi,r,ri,stats]=regress<span class="ph var">(y,X)</span></span></p>
+
+      <p class="p"><span class="ph synph">[b,bi,r,ri,stats]=regress<span class="ph var">(y,X,alpha)</span></span></p>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">y</var></dt>
+
+          <dd class="dd pd">The response values.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">X</var></dt>
+
+          <dd class="dd pd">The regressor variable values. The first column is a vector of 1 values.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">alpha</var></dt>
+
+          <dd class="dd pd">The level of significance (default: 0.05).</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">b</span></dt>
+
+          <dd class="dd pd">The regression coefficients (beta estimates).</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">bci</span></dt>
+
+          <dd class="dd pd">The regression coefficient confidence intervals.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">r</span></dt>
+
+          <dd class="dd pd">The residuals.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">rci</span></dt>
+
+          <dd class="dd pd">The residuals confidence intervals.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">stats</span></dt>
+
+          <dd class="dd pd">Regression statistics. The following values are returned:</dd>
+
+          <dd class="dd pd ddexpand">R^2, the coefficient of determination</dd>
+
+          <dd class="dd pd ddexpand">F, the F statistic</dd>
+
+          <dd class="dd pd ddexpand">p, the p value</dd>
+
+          <dd class="dd pd ddexpand">v, the estimated variance of the random errors</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector</span></dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+      <pre class="pre codeblock"><code>y = [6.59; 7.89; 8.49; 3.5; 6.7; 6.9; 4.99; 5.09; 8.09]
+X = [1.0, -0.69, 2.0; 1.0, -0.69, 3.0; 1.0, -0.69, 4.0;
+1.0, 0.0, 2.0; 1.0, 0.0, 3.0; 1.0, 0.0, 4.0;
+1.0, 0.41, 2.0; 1.0, 0.41, 3.0; 1.0, 0.41, 4.0]
+[b,bi,r,ri,stats]=regress(y,X)</code></pre>
+      <pre class="pre codeblock"><code><code class="ph codeph">b = [Matrix] 3 x 1
+ 2.12192
+-1.59846
+ 1.40000
+bi = [Matrix] 3 x 2
+-0.82651  5.07035
+-3.30187  0.10494
+ 0.45306  2.34694
+r = [Matrix] 9 x 1
+ 0.56514
+ 0.46514
+-0.33486
+-1.42192
+ 0.37808
+-0.82192
+ 0.72345
+-0.57655
+ 1.02345
+ri = [Matrix] 9 x 2
+-1.17863  2.30891
+-1.59401  2.52430
+-2.14839  1.47867
+-2.90897  0.06513
+-1.97507  2.73122
+-2.77729  1.13345
+-1.05248  2.49938
+-2.68810  1.53499
+-0.56601  2.61290
+stats = [Matrix] 1 x 4
+0.75369  9.17986  0.01494  0.89858</code></code></pre>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+      
+      <p class="p"><span class="keyword">1.0</span></p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links"></nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/StatisticalAnalysis/statistical_analysis_command_r.htm" title="Statistical Analysis Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Statistical Analysis Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

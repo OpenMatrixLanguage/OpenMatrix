@@ -1,0 +1,5 @@
+addtoolbox omlSignals
+
+order = 2;
+wc = (2*pi)*[100, 200];
+[num,den] = butter(order, wc, 'stop', 's')

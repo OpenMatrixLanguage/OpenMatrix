@@ -1,0 +1,7 @@
+a = 1;
+ %if (a == 1 || a == 0)
+ % tf = true;
+ %else
+ % tf = false;
+ %end
+ b = a + 1

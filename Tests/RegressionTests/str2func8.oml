@@ -1,0 +1,3 @@
+M = '@(x)7*x-13';
+fhandle = str2func(M);
+fhandle(2)

@@ -1,0 +1,1 @@
+strncmp({{'test'}},'test',4)

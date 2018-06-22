@@ -1,0 +1,15 @@
+fname = FileManipulation/FileToRead.txt
+fid = 3
+text = This File
+len = 9
+text = 
+len = 2
+text = Contains Four
+len = 15
+text = Lines Of Text
+len = 15
+text = And An Empty Line
+len = 19
+text = -1
+len = 0
+ans = 0

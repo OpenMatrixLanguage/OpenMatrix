@@ -1,0 +1,9 @@
+a = 
+{
+  [1,1] str1
+  [1,2] str2
+}
+b = [Matrix] 1 x 2
+2  1
+c = [Matrix] 1 x 3
+2  1  1

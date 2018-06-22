@@ -1,0 +1,188 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="hist" /><meta name="abstract" content="Creates a histogram in an axis." /><meta name="description" content="Creates a histogram in an axis." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Plotting Commands" /><meta name="indexterms" content="hist" /><meta name="DC.subject" content="hist" /><meta name="keywords" content="hist" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/bar.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/properties.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>hist</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" title="Plotting Commands">Plotting Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" title="Plotting Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Plotting Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">hist</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Creates a histogram in an axis.</p>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_jhw_wg5_sdb"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">hist<span class="ph var">(y)</span></span></p>
+
+      <p class="p"><span class="ph synph">hist<span class="ph var">(y, x)</span></span></p>
+
+      <p class="p"><span class="ph synph">hist<span class="ph var">(y, binnum)</span></span></p>
+
+      <p class="p"><span class="ph synph">hist<span class="ph var">(…, property, value, …)</span></span></p>
+
+      <p class="p"><span class="ph synph">hist<span class="ph var">(hAxes, …)</span></span></p>
+
+      <p class="p"><span class="ph synph">nums = hist<span class="ph var">(…)</span></span></p>
+
+      <p class="p"><span class="ph synph">[nums, xs] = hist<span class="ph var">(…)</span></span></p>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">y</var></dt>
+
+          <dd class="dd pd">Values of the histogram.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector | matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">x</var></dt>
+
+          <dd class="dd pd">Centers of the bins.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">binnum</var></dt>
+
+          <dd class="dd pd">Number of bins; defaults to 10 bins if omitted.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">property</var></dt>
+
+          <dd class="dd pd"><span class="keyword">  Properties that control the appearance or behavior of the graphics object .
+     </span></dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">value</var></dt>
+
+          <dd class="dd pd"><span class="keyword"> Value of properties. </span></dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer | string</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">hAxes</var></dt>
+
+          <dd class="dd pd"><span class="keyword"> Axis handle. </span></dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_gdl_ch5_sdb"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">nums</span></dt>
+
+          <dd class="dd pd">A vector of the numbers of elementes in each bin.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">xs</span></dt>
+
+          <dd class="dd pd">A vector of the x values of each bin.</dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+      <p class="p">Simple <span class="keyword cmdname">hist</span> example:</p>
+
+      <pre class="pre codeblock"><code>clf;
+d=normrnd(5,2,1,1000);</code></pre>
+      <pre class="pre codeblock"><code><samp class="ph systemoutput">hist(d);</samp></code></pre>
+      <figure class="fig fignone"><span class="figcap"><span class="fig--title-label">Figure 1. </span>Hist plot</span>
+        
+        <br /><img class="image" id="reference_wpv_kyv_pr__image_n4k_sbq_rv" src="../../../../images/math_solutions/plots/hist.PNG" /><br />
+      </figure>
+
+      <p class="p"><span class="keyword cmdname">hist</span> example with a return value:</p>
+
+      <pre class="pre codeblock"><code>clf;
+d=normrnd(5,2,1,1000);
+[nums, xs]=hist(d);</code></pre>
+      <pre class="pre codeblock"><code><samp class="ph systemoutput">bar(xs, nums);</samp></code></pre>
+      <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_pwm_d35_sdb"><span class="figcap"><span class="fig--title-label">Figure 2. </span>hist with return value</span>
+        
+        <br /><img class="image" id="reference_wpv_kyv_pr__image_hsm_mn1_mv" src="../../../../images/math_solutions/plots/hist.PNG" /><br />
+      </figure>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p">If there is no axis, one will be created first. If <var class="keyword varname">bins</var> is omitted, the
+        default number of <var class="keyword varname">bins</var> is 10. If the first argument of
+          <span class="keyword cmdname">hist()</span> is an axes handle, hists will be created in that axes.</p>
+
+      <p class="p"> With return values assigned, <span class="keyword cmdname">hist</span> will not create a histogram, but
+        rather calculate the number of elements in each <var class="keyword varname">bin</var>(<span class="ph synph">nums</span>)
+        and/or centers of each <var class="keyword varname">bin</var>(<span class="ph synph">xs</span>). The histogram can be
+        created with the command '<span class="ph synph">bar(xs, nums)</span>'. </p>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+      
+      <p class="p"><span class="keyword">1.0</span></p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/bar.htm" title="Creates bars in an axis and returns handles of the bars.">bar</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/properties.htm" title="Properties for the graphics object in OpenMatrix.">Graphics Object Properties</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" title="Plotting Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Plotting Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

@@ -1,0 +1,3 @@
+% asymmetric, real
+a = [1,2,3.1;2,4,5;3,5,6]
+ishermitian(a,0.001)

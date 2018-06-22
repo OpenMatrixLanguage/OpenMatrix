@@ -1,0 +1,20 @@
+ans = 
+slice(:, :, 1) = 
+[Matrix] 1 x 4
+333  0  0  0
+
+slice(:, :, 2) = 
+[Matrix] 1 x 4
+0  455  0  0
+
+slice(:, :, 3) = 
+[Matrix] 1 x 4
+0  0  422  545
+
+slice(:, :, 4) = 
+[Matrix] 1 x 4
+0  0  -864  0
+
+slice(:, :, 5) = 
+[Matrix] 1 x 4
+0  874  0  0

@@ -1,0 +1,11 @@
+﻿function nestedfunction()
+ 
+    function child()
+        disp('child')
+    end
+ 
+    child()
+end 
+ 
+nestedfunction
+nestedfunction

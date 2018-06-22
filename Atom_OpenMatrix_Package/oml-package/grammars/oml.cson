@@ -1,0 +1,157 @@
+comment: """
+  OMLOSS experiment mode.Will find meaningfull comment.
+"""
+
+scopeName: "source.oml"
+
+fileTypes: ["OML"]
+
+foldingStartMarker: "^\\s*(if|while|for|function|try|switch)\\b.*$"
+foldingStopMarker: "^\\s*(end)\\b.*$"
+
+name: "OML"
+patterns: [
+  {
+    include: "#comments"
+  }
+  {
+    include: "#constants"
+  }
+  {
+    include: "#inbuiltfunctions"
+  }
+  {
+    include: "#keywords"
+  } 
+  {
+    include: "#operators"
+  }
+  {
+    include: "#strings"
+  } 
+]
+repository:
+  comments:
+    patterns: [
+      {
+        begin: "%\\{"
+        end: "%\\}"
+        name: "comment.block.oml"
+      }
+      {
+        begin: "%"
+        end: "\\n"
+        name: "comment.line.percentage.oml"
+      }
+    ]
+  constants:
+    patterns: [
+      {
+        match: "\\b(?:true|false)\\b"
+        name: "constant.language.oml"
+      }
+      {
+        match: "((\\b0x[0-9a-fA-F]+\\b)|(\\b0o[0-7]+\\b)|((\\b[0-9]+\\.?[0-9]*)|(\\.[0-9]+))([eE][+-]?[0-9]+)?([ij])?)"
+        name: "constant.language.oml"
+      }
+    ]
+  inbuiltfunctions:
+    patterns: [
+      {
+        match: "\\b(?:version|disp)\\b"
+        name: "entity.name.function.oml"
+      }
+      {
+        match: "\\b(?:I|Inf|J|NaN|SEEK_CUR|SEEK_END|SEEK_SET|abs|acos|acosd|acosh|addToolbox|addpath|
+                      |addtoolbox|all|and|angle|any|arg|asin|asind|asinh|assert|assignin|atan|
+                      |atan2|atanh|balance|bin2dec|bitand|bitor|bitxor|blanks|builtin|cart2pol|
+                      |cart2sph|cat|cd|ceil|cell|cell2mat|cell2struct|celldisp|cellfun|char|chdir|
+                      |checksyntax|chol|circshift|class|clc|clear|clock|complex|cond|conj|conv|
+                      |conv2|copyfile|cos|cosd|cosh|cplxpair|cputime|cross|cumprod|cumsum|date|
+                      |datenum|deblank|dec2bin|dec2hex|deg2rad|delete|det|diag|diary|diff|dir|disp|
+                      |dlmwrite|dos|dot|double|e|eig|eps|eq|error|errordlg|eval|evalin|exist|exit|
+                      |exp|expm|eye|factor|false|fclose|feof|ferror|feval|fflush|fgetl|fgets|
+                      |fieldnames|fileparts|find|fix|flintmax|flip|fliplr|flipud|floor|fopen|
+                      |format|fprintf|fread|frewind|fscanf|fseek|ftell|fullfile|func2str|funccount|
+                      |funclist|fwrite|gcd|ge|genvarname|getenv|getfield|gt|help|hex2dec|horzcat|
+                      |hypot|i|imag|importdata|ind2sub|inf|input|inputdlg|intersect|inv|isbool|
+                      |iscell|iscellstr|ischar|iscomplex|isdir|isempty|isequal|isfield|isfinite|
+                      |isglobal|ishermitian|isinf|isletter|islogical|ismac|ismatrix|ismember|isnan|
+                      |isnumeric|ispc|isprime|isreal|isscalar|issorted|isspace|issquare|isstr|
+                      |isstruct|issymmetric|isunix|isvarname|isvector|j|kron|lasterr|lastwarn|ldivide|
+                      |le|length|linsolve|linspace|log|log10|log2|logical|logspace|lower|ls|lt|lu|
+                      |mat2cell|mat2str|max|memoryuse|meshgrid|min|minus|mislocked|mkdir|mldivide|
+                      |mlock|mod|mpower|mrdivide|msgbox|mtimes|munlock|nan|nargin|narginchk|
+                      |nargout|nargoutchk|ndims|ne|norm|normalize|not|num2str|numel|omlfilename|
+                      |ones|or|path|pathsep|pause|permute|pi|pinv|plus|pol2cart|poly|polyval|
+                      |pow2|power|primes|printf|prod|putenv|pwd|qr|questdlg|quit|rad2deg|rank|
+                      |rcond|rdivide|real|realmax|realmin|refcnt|regexp|regexprep|rem|rename|
+                      |repmat|reshape|restoredefaultpath|rmdir|rmfield|rmpath|rot90|round|run|
+                      |schur|setdiff|setenv|setfield|setxor|sign|sin|sind|sinh|size|sleep|
+                      |sort|sph2cart|sprintf|sqrt|sscanf|stderr|stdin|stdout|str2double|str2func|
+                      |str2num|strcat|strcmp|strcmpi|strfind|strjoin|strncmp|strncmpi|strrep|
+                      |strsplit|strtok|strtrim|struct|struct2cell|strvcat|sub2ind|subsasgn|
+                      |subsref|sum|svd|system|tan|tanh|textread|tic|times|toascii|toc|tolower|
+                      |toupper|trace|transpose|tril|triu|true|type|uigetdir|uigetfile|uiputfile|
+                      |uminus|union|unique|unix|uplus|upper|varlist|version|vertcat|warndlg|
+                      |warning|which|who|whos|zeros)\\b"
+
+        name: "entity.name.function.oml"
+      }      
+    ]    
+  keywords:
+    patterns: [
+      {
+        match: "\\b(?:function|struct|which|varargin|varargout|classdef)\\b"
+        name: "keyword.other.oml"
+      }
+      {
+        match: "\\b(?:if|while|for|switch|case|otherwise|else|elseif|try|catch)\\b"
+        name: "keyword.control.oml"
+      }
+      {
+        match: "\\b(?:return|break|continue|end)\\b"
+        name: "keyword.control.oml"
+      }
+      {
+        match: "\\b(?:global|persistent)\\b"
+        name: "storage.modifier.variable.oml"
+      }
+    ]
+  operators:
+    patterns: [
+      {
+        match: "(?:!=|==|>|<|<=|>=|~=)"
+        name: "keyword.operator.relation.oml"
+      }
+      {
+        match: "(?:\\|\\||&&)"
+        name: "keyword.operator.boolean.oml"
+      }
+      {
+        match: "(?::)"
+        name: "keyword.operator.range.oml"
+      }
+      {
+        match: "(?:\\||\\&|~)"
+        name: "keyword.operator.bitwise.oml"
+      }
+      {
+        match: "(?:\\+|-|\\*|/|\\\\|\\^)"
+        name: "keyword.operator.arithmetic.oml"
+      }
+      {
+        match: "(?:=)"
+        name: "keyword.operator.assignment.oml"
+      }
+    ]
+  strings:
+    patterns: [
+      {
+        begin: "'"
+        end: "'"
+        name: "string.quoted.single.oml"
+      }
+    ]
+
+

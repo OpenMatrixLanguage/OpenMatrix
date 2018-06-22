@@ -1,0 +1,4 @@
+a=@sin;
+b=@a;
+nargin(b)
+1+1

@@ -1,0 +1,6 @@
+n=4
+if n == 3 % We have a colour image
+a=4
+else
+a=5
+end

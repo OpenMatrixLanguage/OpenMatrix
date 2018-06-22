@@ -1,0 +1,7 @@
+a = struct [
+b: struct [
+c: 4
+]
+]
+ans = 4
+ans = 4

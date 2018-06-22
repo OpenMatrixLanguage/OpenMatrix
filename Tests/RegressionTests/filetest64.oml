@@ -1,0 +1,8 @@
+fname = 'FileManipulation/FileToWrite17.txt'
+fid = fopen(fname, 'w')
+fwrite(fid, 'test values', 'int')
+fclose(fid)
+fid = fopen(fname,'r')
+fread(fid, inf, 'int')
+fclose(fid)
+delete(fname)

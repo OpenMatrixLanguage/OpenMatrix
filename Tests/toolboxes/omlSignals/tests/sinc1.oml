@@ -1,0 +1,2 @@
+addtoolbox omlSignals
+x = sinc([-1:0.2:1])

@@ -1,0 +1,19 @@
+function out = unifcdf_ref(x,varargin)
+	if nargin == 1
+		a = 0;
+		b = 1;
+	elseif nargin == 2
+		a = varargin{1};
+		b = 1;
+	elseif nargin == 3
+		a = varargin{1};
+		b = varargin{2};
+	else
+		error('undesire input argument')
+	end
+	m = x <= a;
+	out(m) = 0;
+end
+ 
+ref = unifcdf_ref([-10:10])
+

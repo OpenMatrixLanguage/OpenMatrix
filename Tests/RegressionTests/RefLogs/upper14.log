@@ -1,0 +1,24 @@
+ans = 
+{
+  [1,1] 
+TE
+ST
+  [1,2] 
+TESTSTRIN
+GWITHMULT
+IPLECASES
+  [2,1] W
+  [2,2] W
+  [3,1] 
+  {
+    [1,1] |CF-
+    [2,1] ANOTHERSTRING
+    [3,1] 
+    {
+      [1,1] 
+AB
+CD
+    }
+  }
+  [3,2] 
+}

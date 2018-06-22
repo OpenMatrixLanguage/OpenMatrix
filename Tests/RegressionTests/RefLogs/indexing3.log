@@ -1,0 +1,4 @@
+=================
+(STATEMENT_LIST (= a (MATRIX (VECTOR 1 2 3) (VECTOR 4 5 6))) (= b (FUNC a (PARAM_LIST 0 0))))
+=================
+Evaluator result: Index out of range

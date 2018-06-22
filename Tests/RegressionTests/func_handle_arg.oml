@@ -1,0 +1,6 @@
+function z=test(f)
+z=f(4);
+end
+
+test(@sqrt)
+test(@(x) x*x)

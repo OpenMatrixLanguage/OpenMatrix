@@ -1,0 +1,1 @@
+[a,b,c]=union({'test1'},'test2')

@@ -1,0 +1,4 @@
+fname = 'FileManipulation/FileToRead.txt'
+fid = fopen(fname)
+fseek(fid, 0, 'badstring')
+fclose(fid)

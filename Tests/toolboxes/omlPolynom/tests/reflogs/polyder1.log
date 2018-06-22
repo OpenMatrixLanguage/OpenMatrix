@@ -1,0 +1,4 @@
+d = [Matrix] 1 x 3
+6  8  3
+ans = [Matrix] 1 x 3
+6  8  3

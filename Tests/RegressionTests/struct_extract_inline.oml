@@ -1,0 +1,4 @@
+﻿dep(1).name = {'Lily','Paul'};
+dep(2).name = {'Swith','Taul'};
+dep(3).name = {'Claire','Brian'};
+dep(1:2).name

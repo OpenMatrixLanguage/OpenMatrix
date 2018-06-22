@@ -1,0 +1,10 @@
+﻿global p;
+p = 3;
+
+function myfunc
+	global p;
+	z = @(x) x+p;
+	z(3)
+end
+
+myfunc

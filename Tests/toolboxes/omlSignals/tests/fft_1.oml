@@ -1,0 +1,59 @@
+addtoolbox omlSignals
+
+function FftTest1()
+	% define real signal
+	f1 = 62.5
+	f2 = 125
+	f3 = 250
+	omega1 = 2*pi*f1
+	omega2 = 2*pi*f2
+	omega3 = 2*pi*f3
+	phi1 = -pi / 6
+	phi2 = pi / 6
+	phi3 = pi / 3
+	fs = 1000
+	ts = 1/fs
+	n = 16
+	t = [0:ts:(n-1)*ts]
+	signal = 2.0*cos(omega1*t+phi1) + 4.0*cos(omega2*t+phi2) + 3.0*cos(omega3*t+phi3)
+
+	% analyze signal spectrum
+	freqRes = fft(signal) / n;
+
+	mag = abs(freqRes);
+	phase = angle(freqRes)*(180/pi);
+
+	if (abs(mag(2) - 1.0) > 1.0e-6)
+		disp ('FftTest1: fail')
+		return
+	end
+
+	if (abs(phase(2) + 30.0) > 1.0e-6)
+		disp ('FftTest1: fail')
+		return
+	end
+
+	if (abs(mag(3) - 2.0) > 1.0e-6)
+		disp ('FftTest1: fail')
+		return
+	end
+
+	if (abs(phase(3) - 30.0) > 1.0e-6)
+		disp ('FftTest1: fail')
+		return
+	end
+
+	if (abs(mag(5) - 1.5) > 1.0e-6)
+		disp ('FftTest1: fail')
+		return
+	end
+
+	if (abs(phase(5) - 60.0) > 1.0e-6)
+		disp ('FftTest1: fail')
+		return
+	end
+
+	disp ('FftTest1: pass')
+end
+
+FftTest1()

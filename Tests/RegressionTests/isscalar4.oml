@@ -1,0 +1,2 @@
+isscalar('test')
+islogical(ans)

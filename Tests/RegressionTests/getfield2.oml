@@ -1,0 +1,3 @@
+a.b=5;
+getfield(a,'b')
+getfield(a,'c')

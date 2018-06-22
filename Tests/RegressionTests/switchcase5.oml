@@ -1,0 +1,6 @@
+﻿function f(v)
+	switch(v)
+		case 1, disp(1);
+		otherwise, disp('not one');
+	end
+end

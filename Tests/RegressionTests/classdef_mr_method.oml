@@ -1,0 +1,32 @@
+﻿classdef Myclass_add
+   properties
+      MyData
+   end
+   methods
+      function obj = Myclass_add(val)
+         obj.MyData = val;
+      end
+      function r = plus(obj1,obj2)
+         a = double(obj1);
+         b = double(obj2);
+         r = Myclass(a + b);
+      end
+
+      function [lgn,tf] = lt(obj1,obj2)
+         if obj1.MyData < obj2.MyData
+            tf = true;
+			 lgn = obj2.MyData;
+         else
+            tf = false;
+			 lgn = obj1.MyData;
+         end
+      end
+   end
+end
+
+a = Myclass_add(5);
+ 
+b = Myclass_add(6);
+ 
+[lg,tf] = a.lt(b)
+ 

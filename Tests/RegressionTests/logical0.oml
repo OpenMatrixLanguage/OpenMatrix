@@ -1,0 +1,7 @@
+a=1:10
+b=ones(1,10)
+disp(a(b))
+b(3)=0
+b(8)=0
+c=logical(b)
+disp(a(c))

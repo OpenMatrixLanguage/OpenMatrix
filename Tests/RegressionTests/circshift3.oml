@@ -1,0 +1,3 @@
+﻿c = 'a longish string';
+circshift(c, 3)
+circshift(c, 3, 2)

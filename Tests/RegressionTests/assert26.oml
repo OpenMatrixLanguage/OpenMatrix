@@ -1,0 +1,2 @@
+assert({5,2i-9,1:6},{5,2i-9,1:6})
+disp('no crash')

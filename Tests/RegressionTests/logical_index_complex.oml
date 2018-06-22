@@ -1,0 +1,5 @@
+﻿r= [167;2.5+1i;2.5-1i;-0.1]; %e.g., array of roots
+logical_array = (r==conj(r)); %<---returns [1;0;0;1] as expected
+r(logical_array) %***doesn't work as expected --> r = 1 x 0 matrix
+r(~logical_array)
+r(logical(ones(4,1)))

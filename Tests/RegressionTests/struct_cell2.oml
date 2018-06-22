@@ -1,0 +1,9 @@
+﻿s.b = {1,2,3,4};
+s.b{1,5}.a = 'a';
+class(s)
+class(s.b)
+class(s.b(1,5))
+class(s.b{1,5})
+class(s.b{1,5}.a)
+s.b{1,5}.a 
+s.b(1,5).a 

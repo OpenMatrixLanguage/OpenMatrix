@@ -1,0 +1,4 @@
+function testfunc()
+disp('test')
+end
+type('testfunc')

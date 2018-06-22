@@ -1,0 +1,5 @@
+x='even longer test string'
+format('long')
+x
+format('short')
+x

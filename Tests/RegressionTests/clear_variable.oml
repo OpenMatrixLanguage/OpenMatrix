@@ -1,0 +1,3 @@
+sqrt = 5
+clear sqrt
+sqrt(4)

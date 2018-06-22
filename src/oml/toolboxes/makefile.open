@@ -1,0 +1,27 @@
+# ====================================================================
+# ====================================================================
+default: 
+	make -C omlMathUtils    -f makefile.open
+	make -C omlCalculus     -f makefile.open
+	make -C omlPolynom      -f makefile.open
+	make -C omlDiffEq       -f makefile.open
+	make -C omlOptimization -f makefile.open
+	make -C omlStatistics   -f makefile.open
+	make -C omlSignals      -f makefile.open
+	make -C omlCAE          -f makefile.open
+	make -C plot            -f makefile.open
+	make -C omlMatio        -f makefile.open
+	make -C omlpythonbridge -f makefile.open
+	
+clean:
+	make -C omlMathUtils    clean -f makefile.open
+	make -C omlCalculus     clean -f makefile.open
+	make -C omlPolynom      clean -f makefile.open
+	make -C omlDiffEq       clean -f makefile.open
+	make -C omlOptimization clean -f makefile.open
+	make -C omlStatistics   clean -f makefile.open
+	make -C omlSignals      clean -f makefile.open
+	make -C omlCAE          clean -f makefile.open
+	make -C plot            clean -f makefile.open
+	make -C omlMatio        clean -f makefile.open
+	make -C omlpythonbridge clean -f makefile.open

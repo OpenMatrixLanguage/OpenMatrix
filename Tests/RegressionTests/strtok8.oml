@@ -1,0 +1,1 @@
+[a,b]=strtok('HADWCO', [2i+3; 65; 87])

@@ -1,0 +1,16 @@
+function [q,z] = myfunc(a, varargin)
+  q=a;
+
+  if (min(size(varargin)) > 0)
+     q = varargin{max(size(varargin))};
+  end
+
+  z = 0;
+end
+
+myfunc(3)
+myfunc(3,4)
+myfunc(3,4,5,6)
+[a,b] = myfunc(3)
+[a,b] = myfunc(3,4)
+[a,b] = myfunc(3,4,5,6)

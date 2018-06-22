@@ -1,0 +1,6 @@
+﻿function [x,y] = goo(a,b)
+   x = a;
+   y = b;
+end
+
+[q, ~] = goo(3,4)

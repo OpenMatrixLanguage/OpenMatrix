@@ -1,0 +1,2 @@
+addtoolbox omlSignals
+w = chebwin(7,60,'periodic')

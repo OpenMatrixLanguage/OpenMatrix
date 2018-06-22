@@ -1,0 +1,7 @@
+﻿m = zeros(1,0);
+try
+	m(1) = 'test';
+catch
+   % do nothing
+end
+size(m)

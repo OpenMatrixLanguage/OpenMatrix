@@ -1,0 +1,8 @@
+a(1,1).coord = [1 1];
+a(1,1).value = 10;
+a(2,2).coord = [1 2];
+a(2,2).value = 100;
+a(2,3).coord = [0 1];
+a(2,3).value = 99;
+a(2,end).value
+a(end,2).value

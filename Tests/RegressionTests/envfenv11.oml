@@ -1,0 +1,6 @@
+function e1 = foo
+   e1 = getcurrentenv()
+end
+
+x = foo
+setenvvalue(x, 'a', 5)

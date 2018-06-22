@@ -1,0 +1,4 @@
+[sorted,index]= sort([3,4,2,1;5 3 2 9],2)
+sorted
+index
+

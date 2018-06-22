@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+expcdf(8i+7,[1 0 1 1; 2 12 2 2; 3 7 3 3; 4 -1 4 4])

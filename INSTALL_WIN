@@ -1,0 +1,227 @@
+Building OpenMatrix on Windows
+
+Structure the OpenMatrix and third-party directory structure as shown below:
+Working directory/
+/oss/
+    oml/
+        help/
+        src/
+        tests/
+        setpathr.bat
+    third_party/
+        ANTLR/
+            libantlr3c-3.4/
+        bost/
+            boost_1_64_0/
+        lapack/
+            lapack-3.7.1/
+ 
+The Visual Studio solution uses relative paths to header and library files, expecting the directory structure above.  Third-party version numbers will need to be updated in the solution and project files if they are different from those shown above.
+
+The makefiles use the environment variable OML_THIRDPARTY to reference the third-party directory. Third-party version numbers must be updated in the makefiles if different from those shown above.
+
+Download the OpenMatrix source code from Github.
+
+Follow the link below to download LAPACK source code to \oss\third_party\lapack.
+http://netlib.org/lapack/lapack.tgz
+
+Note:  The OpenMatrix Visual Studio solutions and makefiles expect a third-party directory structure as shown above. The software version numbers and directory names will change, and the makefiles and Visual Studio solutions will need to be updated accordingly.
+
+Extract the lapack.tgz file to your local drive. 
+This creates the lapack-3.7.1 directory with the LAPACK source code.
+
+In the Cmake build process described below, the LAPACK object files will be created in the “lapack-<version_number>-build” directory.
+
+Download and install the tools required to build LAPACK and BLAS.
+http://icl.cs.utk.edu/lapack-for-windows/lapack/
+
+http://icl.cs.utk.edu/lapack-for-windows/lapack/#build[FD1] 
+
+Download and install the current version of CMAKE:
+https://cmake.org/download/
+
+     2.  Follow the link below to download the current version of MinGW-w64:[FD2] 
+
+http://mingw-w64.sourceforge.net/
+
+     3.  To build LAPACK, you will need to add the mingw64/bin folder to the system path:
+
+C:\Program Files\mingw-w64\x86_64-7.1.0-posix-seh-rt_v5-rev2[FD3] \mingw64\bin
+
+Build LAPACK using Cmake and MinGW.
+Build LAPACK after MinGW and Cmake have been installed. 
+Run C:\cmake\bin\cmake-gui.exe.
+Specify the root directory where you have extracted lapack.tgz:
+C:/oss/third_party/lapack/lapack-3.7.1
+
+     4.  Specify a new directory where LAPACK and blas will be built:
+
+C:/oss/third_party/lapack/lapack-3.7.1-build
+The OpenMatrix make files and Visual Studio solutions are configured to expect the blas/LAPACK binary files to be in this directory.
+
+Refer to this website for additional instructions:  http://icl.cs.utk.edu/lapack-for-windows/lapack/
+
+     5.  Click Configure.
+
+You will need to click configure several times during this process.  New options in red will be displayed after the first few clicks.  See below for options requiring attention.  Most of the options in red are resolved by the next Configure click.
+
+     6.  Specify the Fortran Compiler.
+
+"C:\Program Files\mingw-w64\x86_64-7.1.0-posix-seh-rt_v5-rev2\mingw64\bin\gfortran.exe"
+
+     7.  Specify the C Compiler (For BLAS/LAPACK build, the C compiler is not used and not required)
+
+     8.  Specify the C++ Compiler (For BLAS/LAPACK build, the C++ compiler is not used and not required)
+
+     9.  Click Finish.
+
+    10. Specify CMAKE_SH to reference the Cmake directory (not Cygwin).
+
+C:\cmake\bin\cmake.exe
+
+     11. Specify CMAKE_MAKE_PROGRAM (in the MinGW installations’ bin folder)
+
+mingw32-make.exe
+
+CMAKE_Fortran_Compiler should already be set to the file specified above.
+
+     12. Click Configure.
+
+     13. Activate the BUILD_SHARED_LIBS option.
+
+     14. Activate the CMAKE_GNUtoMS option.
+
+     15. Click Configure until red items have cleared. 
+
+     16. Click Generate after the Configure process is finished (no more options displayed in red).
+
+     17. Exit the Cmake program when the Cmake process is completed.
+
+     18. Open the command prompt and make sure the following are in the system path (versions may vary).
+
+c:\cmake\bin;
+
+c:\Program Files\mingw-w64\x86_64-7.1.0-posix-seh-rt_v5-rev2\mingw64\bin
+
+     19. Make sure there are no Cygwin directories in your system path or that Cygwin directories exist after the mingw64 directory.
+
+     20. Change the directory to point to where the binaries will be created. This is the directory where the OpenMatrix makefiles and Visual Studio solutions are setup to find blas and LAPACK files.
+
+c:\oss\third_party\lapack\lapack-3.7.1-build
+
+     21. Run the following command to create blas and LAPACK files.
+
+mingw32-make.exe -f Makefile
+
+This make takes 20-30 minutes.
+
+     22. The required DLL files are created.
+
+libblas.dll
+
+liblapack.dll
+
+libtmglib.dll
+
+Download the ANTLR source code and build ANTLR library files.
+Download and unzip the ANTLR 'C' file to the /oss/third_party/ANTLR directory.
+http://www.antlr3.org/download/C/
+
+http://www.antlr3.org/download/C/libantlr3c-3.4.tar.gz
+
+This will create the libantlr3c-3.4 directory.
+
+     2.  In the directory C:\oss\third_party\ANTLR\libantlr3c-3.4, use Visual Studio 2015 to open the C.sln file and build the ANTLR files.
+
+     3.  Build the ANTLR C.sln project.
+
+The release build creates C:\oss\third_party\ANTLR\libantlr3c-3.4\x64\Release\antlr3c.lib.
+
+Download the BOOST source code.
+Download and unzip the boost_1_64_0.tar.gz source code to the \oss\third_party/boost directory.
+http://www.boost.org/
+
+https://dl.bintray.com/boostorg/release/1.64.0/source/
+
+This creates the boost_1_64_0 directory (or version downloaded) with the boost source code.
+
+Build OpenMatrix source code using the Visual Studio 2015 solution.
+Open Visual Studio solution and build the project.
+Update the mathkernel project Linker [CB1] [FD2] “Additional Library Directories” to specify the third-party ANTLR and LAPACK versions.
+Update the OpenMatrix project C/C++ “Additional Include Directories” to specify the ANTLR and boost versions.
+Update the OpenMatrix project Linker “Additional Library Directories” to specify the third-party ANTLR and LAPACK versions.
+Download and install Cygwin64
+Note: The Cygwin make is required for a Windows command line make[FD1] .  Perl is required for the developer regression tests and can be installed with Cygwin.
+
+From this page, https://cygwin.com/install.html, run setup-x86_64.exe to update or install a Cygwin package for Windows 64-bit.
+Run the installation a second time and select the following options:
+View: Category
+Select: Devel
+Select: make: The GNU version of the ‘make’ utility required for the Windows command line make.
+Select: perl, which is required for the developer regression tests.
+The installation directory specified for Cygwin must be added to the system path for the OpenMatrix command line make and developer regression tests.
+
+Build OpenMatrix source code the using command line make.
+Open a command prompt using the Visual Studio shortcut "VS2015 x64 Native Tools Command Prompt (for Visual Studio 2015)"
+Verify the following directories are in the system path (version may be different):
+C:\oss\third_party\lapack\lapack-3.7.1-build\bin
+
+Cygwin directory specified during the Cygwin installation.
+
+Note:  The MinGW directory is not required in the system path to build OpenMatrix.  The MinGW directory is required in the system path run omlconsole.[FD1] 
+
+     3.  Set the following environment variables:
+
+OML_ROOT=/oss/oml
+
+OML_THIRDPARTY=/oss/third_party
+
+OML_PYTHONHOME=c:/Python36  (use here the actual path to your Python installation)
+
+OML_PYTHONVERSION=python36  (or the actual Python version you use)
+
+OML_PYTHON_NUMPYDIR=%OML_PYTHONHOME%/Lib/site-packages/numpy/core/include/numpy
+
+     4.  Run the Cygwin make command:
+
+make -f Makefile.open
+
+Run omlconsole from the command prompt.
+Verify that the following directories are in the system path, (version may be different):
+C:\oss\third_party\lapack\lapack-3.7.1-build\bin
+
+"C:\Program Files\mingw-w64\x86_64-7.1.0-posix-seh-rt_v5-rev2\mingw64\bin”
+
+C:\oss\oml\src\bin\win64
+
+      2.  Set the following environment variables:
+
+OML_ROOT=/oss/oml
+
+OML_THIRDPARTY=/oss/third_party
+
+      3.  Type the following to launch the omlconsole program:
+
+omlconsole
+
+Run omlconsole developer regression tests.
+See the section above for system path and environment variable requirements.  You must be able to run omlconsole to run the regression tests.
+Additionally, Perl must be in the system path and can be included with the Cygwin installation as described previously.
+Change the directory to the following:
+cd %OML_ROOT:/=\%\tests\regressiontests
+
+     4.  Run the following command to launch the Perl script
+
+..\regressOMLConsole.pl
+
+     5.  Run the OpenMatrix regression test using omlconsole in the path:
+
+C:\oss\oml\src\bin\win64\omlconsole.exe
+
+     6.  At the conclusion, a summary count of successful and failed regression tests are displayed; failed tests will be listed by name.
+
+Running abs1.oml ... :: abs1.oml PASSED
+
+Running abs2.oml ... :: abs2.oml PASSED
+
+Running abs3.oml ... :: abs3.oml PASSED

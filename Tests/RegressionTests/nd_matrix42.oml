@@ -1,0 +1,6 @@
+m(:,:,:,1) = [1 2 3]
+sz=size(m)
+% result does not agree with Octave, but may be better.
+% all of these should be the same?
+% m(:,:,1,1) = [1 2 3]
+% m(:,:,:,:) = [1 2 3]

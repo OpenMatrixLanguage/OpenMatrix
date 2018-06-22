@@ -1,0 +1,40 @@
+# ====================================================================
+# OpenMatrix math/mathutils makefile
+# ====================================================================
+PROJ := hwmathutils
+
+UNAME := $(shell uname)
+ifneq (,$(findstring NT,$(UNAME)))
+   TARGET = $(BINDIR)/$(PROJ).dll
+else
+   TARGET = $(BINDIR)/lib$(PROJ).so
+endif
+
+include $(OML_ROOT)/src/makebase.cfg
+
+
+# ====================================================================
+SOURCES += $(wildcard _private/*.cxx)
+OBJECTS = $(foreach file,$(SOURCES),$(addprefix $(PLATFORM)/,$(addsuffix .o,$(basename $(notdir $(file))))))
+vpath %.cxx _private
+
+CXX_DEFINES += -DMATHUTILS_EXPORTS
+
+CXX_INCLUDES += -I. $(HWMATHKERNEL_INC)
+
+LIBS += $(MATHKERNEL_LIBS)
+
+# ====================================================================
+
+$(PLATFORM)/%.o : %.cxx $(objdir)
+	$(compile-cxx)
+
+$(TARGET) : $(OBJECTS)
+	$(build-shared-lib)
+
+clean::
+	-$(RM) -rf $(TARGET)
+	-$(RM) -rf $(PLATFORM)
+	-$(RM) -rf $(BINDIR)/$(PROJ).*
+	-$(RM) -rf $(LIBDIR)/$(PROJ).*
+

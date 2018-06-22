@@ -1,0 +1,1 @@
+[a,b]=strtok(['abcdef';'ghijkl'],'i')

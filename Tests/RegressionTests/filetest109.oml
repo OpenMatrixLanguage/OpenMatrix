@@ -1,0 +1,10 @@
+fname = 'FileManipulation/FileToWrite40.txt'
+fid = fopen(fname, 'w+')
+fwrite(fid, [221], 'char')
+fflush(fid)
+frewind(fid)
+fread(fid)
+frewind(fid)
+fread(fid, inf, 'char*1')
+fclose(fid)
+delete(fname)

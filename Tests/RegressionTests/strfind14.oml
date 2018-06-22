@@ -1,0 +1,1 @@
+strfind('aaaa','','overlaps',false)

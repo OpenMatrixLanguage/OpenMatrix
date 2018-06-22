@@ -1,0 +1,3 @@
+sys.num ={[1 2 3]};
+N = sys.num{1} 
+P = sys.num(1)

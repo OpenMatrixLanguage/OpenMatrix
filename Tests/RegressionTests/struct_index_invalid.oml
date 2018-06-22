@@ -1,0 +1,2 @@
+﻿sinks = struct(); 
+sinks('Actuator') = struct('cat', 'SignalExporters');

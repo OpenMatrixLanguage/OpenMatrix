@@ -1,0 +1,3 @@
+addToolbox omlPolynom
+
+interp1(-10i+8,12i+0.5,2i+5)

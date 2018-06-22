@@ -1,0 +1,2 @@
+﻿mystruct.field1 = 'hml';
+mystruct.field2{1} = 'hml'

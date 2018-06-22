@@ -1,0 +1,9 @@
+addtoolbox omlOptimization
+
+function y = func(x)
+    y = (x-3)^4 - 16;
+end
+
+interval = [1, 6];
+options = optimset('TolX', 1.0e-8);
+[x,fval] = fzero(@func, interval, options)

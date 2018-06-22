@@ -1,0 +1,8 @@
+addtoolbox('omlStatistics')
+lambda = 5;
+rand('seed', 2003);
+rnd1 = poissrnd(lambda)
+
+r = 1;
+c = 5;
+rnd = poissrnd(lambda,r,c)

@@ -1,0 +1,23 @@
+
+% OML - Example of polynomial fit on data
+
+% Create and plot polynomial test data with noise
+
+x = [-2:0.05:2];
+n = length(x);
+rand('seed', 2018);
+y = 5*(x.^3) - 3*(x.^2) + 4*x - 2 + normrnd(0,5,1,n);
+
+scatter(x, y);
+hold on
+
+
+% Find the polynomial (p) for the fitted curve
+
+[p,s] = polyfit(x, y, 3);
+
+
+% Plot fitted curve (p)
+
+y = polyval(p,x);
+plot(x, y);

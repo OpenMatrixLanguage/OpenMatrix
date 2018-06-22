@@ -1,0 +1,3 @@
+a.b=5
+a.c=7
+fieldnames(a)

@@ -1,0 +1,1 @@
+strfind('aaabbaa',{'aa','a'},'overlaps',false)

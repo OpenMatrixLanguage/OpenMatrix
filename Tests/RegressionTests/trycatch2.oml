@@ -1,0 +1,11 @@
+function [x,y] = myfunc(a,b)
+   nargoutchk(1,2)
+   x = a+b;
+   y = a-b;
+end
+
+try
+	myfunc(9, 99)
+catch
+	disp('Not enough outputs')
+end

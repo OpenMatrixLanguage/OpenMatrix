@@ -1,0 +1,1 @@
+Error: invalid input type; must be scalar, complex, or a matrix in call to function conj at line number 1 in file conj6.oml

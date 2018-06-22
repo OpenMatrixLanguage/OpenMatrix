@@ -1,0 +1,2 @@
+a = [Inf, -1, 2, NaN, 4, Inf, Inf, 10, NaN, NaN, 8, Inf, 12, 1, NaN, NaN];
+[b, idx] = sort(a, 'descend')

@@ -1,0 +1,8 @@
+r = 2
+r = 1 + 1i
+r = [Matrix] 1 x 2
+1  4
+r = [Matrix] 2 x 1
+1
+9
+r = 2 + 1i

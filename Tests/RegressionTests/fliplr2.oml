@@ -1,0 +1,2 @@
+x = [1 i]
+flippedx = fliplr(x)

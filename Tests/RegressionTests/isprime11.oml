@@ -1,0 +1,2 @@
+isprime([-2.1,9;57,51])
+islogical(ans)

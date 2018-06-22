@@ -1,0 +1,21 @@
+addtoolbox omlSignals
+
+% define and plot test signal
+n = 256;			% number of points
+fs = 512;			% sampling frequency
+ts = 1/fs;			% sampling time
+t = [0:1:(n-1)]*ts;
+f1 = 20;			% signal component frequency
+f2 = 48;			% signal component frequency
+omega1 = 2*pi*f1;
+omega2 = 2*pi*f2;
+signal1 = 6 + 10*cos(omega1*t+pi/6) + 8*cos(omega2*t+pi/3);
+signal2 = 4 + 6*cos(omega1*t+pi/6) + 10*cos(omega2*t+pi/3);
+
+%cpsd(signal1, signal2, window, overlap, fftSize, sampFreq, sideOpt)
+overlap = 64;
+mask = 1000000;
+
+window = hann(128, 'periodic');
+[Pxy,f] = cpsd(signal1, signal2, window, overlap, [], fs, 'twosided');
+round(mask*Pxy([1,2,3,5,6,7,8,12,13,14])')/mask

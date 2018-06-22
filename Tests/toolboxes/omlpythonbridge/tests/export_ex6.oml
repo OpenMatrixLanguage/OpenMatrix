@@ -1,0 +1,4 @@
+addtoolbox omlpythonbridge
+disp('exporting cell data')
+opcell = {'aa','bb','cc','dd'};
+[status, errorMessage] = exporttopython(opcell,'opcell')

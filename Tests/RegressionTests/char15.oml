@@ -1,0 +1,1 @@
+M = isempty(char(zeros(0,3)))

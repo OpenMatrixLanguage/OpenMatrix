@@ -1,0 +1,18 @@
+function h(work)
+    importenv(work);
+    disp(A)
+    disp(B)
+end
+
+function g(work)
+    importenv(work);
+    B=5;
+    h(getcurrentenv());
+end
+
+function f()
+    A=3;
+    g(getcurrentenv())
+end
+
+f(); 

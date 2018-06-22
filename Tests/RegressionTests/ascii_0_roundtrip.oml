@@ -1,0 +1,4 @@
+﻿a = [65 0 66];
+b = char(a)
+c = toascii(b)
+a == c

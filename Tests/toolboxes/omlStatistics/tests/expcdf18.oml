@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+expcdf([1 2 3 4],[2 5; 3 8; 4 11; 5 14])

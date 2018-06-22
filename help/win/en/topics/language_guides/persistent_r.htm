@@ -1,0 +1,56 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Persistent" /><meta name="abstract" content="The persistent keyword is used to declare a variable as persistent. A persistent variable is local to a function (like a normal variable), but its value is retained between function calls. It is initialized to an empty matrix." /><meta name="description" content="The persistent keyword is used to declare a variable as persistent. A persistent variable is local to a function (like a normal variable), but its value is retained between function calls. It is initialized to an empty matrix." /><meta name="indexterms" content="persistent" /><meta name="DC.subject" content="persistent" /><meta name="keywords" content="persistent" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/workspace_scoping_rules_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/workspace_scoping_rules_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/global_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_spt_vxl_vt" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>Persistent</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_spt_vxl_vt">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language.">Scripting Guide for OpenMatrix Language</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/workspace_scoping_rules_r.htm" title="There are two types of workspaces: Local and Global.">Workspace and Scoping Rules</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../topics/language_guides/workspace_scoping_rules_r.htm" title="There are two types of workspaces: Local and Global."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Workspace and Scoping Rules</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">Persistent</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">The persistent keyword is used to declare a variable as persistent. A persistent
+    variable is local to a function (like a normal variable), but its value is retained between
+    function calls. It is initialized to an empty matrix.</p>
+
+    <section class="section">
+      <pre class="pre codeblock"><code>function c=counter
+      persistent count
+      if isempty(count)
+            count = 1
+      else
+            count = count+1
+      end
+      c=count
+end
+counter()
+counter()
+counter()
+disp(counter())</code></pre>
+      <p class="p">The value of printed out by this code snippet is 4.</p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/workspace_scoping_rules_r.htm" title="There are two types of workspaces: Local and Global.">Workspace and Scoping Rules</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/global_r.htm" title="The global keyword is used to declare a variable as being in the global scope – that is, always visible and changeable. The variable must be declared as global in each context in which it is used.">Global</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../topics/language_guides/workspace_scoping_rules_r.htm" title="There are two types of workspaces: Local and Global."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Workspace and Scoping Rules</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

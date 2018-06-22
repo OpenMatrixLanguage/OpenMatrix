@@ -1,0 +1,5 @@
+b = AB
+c = [Matrix] 1 x 3
+65  0  66
+ans = [Matrix] 1 x 3
+1  1  1

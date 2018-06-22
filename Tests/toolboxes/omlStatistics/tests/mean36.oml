@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+mean([2i+3,4+2i,9;9i,1+2i,3+2i],'g')

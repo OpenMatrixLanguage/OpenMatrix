@@ -1,0 +1,4 @@
+addpath('functions')
+myfunc(3)
+rmpath('functions')
+myfunc(3)

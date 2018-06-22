@@ -1,0 +1,40 @@
+9
+16
+in_value = 4
+this = struct [
+GetX: anonymous
+SetX: anonymous
+x: new_x = 11
+]
+ans = anonymous
+ans = anonymous
+inst = struct [
+GetX: anonymous
+SetX: anonymous
+x: new_x = 11
+]
+in_value = 5
+this = struct [
+GetX: anonymous
+SetX: anonymous
+x: in_value = 5
+]
+ans = anonymous
+ans = anonymous
+inst2 = struct [
+GetX: anonymous
+SetX: anonymous
+x: in_value = 5
+]
+z = 4
+ans = 4
+z = 5
+ans = 5
+new_x = 11
+z = 0
+ans = 0
+ans = 0
+z = 11
+ans = 11
+z = 5
+ans = 5

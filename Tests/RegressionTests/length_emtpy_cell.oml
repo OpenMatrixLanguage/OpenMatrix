@@ -1,0 +1,3 @@
+﻿a = struct;
+b = fieldnames(a);
+length(b)

@@ -1,0 +1,7 @@
+warning('aaa')
+
+function myfunc()
+	warning('bbb')
+end
+
+myfunc()

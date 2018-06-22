@@ -1,0 +1,3 @@
+﻿s.location = {1,2,3,ones(5)};
+s.location{1,5}.a = 'a'
+s.location{1,5}.b = 'b'

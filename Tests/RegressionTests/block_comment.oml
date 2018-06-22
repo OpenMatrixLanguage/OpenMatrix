@@ -1,0 +1,6 @@
+a=1;
+%{ this is
+ a multi line
+comment %} b = 2
+a
+c='%{ hi %}'

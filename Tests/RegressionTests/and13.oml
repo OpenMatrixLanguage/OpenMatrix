@@ -1,0 +1,12 @@
+m1(:,:,1) = [true,  true,  true;  false, false, false];
+m1(:,:,2) = [false, false, false; true,  true,  true ];
+m1(:,:,3) = [true,  false, true;  false, true,  false];
+m1(:,:,4) = [true,  true,  false; true,  false, false];
+
+m2(:,:,1) = [true,  true,  false; true,  false, false];
+m2(:,:,2) = [true,  false, true;  false, true,  false];
+m2(:,:,3) = [false, false, false; true,  true,  true ];
+m2(:,:,4) = [true,  true,  true;  false, false, false];
+
+and(m1, m2)
+islogical(ans)

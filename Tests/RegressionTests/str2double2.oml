@@ -1,0 +1,1 @@
+[num, status]=str2double({'2'})

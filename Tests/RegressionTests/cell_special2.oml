@@ -1,0 +1,10 @@
+function z=goo(a,b,c)
+   z=a;
+   if (nargin > 2)
+      z=a+b+c;
+   end
+end
+
+a={1,2};
+goo(0, a{:})
+goo(a{:}, 3)

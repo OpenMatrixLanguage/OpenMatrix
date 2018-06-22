@@ -1,0 +1,12 @@
+function[returns]=returnIn(a)
+	for j=1:10
+		if a < 5
+			returns = j
+			a=a+1
+		else
+			return
+		end
+    end
+end
+
+b = returnIn(2)

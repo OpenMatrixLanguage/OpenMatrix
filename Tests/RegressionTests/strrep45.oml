@@ -1,0 +1,1 @@
+strrep({'aaabbba','bbaabb';'abba','baab'},{'aa';'bb'},{'cc';'e'})

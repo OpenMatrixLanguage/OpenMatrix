@@ -1,0 +1,1 @@
+Error: string inputs must be 1 dimensional; use a cell array for multiple strings in call to function genvarname at line number 1 in file genvarname10.oml

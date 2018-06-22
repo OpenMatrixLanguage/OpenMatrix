@@ -1,0 +1,264 @@
+function failprint(msg)
+    if msg
+        disp('msg')
+    end
+end
+
+function runtest(varargin)
+	disp('')
+	len = length(varargin)
+	if len == 1
+		[signal, err] = feval(arg{1})
+		if (~signal)
+            failprint(err)
+        end
+	else
+		[signal, err] = feval(arg{1}, arg{2})
+		if (~signal)
+            failprint(err)
+        end
+	end
+	disp('')
+end
+
+function assertCheckAlmostEqual(varargin)
+
+    function r = assertCompare(computedValues , expectedValues , relativeTolerance , absoluteTolerance , comparisonType)
+
+        function [idxPositiveInf, idxNegativeInf, idxNaN, idxFiniteValues, finiteValues] = getnonfiniteindices(x)
+
+           if isempty(x)
+                return
+            end
+
+            idxPositiveInf = find(isinf(x) && x > 0);
+            idxNegativeInf = find(isinf(x) && x < 0);
+            idxNaN = find(isnan(x));
+
+            r1 = ~isinf(x);
+            r2 = ~isnan(x);
+            r3 = r1 & r2;
+
+            idxFiniteValues = find(r3);
+            if ~isempty(idxFiniteValues)
+                finiteValues = x(idxFiniteValues);
+            end
+        end
+
+        % it could be optimized
+        function rr = bAND(x)
+            rr = 0;
+            if isempty(x)
+                return;
+            else
+                for k = 1:length(x)
+                    if ~isequal(x(k), 1)
+                        rr = 0;
+                        return;
+                    end
+                end
+            end
+            rr = 1;
+        end
+
+        if isempty(computedValues) && isempty(expectedValues)
+            r = 1;
+            return;
+        end
+
+        [idxComputedPositiveInfiniteValues , idxComputedNegativeInfiniteValues , idxComputedNaNValues , idxComputedFiniteValues , ComputedFiniteValues] = getnonfiniteindices(computedValues);
+        [idxExpectedPositiveInfiniteValues , idxExpectedNegativeInfiniteValues , idxExpectedNaNValues , idxExpectedFiniteValues , ExpectedFiniteValues] = getnonfiniteindices(expectedValues);
+
+        sameValues = 0;
+        if ~isequal(idxExpectedFiniteValues, idxExpectedFiniteValues)
+            r = sameValues;
+            return;
+        end
+
+        if isequal(comparisonType,'matrix')
+            sameValues = (norm(ComputedFiniteValues - ExpectedFiniteValues) <= relativeTolerance * max(norm(ExpectedFiniteValues), norm(ComputedFiniteValues)) + absoluteTolerance);
+        else
+            if isempty(ComputedFiniteValues) && isempty(ExpectedFiniteValues)
+                sameValues = 1;
+            else
+                if ~isempty(ComputedFiniteValues) && isempty(ExpectedFiniteValues)
+                    sameValues = 0;
+                else
+                    if isempty(ComputedFiniteValues) && ~isempty(ExpectedFiniteValues)
+                        sameValues = 0;
+                    else
+                        entries = (abs(ComputedFiniteValues - ExpectedFiniteValues) <= relativeTolerance * max(abs(ExpectedFiniteValues), abs(ComputedFiniteValues)) + absoluteTolerance);
+                        sameValues = bAND(entries);
+                    end
+                end
+            end
+        end
+
+        q = 0;
+        if isempty(idxComputedPositiveInfiniteValues) && isempty(idxExpectedPositiveInfiniteValues)
+            q = 1;
+        else
+            if (isequal(size(idxComputedPositiveInfiniteValues), size(idxExpectedPositiveInfiniteValues)))
+                q = isequal(idxComputedPositiveInfiniteValues,idxExpectedPositiveInfiniteValues) * 1;
+            else
+                q = 0;
+            end
+        end
+
+        v = 0;
+        if isempty(idxComputedNegativeInfiniteValues) && isempty(idxExpectedNegativeInfiniteValues)
+            v = 1;
+        else
+            if (isequal(size(idxComputedNegativeInfiniteValues), size(idxExpectedNegativeInfiniteValues)))
+                v = isequal(idxComputedNegativeInfiniteValues,idxExpectedNegativeInfiniteValues) * 1;
+            else
+                v = 0;
+            end
+        end
+
+        s = 0;
+        if isempty(idxComputedNaNValues) && isempty(idxExpectedNaNValues)
+            s = 1;
+        else
+            if (isequal(size(idxComputedNaNValues), size(idxExpectedNaNValues)))
+                s = isequal(idxComputedNaNValues,idxExpectedNaNValues) * 1;
+            else
+                s = 0;
+            end
+        end
+
+        r = (sameValues & q & v & s);
+        return
+    end
+
+    errmsg = 'assertCheckAlmostEqual: case not managed.';
+
+    nargin = length(varargin);
+
+    if nargin < 2 || nargin > 5
+        error('assertCheckAlmostEqual: Wrong number of input argument(s).');
+    end
+
+    computedValues = varargin{1};
+    expectedValues = varargin{2};
+    if nargin > 2
+        relativeTolerance = varargin{3};
+        if ~ismatrix(relativeTolerance)
+            error('assertCheckAlmostEqual: Wrong type for input argument #3: real scalar expected.');
+        end
+        if isempty(relativeTolerance)
+            relativeTolerance = sqrt(eps());
+        else
+            if ~isscalar(relativeTolerance)
+                error('assertCheckAlmostEqual: Wrong size for input argument #3: real scalar expected.');
+            else
+                if iscomplex(relativeTolerance)
+                    error('assertCheckAlmostEqual: Wrong type for input argument #3: real scalar expected.');
+                else
+                    relativeTolerance = relativeTolerance(1);
+                    if relativeTolerance < 0
+                        error('assertCheckAlmostEqual: Wrong value for input argument #3: Must be > 0.');
+                    end
+                end
+            end
+        end
+    else
+        relativeTolerance = sqrt(eps());
+    end
+
+    if nargin > 3
+        absoluteTolerance = varargin{4};
+        if ~ismatrix(absoluteTolerance)
+            error('assertCheckAlmostEqual: Wrong type for input argument #4: real scalar expected.');
+        end
+        if isempty(absoluteTolerance)
+            absoluteTolerance = 0;
+        else
+            if ~isscalar(absoluteTolerance)
+                error('assertCheckAlmostEqual: Wrong size for input argument #4: real scalar expected.');
+            else
+                if iscomplex(absoluteTolerance)
+                    error('assertCheckAlmostEqual: Wrong type for input argument #4: real scalar expected.');
+                else
+                    absoluteTolerance = absoluteTolerance(1);
+                    if absoluteTolerance < 0
+                        error('assertCheckAlmostEqual: Wrong value for input argument #4: positive value expected.');
+                    end
+                end
+            end
+        end
+    else
+        absoluteTolerance = 0;
+    end
+
+    % default value is 'element'
+    if nargin > 4
+        comparisonType = varargin{5};
+        if ismatrix(comparisonType) && isempty(comparisonType)
+            comparisonType = 'element';
+        else
+            if ~isstr(comparisonType)
+                error('assertCheckAlmostEqual: Wrong type for input argument #5: string expected.');
+            end
+            if ~strcmp(comparisonType, 'element') && ~strcmp(comparisonType, 'matrix')
+                error('assertCheckAlmostEqual: Wrong value for input argument #5: "element" or "matrix" expected.');
+            end
+        end
+    else
+        comparisonType = 'element';
+    end
+
+    % strings
+    if isstr(computedValues) && isstr(expectedValues)
+        if ~isequal(computedValues, expectedValues)
+            errmsg = strcat('assertCheckAlmostEqual: Assertion failed: actual = "', computedValues, '" while expected = "', expectedValues, '"');
+            error(errmsg);
+        else
+            return;
+        end
+    end
+
+    % boolean
+    if islogical(computedValues) && islogical(expectedValues)
+        if ~isequal(computedValues, expectedValues)
+            errmsg = strcat('assertCheckAlmostEqual: Assertion failed: actual = ', num2str(computedValues), ' while expected = ', expectedValues);
+            error(errmsg);
+        else
+            return;
+        end
+    end
+    
+    % 'matrix' it is currently the only available type for hml
+    if ~(ismatrix(expectedValues) && ismatrix(computedValues))
+        error('assertCheckAlmostEqual: Invalid input arguments #1 and #2: same types expected.');
+    end
+
+    [rcomputed, ccomputed] = size(computedValues);
+    [rexpected, cexpected] = size(expectedValues);
+
+    if ~isequal(rcomputed, rexpected) || ~isequal(ccomputed, cexpected)
+        error('assertCheckAlmostEqual: Invalid input arguments #1 and #2: same sizes expected.')
+    end
+
+    if (isempty(computedValues) && ~isempty(expectedValues)) || (~isempty(computedValues) && isempty(expectedValues))
+        error('assertCheckAlmostEqual: Invalid input arguments #1 and #2: same sizes expected.')
+    end
+
+    if isempty(computedValues) && isempty(expectedValues)
+        return;
+    end
+
+    if assertCompare(real(computedValues), real(expectedValues), relativeTolerance, absoluteTolerance ,comparisonType)
+        samematrices = assertCompare(imag(computedValues), imag(expectedValues), relativeTolerance, absoluteTolerance ,comparisonType);
+    else
+        samematrices = 0;
+    end
+
+    if samematrices == 1
+        return;
+    else
+        errmsg = 'assertCheckAlmostEqual: Assertion failed: matrix expected and actual are different.';
+        error(errmsg);
+    end
+end
+%=============================================================================

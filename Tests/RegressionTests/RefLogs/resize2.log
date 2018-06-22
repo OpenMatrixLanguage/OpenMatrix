@@ -1,0 +1,9 @@
+c = [Matrix] 0 x 0
+d = [Matrix] 0 x 0
+c = [Matrix] 2 x 2
+0  0
+0  2
+[Matrix] 2 x 2
+0  0
+0  2
+[Matrix] 0 x 0

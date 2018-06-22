@@ -1,0 +1,16 @@
+addToolbox omlStatistics
+addpath('.');
+run('test_setup')
+
+rand('seed', 2017)
+m = rand(3);
+v = rand('state');
+a = rand(3)
+m = rand(10);
+
+rand('state', v)
+b = rand(3)
+
+assertCheckAlmostEqual(a,b,0,1e-10)
+
+disp('TEST PASSED')

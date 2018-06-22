@@ -1,0 +1,3 @@
+﻿s = struct ('a', 42);
+t = struct ('sub', s);
+disp (t.sub ('a'));

@@ -1,0 +1,3 @@
+A = [1 2 3 4];
+idx = find(A== 5);
+A(idx:end)

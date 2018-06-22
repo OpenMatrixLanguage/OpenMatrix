@@ -1,0 +1,50 @@
+ans = 
+slice(:, :, 1) = 
+[Matrix] 1 x 4
+211  221  231  241
+
+slice(:, :, 2) = 
+[Matrix] 1 x 4
+212  222  232  242
+
+slice(:, :, 3) = 
+[Matrix] 1 x 4
+213  223  233  243
+
+slice(:, :, 4) = 
+[Matrix] 1 x 4
+214  224  234  244
+
+slice(:, :, 5) = 
+[Matrix] 1 x 4
+215  225  235  245
+ans = 
+slice(:, :, 1) = 
+[Matrix] 3 x 1
+126
+226
+326
+
+slice(:, :, 2) = 
+[Matrix] 3 x 1
+127
+227
+327
+
+slice(:, :, 3) = 
+[Matrix] 3 x 1
+128
+228
+328
+
+slice(:, :, 4) = 
+[Matrix] 3 x 1
+129
+229
+329
+
+slice(:, :, 5) = 
+[Matrix] 3 x 1
+130
+230
+330

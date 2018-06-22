@@ -1,0 +1,11 @@
+global a 
+global b
+
+a = 5
+b = 3
+
+clear('global', 'b')
+isglobal('a')
+isglobal('b')
+a
+b

@@ -1,0 +1,7 @@
+﻿function y=f1(x)
+	y='This is a ''test''.'
+end
+
+ast('f1')
+
+

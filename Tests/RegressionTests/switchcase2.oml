@@ -1,0 +1,12 @@
+a='hello'
+switch a
+  case 'bye'
+    b=2
+  case 'hello'
+    b=11
+  case 'seeya'
+    b=9
+  otherwise
+    b=7
+end
+b

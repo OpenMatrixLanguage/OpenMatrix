@@ -1,0 +1,11 @@
+work=getnewenv();
+setenvvalue(work, 'A', 1)
+setenvvalue(work, 'B', 3)
+
+function f(work)
+	importenv(work);
+	A
+	B
+end
+
+f(work)

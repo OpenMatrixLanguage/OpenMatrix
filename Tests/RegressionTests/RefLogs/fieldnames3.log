@@ -1,0 +1,12 @@
+a = struct [
+b: 5
+]
+a = struct [
+b: 5
+c: 7
+]
+ans = 
+{
+  [1,1] b
+  [2,1] c
+}

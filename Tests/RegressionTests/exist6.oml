@@ -1,0 +1,7 @@
+exist('a')
+a=5;
+exist('a')
+exist('cos', 'var')
+exist('cos', 'builtin')
+exist(pwd)
+exist(omlfilename('fullpathext'))

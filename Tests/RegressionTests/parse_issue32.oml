@@ -1,0 +1,6 @@
+﻿function f(out,vars,block,i)
+  out=out*vars{i}';
+  block.io{end}=out;
+end
+
+'success'

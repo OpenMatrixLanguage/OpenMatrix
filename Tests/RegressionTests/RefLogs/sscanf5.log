@@ -1,0 +1,32 @@
+Warning: invalid format specified in argument 2; valid formats are %d, %f, %g and %s in call to function sscanf at line number 2 in file sscanf5.oml
+M = [Matrix] 30 x 1
+5.48813
+5.00000
+7.15189
+6.45894
+0.23400
+4.37587
+7.91725
+8.12169
+5.28895
+0.87129
+6.48172
+0.20218
+9.78618
+4.73608
+7.99158
+6.39921
+5.82020
+1.43353
+2.64556
+1.86332
+7.74234
+6.17636
+1.49675
+6.12096
+3.59508
+6.13063
+4.37032
+6.70638
+1.70910
+2.10383

@@ -1,0 +1,8 @@
+function [out1,out2] = switchIt(one,two)
+	out1= two
+	out2= one
+end
+
+[the,answer] = switchIt(3,9)
+disp(the)
+disp(answer)

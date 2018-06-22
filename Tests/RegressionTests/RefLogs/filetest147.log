@@ -1,0 +1,22 @@
+fname = FileManipulation/FileToWrite57.txt
+fid = 3
+w = 2
+ans = 0
+ans = [Matrix] 16 x 1
+  0
+  0
+  0
+  0
+  0
+  0
+240
+127
+  0
+  0
+  0
+  0
+  0
+  0
+240
+255
+ans = 0

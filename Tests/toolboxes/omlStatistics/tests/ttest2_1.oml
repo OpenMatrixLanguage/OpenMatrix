@@ -1,0 +1,6 @@
+addToolbox omlStatistics
+x = normrnd(5,6,1,20);
+y = normrnd(4,6,1,20);
+x = fix(10*x)/10
+y = fix(10*y)/10
+[h,pvalue,ci] = ttest2(x,y)

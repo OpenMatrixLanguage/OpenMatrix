@@ -1,0 +1,38 @@
+%assign structure value
+st1.index = 'one';
+%assign structure value to create 2 x 2 matrix
+st1(2,2).matrix = [ 2 2 ];
+%display the second position in the struct variable
+st1(2)
+%intrepreter response is expected:
+%ans = struct [
+%index: [ ]
+%matrix: [ ]
+%]
+%display the fourth position in the struct variable
+st1(4)
+%interpreter response is expected:
+%ans = struct [
+%index: [ ]
+%matrix: [ 2 2 ]
+%]
+%assign the second position to match the fourth position
+st1(2) = st1(4)
+%interpreter response is NOT EXPECTED!  The struct array size should not change.
+%st1 = struct [
+%Struct array of size 3 x 1 with fields:
+%index
+%matrix
+%]
+%after assignmen, display second position 
+st1(2)
+%interpreter response is expected:
+%ans = struct [
+%index: [ ]
+%matrix: [ 2 2 ]
+%]
+%display fourth position which should not have changed:
+st1(4)
+%interpreter response is NOT expected:
+%Index out of range
+

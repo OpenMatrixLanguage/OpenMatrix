@@ -1,0 +1,3 @@
+a =  struct('coordinate',{[1,1],[1 2],[1 3]},'value',{-5 1 2});
+a.coordinate = [2,3];
+a.coordinate

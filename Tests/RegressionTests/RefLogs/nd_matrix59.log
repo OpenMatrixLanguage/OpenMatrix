@@ -1,0 +1,8 @@
+subm = 
+slice(:, :, 1) = 
+[Matrix] 1 x 2
+2 + 0i  15 + 15i
+
+slice(:, :, 2) = 
+[Matrix] 1 x 2
+11  7

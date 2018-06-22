@@ -1,0 +1,3 @@
+[a,b]=balance(2i, 's')
+disp(a)
+disp(b)

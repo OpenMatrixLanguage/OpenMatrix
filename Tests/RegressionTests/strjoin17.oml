@@ -1,0 +1,1 @@
+strjoin ({'abc','def';'ghi','jkl'},['ABC';'DEF'])

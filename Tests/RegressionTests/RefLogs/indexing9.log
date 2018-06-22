@@ -1,0 +1,6 @@
+a = [Matrix] 1 x 3
+1  2  3
+a = [Matrix] 1 x 5
+1  2  3  0  9
+a = [Matrix] 1 x 5
+1  2  3  0  9

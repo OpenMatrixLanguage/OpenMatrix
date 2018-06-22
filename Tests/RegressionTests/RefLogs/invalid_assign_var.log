@@ -1,0 +1,21 @@
+MC = 
+{
+  [1,1] [Matrix] 0 x 0
+  [1,2] [Matrix] 0 x 0
+  [2,1] [Matrix] 0 x 0
+  [2,2] [Matrix] 0 x 0
+}
+MC = 
+{
+  [1,1] [Matrix] 0 x 0
+  [1,2] [Matrix] 0 x 0
+  [2,1] [Matrix] 0 x 0
+  [2,2] 3
+}
+MC = 
+{
+  [1,1] [Matrix] 0 x 0
+  [1,2] [Matrix] 0 x 0
+  [2,1] [Matrix] 0 x 0
+  [2,2] [Matrix] 0 x 0
+}

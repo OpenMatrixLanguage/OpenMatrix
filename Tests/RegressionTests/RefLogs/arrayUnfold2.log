@@ -1,0 +1,55 @@
+b = [Matrix] 2 x 3
+3  2  1
+6  5  4
+unfoldHalf = [Matrix] 2 x 6
+1  2  3  3  2  1
+4  5  6  6  5  4
+c = [Matrix] 2 x 6
+4  5  6  6  5  4
+1  2  3  3  2  1
+unfolded = [Matrix] 4 x 6
+1  2  3  3  2  1
+4  5  6  6  5  4
+4  5  6  6  5  4
+1  2  3  3  2  1
+ori = [Matrix] 4 x 6
+1  2  3  3  2  1
+4  5  6  6  5  4
+4  5  6  6  5  4
+1  2  3  3  2  1
+b = [Matrix] 2 x 2
+0  1
+1  0
+unfoldHalf = [Matrix] 2 x 4
+1  0  0  1
+0  1  1  0
+c = [Matrix] 2 x 4
+0  1  1  0
+1  0  0  1
+unfolded = [Matrix] 4 x 4
+1  0  0  1
+0  1  1  0
+0  1  1  0
+1  0  0  1
+test1 = [Matrix] 4 x 4
+1  0  0  1
+0  1  1  0
+0  1  1  0
+1  0  0  1
+b = [Matrix] 1 x 3
+3  2  1
+unfoldHalf = [Matrix] 1 x 6
+1  2  3  3  2  1
+c = [Matrix] 1 x 6
+1  2  3  3  2  1
+unfolded = [Matrix] 2 x 6
+1  2  3  3  2  1
+1  2  3  3  2  1
+test2 = [Matrix] 2 x 6
+1  2  3  3  2  1
+1  2  3  3  2  1
+b = [Matrix] 0 x 0
+unfoldHalf = [Matrix] 0 x 0
+c = [Matrix] 0 x 0
+unfolded = [Matrix] 0 x 0
+test3 = [Matrix] 0 x 0

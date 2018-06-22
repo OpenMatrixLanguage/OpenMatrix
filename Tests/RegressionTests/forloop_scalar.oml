@@ -1,0 +1,3 @@
+for k = 1,9
+    disp(k)
+end

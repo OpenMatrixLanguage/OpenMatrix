@@ -1,0 +1,44 @@
+# ====================================================================
+# OpenMatrix math/diffeq makefile
+# ====================================================================
+PROJ := hwdiffeq
+
+UNAME := $(shell uname)
+ifneq (,$(findstring NT,$(UNAME)))
+   TARGET = $(BINDIR)/$(PROJ).dll
+else
+   TARGET = $(BINDIR)/lib$(PROJ).so
+endif
+
+include $(OML_ROOT)/src/makebase.cfg
+
+
+# ====================================================================
+SOURCES += $(wildcard _private/*.cxx)
+OBJECTS = $(foreach file,$(SOURCES),$(addprefix $(PLATFORM)/,$(addsuffix .o,$(basename $(notdir $(file))))))
+vpath %.cxx _private
+
+CXX_DEFINES += -DDIFFEQ_EXPORTS
+
+CXX_INCLUDES += -I. $(HWMATHKERNEL_INC) -I$(SUNDIALS_INCLUDE)
+
+LIBS += $(MATHKERNEL_LIBS)
+
+LIBS += $(LAPACK_LIBS) $(BLAS_LIBS)
+
+LIBS += $(SUNDIALS_LIB)
+
+# ====================================================================
+
+$(PLATFORM)/%.o : %.cxx $(objdir)
+	$(compile-cxx)
+
+$(TARGET) : $(OBJECTS)
+	$(build-shared-lib)
+
+clean::
+	-$(RM) -rf $(TARGET)
+	-$(RM) -rf $(PLATFORM)
+	-$(RM) -rf $(BINDIR)/$(PROJ).*
+	-$(RM) -rf $(LIBDIR)/$(PROJ).*
+

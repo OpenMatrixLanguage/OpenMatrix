@@ -1,0 +1,28 @@
+function TreasureHunt (A)
+% Program analyzes a matrix to find if any values are 
+% the same as their coordinates
+% A is a matrix with m rows and n columns
+	
+x=1;
+m=1;
+n=1;
+y=11;
+
+while x~=y
+	y = x;
+	x = A(m,n);
+	if x==y 
+	    disp(x);
+	    disp('Treasure Found.');
+	else
+	    disp(x);
+		m = floor(x/10);
+		n = mod(x,10);
+	end
+end
+
+end
+
+%Test Matrix:
+z=[34,21,32,41,25; 14,42,43,14,31; 54,45,52,42,23; 33,15,51,31,35;21,52,33,13,23];
+TreasureHunt(z);

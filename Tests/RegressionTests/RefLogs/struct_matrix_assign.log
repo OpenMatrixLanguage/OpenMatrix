@@ -1,0 +1,4 @@
+a = struct [
+b: [Matrix] 1 x 3
+1  5  3
+]

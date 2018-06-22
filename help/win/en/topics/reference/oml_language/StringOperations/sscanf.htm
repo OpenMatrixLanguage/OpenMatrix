@@ -1,0 +1,151 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="sscanf" /><meta name="abstract" content="Returns result R after reading a formatted string s, specified by template t." /><meta name="description" content="Returns result R after reading a formatted string s, specified by template t." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="String Operations Commands" /><meta name="indexterms" content="sscanf" /><meta name="DC.subject" content="sscanf" /><meta name="keywords" content="sscanf" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StringOperations/string_operations_command_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fscanf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StringOperations/sprintf.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>sscanf</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/StringOperations/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/StringOperations/string_operations_command_r.htm" title="String Operations Commands">String Operations Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/StringOperations/string_operations_command_r.htm" title="String Operations Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">String Operations Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">sscanf</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Returns result <span class="ph synph">R</span> after reading a formatted string 
+    <var class="keyword varname">s</var>, specified by template <var class="keyword varname">t</var>.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">R = sscanf<span class="ph var">(s, t)</span></span></p>
+
+      <p class="p"><span class="ph synph">R = sscanf<span class="ph var">(s, t, size)</span></span></p>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">s</var></dt>
+
+          <dd class="dd pd">String to read formatted data from.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">t</var></dt>
+
+          <dd class="dd pd">Template to read formatted data. Valid formats are '%d', '%f', '%g and '%s'.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+            
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">size</var></dt>
+
+          <dd class="dd pd">Optional argument which specifies size of the output. <var class="keyword varname">size</var>
+            maybe a positive scalar or a matrix with at least two, positive, real elements.
+            If <var class="keyword varname">size</var> is a scalar with a value of 'inf', all
+            data is read and a column vector is returned. If <var class="keyword varname">size</var>
+            is a matrix with the second element having a value of infinity, 
+            all data is read and returned in a matrix with the number of rows
+            as specified by the first element.</dd>
+
+          <dd class="dd pd ddexpand">Type: Positive integer | matrix</dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+          <dd class="dd pd">Type: <span class="keyword">matrix</span></dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+      
+      <p class="p">Reads all data from given string:</p>
+
+      <pre class="pre codeblock"><code>R = sscanf('1/1/2001 10:30:00 2/5/2003 1:15:45', '%d/%d/%d %d:%d:%d')</code></pre>
+      <pre class="pre codeblock"><code><code class="ph codeph">R = [Matrix] 12 x 1
+1
+1
+2001
+10
+30
+0
+2
+5
+2003
+1
+15
+45</code></code></pre>
+      <div class="p">Specifies size of output with a scalar for reading formatted
+        string:.<pre class="pre codeblock"><code>R = sscanf('5.48813502420671 5.92844616505317 7.15189365088008 8.44265744206496 6.02763370494358', '%f', 3)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = [Matrix] 3 x 1
+5.48813
+5.92845
+7.15189</code></code></pre></div>
+
+      <div class="p">Specifies size of output with a matrix of finite
+        elements:<pre class="pre codeblock"><code>R = sscanf('1 1.77 0.96 2 1.95 0.83 3 2.18 0.65 4 2.75 1.42 5 3.16 5.53 6 3.25 4.19 7 2.86 2.82', '%d %f %f', [3 10])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = [Matrix] 3 x 7
+1.00000  2.00000  3.00000  4.00000  5.00000  6.00000  7.00000
+1.77000  1.95000  2.18000  2.75000  3.16000  3.25000  2.86000
+0.96000  0.83000  0.65000  1.42000  5.53000  4.19000  2.82000</code></code></pre></div>
+
+      <div class="p">Specifies size of output with a matrix, reading as much data as
+        possible:<pre class="pre codeblock"><code>R = sscanf('1 1.77 0.96 2 1.95 0.83 3 2.18 0.65 4 2.75 1.42 5 3.16 5.53 6 3.25 4.19 7 2.86 2.82', '%d %f %f', [10 inf])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = [Matrix] 10 x 2
+1.00000  2.75000
+1.77000  1.42000
+0.96000  5.00000
+2.00000  3.16000
+1.95000  5.53000
+0.83000  6.00000
+3.00000  3.25000
+2.18000  4.19000
+0.65000  7.00000
+4.00000  2.86000</code></code></pre></div>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+      
+      <p class="p">
+        <span class="keyword">1.0</span>
+      </p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/fscanf.htm" title="Returns result R after reading a formatted data from file handle, f, specified by template t.">fscanf</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/StringOperations/sprintf.htm" title="Returns a formatted string, based on the format, strformat specified.">sprintf</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/StringOperations/string_operations_command_r.htm" title="String Operations Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">String Operations Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

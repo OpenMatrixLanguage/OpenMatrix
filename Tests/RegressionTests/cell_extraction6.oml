@@ -1,0 +1,2 @@
+mycell = {[10,20],'hml2',{3.1416};[2i;3i],'hml2 again',{'hml1 is gone'}};
+myextract=mycell(1,2)

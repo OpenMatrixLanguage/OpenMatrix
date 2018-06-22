@@ -1,0 +1,5 @@
+function goo(a)
+   disp('Aw snap')
+end
+
+r=goo(3)

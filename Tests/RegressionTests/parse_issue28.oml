@@ -1,0 +1,8 @@
+﻿runs = 2
+a = 2250; b = 0;
+b = ones(a, a)./( [1:a]' * ones(1, a) + ones(a, 1) * ([0:(a-1)]));    
+ 
+for i = 1:runs
+    % calculation of escoufier's equivalent vectors
+    disp('test')
+end

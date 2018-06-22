@@ -1,0 +1,14 @@
+a = 5;
+
+if a<10
+else
+   b=6;
+end
+
+if a>10
+else
+   b=6;
+end
+
+
+b

@@ -1,0 +1,1 @@
+sscanf('  12km 18km', '%dkm')

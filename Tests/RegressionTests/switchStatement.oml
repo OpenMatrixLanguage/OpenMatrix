@@ -1,0 +1,10 @@
+value = 2
+switch value
+ case 1
+  y = 'hello 1'
+ case 2
+  y = 'hello 2'
+ case 3
+  y = 'hello 3'
+end
+y

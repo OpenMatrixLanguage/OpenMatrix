@@ -1,0 +1,4 @@
+fname = 'FileManipulation/EmptyFile.txt'
+fid = fopen(fname)
+fclose(fid)
+fopen(fid)

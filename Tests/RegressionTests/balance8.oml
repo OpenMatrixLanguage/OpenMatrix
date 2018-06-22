@@ -1,0 +1,4 @@
+[a,b,c]=balance(5,9-i)
+disp(a)
+disp(b)
+disp(c)

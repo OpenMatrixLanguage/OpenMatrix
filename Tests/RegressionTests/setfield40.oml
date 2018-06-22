@@ -1,0 +1,3 @@
+a.b=2
+aa.c=a
+setfield(aa,'c',{1,1},3)

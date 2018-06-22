@@ -1,0 +1,7 @@
+a=5
+b=11
+jeff='awesome'
+w=who
+disp(w{1,1})
+disp(w{2,1})
+disp(w{3,1})

@@ -1,0 +1,8 @@
+j=0;
+while j<10
+   j=j+1;
+   if mod(j,3) == 0
+      continue
+   end
+   j
+end

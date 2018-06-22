@@ -1,0 +1,7 @@
+addToolbox omlPolynom
+
+a=0:0.02:10;
+b=sin(a);
+ai=0:10;
+
+interp1(a,b,ai)

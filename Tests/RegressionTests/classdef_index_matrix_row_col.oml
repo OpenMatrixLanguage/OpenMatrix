@@ -1,0 +1,15 @@
+﻿classdef b
+   properties
+      mat
+   end
+
+   methods
+      function z = b()
+	      z.mat = [1,2,3;4,5,6;7,8,9];
+	  end
+   end
+end
+
+new_b = b;
+new_b.mat(1,:)
+new_b.mat(:, 1)

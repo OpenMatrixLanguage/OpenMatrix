@@ -1,0 +1,6 @@
+proj.titi = [1 2 3; 4 5 6; 7 8 9];
+proj.mass = 10;
+proj.name = 'myname';
+proj.proj2.mass2 = 4567; 
+proj(2) = proj(1);
+proj(2)

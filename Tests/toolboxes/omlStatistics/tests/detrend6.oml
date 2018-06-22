@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+detrend([1 6 7.8 3])

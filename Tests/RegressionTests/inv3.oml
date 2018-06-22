@@ -1,0 +1,3 @@
+[a,b]=inv(-17)
+disp(a)
+disp(b)

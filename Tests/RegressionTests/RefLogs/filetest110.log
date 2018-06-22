@@ -1,0 +1,17 @@
+fname = FileManipulation/FileToWrite41.txt
+fid = 3
+ans = 2
+ans = 0
+ans = [Matrix] 8 x 1
+ 35
+ 23
+189
+196
+ 16
+173
+148
+ 74
+ans = [Matrix] 2 x 1
+-1.51272e+03
+ 4.87182e+06
+ans = 0

@@ -1,0 +1,3 @@
+Single Newline
+Newline and Carriage Return
+Just Carriage ReturnCarriage Return and Newline

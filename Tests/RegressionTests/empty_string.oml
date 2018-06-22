@@ -1,0 +1,8 @@
+function runTest(FileName)
+	if ~exist(FileName)
+		msg = ''
+	end
+end
+% any valid file for input
+FileName = ['/hwx/hwx.bat'];
+runTest(FileName)

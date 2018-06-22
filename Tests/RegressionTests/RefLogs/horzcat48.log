@@ -1,0 +1,15 @@
+a = struct [
+b: 3
+]
+c = struct [
+b: 6
+]
+ans = 
+{
+  [1,1] a = struct [
+  b: 3
+  ]
+  [1,2] c = struct [
+  b: 6
+  ]
+}

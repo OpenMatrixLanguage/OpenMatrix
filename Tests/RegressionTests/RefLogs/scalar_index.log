@@ -1,0 +1,4 @@
+ans = 5
+ans = 5
+ans = 5
+Error: index out of range at line number 5 in file scalar_index.oml

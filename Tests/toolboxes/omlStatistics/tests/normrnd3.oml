@@ -1,0 +1,4 @@
+addtoolbox('omlStatistics')
+rand('seed', 2003);
+
+x = (normrnd(zeros(3,8)+5,ones(3,8)*6) - 5) / 6

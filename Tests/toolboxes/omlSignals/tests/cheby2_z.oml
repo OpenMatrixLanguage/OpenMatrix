@@ -1,0 +1,270 @@
+addtoolbox omlSignals
+
+function result = Cheby2LP()
+	result = 'fail';
+	dBc = 20;
+	fc = 300;
+	fs = 1000;
+	fn = fc / (fs/2);
+
+	for order=1:14
+		[num,den] = cheby2(order, dBc, fn);
+
+		if (length(num) ~= order + 1)
+			break;
+		end
+
+		if (length(den) ~= order + 1)
+			break;
+		end
+
+		f = [0,fc-1,fc,fc+1,fs/2];
+		m = abs(freqz(num,den,f,fs));
+
+		if (abs(m(1) - 1.0) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(2)) > dBc)
+			break;
+		end
+
+		if (abs(-20 * log10(m(3)) - dBc) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(4)) < dBc)
+			break;
+		end
+
+		if (mod(order,2) == 0)
+			if (abs(-20 * log10(m(5)) - dBc) > 1.0e-4)
+				break;
+			end
+		else
+			if (m(5) > 1.0e-4)
+				break;
+			end
+		end
+
+		order = order + 1;
+	end
+
+	if (order == 15)
+		result = 'pass';
+	end
+end
+
+function result = Cheby2HP()
+	result = 'fail';
+	dBc = 20;
+	fc = 200;
+	fs = 1000;
+	fn = fc / (fs/2);
+
+	for order=1:14
+		[num,den] = cheby2(order, dBc, fn, 'high');
+
+		if (length(num) ~= order + 1)
+			break;
+		end
+
+		if (length(den) ~= order + 1)
+			break;
+		end
+
+		f = [0,fc-1,fc,fc+1,fs/2];
+		m = abs(freqz(num,den,f,fs));
+
+		if (mod(order,2) == 0)
+			if (abs(-20 * log10(m(1)) - dBc) > 1.0e-4)
+				break;
+			end
+		else
+			if (m(1) > 1.0e-4)
+				break;
+			end
+		end
+
+		if (-20 * log10(m(2)) < dBc)
+			break;
+		end
+
+		if (abs(-20 * log10(m(3)) - dBc) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(4)) > dBc)
+			break;
+		end
+
+		if (log10(m(5)) > 1.0e-4)
+			break;
+		end
+
+		order = order + 1;
+	end
+
+	if (order == 15)
+		result = 'pass';
+	end
+end
+
+function result = Cheby2BP()
+	result = 'fail';
+	dBc = 20;
+	fc1 = 150;
+	fc2 = 400;
+	fs = 1000;
+	fn1 = fc1 / (fs/2);
+	fn2 = fc2 / (fs/2);
+	fcc = (fs/pi)*atan(sqrt(tan(fc1*pi/fs)*tan(fc2*pi/fs)));
+
+	for order=1:14
+		[num,den] = cheby2(order, dBc, [fn1, fn2]);
+
+		if (length(num) ~= 2 * order + 1)
+			break;
+		end
+
+		if (length(den) ~= 2 * order + 1)
+			break;
+		end
+
+		f = [0,fc1-1,fc1,fc1+1,fcc,fc2-1,fc2,fc2+1,fs/2];
+		m = abs(freqz(num,den,f,fs));
+
+		if (mod(order,2) == 0)
+			if (abs(-20 * log10(m(1)) - dBc) > 1.0e-4)
+				break;
+			end
+		else
+			if (m(1) > 1.0e-4)
+				break;
+			end
+		end
+
+		if (-20 * log10(m(2)) < dBc)
+			break;
+		end
+
+		if (abs(-20 * log10(m(3)) - dBc) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(4)) > dBc)
+			break;
+		end
+
+		if (abs(m(5) - 1.0) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(6)) > dBc)
+			break;
+		end
+
+		if (abs(-20 * log10(m(7)) - dBc) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(8)) < dBc)
+			break;
+		end
+
+		if (mod(order,2) == 0)
+			if (abs(-20 * log10(m(9)) - dBc) > 1.0e-4)
+				break;
+			end
+		else
+			if (m(9) > 1.0e-4)
+				break;
+			end
+		end
+
+		order = order + 1;
+	end
+
+	if (order == 15)
+		result = 'pass';
+	end
+end
+
+function result = Cheby2BS()
+	result = 'fail';
+	dBc = 20;
+	fc1 = 150;
+	fc2 = 400;
+	fs = 1000;
+	fn1 = fc1 / (fs/2);
+	fn2 = fc2 / (fs/2);
+	fcc = (fs/pi)*atan(sqrt(tan(fc1*pi/fs)*tan(fc2*pi/fs)));
+
+	for order=1:14
+		[num,den] = cheby2(order, dBc, [fn1, fn2], 'stop');
+
+		if (length(num) ~= 2 * order + 1)
+			break;
+		end
+
+		if (length(den) ~= 2 * order + 1)
+			break;
+		end
+
+		f = [0,fc1-1,fc1,fc1+1,fcc,fc2-1,fc2,fc2+1,fs/2];
+		m = abs(freqz(num,den,f,fs));
+
+		if (abs(m(1) - 1.0) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(2)) > dBc)
+			break;
+		end
+
+		if (abs(-20 * log10(m(3)) - dBc) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(4)) < dBc)
+			break;
+		end
+
+		if (mod(order,2) == 0)
+			if (abs(-20 * log10(m(5)) - dBc) > 1.0e-4)
+				break;
+			end
+		else
+			if (m(5) > 1.0e-4)
+				break;
+			end
+		end
+
+		if (-20 * log10(m(6)) < dBc)
+			break;
+		end
+
+		if (abs(-20 * log10(m(7)) - dBc) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(8)) > dBc)
+			break;
+		end
+
+		if (abs(m(9) - 1.0) > 1.0e-4)
+			break;
+		end
+
+		order = order + 1;
+	end
+
+	if (order == 15)
+		result = 'pass';
+	end
+end
+
+cheby2LP = Cheby2LP()
+cheby2HP = Cheby2HP()
+cheby2BP = Cheby2BP()
+cheby2BS = Cheby2BS()

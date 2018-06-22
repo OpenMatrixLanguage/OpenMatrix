@@ -1,0 +1,1 @@
+strsplit('testtt1  tetst2   testtt3','t','collapsedelimiters','true')

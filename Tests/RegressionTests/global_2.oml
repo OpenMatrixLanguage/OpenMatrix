@@ -1,0 +1,12 @@
+function b=SetValue(a)
+   global x
+   x=a
+end
+
+function b=GetValue()
+   global x
+   b = x
+end
+
+SetValue(5)
+GetValue()

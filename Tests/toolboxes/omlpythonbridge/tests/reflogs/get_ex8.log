@@ -1,0 +1,6 @@
+importing matrix data from python
+value = [Matrix] 2 x 2
+1  2
+3  4
+status = 1
+errorMessage = 

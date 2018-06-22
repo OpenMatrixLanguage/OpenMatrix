@@ -1,0 +1,6 @@
+M = ones(3);
+try
+	M(10,:) = []
+catch
+    M
+end

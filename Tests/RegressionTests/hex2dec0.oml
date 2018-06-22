@@ -1,0 +1,48 @@
+% function converts hexadecimal strings to integer value.
+% sprintf limits the upper range of values that can be displayed.
+function x=hex2dec(hex)
+	if isstr(hex) == 0
+		disp(strjoin({'Error in function hex2dec - input argument is not a string'}))
+		x = 0;
+		return
+	end
+	hex = tolower(hex);
+	hexstring='0123456789abcdef';
+	hexstringlength=length(hexstring);
+	hexlength=length(hex);
+	decimal = 0;
+	for j=1:hexlength
+		% strjoin({ 'processing character number', sprintf('%d', j), hex(j)})
+		decimal = decimal * 16;
+		hexmatch = strfind(hexstring, hex(j)); %test
+		if length(hexmatch) == 0
+			disp(strjoin({'Error in function hex2dec - input argument is not hexadecimal', hex}))
+			x = 0;
+			return
+		end
+		for k=1:hexstringlength
+			if hex(j) == hexstring(k)
+				% strjoin({'found match', sprintf('%d', k)})
+				decimal = decimal + k - 1;
+			end
+		end
+	end
+	x=decimal;
+	disp(strjoin({ 'hex value', hex, 'decimal value', sprintf('%d', decimal)}))
+end
+
+function hex2dec_run()
+	disp('hex2dec tests - sprintf limits the correct output of positive values to 0x7fffffff');
+	hex2dec('f')
+	hex2dec('ff')
+	hex2dec('fff')
+	hex2dec('ffff')
+	hex2dec('fffff')
+	hex2dec('ffffff')
+	hex2dec('fffffff')
+	hex2dec('7fffffff')		% biggest positive
+	hex2dec('80000000')	%biggest negative
+	hex2dec('ffffffff')		% smallest negative
+end
+
+hex2dec_run()

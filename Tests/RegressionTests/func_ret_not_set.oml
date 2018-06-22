@@ -1,0 +1,5 @@
+function y=test()
+ disp('this is a test')
+ end
+ test()
+ ans

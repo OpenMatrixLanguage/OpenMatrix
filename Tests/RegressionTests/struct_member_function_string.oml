@@ -1,0 +1,8 @@
+﻿function f(A)
+   disp('the value in f is');
+   disp(A);
+end
+
+a.b = @f;
+a.b(3)
+a.b('3')

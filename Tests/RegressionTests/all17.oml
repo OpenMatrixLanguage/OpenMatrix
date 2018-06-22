@@ -1,0 +1,2 @@
+all([2,i+1;0,0;i,1],2)
+islogical(ans)

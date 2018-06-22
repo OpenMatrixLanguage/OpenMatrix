@@ -1,0 +1,8 @@
+z = ones(3,4);
+
+[a.x a.y] = size(z);
+a
+
+[b(1).x b(2).x] = size(z);
+b(1)
+b(2)

@@ -1,0 +1,5 @@
+function testfunction2()
+x=2
+run('FileManipulation/sourcefile7.script')
+end
+testfunction()

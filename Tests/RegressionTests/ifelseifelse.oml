@@ -1,0 +1,11 @@
+a=1
+if a==3
+   b=4
+elseif a==2
+   b=7
+elseif a==9
+   b=12
+else
+   b=-a
+end
+b

@@ -1,0 +1,1 @@
+strfind('aaaa','aa','otherstring',false)

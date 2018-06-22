@@ -1,0 +1,11 @@
+function z=findmax(varargin)
+    z=varargin{1};
+
+	for i = 2:length(varargin)
+	    if varargin{i} > z
+               z = varargin{i};	
+	    end
+	end
+end
+
+findmax(3,2,4,6,5,10,3,7)

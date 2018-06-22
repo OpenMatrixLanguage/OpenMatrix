@@ -1,0 +1,9 @@
+X = 1
+ switch X
+ case 1
+ disp ('X = 1');
+ case 2
+ disp ('X = 2');
+ otherwise
+ disp ('X does not equal 1 or 2');
+ end

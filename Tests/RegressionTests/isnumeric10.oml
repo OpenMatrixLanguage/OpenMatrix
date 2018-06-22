@@ -1,0 +1,2 @@
+isnumeric(2i+4)
+islogical(ans)

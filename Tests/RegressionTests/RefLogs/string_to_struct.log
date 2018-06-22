@@ -1,0 +1,2 @@
+foo = foo
+Invalid struct assignment at line number 2 in file string_to_struct.oml

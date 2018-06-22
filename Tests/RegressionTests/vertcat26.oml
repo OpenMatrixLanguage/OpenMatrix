@@ -1,0 +1,8 @@
+a.b=3
+a.c=4
+a(1,2).b=5
+A.b=-4
+A.c=-3
+vertcat(a,A)
+vertcat(A,a)
+vertcat(a,a,A,A,a)

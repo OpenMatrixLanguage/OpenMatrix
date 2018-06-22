@@ -1,0 +1,8 @@
+a.b=3
+a.c=4
+a(2,1).b=5
+A.b=-4
+A.c=-3
+horzcat(a,A)
+horzcat(A,a)
+horzcat(a,a,A,A,a)

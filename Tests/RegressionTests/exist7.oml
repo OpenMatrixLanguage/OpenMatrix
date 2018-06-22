@@ -1,0 +1,4 @@
+function myfunc()
+   disp('In myfunc')
+end
+exist('myfunc')

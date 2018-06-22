@@ -1,0 +1,4 @@
+﻿x = (1<2)
+class(x)
+y = double(x)
+class(y)

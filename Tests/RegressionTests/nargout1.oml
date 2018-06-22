@@ -1,0 +1,8 @@
+function [x,y] = goo(a,b,c)
+   disp(nargout)
+   x=a+b
+   y=b+c
+end
+
+[p,q] = goo(1,2,3)
+goo(1,2,3)

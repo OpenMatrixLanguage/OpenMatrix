@@ -1,0 +1,12 @@
+A = [Matrix] 3 x 1
+1
+4
+7
+B = [Matrix] 3 x 1
+2
+5
+8
+C = [Matrix] 3 x 1
+3
+6
+9

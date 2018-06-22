@@ -1,0 +1,32 @@
+function assert(b,s)
+  if ~b
+    disp(['# ERROR ',s]);
+  end
+end
+
+function out=type(x)
+  c=class(x);
+  sz=size(x);
+  out=[c,' ',num2str(sz(1)),' ',num2str(sz(2))];
+end
+
+function test(n,i,j)
+  t=char(48*ones(i,j));
+  exp=['char ',num2str(i),' ',num2str(j)]
+  type(t)
+  assert(isequal(type(t),exp),[num2str(n),' test failure']);
+end
+
+s=['abc';'def'];
+t=s(1,[]);
+exp= 'char 1 0'
+type(t)
+assert(isequal(type(t),exp),'1 test failure');
+
+n=2;
+for i=0:2
+  for j=0:2
+    test(n,i,j);
+    n=n+1;
+  end
+end

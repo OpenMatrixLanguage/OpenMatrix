@@ -1,0 +1,1 @@
+[bool, index]=ismember(['ak';'ka'],['ak';'ob'])

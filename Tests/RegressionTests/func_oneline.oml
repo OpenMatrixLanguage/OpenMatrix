@@ -1,0 +1,5 @@
+function out1 = myFunc1 out1 = 100; end
+function myFunc2() disp('this is a test'); end
+
+myFunc1
+myFunc2

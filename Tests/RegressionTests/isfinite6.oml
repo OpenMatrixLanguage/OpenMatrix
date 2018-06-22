@@ -1,0 +1,2 @@
+isfinite(2i-8)
+islogical(ans)

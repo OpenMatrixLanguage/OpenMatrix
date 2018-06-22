@@ -1,0 +1,158 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="fsolve" /><meta name="abstract" content="Find a solution of a system of real, nonlinear equations." /><meta name="description" content="Find a solution of a system of real, nonlinear equations." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Optimization Commands" /><meta name="indexterms" content="fsolve" /><meta name="DC.subject" content="fsolve" /><meta name="keywords" content="fsolve" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/optimization_command_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/optimset.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/lsqcurvefit.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/language_guides/anonymous_functions_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>fsolve</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/optimization_command_r.htm" title="Optimization Commands">Optimization Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Optimization/optimization_command_r.htm" title="Optimization Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Optimization Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">fsolve</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Find a solution of a system of real, nonlinear equations.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">x = fsolve<span class="ph var">(@func,x0)</span></span></p>
+
+      <p class="p"><span class="ph synph">x = fsolve<span class="ph var">(@func,x0,options)</span></span></p>
+
+      <p class="p"><span class="ph synph">[x,fval] = fsolve<span class="ph var">(...)</span></span></p>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">func</var></dt>
+
+          <dd class="dd pd">The system to solve. See the <span class="keyword cmdname">optimset</span> option
+              <span class="keyword option">Jacobian</span> for details.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">x0</var></dt>
+
+          <dd class="dd pd">An estimate of the solution.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">options</var></dt>
+
+          <dd class="dd pd">A struct containing option settings.</dd>
+
+          <dd class="dd pd ddexpand">See <span class="keyword cmdname">optimset</span> for details.</dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">x</span></dt>
+
+          <dd class="dd pd">A solution of the system.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">fval</span></dt>
+
+          <dd class="dd pd">The value of <var class="keyword varname">func</var> evaluated at <var class="keyword varname">x</var>.</dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+      <p class="p">Solve the system of equations <span class="keyword cmdname">SysFunc</span>.</p>
+
+      <pre class="pre codeblock"><code>function res = SysFunc(x)
+    % intersection of two paraboloids and a plane
+    v1 = (x(1))^2 + (x(2))^2 + 6;
+    v2 = 2*(x(1))^2 + 2*(x(2))^2 + 4;
+    v3 = 5*x(1) - 5*x(2);
+    res = zeros(2,1);
+    res(1,1) = v1 - v3;
+    res(2,1) = v2 - v3;
+end
+
+x0 = [1; 2];
+[x,fval] = fsolve(@SysFunc,x0)</code></pre>
+      <pre class="pre codeblock"><code><code class="ph codeph">x = [Matrix] 2 x 1
+ 1.40000
+-0.20000
+fval = [Matrix] 2 x 1
+3.67339e-07
+7.34677e-07</code></code></pre>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p"><span class="keyword cmdname">fsolve</span> uses a modified Gauss-Netwon algorithm with a trust region method.</p>
+
+      <p class="p">Options for convergence tolerance controls and analytical derivatives are specified
+        with <span class="keyword cmdname">optimset</span>.</p>
+
+      <p class="p">If <span class="keyword cmdname">fsolve</span> converges to a solution that is not a zero of the system, it
+        will produce a warning, indicating that a best fit value is being returned.</p>
+
+      <p class="p">To pass additional parameters to a function argument, use an anonymous function.</p>
+
+      <div class="p">The <span class="keyword cmdname">optimset</span> options and defaults are as follows. <ul class="ul" id="reference_wpv_kyv_pr__ul_lrl_tq4_ldb">
+          <li class="li"><span class="keyword option">MaxIter</span>: 100</li>
+
+          <li class="li"><span class="keyword option">MaxFunEvals</span>: 400</li>
+
+          <li class="li"><span class="keyword option">TolFun</span>: 1.0e-7</li>
+
+          <li class="li"><span class="keyword option">TolX</span>: 1.0e-7</li>
+
+          <li class="li"><span class="keyword option">Jacobian</span>: 'off'</li>
+
+          <li class="li"><span class="keyword option">Display</span>: 'off'</li>
+
+        </ul>
+
+      </div>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+      
+      <p class="p"><span class="keyword">1.0</span></p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/optimset.htm" title="Specify optimization function options.">optimset</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/lsqcurvefit.htm" title="Find the equation parameters that produce the least squares best fit to a data set.">lsqcurvefit</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/language_guides/anonymous_functions_r.htm" title="Anonymous functions can be defined anywhere inside a script.">Anonymous Functions</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Optimization/optimization_command_r.htm" title="Optimization Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Optimization Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

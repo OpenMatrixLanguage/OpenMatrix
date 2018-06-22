@@ -1,0 +1,15 @@
+﻿function ff
+    persistent a;
+    if isempty(a)
+                    a=0;
+    end
+    a=a+1;
+    disp(a);
+end
+
+f=str2func('ff');
+
+for i=1:4
+	f2=f;
+    f2();
+end

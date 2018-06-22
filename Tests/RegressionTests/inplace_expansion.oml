@@ -1,0 +1,6 @@
+function myfunc(c)
+   b = zeros(1,3);
+   c = [c b]
+end
+
+myfunc(ones(1,5))

@@ -1,0 +1,24 @@
+addtoolbox omlOptimization
+
+function [res,Jac] = FittingFunc(c, t)
+    % c is the parameter vector
+    % t is the independent variable
+    % the model is y = c1 * exp(-c2*t)
+    % compute the vector of residuals
+    res = c(1) * exp(-c(2)*t);
+
+    if nargout > 1
+        % Jacobian
+        Jac = zeros(4,2);
+        Jac(:,1) = exp(-c(2)*t);
+        Jac(:,2) = -t * c(1) .* exp(-c(2)*t);
+    end
+end
+
+init = [15; 1];
+t = [1; 2; 3; 4];
+x = [8.025, 3.975, 2.025, 0.975];
+options = optimset('MaxIter', 200, 'Jacobian', 'on');
+
+[p,resnorm] = lsqcurvefit(@FittingFunc, init, t, x, [], [], options)
+

@@ -1,0 +1,7 @@
+function y = fft2(x)
+	% calculate 2-D discrete Fourier transform based on 1-D FFT
+	y = sqrt(x.').';
+end
+ 
+M = [1 10 100;2 1 1];
+y = fft2(M)

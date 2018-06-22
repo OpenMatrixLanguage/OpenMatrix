@@ -1,0 +1,8 @@
+b = [Matrix] 2 x 3
+1  8  3
+4  9  6
+r = [Matrix] 1 x 3
+9  2  3
+r = [Matrix] 1 x 3
+7  2  3
+Error: matrix sizes must agree at line number 7 in file matrix_column_replace.oml

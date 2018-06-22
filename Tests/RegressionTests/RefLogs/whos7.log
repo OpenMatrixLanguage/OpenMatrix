@@ -1,0 +1,7 @@
+x = 5
+y = 0 + 6i
+ Attr Name Size Bytes Class 
+ ==== ==== ==== ===== ===== 
+      x    1x1      8 double
+ c    y    1x1     16 double
+

@@ -1,0 +1,4 @@
+a = struct [
+jeff: 3
+]
+ans = 3

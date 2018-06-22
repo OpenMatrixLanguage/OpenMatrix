@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+exppdf(8i+7,[1 0; 2 12; 3 7; 4 -1])

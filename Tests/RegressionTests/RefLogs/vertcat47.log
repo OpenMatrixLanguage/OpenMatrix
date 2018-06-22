@@ -1,0 +1,7 @@
+a = struct [
+b: 3
+]
+c = struct [
+c: 6
+]
+Error: structs must have the same field names to be concatenated in call to function vertcat at line number 3 in file vertcat47.oml

@@ -1,0 +1,169 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="exist" /><meta name="abstract" content="Returns an integer (R) based on whether a variable, function, directory, or file with the name s exists in the current session." /><meta name="description" content="Returns an integer (R) based on whether a variable, function, directory, or file with the name s exists in the current session." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Core Minimal Interpreter Commands" /><meta name="indexterms" content="exist" /><meta name="DC.subject" content="exist" /><meta name="keywords" content="exist" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CoreMinimalInterpreter/core_interpreter_commands_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>exist</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/core_interpreter_commands_r.htm" title="Core Minimal Interpreter Commands">Core Minimal Interpreter Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/core_interpreter_commands_r.htm" title="Core Minimal Interpreter Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Core Minimal Interpreter Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">exist</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Returns an integer (<span class="ph synph">R</span>) based on whether a variable, function, directory,
+    or file with the name <var class="keyword varname">s</var> exists in the current session.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      <p class="p"><span class="ph synph">R = exist<span class="ph var">(s)</span></span></p>
+
+      <p class="p"><span class="ph synph">R = exist<span class="ph var">(s, category)</span></span></p>
+  
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">s</var></dt>
+          
+          <dd class="dd pd">Type: <span class="keyword">string</span></dd>
+          
+        
+      </dl>
+
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">opt</var> (optional)</dt>
+
+          <dd class="dd pd">Input specifying the category which will be searched for the existence of
+              <var class="keyword varname">s</var>. Valid values are:<dl class="dl">
+              
+                <dt class="dt dlterm">'var'</dt>
+
+                <dd class="dd">Searches for variables.</dd>
+
+              
+            </dl>
+<dl class="dl">
+              
+                <dt class="dt dlterm">'builtin'</dt>
+
+                <dd class="dd">Searches only for functions.</dd>
+
+              
+            </dl>
+<dl class="dl">
+              
+                <dt class="dt dlterm">'dir'</dt>
+
+                <dd class="dd">Searches for directories on disk.</dd>
+
+              
+            </dl>
+<dl class="dl">
+              
+                <dt class="dt dlterm">'file'</dt>
+
+                <dd class="dd">Searches for files on disk.</dd>
+
+              
+            </dl>
+'class' is for compatibility purposes and is not used to specify any category. If
+            no category is given, the first match for the name in the order of variable, function,
+            dir, or file is returned.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+      </dl>
+        
+     
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+            <dd class="dd pd">The value of <span class="ph synph">R</span> is one of the following: <dl class="dl">
+              
+                <dt class="dt dlterm">0</dt>
+
+                <dd class="dd"><var class="keyword varname">s</var> does not exist</dd>
+
+              
+            </dl>
+<dl class="dl">
+              
+                <dt class="dt dlterm">2</dt>
+
+                <dd class="dd"><var class="keyword varname">s</var> is a file</dd>
+
+              
+            </dl>
+<dl class="dl">
+              
+                <dt class="dt dlterm">5</dt>
+
+                <dd class="dd"><var class="keyword varname">s</var> is a built-in function</dd>
+
+              
+            </dl>
+<dl class="dl">
+              
+                <dt class="dt dlterm">7</dt>
+
+                <dd class="dd"><var class="keyword varname">s</var> is a directory</dd>
+
+              
+              
+                <dt class="dt dlterm">103</dt>
+
+                <dd class="dd"><var class="keyword varname">s</var> is a function.</dd>
+
+              
+            </dl>
+</dd>
+
+            <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span></dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+      
+        <div class="p">Search in all variables, functions, directories, and
+        files:<pre class="pre codeblock"><code>function myfunc()
+    disp('In myfunc')
+end
+R = exist('myfunc')</code></pre><pre class="pre codeblock"><code><samp class="ph systemoutput">R = 103</samp></code></pre></div>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+      
+      <p class="p"><span class="keyword">1.0</span></p>
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links"></nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/core_interpreter_commands_r.htm" title="Core Minimal Interpreter Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Core Minimal Interpreter Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

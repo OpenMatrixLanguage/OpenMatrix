@@ -1,0 +1,1 @@
+strcat({'one','two','three'},'test string')

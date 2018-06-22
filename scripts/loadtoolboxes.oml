@@ -1,0 +1,26 @@
+% OpenMatrix script used to load all toolboxes 
+
+function loadtoolbox(tb_name)
+	% printf('Add toolbox %s\n', tb_name)
+	global oml_verbose
+	try
+		funccounta = funccount;
+		addtoolbox(tb_name)
+		funccountb = funccount;
+		%printf('Toolbox %s added %d functions\n', tb_name, funccountb - funccounta)
+	catch
+		printf('Error loading toolbox %s\n', tb_name)
+	end
+end
+
+loadtoolbox omlCAE
+loadtoolbox omlCalculus
+loadtoolbox omlDiffEq
+loadtoolbox omlMathUtils
+loadtoolbox omlOptimization
+loadtoolbox omlPolynom
+loadtoolbox omlpythonbridge
+loadtoolbox omlSignals
+loadtoolbox omlStatistics
+loadtoolbox omlMatio
+loadtoolbox omlbatchplot

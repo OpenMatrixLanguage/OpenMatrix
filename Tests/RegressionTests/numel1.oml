@@ -1,0 +1,10 @@
+numel(3)
+numel(3+i)
+numel(@sin)
+numel(eye(6))
+numel([])
+numel({})
+numel({1,'hello'; e+i, [1,2;3,4]})
+a.b=5;
+a(2).b=6;
+numel(a)

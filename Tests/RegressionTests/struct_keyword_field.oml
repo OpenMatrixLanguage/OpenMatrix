@@ -1,0 +1,2 @@
+ tbx.function = @sqrt;
+ tbx.function(4)

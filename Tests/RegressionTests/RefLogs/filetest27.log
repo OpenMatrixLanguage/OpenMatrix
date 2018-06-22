@@ -1,0 +1,13 @@
+fname = FileManipulation/FileToRead.txt
+fid1 = 3
+error = 
+fid2 = 4
+error = 
+filepath = FileManipulation/FileToRead.txt
+filemode = rb
+text = This File
+len = 11
+text = This File
+len = 11
+ans = 0
+ans = 0

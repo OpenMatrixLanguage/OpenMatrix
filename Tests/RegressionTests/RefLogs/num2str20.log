@@ -1,0 +1,4 @@
+ans = Inf
+ans = -Inf
+ans = NaN
+ans = NaN

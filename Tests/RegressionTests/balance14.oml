@@ -1,0 +1,4 @@
+[a,b,c]=balance(2i, 'p')
+disp(a)
+disp(b)
+disp(c)

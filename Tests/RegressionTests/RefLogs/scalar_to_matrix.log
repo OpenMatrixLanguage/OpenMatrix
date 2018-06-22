@@ -1,0 +1,10 @@
+a = [Matrix] 2 x 2
+2  0
+0  3
+b = [Matrix] 3 x 3
+3 + 0i  0 + 0i  0 + 0i
+0 + 0i  0 + 0i  0 + 0i
+0 + 0i  0 + 0i  1 - 1i
+c = [Matrix] 2 x 3
+0 + 2i  0 + 0i  0 + 0i
+0 + 0i  0 + 0i  9 + 0i

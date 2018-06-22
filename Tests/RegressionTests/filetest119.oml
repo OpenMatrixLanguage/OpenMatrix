@@ -1,0 +1,10 @@
+fname = 'FileManipulation/FileToWrite48.txt'
+fid = fopen(fname, 'w+')
+fwrite(fid, [250,16], {{{'schar'}}})
+fflush(fid)
+frewind(fid)
+fread(fid)
+frewind(fid)
+fread(fid, inf, 'unsigned char')
+fclose(fid)
+delete(fname)

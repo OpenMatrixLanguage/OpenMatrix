@@ -1,0 +1,8 @@
+addtoolbox('omlStatistics')
+a = 3;
+b = 5;
+rand('seed', 2003);
+rnd1 = gamrnd(a,b)
+r = 1;
+c = 5;
+rnd2 = gamrnd(a,b,r,c)

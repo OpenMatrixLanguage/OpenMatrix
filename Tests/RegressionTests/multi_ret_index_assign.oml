@@ -1,0 +1,10 @@
+b = zeros(1,3);
+function [a,b] = foo(k)
+	a = k;
+	b = k+1;
+end
+for i = 1:3
+	[a,b(i)] = foo(i);
+end
+a
+b

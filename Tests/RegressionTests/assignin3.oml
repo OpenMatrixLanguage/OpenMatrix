@@ -1,0 +1,10 @@
+function tocall
+    assignin('base','x',1);
+end
+function go
+    x=2;
+    tocall;
+    disp(x);
+end
+go;
+disp(x);

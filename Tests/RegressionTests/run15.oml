@@ -1,0 +1,4 @@
+addpath('.')
+a=0
+run('FileManipulation/sourcefile4.script')
+a

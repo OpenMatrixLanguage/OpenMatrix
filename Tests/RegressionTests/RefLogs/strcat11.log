@@ -1,0 +1,19 @@
+ans = 
+{
+  [1,1] teststring1oneteststring2teststring3
+  [1,2] teststring1twoteststring2teststring3
+  [1,3] 
+  {
+    [1,1] teststring1
+    [1,2] -9 + 2i
+    [1,3] three
+    [1,4] 
+    {
+      [1,1] four
+    }
+    [1,5] [Matrix] 1 x 2
+    68  102
+    [1,6] teststring2
+    [1,7] teststring3
+  }
+}

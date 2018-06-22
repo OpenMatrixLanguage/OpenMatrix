@@ -1,0 +1,13 @@
+a = 3;
+
+switch a
+   case 1
+       b=4;
+   case 2
+	   b=9;
+   case 3
+   case 4
+       b=88;
+end
+
+b

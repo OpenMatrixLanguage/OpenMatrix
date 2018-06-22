@@ -1,0 +1,5 @@
+addtoolbox omlpythonbridge
+disp('importing nd matrix data from python')
+evalpythonscript('import numpy as np');
+evalpythonscript('pondarray = np.arange(12).reshape(2,3,2)');
+[value, status, errorMessage] = getpythonvar('pondarray')

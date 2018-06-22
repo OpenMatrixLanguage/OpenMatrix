@@ -1,0 +1,5 @@
+Warning: maximum number of function evaluations exceeded, returned last estimate in call to function lsqcurvefit at line number 9 in file lsqcurvefit5.oml
+p = [Matrix] 2 x 1
+16.01613
+ 0.69347
+resnorm = 0.00231255278

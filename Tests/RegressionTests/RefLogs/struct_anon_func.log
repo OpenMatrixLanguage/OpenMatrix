@@ -1,0 +1,7 @@
+functionstruct = struct [
+addxy: @add
+showhello: @show
+]
+ans = 7
+ans = @show
+hello

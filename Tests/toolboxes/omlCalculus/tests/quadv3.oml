@@ -1,0 +1,3 @@
+addtoolbox omlCalculus
+
+[area,count] = quadv(@(x) sqrt(x), [0, 1], [1, 2])

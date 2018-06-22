@@ -1,0 +1,2 @@
+f=@(x) 2*x
+func2str(f)

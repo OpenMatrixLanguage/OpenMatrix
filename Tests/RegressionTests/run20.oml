@@ -1,0 +1,3 @@
+addpath('.')
+run('FileManipulation/sourcefile10.script')
+length(wd)-strfind(wd,'FileManipulation')

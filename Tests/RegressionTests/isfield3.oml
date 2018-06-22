@@ -1,0 +1,7 @@
+s.a=5
+s.b='test'
+s(2).c=s
+isfield(s,'a')
+isfield(s,'b')
+isfield(s,'c')
+isfield(s,'d')

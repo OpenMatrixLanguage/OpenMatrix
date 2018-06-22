@@ -1,0 +1,6 @@
+global a 
+a = 5
+
+clear('global')
+isglobal('a')
+a

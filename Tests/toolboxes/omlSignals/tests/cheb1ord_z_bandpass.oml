@@ -1,0 +1,97 @@
+addtoolbox omlSignals
+
+function result = Cheb1OrdBP()
+	result = 'fail';
+	f1 = [200, 300];
+	f2 = [150, 330];
+	fs = 1000;
+	Wp = f1 / (fs/2);
+	Ws = f2 / (fs/2);
+	Rp = 20 * log10(sqrt(2));
+	Rs = 20;
+	[order, Wn] = cheb1ord(Wp, Ws, Rp, Rs)
+
+	[num, den] = cheby1(order, Rp, Wp);
+	fcc = (fs/pi)*atan(sqrt(tan(Wp(1)*pi/2)*tan(Wp(2)*pi/2)));
+	f = [0,f2(1),f1(1),fcc,f1(2),f2(2),fs/2];
+	m = abs(freqz(num,den,f,fs));
+	dB = -20 * log10(m);
+
+	if (m(1) > 1.0e-4)
+		return;
+	end
+
+	if (dB(2) < Rs)
+		return;
+	end
+
+	if (abs(dB(3) - Rp) > 1.0e-4)
+		return;
+	end
+
+	if (mod(order,2) == 0)
+		if (abs(dB(4) - Rp) > 1.0e-4)
+			break;
+		end
+	else
+		if (abs(m(4) - 1.0) > 1.0e-4)
+			break;
+		end
+	end
+
+	if (abs(dB(5) - Rp) > 1.0e-4)
+		return;
+	end
+
+	if (dB(6) < Rs)
+		return;
+	end
+
+	if (m(7) > 1.0e-4)
+		return;
+	end
+
+	[num, den] = cheby1(order, Rp, Wn);
+	fcc = (fs/pi)*atan(sqrt(tan(Wn(1)*pi/2)*tan(Wn(2)*pi/2)));
+	f = [0,f2(1),f1(1),fcc,f1(2),f2(2),fs/2];
+	m = abs(freqz(num,den,f,fs));
+	dB = -20 * log10(m);
+
+	if (m(1) > 1.0e-4)
+		return;
+	end
+
+	if (dB(2) < Rs)
+		return;
+	end
+
+	if (dB(3) > Rp)
+		return;
+	end
+
+	if (mod(order,2) == 0)
+		if (abs(dB(4) - Rp) > 1.0e-4)
+			break;
+		end
+	else
+		if (abs(m(4) - 1.0) > 1.0e-4)
+			break;
+		end
+	end
+
+	if (dB(5) > Rp)
+		return;
+	end
+
+	if (abs(dB(6) - Rs) > 1.0e-4)
+		return;
+	end
+
+	if (m(7) > 1.0e-4)
+		return;
+	end
+
+	result = 'pass';
+end
+
+cheb1ordBP = Cheb1OrdBP()

@@ -1,0 +1,1 @@
+cellfun(@strrep,{'aaaa','dllasdfl'},{'a','l'},{'b'},'uniformoutput',0)

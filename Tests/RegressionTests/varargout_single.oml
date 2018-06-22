@@ -1,0 +1,5 @@
+function varargout = clip(varargin)
+ 	varargout{1} = 3;
+end
+ 
+[a] = clip(0.003, 4)

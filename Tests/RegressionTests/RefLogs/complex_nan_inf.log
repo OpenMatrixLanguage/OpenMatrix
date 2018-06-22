@@ -1,0 +1,7 @@
+ans = NaN + NaNi
+ans = NaN + NaNi
+ans = NaN + NaNi
+ans = NaN + NaNi
+ans = -2 + NaNi
+ans = NaN + NaNi
+ans = Inf + NaNi

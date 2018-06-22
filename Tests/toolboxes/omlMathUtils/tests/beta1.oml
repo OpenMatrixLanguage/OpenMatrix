@@ -1,0 +1,9 @@
+addToolbox omlMathUtils
+
+% These two lines should return the same value.
+
+beta(3,10)
+g=gamma(3)*gamma(10)/gamma(3+10);
+g
+
+% Written by mbsmith 5/18/15

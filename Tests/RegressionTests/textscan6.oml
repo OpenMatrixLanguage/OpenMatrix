@@ -1,0 +1,3 @@
+str='45 62 three four 24.7e12 five six 56';
+textscan(str, '%s %s %f')
+textscan(str, '%s %s %f', 'ReturnOnError', 0)

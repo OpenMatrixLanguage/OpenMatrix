@@ -1,0 +1,6 @@
+save variables to logical_v5.m -v5 file
+clear all
+load logical_v5.m file
+display variables c and d
+c = 1
+d = 0

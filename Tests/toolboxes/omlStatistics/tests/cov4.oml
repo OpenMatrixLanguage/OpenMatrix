@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+cov([2,4,1,2])

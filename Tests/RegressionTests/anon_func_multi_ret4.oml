@@ -1,0 +1,12 @@
+v=3;
+
+function [y,z]=myfunc(a,b,c)
+    z=a+b;
+	y=c;
+end
+
+anon = @(x,y) myfunc(x, y, v);
+
+v=-3;
+
+[q,p] = anon(5,6)

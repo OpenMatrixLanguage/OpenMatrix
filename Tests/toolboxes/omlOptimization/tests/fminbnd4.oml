@@ -1,0 +1,4 @@
+addtoolbox omlOptimization
+
+interval = [1, 6];
+[x,fval] = fminbnd(@(x) -log(x) / x, interval)

@@ -1,0 +1,1 @@
+errormsgonly('Error without stack information')

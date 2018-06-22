@@ -1,0 +1,2 @@
+assert(false,'custom error %s %d %s.','message',2)
+disp('no crash')

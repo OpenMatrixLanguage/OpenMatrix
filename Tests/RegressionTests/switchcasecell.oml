@@ -1,0 +1,10 @@
+e = 'hi'
+switch e
+  case {'hello','hi'}
+    f = 'hello'
+  case {'goodbye', 'bye'}
+    f = 'bye'
+  otherwise
+    f = 'neither'
+end
+f

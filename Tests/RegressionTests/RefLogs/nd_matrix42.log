@@ -1,0 +1,4 @@
+m = [Matrix] 1 x 3
+1  2  3
+sz = [Matrix] 1 x 2
+1  3

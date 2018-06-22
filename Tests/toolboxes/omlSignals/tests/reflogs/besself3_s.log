@@ -1,0 +1,8 @@
+Warning: filter specification is too extreme, results cannot be trusted in call to function besself3 at line number 9 in file besself3_s.oml
+besself3LP = pass
+Warning: filter specification is too extreme, results cannot be trusted in call to function besself3 at line number 52 in file besself3_s.oml
+besself3HP = pass
+Warning: filter specification is too extreme, results cannot be trusted in call to function besself3 at line number 97 in file besself3_s.oml
+besself3BP = pass
+Warning: filter specification is too extreme, results cannot be trusted in call to function besself3 at line number 158 in file besself3_s.oml
+besself3BS = pass

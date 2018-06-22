@@ -1,0 +1,1 @@
+[bool, index]=ismember({'test2','test1'},{'test1','t2';'t','TEST'})

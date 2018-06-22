@@ -1,0 +1,8 @@
+function b=squares(size)
+   b=1:size
+   for j=1:size
+      b(j) = j*j
+   end
+end
+
+squares(5)

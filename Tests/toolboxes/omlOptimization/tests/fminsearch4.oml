@@ -1,0 +1,8 @@
+addtoolbox omlOptimization
+
+function obj = ObjFunc(p)
+    obj = 3*(p(1)-5)^2 + 2*(p(2)+4)^2 + (p(3)-3)^2 + 5;
+end
+
+init = [1, 1, 1]';
+[x,fval] = fminsearch(@(p) 3*(p(1)-5)^2 + 2*(p(2)+4)^2 + (p(3)-3)^2 + 5, init)

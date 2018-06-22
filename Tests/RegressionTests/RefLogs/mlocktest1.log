@@ -1,0 +1,1 @@
+Error: not in a function; lock failed in call to function mlock at line number 1 in file mlocktest1.oml

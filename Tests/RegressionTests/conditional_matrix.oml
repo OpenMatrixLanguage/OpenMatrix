@@ -1,0 +1,12 @@
+function z=silly(a)
+	if a
+		z=1;
+	else
+		z=0;
+	end
+end
+
+silly([1 1])
+silly([1 0])
+silly(ones(3,3))
+silly(eye(3))

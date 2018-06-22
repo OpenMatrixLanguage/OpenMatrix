@@ -1,0 +1,3 @@
+A=2
+global A
+isglobal({})

@@ -1,0 +1,2 @@
+assert({},[])
+disp('no crash')

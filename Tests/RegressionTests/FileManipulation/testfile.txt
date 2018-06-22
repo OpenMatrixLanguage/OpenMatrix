@@ -1,0 +1,21 @@
+## A	ID = 02476
+## YKZ Timestamp Temp Humidity Wind Weather
+06-Sep-2013 01:00:00	6.6	89	4	clear
+06-Sep-2013 05:00:00	5.9	95	1	clear
+06-Sep-2013 09:00:00	15.6	51	5	mainly clear
+06-Sep-2013 13:00:00	19.6	37	10	mainly clear
+06-Sep-2013 17:00:00	22.4	41	9	mostly cloudy
+06-Sep-2013 21:00:00	17.3	67	7	mainly clear
+## B	ID = 02477
+## YVR Timestamp Temp Humidity Wind Weather
+09-Sep-2013 01:00:00	15.2	91	8	clear
+09-Sep-2013 05:00:00	19.1	94	7	n/a
+09-Sep-2013 09:00:00	18.5	94	4	fog
+09-Sep-2013 13:00:00	20.1	81	15	mainly clear
+09-Sep-2013 17:00:00	20.1	77	17	n/a
+09-Sep-2013 18:00:00	20.0	75	17	n/a
+09-Sep-2013 21:00:00	16.8	90	25	mainly clear
+## C	ID = 02478
+## YYZ Timestamp Temp Humidity Wind Weather
+
+

@@ -1,0 +1,14 @@
+b = [Matrix] 1 x 5
+1  2  3  4  5
+b = [Matrix] 1 x 5
+1  2  3  4  5
+b = [Matrix] 1 x 5
+1  4  3  4  5
+b = [Matrix] 1 x 5
+1  4  9  4  5
+b = [Matrix] 1 x 5
+1  4  9  16  5
+b = [Matrix] 1 x 5
+1  4  9  16  25
+ans = [Matrix] 1 x 5
+1  4  9  16  25

@@ -1,0 +1,6 @@
+ans = [Matrix] 1 x 5
+1  1  1  0  0
+ans = [Matrix] 1 x 5
+1  1  1  1  0
+ans = [Matrix] 1 x 5
+0  0  0  0  1

@@ -1,0 +1,10 @@
+﻿function f()
+	global gg;
+	gg='';
+
+	for i=1:5
+		gg=[gg,'/',num2str(i)]
+	end
+end
+
+f()

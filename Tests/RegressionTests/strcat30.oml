@@ -1,0 +1,1 @@
+strcat(['def';'ghi'],'jkl')

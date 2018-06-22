@@ -1,0 +1,4 @@
+a=[1 2 3; 4 5 6]
+disp(a(end,1))
+disp(a(1,end))
+disp(a(end))

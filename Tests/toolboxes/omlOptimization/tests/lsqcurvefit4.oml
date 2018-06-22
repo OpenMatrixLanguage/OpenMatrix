@@ -1,0 +1,9 @@
+addtoolbox omlOptimization
+
+FittingFunc= @(c, t) c(1) * exp(-c(2)*t);
+t = [1; 2; 3; 4];
+x = [8.025, 3.975, 2.025, 0.975];
+init = [15; 1];
+
+[p,resnorm] = lsqcurvefit(FittingFunc, init, t, x)
+

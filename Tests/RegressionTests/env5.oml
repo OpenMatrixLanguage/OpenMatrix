@@ -1,0 +1,2 @@
+setenv('hml2testvar','TEST VALUE')
+getenv('hml2testvar')

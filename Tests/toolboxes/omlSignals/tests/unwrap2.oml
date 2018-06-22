@@ -1,0 +1,29 @@
+addToolbox omlSignals
+t=-pi:0.01:pi;
+x=tan(t);
+interval=200;
+b=unwrap(x,interval);
+
+% The original function should have jumps more
+% than pi in order for this test to be valid.
+% assuming that the tan function works properly (it does)
+% tan MUST have a jump larger than pi, seeing that it has 
+% a verticle asymtote. This makes it the perfect case for
+% testing unwrap.
+
+%Because unwrap "smooths" jumps more than
+% the default of pi, unwrap can be tested
+%by checking if the interval between two 
+% concurrent numbers is never more than
+% pi.
+last=b(1);
+for i = b
+	if ge(abs(i-last),interval)
+		error('unwrap does not work')
+		break 
+	end
+	last=i;
+end
+
+
+%written by mbsmith, 5/15/15

@@ -1,0 +1,7 @@
+nan*i
+3+nan*i
+nan + nan*i
+inf + nan*i
+complex(-2,nan)
+complex(nan,nan)
+complex(inf,nan)

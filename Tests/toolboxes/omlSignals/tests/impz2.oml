@@ -1,0 +1,8 @@
+addtoolbox omlSignals
+
+% test 2 - stable with pole at origin
+fc = 500;
+fs = 2000;
+ts = 1/fs;
+[num,den] = butter(1, fc/(fs/2));
+[x,t] = impz(num, den, [], fs)

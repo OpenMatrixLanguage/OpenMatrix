@@ -1,0 +1,13 @@
+ans = 
+{
+  [1,1] 
+  {
+    [1,1] ccabbba
+    [1,2] eabbba
+    [1,3] dddabbba
+  }
+  [1,2] 
+  {
+  }
+  [1,3] aaaeeba
+}

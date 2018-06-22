@@ -1,0 +1,1 @@
+[A, B] = strtok('   this is a test')

@@ -1,0 +1,3 @@
+addtoolbox omlStatistics
+
+p = polyfit([1,2,3,4],[4,8,18,32],2)

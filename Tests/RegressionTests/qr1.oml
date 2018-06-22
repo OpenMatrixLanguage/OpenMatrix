@@ -1,0 +1,3 @@
+[q,r]=qr()
+disp(q)
+disp(r)

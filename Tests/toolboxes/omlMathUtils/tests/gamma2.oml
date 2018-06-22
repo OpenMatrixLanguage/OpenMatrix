@@ -1,0 +1,2 @@
+addToolbox omlMathUtils
+gamma([3 6 8])

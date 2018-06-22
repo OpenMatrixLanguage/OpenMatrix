@@ -1,0 +1,2 @@
+﻿global s
+s(length(s)+1).name = 'python'

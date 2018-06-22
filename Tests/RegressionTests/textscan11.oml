@@ -1,0 +1,2 @@
+str='12.345678/1/2018 hello world!!';
+textscan(str, '%2.4f/%f/%d %s %s')

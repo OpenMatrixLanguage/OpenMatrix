@@ -1,0 +1,3 @@
+fid = fopen('FileManipulation\numbers3.txt','r');
+fscanf(fid,'%s', 1)
+fscanf(fid, '%f', [2 3])

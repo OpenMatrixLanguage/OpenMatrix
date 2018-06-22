@@ -1,0 +1,12 @@
+function [a,b] = foo(varargin)
+ nLhs = nargout;
+ nRhs = nargin;
+ disp('nb inputs')
+ disp(nRhs)
+ disp('nb outputs')
+ disp(nLhs)
+ a=1;
+ b=1;
+end
+
+[x, y] = foo(1,2,3,4);

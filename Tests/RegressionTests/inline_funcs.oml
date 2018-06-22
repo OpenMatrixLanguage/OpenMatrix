@@ -1,0 +1,8 @@
+function z=goo(a,b) c=a+b; z=sqrt(c); end
+function q=poo(a,b) c=a+b, q=(a+b)^2 end
+function w=doo(a,b) w=a+b end
+function w=ooo(a,b) w=a-b; end
+goo(2,3)
+poo(2,3)
+doo(2,3)
+ooo(2,3)

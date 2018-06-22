@@ -1,0 +1,1 @@
+Error: incompatible array sizes in arguments 2,3; non-concatenated dimensions must match in call to function cat at line number 1 in file cat8.oml

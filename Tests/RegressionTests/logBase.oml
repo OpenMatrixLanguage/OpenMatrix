@@ -1,0 +1,5 @@
+function [sol]= logBase(number, base)
+	sol= ((log(number))/log(base));
+end
+
+x = logBase(10, 2)

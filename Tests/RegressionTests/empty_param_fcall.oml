@@ -1,0 +1,4 @@
+function test(varargin)
+disp(nargin)
+end
+test(error(''))

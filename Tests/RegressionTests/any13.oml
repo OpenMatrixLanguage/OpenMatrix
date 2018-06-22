@@ -1,0 +1,2 @@
+any(['test';'abcd'])
+islogical(ans)

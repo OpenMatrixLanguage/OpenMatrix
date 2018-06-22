@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+mean(pi,4,'g')

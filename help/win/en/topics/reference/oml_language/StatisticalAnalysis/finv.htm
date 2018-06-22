@@ -1,0 +1,111 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="finv" /><meta name="abstract" content="Compute F distribution inverse cumulative distribution function values." /><meta name="description" content="Compute F distribution inverse cumulative distribution function values." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Statistical Analysis Commands" /><meta name="indexterms" content="finv" /><meta name="DC.subject" content="finv" /><meta name="keywords" content="finv" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/statistical_analysis_command_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>finv</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/StatisticalAnalysis/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/StatisticalAnalysis/statistical_analysis_command_r.htm" title="Statistical Analysis Commands">Statistical Analysis Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/StatisticalAnalysis/statistical_analysis_command_r.htm" title="Statistical Analysis Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Statistical Analysis Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">finv</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Compute F distribution inverse cumulative distribution function values.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      <p class="p"><span class="ph synph">x=finv<span class="ph var">(p,m,n)</span></span></p>
+</section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">p</var></dt>
+
+          <dd class="dd pd">Probability values.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">m</var></dt>
+
+          <dd class="dd pd">Degrees of freedom.</dd>
+
+          <dd class="dd pd ddexpand">Type: integer</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">n</var></dt>
+
+          <dd class="dd pd">Degrees of freedom.</dd>
+
+          <dd class="dd pd ddexpand">Type: integer</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">x</span></dt>
+
+          <dd class="dd pd">Values of the distribution random variable.</dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">Simple <span class="keyword cmdname">finv</span>
+        example:<pre class="pre codeblock"><code>p=0.6;
+m=30;
+n=20;
+p = 0.6;
+x = finv(p,m,n)</code></pre><pre class="pre codeblock"><code>x = 1.1233</code></pre></div>
+
+      <div class="p">Vector <span class="keyword cmdname">tinv</span>
+        example:<pre class="pre codeblock"><code>p=[0.1:0.1:0.9];
+m=30;
+n=20;
+x = finv(p,n)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">x = [Matrix] 1 x 9
+0.59977 0.71688 0.81565 0.91126 1.0114 1.1233 1.258 1.4385 1.7382</code></code></pre></div>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+      
+      <p class="p"><span class="keyword">1.0</span></p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links"></nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/StatisticalAnalysis/statistical_analysis_command_r.htm" title="Statistical Analysis Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Statistical Analysis Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

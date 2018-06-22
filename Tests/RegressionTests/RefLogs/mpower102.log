@@ -1,0 +1,5 @@
+Warning: singular matrix (to within machine precision) in call to function mpower at line number 1 in file mpower102.oml
+ans = [Matrix] 3 x 3
+Inf  Inf  Inf
+Inf  Inf  Inf
+Inf  Inf  Inf

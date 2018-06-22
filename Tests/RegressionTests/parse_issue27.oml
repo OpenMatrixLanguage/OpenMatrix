@@ -1,0 +1,7 @@
+﻿function test(sz)
+    if sz{end}(1) > 1
+        disp(true);
+    else
+        disp(false)
+    end
+end

@@ -1,0 +1,7 @@
+function foo
+   e1 = getcurrentenv()
+   e2 = getcurrentenv()
+   e3 = getcurrentenv()
+end
+
+foo

@@ -1,0 +1,5 @@
+addtoolbox omlPolynom
+
+p = [2 4 3 6];
+q = [5 -2 4];
+[n,d] = polyder(p,q)

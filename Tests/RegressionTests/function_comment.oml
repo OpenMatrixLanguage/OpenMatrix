@@ -1,0 +1,6 @@
+﻿function [y, z] = foo(a,b) % foo function
+   z = a+b;
+   y = a-b;
+end
+
+foo(2,3)

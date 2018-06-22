@@ -1,0 +1,8 @@
+fname = 'FileManipulation/FileToWrite66.txt'
+fid = fopen(fname, 'w+')
+fwrite(fid, [1e5000,-1e5000], 'int8')
+fflush(fid)
+frewind(fid)
+fread(fid)
+fclose(fid)
+delete(fname)

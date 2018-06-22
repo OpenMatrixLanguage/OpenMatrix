@@ -1,0 +1,2 @@
+cart2sph(sph2cart(1,-1,-1))
+sph2cart(cart2sph(1,-1,-1))

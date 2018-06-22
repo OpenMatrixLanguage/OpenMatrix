@@ -1,0 +1,4 @@
+index = zeros(1,3);
+DNZ=[1:10];
+[value,index(3)]=max(DNZ);
+index

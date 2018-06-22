@@ -1,0 +1,14 @@
+function z=goo(a)
+    switch a
+	    case 1
+		   z=1;
+		   return
+    	case 2
+		   z=2;
+		   return
+	end
+
+	z=0;
+end
+
+goo(1)

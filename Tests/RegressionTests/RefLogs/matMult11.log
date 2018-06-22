@@ -1,0 +1,6 @@
+ tree (* (MATRIX (VECTOR 6) (VECTOR 2)) (MATRIX (VECTOR 7 5) (VECTOR 8 3)))
+=================
+(STATEMENT_LIST (* (MATRIX (VECTOR 6) (VECTOR 2)) (MATRIX (VECTOR 7 5) (VECTOR 8 3))))
+=================
+Evaluator result: [ ]
+

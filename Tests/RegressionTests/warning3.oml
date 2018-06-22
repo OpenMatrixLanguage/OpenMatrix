@@ -1,0 +1,1 @@
+warning('WARNING MESSAGE %d', 5)

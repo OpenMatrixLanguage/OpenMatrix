@@ -1,0 +1,12 @@
+﻿horzcat([],1)
+vertcat([],1)
+try
+	horzcat(ones(3,0),1)
+catch
+	'correct'
+end
+try
+	vertcat(ones(3,0),1)
+catch
+	'correct'
+end

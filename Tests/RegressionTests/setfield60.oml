@@ -1,0 +1,3 @@
+student(1,1).class = 1;
+student = setfield (student,{1,2},'name',{3},'last', 'Doe')
+student(1,2).name(3).last

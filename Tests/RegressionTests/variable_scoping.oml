@@ -1,0 +1,9 @@
+function w=jeff(a,b)
+w=0
+if (a~=b)
+    w=2*a*b
+end
+end
+a=1
+c=jeff(3,4)
+a+c

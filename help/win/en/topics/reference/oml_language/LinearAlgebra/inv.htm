@@ -1,0 +1,97 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="inv" /><meta name="abstract" content="Compute the inverse matrix." /><meta name="description" content="Compute the inverse matrix." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Linear Algebra Commands" /><meta name="indexterms" content="inv" /><meta name="DC.subject" content="inv" /><meta name="keywords" content="inv" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/LinearAlgebra/linear_algebra_command_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CoreMinimalInterpreter/mldivide.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CoreMinimalInterpreter/mrdivide.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>inv</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/LinearAlgebra/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/LinearAlgebra/linear_algebra_command_r.htm" title="Linear Algebra Commands">Linear Algebra Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/LinearAlgebra/linear_algebra_command_r.htm" title="Linear Algebra Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Linear Algebra Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">inv</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Compute the inverse matrix.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      <p class="p"><span class="ph synph">x = inv<span class="ph var">(A)</span></span></p>
+
+      <p class="p"><span class="ph synph">[x,rcond] = inv<span class="ph var">(A)</span></span></p>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">A</var></dt>
+
+          <dd class="dd pd">The matrix to invert.</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">matrix</span></dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">x</span></dt>
+
+          <dd class="dd pd">The inverse matrix.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">rcond</span></dt>
+
+          <dd class="dd pd">An estimate of the condition number reciprocal.</dd>
+
+          <dd class="dd pd ddexpand"><span class="keyword">scalar</span></dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+      <pre class="pre codeblock"><code>[x,rcond]=inv([1,2,3;5,6,8;5,4,7])</code></pre>
+      <pre class="pre codeblock"><code><code class="ph codeph">x = [Matrix] 3 x 3
+-1.00000   0.20000   0.20000
+-0.50000   0.80000  -0.70000
+ 1.00000  -0.60000   0.40000
+rcond = 0.0222222222</code></code></pre>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+      
+      <p class="p"><span class="keyword">1.0</span></p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/mldivide.htm" title="Perform left division of scalars and/or matrices, equivalent to the \ operator.">mldivide</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/mrdivide.htm" title="Perform right division of scalars and/or matrices, equivalent to the / operator.">mrdivide</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/LinearAlgebra/linear_algebra_command_r.htm" title="Linear Algebra Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Linear Algebra Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

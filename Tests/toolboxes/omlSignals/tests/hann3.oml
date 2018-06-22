@@ -1,0 +1,2 @@
+addtoolbox omlSignals
+w = hann(7)

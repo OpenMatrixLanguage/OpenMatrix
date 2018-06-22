@@ -1,0 +1,6 @@
+function printThis(x,y,z)
+	disp(x)
+	disp(y)
+	disp(z)
+end
+printThis('hi',4, {3, [4 3]})

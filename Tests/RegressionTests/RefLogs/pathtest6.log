@@ -1,0 +1,6 @@
+Current search path:
+RefLogs
+.
+Warning: 'RefLogs' is not in path in call to function rmpath at line number 4 in file pathtest6.oml
+Current search path:
+.

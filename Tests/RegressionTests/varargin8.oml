@@ -1,0 +1,5 @@
+function myfunc(varargin)
+	size(varargin)
+end
+ 
+myfunc()

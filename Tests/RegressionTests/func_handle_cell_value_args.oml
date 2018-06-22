@@ -1,0 +1,9 @@
+﻿function test(a,b, c)
+  a
+  b
+  c
+end
+
+testHandle= @test;
+args = {1, 2, 3};
+testHandle(args{:})

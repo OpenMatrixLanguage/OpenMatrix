@@ -1,0 +1,9 @@
+Warning: no such directory exists in call to function addpath at line number 2 in file pathtest17.oml
+Current search path:
+.
+functions
+Warning: 'RefLogs' is not in path in call to function rmpath at line number 4 in file pathtest17.oml
+Warning: 'functions:FileManipulation' is not in path in call to function rmpath at line number 4 in file pathtest17.oml
+Current search path:
+.
+functions

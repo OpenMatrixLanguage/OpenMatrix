@@ -1,0 +1,7 @@
+fname = FileManipulation/FileToWrite40.txt
+fid = 3
+ans = 1
+ans = 0
+ans = 127
+ans = 127
+ans = 0

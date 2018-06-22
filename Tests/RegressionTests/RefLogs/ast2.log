@@ -1,0 +1,1 @@
+ans = (FUNC_DEF f1 (ID_LIST x) (ID_LIST y) (STATEMENT_LIST (STMT (= y (HML_STRING 'This is a ''test''.')))))

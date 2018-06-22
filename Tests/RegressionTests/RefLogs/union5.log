@@ -1,0 +1,5 @@
+a = [Matrix] 1 x 3
+2 - 1i  3 + 2i  8 + 0i
+b = [Matrix] 1 x 0
+c = [Matrix] 1 x 3
+1  2  3

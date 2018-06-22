@@ -1,0 +1,5 @@
+a.state = 'MI';
+a(2,2).state = 'TX';
+a(1).state
+a(4).state
+a

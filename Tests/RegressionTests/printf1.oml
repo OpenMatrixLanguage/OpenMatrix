@@ -1,0 +1,4 @@
+printf('%d\n', 1)
+printf('%d', 2)
+disp('after 2')
+printf('%d', 3)

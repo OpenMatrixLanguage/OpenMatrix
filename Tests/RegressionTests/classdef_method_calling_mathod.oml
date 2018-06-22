@@ -1,0 +1,29 @@
+﻿classdef test < handle
+    properties
+        x
+    end
+   
+    methods
+		function self = test()
+			self.x = 3;
+		end
+
+		function reset(self)
+		    self.x = 3;
+		end
+
+		function reset2(self)
+		   self.reset();
+		end
+
+		function modify(self, val)
+		   self.x = val;
+		end
+	end
+end
+
+a = test;
+a.modify(4);
+a.x
+a.reset2();
+a.x

@@ -1,0 +1,74 @@
+% unitary tests for 'lasterr' function
+%==============================================================================
+% initialize last error message
+lasterr('');
+msg = lasterr();
+if strcmp(msg, '') ~= 1
+	error('lasterr does not work.');
+end
+%==============================================================================
+% we raise an error
+message_computed = '';
+try
+	eps('toto')
+catch
+	message_computed = lasterr();
+end
+expected_message = 'Error: invalid class name';
+if strcmp(message_computed, expected_message) ~= 1
+	error('lasterr does not work.');
+end
+%==============================================================================
+lasterr('');
+message_computed = '';
+try
+	lasterr(1);
+catch
+	message_computed = lasterr();
+end
+expected_message = 'Error: input must be a string';
+if strcmp(message_computed, expected_message) ~= 1
+	error('lasterr does not work.');
+end
+%==============================================================================
+lasterr('');
+message_computed = '';
+try
+	[a,b] = lasterr();
+catch
+	message_computed = lasterr();
+end
+expected_message = 'Error: invalid function call; incorrect number of output arguments';
+if strcmp(message_computed, expected_message) ~= 1
+	error('lasterr does not work.');
+end
+%==============================================================================
+lasterr('');
+message_computed = '';
+try
+	lasterr('msg1', 'msg2');
+catch
+	message_computed = lasterr();
+end
+expected_message = 'Error: invalid function call; incorrect number of input arguments';
+if strcmp(message_computed, expected_message) ~= 1
+	error('lasterr does not work.');
+end
+%==============================================================================
+% check syntax error message
+lasterr('');
+message_computed = '';
+try
+	eval('1+');
+catch
+	message_computed = lasterr();
+end
+expected_message = 'Syntax error at line number 1 near character position 1';
+if strcmp(message_computed, expected_message) ~= 1
+	error('lasterr does not work.');
+end
+%==============================================================================
+% re-initialize error message at the end of this test
+lasterr('');
+%==============================================================================
+'success'

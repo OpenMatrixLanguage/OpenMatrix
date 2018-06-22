@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+betainv(-0.2i,1,1)

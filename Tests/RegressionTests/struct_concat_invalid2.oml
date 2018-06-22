@@ -1,0 +1,3 @@
+ss = [struct('a',3) struct('b',4)];
+ss(1).name = 'Bob';
+ss.name

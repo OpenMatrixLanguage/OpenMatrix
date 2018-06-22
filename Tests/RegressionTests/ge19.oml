@@ -1,0 +1,8 @@
+m(3,4,5) = 60;
+
+for i=1:59
+  m(i) = i;
+end
+
+ge(30,m)
+islogical(ans)

@@ -1,0 +1,2 @@
+and(true,true,true,true,false)
+islogical(ans)

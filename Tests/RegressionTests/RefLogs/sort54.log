@@ -1,0 +1,4 @@
+b = [Matrix] 1 x 16
+NaN  NaN  NaN  NaN  NaN  Inf  Inf  Inf  Inf  12  10  8  4  2  1  -1
+idx = [Matrix] 1 x 16
+4  9  10  15  16  1  6  7  12  13  8  11  5  3  14  2

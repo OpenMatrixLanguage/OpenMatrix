@@ -1,0 +1,83 @@
+%which3 function displays the results of a number of 
+%istype related functions related to a given variable.
+%the result displays on a single line and is returned
+%as the variable 'x'.
+function x=which3(y)
+	x = 'argument is';
+if isempty(y)
+	x = strcat(x, ' empty');
+end
+if iscell(y)
+	x = strcat(x, ' cell');
+end
+if iscomplex(y)
+	x = strcat(x, ' complex');
+end
+if ismatrix(y)
+	x = strcat(x, ' matrix');
+end
+if isscalar(y)
+	x = strcat(x, ' scalar');
+end
+if isstruct(y)
+	x = strcat(x, ' struct');
+end
+if isstr(y)
+	x = strcat(x, ' string');
+end
+if isreal(y)
+	x = strcat(x, ' real');
+end
+%x;
+return;
+end
+
+%clc()
+t01_empty = []
+which3(t01_empty)
+t02_scalar = 1 
+which3(t02_scalar)
+t03_string = 'test'
+which3(t03_string)
+t04_complex1 = 1 + i
+which3(t04_complex1)
+t04_complex2 = 1 - i
+which3(t04_complex2)
+t04_complex3= t04_complex1 + t04_complex2
+which3(t04_complex3)
+
+disp('t05_matrix1 = [ 1 ]')
+t05_matrix1 = [ 1 ]
+which3(t05_matrix1)
+t05_matrix2 = [ 1 2 ]
+which3(t05_matrix2)
+t06_matrixc1 = [ 1 + i ]
+which3(t06_matrixc1)
+t06_matrixc2 = [ 1 - i ]
+which3(t06_matrixc2)
+t06_matrixc3 = t06_matrixc1 + t06_matrixc2
+which3(t06_matrixc3)
+t07_matrix1 = [ 1 + i, 3 ]
+which3(t07_matrix1)
+t07_matrix2 = [ 1 + i ; 3 ]
+which3(t07_matrix2)
+
+disp('t08_cell1 =  { 1 }')
+t08_cell1 =  { 1 }
+which3(t08_cell1)
+
+disp('t08_cell2 = { ''test'' }')
+t08_cell2 = { 'test' }
+which3(t08_cell2)
+
+disp('t09_struct.scalar = 1')
+t09_struct.scalar = 1
+which3(t09_struct)
+
+disp('t10_struct(3).scalar = 3')
+t10_struct(3).scalar = 3
+which3(t10_struct)
+
+disp('t11_struct(3,3).scalar = 9')
+t11_struct(3,3).scalar = 9
+which3(t11_struct)

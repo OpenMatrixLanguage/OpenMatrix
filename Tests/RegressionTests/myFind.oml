@@ -1,0 +1,9 @@
+function [locations notNumber]= myFind(vec1, numSearch)
+	logical = (vec1 == numSearch);
+	count = 1:length(vec1);
+	locations = count(logical);
+	inverse = logical ~= true;
+	notNumber = vec1(inverse);
+end
+
+[spots non_nums] = myFind([5 4 5 8 4 5 5], 5)

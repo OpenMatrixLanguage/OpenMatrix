@@ -1,0 +1,6 @@
+a = [Matrix] 1 x 2
+1  1
+b = [Matrix] 1 x 2
+2  4
+c = [Matrix] 1 x 2
+1  -1

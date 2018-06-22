@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+median([4 .25 -6 pi],0)

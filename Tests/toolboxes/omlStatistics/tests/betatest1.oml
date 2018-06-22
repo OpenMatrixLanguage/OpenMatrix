@@ -1,0 +1,65 @@
+addToolbox('omlStatistics')
+addpath('.');
+run('test_setup')
+
+disp('case 1')
+
+% compute exact mean and variance
+mask = 1000000;
+a = 5;
+b = 3;
+z = zeros(1, 500);
+avg = a/(a+b);
+variance = a*b/((a+b)^2*(a+b+1));
+
+% generate nearly perfect beta distributed sample
+v = [0.001:0.002:0.999];	% equally cdf spaced samples
+x = betainv(v, a, b);		% near perfect beta sample
+
+xbar = mean(x);
+sig2 = var(x);
+assertCheckAlmostEqual(avg,xbar,0,1e-4)
+assertCheckAlmostEqual(variance,sig2,0,1e-4)
+
+disp('case 2')
+
+% verify that betacdf and betainv are inverses
+y = betacdf(x, a, b);
+result = round(mask*(y-v))/mask;
+assertCheckAlmostEqual(result,z,1e-10)
+
+disp('case 3')
+
+% verify that betapdf is the derivative of betacdf
+y1 = betacdf(x-0.00005, a, b);
+y2 = betacdf(x+0.00005, a, b);
+pdf1 = (y2-y1)/0.0001;
+pdf2 = betapdf(x, a, b);
+result = round(mask*(pdf2-pdf1))/mask;
+assertCheckAlmostEqual(result,z,1e-10)
+
+disp('case 4')
+
+[a2, b2, aCI, bCI] = betafit(x);
+assertCheckAlmostEqual(a,a2,1e-2)
+assertCheckAlmostEqual(b,b2,1e-2)
+
+disp('case 5')
+
+numSamp = 10000;
+rand('seed', 2003)
+x2 = betarnd(a, b, 1, numSamp);
+[a3, b3, aCI, bCI] = betafit(x2);
+assertCheckAlmostEqual(b,b3,1e-2)
+assertCheckAlmostEqual(a,a3,1e-2)
+
+disp('case 6')
+avg = a/(a+b);
+variance = a*b/((a+b)^2*(a+b+1));
+xbar = mean(x2);
+sig2 = var(x2);
+assertCheckAlmostEqual(avg,xbar,1e-3)
+assertCheckAlmostEqual(variance,sig2,0,1e-3)
+
+
+disp('TEST PASSED')

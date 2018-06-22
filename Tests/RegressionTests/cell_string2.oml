@@ -1,0 +1,4 @@
+ref = {''};
+ 
+str = 'milk, apple and tomato';
+M = strsplit(str,{', ',' and '})

@@ -1,0 +1,15 @@
+a = [Matrix] 4 x 1
+1
+0
+0
+4
+b = [Matrix] 4 x 1
+1
+2
+0
+0
+ans = [Matrix] 4 x 1
+1
+1
+0
+1
