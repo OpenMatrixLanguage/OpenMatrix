@@ -1,0 +1,7 @@
+r = struct [
+num: 
+{
+  [1,1] [Matrix] 1 x 3
+  0  0  4
+}
+]

@@ -1,0 +1,8 @@
+b=zeros(1,0)
+[b]
+c=b
+d=[b]
+b2=zeros(0,1)
+[b2]
+c2=b2
+c2=[b2]

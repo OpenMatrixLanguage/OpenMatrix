@@ -1,0 +1,4 @@
+function testfunc(x)
+disp(x)
+end
+feval('testfunc',[2,6,1])

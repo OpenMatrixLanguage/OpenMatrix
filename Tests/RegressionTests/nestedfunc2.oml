@@ -1,0 +1,20 @@
+function x=outer4(a)
+    function y=middle(a)
+        y=2;
+        function z=inner(a)
+            disp(y);
+            y=4;
+            q=17;
+            z=y+1;
+        end
+        b=inner(a);
+        disp(y);
+        y=b;
+        disp(q);
+    end
+    x=middle(a);
+    disp(q);
+    disp(y);
+end
+
+outer4(11);

@@ -1,0 +1,2 @@
+a = [NaN, NaN, 1, 12, Inf, 8, NaN, NaN, 10, Inf, Inf, 4, NaN, 2, -1, Inf];
+[b, idx] = sort(a)

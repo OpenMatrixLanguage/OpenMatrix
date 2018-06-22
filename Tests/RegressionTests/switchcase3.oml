@@ -1,0 +1,12 @@
+a=4
+switch a
+  case 0
+    b=2
+  case 1
+    b=11
+  case 2
+    b=9
+  otherwise
+    b=7
+end
+b

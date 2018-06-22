@@ -1,0 +1,2 @@
+str='one two 12 three four 24.7e12 five six 56';
+textscan(str, '%s %s %f', 0)  % Don't read any data

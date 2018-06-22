@@ -1,0 +1,78 @@
+addToolbox('omlStatistics');
+addpath('.');
+run('test_setup')
+
+mask = 1000000; % mask for displaying rounded results
+
+% set distribution parameters
+n = 10;
+
+% compute exact mean and variance
+avg = 0;
+variance = n/(n-2);
+
+% generate nearly perfect F distributed sample
+v = [0.001:0.002:0.999];	% equally cdf spaced samples
+x = tinv(v, n);		% near perfect T sample
+
+disp('case 1')
+
+xbar = mean(x);
+z = zeros(1,500);
+sig2 = var(x);
+
+assertCheckAlmostEqual(avg,xbar,0,1e-2)
+assertCheckAlmostEqual(variance,sig2,0,0.3)
+
+disp('case 2')
+
+% verify that tcdf and tinv are inverses
+y = tcdf(x, n);
+result = round(mask*(y-v))/mask;
+assertCheckAlmostEqual(result,z,1e-10)
+
+disp('case 3')
+
+% verify that tpdf is the derivative of tcdf
+y1 = tcdf(x-0.00005, n);
+y2 = tcdf(x+0.00005, n);
+pdf1 = (y2-y1)/0.0001;
+pdf2 = tpdf(x, n);
+result = round(mask*(pdf2-pdf1))/mask;
+assertCheckAlmostEqual(result,z,1e-10)
+
+disp('case 4')
+
+% verify that betafit recovers the original parameters
+f = x.*x;
+beta2 = f / n;
+beta1 = beta2./(1+beta2);
+[a, b, aCI, bCI] = betafit(beta1);
+assertCheckAlmostEqual(1, 2*a, 1e-2);
+assertCheckAlmostEqual(n, 2*b, 1e-2);
+%disp (aCI)	% no good checks for this yet
+%disp (bCI)	% no good checks for this yet
+
+disp('case 5')
+
+% verify that trnd produces appropriate data
+numSamp = 10000;
+rand('seed', 2003);
+x2 = trnd(n, 1, numSamp);
+f = x2.*x2;
+beta2 = f / n;
+beta1 = beta2./(1+beta2);
+[a, b, aCI, bCI] = betafit(beta1);
+
+assertCheckAlmostEqual(2*a,1,1e-1)
+assertCheckAlmostEqual(2*b,n,1e-1)
+
+disp('case 6')
+
+xbar = mean(x2);
+sig2 = var(x2);
+
+assertCheckAlmostEqual(avg,xbar,1)
+assertCheckAlmostEqual(variance,sig2,1)
+
+disp('TEST PASSED')

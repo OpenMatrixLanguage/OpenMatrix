@@ -1,0 +1,129 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="conv2" /><meta name="abstract" content="Compute 2D convolution." /><meta name="description" content="Compute 2D convolution." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Linear Algebra Commands" /><meta name="indexterms" content="conv2" /><meta name="DC.subject" content="conv2" /><meta name="keywords" content="conv2" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/LinearAlgebra/linear_algebra_command_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/LinearAlgebra/conv.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>conv2</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/LinearAlgebra/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/LinearAlgebra/linear_algebra_command_r.htm" title="Linear Algebra Commands">Linear Algebra Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/LinearAlgebra/linear_algebra_command_r.htm" title="Linear Algebra Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Linear Algebra Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">conv2</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Compute 2D convolution. </p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">R = conv2<span class="ph var">(x,y)</span></span></p>
+
+      <p class="p"><span class="ph synph">R = conv2<span class="ph var">(col,row,m)</span></span></p>
+
+      <p class="p"><span class="ph synph">R = conv2<span class="ph var">(...,shape)</span></span></p>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">x,y</var></dt>
+
+          <dd class="dd pd">Matrices to be convolved.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">col,row</var></dt>
+
+          <dd class="dd pd">Vectors to convolve with <var class="keyword varname">m</var>.</dd>
+
+          <dd class="dd pd ddexpand"><var class="keyword varname">col</var> is convolved with the columns of <var class="keyword varname">m</var>.</dd>
+
+          <dd class="dd pd ddexpand"><var class="keyword varname">row</var> is convolved with the rows of <var class="keyword varname">m</var>.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">m</var></dt>
+
+          <dd class="dd pd">Matrix to convolve with <var class="keyword varname">row</var> and <var class="keyword varname">col</var>.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">shape</var></dt>
+
+          <dd class="dd pd">Options include:</dd>
+
+          <dd class="dd pd ddexpand">'<span class="keyword option">full</span>' returns the full convolution (default).
+              '<span class="keyword option">same</span>' returns the central part of the convolution,
+              returned matrix is the same size as <var class="keyword varname">x</var> or <var class="keyword varname">m</var>.
+              '<span class="keyword option">valid</span>' sets the return dimensions to <span class="ph synph">max(size(x) - size(y) + 1, 0).</span></dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+          <dd class="dd pd">The convolution of the inputs.</dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+      <pre class="pre codeblock"><code>R = conv2([2,5,7,8,3,3,7,32,67,8,3,-763],[2,9,0,8,6],[6,8,3;9,0,5],'same')</code></pre>
+      <pre class="pre codeblock"><code><code class="ph codeph">R = [Matrix] 2 x 3
+ 576   876   862
+2566  3219  3578</code></code></pre>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+      
+      <p class="p"><span class="keyword">1.0</span></p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/LinearAlgebra/conv.htm" title="Convolution of two vectors.">conv</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/LinearAlgebra/linear_algebra_command_r.htm" title="Linear Algebra Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Linear Algebra Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

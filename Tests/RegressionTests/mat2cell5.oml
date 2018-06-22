@@ -1,0 +1,2 @@
+a=reshape(1:20, 5,4)
+c=mat2cell(a,5)

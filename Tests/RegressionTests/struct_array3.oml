@@ -1,0 +1,6 @@
+a.id = 1;
+a.name = 'Jeff';
+a(2).id = 2;
+a(2).name = 'Stacey';
+a(1)
+a(1, 2)

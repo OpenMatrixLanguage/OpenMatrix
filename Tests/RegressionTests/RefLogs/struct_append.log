@@ -1,0 +1,5 @@
+Summary = struct [
+Struct array of size 5 x 1 with fields:
+a
+b
+]

@@ -1,0 +1,1 @@
+strncmp('test','tes',4)

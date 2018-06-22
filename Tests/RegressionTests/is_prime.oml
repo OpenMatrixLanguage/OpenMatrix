@@ -1,0 +1,26 @@
+function z=isprime(n)
+    if n < 3
+	   z=true;
+	   return
+	end
+
+	if mod(n, 2) == 0
+	   z=false;
+	   return
+	end
+
+	i = 3;
+	while i<=sqrt(n)
+	    if mod(n, i) == 0
+		    z=false;
+			return
+		end
+		i=i+1;
+	end
+
+	z=true;
+end
+
+isprime(99)
+isprime(98)
+isprime(97)

@@ -1,0 +1,232 @@
+addtoolbox omlSignals
+
+function result = Cheby2LP()
+	result = 'fail';
+	dBc = 20;
+	wc = (2*pi)*300;
+
+	for order=1:14
+		[num,den] = cheby2(order, dBc, wc, 's');
+
+		if (length(num) ~= order + 1)
+			break;
+		end
+
+		if (length(den) ~= order + 1)
+			break;
+		end
+
+		w = [0,wc-1,wc,wc+1];
+		m = abs(freqs(num,den,w));
+
+		if (abs(m(1) - 1.0) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(2)) > dBc)
+			break;
+		end
+
+		if (abs(-20 * log10(m(3)) - dBc) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(4)) < dBc)
+			break;
+		end
+
+		order = order + 1;
+	end
+
+	if (order == 15)
+		result = 'pass';
+	end
+end
+
+function result = Cheby2HP()
+	result = 'fail';
+	dBc = 20;
+	wc = (2*pi)*200;
+
+	for order=1:14
+		[num,den] = cheby2(order, dBc, wc, 'high', 's');
+
+		if (length(num) ~= order + 1)
+			break;
+		end
+
+		if (length(den) ~= order + 1)
+			break;
+		end
+
+		w = [0,wc-1,wc,wc+1];
+		m = abs(freqs(num,den,w));
+
+		if (mod(order,2) == 0)
+			if (abs(-20 * log10(m(1)) - dBc) > 1.0e-4)
+				break;
+			end
+		else
+			if (m(1) > 1.0e-4)
+				break;
+			end
+		end
+
+		if (-20 * log10(m(2)) < dBc)
+			break;
+		end
+
+		if (abs(-20 * log10(m(3)) - dBc) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(4)) > dBc)
+			break;
+		end
+
+		order = order + 1;
+	end
+
+	if (order == 15)
+		result = 'pass';
+	end
+end
+
+function result = Cheby2BP()
+	result = 'fail';
+	dBc = 20;
+	wc1 = (2*pi)*150;
+	wc2 = (2*pi)*400;
+	wcc = sqrt(wc1*wc2);
+
+	for order=1:14
+		[num,den] = cheby2(order, dBc, [wc1, wc2], 's');
+
+		if (length(num) ~= 2 * order + 1)
+			break;
+		end
+
+		if (length(den) ~= 2 * order + 1)
+			break;
+		end
+
+		w = [0,wc1-1,wc1,wc1+1,wcc,wc2-1,wc2,wc2+1];
+		m = abs(freqs(num,den,w));
+
+		if (mod(order,2) == 0)
+			if (abs(-20 * log10(m(1)) - dBc) > 1.0e-4)
+				break;
+			end
+		else
+			if (m(1) > 1.0e-4)
+				break;
+			end
+		end
+
+		if (-20 * log10(m(2)) < dBc)
+			break;
+		end
+
+		if (abs(-20 * log10(m(3)) - dBc) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(4)) > dBc)
+			break;
+		end
+
+		if (abs(m(5) - 1.0) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(6)) > dBc)
+			break;
+		end
+
+		if (abs(-20 * log10(m(7)) - dBc) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(8)) < dBc)
+			break;
+		end
+
+		order = order + 1;
+	end
+
+	if (order == 15)
+		result = 'pass';
+	end
+end
+
+function result = Cheby2BS()
+	result = 'fail';
+	dBc = 20;
+	wc1 = (2*pi)*150;
+	wc2 = (2*pi)*400;
+	wcc = sqrt(wc1*wc2);
+
+	for order=1:14
+		[num,den] = cheby2(order, dBc, [wc1, wc2], 'stop', 's');
+
+		if (length(num) ~= 2 * order + 1)
+			break;
+		end
+
+		if (length(den) ~= 2 * order + 1)
+			break;
+		end
+
+		w = [0,wc1-1,wc1,wc1+1,wcc,wc2-1,wc2,wc2+1];
+		m = abs(freqs(num,den,w));
+
+		if (abs(m(1) - 1.0) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(2)) > dBc)
+			break;
+		end
+
+		if (abs(-20 * log10(m(3)) - dBc) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(4)) < dBc)
+			break;
+		end
+
+		if (mod(order,2) == 0)
+			if (abs(-20 * log10(m(5)) - dBc) > 1.0e-4)
+				break;
+			end
+		else
+			if (m(5) > 1.0e-4)
+				break;
+			end
+		end
+
+		if (-20 * log10(m(6)) < dBc)
+			break;
+		end
+
+		if (abs(-20 * log10(m(7)) - dBc) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(8)) > dBc)
+			break;
+		end
+
+		order = order + 1;
+	end
+
+	if (order == 15)
+		result = 'pass';
+	end
+end
+
+cheby2LP = Cheby2LP()
+cheby2HP = Cheby2HP()
+cheby2BP = Cheby2BP()
+cheby2BS = Cheby2BS()

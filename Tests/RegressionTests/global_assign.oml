@@ -1,0 +1,4 @@
+clear all;
+global a;
+a = [1:10];
+a(1) = 2

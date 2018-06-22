@@ -1,0 +1,8 @@
+a=[1,2;3,4]
+disp(2*a)
+disp(a*2)
+disp(a*a)
+b=[-1,-1]
+disp(3*b)
+disp(b*3)
+b*a

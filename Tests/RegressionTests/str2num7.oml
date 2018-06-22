@@ -1,0 +1,1 @@
+[num, status]=str2num('not a number')

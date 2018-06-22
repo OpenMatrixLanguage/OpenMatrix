@@ -1,0 +1,1 @@
+strfind({'aaa','bbb';'aaab','bbba';'',''},{'aa','bb';'bb','aa';'aa','bb'},'overlaps',true)

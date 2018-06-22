@@ -1,0 +1,3 @@
+A = 1
+idx = logical(0)
+A(idx)

@@ -1,0 +1,24 @@
+function varargout = foo(varargin)
+ nRhs = nargin();
+ nLhs = nargout();
+ disp(nRhs);
+ disp(nLhs);
+ if nLhs == 0
+	disp('no return')
+ end
+ if nLhs > 0 
+	disp('At least 1 lhs')
+	varargout{1} = 'a';
+ end
+ if nLhs > 1 
+	disp('At least 2 lhs')
+	varargout{2} = 'b';
+ end
+ if nLhs > 2 
+	disp('At least 3 lhs')
+	varargout{3} = 'c';
+ end
+
+end
+
+[x,y,z] = foo('p')

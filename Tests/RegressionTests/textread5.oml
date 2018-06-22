@@ -1,0 +1,1 @@
+b = textread('FileManipulation/textwithtab.txt', '%s', 'delimiter', '\t')

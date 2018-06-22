@@ -1,0 +1,4 @@
+m = ' "';
+length(m)
+out = strtrim(m)
+length(out)

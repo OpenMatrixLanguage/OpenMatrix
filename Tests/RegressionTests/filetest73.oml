@@ -1,0 +1,4 @@
+fname = 'FileManipulation/FileToRead.txt'
+fid = fopen(fname, 'r')
+fread(fid, -3)
+fclose(fid)

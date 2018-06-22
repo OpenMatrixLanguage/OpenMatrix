@@ -1,0 +1,336 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="getpythonvar" /><meta name="abstract" content="Imports the Python variable value to the OML variable." /><meta name="description" content="Imports the Python variable value to the OML variable." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="indexterms" content="getpythonvar" /><meta name="DC.subject" content="getpythonvar" /><meta name="keywords" content="getpythonvar" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/PythonBridgeOmlCommands/oml_python_bridge_commands_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/PythonBridgeOmlCommands/evalpythonfile.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/PythonBridgeOmlCommands/evalpythonscript.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/PythonBridgeOmlCommands/exporttopython.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>getpythonvar</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/PythonBridgeOmlCommands/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/PythonBridgeOmlCommands/oml_python_bridge_commands_r.htm" title="OML to Python Bridge Commands">OML to Python Bridge Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/PythonBridgeOmlCommands/oml_python_bridge_commands_r.htm" title="OML to Python Bridge Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">OML to Python Bridge Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">getpythonvar</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Imports the <span class="keyword">Python</span> variable value to the <span class="keyword">OML</span> variable.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph"><span class="ph var">[value,status,errorMessage]=getpythonvar(PythonVariableName)</span></span></p>
+
+    </section>
+
+    <section class="section"></section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">PythonVariableName</var></dt>
+
+          <dd class="dd pd"><span class="keyword">Python</span> variable name.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+      </dl>
+
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_wlr_vcj_4db"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">status</span></dt>
+
+          <dd class="dd pd">Status of the script executed.<dl class="dl table">
+              
+                <dt class="dt dlterm">1</dt>
+
+                <dd class="dd">success</dd>
+
+              
+              
+                <dt class="dt dlterm">0</dt>
+
+                <dd class="dd">failure</dd>
+
+              
+            </dl>
+</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">number</span></dd>
+
+        
+      </dl>
+
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">errorMessage</span></dt>
+
+          <dd class="dd pd">Error message indicating the failure.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+      </dl>
+
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">value</span></dt>
+
+          <dd class="dd pd"><span class="keyword">OML</span> variable.</dd>
+
+          <dd class="dd pd ddexpand">Type: </dd>
+
+          <dd class="dd pd ddexpand">
+            
+<div class="tablenoborder"><table cellpadding="4" cellspacing="0" summary="" id="reference_wpv_kyv_pr__table_l3h_dss_bz" class="table" frame="border" border="1" rules="all"><colgroup><col style="width:33.33333333333333%" /><col style="width:33.33333333333333%" /><col style="width:33.33333333333333%" /></colgroup><thead class="thead" style="text-align:left;">
+                  <tr>
+                    <th class="entry cellrowborder" id="d164258e170"><span class="keyword">Python</span> Variable Type</th>
+
+                    <th class="entry cellrowborder" id="d164258e175"><span class="keyword">OML</span> Variable Type</th>
+
+                    <th class="entry cellrowborder" id="d164258e180">Limitations</th>
+
+                  </tr>
+
+                </thead>
+<tbody class="tbody">
+                  <tr>
+                    <td class="entry cellrowborder" headers="d164258e170 ">Bool</td>
+
+                    <td class="entry cellrowborder" headers="d164258e175 ">Logical</td>
+
+                    <td class="entry cellrowborder" headers="d164258e180 "> </td>
+
+                  </tr>
+
+                  <tr>
+                    <td class="entry cellrowborder" headers="d164258e170 ">long, Float</td>
+
+                    <td class="entry cellrowborder" headers="d164258e175 ">Number</td>
+
+                    <td class="entry cellrowborder" headers="d164258e180 "> </td>
+
+                  </tr>
+
+                  <tr>
+                    <td class="entry cellrowborder" headers="d164258e170 ">Complex</td>
+
+                    <td class="entry cellrowborder" headers="d164258e175 ">Complex</td>
+
+                    <td class="entry cellrowborder" headers="d164258e180 "> </td>
+
+                  </tr>
+
+                  <tr>
+                    <td class="entry cellrowborder" headers="d164258e170 ">List</td>
+
+                    <td class="entry cellrowborder" headers="d164258e175 ">Cell (1,n) n:number of elements in list</td>
+
+                    <td class="entry cellrowborder" headers="d164258e180 ">Does not support if list contains Dict (with limitation), Tupple,
+                      Set</td>
+
+                  </tr>
+
+                  <tr>
+                    <td class="entry cellrowborder" headers="d164258e170 ">dict</td>
+
+                    <td class="entry cellrowborder" headers="d164258e175 ">Struct</td>
+
+                    <td class="entry cellrowborder" headers="d164258e180 ">Supports only if keys in dict are string or char.</td>
+
+                  </tr>
+
+                  <tr>
+                    <td class="entry cellrowborder" headers="d164258e170 ">Numpy - array, matrix</td>
+
+                    <td class="entry cellrowborder" headers="d164258e175 ">Matrix</td>
+
+                    <td class="entry cellrowborder" headers="d164258e180 ">Data types supported in <span class="keyword">OML</span>: matrix, Bool, Int, long,
+                      Float, Complex.</td>
+
+                  </tr>
+
+                  <tr>
+                    <td class="entry cellrowborder" headers="d164258e170 ">Numpy Ndarray</td>
+
+                    <td class="entry cellrowborder" headers="d164258e175 ">ND Matrix</td>
+
+                    <td class="entry cellrowborder" headers="d164258e180 ">Data types supported in <span class="keyword">OML</span>: matrix, Bool, Int, long,
+                      Float, Complex.</td>
+
+                  </tr>
+
+                </tbody>
+</table>
+</div>
+
+          </dd>
+
+        
+      </dl>
+
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_n4r_vcj_4db"><h2 class="title sectiontitle">Examples</h2>
+      
+      <p class="p">Importing logical data from <span class="keyword">Python</span>:</p>
+
+      <pre class="pre codeblock"><code>evalpythonscript('pofalse = False'); 
+[value, status, errormessage] = getpythonvar('pofalse')
+
+<code class="ph codeph">value = 0
+status = 1
+errormessage =</code></code></pre>
+      <p class="p">Importing integer data from <span class="keyword">Python</span>:</p>
+
+      <pre class="pre codeblock"><code>evalpythonscript('point = 999'); 
+[value, status, errormessage] = getpythonvar('point')
+
+<code class="ph codeph">value = 999
+status = 1
+errormessage =</code></code></pre>
+      <p class="p">Importing precision data from <span class="keyword">Python</span>:</p>
+
+      <pre class="pre codeblock"><code>evalpythonscript('pofloat=9.99');
+[value, status, errormessage] = getpythonvar('pofloat')
+
+<code class="ph codeph">value = 9.99
+status = 1
+errormessage =</code></code></pre>
+      <p class="p">Importing complex data from <span class="keyword">Python</span>:</p>
+
+      <pre class="pre codeblock"><code>evalpythonscript('pocomp=9+9j');
+[value, status, errormessage] = getpythonvar('pocomp')
+
+<code class="ph codeph">value = 9 + 9i
+status = 1
+errormessage =</code></code></pre>
+      <p class="p">Importing string data from <span class="keyword">Python</span>:</p>
+
+      <pre class="pre codeblock"><code>evalpythonscript('postring="String Data"');
+[value, status, errormessage] = getpythonvar('postring')
+
+<code class="ph codeph">value = String Data
+status = 1
+errormessage =</code></code></pre>
+      <p class="p">Importing list data from <span class="keyword">Python</span>:</p>
+
+      <pre class="pre codeblock"><code>evalpythonscript('polist  = ["a","b","c","d"]');
+[value, status, errormessage] = getpythonvar('polist')
+
+<code class="ph codeph">value = 
+{
+[1,1] a
+[1,2] b
+[1,3] c
+[1,4] d
+}
+status = 1
+errormessage =</code></code></pre>
+      <p class="p">Importing dictionary data from <span class="keyword">Python</span>:</p>
+
+      <pre class="pre codeblock"><code>evalpythonscript('polist  = ["a","b","c","d"]');
+evalpythonscript('podict = {"key1":1,"key2" : polist }');
+[value, status, errormessage] = getpythonvar('podict')
+
+<code class="ph codeph">value = struct [
+key1: 1
+key2: 
+{
+[1,1] a
+[1,2] b
+[1,3] c
+[1,4] d
+]
+status = 1
+errormessage =</code></code></pre>
+      <p class="p">Importing matrix data from <span class="keyword">Python</span>:</p>
+
+      <pre class="pre codeblock"><code>evalpythonscript('import numpy as np');
+evalpythonscript('pomatrix = np.matrix("1 2; 3 4")');
+[value, status, errormessage] = getpythonvar('pomatrix')
+
+<code class="ph codeph">value = [Matrix] 2 x 2
+1 2
+3 4
+status = 1
+errormessage =</code></code></pre>
+      <p class="p">Importing nd matrix data from <span class="keyword">Python</span>:</p>
+
+      <pre class="pre codeblock"><code>evalpythonscript('import numpy as np');
+evalpythonscript('pondarray = np.arange(720).reshape(6,4,2,3,5)');
+[value, status, errormessage] = getpythonvar('pondarray')
+
+<code class="ph codeph">value = 
+slice(:, :, 1, 1, 1) = 
+[Matrix] 6 x 4
+0 30 60 90
+120 150 180 210
+240 270 300 330
+360 390 420 450
+480 510 540 570
+600 630 660 690
+slice(:, :, 1, 1, 2) = 
+[Matrix] 6 x 4 Row[1] Columns[1:4]
+1 31 61 91
+[Matrix] 6 x 4 Rows[2:6] Columns[1:4]
+121 151 181 211
+241 271 301 331
+361 391 421 451
+481 511 541 571
+601 631 661 691
+…….
+slice(:, :, 2, 3, 4) = 
+[Matrix] 6 x 4
+28 58 88 118
+148 178 208 238
+268 298 328 358
+388 418 448 478
+508 538 568 598
+628 658 688 718
+slice(:, :, 2, 3, 5) = 
+[Matrix] 6 x 4 Row[1] Columns[1:4]
+29 59 89 119
+[Matrix] 6 x 4 Rows[2:6] Columns[1:4]
+149 179 209 239
+269 299 329 359
+389 419 449 479
+509 539 569 599
+629 659 689 719
+
+status = 1
+errormessage =</code></code></pre>
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_xlr_vcj_4db"></section>
+
+    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+      
+      <p class="p"><span class="keyword">1.0</span></p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/PythonBridgeOmlCommands/evalpythonfile.htm" title="Evaluates a Python file.">evalpythonfile</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/PythonBridgeOmlCommands/evalpythonscript.htm" title="Evaluates a Python script.">evalpythonscript</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/PythonBridgeOmlCommands/exporttopython.htm" title="Exports the OML variable value to the Python variable.">exporttopython</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/PythonBridgeOmlCommands/oml_python_bridge_commands_r.htm" title="OML to Python Bridge Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">OML to Python Bridge Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

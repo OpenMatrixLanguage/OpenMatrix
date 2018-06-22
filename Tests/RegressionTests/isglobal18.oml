@@ -1,0 +1,6 @@
+A=2
+global A
+function testglobal()
+disp(isglobal('A'))
+end
+testglobal()

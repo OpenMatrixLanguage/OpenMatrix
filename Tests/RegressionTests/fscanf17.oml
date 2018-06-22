@@ -1,0 +1,6 @@
+file = ['FileManipulation/fscanf_data1.txt'];
+
+
+fid = fopen(file,'r');
+M = fscanf(fid,'%f',inf) 
+fclose(fid);

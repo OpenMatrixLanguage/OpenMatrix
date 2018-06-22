@@ -1,0 +1,7 @@
+﻿function y=f(x)
+	y=x
+	y.a{1}=x.a{2}^x.a{3};
+end
+
+x=struct('a',{{42,2,3}});
+y=f(x)

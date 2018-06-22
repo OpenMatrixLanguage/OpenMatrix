@@ -1,0 +1,5 @@
+acella = {'AAA'};
+bcellb = {'BBB','CCC'};
+ccellc = {acella , bcellb};
+ccellc{2}(1)
+ccellc{2}{1}

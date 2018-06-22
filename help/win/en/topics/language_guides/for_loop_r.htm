@@ -1,0 +1,76 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="for loop" /><meta name="abstract" content="Loops are used to perform the same set of statements multiple times. The for loop runs the statements a set number of times based on the number of elements in the collection found on the first line of the for loop." /><meta name="description" content="Loops are used to perform the same set of statements multiple times. The for loop runs the statements a set number of times based on the number of elements in the collection found on the first line of the for loop." /><meta name="indexterms" content="for loop" /><meta name="DC.subject" content="for loop" /><meta name="keywords" content="for loop" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/flow_of_control_and_looping_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/flow_of_control_and_looping_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/break_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/while_loop_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/if_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/switch_case_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/try_catch_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_srj_hdg_vt" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>for loop</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_srj_hdg_vt">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language.">Scripting Guide for OpenMatrix Language</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/flow_of_control_and_looping_r.htm" title="Loops are used to perform the same set of statements multiple times.">Flow of Control and Looping</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../topics/language_guides/flow_of_control_and_looping_r.htm" title="Loops are used to perform the same set of statements multiple times."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Flow of Control and Looping</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">for loop</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Loops are used to perform the same set of statements multiple times. The for loop runs
+    the statements a set number of times based on the number of elements in the collection found on
+    the first line of the for loop. </p>
+
+    <section class="section">
+      <pre class="pre codeblock"><code>for loopVar=collection
+      blockFor
+end</code></pre>
+      <p class="p">A <span class="keyword cmdname">for loop</span> is executed a discrete number of times based on the number of
+        elements in the collection. The <var class="keyword varname">loopVar</var> is set to the first element of
+        collection and the statements in <span class="ph synph">blockFor</span> are executed. Then,
+          <var class="keyword varname">loopVar</var> is set to the next element of collection, the statements in
+          <span class="ph synph">blockFor</span> are executed, and the process repeats until collection is
+        exhausted. </p>
+
+      <p class="p">Modifying <var class="keyword varname">loopVar</var> inside <span class="ph synph">blockFor</span> will not change the
+        loop execution (in other words, you cannot exit the loop early by changing the value of
+          <var class="keyword varname">loopVar</var>).</p>
+
+      <pre class="pre codeblock"><code>for j =1:3
+      disp(j) 
+      j = j+5
+end </code></pre>
+      <div class="p">Will result in:<pre class="pre codeblock"><code>1
+j = 6
+2
+j=7
+3
+j = 8</code></pre>The final value of the
+          <var class="keyword varname">loop</var> variable is retained after the loop is completed. </div>
+
+      <div class="p">In many cases, the collection is created at the time the loop is executed using the :
+        operator.<pre class="pre codeblock"><code>for j=1:10
+   disp(a(j))
+end</code></pre></div>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/flow_of_control_and_looping_r.htm" title="Loops are used to perform the same set of statements multiple times.">Flow of Control and Looping</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/break_r.htm" title="The break keyword immediately terminates a for or while loop.">break</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/while_loop_r.htm" title="Loops are used to perform the same set of statements multiple times. The while loop runs the statement until a condition is no longer met.">while loop</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/if_r.htm" title="OpenMatrix language supports conditional execution of statements using the if/elseif/else construct.">If</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/switch_case_r.htm" title="OpenMatrix language also supports a variant of this using switch/case/otherwise.">switch/case</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/try_catch_r.htm" title="The try /catch block allows you to stop errors from being returned, and allows another block of code to execute instead of the error.">Try/Catch</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../topics/language_guides/flow_of_control_and_looping_r.htm" title="Loops are used to perform the same set of statements multiple times."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Flow of Control and Looping</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

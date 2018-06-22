@@ -1,0 +1,18 @@
+addtoolbox('omlDiffEq')
+function dy = MSD(t,y,m,k,c)
+  % y = [x, dx/dt]
+  dy = [0, 0];
+  dy(1) = y(2);
+  dy(2) = -y(1)*(k/m) - y(2)*(c/m);
+end
+
+v = 1.5;  % initial velocity
+m = 1.6;  % mass
+k = 1.25; % spring constant
+c = 1.1;  % damping constant
+
+handle = @(t,y) MSD(t,y,m,k,c);
+t = [0:0.2:12]; % time vector
+yi = [0, v];
+[t,y] = ode45(handle,t,yi);
+x = y(:,1)'

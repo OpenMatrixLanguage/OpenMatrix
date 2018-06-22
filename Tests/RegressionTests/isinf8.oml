@@ -1,0 +1,2 @@
+isinf('test')
+islogical(ans)

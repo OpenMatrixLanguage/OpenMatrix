@@ -1,0 +1,4 @@
+function testfunc()
+disp('it worked')
+end
+feval('testfunc')

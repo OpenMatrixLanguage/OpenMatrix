@@ -1,0 +1,9 @@
+a = struct [
+b: 2
+]
+aa = struct [
+c: struct [
+b: 2
+]
+]
+Error: unsupported operation; field name must specified to set a value in a struct in call to function setfield at line number 3 in file setfield40.oml

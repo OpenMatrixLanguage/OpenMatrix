@@ -1,0 +1,66 @@
+addToolbox('omlStatistics')
+addpath('.');
+run('test_setup')
+
+mask = 1000000; % mask for displaying rounded results
+
+% set distribution parameters
+m=30;
+n=20;
+z=zeros(1,500);
+
+disp('case 1')
+% compute exact mean and variance
+avg = n/(n-2);
+variance = 2*n^2*(m+n-2)/(m*(n-2)^2*(n-4));
+
+% generate nearly perfect F distributed sample
+v = [0.001:0.002:0.999];	% equally cdf spaced samples
+x = finv(v, m, n);		% near perfect F sample
+xbar = mean(x);
+sig2 = var(x);
+assertCheckAlmostEqual(avg, xbar, 0, 1e-3)
+assertCheckAlmostEqual(variance, sig2, 0, 1e-2)
+
+
+disp('case 2')
+% verify that fcdf and finv are inverses
+y = fcdf(x, m, n);
+assertCheckAlmostEqual (round(mask*(y-v))/mask, z, 1e-10);
+
+disp('case 3')
+% verify that fpdf is the derivative of fcdf
+y1 = fcdf(x-0.00005, m, n);
+y2 = fcdf(x+0.00005, m, n);
+pdf1 = (y2-y1)/0.0001;
+pdf2 = fpdf(x, m, n);
+assertCheckAlmostEqual(round(mask*(pdf2-pdf1))/mask, z, 1e-10)
+
+disp('case 4')
+% verify that betafit recovers the original parameters
+beta2 = x * (m/n);
+beta = beta2./(1+beta2);
+[a, b, aCI, bCI] = betafit(beta);
+assertCheckAlmostEqual(2*a,m,1e-2)
+assertCheckAlmostEqual(2*b,n,1e-2)
+%disp (aCI)	% no good checks for this yet
+%disp (bCI)	% no good checks for this yet
+
+disp('case 5')
+% verify that frnd produces appropriate data
+numSamp = 10000;
+rand('seed', 2003)
+x2 = frnd(m, n, 1, numSamp);
+beta2 = x2*(m/n);
+beta = beta2./(1+beta2);
+[a, b, aCI, bCI] = betafit(beta);
+assertCheckAlmostEqual(2*a,m,1e-1)
+assertCheckAlmostEqual(2*b,n,1e-1)
+
+disp('case 6')
+xbar = mean(x2);
+sig2 = var(x2);
+assertCheckAlmostEqual(avg,xbar,1e-2)
+assertCheckAlmostEqual(variance,sig2,1e-2)
+
+disp('done')

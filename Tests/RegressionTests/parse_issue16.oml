@@ -1,0 +1,13 @@
+function [d,dt]=formatts(d)
+	if numel(d)==length(d)
+		d=[(1:length(d))' d(:)];
+	end
+ 
+	if size(d,1)<size(d,2)
+		d=d';
+	end
+ 
+	if (size(d,2)~=2)
+		error('Time series must have 2 columns.')
+	end
+end

@@ -1,0 +1,5 @@
+﻿data(1).temp=-10;
+data(2).temp= 20;
+data(3).temp= 300;
+   
+[data(:).temp]

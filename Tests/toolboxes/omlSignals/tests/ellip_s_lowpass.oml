@@ -1,0 +1,7 @@
+addtoolbox omlSignals
+
+order = 4;
+dBp = 1;
+dBs = 30;
+wc = (2*pi)*100;
+[num,den] = ellip(order, dBp, dBs, wc, 's')

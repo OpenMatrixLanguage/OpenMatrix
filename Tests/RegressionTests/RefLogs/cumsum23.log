@@ -1,0 +1,1 @@
+Error: invalid input in argument 2; dimension must be positive integer in call to function cumsum at line number 1 in file cumsum23.oml

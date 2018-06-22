@@ -1,0 +1,3 @@
+m = [Matrix] 1 x 3
+12 + 0i  13 + 0i  0 + 2i
+Error: invalid input in argument 1; value must be nonnegative integer in call to function dec2bin at line number 2 in file dec2bin2.oml

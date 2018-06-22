@@ -1,0 +1,3 @@
+s.a='val1';
+s(1,2).a='val2';
+struct2cell(s)

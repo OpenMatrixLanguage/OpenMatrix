@@ -1,0 +1,13 @@
+fname = FileManipulation/WeirdLineEndings.txt
+fid = 3
+readline = Single Newline
+len = 14
+ans = [Matrix] 1 x 2
+1  14
+readline = 
+len = 0
+ans = [Matrix] 1 x 2
+0  0
+readline = Newline and Carriage Return
+len = 27
+ans = 0

@@ -1,0 +1,10 @@
+fname = 'FileManipulation/FileToWrite16.txt'
+fid = fopen(fname, 'w')
+fwrite(fid, 'THIS_IS_A_TEST_STRING')
+frewind(fid)
+fwrite(fid, 'skiptest', '3*uchar', 2)
+fclose(fid)
+fid = fopen(fname,'r')
+fread(fid)
+fclose(fid)
+delete(fname)

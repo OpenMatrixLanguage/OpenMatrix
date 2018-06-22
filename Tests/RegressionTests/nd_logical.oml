@@ -1,0 +1,7 @@
+﻿function test()
+    ref = false(3,3,2);
+	class(ref)
+    ref(1,1,1) = true;
+    class(ref)
+end
+eval('test')

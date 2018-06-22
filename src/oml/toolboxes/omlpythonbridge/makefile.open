@@ -1,0 +1,70 @@
+# ====================================================================
+# oml/plot/toolbox makefile
+# ====================================================================
+PROJ := omlpythonbridge
+
+UNAME := $(shell uname)
+ifneq (,$(findstring NT,$(UNAME)))
+   TARGET = $(BINDIR)/$(PROJ).dll
+else
+   TARGET = $(BINDIR)/lib$(PROJ).so
+endif
+
+include $(OML_ROOT)/src/makebase.cfg
+BOOST_DIR := $(OML_THIRDPARTY)/boost/boost_1_64_0
+
+ifneq (,$(findstring win,$(PLATFORM)))
+    MATH_LIBS = -LIBPATH:$(OML_ROOT)/src/lib/$(PLATFORM) mathcore.lib
+    PYTHON_LIBS = -LIBPATH:$(OML_PYTHONHOME)/libs $(OML_PYTHONVERSION).lib
+    PYTHON_INCLUDE = $(OML_PYTHONHOME)/include
+    NUMPY_INCLUDE = $(OML_PYTHON_NUMPYDIR)
+else
+    MATH_LIBS +=  -L$(OML_ROOT)/src/bin/linux64 -lmathcore
+    PYTHON_LIBS = -L$(OML_PYTHONHOME) -L$(OML_PYTHONHOME)/lib -l$(OML_PYTHONVERSION)m
+    PYTHON_INCLUDE = $(OML_PYTHONHOME)/include/$(OML_PYTHONVERSION)m
+    NUMPY_INCLUDE = $(OML_PYTHON_NUMPYDIR)
+endif
+
+# ====================================================================
+SOURCES += $(wildcard _private/*.cxx)
+OBJECTS = $(foreach file,$(SOURCES),$(addprefix $(PLATFORM)/,$(addsuffix .o,$(basename $(notdir $(file))))))
+vpath %.cxx _private
+
+CXX_DEFINES += -DOMLPYTHONBRIDGE_EXPORTS
+CXX_INCLUDES += -I.
+CXX_INCLUDES += -I$(BOOST_DIR)
+CXX_INCLUDES += -I$(OML_ROOT)/src/math/kernel
+CXX_INCLUDES += -I$(OML_ROOT)/src/oml/Runtime
+CXX_INCLUDES += -I$(OML_ROOT)/src/oml/toolboxes/omlpythonbridge
+
+CXX_INCLUDES += -I$(PYTHON_INCLUDE)
+CXX_INCLUDES += -I$(NUMPY_INCLUDE)
+
+LIBS += $(OML_LIBS)
+LIBS += $(MATH_LIBS)
+LIBS += $(PYTHON_LIBS)
+# ====================================================================
+$(PLATFORM)/%.o : %.cxx $(objdir)
+	$(compile-cxx)
+$(PLATFORM)/%.o : %.cpp $(objdir)
+	$(compile-cxx)
+$(PLATFORM)/%.o : %.c $(objdir)
+	$(compile-c)
+
+$(TARGET) : $(OBJECTS)
+	$(build-shared-lib)
+
+clean::
+	-$(RM) -rf $(TARGET)
+	-$(RM) -rf $(PLATFORM)
+	-$(RM) -rf $(BINDIR)/$(PROJ).*
+	-$(RM) -rf $(LIBDIR)/$(PROJ).*
+
+
+
+#############
+APP_LIBS += $(OML_LIB)
+APP_LIBS += $(HWMATHKERNEL_LIB)
+APP_LIBS += $(INTERP_LIB)
+
+

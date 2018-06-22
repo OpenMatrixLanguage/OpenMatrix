@@ -1,0 +1,13 @@
+function z=func(a,b,c)
+  if (nargin == 3)
+	z=a+b+c;
+  elseif (nargin == 2)
+    z=a+b;
+  else
+    z=a;
+  end
+end
+
+func(3)
+func(3,4)
+func(3,4,5)

@@ -1,0 +1,8 @@
+b = [Matrix] 1 x 0
+ans = [Matrix] 1 x 0
+c = [Matrix] 1 x 0
+d = [Matrix] 1 x 0
+b2 = [Matrix] 0 x 1
+ans = [Matrix] 0 x 1
+c2 = [Matrix] 0 x 1
+c2 = [Matrix] 0 x 1

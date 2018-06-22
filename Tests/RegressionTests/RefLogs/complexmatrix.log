@@ -1,0 +1,7 @@
+a = [Matrix] 2 x 2
+1 + 0i  0 + 1i
+3 + 2i  0 + 4i
+a = [Matrix] 2 x 2
+1 + 0i  0 + 1i
+3 + 2i  0 + 4i
+ans = 3 + 6i

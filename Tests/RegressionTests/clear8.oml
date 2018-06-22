@@ -1,0 +1,9 @@
+function out = timesThree(in)
+	out = 3*in;
+end
+
+a=timesThree(2);
+timesThree(3);
+clear timesThree
+a
+timesThree(4)

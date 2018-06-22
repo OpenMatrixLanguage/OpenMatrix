@@ -1,0 +1,22 @@
+﻿function r=blah(a)
+    b=a+1;
+    
+    function Nested1()
+        d=2*b;
+    end
+
+    function Nested2()
+        c=b+1;
+        c1=10;
+        Nested1();
+        c2=d^2;
+    end
+
+    Nested2
+
+    m=c2
+    r=d;
+end
+
+
+blah(1)

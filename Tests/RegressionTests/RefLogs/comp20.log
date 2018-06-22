@@ -1,0 +1,5 @@
+a = 0 + 2i
+b = [Matrix] 1 x 3
+3  7  1
+c = [Matrix] 1 x 3
+0 + 6i  0 + 14i  0 + 2i

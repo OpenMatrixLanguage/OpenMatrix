@@ -1,0 +1,2 @@
+num2str(4, '%-d Hz')
+num2str(4, '%f Hz')

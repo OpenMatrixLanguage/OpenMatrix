@@ -1,0 +1,11 @@
+a = {[1,2;3,4],'hello';5+2i,-6}
+
+for j=1:2
+   for k=1:2
+      disp(a{j,k})
+   end
+end
+
+disp(sqrt(-a{2,2}))
+b=a{1,1}
+disp(b(2,2))

@@ -1,0 +1,1 @@
+strfind(['aaaa';'bbbb'],{'aba','aa'})

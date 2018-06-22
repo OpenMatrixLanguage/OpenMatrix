@@ -1,0 +1,2 @@
+a='hello'
+hex2dec(a)

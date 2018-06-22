@@ -1,0 +1,3 @@
+[a,b]=schur(2-8i)
+disp(a)
+disp(b)

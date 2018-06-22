@@ -1,0 +1,8 @@
+ans = struct [
+id: 1
+name: Jeff
+]
+ans = struct [
+id: 2
+name: Stacey
+]

@@ -1,0 +1,9 @@
+for (kk=1:3) 
+  for (kj=1:3) 
+   ki=kk+kj ;
+   if (ki ~= 0 ) 
+    kk = kj,
+   end
+  end
+end 
+ 

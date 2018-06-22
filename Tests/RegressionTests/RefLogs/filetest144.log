@@ -1,0 +1,7 @@
+fname = FileManipulation/FileToWrite31.txt
+fid = 3
+w = 11
+ans = 0
+fid = 3
+ans = [Matrix] 0 x 0
+ans = 0

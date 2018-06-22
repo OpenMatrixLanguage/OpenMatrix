@@ -1,0 +1,17 @@
+fname = FileManipulation/FileToWrite18.txt
+fid = 3
+ans = 11
+ans = 0
+fid = 3
+ans = [Matrix] 10 x 1
+       116
+       101
+1946157056
+ 536870912
+   7733248
+   6356992
+     27648
+     29952
+       101
+       115
+ans = 0

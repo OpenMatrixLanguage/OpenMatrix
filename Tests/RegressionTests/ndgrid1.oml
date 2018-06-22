@@ -1,0 +1,4 @@
+x=[1:3];
+y=[5:8];
+[xx, yy] = ndgrid(x, y)
+[aa, bb] = ndgrid(x)

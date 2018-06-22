@@ -1,0 +1,11 @@
+function z=boo(a)
+    b=4
+	[1,2]*[1,2,3]
+	z=a
+end
+
+try
+    boo(3)
+catch
+    disp(b)
+end

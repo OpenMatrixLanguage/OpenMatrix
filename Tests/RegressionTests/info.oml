@@ -1,0 +1,7 @@
+function [twice,first] = info(x)
+	twice = 2.*x;
+	first = x(1);
+end
+[a,b] = info([5 4 2 8])
+disp(a)
+disp(b)

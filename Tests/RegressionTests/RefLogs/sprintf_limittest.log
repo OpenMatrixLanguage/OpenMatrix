@@ -1,0 +1,5 @@
+number1 = 2.14748365e+09
+ans = sprintf works for number 1:  2147483647
+number 2 equals number1 plus 1
+number2 = 2.14748365e+09
+ans = sprintf does not work for number 2:  -2147483648

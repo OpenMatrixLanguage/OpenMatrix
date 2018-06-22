@@ -1,0 +1,5 @@
+printf('start of loop\n')
+for i = 0:10
+	printf('%d',i);
+end
+printf('\nend of loop')

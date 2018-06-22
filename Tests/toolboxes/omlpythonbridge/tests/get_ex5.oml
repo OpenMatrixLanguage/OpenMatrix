@@ -1,0 +1,4 @@
+addtoolbox omlpythonbridge
+disp('importing string data from python')
+evalpythonscript('postring="String Data"');
+[value, status, errorMessage] = getpythonvar('postring')

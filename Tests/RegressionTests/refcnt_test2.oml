@@ -1,0 +1,7 @@
+a=1:10;
+b=a;
+refcnt(a)
+refcnt(b)
+b(11) = 12;
+refcnt(a)
+refcnt(b)

@@ -1,0 +1,12 @@
+function[codedString]= caesar(unknownString,shift)
+	lowcase = unknownString(unknownString>='a' & unknownString<='z');
+	newlowcase = char(mod(lowcase + shift-'a', 26)+ 'a');
+	upcase = unknownString(unknownString>='A' & unknownString<='Z');
+	newupcase = char(mod(upcase + shift-'A', 26)+ 'A');
+	unknownString(unknownString>='a' & unknownString<='z') = newlowcase;
+	unknownString(unknownString>='A' & unknownString<='Z') = newupcase;
+	codedString = unknownString;
+end
+
+caesar('Are we there yet?', 3)
+caesar('Hello World.', 79)

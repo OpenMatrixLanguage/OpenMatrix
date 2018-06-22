@@ -1,0 +1,1 @@
+Error: inputs must have the same number of rows to be concatenated horizontally in call to function strjoin at line number 1 in file strjoin20.oml

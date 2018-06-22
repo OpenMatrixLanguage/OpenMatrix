@@ -1,0 +1,1 @@
+Error: cannot use skip on built-in function streams in call to function fwrite at line number 1 in file filetest86.oml

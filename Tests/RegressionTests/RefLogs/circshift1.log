@@ -1,0 +1,20 @@
+ans = [Matrix] 3 x 3
+7  8  9
+1  2  3
+4  5  6
+ans = [Matrix] 3 x 3
+4  5  6
+7  8  9
+1  2  3
+ans = [Matrix] 3 x 3
+2  3  1
+5  6  4
+8  9  7
+ans = [Matrix] 3 x 3
+2  3  1
+5  6  4
+8  9  7
+ans = [Matrix] 3 x 3
+9  7  8
+3  1  2
+6  4  5

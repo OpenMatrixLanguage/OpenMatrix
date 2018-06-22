@@ -1,0 +1,4 @@
+function testfunc()
+disp('test call')
+end
+which('testfunc')

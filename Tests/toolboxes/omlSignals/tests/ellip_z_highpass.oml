@@ -1,0 +1,9 @@
+addtoolbox omlSignals
+
+order = 4;
+dBp = 1;
+dBs = 30;
+fc = 300;
+fs = 1000;
+fn = fc / (fs/2);
+[num,den] = ellip(order, dBp, dBs, fn, 'high')

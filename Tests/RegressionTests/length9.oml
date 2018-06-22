@@ -1,0 +1,2 @@
+a='Jéff';
+length(a)

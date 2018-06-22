@@ -1,0 +1,4 @@
+x=1:3;
+y=5:8;
+[xx yy] = meshgrid(x, y)
+[aa bb] = meshgrid(x)

@@ -1,0 +1,8 @@
+a = [Matrix] 1 x 4
+1  0  0  4
+b = [Matrix] 4 x 1
+4
+2
+0
+0
+Error: unsupported operation at line number 4 in file logicalOpFAIL7.oml

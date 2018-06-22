@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+median(7i,4)

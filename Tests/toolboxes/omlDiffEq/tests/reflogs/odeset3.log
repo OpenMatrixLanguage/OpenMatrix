@@ -1,0 +1,6 @@
+options = struct [
+AbsTol: [Matrix] 1 x 3
+1.00000e-05  1.00000e-06  1.00000e-07
+Jacobian: @Jac
+RelTol: 0.0001
+]

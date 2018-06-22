@@ -1,0 +1,2 @@
+eq(inf,-inf)
+islogical(ans)

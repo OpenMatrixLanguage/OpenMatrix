@@ -1,0 +1,14 @@
+ans = 
+slice(:, :, 1) = 
+[Matrix] 4 x 3
+NaN  NaN  NaN
+NaN  NaN  NaN
+NaN  NaN  NaN
+NaN  NaN  NaN
+
+slice(:, :, 2) = 
+[Matrix] 4 x 3
+NaN  NaN  NaN
+NaN  NaN  NaN
+NaN  NaN  NaN
+NaN  NaN  NaN

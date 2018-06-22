@@ -1,0 +1,6 @@
+function varargout = funcTest12(varargin) 
+	varargout{1} = varargin{1} + varargin{2} + varargin{3};
+	varargout{2} = 2*varargin{2};
+end
+
+[out1,out2] = feval('funcTest12',1,2,3)

@@ -1,0 +1,3 @@
+a.b=3
+c.b=6
+vertcat({},a,c)

@@ -1,0 +1,4 @@
+a.b=3
+c.b=5
+c.c=6
+horzcat(a,c)

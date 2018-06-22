@@ -1,0 +1,1 @@
+Error: cannot call ftell on stdin, stdout, or stderr in call to function ftell at line number 1 in file filetest36.oml

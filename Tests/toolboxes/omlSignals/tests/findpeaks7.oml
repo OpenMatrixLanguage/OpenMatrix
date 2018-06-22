@@ -1,0 +1,10 @@
+addtoolbox omlSignals
+
+t = 2*pi*linspace(0,1,1024)';
+y = sin(3.14*t) + 0.5*cos(6.09*t) + 0.1*sin(10.11*t+1/6) + 0.1*sin(15.3*t+1/3);
+data = abs(y); % positive values
+[pks idx extra] = findpeaks(data, 'MinPeakHeight', 0.9, 'MinPeakDistance', 10, 'MinPeakWidth', 30)
+
+%plot(t,data);
+%hold;
+%scatter(t(idx),data(idx));

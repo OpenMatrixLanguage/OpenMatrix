@@ -1,0 +1,2 @@
+all({['test';'abcd'],'test',1,0})
+islogical(ans)

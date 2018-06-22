@@ -1,0 +1,6 @@
+﻿function z = f(a,b)
+   z = sqrt(a^2 + b^2);
+end
+
+ast('f')
+ast(@f)

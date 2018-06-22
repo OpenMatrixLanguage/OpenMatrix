@@ -1,0 +1,5 @@
+x=-5.123876i+4
+format('long')
+x
+format('short')
+x

@@ -1,0 +1,16 @@
+function z=jeff(a,b,c)
+  z=a;
+end
+
+function z=jeff2(a,b,c)
+  z=a+b;
+end
+
+function z=jeff3(a,b,c)
+  z=a+b+c;
+end
+
+
+jeff(3)
+jeff2(3,4)
+jeff3(3,4)

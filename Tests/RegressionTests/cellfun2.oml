@@ -1,0 +1,1 @@
+cellfun('sqrt',{2,36,-9,[4,9;16,36],[4i+9,36i-16]},'uniformoutput',0)

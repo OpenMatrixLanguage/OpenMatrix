@@ -1,0 +1,11 @@
+student.name = 'Bob';
+student.age = 16;
+student.id = 90285;
+ 
+student(2).name = 'Nancy';
+student(2).age = 21;
+student(2).id = 22343;
+ 
+[a,b] = student.name;
+a
+b

@@ -1,0 +1,1 @@
+Error: invalid input in argument 2; type must be a string or a cell array of strings in call to function strfind at line number 1 in file strfind3.oml

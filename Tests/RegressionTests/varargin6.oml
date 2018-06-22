@@ -1,0 +1,8 @@
+function [out1,out2,out3,out4] = goo(a,varargin) 
+	out1 = 1;
+	out2 = 2;
+	out3 = 3;
+	out4 = 4;
+	varargin
+end
+[out1,out2,out3,out4] = goo(1,2,3);

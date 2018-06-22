@@ -1,0 +1,2 @@
+and([true, true; false, false],[false, true; true,true])
+islogical(ans)

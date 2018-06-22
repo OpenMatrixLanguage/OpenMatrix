@@ -1,0 +1,2 @@
+isstr(['test';'abcd'])
+islogical(ans)

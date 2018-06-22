@@ -1,0 +1,1 @@
+Error: cannot call fseek on stdin, stdout, or stderr in call to function fseek at line number 1 in file filetest33.oml

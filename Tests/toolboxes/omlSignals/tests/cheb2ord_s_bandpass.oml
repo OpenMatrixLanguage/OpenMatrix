@@ -1,0 +1,89 @@
+addtoolbox omlSignals
+
+function result = Cheb2OrdBP()
+	result = 'fail';
+	%Wp = [400, 600];
+	%Ws = [300, 770];
+	Wp = [200, 320];
+	Ws = [150, 360];
+
+	Rp = 1;
+	Rs = 20;
+	[order, Wn] = cheb2ord(Wp, Ws, Rp, Rs, 's')
+
+	[num, den] = cheby2(order, Rs, Ws, 's');
+	wcc = sqrt(Wp(1)*Wp(2));
+	w = [0,Ws(1),Wp(1),wcc,Wp(2),Ws(2)];
+	m = abs(freqs(num,den,w));
+	dB = -20 * log10(m);
+
+	if (mod(order,2) == 0)
+		if (abs(dB(1) - Rs) > 1.0e-4)
+			break;
+		end
+	else
+		if (m(1) > 1.0e-4)
+			break;
+		end
+	end
+
+	if (abs(dB(2) - Rs) > 1.0e-4)
+		return;
+	end
+
+	if (dB(3) > Rp)
+		return;
+	end
+
+	if (abs(m(4) - 1.0) > 1.0e-4)
+		return;
+	end
+
+	if (dB(5) > Rp)
+		return;
+	end
+
+	if (abs(dB(6) - Rs) > 1.0e-4)
+		return;
+	end
+
+	[num, den] = cheby2(order, Rs, Wn, 's');
+	wcc = sqrt(Wn(1)*Wn(2));
+	w = [0,Ws(1),Wp(1),wcc,Wp(2),Ws(2)];
+	m = abs(freqs(num,den,w));
+	dB = -20 * log10(m);
+
+	if (mod(order,2) == 0)
+		if (abs(dB(1) - Rs) > 1.0e-4)
+			break;
+		end
+	else
+		if (m(1) > 1.0e-4)
+			break;
+		end
+	end
+
+	if (dB(2) < Rs)
+		return;
+	end
+
+	if (dB(3) > Rp)
+		return;
+	end
+
+	if (abs(m(4) - 1.0) > 1.0e-4)
+		return;
+	end
+
+	if (abs(dB(5) - Rp) > 1.0e-4)
+		return;
+	end
+
+	if (dB(6) < Rs)
+		return;
+	end
+
+	result = 'pass';
+end
+
+cheb2ordBP = Cheb2OrdBP()

@@ -1,0 +1,13 @@
+function[coeffA coeffB coeffC]= eq2coeff(equation)
+   [xString restString]=strtok(equation);
+   [coeffOfX xVar]=strtok(xString, 'x');
+   coeffA=str2num(coeffOfX);
+   [spaces yStuff]=strtok(restString);
+   [yStuff2 moreSpaces]=strtok(yStuff);
+   [coeffOfY yVar]=strtok(yStuff2, 'y');
+   coeffB=str2num(coeffOfY);
+   [extraStuff numbres]=strtok(moreSpaces);
+   coeffC=str2num(numbres);
+ end
+
+[A B C] = eq2coeff('2x + 4y = 8')

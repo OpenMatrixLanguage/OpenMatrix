@@ -1,0 +1,1 @@
+[A, B, C, D] = textread('FileManipulation/textreadFile3.txt','%s %f %f %f', 'delimiter', ',', 'headerlines', 1)

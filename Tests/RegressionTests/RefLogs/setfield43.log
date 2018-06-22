@@ -1,0 +1,7 @@
+a = struct [
+b: 2
+]
+a = struct [
+b: [Matrix] 1 x 2
+2  3
+]

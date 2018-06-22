@@ -1,0 +1,7 @@
+function z=myfunc(a)
+    disp(nargout);
+	z=a;
+end
+
+myfunc(3);
+b=myfunc(3);

@@ -1,0 +1,9 @@
+':' is an operator
+';' is a reserved token
+'(' is a reserved token
+')' is a reserved token
+',' is a reserved token
+'%' is a reserved token
+'"' is a reserved token
+'end' is a keyword
+'sqrt' is a built-in function

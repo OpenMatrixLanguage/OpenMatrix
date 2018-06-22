@@ -1,0 +1,2 @@
+ans = (FUNC_DEF f (ID_LIST a b) (ID_LIST z) (STATEMENT_LIST (STMT (= z (FUNC sqrt (PARAM_LIST (+ (^ a 2) (^ b 2))))) ;)))
+ans = (FUNC_DEF f (ID_LIST a b) (ID_LIST z) (STATEMENT_LIST (STMT (= z (FUNC sqrt (PARAM_LIST (+ (^ a 2) (^ b 2))))) ;)))

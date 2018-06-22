@@ -1,0 +1,6 @@
+j = 0;
+while j<10 % at most 10 times
+   if j==3, break, end
+   j = j+1;
+end
+j

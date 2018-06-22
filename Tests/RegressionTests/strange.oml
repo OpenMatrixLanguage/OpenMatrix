@@ -1,0 +1,14 @@
+﻿function goo(a,varargin)
+  disp(a)
+  disp(varargin{1}) % it should print 2 here
+end
+
+goo(1,2,3);
+
+try 
+	mystruct.field2{2} = 'hml'
+catch
+
+end
+
+goo(1,2,3);

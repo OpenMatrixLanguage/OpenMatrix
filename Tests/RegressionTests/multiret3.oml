@@ -1,0 +1,7 @@
+function [A,B,C] = adjust(a,b,c)
+	A = a;
+	B = b;
+	C = c;
+end
+
+[A1,B1] = adjust(1,2)

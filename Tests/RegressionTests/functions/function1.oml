@@ -1,0 +1,7 @@
+function z=function1(a)
+    z=function2(a);
+end
+
+function z=function2(a)
+    z=-a;
+end

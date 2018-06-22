@@ -1,0 +1,12 @@
+b = 1
+c = [Matrix] 1 x 2
+1  2
+d = [Matrix] 1 x 3
+1  2  3
+e = [Matrix] 1 x 3
+1  2  3
+f = 1
+e = [Matrix] 3 x 1
+1
+2
+3

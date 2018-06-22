@@ -1,0 +1,6 @@
+tankSize = 5.12 
+distanceTraveledInOneTank = 155.36
+totalDistanceOfTrip = 350
+pricePerGallon = 3.84
+
+cost = (((totalDistanceOfTrip/distanceTraveledInOneTank)*tankSize)*pricePerGallon)

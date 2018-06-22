@@ -1,0 +1,6 @@
+function myfunc
+	persistent a;
+	a = a + 1
+end
+ 
+myfunc

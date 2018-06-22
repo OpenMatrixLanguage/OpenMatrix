@@ -1,0 +1,4 @@
+Rule = 'goo';
+a='';
+a{1} = Rule;
+a

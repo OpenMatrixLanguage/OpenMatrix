@@ -1,0 +1,9 @@
+﻿a=false(10,10);
+if ~isequal(class(a),'logical')
+  error('a is not a logical');
+end
+b=a(1,1);
+if ~isequal(class(b),'logical')
+  error('b is not a logical');
+end
+disp('success')

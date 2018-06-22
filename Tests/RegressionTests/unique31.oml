@@ -1,0 +1,1 @@
+[a,b,c]=unique({'str2','str1','str1'},'first')

@@ -1,0 +1,3 @@
+sscanf('3333 (444_RPM)', '%d (%d_RPM)')
+sscanf('S3333 (444_RPM)', 'S%d (%d_RPM)')
+sscanf('Su3333 (444_RPM)', 'Su%d (%d_RPM)')

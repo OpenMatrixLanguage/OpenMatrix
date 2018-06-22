@@ -1,0 +1,5 @@
+curdir = pwd;
+exist(curdir, 'file')
+exist(curdir,'dir')
+exist(omlfilename('fullpathext'))
+exist(omlfilename('fullpathext'), 'file')

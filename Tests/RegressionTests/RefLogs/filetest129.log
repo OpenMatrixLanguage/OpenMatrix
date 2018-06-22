@@ -1,0 +1,14 @@
+fname = FileManipulation/FileToWrite58.txt
+fid = 3
+ans = 2
+ans = 0
+ans = [Matrix] 8 x 1
+  0
+  0
+128
+127
+  0
+  0
+128
+255
+ans = 0

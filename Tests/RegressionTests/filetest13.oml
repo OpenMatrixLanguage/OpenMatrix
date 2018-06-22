@@ -1,0 +1,3 @@
+fname = 'FileManipulation/EmptyFile.txt'
+[fid, error] = fopen(fname, 'b')
+fclose('all')

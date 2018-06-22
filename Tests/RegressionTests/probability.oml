@@ -1,0 +1,16 @@
+function [norotRed norotGreen]= probability(numRed, numGreen, perRed, perGreen)
+	totalApples=numRed+numGreen;
+	percentR=(perRed./100);
+	percentG=(perGreen./100);
+	rotRed=(numRed.*percentR);
+	rotGreen=(numGreen.*percentG);
+	redNonrot=numRed-rotRed;
+	greenNonrot=numGreen-rotGreen;
+	norotRed=((redNonrot/totalApples).*100);
+	norotGreen=((greenNonrot/totalApples).*100);
+end
+
+[red1 grn1] = probability(10, 10, 20, 50)
+
+%       red1 => 40
+%       grn1 => 25

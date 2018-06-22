@@ -1,0 +1,5 @@
+function goo(s)
+   disp(s)
+end
+
+goo ../../hello

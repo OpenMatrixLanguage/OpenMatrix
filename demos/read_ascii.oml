@@ -1,0 +1,31 @@
+
+% OML - Example to read data from a file
+
+thefile = [fileparts(omlfilename('fullpath')),'/read1.txt'];
+
+% Read file using type directly
+
+content = type(thefile);
+disp(content{1,1})
+
+fid = fopen(thefile,'rt');
+counter = 0;
+
+% Read file line by line
+
+while ~feof(fid)
+	counter = counter + 1;
+	line = fgetl(fid);
+	sprintf('line %d in %s: %s',counter,thefile,line)
+end
+fclose(fid);
+
+
+% Read formatted file using fscanf
+
+fid = fopen([fileparts(omlfilename('fullpath')),'/read2.txt'],'rt');
+fseek(fid,18);
+A = fscanf(fid,'%d %f\n',[2 inf]);
+fclose(fid);
+disp(A')
+

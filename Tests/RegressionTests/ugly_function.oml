@@ -1,0 +1,5 @@
+function [] = foo()
+  r = 1
+ end
+
+ foo

@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+mean(-6,4,'g')

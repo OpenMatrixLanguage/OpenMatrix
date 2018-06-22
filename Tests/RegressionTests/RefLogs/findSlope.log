@@ -1,0 +1,8 @@
+slopeY = [Matrix] 1 x 2
+3  3
+slopeX = [Matrix] 1 x 2
+1  1
+slopeVec = [Matrix] 1 x 2
+3  3
+ans = [Matrix] 1 x 2
+3  3

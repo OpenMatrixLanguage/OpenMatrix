@@ -1,0 +1,6 @@
+Running KeywordComment.hml
+At one time, some keywords in a comment caused a syntax error
+There should be no syntax errors running this script
+Statements with keywords in a comment - begin
+Statements with keywords in a comment - completed
+Running KeywordComment.hml - completed

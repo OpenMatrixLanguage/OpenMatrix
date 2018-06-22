@@ -1,0 +1,1 @@
+Error: invalid input; value must be a scalar, complex or matrix in call to function sinc at line number 2 in file sinc6.oml

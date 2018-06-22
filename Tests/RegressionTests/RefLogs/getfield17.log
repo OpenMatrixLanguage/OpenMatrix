@@ -1,0 +1,1 @@
+Error: cannot index list of struct fields in call to function getfield at line number 4 in file getfield17.oml

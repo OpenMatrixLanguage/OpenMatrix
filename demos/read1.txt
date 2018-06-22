@@ -1,0 +1,4 @@
+this is an ascii file
+and it contains
+four
+lines!

@@ -1,0 +1,7 @@
+fname = 'FileManipulation/EmptyFile.txt'
+fopen(fname, 'r')
+fopen(fname, 'r')
+fopen(['all';'abc'])
+fclose(['all';'abc'])
+fopen('all')
+fclose('all')

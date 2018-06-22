@@ -1,0 +1,5 @@
+try
+	a*2
+catch
+	disp('no variable a exists');
+end

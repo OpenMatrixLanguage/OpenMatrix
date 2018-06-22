@@ -1,0 +1,9 @@
+a=10
+function z=halve(a)
+	z = a/2
+end
+
+b=halve(8)
+disp(a)
+disp(b)
+[a b]

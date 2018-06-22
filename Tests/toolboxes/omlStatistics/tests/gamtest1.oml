@@ -1,0 +1,72 @@
+addToolbox('omlStatistics');
+addpath('.');
+run('test_setup')
+
+mask = 1000000; % mask for displaying rounded results
+
+% set distribution parameters
+a = 5;
+b = 3;
+z = zeros(1,500);
+
+% compute exact mean and variance
+avg = a*b;
+variance = a*b^2;
+
+disp('case 1')
+
+% generate nearly perfect gamma distributed sample
+v = [0.001:0.002:0.999];	% equally cdf spaced samples
+x = gaminv(v, a, b);		% near perfect gamma sample
+
+xbar = mean(x);
+sig2 = var(x);
+
+assertCheckAlmostEqual(avg,xbar,0,1e-2)
+assertCheckAlmostEqual(variance,sig2,0,0.3)
+
+disp('case 2')
+
+% verify that gamcdf and gaminv are inverses
+y = gamcdf(x, a, b);
+result = round(mask*(y-v))/mask;
+assertCheckAlmostEqual(result,z,1e-10)
+
+disp('case 3')
+
+% verify that gampdf is the derivative of gamcdf
+y1 = gamcdf(x-0.00005, a, b);
+y2 = gamcdf(x+0.00005, a, b);
+pdf1 = (y2-y1)/0.0001;
+pdf2 = gampdf(x, a, b);
+result = round(mask*(pdf2-pdf1))/mask;
+assertCheckAlmostEqual(result,z,1e-10)
+
+disp('case 4')
+
+% verify that gamfit recovers the original parameters
+[a2, b2, aCI, bCI] = gamfit(x);
+assertCheckAlmostEqual(a,a2,1e-2)
+assertCheckAlmostEqual(b,b2,1e-2)
+%disp (aCI)	% no good checks for this yet
+%disp (bCI)	% no good checks for this yet
+
+disp('case 5')
+
+% verify that gamrnd produces appropriate data
+numSamp = 10000;
+rand('seed', 2003)
+x2 = gamrnd(a, b, 1, numSamp);
+[a3, b3, aCI, bCI] = gamfit(x2);
+assertCheckAlmostEqual(a,a3,1e-3)
+assertCheckAlmostEqual(b,b3,1e-2)
+
+disp('case 6')
+
+xbar = mean(x2);
+sig2 = var(x2);
+
+assertCheckAlmostEqual(avg,xbar,1e-2)
+assertCheckAlmostEqual(variance,sig2,1e-2)
+
+disp('TEST PASSED')

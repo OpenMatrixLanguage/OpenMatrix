@@ -1,0 +1,3 @@
+Warning: maximum number of function evaluations exceeded, returned last estimate in call to function fminbnd at line number 9 in file fminbnd3.oml
+x = 2.71804309
+fval = -0.36787944

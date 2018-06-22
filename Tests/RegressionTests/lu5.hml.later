@@ -1,0 +1,4 @@
+[l,u,p]=lu([2i+4;i-3;8])
+print(l)
+print(u)
+print(p)

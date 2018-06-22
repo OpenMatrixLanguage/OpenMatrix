@@ -1,0 +1,16 @@
+function r = foo1(a,b)
+	function r = innerfun(a,b)
+ 		r = 3;
+ 	end
+ 	r = foo2(a,b);
+ 	r = innerfun(r,a);
+end
+ 
+function r = foo2(a,b)
+ 	function r = innerfun(a,b)
+ 		r = 3;
+ 	end
+ 	r = innerfun(a,b);
+end
+  
+ foo1(1,2)

@@ -1,0 +1,15 @@
+fname = FileManipulation/FileToWrite29.txt
+fid = 3
+ans = 6
+ans = 0
+fid = 3
+ans = [Matrix] 2 x 2
+ 0  0
+50  0
+ans = [Matrix] 2 x 2
+0   0
+0  -2
+ans = [Matrix] 2 x 2
+-1  0
+-1  0
+ans = 0

@@ -1,0 +1,8 @@
+fname = 'FileManipulation/FileToRead.txt'
+fid = fopen(fname)
+ftell(fid)
+fseek(fid, 10)
+ftell(fid)
+fseek(fid, 0)
+ftell(fid)
+fclose(fid)

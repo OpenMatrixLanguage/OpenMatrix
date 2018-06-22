@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+logncdf([1 2 3 4])

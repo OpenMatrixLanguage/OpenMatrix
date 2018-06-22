@@ -1,0 +1,3 @@
+Warning: matrix used as matrix dimension; using first element's real component in call to function dot at line number 1 in file dot13.oml
+ans = [Matrix] 1 x 2
+3  4

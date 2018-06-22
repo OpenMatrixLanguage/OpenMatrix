@@ -1,0 +1,5 @@
+function halve(a)
+	a = a/2
+end
+
+halve(8)

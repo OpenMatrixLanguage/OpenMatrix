@@ -1,0 +1,4 @@
+Warning: invalid format specified in argument 2; valid formats are %d, %f, %g and %s in call to function sscanf at line number 1 in file sscanf7.oml
+ans = [Matrix] 2 x 1
+ 5.34500
+65.00000

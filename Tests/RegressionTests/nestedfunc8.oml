@@ -1,0 +1,17 @@
+﻿function [] = foo()
+	bar();
+	a;   
+	baz();
+
+	function [] = bar()
+		a = 1;
+	end
+	
+	function [] = baz()
+		if a
+			'Foo!'
+		end
+	end
+end
+
+foo

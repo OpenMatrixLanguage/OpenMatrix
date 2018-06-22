@@ -1,0 +1,5 @@
+a = 5 + 2i
+b = [Matrix] 1 x 3
+5  2  8
+ans = [Matrix] 1 x 3
+0  0  1

@@ -1,0 +1,7 @@
+ans = [Matrix] 6 x 6
+NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi
+NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi
+NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi
+NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi
+NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi
+NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi  NaN + NaNi

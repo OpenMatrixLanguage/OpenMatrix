@@ -1,0 +1,1 @@
+strrep({'aaaaa','aabbaaa'},{'aa','bb'},{{'cce','ddd'}},'overlaps',0)

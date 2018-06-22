@@ -1,0 +1,29 @@
+function [frame]= sirMixALot(silly,crazy);
+MaxSillyCrazy= max(length(silly),length(crazy));
+%finding the maximum of the lengths of both vectors
+frame = zeros(1,MaxSillyCrazy.*2);
+%makes a new vector full of zeros the double the size of the bigger vector
+newFrame=zeros(1,MaxSillyCrazy);
+%makes another vector of zeros, but this time the size of the bigger vector
+newFrame(1:length(silly))=silly;
+%fills in the numbers of the first vector into the newFrame
+newFrame2=zeros(1,MaxSillyCrazy);
+%makes another vector the same size as newFrame
+newFrame2(1:length(crazy))=crazy;
+%fills in the numbbers of the 2nd vector into the newFrame2
+vecEven=(2:2:length(frame));
+%shows the even positions of the frame
+vecOdd=(1:2:length(frame));
+%shows the odd positions of the frame
+frame(vecOdd)=newFrame;
+%takes the newFrame numbers and puts them in the even positions of the
+%frame
+frame(vecEven)=newFrame2;
+%takes the newFrame2 numbers and puts them in the odd positions of the
+%frame.
+end
+%silly and crazy are the two 1xN vectors that are used
+
+sirMixALot([1 2 3 4 5],[6 7 8 9 10])
+sirMixALot([5 1 5 9 1], [4 1 3])
+sirMixALot([8 6 7], [5 3 0 9])

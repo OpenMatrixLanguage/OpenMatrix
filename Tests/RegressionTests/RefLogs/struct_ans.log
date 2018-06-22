@@ -1,0 +1,8 @@
+ans = struct [
+a: 3
+]
+ans = struct [
+a: struct [
+a: 3
+]
+]

@@ -1,0 +1,8 @@
+%{
+a comment
+%}
+a=1
+%{ also
+a
+comment %}
+b=2

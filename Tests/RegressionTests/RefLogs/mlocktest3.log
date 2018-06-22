@@ -1,0 +1,1 @@
+Error: not in a function; cannot check if locked in call to function mislocked at line number 1 in file mlocktest3.oml

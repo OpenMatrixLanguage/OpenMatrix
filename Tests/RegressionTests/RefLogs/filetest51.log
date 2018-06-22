@@ -1,0 +1,13 @@
+fname = FileManipulation/FileToWrite4.txt
+fid = 3
+ans = 6
+ans = 0
+fid = 3
+ans = [Matrix] 2 x 2
+12800  -512
+20992  3327
+ans = [Matrix] 2 x 1
+  256
+10752
+ans = [Matrix] 2 x 0
+ans = 0

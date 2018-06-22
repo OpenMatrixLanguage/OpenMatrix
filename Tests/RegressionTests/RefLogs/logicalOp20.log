@@ -1,0 +1,9 @@
+a = [Matrix] 2 x 2
+1  0
+0  4
+b = [Matrix] 2 x 2
+1  5
+0  0
+ans = [Matrix] 2 x 2
+1  1
+0  1

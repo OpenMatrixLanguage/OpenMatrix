@@ -1,0 +1,8 @@
+fname = 'FileManipulation/EmptyFile.txt'
+[fid1, error] = fopen({{fname,'another','element'}})
+[fid2, error] = fopen(fname)
+[filepath, filemode] = fopen(fid1)
+[filepath, filemode] = fopen(fid2)
+fclose(fid1)
+fclose(fid2)
+fopen('all')

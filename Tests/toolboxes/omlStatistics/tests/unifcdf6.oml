@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+unifcdf([1; 2; 3; 4])

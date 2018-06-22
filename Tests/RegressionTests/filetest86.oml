@@ -1,0 +1,1 @@
+fwrite(stderr,'test','uchar',1)

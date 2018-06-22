@@ -1,0 +1,5 @@
+function z = goo(a,b) % stupid function
+   z = a+b;
+end
+
+goo(2,3)

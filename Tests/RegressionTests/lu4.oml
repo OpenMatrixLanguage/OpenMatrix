@@ -1,0 +1,4 @@
+[l,u,p]=lu([1,4,2;2,-5,-1])
+disp(l)
+disp(u)
+disp(p)

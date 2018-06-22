@@ -1,0 +1,4 @@
+spots = [Matrix] 1 x 4
+1  3  6  7
+non_nums = [Matrix] 1 x 3
+4  8  4

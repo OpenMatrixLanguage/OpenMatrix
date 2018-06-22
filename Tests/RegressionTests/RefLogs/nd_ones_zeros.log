@@ -1,0 +1,58 @@
+ans = 
+slice(:, :, 1) = 
+[Matrix] 3 x 3
+1  1  1
+1  1  1
+1  1  1
+
+slice(:, :, 2) = 
+[Matrix] 3 x 3
+1  1  1
+1  1  1
+1  1  1
+
+slice(:, :, 3) = 
+[Matrix] 3 x 3
+1  1  1
+1  1  1
+1  1  1
+ans = 
+slice(:, :, 1, 1, 1) = 
+[Matrix] 2 x 2
+0  0
+0  0
+
+slice(:, :, 1, 1, 2) = 
+[Matrix] 2 x 2
+0  0
+0  0
+
+slice(:, :, 1, 2, 1) = 
+[Matrix] 2 x 2
+0  0
+0  0
+
+slice(:, :, 1, 2, 2) = 
+[Matrix] 2 x 2
+0  0
+0  0
+
+slice(:, :, 2, 1, 1) = 
+[Matrix] 2 x 2
+0  0
+0  0
+
+slice(:, :, 2, 1, 2) = 
+[Matrix] 2 x 2
+0  0
+0  0
+
+slice(:, :, 2, 2, 1) = 
+[Matrix] 2 x 2
+0  0
+0  0
+
+slice(:, :, 2, 2, 2) = 
+[Matrix] 2 x 2
+0  0
+0  0

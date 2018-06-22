@@ -1,0 +1,17 @@
+﻿classdef B
+	properties
+		a
+	end
+	methods
+		function z=B()
+		   z.a = 1;
+		end
+	end
+end
+
+b = B;
+
+isa(b, 'B')
+isa(b, 'C')
+isa(3, 'numeric')
+isa(3, 'B')

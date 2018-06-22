@@ -1,0 +1,1 @@
+[a,b,c]=fileparts(['test.txt';'abcd.efg'])

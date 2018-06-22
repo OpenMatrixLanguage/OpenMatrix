@@ -1,0 +1,5 @@
+a.b=3
+a(2,1).c=9
+c.c=6
+horzcat({a;c},{a;{1,2i-1,['abcd';'efgh'];{2,3,4},@(x)x+2,a}})
+horzcat({a,{1,2i-1,['abcd';'efgh'];{2,3,4},c,a}},{a,c},@sqrt)

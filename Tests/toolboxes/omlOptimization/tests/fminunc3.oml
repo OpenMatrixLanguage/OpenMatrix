@@ -1,0 +1,21 @@
+addtoolbox omlOptimization
+
+function [obj,grad] = Rosenbrock(p, six, eight)
+    % p[1] is the x coordinate
+    % p[2] is the y coordinate
+    % compute the objective
+    obj = (1 - p(1))^2 + 100 * (p(2) - p(1)^2)^2 + (eight - six);
+
+    if nargout > 1
+        % compute the gradient
+        grad = [];
+        grad(1,1) = -2 * (1 - p(1)) - 400 * (p(2) - p(1)^2) * p(1);
+        grad(2,1) = 200 * (p(2) - p(1)^2);
+    end
+end
+
+handle = @(p) Rosenbrock(p,6,8);
+init = [-1.2, 1.0];
+options = optimset('MaxIter', 200, 'GradObj', 'on', 'Display', 'iter', 'TolFun', 1.0e-12);
+
+[x,fval] = fminunc(handle, init, options)

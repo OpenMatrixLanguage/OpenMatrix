@@ -1,0 +1,2 @@
+isfinite([2,inf,2i-nan,nan+inf*i,nan])
+islogical(ans)

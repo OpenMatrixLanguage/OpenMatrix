@@ -1,0 +1,4 @@
+A = 1:Inf:3
+size(A)
+B = 1:NaN:3
+size(B)

@@ -1,0 +1,9 @@
+function f
+	env=getbaseenv();
+	setenvvalue(env, 'A',5);
+end
+
+A=3;
+A
+f();
+A

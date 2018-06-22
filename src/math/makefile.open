@@ -1,0 +1,23 @@
+# ====================================================================
+# ====================================================================
+default: 
+	make -C kernel       -f makefile.open
+	make -C mathutils    -f makefile.open
+	make -C calculus     -f makefile.open
+	make -C polynom      -f makefile.open
+	make -C diffeq       -f makefile.open
+	make -C optimization -f makefile.open
+	make -C statistics   -f makefile.open
+	make -C signals      -f makefile.open
+	make -C cae          -f makefile.open
+
+clean:
+	make -C kernel       clean -f makefile.open
+	make -C mathutils    clean -f makefile.open
+	make -C calculus     clean -f makefile.open
+	make -C polynom      clean -f makefile.open
+	make -C diffeq       clean -f makefile.open
+	make -C optimization clean -f makefile.open
+	make -C statistics   clean -f makefile.open
+	make -C signals      clean -f makefile.open
+	make -C cae          clean -f makefile.open

@@ -1,0 +1,21 @@
+addtoolbox omlPolynom
+
+% create (x,y,z) data grid
+x_old = [2, 5, 6, 10, 12, 17];
+y_old = [10, 13, 17, 18, 23, 25, 29]';
+n = length(x_old);
+m = length(y_old);
+z_old = zeros(m,0);
+step = [1:7]';
+
+for i = 1:n
+	z_old = [z_old, 3*x_old(i)*y_old - 2*x_old(i) + 4*y_old + 1 + step];
+	step = step + 2;
+end
+
+disp(z_old);
+
+% interpolate with interp2
+x_new = [1, 5, 7; 11, 12, 18];
+y_new = [9, 15, 21; 19, 24, 30];
+z_new = interp2(x_old, y_old, z_old, x_new, y_new, 'linear', 'extrap')

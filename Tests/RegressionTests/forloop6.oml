@@ -1,0 +1,6 @@
+a = {'one', 'two', 'three'};
+a = {1, [2,3], 'four'};
+
+for j=a
+  j
+end

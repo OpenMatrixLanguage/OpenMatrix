@@ -1,0 +1,7 @@
+Vertices(1).coord=[0 0]; 
+Vertices(1).value=0;
+Vertices(2).coord=[1.2 0]; 
+Vertices(2).value=-3.36;
+Vertices(3).coord=[0 0.8]; 
+Vertices(3).value=-0.16;
+Vertices.coord()

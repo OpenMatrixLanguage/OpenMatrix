@@ -1,0 +1,19 @@
+function [newYAY]= stretchVec(vecBaby, stretchCompress)
+	%newYAY is the new vector created after a vector (vecBaby) is stretched or
+	%compressed by stretchCompress
+	lengthYeah= length(vecBaby);
+	%figure out the original length of vecBaby
+	newlength= round(lengthYeah.*stretchCompress);
+	%makes a new length which is the original length * the compression
+	new= round(linspace(1, length(vecBaby),newlength));
+
+	newYAY= vecBaby(new);
+end
+
+stretchVec([4 2 3 4 1],2)
+nvec1 = stretchVec([1 5 4 8 9], 1.5);
+nvec2 = stretchVec(2:3:20, 0.75);
+nvec3 = stretchVec([1 2 4], 1.01);
+nvec1
+nvec2
+nvec3

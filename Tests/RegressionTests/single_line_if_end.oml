@@ -1,0 +1,5 @@
+LOCALPATH = 'E:/installation/vml/';
+
+if strcmp(LOCALPATH(end),'/') | strcmp(LOCALPATH(end),'\')
+	LOCALPATH = LOCALPATH(1:end-1)
+end

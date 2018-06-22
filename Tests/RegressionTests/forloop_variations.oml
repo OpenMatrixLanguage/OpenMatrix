@@ -1,0 +1,11 @@
+sum=0; for j=1:10 sum=sum+j end; sum
+sum=0; for j=1:10 sum=sum+j; end; sum
+sum=0; for j=1:10; sum=sum+j; end; sum
+sum=0; for j=1:10, sum=sum+j; end; sum
+sum=0; for j=1:10, sum=sum+j, end; sum
+
+sum = 0;
+for j=1:10 % calculate the sum
+   sum=sum+j;
+end
+sum

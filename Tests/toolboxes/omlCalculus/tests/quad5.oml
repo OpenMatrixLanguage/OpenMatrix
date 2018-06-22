@@ -1,0 +1,9 @@
+addtoolbox omlCalculus
+
+function y = Integrand(x)
+    y = sin(x);
+end
+
+handle = @(x) Integrand(x);
+
+[area,count] = quad(handle, [0, 0], [5*pi, 7.5*pi], 1.0e-6)

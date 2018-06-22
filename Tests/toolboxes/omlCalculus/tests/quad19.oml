@@ -1,0 +1,4 @@
+addtoolbox omlCalculus
+
+tol = [1.0e-7,1.0e-9];
+area = quad(@(x) log(x-1),1,2,tol) / -1

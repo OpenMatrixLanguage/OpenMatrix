@@ -1,0 +1,14 @@
+function [x,y] = goo(a,b,c)
+   disp(nargout)
+   x=a+b;
+   y=b+c;
+end
+
+function [a,b,c] = foo(d,e)
+   disp(nargout)
+   [a,b] = goo(d,d,d);
+   c = goo(e,e,e);
+   disp(nargout)
+end
+
+[q1,q2,q3] = foo(1,2);

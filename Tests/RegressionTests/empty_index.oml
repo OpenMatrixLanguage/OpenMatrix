@@ -1,0 +1,7 @@
+B=ones(5,2);
+size(B(:,[]))
+size(B([],:))
+size(B([],[]))
+size(B(1,[]))
+size(B(2,[]))
+size(B([],1))

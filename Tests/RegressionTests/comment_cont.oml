@@ -1,0 +1,4 @@
+% the value returned by fminuc and fmincon are the same...
+n = 20;
+x0 = ones(1,n);
+size(x0)

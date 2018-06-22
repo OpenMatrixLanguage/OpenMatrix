@@ -1,0 +1,74 @@
+addtoolbox omlSignals
+
+function result = ButtOrdBP()
+	result = 'fail';
+	Wp = [400, 600];
+	Ws = [300, 770];
+	Rp = 20 * log10(sqrt(2));
+	Rs = 20;
+	[order, Wn] = buttord(Wp, Ws, Rp, Rs, 's')
+
+	[num, den] = butter(order, Wp, 's');
+	wcc = sqrt(Wp(1)*Wp(2));
+	w = [0,Ws(1),Wp(1),wcc,Wp(2),Ws(2)];
+	m = abs(freqs(num,den,w));
+	dB = -20 * log10(m);
+
+	if (m(1) > 1.0e-4)
+		return;
+	end
+
+	if (dB(2) < Rs)
+		return;
+	end
+
+	if (abs(dB(3) - Rp) > 1.0e-4)
+		return;
+	end
+
+	if (abs(m(4) - 1.0) > 1.0e-4)
+		return;
+	end
+
+	if (abs(dB(5) - Rp) > 1.0e-4)
+		return;
+	end
+
+	if (dB(6) < Rs)
+		return;
+	end
+
+	[num, den] = butter(order, Wn, 's');
+	wcc = sqrt(Wn(1)*Wn(2));
+	w = [0,Ws(1),Wp(1),wcc,Wp(2),Ws(2)];
+	m = abs(freqs(num,den,w));
+	dB = -20 * log10(m);
+
+	if (m(1) > 1.0e-4)
+		return;
+	end
+
+	if (dB(2) < Rs)
+		return;
+	end
+
+	if (dB(3) > Rp)
+		return;
+	end
+
+	if (abs(m(4) - 1.0) > 1.0e-4)
+		return;
+	end
+
+	if (dB(5) > Rp)
+		return;
+	end
+
+	if (abs(dB(6) - Rs) > 1.0e-4)
+		return;
+	end
+
+	result = 'pass';
+end
+
+buttordBP = ButtOrdBP()

@@ -1,0 +1,24 @@
+ans = struct [
+index: [Matrix] 0 x 0
+matrix: [Matrix] 0 x 0
+]
+ans = struct [
+index: [Matrix] 0 x 0
+matrix: [Matrix] 1 x 2
+2  2
+]
+st1 = struct [
+Struct array of size 2 x 2 with fields:
+index
+matrix
+]
+ans = struct [
+index: [Matrix] 0 x 0
+matrix: [Matrix] 1 x 2
+2  2
+]
+ans = struct [
+index: [Matrix] 0 x 0
+matrix: [Matrix] 1 x 2
+2  2
+]

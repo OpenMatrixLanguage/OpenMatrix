@@ -1,0 +1,5 @@
+fname = 'FileManipulation/FileToWrite36.txt'
+fid = fopen(fname,'w')
+fwrite(fid,'')
+fclose(fid)
+delete(fname)

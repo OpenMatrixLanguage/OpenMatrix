@@ -1,0 +1,2 @@
+ans = 5
+Error: struct does not have a member 'c' in call to function getfield at line number 3 in file getfield2.oml

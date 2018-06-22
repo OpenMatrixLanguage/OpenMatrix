@@ -1,0 +1,1 @@
+vertcat(['ab';'cd';'ef'],['gh';'ij'],{'test cell'})

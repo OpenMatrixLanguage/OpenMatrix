@@ -1,0 +1,4 @@
+addpath('functions')
+script
+a
+local_func(2)

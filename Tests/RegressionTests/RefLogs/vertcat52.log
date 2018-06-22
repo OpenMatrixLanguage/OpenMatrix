@@ -1,0 +1,12 @@
+a = struct [
+b: 3
+]
+a = struct [
+Struct array of size 2 x 1 with fields:
+b
+c
+]
+c = struct [
+c: 6
+]
+Error: inputs must have the same number of columns to be concatenated vertically in call to function vertcat at line number 4 in file vertcat52.oml

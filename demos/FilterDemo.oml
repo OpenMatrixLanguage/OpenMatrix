@@ -1,0 +1,27 @@
+
+% OML - Demonstration of filtering operation using the SAEFilter
+
+% Create some noisy data by adding some random noise to a sinusoidal function
+
+t=[0:0.001:1.023]; % the time
+L = length(t);
+x=[];
+i=1;
+
+while (i<=L) 
+	x = [x,sin(2.0*pi*50*t(i))*normrnd(1,0.5)];
+	i=i+1;
+end
+
+% Filter the noisy data
+
+y = filter(0.2*ones(1,5),1,x);
+
+% Plot raw & filtered data
+
+plot(t, x);
+hold('on');
+plot(t, y);
+legend('raw data','filtered data');
+hold('off');
+title('Data Filtering');

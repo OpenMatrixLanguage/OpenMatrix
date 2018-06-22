@@ -1,0 +1,4 @@
+[l,u,p]=lu(2-8i)
+disp(l)
+disp(u)
+disp(p)

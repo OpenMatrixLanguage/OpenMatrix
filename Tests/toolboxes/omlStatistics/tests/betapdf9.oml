@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+betapdf([82; 33; 0; 2.4],1,1)

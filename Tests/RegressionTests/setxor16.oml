@@ -1,0 +1,1 @@
+[a,b,c]=setxor({'test1'},'test2')

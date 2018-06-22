@@ -1,0 +1,2 @@
+ref = [2 3 4 6 7 8]';
+msg = 'Error: direction must be ''first'' or ''last'''

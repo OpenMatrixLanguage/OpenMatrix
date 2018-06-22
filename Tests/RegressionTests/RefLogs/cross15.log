@@ -1,0 +1,5 @@
+Warning: performing cross product on vectors with different dimensions in call to function cross at line number 1 in file cross15.oml
+ans = [Matrix] 3 x 1
+ 3
+-6
+ 3

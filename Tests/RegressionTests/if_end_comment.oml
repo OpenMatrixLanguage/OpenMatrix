@@ -1,0 +1,9 @@
+%! if elseif end
+a = 4;
+b = 4;
+ 
+if a > b
+	disp('a > b');
+elseif a == b
+	disp('test finished')
+end

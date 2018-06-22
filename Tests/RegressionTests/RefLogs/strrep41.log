@@ -1,0 +1,20 @@
+ans = 
+{
+  [1,1] 
+  {
+    [1,1] ccccccbbba
+    [1,2] eeebbba
+    [2,1] dddddddddbbba
+    [2,2] 
+    {
+      [1,1] 
+      {
+        [1,1] test1test1test1bbba
+        [1,2] test2test2test2bbba
+      }
+    }
+  }
+  [1,2] 
+  {
+  }
+}

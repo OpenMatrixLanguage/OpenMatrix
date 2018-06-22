@@ -1,0 +1,6 @@
+addToolbox omlStatistics
+addpath('.');
+run('test_setup')
+
+rand('seed', 2017);
+m = randn(4,3,2)

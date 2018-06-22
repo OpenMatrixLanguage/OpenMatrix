@@ -1,0 +1,10 @@
+a=[1 2 3 4];
+b=a;
+a(1:4) = 5:8;
+% display the refcnt first; otherwise there
+% will be temporary currencies in the display
+% list for a and b
+refcnt(a)
+refcnt(b)
+a
+b

@@ -1,0 +1,4 @@
+aa.b=5
+a.b=2
+a(1,2).b=3
+setfield(a,{1,2}, aa)

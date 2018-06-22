@@ -1,0 +1,1 @@
+Error: all cell array inputs must be the same size in call to function cellfun at line number 1 in file cellfun15.oml

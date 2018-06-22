@@ -1,0 +1,3 @@
+st1.a = 'test struct';
+st = st1;
+st(2) = st1

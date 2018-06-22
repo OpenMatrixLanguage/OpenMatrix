@@ -1,0 +1,1 @@
+[s,i]=sort({'string3','string2','string1'},'descend')

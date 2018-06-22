@@ -1,0 +1,6 @@
+﻿function test()
+	printf('haha');
+end
+
+R=str2func('test');
+R();

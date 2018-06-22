@@ -1,0 +1,2 @@
+% hml 2 comment 
+// hml 1 style comment should cause a syntax error but previously did not

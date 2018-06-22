@@ -1,0 +1,4 @@
+str = 'this is a long test.';
+ 
+isequal(strsplit(str), {'this','is','a',...
+	'long','test.'})

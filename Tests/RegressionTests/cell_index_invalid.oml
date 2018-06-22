@@ -1,0 +1,3 @@
+% scalar
+sca = 3;
+sca{1,1}

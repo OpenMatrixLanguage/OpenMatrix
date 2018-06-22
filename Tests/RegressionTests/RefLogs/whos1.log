@@ -1,0 +1,5 @@
+x = 5.2
+ Attr Name Size Bytes Class 
+ ==== ==== ==== ===== ===== 
+      x    1x1      8 double
+

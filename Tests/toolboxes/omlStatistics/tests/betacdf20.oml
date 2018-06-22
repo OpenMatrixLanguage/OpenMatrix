@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+betacdf({},1,1)

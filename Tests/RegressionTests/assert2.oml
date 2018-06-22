@@ -1,0 +1,2 @@
+assert(false)
+disp('no crash')

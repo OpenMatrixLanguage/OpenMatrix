@@ -1,0 +1,11 @@
+function [ShiftIt]= barrelShift(rcVec,numbShift)
+	shifts= mod(numbShift,length(rcVec));
+	%by taking the mod of the vector divided by the number of times shifting
+	%the vector, you can see how many position over it will shift overall.
+	move = (length(rcVec) - shifts) + 1:length(rcVec);
+	moveMore = 1:length(rcVec) - shifts;
+	MoveALot = [move moveMore];
+	ShiftIt = rcVec(MoveALot);
+end
+
+barrelShift([1 2 3 4 5],3)

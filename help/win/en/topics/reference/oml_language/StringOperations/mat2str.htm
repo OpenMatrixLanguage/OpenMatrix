@@ -1,0 +1,125 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="mat2str" /><meta name="abstract" content="Writes the values of a 2D matrix, m, to a string, R." /><meta name="description" content="Writes the values of a 2D matrix, m, to a string, R." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="String Operations Commands" /><meta name="indexterms" content="mat2str" /><meta name="DC.subject" content="mat2str" /><meta name="keywords" content="mat2str" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StringOperations/string_operations_command_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StringOperations/num2str.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StringOperations/sprintf.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>mat2str</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/StringOperations/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/StringOperations/string_operations_command_r.htm" title="String Operations Commands">String Operations Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/StringOperations/string_operations_command_r.htm" title="String Operations Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">String Operations Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">mat2str</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Writes the values of a 2D matrix, <var class="keyword varname">m</var>, to a string,
+    <var class="keyword varname">R</var>.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">R = mat2str<span class="ph var">(m)</span></span></p>
+
+      <p class="p"><span class="ph synph">R = mat2str<span class="ph var">(m, p)</span></span></p>
+
+      <p class="p"><span class="ph synph">R = mat2str<span class="ph var">(m, p, 'class')</span></span></p>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">m</var></dt>
+
+          <dd class="dd pd">2D Matrix.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">p</var> (optional)</dt>
+
+          <dd class="dd pd">Specifies the number of significant digits that will be used for formatting matrix
+            values. If <var class="keyword varname">p</var> is a scalar, the same precision will be used for real
+            and imaginary parts of <var class="keyword varname">m</var>. If <var class="keyword varname">p</var> is a vector, the
+            first element of <var class="keyword varname">p</var> will specify the precision for the real values and
+            the second element will specify the precision for the imaginary values in
+              <var class="keyword varname">m</var>. The default precision used will be the format specified in the
+            application at the time of execution. </dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">scalar | vector</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm">'class' (optional)</dt>
+
+          <dd class="dd pd">A keyword which appends the class of <var class="keyword varname">m</var> with the result,
+              <span class="ph synph">R</span>. An evaluation of <span class="ph synph">R</span> would result in the same class of
+            matrix as <var class="keyword varname">m</var>, with the same data.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+                  
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+          <dd class="dd pd">The row delimiter for matrix values is a semicolon, ';'.  The column delimiter is
+            white space, ' '.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+      
+        <div class="p">Default options:
+        <pre class="pre codeblock"><code>R = mat2str(rand(3,2))</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = [0.54881 0.59284;0.71519 0.84427;0.60276 0.85795]</code></code></pre></div>
+
+        <div class="p">Scalar precision with the 'class' keyword:
+        <pre class="pre codeblock"><code>R = mat2str(rand(3,2), 2, 'class')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = double([0.54 0.85;0.42 0.62;0.65 0.38])</code></code></pre></div>
+
+        <div class="p">Vector precision:
+        <pre class="pre codeblock"><code>m = [0.54+pi*i 0.85;0.42 0.62 + 2*pi*i;0.65 0.38+1/3i];
+          R = mat2str(m, [2,3])</code></pre><pre class="pre codeblock"><code>R = [0.54 + 3.14i 0.85 + 0i;0.42 + 0i 0.62 + 6.28i;0.65 + 0i 0.38 - 0.333i]</code></pre></div>
+    
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+      
+      <p class="p"><span class="keyword">1.0</span></p>
+
+      
+    </section>
+      
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/StringOperations/num2str.htm" title="Returns a string or a string array after converting the input x. Input x can be a scalar, complex number, or matrix. An optional argument, precision, can be used to format the output, R, by specifying the number of significant digits. Valid values of R are positive integers.">num2str</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/StringOperations/sprintf.htm" title="Returns a formatted string, based on the format, strformat specified.">sprintf</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/StringOperations/string_operations_command_r.htm" title="String Operations Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">String Operations Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

@@ -1,0 +1,1 @@
+Error: incompatible matrices in arguments 1,2; column dimensions must be equal in call to function cov at line number 4 in file cov28.oml

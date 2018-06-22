@@ -1,0 +1,7 @@
+a = [Matrix] 1 x 8
+1  0  0  3  0  4  0  5
+b = [Matrix] 1 x 3
+2 + 1i  6 + 0i  7 + 0i
+c = [Matrix] 1 x 6
+9 + 0i  0 + 0i  0 + 0i  0 + 2i  0 + 0i  0 + 3i
+Error: invalid index at line number 8 in file scalar_to_vector2.oml

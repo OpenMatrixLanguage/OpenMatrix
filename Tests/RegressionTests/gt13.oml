@@ -1,0 +1,2 @@
+gt(nan,inf)
+islogical(ans)

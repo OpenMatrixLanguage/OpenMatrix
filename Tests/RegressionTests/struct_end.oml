@@ -1,0 +1,5 @@
+a(1).coord = [1 1];
+a(1).value = 10;
+a(2).coord = [1 2];
+a(2).value = 100;
+a(end).value

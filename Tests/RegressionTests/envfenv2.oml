@@ -1,0 +1,24 @@
+function goo(x)
+    global a;
+	a = 6;
+
+	importenv(x);
+
+	env = getcurrentenv();
+	
+	goo_a = getenvvalue(env, 'a')
+	goo_b = getenvvalue(env, 'b')
+	goo_c = getenvvalue(env, 'c')
+end
+
+function foo
+   c = 8;
+   importenv(getbaseenv());
+   goo(getcurrentenv());
+end
+
+global a;
+a=5;
+b=9;
+foo
+

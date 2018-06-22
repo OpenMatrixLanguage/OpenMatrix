@@ -1,0 +1,8 @@
+j = struct [
+b: 5
+c: 6
+]
+j = struct [
+b: 9
+c: 11
+]

@@ -1,0 +1,3 @@
+﻿b = 1:10;
+circshift(b, 3)
+circshift(b', 3)

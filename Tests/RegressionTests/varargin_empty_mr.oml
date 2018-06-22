@@ -1,0 +1,12 @@
+﻿function [y,z] = norm2(a, varargin)
+   size(varargin)
+   z = 0;
+   y = a;
+end
+		
+function z = norm(a, varargin)
+	size(varargin)
+	[y,z] = norm2(a, varargin{:});
+end
+
+norm(3);

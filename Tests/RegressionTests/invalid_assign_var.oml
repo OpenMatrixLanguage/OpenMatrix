@@ -1,0 +1,6 @@
+MC=cell(2,2)
+MC(2,2)=3
+try
+	cell(2,2)=eye(2,2)
+end
+MC=cell(2,2) 

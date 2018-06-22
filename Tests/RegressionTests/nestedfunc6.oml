@@ -1,0 +1,29 @@
+﻿function testno(no1,no2)
+	function [nonan, numb] = findnan(x)
+		numb = find(double(~isnan(x)));
+		idx = find(logical(~isnan(x)));
+		if isempty(idx)
+			nonan = [];
+		else
+			nonan = x(idx);
+		end
+	end
+	
+	
+	function tf = comparenumeric(computed, expected)	
+		tf = false;
+		[computed_nan , computed_num] = findnan(computed);
+		[expected_nan , expected_num] = findnan(expected);
+		cond1 = isequal(expected_nan, computed_nan);
+		cond2 = isequal(expected_num, computed_num);
+		if (cond1 & cond2)
+			tf = true;
+		else
+			tf = false;
+		end
+	end
+		
+	comparenumeric(no1, no2)
+end
+
+testno(1, 2)

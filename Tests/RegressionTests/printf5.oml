@@ -1,0 +1,7 @@
+printf('this')
+printf('is\n')
+printf('\ta')
+printf('\n')
+printf('\n')
+printf('test')
+

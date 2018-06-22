@@ -1,0 +1,1 @@
+vertcat({'abc';'def'},{'test string'})

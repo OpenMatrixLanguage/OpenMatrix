@@ -1,0 +1,1 @@
+Error: cannot use skip on built-in function streams in call to function fread at line number 1 in file filetest82.oml

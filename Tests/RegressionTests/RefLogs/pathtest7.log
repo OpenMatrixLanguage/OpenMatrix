@@ -1,0 +1,5 @@
+Warning: no such directory exists in call to function addpath at line number 2 in file pathtest7.oml
+Current search path:
+FileManipulation
+RefLogs
+.

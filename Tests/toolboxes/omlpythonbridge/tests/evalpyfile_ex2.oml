@@ -1,0 +1,2 @@
+addtoolbox omlpythonbridge
+[status,errorMessage] = evalpythonfile('file_not_exist.py')

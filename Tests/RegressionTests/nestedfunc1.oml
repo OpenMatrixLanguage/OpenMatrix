@@ -1,0 +1,9 @@
+function x=outer(a)
+    d=4
+    function y=inner(a)
+        y=a+d
+   end
+   x=inner(a)
+end
+
+outer(5)

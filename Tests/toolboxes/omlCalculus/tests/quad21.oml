@@ -1,0 +1,4 @@
+addtoolbox omlCalculus
+
+tol = [1.0e-7,1.0e-9];
+[area,count] = quad(@(x) exp(-x),0,Inf,tol)

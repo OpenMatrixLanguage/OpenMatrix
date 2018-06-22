@@ -1,0 +1,4 @@
+﻿x = cell(3,3);
+%x{1} = struct;
+x{1}.Greeting = 42;
+x

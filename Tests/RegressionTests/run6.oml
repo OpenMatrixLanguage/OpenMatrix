@@ -1,0 +1,6 @@
+addpath('.')
+function testfunction()
+disp('false')
+end
+run('FileManipulation/sourcefile2.script')
+testfunction()

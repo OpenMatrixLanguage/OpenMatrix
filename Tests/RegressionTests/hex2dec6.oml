@@ -1,0 +1,2 @@
+m = ['ABC','DEF']
+hex2dec(m)

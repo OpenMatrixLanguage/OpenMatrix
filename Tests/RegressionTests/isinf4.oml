@@ -1,0 +1,2 @@
+isinf(nan)
+islogical(ans)

@@ -1,0 +1,41 @@
+if ~strcmp(class(1), 'double')
+	error('class NOT OK');
+end
+
+if ~strcmp(class(true), 'logical')
+	error('class NOT OK');
+end
+
+if ~strcmp(class(i), 'double')
+	error('class NOT OK');
+end
+
+if ~strcmp(class('hml2'), 'char')
+	error('class NOT OK');
+end
+
+if ~strcmp(class(@class), 'function_handle')
+	error('class NOT OK');
+end
+
+c = {'h', 'm' ,'l', 2};
+if ~strcmp(class(c), 'cell')
+	error('class NOT OK');
+end
+
+st.h = 1;
+if ~strcmp(class(st), 'struct')
+	error('class NOT OK');
+end
+
+if ~strcmp(class(logical([0 1])), 'logical')
+	error('class NOT OK');
+end
+
+if ~strcmp(class([0 1]), 'double')
+	error('class NOT OK');
+end
+
+if ~strcmp(class([i 1+2i]), 'double')
+	error('class NOT OK');
+end

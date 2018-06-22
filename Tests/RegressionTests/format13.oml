@@ -1,0 +1,5 @@
+x={2.998877,[3i+99.887778887788]}
+format('long')
+x
+format('short')
+x

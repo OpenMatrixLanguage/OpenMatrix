@@ -1,0 +1,2 @@
+a = 6
+a is not a function handle at line number 2 in file anon_func_bad.oml

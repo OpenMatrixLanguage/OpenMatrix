@@ -1,0 +1,6 @@
+ function [first, last] = myfunc(varargin)
+	first = varargin{1,1}
+	last = varargin{1,length(varargin)};
+end
+
+[x,y] = myfunc(2,5,-11,6,4)

@@ -1,0 +1,83 @@
+addtoolbox omlSignals
+
+function result = EllipOrdLP()
+	result = 'fail';
+	f1 = 150;
+	f2 = 200;
+	fs = 1000;
+	Wp = f1 / (fs/2);
+	Ws = f2 / (fs/2);
+	Rp = 1;
+	Rs = 20;
+	[order, Wn] = ellipord(Wp, Ws, Rp, Rs)
+
+	[num, den] = ellip(order, Rp, Rs, Wp);
+	f = [0,f1,f2,fs/2];
+	m = abs(freqz(num,den,f,fs));
+	dB = -20 * log10(m);
+
+	if (mod(order,2) == 0)
+		if (abs(dB(1) - Rp) > 1.0e-4)
+			break;
+		end
+	else
+		if (abs(m(1) - 1.0) > 1.0e-4)
+			break;
+		end
+	end
+
+	if (abs(dB(2) - Rp) > 1.0e-4)
+		return;
+	end
+
+	if (dB(3) < Rs)
+		return;
+	end
+
+	if (mod(order,2) == 0)
+		if (abs(dB(4) - Rs) > 1.0e-4)
+			break;
+		end
+	else
+		if (m(4) > 1.0e-4)
+			return;
+		end
+	end
+
+	[num, den] = ellip(order, Rp, Rs, Wn);
+	f = [0,f1,f2,fs/2];
+	m = abs(freqz(num,den,f,fs));
+	dB = -20 * log10(m);
+
+	if (mod(order,2) == 0)
+		if (abs(dB(1) - Rp) > 1.0e-4)
+			break;
+		end
+	else
+		if (abs(m(1) - 1.0) > 1.0e-4)
+			break;
+		end
+	end
+
+	if (dB(2) > Rp)
+		return;
+	end
+
+	if (abs(dB(3) - Rs) > 1.0e-4)
+		return;
+	end
+
+	if (mod(order,2) == 0)
+		if (abs(dB(4) - Rs) > 1.0e-4)
+			break;
+		end
+	else
+		if (m(4) > 1.0e-4)
+			return;
+		end
+	end
+
+	result = 'pass';
+end
+
+ellipordLP = EllipOrdLP()

@@ -1,0 +1,3 @@
+addtoolbox omlDiffEq
+
+options = odeset('RelTol', 1.0e-4, 'AbsTol', [1.0e-5, 1.0e-6, 1.0e-7])

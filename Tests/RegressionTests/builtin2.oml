@@ -1,0 +1,3 @@
+function y = cos(x) y = sin(x); end
+cos(0)
+builtin('cos',0)

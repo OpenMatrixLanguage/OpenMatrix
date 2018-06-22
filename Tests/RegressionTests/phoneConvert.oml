@@ -1,0 +1,33 @@
+function[phoneToLetters]= phoneConvert(phoneNumberString)
+	phoneNumberString=upper(phoneNumberString);
+	%makes sure its in all caps
+	findDash = strfind(phoneNumberString,'-');
+	%finds the number of dashes
+	dash1 = max(findDash);
+	%finds the LAST dash so that you know where the word starts
+	areaCode = phoneNumberString(1:dash1);
+	%shows what the begginning of the number will be
+	phone = phoneNumberString(dash1 + 1:dash1 + 7);
+	%takes the first 7 letters from the string to make a phone number from	
+	phone(phone == 'A' | phone == 'B' | phone == 'C') = ('2');
+	phone(phone == 'D' | phone == 'E' | phone == 'F') = ('3');
+	phone(phone == 'G' | phone == 'H' | phone == 'I') = ('4');
+	phone(phone == 'J' | phone == 'K' | phone == 'L') = ('5');
+	phone(phone == 'M' | phone == 'N' | phone == 'O') = ('6');
+	phone(phone == 'P' | phone == 'Q' | phone == 'R'| phone == 'S') = ('7');
+	phone(phone == 'T' | phone == 'U' | phone == 'V') = ('8');
+	phone(phone == 'W' | phone == 'X' | phone == 'Y'| phone == 'Z') = ('9');
+	%takes the letters that corespond to a number on a phone and turns them
+	%into that number
+
+
+	mid=phone(1:3);
+	%splits the phone number into the different sections: mid section
+	endNum=phone(4:7);
+	%end section
+
+	phoneToLetters= sprintf('%s%s-%s', areaCode, mid, endNum );
+	%puts the numbers into an actual phone number form
+end
+
+pn1 = phoneConvert('1-800-BUYATREE')

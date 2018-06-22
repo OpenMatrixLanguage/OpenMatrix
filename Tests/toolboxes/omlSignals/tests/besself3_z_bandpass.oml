@@ -1,0 +1,7 @@
+addtoolbox omlSignals
+
+order = 4;
+fc = [300, 400];
+fs = 1000;
+fn = fc / (fs/2);
+[num,den] = besself3(order, fn)

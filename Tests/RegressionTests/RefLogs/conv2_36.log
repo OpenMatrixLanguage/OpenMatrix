@@ -1,0 +1,1 @@
+Error: if using convolution matrix, other inputs must be vectors in call to function conv2 at line number 1 in file conv2_36.oml

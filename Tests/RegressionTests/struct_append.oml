@@ -1,0 +1,8 @@
+﻿Summary=struct([]);
+
+for j=1:5
+	my_struct = struct('a', 5, 'b', [1 2 3]);
+    Summary=[Summary;my_struct];
+end
+
+Summary

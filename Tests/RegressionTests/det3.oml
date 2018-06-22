@@ -1,0 +1,3 @@
+[a,b]=det(8)
+disp(a)
+disp(b)

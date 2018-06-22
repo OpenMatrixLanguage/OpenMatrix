@@ -1,0 +1,14 @@
+function g(work)
+	setenvvalue(work, 'A', 5)
+	setenvvalue(work, 'B', 4)
+end
+
+function f
+	A=3;
+	A
+	g(getcurrentenv())
+	A
+	B
+end
+
+f();

@@ -1,0 +1,60 @@
+t01_empty = [Matrix] 0 x 0
+ans = argument is empty matrix real
+t02_scalar = 1
+ans = argument is matrix scalar real
+t03_string = test
+ans = argument is matrix string real
+t04_complex1 = 1 + 1i
+ans = argument is complex matrix scalar
+t04_complex2 = 1 - 1i
+ans = argument is complex matrix scalar
+t04_complex3 = 2
+ans = argument is matrix scalar real
+t05_matrix1 = [ 1 ]
+t05_matrix1 = 1
+ans = argument is matrix scalar real
+t05_matrix2 = [Matrix] 1 x 2
+1  2
+ans = argument is matrix real
+t06_matrixc1 = 1 + 1i
+ans = argument is complex matrix scalar
+t06_matrixc2 = 1 - 1i
+ans = argument is complex matrix scalar
+t06_matrixc3 = 2
+ans = argument is matrix scalar real
+t07_matrix1 = [Matrix] 1 x 2
+1 + 1i  3 + 0i
+ans = argument is complex matrix
+t07_matrix2 = [Matrix] 2 x 1
+1 + 1i
+3 + 0i
+ans = argument is complex matrix
+t08_cell1 =  { 1 }
+t08_cell1 = 
+{
+  [1,1] 1
+}
+ans = argument is cell scalar
+t08_cell2 = { 'test' }
+t08_cell2 = 
+{
+  [1,1] test
+}
+ans = argument is cell scalar
+t09_struct.scalar = 1
+t09_struct = struct [
+scalar: 1
+]
+ans = argument is scalar struct
+t10_struct(3).scalar = 3
+t10_struct = struct [
+Struct array of size 1 x 3 with fields:
+scalar
+]
+ans = argument is struct
+t11_struct(3,3).scalar = 9
+t11_struct = struct [
+Struct array of size 3 x 3 with fields:
+scalar
+]
+ans = argument is struct

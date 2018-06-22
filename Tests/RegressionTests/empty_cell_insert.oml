@@ -1,0 +1,7 @@
+﻿c=cell(0,2);
+c(end+1,:)={'123',123};
+c(end+1,:)={'1515',1515};
+c(end+1,:)={'1',1};
+if ~isequal(size(c),[3,2])
+  error('incorrect size');
+end

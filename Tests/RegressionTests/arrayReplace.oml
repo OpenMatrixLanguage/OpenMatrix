@@ -1,0 +1,8 @@
+function[array1]= arrayReplace(array1, array2, number)
+	new=(array1==number)
+	%finds where array1 is equal to the number given
+	array1(new)=array2(new)
+	%puts the array2 values at the new spots in array1 into array1
+end
+
+array1 = arrayReplace([1 2 3 4 3 6],[7 8 9 10 11 12],3)

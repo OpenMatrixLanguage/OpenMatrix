@@ -1,0 +1,2 @@
+isletter({'test string', {{65,64,63},{{}},'b'}})
+

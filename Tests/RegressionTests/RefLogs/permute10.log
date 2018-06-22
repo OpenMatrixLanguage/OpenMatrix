@@ -1,0 +1,1 @@
+Error: invalid permutation vector in argument 2; elements must be positive in call to function permute at line number 1 in file permute10.oml

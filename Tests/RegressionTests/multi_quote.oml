@@ -1,0 +1,5 @@
+v1 = 'str1'
+v2 = 'str2'
+strcat('v1 = ''', v1 , ''' while v2 = ''', v2, '''')
+
+a='''hello'''

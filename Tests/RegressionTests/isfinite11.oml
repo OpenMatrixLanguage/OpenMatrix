@@ -1,0 +1,2 @@
+isfinite(['test';'abcd'])
+islogical(ans)

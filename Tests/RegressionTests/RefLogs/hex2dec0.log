@@ -1,0 +1,21 @@
+hex2dec tests - sprintf limits the correct output of positive values to 0x7fffffff
+hex value f decimal value 15
+ans = 15
+hex value ff decimal value 255
+ans = 255
+hex value fff decimal value 4095
+ans = 4095
+hex value ffff decimal value 65535
+ans = 65535
+hex value fffff decimal value 1048575
+ans = 1048575
+hex value ffffff decimal value 16777215
+ans = 16777215
+hex value fffffff decimal value 268435455
+ans = 268435455
+hex value 7fffffff decimal value 2147483647
+ans = 2.14748365e+09
+hex value 80000000 decimal value -2147483648
+ans = 2.14748365e+09
+hex value ffffffff decimal value -1
+ans = 4.2949673e+09

@@ -1,0 +1,4 @@
+﻿a = ones(3,1,2,4);
+b = ones(3,4,2,1);
+ndims(a)
+ndims(b)

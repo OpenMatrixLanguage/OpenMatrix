@@ -1,0 +1,14 @@
+addToolbox omlStatistics
+function [newAvgs]= balanceGrades(array1,newTarget)
+	meanArray= mean(array1);
+	%finds the mean grade of each column
+	meanVec= mean(meanArray);
+	%finds the mean of the entire array
+	diffAvg= abs(newTarget-meanVec);
+	%finds how much the grades need to be raised
+	newAvgs= array1+diffAvg
+	%raises the values
+end
+
+x1 = [90 84 73 67 99 92 75 86 66 58 93 90 45 97 88 79]
+a = balanceGrades(x1,91)

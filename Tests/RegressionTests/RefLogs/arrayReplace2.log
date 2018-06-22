@@ -1,0 +1,51 @@
+new = [Matrix] 1 x 6
+0  0  1  0  1  0
+array1 = [Matrix] 1 x 6
+1  2  9  4  11  6
+array1 = [Matrix] 1 x 6
+1  2  9  4  11  6
+new = [Matrix] 4 x 4
+0  0  0  0
+0  1  1  0
+0  1  1  0
+0  0  0  0
+array1 = [Matrix] 4 x 4
+7  7  7  7
+7  1  2  7
+7  3  4  7
+7  7  7  7
+out1 = [Matrix] 4 x 4
+7  7  7  7
+7  1  2  7
+7  3  4  7
+7  7  7  7
+new = [Matrix] 4 x 4
+1  1  1  1
+1  0  0  1
+1  0  0  1
+1  1  1  1
+array1 = [Matrix] 4 x 4
+8  8  8  8
+8  4  4  8
+8  4  4  8
+8  8  8  8
+out2 = [Matrix] 4 x 4
+8  8  8  8
+8  4  4  8
+8  4  4  8
+8  8  8  8
+new = [Matrix] 4 x 4
+0  0  0  0
+0  0  0  0
+0  0  0  0
+0  0  0  0
+array1 = [Matrix] 4 x 4
+7  7  7  7
+7  4  4  7
+7  4  4  7
+7  7  7  7
+out3 = [Matrix] 4 x 4
+7  7  7  7
+7  4  4  7
+7  4  4  7
+7  7  7  7

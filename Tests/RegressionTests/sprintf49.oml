@@ -1,0 +1,4 @@
+a='';
+b='aaa';
+c = sprintf('p1:%s P2:%s',a,b);
+disp(c)

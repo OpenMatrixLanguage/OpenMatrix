@@ -1,0 +1,115 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="random" /><meta name="abstract" content="Generate random samples from a distribution." /><meta name="description" content="Generate random samples from a distribution." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Statistical Analysis Commands" /><meta name="indexterms" content="random" /><meta name="DC.subject" content="random" /><meta name="keywords" content="random" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/statistical_analysis_command_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>random</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/StatisticalAnalysis/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/StatisticalAnalysis/statistical_analysis_command_r.htm" title="Statistical Analysis Commands">Statistical Analysis Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/StatisticalAnalysis/statistical_analysis_command_r.htm" title="Statistical Analysis Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Statistical Analysis Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">random</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Generate random samples from a distribution.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      <p class="p"><span class="ph synph">rnd=random<span class="ph var">(d,p1,p2,....pN)</span></span></p>
+
+      <p class="p"><span class="ph synph">rnd=random<span class="ph var">(d,p1,p2,....pN,r,c)</span></span></p>
+</section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">d</var></dt>
+
+          <dd class="dd pd">Distribution name.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">char | string</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">string</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">pX</var></dt>
+
+          <dd class="dd pd">Distribution parameters.</dd>
+
+          <dd class="dd pd ddexpand">Type: integer</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">r,c</var></dt>
+
+          <dd class="dd pd">Number of matrix rows and columns.</dd>
+
+          <dd class="dd pd ddexpand">Type: integer</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+          <dd class="dd pd">Random values.</dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+      <p class="p">Vector <span class="keyword cmdname">random</span> example with beta distribution.</p>
+
+      <pre class="pre codeblock"><code>p1 = 2;
+p2 = 5;
+r = 1;
+c = 10;
+rnd = random('beta',p1,p2,r,c)</code></pre>
+      <pre class="pre codeblock"><code><code class="ph codeph">rnd = [Matrix] 1 x 10
+0.21841 0.17461 0.045617 0.31058 0.57768 0.21541 0.20936 0.35725 0.28194 0.158851</code></code></pre>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p">The random number generator can be initialized using <span class="keyword cmdname">rand</span> or
+          <span class="keyword cmdname">randn</span>.</p>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+      
+      <p class="p"><span class="keyword">1.0</span></p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links"></nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/StatisticalAnalysis/statistical_analysis_command_r.htm" title="Statistical Analysis Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Statistical Analysis Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

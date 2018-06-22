@@ -1,0 +1,6 @@
+A.a=2
+A.b={}
+B.b=6i+3
+B.a={[]}
+horzcat(A,B)
+horzcat(B,A)

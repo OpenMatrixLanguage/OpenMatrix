@@ -1,0 +1,9 @@
+a = struct [
+b: 3
+]
+a = struct [
+b: 4
+]
+a = struct [
+b: test
+]

@@ -1,0 +1,17 @@
+function[unfolded]= arrayUnfold(array1)
+	b=array1(:,end:-1:1)
+	%finds the values for the first unfold
+	unfoldHalf= [array1 b]
+	%puts the first and orignal and first unfold together
+	c=unfoldHalf(end:-1:1,:)
+	%unfolds the rest of the array
+	unfolded=[unfoldHalf; c]
+	%adds both unfolded parts together
+end
+
+ori = arrayUnfold([1 2 3;4 5 6])
+
+
+test1 = arrayUnfold([1 0; 0 1])
+test2 = arrayUnfold([1 2 3])
+test3 = arrayUnfold([])

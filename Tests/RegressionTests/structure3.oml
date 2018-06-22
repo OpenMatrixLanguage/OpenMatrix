@@ -1,0 +1,14 @@
+student.name='Murielle'
+student.age=20
+student.id=902830905
+
+student
+
+student2.name = 'Bob'
+student2.age=33
+student2.id=902839409
+
+student2
+
+sudents = [student student2]
+

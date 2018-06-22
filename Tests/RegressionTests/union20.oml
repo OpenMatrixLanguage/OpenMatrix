@@ -1,0 +1,1 @@
+[a,b,c]=union(['abcd';'efac'],['eghi';'jkfl';'efac'],'rows')

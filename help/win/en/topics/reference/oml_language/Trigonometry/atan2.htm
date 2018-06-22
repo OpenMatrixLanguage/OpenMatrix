@@ -1,0 +1,95 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="atan2" /><meta name="abstract" content="Returns the inverse tangent in radians for each element of x and y." /><meta name="description" content="Returns the inverse tangent in radians for each element of x and y." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Trigonometry Commands" /><meta name="indexterms" content="atan2" /><meta name="DC.subject" content="atan2" /><meta name="keywords" content="atan2" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/trigonometry_command_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/atanh.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/tan.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/tanh.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>atan2</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/trigonometry_command_r.htm" title="Trigonometry Commands">Trigonometry Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Trigonometry/trigonometry_command_r.htm" title="Trigonometry Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Trigonometry Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">atan2</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Returns the inverse tangent in radians for each element of <var class="keyword varname">x</var> and
+      <var class="keyword varname">y</var>.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">R = atan2<span class="ph var">(x,y)</span></span></p>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">x,y</var></dt>
+
+          <dd class="dd pd">Any valid <span class="keyword">scalar | vector | matrix</span>.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
+
+        
+      </dl>
+
+     
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+          <dd class="dd pd">Resulting <span class="keyword">scalar | vector | matrix</span></dd>
+
+        
+      </dl>
+
+     
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">Simple scalar
+        example:<pre class="pre codeblock"><code>R = atan2(3,6)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 0.463647609000806</code></code></pre></div>
+
+      <div class="p">Simple matrix
+        example:<pre class="pre codeblock"><code>R = atan2([50,20,4,-60;1:2:7],[25,40,6,60;7:-2:1])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = [Matrix] 2 x 4
+1.10714871779409  0.463647609000806 0.588002603547568 -0.785398163397448 
+0.141897054604164 0.540419500270584 1.03037682652431  1.42889927219073 </code></code></pre></div>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+      
+      <p class="p"><span class="keyword">1.0</span></p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/atanh.htm" title="Returns the inverse hyperbolic tangent of a.">atanh</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/tan.htm" title="Returns the tangent of a (in radians).">tan</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/tanh.htm" title="Returns hyperbolic tangent of a.">tanh</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Trigonometry/trigonometry_command_r.htm" title="Trigonometry Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Trigonometry Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

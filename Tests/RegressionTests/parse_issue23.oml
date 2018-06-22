@@ -1,0 +1,7 @@
+﻿a = 5
+switch a,
+	case 5,
+		i = 1;
+	case 6,
+		i = 2;
+end;

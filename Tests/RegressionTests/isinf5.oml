@@ -1,0 +1,2 @@
+isinf(inf(3))
+islogical(ans)

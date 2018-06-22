@@ -1,0 +1,2 @@
+eq(nan,inf)
+islogical(ans)

@@ -1,0 +1,16 @@
+a = struct [
+b: 4
+]
+a = struct [
+b: 4
+c: 3
+]
+a = struct [
+Struct array of size 1 x 2 with fields:
+b
+c
+]
+ Attr Name Size Bytes Class 
+ ==== ==== ==== ===== ===== 
+      a    1x2     24 struct
+

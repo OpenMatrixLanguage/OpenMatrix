@@ -1,0 +1,3 @@
+a1=['hello';'world']
+a2=['world';'hello']
+a1+a2

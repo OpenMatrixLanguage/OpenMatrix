@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+mean(.25,0,'h')

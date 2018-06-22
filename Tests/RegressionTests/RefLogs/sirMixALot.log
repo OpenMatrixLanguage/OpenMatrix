@@ -1,0 +1,6 @@
+ans = [Matrix] 1 x 10
+1  6  2  7  3  8  4  9  5  10
+ans = [Matrix] 1 x 10
+5  4  1  1  5  3  9  0  1  0
+ans = [Matrix] 1 x 8
+8  5  6  3  7  0  0  9

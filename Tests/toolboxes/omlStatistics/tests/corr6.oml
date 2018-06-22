@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+c=corr(zeros(4,0))

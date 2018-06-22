@@ -1,0 +1,5 @@
+str='one two 12 three four 24.7e12 five six 56';
+textscan(str, '%s %s %f', 2)   % Apply format twice
+textscan(str, '%s %s %f', -1)  % Read to the end of the string
+
+

@@ -1,0 +1,3 @@
+[a,b]=schur(-4)
+disp(a)
+disp(b)
