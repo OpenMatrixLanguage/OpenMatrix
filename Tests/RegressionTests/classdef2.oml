@@ -1,0 +1,37 @@
+classdef A
+   properties
+       first_name
+	   last_name
+	   birth_year
+	   title
+   end
+   methods
+       function z = A(first, last, year)
+	      z.first_name = first;
+		  z.last_name  = last;
+		  z.birth_year = year;
+		  z.title      = 'Employee';
+	   end
+       function z = AgeIn(self, y)
+	       z = y - self.birth_year;
+	   end
+	   function z = GetName(self)
+			z = strcat({self.first_name}, {' '}, {self.last_name});
+	   end
+	   function self = SetTitle(self, new_title)
+		   self.title = new_title;
+		end
+		function z = GetTitle(self)
+		    z = self.title;
+		end
+   end
+end
+
+a = A('Jeff', 'Stacey', 1970);
+a.SetTitle('Director');
+a.GetName()
+a.GetTitle()
+a.AgeIn(2016)
+
+
+

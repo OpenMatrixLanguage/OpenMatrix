@@ -1,0 +1,71 @@
+addtoolbox omlSignals
+
+function result = Cheb2OrdHP()
+	result = 'fail';
+	f1 = 300;
+	f2 = 350;
+	fs = 1000;
+	Wp = f2 / (fs/2);
+	Ws = f1 / (fs/2);
+	Rp = 1;
+	Rs = 20;
+	[order, Wn] = cheb2ord(Wp, Ws, Rp, Rs)
+
+	[num, den] = cheby2(order, Rs, Ws, 'high');
+	f = [0,f1,f2,fs/2];
+	m = abs(freqz(num,den,f,fs));
+	dB = -20 * log10(m);
+
+	if (mod(order,2) == 0)
+		if (abs(dB(1) - Rs) > 1.0e-4)
+			break;
+		end
+	else
+		if (m(1) > 1.0e-4)
+			return;
+		end
+	end
+
+	if (abs(dB(2) - Rs) > 1.0e-4)
+		return;
+	end
+
+	if (dB(3) > Rp)
+		return;
+	end
+
+	if (abs(m(4) - 1.0) > 1.0e-4)
+		break;
+	end
+
+	[num, den] = cheby2(order, Rs, Wn, 'high');
+	f = [0,f1,f2,fs/2];
+	m = abs(freqz(num,den,f,fs));
+	dB = -20 * log10(m);
+
+	if (mod(order,2) == 0)
+		if (abs(dB(1) - Rs) > 1.0e-4)
+			break;
+		end
+	else
+		if (m(1) > 1.0e-4)
+			break;
+		end
+	end
+
+	if (dB(2) < Rs)
+		return;
+	end
+
+	if (abs(dB(3) - Rp) > 1.0e-4)
+		return;
+	end
+
+	if (abs(m(4) - 1.0) > 1.0e-4)
+		return;
+	end
+
+	result = 'pass';
+end
+
+cheb2ordHP = Cheb2OrdHP()

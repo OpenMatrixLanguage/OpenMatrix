@@ -1,0 +1,9 @@
+function tocall
+    evalin('caller','x+')
+end
+function go
+    tocall
+    disp(x)
+end
+go;
+disp(x);

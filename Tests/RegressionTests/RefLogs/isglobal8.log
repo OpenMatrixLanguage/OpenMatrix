@@ -1,0 +1,2 @@
+A = 2
+Error: invalid input type: structs and complex values cannot be converted to strings in call to function isglobal at line number 3 in file isglobal8.oml

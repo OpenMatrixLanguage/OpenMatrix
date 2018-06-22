@@ -1,0 +1,2 @@
+eq(2i+1,5+6i)
+islogical(ans)

@@ -1,0 +1,2 @@
+isinf([1,inf,nan;2i+nan,0,2i-inf])
+islogical(ans)

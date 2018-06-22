@@ -1,0 +1,59 @@
+# ====================================================================
+# OpenMatrix math/signals makefile
+# ====================================================================
+PROJ := hwsignals
+
+UNAME := $(shell uname)
+ifneq (,$(findstring NT,$(UNAME)))
+   TARGET = $(BINDIR)/$(PROJ).dll
+else
+   TARGET = $(BINDIR)/lib$(PROJ).so
+endif
+
+include $(OML_ROOT)/src/makebase.cfg
+
+
+# ====================================================================
+SOURCES += $(wildcard _private/*.cxx)
+OBJECTS = $(foreach file,$(SOURCES),$(addprefix $(PLATFORM)/,$(addsuffix .o,$(basename $(notdir $(file))))))
+vpath %.cxx _private
+
+CXX_DEFINES += -DSIGNALS_EXPORTS 
+#CXX_FLAGS := $(filter-out -Za, $(CXX_FLAGS))
+#CXX_FLAGS += -Za
+#CXX_DEFINES := $(filter-out -DOS_WIN, $(CXX_DEFINES))
+#CXX_DEFINES += -DRC_INVOKED
+
+
+CXX_INCLUDES += -I$(OML_ROOT)/src/math/mathutils
+CXX_INCLUDES += -I$(OML_ROOT)/src/math/polynom
+CXX_INCLUDES += -I$(OML_ROOT)/src/math/statistics
+CXX_INCLUDES += -I. $(HWMATHKERNEL_INC)
+CXX_INCLUDES += -I$(FFTW_INCLUDE)
+
+ifneq (,$(findstring NT,$(UNAME)))
+   LIBS += hwmathutils.lib hwpolynom.lib hwstatistics.lib
+else
+   LIBS += -lhwmathutils -lhwpolynom -lhwstatistics
+endif
+
+LIBS += $(MATHKERNEL_LIBS)
+
+LIBS += $(LAPACK_LIBS) $(BLAS_LIBS)
+
+LIBS += $(FFTW_LIB)
+
+# ====================================================================
+
+$(PLATFORM)/%.o : %.cxx $(objdir)
+	$(compile-cxx)
+
+$(TARGET) : $(OBJECTS)
+	$(build-shared-lib)
+
+clean::
+	-$(RM) -rf $(TARGET)
+	-$(RM) -rf $(PLATFORM)
+	-$(RM) -rf $(BINDIR)/$(PROJ).*
+	-$(RM) -rf $(LIBDIR)/$(PROJ).*
+

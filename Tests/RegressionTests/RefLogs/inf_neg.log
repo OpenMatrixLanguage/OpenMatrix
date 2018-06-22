@@ -1,0 +1,4 @@
+a = -Inf
+ans = [Matrix] 2 x 2
+-Inf  -Inf
+-Inf  -Inf

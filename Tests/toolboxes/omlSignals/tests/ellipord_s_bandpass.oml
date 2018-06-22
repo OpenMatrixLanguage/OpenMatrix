@@ -1,0 +1,98 @@
+addtoolbox omlSignals
+
+function result = EllipOrdBP()
+	result = 'fail';
+	Wp = [400, 600];
+	Ws = [300, 770];
+	Rp = 1;
+	Rs = 20;
+	[order, Wn] = ellipord(Wp, Ws, Rp, Rs, 's')
+
+	[num, den] = ellip(order, Rp, Rs, Wp, 's');
+	wcc = sqrt(Wp(1)*Wp(2));
+	w = [0,Ws(1),Wp(1),wcc,Wp(2),Ws(2)];
+	m = abs(freqs(num,den,w));
+	dB = -20 * log10(m);
+
+	if (mod(order,2) == 0)
+		if (abs(dB(1) - Rs) > 1.0e-4)
+			break;
+		end
+	else
+		if (m(1) > 1.0e-4)
+			return;
+		end
+	end
+
+	if (dB(2) < Rs)
+		return;
+	end
+
+	if (abs(dB(3) - Rp) > 1.0e-4)
+		return;
+	end
+
+	if (mod(order,2) == 0)
+		if (abs(dB(4) - Rp) > 1.0e-4)
+			break;
+		end
+	else
+		if (abs(m(4) - 1.0) > 1.0e-4)
+			break;
+		end
+	end
+
+	if (abs(dB(5) - Rp) > 1.0e-4)
+		return;
+	end
+
+	if (dB(6) < Rs)
+		return;
+	end
+
+	[num, den] = ellip(order, Rp, Rs, Wn, 's');
+	wcc = sqrt(Wn(1)*Wn(2));
+	w = [0,Ws(1),Wp(1),wcc,Wp(2),Ws(2)];
+	m = abs(freqs(num,den,w));
+	dB = -20 * log10(m);
+
+	if (mod(order,2) == 0)
+		if (abs(dB(1) - Rs) > 1.0e-4)
+			break;
+		end
+	else
+		if (m(1) > 1.0e-4)
+			return;
+		end
+	end
+
+	if (dB(2) < Rs)
+		return;
+	end
+
+	if (dB(3) > Rp)
+		return;
+	end
+
+	if (mod(order,2) == 0)
+		if (abs(dB(4) - Rp) > 1.0e-4)
+			break;
+		end
+	else
+		if (abs(m(4) - 1.0) > 1.0e-4)
+			break;
+		end
+	end
+
+	if (dB(5) > Rp)
+		return;
+	end
+
+	if (abs(dB(6) - Rs) > 1.0e-4)
+		return;
+	end
+
+	result = 'pass';
+end
+
+ellipordBP = EllipOrdBP()

@@ -1,0 +1,9 @@
+function x=outer(a)
+    function y=inner(a)
+        b=2
+        y=a*b
+   end
+   x=inner(a)+b
+end
+
+z=outer(2)

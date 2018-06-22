@@ -1,0 +1,4 @@
+function z = plusThis(x,y)
+	z=x+y;
+end
+plusThis(3,5)

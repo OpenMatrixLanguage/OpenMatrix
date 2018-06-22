@@ -1,0 +1,9 @@
+addtoolbox omlSignals
+
+% test 5 - oscillating
+w = 2*pi*50/(2*1000);
+w2 = w*w;
+fs = 2000;
+num = [1, 2, 1] * (w2/(w2+1));
+den = [1, 2*(w2-1)/(w2+1), 1];
+[x,t] = impz(num, den, [], fs)

@@ -1,0 +1,7 @@
+ans = struct
+ans = cell
+ans = cell
+ans = struct
+ans = char
+ans = a
+Error: invalid input type; must be struct at line number 9 in file struct_cell2.oml

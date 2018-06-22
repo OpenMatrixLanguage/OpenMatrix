@@ -1,0 +1,6 @@
+for j=1:10
+   if mod(j,3) == 0
+      continue
+   end
+   j
+end

@@ -1,0 +1,2 @@
+addtoolbox omlSignals
+fft([3 6 2; 5 3 1;8 6 3],[])

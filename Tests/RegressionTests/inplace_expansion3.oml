@@ -1,0 +1,7 @@
+﻿function txt=writeln(txt,varargin)
+  txt=[txt,varargin{:},';',char(10)];
+end
+
+pref= 'p';
+txt= '';
+txt=writeln(pref,'=struct')

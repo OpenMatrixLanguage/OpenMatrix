@@ -1,0 +1,2 @@
+myfunc = @(x,y) find([x^2, x-y]==0);
+[a,b] = myfunc(3,3)

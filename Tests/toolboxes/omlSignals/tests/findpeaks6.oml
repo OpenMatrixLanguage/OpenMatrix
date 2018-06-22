@@ -1,0 +1,12 @@
+addtoolbox omlSignals
+addtoolbox omlStatistics
+
+t = 2*pi*linspace(0,1,1024)';
+y = sin(3.14*t) + 0.5*cos(6.09*t) + 0.1*sin(10.11*t+1/6) + 0.1*sin(15.3*t+1/3);
+rand('seed', 2017);
+data = abs(y + 0.1*randn(length(y),1)); % positive values + noise
+[pks idx] = findpeaks(data,'MinPeakHeight',1,'MinPeakDistance',round(0.5/(t(2)-t(1))))
+
+%plot(t,data);
+%hold;
+%scatter(t(idx),data(idx));

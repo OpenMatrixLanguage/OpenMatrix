@@ -1,0 +1,8 @@
+addtoolbox omlSignals
+
+order = 4;
+dBc = 1;
+fc = [300, 400];
+fs = 1000;
+fn = fc / (fs/2);
+[num,den] = cheby1(order, dBc, fn, 'stop')

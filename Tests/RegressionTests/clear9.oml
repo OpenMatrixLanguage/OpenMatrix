@@ -1,0 +1,4 @@
+hello = 'hello';
+
+clear('hello')
+hello

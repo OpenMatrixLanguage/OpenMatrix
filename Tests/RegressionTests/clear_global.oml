@@ -1,0 +1,9 @@
+global a
+a=3;
+function y=test
+  global a
+  a
+  clear a
+  a
+end
+test

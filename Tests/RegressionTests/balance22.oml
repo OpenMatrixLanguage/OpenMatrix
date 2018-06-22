@@ -1,0 +1,4 @@
+[a,b,c]=balance([1-9i,5+3i;1,4i-2], 's')
+disp(a)
+disp(b)
+disp(c)

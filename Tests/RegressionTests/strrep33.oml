@@ -1,0 +1,1 @@
+strrep({'aaaa','aabbaaa'},{'aa','bb'},'cc')

@@ -1,0 +1,2 @@
+[a]=balance(5,9-i)
+disp(a)

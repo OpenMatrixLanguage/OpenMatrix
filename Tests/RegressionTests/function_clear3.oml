@@ -1,0 +1,7 @@
+function z=myfunc(a)
+   z=a;
+end
+
+clear all
+
+f = myfunc(3)

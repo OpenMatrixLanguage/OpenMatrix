@@ -1,0 +1,59 @@
+addtoolbox omlSignals
+
+function result = ButtOrdHP()
+	result = 'fail';
+	f1 = 300;
+	f2 = 350;
+	fs = 1000;
+	Wp = f2 / (fs/2);
+	Ws = f1 / (fs/2);
+	Rp = 20 * log10(sqrt(2));
+	Rs = 20;
+	[order, Wn] = buttord(Wp, Ws, Rp, Rs)
+
+	[num, den] = butter(order, Wp, 'high');
+	f = [0,f1,f2,fs/2];
+	m = abs(freqz(num,den,f,fs));
+	dB = -20 * log10(m);
+
+	if (m(1) > 1.0e-4)
+		return;
+	end
+
+	if (dB(2) < Rs)
+		return;
+	end
+
+	if (abs(dB(3) - Rp) > 1.0e-4)
+		return;
+	end
+
+	if (abs(m(4) - 1.0) > 1.0e-4)
+		return;
+	end
+
+	[num, den] = butter(order, Wn, 'high');
+	f = [0,f1,f2,fs/2];
+	m = abs(freqz(num,den,f,fs));
+	dB = -20 * log10(m);
+
+	if (m(1) > 1.0e-4)
+		return;
+	end
+
+	if (abs(dB(2) - Rs) > 1.0e-4)
+		return;
+	end
+
+	if (dB(3) > Rp)
+		return;
+	end
+
+	if (abs(m(4) - 1.0) > 1.0e-4)
+		return;
+	end
+
+	result = 'pass';
+end
+
+buttordHP = ButtOrdHP()

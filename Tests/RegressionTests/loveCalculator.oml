@@ -1,0 +1,50 @@
+function love = loveCalculator(name1, name2)
+if strfind(name2,name1)==1 
+    love=0;
+elseif strfind(name1,name2)==1
+    love=0;
+else 
+    if length(strfind(name1,'l'))>=1 | length(strfind(name2,'l'))>=1
+        sumL = sum([length(strfind(name1,'l')) length(strfind(name2,'l'))]);
+    else
+        sumL = 0;
+    end
+     if length(strfind(name1,'o'))>=1 | length(strfind(name2,'o'))>=1
+        sumO = sum([length(strfind(name1,'o')) length(strfind(name2,'o'))]);
+     else
+         sumO = 0;
+     end
+     if length(strfind(name1,'v'))>=1 | length(strfind(name2,'v'))>=1
+        sumV = sum([length(strfind(name1,'v')) length(strfind(name2,'v'))]);
+     else
+         sumV = 0;
+     end
+     if length(strfind(name1,'e'))>=1 | length(strfind(name2,'e'))>=1
+        sumE = sum([length(strfind(name1,'e')) length(strfind(name2,'e'))]);
+     else
+         sumE = 0;
+     end
+     if length(strfind(name1,'s'))>=1 | length(strfind(name2,'s'))>=1
+        sumS = sum([length(strfind(name1,'s')) length(strfind(name2,'s'))]);
+     else
+         sumS = 0;
+     end
+     if sum([sumL sumO sumV sumE sumS])>0
+         first = sumL + sumO;
+         second = sumO + sumV;
+         third = sumV + sumE;
+         fourth = sumE + sumS;
+         midnum = [first+second second+third third+fourth];
+         scorevec = [num2str(midnum(1) + midnum(2)) num2str(midnum(2) + midnum(3))];
+         love = str2num(scorevec);
+     end
+end
+end
+
+loveCalculator('louis', 'louise')
+loveCalculator('kiley fagan', 'channing tatum')
+loveCalculator('tom cruise', 'katie holmes')
+       
+     
+    
+    

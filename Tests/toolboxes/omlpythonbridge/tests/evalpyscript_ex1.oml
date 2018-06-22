@@ -1,0 +1,2 @@
+addtoolbox omlpythonbridge
+[status,errorMessage] = evalpythonscript('x = 9') 

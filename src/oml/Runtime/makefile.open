@@ -1,0 +1,58 @@
+# ====================================================================
+# oml/Runtime makefile
+# ====================================================================
+PROJ := oml
+
+UNAME := $(shell uname)
+ifneq (,$(findstring NT,$(UNAME)))
+   TARGET = $(BINDIR)/$(PROJ).dll
+else
+   TARGET = $(BINDIR)/lib$(PROJ).so
+endif
+
+include $(OML_ROOT)/src/makebase.cfg
+
+ifneq (,$(findstring win,$(PLATFORM)))
+else
+endif
+
+SOURCES += $(wildcard *.cpp)
+OBJECTS = $(foreach file,$(SOURCES),$(addprefix $(PLATFORM)/,$(addsuffix .o,$(basename $(notdir $(file))))))
+vpath %.cpp .
+
+# ====================================================================
+# ANTRL generated gramar files
+# ====================================================================
+SOURCES += $(wildcard $(ANTLR_SRC)/*.c)
+vpath %.c $(ANTLR_SRC)
+
+CXX_DEFINES += -DDLL_EXPORT -D_empty=NULL
+CXX_INCLUDES += -I.
+CXX_INCLUDES += -I$(BOOST_DIR)
+CXX_INCLUDES += -I${ANTLR_SRC} -I${ANTLR_DIR} -I${ANTLR_DIR}/include
+CXX_INCLUDES += -I$(MATH_DIR) -I$(MATH_DIR)/kernel -I$(MATH_DIR)/..
+LIBS += $(ANTLR_LIBS)
+LIBS += $(MATHKERNEL_LIBS)
+LIBS += $(LAPACK_LIBS) $(BLAS_LIBS)
+SO_FLAGS += -LTCG
+
+# ====================================================================
+
+$(PLATFORM)/%.o : %.cxx $(objdir)
+	$(compile-cxx)
+$(PLATFORM)/%.o : %.cpp $(objdir)
+	$(compile-cxx)
+$(PLATFORM)/%.o : %.c $(objdir)
+	$(compile-c)
+
+$(TARGET) : $(OBJECTS)
+	$(build-shared-lib)
+
+clean::
+	-$(RM) -rf $(TARGET)
+	-$(RM) -rf $(PLATFORM)
+	-$(RM) -rf $(BINDIR)/$(PROJ).*
+	-$(RM) -rf $(LIBDIR)/$(PROJ).*
+
+
+

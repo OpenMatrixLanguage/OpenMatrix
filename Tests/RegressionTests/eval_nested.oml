@@ -1,0 +1,9 @@
+﻿function eval_test1()
+	disp('eval_test')
+	function eval_test2()
+		disp('eval_test2')
+	end
+	eval('eval_test2')
+end
+
+eval('eval_test1') 

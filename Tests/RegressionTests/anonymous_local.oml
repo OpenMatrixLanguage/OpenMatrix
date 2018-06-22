@@ -1,0 +1,15 @@
+﻿function ff
+	g;
+end
+
+function f
+	disp('in f');
+end
+
+function g
+	fff=@f;
+	disp(fff);
+	fff();
+end
+
+ff

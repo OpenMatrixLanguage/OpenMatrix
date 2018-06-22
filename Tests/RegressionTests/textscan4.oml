@@ -1,0 +1,7 @@
+fid = fopen('FileManipulation/textscanfile1.txt');
+format = '%s %s %f';
+textscan(fid, '%s %s %f', 2)   % Apply format twice
+textscan(fid, '%s %s %f', -1)  % Read to the end of the string
+frewind(fid);
+textscan(fid, '%s %s %f', -1)  % Read to the end of the string
+fclose(fid);

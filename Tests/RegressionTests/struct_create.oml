@@ -1,0 +1,13 @@
+function testcase = createEmptyTestCase()
+testcase.name = '';
+testcase.time = 0;
+testcase.success = false;
+testcase.failure_msg = '';
+end
+
+testsuite_tests = cell2struct({},'');
+k = 1;
+testcase = createEmptyTestCase();
+testcase.name = 'name';
+testsuite_tests(k) = testcase;
+testsuite_tests

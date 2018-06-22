@@ -1,0 +1,3 @@
+str = 'hml2'
+ idx = strfind(str,'e') % here idx returns []
+ str(idx:end)

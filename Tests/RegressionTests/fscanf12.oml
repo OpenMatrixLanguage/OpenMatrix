@@ -1,0 +1,5 @@
+file = ['FileManipulation/complexnumber_string1.txt'];
+
+fid = fopen(file,'r');
+M = fscanf(fid,'%d %s',inf) 
+fclose(fid);

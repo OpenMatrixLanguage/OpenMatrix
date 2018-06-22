@@ -1,0 +1,2 @@
+ne(5+6i,6i+5)
+islogical(ans)

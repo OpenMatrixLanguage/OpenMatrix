@@ -1,0 +1,6 @@
+fid = fopen('FileManipulation/testfile.txt');
+format = '%s %f %f %f %s';
+D = textscan(fid, format, 'headerlines',2,'delimiter', '\t')
+E = textscan(fid, format, 'headerlines',2,'delimiter', '\t')
+F = textscan(fid, format, 'headerlines',2,'delimiter', '\t')
+fclose(fid);

@@ -1,0 +1,4 @@
+addtoolbox omlOptimization
+
+interval = [1, 6];
+[x,fval] = fzero(@(x) (x-3)^4 - 16, interval)

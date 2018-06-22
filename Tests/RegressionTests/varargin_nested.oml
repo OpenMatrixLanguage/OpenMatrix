@@ -1,0 +1,9 @@
+﻿function g(a, varargin)
+	varargin
+end
+
+function f(a, varargin)
+	g(a, varargin{:});
+end
+
+f(3, ones(1,0))

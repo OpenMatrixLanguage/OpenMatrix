@@ -1,0 +1,45 @@
+# ====================================================================
+# OpenMatrix oml/toolboxes/omlMatio makefile
+# ====================================================================
+PROJ := omlMatio
+
+UNAME := $(shell uname)
+ifneq (,$(findstring NT,$(UNAME)))
+   TARGET = $(BINDIR)/$(PROJ).dll
+else
+   TARGET = $(BINDIR)/lib$(PROJ).so
+endif
+
+include $(OML_ROOT)/src/makebase.cfg
+
+# ====================================================================
+SOURCES += $(wildcard *.cxx)
+OBJECTS = $(foreach file,$(SOURCES),$(addprefix $(PLATFORM)/,$(addsuffix .o,$(basename $(notdir $(file))))))
+vpath %.cxx _private
+
+CXX_DEFINES += -DMATIOHML2TBOX_EXPORT 
+
+CXX_INCLUDES += -I. $(HWMATHKERNEL_INC)
+CXX_INCLUDES += -I$(MATIO_INCLUDE1) 
+CXX_INCLUDES += -I$(MATIO_INCLUDE2)
+CXX_INCLUDES += -I$(OML_ROOT)/src/oml/Runtime
+
+LIBS += $(MATHKERNEL_LIBS)
+LIBS += $(OML_LIBS)
+
+LIBS += $(MATIO_LIB)
+
+# ====================================================================
+
+$(PLATFORM)/%.o : %.cxx $(objdir)
+	$(compile-cxx)
+
+$(TARGET) : $(OBJECTS)
+	$(build-shared-lib)
+
+clean::
+	-$(RM) -rf $(TARGET)
+	-$(RM) -rf $(PLATFORM)
+	-$(RM) -rf $(BINDIR)/$(PROJ).*
+	-$(RM) -rf $(LIBDIR)/$(PROJ).*
+

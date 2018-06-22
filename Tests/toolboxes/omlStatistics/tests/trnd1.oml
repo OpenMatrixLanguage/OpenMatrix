@@ -1,0 +1,8 @@
+addtoolbox('omlStatistics')
+n= 10;
+rand('seed', 2003);
+rnd1 = trnd(n)
+
+r = 1;
+c = 5;
+rnd2 = trnd(n,r,c)

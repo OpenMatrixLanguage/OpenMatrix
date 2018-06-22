@@ -1,0 +1,4 @@
+[a,b,c]=svd(-4)
+disp(a)
+disp(b)
+disp(c)

@@ -1,0 +1,4 @@
+% names of the columns A B C
+year1,100,200,300
+year22,44,55,66
+year333,7,8,9

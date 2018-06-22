@@ -1,0 +1,16 @@
+﻿function y=even(x)
+  if x>0
+    y=45;
+  end
+end
+
+function out=toeven(x)
+  out={};
+  for i=1:length(x)
+    out{i}=even(x{i});
+  end
+end
+
+x2=toeven({798,-2,43});
+size(x2)
+class(x2{2})

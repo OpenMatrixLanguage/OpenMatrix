@@ -1,0 +1,6 @@
+foo=@(x,y) x+y
+goo=foo
+disp(goo(2,3))
+
+poo=@sqrt
+poo(9)

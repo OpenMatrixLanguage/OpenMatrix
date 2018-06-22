@@ -1,0 +1,17 @@
+s = struct [
+a: 5
+]
+s = struct [
+a: 5
+b: test
+]
+s = struct [
+Struct array of size 1 x 2 with fields:
+a
+b
+c
+]
+ans = 1
+ans = 1
+ans = 1
+ans = 0

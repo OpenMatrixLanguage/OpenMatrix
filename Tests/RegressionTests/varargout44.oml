@@ -1,0 +1,8 @@
+function [varargout, s] = myfunc2(input)	
+	varargout{1} = size(input,1);
+	varargout{2} = size(input,2);
+	varargout{3} = size(input,1)*size(input,2);
+	s = size(input);
+end
+ 
+[Size, Cell] = myfunc2(ones(3,5))

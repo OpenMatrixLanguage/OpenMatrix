@@ -1,0 +1,49 @@
+% OML - Filter example
+
+% Define signal with high frequency noise
+
+omega1 = 2*pi*30;	% signal content
+omega2 = 2*pi*60;	% signal content
+omega3 = 2*pi*240;	% noise content
+fs = 2000;
+ts = 1/fs;
+n = 100;
+t = [0:ts:n*ts];
+signal = sqrt(2) * sin(omega1*t) + sin(omega2*t) + 0.25 * sin(omega3*t);
+
+% Design low pass filter to remove noise
+
+dB3 = -10*log10(0.5);	% be precise instead of approximating as 3.0
+[n,Wn] = buttord(100/(fs/2), 200/(fs/2), dB3, 20);
+disp('filter order:'), disp(n)
+disp('filter max cutoff:'), disp(Wn*(fs/2))
+[a,b] = butter(n,100/(fs/2));
+
+% Filter signal and plot
+
+output = filter(a,b,signal);
+plot(t,signal);
+legend('raw signal');
+xlabel('time');
+ylabel('amplitude');
+hold on;
+plot(t,output);
+legend('raw signal', 'filter output');
+
+% Design low pass filter to remove noise
+
+[n,Wn] = buttord(100/(fs/2), 200/(fs/2), dB3/2, 20/2);
+disp('filtfilt order:'), disp(n)
+disp('filtfilt max cutoff:'), disp(Wn*(fs/2))
+[a,b] = butter(n,100/(fs/2));
+
+% Filter signal and plot
+
+output = filtfilt(a,b,signal);
+figure;
+plot(t,signal);
+xlabel('time');
+ylabel('amplitude');
+hold on;
+plot(t,output);
+legend('raw signal', 'filtfilt output');

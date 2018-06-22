@@ -1,0 +1,23 @@
+addtoolbox omlOptimization
+% intersection of two paraboloids and a plane
+% with history
+
+function res = Residuals(x)
+    x = 0.1 * x;
+    v1 = (x(1))^2 + (x(2))^2 + 6;
+    v2 = 2*(x(1))^2 + 2*(x(2))^2 + 4;
+    v3 = 5*x(1) - 5*x(2);
+    res = zeros(2,1);
+    res(1,1) = v1 - v3;
+    res(2,1) = v2 - v3;
+end
+
+options = optimset('MaxIter', 200, 'Display', 'iter', 'TolFun', 1.0e-12, 'TolX', 1.0e-5);
+init = [1; 2];
+
+[x,fval] = fsolve(@Residuals, init, options)
+
+
+
+
+

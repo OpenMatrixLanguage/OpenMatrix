@@ -1,0 +1,3 @@
+[q,r]=qr(2i-9)
+disp(q)
+disp(r)

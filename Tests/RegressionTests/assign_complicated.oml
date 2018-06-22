@@ -1,0 +1,6 @@
+﻿B={};
+B.time=[1 2 4];
+B.ch={};
+B.ch{1}={};
+B.ch{1}.type='double';
+B

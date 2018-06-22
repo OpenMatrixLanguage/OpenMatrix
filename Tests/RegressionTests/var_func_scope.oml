@@ -1,0 +1,7 @@
+function x=foo(a)
+x=sqrt(a)
+end
+
+sqrt=4
+
+foo(4)

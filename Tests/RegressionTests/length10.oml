@@ -1,0 +1,5 @@
+a='123456';
+length([a,a])
+length([a,a]')
+length([a;a])
+length([a;a]')

@@ -1,0 +1,1 @@
+Error: unsupported dimension in argument 1; matrices with more than 2 dimensions are not currently allowed in call to function cell at line number 1 in file cell_invalid.oml

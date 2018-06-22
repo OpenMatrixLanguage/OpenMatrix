@@ -1,0 +1,1 @@
+[a,b,c]=unique(6i-2,'first','rows')

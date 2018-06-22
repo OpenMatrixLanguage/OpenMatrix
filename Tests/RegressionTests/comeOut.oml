@@ -1,0 +1,4 @@
+function out = comeOut()
+	out='here I am!'
+end
+comeOut()

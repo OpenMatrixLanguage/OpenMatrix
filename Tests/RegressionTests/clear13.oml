@@ -1,0 +1,5 @@
+a=3
+global a
+a=5
+clear global a
+a

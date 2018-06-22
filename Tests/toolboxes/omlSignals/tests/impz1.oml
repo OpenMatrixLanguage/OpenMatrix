@@ -1,0 +1,7 @@
+addtoolbox omlSignals
+
+% test 1 - stable with complex poles
+fc = 100;
+fs = 2000;
+[num,den] = butter(5, fc/(fs/2));
+[x,t] = impz(num, den, [], fs)

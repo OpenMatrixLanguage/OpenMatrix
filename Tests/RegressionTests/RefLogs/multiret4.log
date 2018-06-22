@@ -1,0 +1,6 @@
+a = [Matrix] 2 x 2
+1  2
+3  4
+ans = [Matrix] 1 x 2
+3  4
+Unknown function: a at line number 3 in file multiret4.oml

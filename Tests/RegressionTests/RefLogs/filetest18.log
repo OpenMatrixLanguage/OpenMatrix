@@ -1,0 +1,7 @@
+fname = FileManipulation/EmptyFile.txt
+fid1 = 3
+fid2 = 4
+ans = [Matrix] 1 x 2
+3  4
+ans = 0
+ans = [Matrix] 1 x 0

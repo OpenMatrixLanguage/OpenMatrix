@@ -1,0 +1,26 @@
+addtoolbox omlSignals
+
+% define signal
+f1 = 62.5;
+f2 = 250;
+omega1 = 2*pi*f1;
+omega2 = 2*pi*f2;
+fs = 2000;
+ts = 1/fs;
+n = 100;
+time = [0:ts:n*ts];
+signal = sqrt(2) * sin(0.5*omega1*time) + sin(omega1*time) + 0.25 * sin(omega2*time);
+
+% 1 pass filter
+[b,a] = butter(4,100/(fs/2));
+signal = signal';
+signal = [signal, 2*signal];
+signal = permute(signal,[1,3,2]);
+output = filter(b,a,signal);
+
+% zero phase filter
+factor = (sqrt(2) + 1)^(1/4);
+fnew = (fs/(pi)) * atan(factor * tan(pi*100/fs));
+[b,a] = butter(2,fnew/(fs/2));
+output2 = filtfilt(b,a,signal)
+

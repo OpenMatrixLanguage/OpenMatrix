@@ -1,0 +1,39 @@
+% OML - Example script with various ways to create & index matrices, perform elementary operations
+
+m1 = [ 	1, 2, 3; 
+		4, 5, 6; 
+		7, 8, 9]; % A 3 by 3 matrix
+    
+disp (m1); % display the content of m1
+
+a = m1(1,3);
+disp('Getting entry in 1st row & 3rd column of m&:');
+disp(a);
+    
+disp ('Getting the 3rd column of m1:');
+disp (m1(:,3));
+    
+disp ('Getting Rows 2 & 3:');
+disp (m1([2,3],:));
+    
+m2 = m1([2,3],[2,3]); %	 Extract the intersection of the 2nd & 3rd rows with the 2nd & 3rd column
+disp ('Getting a subset of m1:');
+disp (m2);
+
+disp ('Transposing the Matrix m1 :');
+disp (m1.');
+    
+disp ('Multiplication');
+disp (m1 * m1);
+
+disp ('Element wise Multiplication');
+disp (m1 .* m1.'); 
+ 
+disp ('Matrix and scalar product');
+disp (m1 * 2);
+ 
+disp ('Element wise power');
+disp (m1 .^ 2)
+
+disp ('Operations on a Matrix');
+disp (cos(m1) + exp(m1) + m1 .^ 2);

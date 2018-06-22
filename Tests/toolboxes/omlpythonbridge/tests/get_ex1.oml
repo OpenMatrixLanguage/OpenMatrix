@@ -1,0 +1,5 @@
+addtoolbox omlpythonbridge
+disp('importing logical data from python')
+evalpythonscript('pofalse = False'); 
+[value, status, errorMessage] = getpythonvar('pofalse')
+

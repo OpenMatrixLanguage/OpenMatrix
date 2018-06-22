@@ -1,0 +1,5 @@
+ tree (= a 1)
+=================
+(STATEMENT_LIST (= a 1))
+=================
+Evaluator result: 1

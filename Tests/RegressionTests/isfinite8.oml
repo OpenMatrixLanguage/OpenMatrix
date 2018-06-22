@@ -1,0 +1,2 @@
+isfinite(inf+2i)
+islogical(ans)

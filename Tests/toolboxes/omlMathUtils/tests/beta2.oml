@@ -1,0 +1,7 @@
+addToolbox omlMathUtils
+
+% Should return a vector of the beta function of the values passed in
+
+beta([8 21 6])
+
+% Written by mbsmith 5/18/15

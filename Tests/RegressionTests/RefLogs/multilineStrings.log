@@ -1,0 +1,9 @@
+a1 = 
+hello
+world
+a2 = 
+world
+hello
+ans = [Matrix] 2 x 5
+223  212  222  216  211
+223  212  222  216  211

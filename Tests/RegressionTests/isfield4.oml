@@ -1,0 +1,4 @@
+s.a=5
+s.b='test'
+s(2).c=s
+isfield(s,97)

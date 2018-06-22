@@ -1,0 +1,2 @@
+isprime({2,5,6,6i+8})
+islogical(ans)

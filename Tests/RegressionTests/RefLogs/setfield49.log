@@ -1,0 +1,1 @@
+Error: invalid input in argument 2; type struct cannot be indexed in call to function setfield at line number 1 in file setfield49.oml

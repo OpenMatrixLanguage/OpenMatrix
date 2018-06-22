@@ -1,0 +1,19 @@
+disp('Running KeywordComment.hml');
+disp('At one time, some keywords in a comment caused a syntax error');
+disp('There should be no syntax errors running this script');
+disp('Statements with keywords in a comment - begin');
+% if
+% while
+% for
+% switch
+% case
+% otherwise
+% global
+% persistent
+% return
+% break
+% try
+% end
+% function
+disp('Statements with keywords in a comment - completed');
+disp('Running KeywordComment.hml - completed');

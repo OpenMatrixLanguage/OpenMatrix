@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+mean(8i,4,'h')

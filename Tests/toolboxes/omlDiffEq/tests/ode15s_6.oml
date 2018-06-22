@@ -1,0 +1,21 @@
+addtoolbox omlDiffEq
+
+% define system function
+function yp = RLC(t,y,R,L,C)
+   yp = [0, 0];
+   yp(1) = y(2);
+   yp(2) = -y(1)/(L*C) - y(2)*(R/L);
+end
+
+v = 2.4; % volts
+R = 1.1; % resistor
+L = 1.6; % inductor
+C = 0.8; % capacitor
+
+handle = @(t,y) RLC(t,y,R,L,C);
+t = [0:0.2:12]; % time vector
+yi = [0, v/L];
+
+[t,y] = ode15s(handle, t, yi);
+y(:,1)
+

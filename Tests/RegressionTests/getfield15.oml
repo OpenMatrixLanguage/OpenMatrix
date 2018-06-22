@@ -1,0 +1,4 @@
+a.b.c=4;
+getfield(a,'b')
+getfield(a,'b','c')
+getfield(a,'c')

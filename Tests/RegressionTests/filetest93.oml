@@ -1,0 +1,5 @@
+fname = 'FileManipulation/EmptyFile.txt'
+fid = fopen(fname, 'r')
+fread(fid, ['c';'h';'a';'r'])
+fclose(fid)
+

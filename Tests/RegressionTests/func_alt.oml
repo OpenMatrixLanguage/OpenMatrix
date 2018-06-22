@@ -1,0 +1,7 @@
+function z=myfunc(a,b,c)
+    disp(a)
+	disp(b)
+	disp(c)
+end
+
+myfunc yes no maybe

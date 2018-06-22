@@ -1,0 +1,1 @@
+Error: invalid matrix in argument 1; must be square in call to function chol at line number 1 in file chol10.oml

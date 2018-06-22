@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <OML_ROOT>\oss\OpenMatrix\omloss</OML_ROOT>
+    <OML_THIRDPARTY>\oss\third_party</OML_THIRDPARTY>
+    <OML_MINGW>c:\Program Files\mingw-w64\x86_64-7.1.0-posix-seh-rt_v5-rev2\mingw64\bin</OML_MINGW>
+    <OML_PATHS>$(OML_THIRDPARTY)\lapack\lapack-3.7.1-build\bin;$(OML_MINGW);$(OML_PYTHONHOME)</OML_PATHS>
+    <OML_LIBDIR>"\oss\third_party\lapack\lapack-3.7.1-build\lib"</OML_LIBDIR>
+    <OML_FFTWDIR>$(OML_THIRDPARTY)\fftw\fftw-3.2.2</OML_FFTWDIR>
+    <OML_BOOSTDIR>$(OML_THIRDPARTY)\boost\boost_1_64_0</OML_BOOSTDIR>
+    <OML_PYTHONHOME>c:\Python36</OML_PYTHONHOME>
+    <OML_PYTHONVERSION>python36</OML_PYTHONVERSION>
+    <OML_MATIODIR>$(OML_THIRDPARTY)\matio\matio-1.5.11</OML_MATIODIR>
+    <OML_SUNDIALSDIR>$(OML_THIRDPARTY)/sundials/sundials-3.1.0-install</OML_SUNDIALSDIR>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemDefinitionGroup>
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="OML_ROOT">
+      <Value>$(OML_ROOT)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="OML_THIRDPARTY">
+      <Value>$(OML_THIRDPARTY)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="OML_MINGW">
+      <Value>$(OML_MINGW)</Value>
+    </BuildMacro>
+    <BuildMacro Include="OML_PATHS">
+      <Value>$(OML_PATHS)</Value>
+    </BuildMacro>
+    <BuildMacro Include="OML_LIBDIR">
+      <Value>$(OML_LIBDIR)</Value>
+    </BuildMacro>
+    <BuildMacro Include="OML_FFTWDIR">
+      <Value>$(OML_FFTWDIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="OML_BOOSTDIR">
+      <Value>$(OML_BOOSTDIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="OML_PYTHONHOME">
+      <Value>$(OML_PYTHONHOME)</Value>
+    </BuildMacro>
+    <BuildMacro Include="OML_PYTHONVERSION">
+      <Value>$(OML_PYTHONVERSION)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="OML_MATIODIR">
+      <Value>$(OML_MATIODIR)</Value>
+    </BuildMacro>
+    <BuildMacro Include="OML_SUNDIALSDIR">
+      <Value>$(OML_SUNDIALSDIR)</Value>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

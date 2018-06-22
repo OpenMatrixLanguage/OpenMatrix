@@ -1,0 +1,14 @@
+a=[1,2;3,4];
+b=a;
+c=b;
+refcnt(a)
+refcnt(b)
+refcnt(c)
+a(1,1)=0;
+refcnt(a)
+refcnt(b)
+refcnt(c)
+b(2,2)=0;
+refcnt(a)
+refcnt(b)
+refcnt(c)

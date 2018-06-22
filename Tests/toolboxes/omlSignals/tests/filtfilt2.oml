@@ -1,0 +1,26 @@
+addtoolbox omlSignals
+
+% define signal
+fs = 2000;
+ts = 1/fs;
+n = 200;
+time = [0:ts:n*ts];
+f1 = 100;
+omega1 = 2*pi*f1;
+signal = sin(omega1*time);
+
+% 1 pass filter
+[a,b] = butter(4,100/(fs/2));
+output1 = filter(a,b,signal);
+
+% zero phase filter #1
+output2 = filtfilt(a,b,signal);
+
+% zero phase filter #2
+factor = (sqrt(2) + 1)^(1/4);
+fnew = (fs/(pi)) * atan(factor * tan(pi*100/fs));
+[a,b] = butter(2,fnew/(fs/2));
+output3 = filtfilt(a,b,signal);
+
+20*log10(-[signal(96), -output1(96), output2(96), output3(96)])
+20*log10([signal(106), -output1(106), output2(106), output3(106)])

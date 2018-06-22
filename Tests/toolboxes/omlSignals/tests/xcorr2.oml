@@ -1,0 +1,4 @@
+addtoolbox omlSignals
+x = [2,3,4,5,6];
+y = [4,6,7,8];
+Rxy = xcorr(x,y)

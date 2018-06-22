@@ -1,0 +1,45 @@
+
+% OML - This example shows how to the smallest distance between 
+% two shapes using fsolve.
+
+% Consider the two following ellipsoids:
+% (x-1)^2/25 + (y-2)^2/16 + (z-3)^2/9 = 1
+% (x-12)^2/49 + (y-13)^2/81 + (z-14)^2/36 = 1
+
+
+% Solution with fsolve
+
+% Let the objective be the distance between (x1,y1,z1) and (x2,y2,z2).
+% objective: f(x1,y1,z1,x2,y2,z2) = (x1-x2)^2 + (y1-y2)^2 + (z1-z2)^2
+% objective gradient: f_grad(x1,y1,z1,x2,y2,z2) = 2*[x1-x2, y1-y2, z1-z2, x2-x1, y2-y1, z2-z1]
+% constraints: g1(x1,y1,z1) = (x1-1)^2/25 + (y1-2)^2/16 + (z1-3)^2/9 = 1
+%              g2(x2,y2,z2) = (x2-12)^2/49 + (y2-13)^2/81 + (z2-14)^2/36 = 1
+% constraint gradient: g1_grad(x1,y1,z1,x2,y2,z2) = 2*[(x1-1)/25, (y1-2)/16, (z1-3)/9, 0, 0, 0]
+%                      g2_grad(x2,y2,z2,x2,y2,z2) = 2*[0, 0, 0, (x2-12)/49, (y2-13)/81, (z2-14)/36]
+
+% Residuals function
+
+function res = Residuals(v)
+	% define v = [x1, y1, z1, x2, y2, z2, lambda1, lambda2], where lambda1, lambda2 are Lagrange Multipliers
+	f_grad = 2*[v(1)-v(4), v(2)-v(5), v(3)-v(6), v(4)-v(1), v(5)-v(2), v(6)-v(3)];
+	g1_grad = 2*[(v(1)-1)/25, (v(2)-2)/16, (v(3)-3)/9, 0, 0, 0];
+	g2_grad = 2*[0, 0, 0, (v(4)-12)/49, (v(5)-13)/81, (v(6)-14)/36];
+	res = zeros(8,1);
+	res(1:6) = f_grad - v(7) * g1_grad - v(8) * g2_grad;
+	res(7) = (v(1)-1)^2/25 + (v(2)-2)^2/16 + (v(3)-3)^2/9 - 1;
+	res(8) = (v(4)-12)^2/49 + (v(5)-13)^2/81 + (v(6)-14)^2/36 - 1;
+end
+
+% Initital estimate of v
+
+v0 = [1.1,2.2,3.3,17.2,18.3,19.4,-1,1]; 
+
+% Actual solving
+
+[v,fval] = fsolve(@Residuals, v0);
+
+% Results
+
+p1 = v(1:3)
+p2 = v(4:6)
+d = norm(p1-p2)

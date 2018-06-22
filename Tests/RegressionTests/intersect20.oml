@@ -1,0 +1,1 @@
+[a,b,c]=intersect(['abcd';'efac'],['eghi';'jkfl';'efac'],'rows')

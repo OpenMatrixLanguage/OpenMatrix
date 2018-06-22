@@ -1,0 +1,1 @@
+strfind('aaaa','aa',['o';'v';'e';'r';'l';'a';'p';'s'],false)

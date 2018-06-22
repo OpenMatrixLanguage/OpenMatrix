@@ -1,0 +1,38 @@
+
+% OML - Example of curve fitting and plot
+
+% Create and plot damped sinusoid test data with noise
+
+ts = 0.001;		% sampling time
+t = [0:ts:0.2]; % time stamps
+A = 10;			% amplitude
+b = 25;			% exponential decay parameter
+f = 40;			% frequency
+omega = 2*pi*f;	% angular frequency
+n = length(t);
+rand('seed', 2017);
+x = A * exp(-b*t) .* sin(omega*t) .* normrnd(1,0.25,1,n);
+
+plot(t, x);
+xlabel('time');
+ylabel('amplitude');
+hold on
+
+% Define fitting function
+
+function x = FittingFunc(p, t)
+    % p = [A, b, f]
+    x = p(1) * exp(-p(2)*t) .* sin(2*pi*p(3)*t);
+end
+
+
+% Find the parameters for the fitted curve
+
+initial = [9, 20, 40];
+[p, resnorm] = lsqcurvefit(@FittingFunc, initial, t, x)
+
+% Plot fitted curve
+
+xf = FittingFunc(p, t);
+plot(t, xf);
+legend('raw data','fitted curve');

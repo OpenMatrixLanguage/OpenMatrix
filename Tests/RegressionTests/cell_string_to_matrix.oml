@@ -1,0 +1,3 @@
+﻿a = {'hello', 'goodbye', 'ciao', 'arrivaderci', 'aloha'}
+a{2:4}
+b=[a{2:4}]

@@ -1,0 +1,6 @@
+fname = 'FileManipulation/CreatedFile.txt'
+[fid, error] = fopen(fname,'w')
+fclose(fid)
+delete(fname)
+[fid, error] = fopen(fname, 'r')
+fclose(fid)

@@ -1,0 +1,9 @@
+a=[1,2;3,4];
+b=a;
+disp(a==b);
+disp(b==a);
+disp(a~=b);
+c=a+b;
+disp(c==a);
+disp(a(1,1)==1);
+

@@ -1,0 +1,12 @@
+function [out1,out2] = zeroInputs()
+	out1 = 3;
+	out2 = 4;
+end
+
+function [out1,out2] = zeroInputs2
+	out1 = 5;
+	out2 = 6;
+end
+
+[a,b] = zeroInputs()
+[c,d] = zeroInputs2

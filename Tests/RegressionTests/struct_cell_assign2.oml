@@ -1,0 +1,5 @@
+﻿A.ch = {};
+A.ch{1} = struct();
+A.ch{1}.type = 'double';
+A.ch{1}.data = [3,5,6,4];
+A

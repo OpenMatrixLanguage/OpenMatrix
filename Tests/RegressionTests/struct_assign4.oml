@@ -1,0 +1,20 @@
+﻿function testcase = createTestCase(num)
+  testcase.num = num;
+  testcase.success = false;
+  testcase.failure_msg = '';
+end
+ 
+function testsuite = createEmptyTestSuite()
+  testsuite.name = '';
+  testsuite.directory = '';
+  testsuite.nberrors = 0;
+  testsuite.tests = cell2struct({},'');
+end
+ 
+testsuite = createEmptyTestSuite();
+testcase1 = createTestCase(1);
+testsuite.tests(1) = testcase1;
+ 
+testcase2 = createTestCase(2);
+testsuite.tests(2) = testcase2;
+testsuite

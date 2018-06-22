@@ -1,0 +1,5 @@
+fname = FileManipulation/FileToRead.txt
+fid = 3
+ans = This File
+ans = 11
+ans = 0

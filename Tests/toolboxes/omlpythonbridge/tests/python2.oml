@@ -1,0 +1,4 @@
+addtoolbox omlpythonbridge
+funclist python
+evalpythonscript('print("hello world\n")');
+evalpythonscript('print("hello world\n")');

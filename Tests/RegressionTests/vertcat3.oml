@@ -1,0 +1,2 @@
+vertcat('A',66,'B')
+size(ans)

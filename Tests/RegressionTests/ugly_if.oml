@@ -1,0 +1,7 @@
+aa=2
+bb=3
+ 
+if bb == 3 && aa == 2; aa=4
+elseif bb == 3 && aa ~= 2; aa=5;
+end
+ 

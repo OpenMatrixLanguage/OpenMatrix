@@ -1,0 +1,5 @@
+function z=goo(a, varargin)
+   z=a+varargin{1}+varargin{2};
+end
+
+goo(2,3,4)

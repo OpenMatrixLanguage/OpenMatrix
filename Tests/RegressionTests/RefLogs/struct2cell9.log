@@ -1,0 +1,1 @@
+Error: unsupported dimension in argument 1; matrices with more than 2 dimensions are not currently allowed in call to function struct2cell at line number 3 in file struct2cell9.oml

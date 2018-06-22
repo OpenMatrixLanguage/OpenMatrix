@@ -1,0 +1,5 @@
+path('.')
+function which11()
+disp('test call')
+end
+which('which11')

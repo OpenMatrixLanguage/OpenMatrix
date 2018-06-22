@@ -1,0 +1,11 @@
+fname = 'FileManipulation/FileToRead.txt'
+fid = fopen(fname)
+fseek(fid, 10)
+ftell(fid)
+fseek(fid, 1,['c';'o';'f'])
+ftell(fid)
+fseek(fid, -5,['e';'o';'f'])
+ftell(fid)
+fseek(fid, 20,['b';'o';'f'])
+ftell(fid)
+fclose(fid)

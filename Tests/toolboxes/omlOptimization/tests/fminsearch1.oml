@@ -1,0 +1,13 @@
+addtoolbox omlOptimization
+
+function obj = Rosenbrock(p)
+    % p[1] is the x coordinate
+    % p[2] is the y coordinate
+    % compute the objective
+    obj = (1 - p(1))^2 + 100 * (p(2) - p(1)^2)^2;
+end
+
+init = [-1.2, 1.0];
+options = optimset('TolX', 1.0e-5);
+
+[x,fval] = fminsearch(@Rosenbrock, init, options)

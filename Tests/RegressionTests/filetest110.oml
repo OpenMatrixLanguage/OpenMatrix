@@ -1,0 +1,10 @@
+fname = 'FileManipulation/FileToWrite41.txt'
+fid = fopen(fname, 'w+')
+fwrite(fid, [-1512.723,4871816.21013], 'single')
+fflush(fid)
+frewind(fid)
+fread(fid)
+frewind(fid)
+fread(fid, inf, 'float32')
+fclose(fid)
+delete(fname)

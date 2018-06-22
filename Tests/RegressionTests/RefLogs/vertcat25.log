@@ -1,0 +1,4 @@
+a = struct [
+b: 3
+]
+Error: can only concatenate structs with other structs in call to function vertcat at line number 2 in file vertcat25.oml

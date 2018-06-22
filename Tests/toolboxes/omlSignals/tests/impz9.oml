@@ -1,0 +1,7 @@
+addtoolbox omlSignals
+
+% test 9 - unstable complex poles
+fs = 2000;
+num = [1, 2, 1];
+den = [1, 2, 4];
+[x,t] = impz(num, den, 50, fs)

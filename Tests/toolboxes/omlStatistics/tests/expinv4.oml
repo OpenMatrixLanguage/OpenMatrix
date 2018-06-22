@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+expinv(0.8,[1 2 3 4])

@@ -1,0 +1,4 @@
+a = struct [
+b: 4
+]
+Error: cannot convert input to double in call to function double at line number 2 in file double13.oml

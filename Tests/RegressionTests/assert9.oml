@@ -1,0 +1,2 @@
+assert(false,'custom error message')
+disp('no crash')

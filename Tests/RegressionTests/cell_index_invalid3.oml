@@ -1,0 +1,3 @@
+% function handle
+funHdl = @sqrt;
+funHdl{1,1}

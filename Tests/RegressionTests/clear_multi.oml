@@ -1,0 +1,5 @@
+a=4;
+b=a;
+exist('a'),exist('b')
+clear a;clear b
+exist('a'),exist('b')

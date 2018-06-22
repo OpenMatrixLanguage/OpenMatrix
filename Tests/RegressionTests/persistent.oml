@@ -1,0 +1,18 @@
+function x=counter()
+  persistent y
+
+  if isempty(y)
+     y=0;
+  end
+
+  y=y+1;
+  x=y;
+end
+
+counter
+counter
+counter
+counter
+counter
+counter
+counter

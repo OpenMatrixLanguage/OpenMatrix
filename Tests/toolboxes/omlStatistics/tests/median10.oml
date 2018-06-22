@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+median({2,5,1,2})

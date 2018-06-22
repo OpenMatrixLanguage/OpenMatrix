@@ -1,0 +1,2 @@
+A = 'hml2';
+B = [A ' , it works!!']

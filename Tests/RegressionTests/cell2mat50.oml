@@ -1,0 +1,3 @@
+cell2mat({zeros(3, 0)})
+cell2mat({zeros(0, 0)})
+cell2mat({zeros(0, 3)})

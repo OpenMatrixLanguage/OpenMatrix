@@ -1,0 +1,4 @@
+﻿a=['def';'try']
+a(1:1) 
+toascii(a(1:1)) 
+toascii(a)

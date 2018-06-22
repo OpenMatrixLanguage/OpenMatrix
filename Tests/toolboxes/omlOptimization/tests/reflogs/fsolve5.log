@@ -1,0 +1,7 @@
+Warning: no solution, returned best fit in call to function fsolve at line number 19 in file fsolve5.oml
+x = [Matrix] 2 x 1
+  9.99989
+-10.00011
+fval = [Matrix] 2 x 1
+2.00000
+2.00000

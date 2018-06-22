@@ -1,0 +1,20 @@
+m = 
+slice(:, :, 1) = 
+[Matrix] 3 x 2
+1  0
+1  0
+1  0
+
+slice(:, :, 2) = 
+[Matrix] 3 x 2
+1  0
+1  0
+1  0
+
+slice(:, :, 3) = 
+[Matrix] 3 x 2
+1  0
+1  0
+1  0
+sz = [Matrix] 1 x 3
+3  2  3

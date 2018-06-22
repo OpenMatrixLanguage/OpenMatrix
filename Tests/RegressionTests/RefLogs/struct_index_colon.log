@@ -1,0 +1,7 @@
+ans = struct [
+Struct array of size 3 x 1 with fields:
+metier
+nom
+poids
+taille
+]

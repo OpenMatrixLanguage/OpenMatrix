@@ -1,0 +1,8 @@
+z = 2
+a = [Matrix] 1 x 3
+1  2  3
+b = [Matrix] 1 x 3
+2  3  4
+a = [Matrix] 1 x 3
+1  2  3
+Unknown function: b at line number 7 in file clear4.oml

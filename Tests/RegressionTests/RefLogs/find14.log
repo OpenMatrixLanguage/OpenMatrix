@@ -1,0 +1,9 @@
+a = [Matrix] 2 x 1
+1
+2
+b = [Matrix] 2 x 1
+2
+2
+c = [Matrix] 2 x 1
+ 1
+-1

@@ -1,0 +1,6 @@
+testsuite_tests = struct [
+failure_msg: 
+name: name
+success: 0
+time: 0
+]

@@ -1,0 +1,8 @@
+fname = 'FileManipulation/FileToWrite34.txt'
+fid = fopen(fname, 'w')
+fwrite(fid, 'test string', 'char')
+fclose(fid)
+fid = fopen(fname,'r')
+fread(fid, ['char';'test'])
+fclose(fid)
+delete(fname)

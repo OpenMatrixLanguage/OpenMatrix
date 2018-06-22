@@ -1,0 +1,4 @@
+a = {2,nan,[2,nan]}
+isnan(a)
+
+

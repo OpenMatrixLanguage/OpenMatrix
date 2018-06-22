@@ -1,0 +1,34 @@
+fname = FileManipulation/FileToWrite7.txt
+fid = 3
+ans = 6
+ans = 0
+fid = 3
+ans = [Matrix] 27 x 1
+ 0
+50
+ 0
+ 0
+ 0
+82
+ 0
+ 0
+ 0
+ 0
+ 2
+ 0
+ 0
+ 0
+12
+ 0
+ 0
+ 0
+ 0
+ 1
+ 0
+ 0
+ 0
+42
+ 0
+ 0
+ 0
+ans = 0

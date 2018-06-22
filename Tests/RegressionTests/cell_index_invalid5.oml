@@ -1,0 +1,3 @@
+% matrix
+matrix = eye(3);
+matrix{1,1}

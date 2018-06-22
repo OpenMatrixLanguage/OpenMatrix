@@ -1,0 +1,10 @@
+a(2,2,2) = 1;
+
+b = size(a);
+for j=1:b(1)
+    for k=1:b(2)
+	    for m=1:b(3)
+		    a(j,k,m)
+		end
+	end
+end

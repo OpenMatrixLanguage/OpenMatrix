@@ -1,0 +1,2 @@
+﻿b=cell(2,4);
+cellfun('det',b)

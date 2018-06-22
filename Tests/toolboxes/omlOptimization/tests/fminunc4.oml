@@ -1,0 +1,6 @@
+addtoolbox omlOptimization
+
+Rosenbrock = @(p) (1 - p(1))^2 + 100 * (p(2) - p(1)^2)^2;
+init = [-1.2, 1.0];
+
+[x,fval] = fminunc(Rosenbrock, init)

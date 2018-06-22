@@ -1,0 +1,2 @@
+a=cell(2,2);
+b=cell2mat(a(1,1))

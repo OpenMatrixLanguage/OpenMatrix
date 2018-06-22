@@ -1,0 +1,4 @@
+path('.')
+[a,b,c]=which('which10','abs','which10.hml');
+strcmp(a,c)
+strcmp(b,c)

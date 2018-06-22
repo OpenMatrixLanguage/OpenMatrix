@@ -1,0 +1,7 @@
+m(:,:,1) = [true,  true,  true;  false, false, false];
+m(:,:,2) = [false, false, false; true,  true,  true ];
+m(:,:,3) = [true,  false, true;  false, true,  false];
+m(:,:,4) = [true,  true,  false; true,  false, false];
+
+not(m)
+islogical(ans)

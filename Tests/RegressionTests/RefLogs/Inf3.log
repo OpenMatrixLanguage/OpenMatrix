@@ -1,0 +1,6 @@
+a = [Matrix] 2 x 2
+1  2
+3  4
+ans = [Matrix] 2 x 2
+-1  Inf
+ 3    2

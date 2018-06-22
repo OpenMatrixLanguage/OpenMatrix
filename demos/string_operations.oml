@@ -1,0 +1,48 @@
+
+% OML - Examples of strings manipulation
+
+% join two strings
+a = 'The quick brown fox jumps over the lazy dog'
+b = 'Hello World'
+c = strcat(a,b)
+d = [a,' ',b]
+
+% replace substring
+string = 'there are ten boys and ten girls.'
+% replace substring ten to five
+strRep = strrep(string,'ten','five')
+
+strIn = 'there are ten boys and ten girls.'
+% find string first
+index = strfind(strIn,'ten');
+index1 = index(1);
+index2 = index1 + length('ten');
+strOut = strcat(strIn(1:index1-1),' five',strIn(index2:end))
+
+strIn = 'there are ten boys and ten girls.'
+% using regexp
+index1 = regexp(strIn,'ten','start');
+index2 = regexp(strIn,'ten','end');
+strOut = strcat(strIn(1:index1(1)-1),' five',strIn(index2(1)+1:length(strIn)))
+
+% split a string
+a = 'The quick brown fox jumps over the lazy dog'
+% split a string, default separator is white space
+b = strsplit(a)
+
+time = '2018/2/23,2018-2-24'
+% specify separators in a cell
+strOut = strsplit(time,{'/','-',','})
+
+% compare two strings
+str1 = 'this is str1';
+str2 = 'this is str2';
+out1 = strcmp(str1,str2)
+% compare the first 11 elements of str1 and str2
+out2 = strncmp(str1,str2,11)
+
+str3 = 'Abc';
+str4 = 'ABC';
+out3 = strcmp(str3,str4)
+% ignore letter case situation
+out4 = strcmpi(str3,str4)

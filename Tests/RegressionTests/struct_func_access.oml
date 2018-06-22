@@ -1,0 +1,6 @@
+﻿function yy=AA
+  yy=struct('B',5);
+end
+
+AA.B
+AA().B

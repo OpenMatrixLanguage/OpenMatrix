@@ -1,0 +1,20 @@
+a = 3
+ switch (a)
+ % a comment here
+ case 1
+ disp('a eq. 1')
+ case 2
+ disp('a eq. 2')
+ otherwise
+ disp('a eq. other')
+ end
+
+ switch (a)
+
+case 1
+ disp('a eq. 1')
+ case 2
+ disp('a eq. 2')
+ otherwise
+ disp('a eq. other')
+ end

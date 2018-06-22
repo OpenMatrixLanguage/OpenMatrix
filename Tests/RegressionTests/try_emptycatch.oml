@@ -1,0 +1,4 @@
+﻿try 
+	A=1;
+catch
+end

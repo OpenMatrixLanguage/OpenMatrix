@@ -1,0 +1,1 @@
+Error: invalid matrix in argument 1; must be square in call to function eig at line number 1 in file eig14.oml

@@ -1,0 +1,7 @@
+﻿function [y, z] = f (x)
+  y = x + 1;
+  z = y * y;
+end
+g = struct();
+g.f = @f;
+[m, n] = g.f(2)

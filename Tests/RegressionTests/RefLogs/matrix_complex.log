@@ -1,0 +1,6 @@
+M = 1
+M = [Matrix] 1 x 2
+1  2
+M = [Matrix] 2 x 2
+1 + 0i  2 + 0i
+1 + 0i  0 + 2i

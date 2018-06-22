@@ -1,0 +1,143 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="balance" /><meta name="abstract" content="Returns a matrix with rows and columns of roughly equal magnitude." /><meta name="description" content="Returns a matrix with rows and columns of roughly equal magnitude." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Linear Algebra Commands" /><meta name="indexterms" content="balance" /><meta name="DC.subject" content="balance" /><meta name="keywords" content="balance" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/LinearAlgebra/linear_algebra_command_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/LinearAlgebra/eig.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>balance</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/LinearAlgebra/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/LinearAlgebra/linear_algebra_command_r.htm" title="Linear Algebra Commands">Linear Algebra Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/LinearAlgebra/linear_algebra_command_r.htm" title="Linear Algebra Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Linear Algebra Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">balance</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Returns a matrix with rows and columns of roughly equal magnitude.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">AA = balance<span class="ph var">(A)</span></span></p>
+
+      <p class="p"><span class="ph synph">AA = balance<span class="ph var">(A, opt)</span></span></p>
+
+      <p class="p"><span class="ph synph">[DD, AA] = balance<span class="ph var">(A, opt)</span></span></p>
+
+      <p class="p"><span class="ph synph">[D, P, AA] = balance<span class="ph var">(A, opt)</span></span></p>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">A</var></dt>
+
+          <dd class="dd pd">The matrix to balance.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">opt</var></dt>
+
+          <dd class="dd pd">The options are:</dd>
+
+          <dd class="dd pd ddexpand">'<span class="keyword option">p</span>' or '<span class="keyword option">noscal</span>' to permute, but not scale.</dd>
+
+          <dd class="dd pd ddexpand">'<span class="keyword option">s</span>' or '<span class="keyword option">noperm</span>' to scale, but not permute.</dd>
+
+          <dd class="dd pd ddexpand"><span class="keyword">string</span></dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">AA</span></dt>
+
+          <dd class="dd pd">The balanced matrix.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">DD</span></dt>
+
+          <dd class="dd pd">A diagonal matrix with powers of 2.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">P</span></dt>
+
+          <dd class="dd pd">A permutation vector.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">D</span></dt>
+
+          <dd class="dd pd">A vector whose permutation by P produces the diagonal of <span class="ph synph">DD</span>.</dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+      <pre class="pre codeblock"><code>[DD,AA] = balance([1,0,0.0001;1,1,0.01;10000,100,1])</code></pre>
+      <pre class="pre codeblock"><code><code class="ph codeph">DD = [Matrix] 3 x 3
+0.00012  0.00000  0.00000
+0.00000  0.00781  0.00000
+0.00000  0.00000  1.00000
+AA = [Matrix] 3 x 3
+1.00000  0.00000  0.81920
+0.01563  1.00000  1.28000
+1.22070  0.78125  1.00000</code></code></pre>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p"><span class="keyword cmdname">balance</span> is only useful with an asymmetric matrix <var class="keyword varname">A</var>.
+        It's purpose is to improve eigenvalue calculations by computing <span class="ph synph">eig(AA)</span> in
+        place of <span class="ph synph">eig(A)</span>.</p>
+
+      <p class="p"><span class="ph synph">AA = DD \ A * DD</span>. The row and column norms of <var class="keyword varname">AA</var> are roughly
+        equal in magnitude.</p>
+
+      <p class="p"><span class="ph synph">DD = P * D,</span> where  <var class="keyword varname">P</var> is a permutation matrix and <var class="keyword varname">D</var>
+        is a diagonal matrix of powers of two.</p>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+      
+      <p class="p"><span class="keyword">1.0</span></p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/LinearAlgebra/eig.htm" title="Eigen decomposition.">eig</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/LinearAlgebra/linear_algebra_command_r.htm" title="Linear Algebra Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Linear Algebra Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

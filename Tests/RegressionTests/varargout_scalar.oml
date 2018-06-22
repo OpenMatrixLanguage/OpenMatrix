@@ -1,0 +1,5 @@
+function varargout = myfunc(a)
+	varargout{1} = 1;
+end
+ 
+[flag] = myfunc(3)

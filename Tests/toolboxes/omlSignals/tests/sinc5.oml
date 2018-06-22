@@ -1,0 +1,2 @@
+addtoolbox omlSignals
+x = sinc(1+2i)

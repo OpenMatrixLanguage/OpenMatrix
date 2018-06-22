@@ -1,0 +1,26 @@
+addtoolbox omlDiffEq
+
+% solve (x+1)^2*y" + 2(x+1)y' - 1 = 0, y(1)=1, y'(1)=2
+
+% define z1 = y, z2 = y'
+% z1' = y'
+% z2' = y"
+% The system is
+% z1' = z2
+% z2' = [1 - 2(x+1)z2] / (x+1)^2
+
+function dz = func(x,z)
+   dz = zeros(2,1);
+   dz(1) = z(2);
+   dz(2) = (1-2*(x+1)*z(2))/(x+1)^2;
+end
+
+% ode solution
+init = [1,2];
+[x,z] = ode45(@func, [0:1:10], init);
+y = z(:,1)'
+
+% closed form solution
+c1 = 1 - init(2);
+c2 = init(1) - c1;
+y = c1./(x+1) + c2 + log(x+1)

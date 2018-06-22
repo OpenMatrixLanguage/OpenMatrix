@@ -1,0 +1,9 @@
+firstLine = 'addpath(''C:\Users\yinnan\Documents\7-27\hml2unit\scripts'');';
+ 
+if strncmpi(firstLine,'% ### VSM-',10)
+	status = true;
+	Tag = firstLine(end-7:end);
+elseif strncmpi(firstLine,'% ### NO CHECK REF ###')
+	status = true;
+	Tag = 'NOREF';
+end

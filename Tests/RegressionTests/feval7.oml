@@ -1,0 +1,4 @@
+function testfunc(x)
+disp(x)
+end
+feval(@testfunc, 'test')

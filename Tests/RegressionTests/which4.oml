@@ -1,0 +1,4 @@
+path('.')
+[a,b]=which('which4', 'which4.hml');
+strcmp(a,b)
+

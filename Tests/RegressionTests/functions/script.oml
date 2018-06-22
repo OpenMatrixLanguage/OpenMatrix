@@ -1,0 +1,5 @@
+function z=local_func(a)
+   z=a;
+end
+
+a = local_func(4);

@@ -1,0 +1,40 @@
+student = struct [
+name: Murielle
+]
+student = struct [
+age: 20
+name: Murielle
+]
+student = struct [
+age: 20
+id: 902830905
+name: Murielle
+]
+student = struct [
+age: 20
+id: 902830905
+name: Murielle
+]
+student2 = struct [
+name: Bob
+]
+student2 = struct [
+age: 33
+name: Bob
+]
+student2 = struct [
+age: 33
+id: 902839409
+name: Bob
+]
+student2 = struct [
+age: 33
+id: 902839409
+name: Bob
+]
+sudents = struct [
+Struct array of size 1 x 2 with fields:
+age
+id
+name
+]

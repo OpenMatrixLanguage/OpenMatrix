@@ -1,0 +1,28 @@
+addtoolbox omlDiffEq
+% this test is an example from Sundials/IDA
+
+% define system function
+function res = Res(t, y, yp)
+   value = -0.04 * y(1) + 1.0e4 * y(2) * y(3);
+   res = [0, 0, 0];
+   res(1) = value - yp(1);
+   res(2) = -value - 3.0e7 * y(2) * y(2) - yp(2);
+   res(3) = y(1) + y(2) + y(3) - 1.0;
+end
+
+% define system Jacobian
+yi = [1.0, 0.0, 0.0];
+ypi = [-0.04, 0.04, 0.0];
+t = zeros(1,13);
+t(1) = 0.0;
+t(2) = 0.4;
+i = 3;
+
+while i<14
+   t(i) = 10.0 * t(i-1);
+   i = i + 1;
+end
+
+options = odeset('AbsTol', [1.0e-8, 1.0e-14, 1.0e-6], 'RelTol', 1.0e-4);
+[t,y] = ode15i(@Res,t,yi,ypi,options);
+y

@@ -1,0 +1,17 @@
+function z=goo	
+	if j==1
+	   hi
+	   a = 5+3
+	   antlr('sucks')
+	elseif j==2
+	   hi
+	   a = 5+3
+	   antlr('sucks')
+	else
+	   hi
+	   a = 5+
+	   antlr('sucks')
+	end
+end
+
+goo

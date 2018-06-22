@@ -1,0 +1,55 @@
+# ====================================================================
+# oml/plot/toolbox makefile
+# ====================================================================
+PROJ := omlbatchplot
+
+UNAME := $(shell uname)
+ifneq (,$(findstring NT,$(UNAME)))
+   TARGET = $(BINDIR)/$(PROJ).dll
+else
+   TARGET = $(BINDIR)/lib$(PROJ).so
+endif
+
+include $(OML_ROOT)/src/makebase.cfg
+
+ifneq (,$(findstring win,$(PLATFORM)))
+    PLOTCORE_LIBS = -LIBPATH:$(OML_ROOT)/src/oml/lib/win64 omlbatchplotcore.lib
+else
+    PLOTCORE_LIBS = -L$(OML_ROOT)/src/oml/bin/linux64 -lomlbatchplotcore
+endif
+
+# ====================================================================
+SOURCES += $(wildcard _private/*.cxx)
+OBJECTS = $(foreach file,$(SOURCES),$(addprefix $(PLATFORM)/,$(addsuffix .o,$(basename $(notdir $(file))))))
+vpath %.cxx _private
+
+CXX_DEFINES += -DOMLPLOT_EXPORT
+
+CXX_INCLUDES += -I.
+CXX_INCLUDES += -I..
+CXX_INCLUDES += -I$(OML_ROOT)/src/oml/Runtime
+CXX_INCLUDES += $(HWMATHKERNEL_INC)
+CXX_INCLUDES += -I$(BOOST_DIR)
+
+LIBS += $(PLOTCORE_LIBS)
+LIBS += $(OML_LIBS)
+LIBS += $(ANTLR_LIBS)
+LIBS += $(MATHKERNEL_LIBS)
+LIBS += $(LAPACK_LIBS) $(BLAS_LIBS)
+# ====================================================================
+
+$(PLATFORM)/%.o : %.cxx $(objdir)
+	$(compile-cxx)
+$(PLATFORM)/%.o : %.cpp $(objdir)
+	$(compile-cxx)
+$(PLATFORM)/%.o : %.c $(objdir)
+	$(compile-c)
+
+$(TARGET) : $(OBJECTS)
+	$(build-shared-lib)
+
+clean::
+	-$(RM) -rf $(TARGET)
+	-$(RM) -rf $(PLATFORM)
+	-$(RM) -rf $(BINDIR)/$(PROJ).*
+	-$(RM) -rf $(LIBDIR)/$(PROJ).*

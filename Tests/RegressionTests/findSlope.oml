@@ -1,0 +1,12 @@
+function [slopeVec]= findSlopes(xVec,yVec)
+	%shortening the length of yVec to len
+	len = length(yVec);
+	%top part of the slope equation is Y2-Y1
+	slopeY = (yVec(2:len) - yVec(1:(len-1)))
+	%bottom part of the slope equation is X2-X1
+	slopeX = (xVec(2:len) - xVec(1:(len-1)))
+	%then divide rise over run
+	slopeVec = slopeY ./ slopeX
+end
+
+findSlopes([2 3 4],[6 9 12])

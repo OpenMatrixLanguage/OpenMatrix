@@ -1,0 +1,4 @@
+fname = FileManipulation/EmptyFile.txt
+fid = 3
+ans = -1
+ans = 0

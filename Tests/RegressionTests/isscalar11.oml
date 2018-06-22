@@ -1,0 +1,2 @@
+isscalar([2,3i+9,1-i])
+islogical(ans)

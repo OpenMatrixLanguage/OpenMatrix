@@ -1,0 +1,3 @@
+[a,b]=balance(7)
+disp(a)
+disp(b)

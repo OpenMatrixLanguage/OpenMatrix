@@ -1,0 +1,2 @@
+e1 = 1
+Invalid environment handle in call to function getenvvalue at line number 3 in file envfenv10.oml

@@ -1,0 +1,4 @@
+domain = 1;
+if domain==1,     a=4; 
+elseif domain==3, a=5; end
+a

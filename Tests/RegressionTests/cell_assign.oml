@@ -1,0 +1,7 @@
+A = [1:10];
+
+function myfunc()	
+	a{1} = evalin('caller', 'A')
+end
+
+myfunc

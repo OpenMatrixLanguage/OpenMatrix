@@ -1,0 +1,8 @@
+e = 1
+f = 0
+save variables to logical_v7.3.m -v7.3 file
+clear all
+load logical_v7.3.m file
+display variables e and f
+e = 1
+f = 0

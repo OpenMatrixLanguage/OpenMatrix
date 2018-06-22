@@ -1,0 +1,13 @@
+b = 1:3;
+
+for j=1:3
+  a(:, j) = b;
+end
+
+a
+
+for j=1:3
+  a(j,:) = b';
+end
+
+a

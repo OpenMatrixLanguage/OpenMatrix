@@ -1,0 +1,11 @@
+testsuite = struct [
+directory: 
+name: 
+nberrors: 0
+tests: struct [
+Struct array of size 1 x 2 with fields:
+failure_msg
+num
+success
+]
+]

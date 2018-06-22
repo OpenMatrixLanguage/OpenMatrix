@@ -1,0 +1,2 @@
+addtoolbox omlSignals
+amp1 = fold([1,2,5,3,5,2])

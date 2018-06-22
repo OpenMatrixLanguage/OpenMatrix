@@ -1,0 +1,241 @@
+addtoolbox omlSignals
+
+function result = ButterLP()
+	result = 'fail';
+	fc = 200;
+	fs = 1000;
+	fn = fc / (fs/2);
+	dB3 = 20 * log10(sqrt(1/2));
+
+	for order=1:14
+		[num,den] = butter(order, fn);
+
+		if (length(num) ~= order + 1)
+			break;
+		end
+
+		if (length(den) ~= order + 1)
+			break;
+		end
+
+		f = [0,fc-1,fc,fc+1,fs/2];
+		m = abs(freqz(num,den,f,fs));
+
+		if (abs(m(1) - 1.0) > 1.0e-4)
+			break;
+		end
+
+		if (20 * log10(m(2)) < dB3)
+			break;
+		end
+
+		if (abs(20 * log10(m(3)) - dB3) > 1.0e-4)
+			break;
+		end
+
+		if (20 * log10(m(4)) > dB3)
+			break;
+		end
+
+		if (m(5) > 1.0e-4)
+			break;
+		end
+
+		order = order + 1;
+	end
+
+	if (order == 15)
+		result = 'pass';
+	end
+end
+
+function result = ButterHP()
+	result = 'fail';
+	fc = 300;
+	fs = 1000;
+	fn = fc / (fs/2);
+	dB3 = 20 * log10(sqrt(1/2));
+
+	for order=1:14
+		[num,den] = butter(order, fn, 'high');
+
+		if (length(num) ~= order + 1)
+			break;
+		end
+
+		if (length(den) ~= order + 1)
+			break;
+		end
+
+		f = [0,fc-1,fc,fc+1,fs/2];
+		m = abs(freqz(num,den,f,fs));
+
+		if (m(1) > 1.0e-4)
+			break;
+		end
+
+		if (20 * log10(m(2)) > dB3)
+			break;
+		end
+
+		if (abs(20 * log10(m(3)) - dB3) > 1.0e-4)
+			break;
+		end
+
+		if (20 * log10(m(4)) < dB3)
+			break;
+		end
+
+		if (abs(m(5) - 1.0) > 1.0e-4)
+			break;
+		end
+
+		order = order + 1;
+	end
+
+	if (order == 15)
+		result = 'pass';
+	end
+end
+
+function result = ButterBP()
+	result = 'fail';
+	fc1 = 200;
+	fc2 = 350;
+	fs = 1000;
+	fn1 = fc1 / (fs/2);
+	fn2 = fc2 / (fs/2);
+	fcc = (fs/pi)*atan(sqrt(tan(fc1*pi/fs)*tan(fc2*pi/fs)));
+	dB3 = 20 * log10(sqrt(1/2));
+
+	for order=1:14
+		[num,den] = butter(order, [fn1, fn2]);
+
+		if (length(num) ~= 2 * order + 1)
+			break;
+		end
+
+		if (length(den) ~= 2 * order + 1)
+			break;
+		end
+
+		f = [0,fc1-1,fc1,fc1+1,fcc,fc2-1,fc2,fc2+1,fs/2];
+		m = abs(freqz(num,den,f,fs));
+
+		if (m(1) > 1.0e-4)
+			break;
+		end
+
+		if (20 * log10(m(2)) > dB3)
+			break;
+		end
+
+		if (abs(20 * log10(m(3)) - dB3) > 1.0e-4)
+			break;
+		end
+
+		if (20 * log10(m(4)) < dB3)
+			break;
+		end
+
+		if (abs(m(5) - 1.0) > 1.0e-4)
+			break;
+		end
+
+		if (20 * log10(m(6)) < dB3)
+			break;
+		end
+
+		if (abs(20 * log10(m(7)) - dB3) > 1.0e-4)
+			break;
+		end
+
+		if (20 * log10(m(8)) > dB3)
+			break;
+		end
+
+		if (m(9) > 1.0e-4)
+			break;
+		end
+
+		order = order + 1;
+	end
+
+	if (order == 15)
+		result = 'pass';
+	end
+end
+
+function result = ButterBS()
+	result = 'fail';
+	fc1 = 200;
+	fc2 = 350;
+	fs = 1000;
+	fn1 = fc1 / (fs/2);
+	fn2 = fc2 / (fs/2);
+	fcc = (fs/pi)*atan(sqrt(tan(fc1*pi/fs)*tan(fc2*pi/fs)));
+	dB3 = 20 * log10(sqrt(1/2));
+
+	for order=1:14
+		[num,den] = butter(order, [fn1, fn2], 'stop');
+
+		if (length(num) ~= 2 * order + 1)
+			break;
+		end
+
+		if (length(den) ~= 2 * order + 1)
+			break;
+		end
+
+		f = [0,fc1-1,fc1,fc1+1,fcc,fc2-1,fc2,fc2+1,fs/2];
+		m = abs(freqz(num,den,f,fs));
+
+		if (abs(m(1) - 1.0) > 1.0e-4)
+			break;
+		end
+
+		if (20 * log10(m(2)) < dB3)
+			break;
+		end
+
+		if (abs(20 * log10(m(3)) - dB3) > 1.0e-4)
+			break;
+		end
+
+		if (20 * log10(m(4)) > dB3)
+			break;
+		end
+
+		if (m(5) > 1.0e-4)
+			break;
+		end
+
+		if (20 * log10(m(6)) > dB3)
+			break;
+		end
+
+		if (abs(20 * log10(m(7)) - dB3) > 1.0e-4)
+			break;
+		end
+
+		if (20 * log10(m(8)) < dB3)
+			break;
+		end
+
+		if (abs(m(9) - 1.0) > 1.0e-4)
+			break;
+		end
+
+		order = order + 1;
+	end
+
+	if (order == 15)
+		result = 'pass';
+	end
+end
+
+
+butterLP = ButterLP()
+butterHP = ButterHP()
+butterBP = ButterBP()
+butterBS = ButterBS()

@@ -1,0 +1,12 @@
+﻿function show()
+ 	disp('hello')
+end
+  
+function f = add(x,y)
+	f = x+y;
+end
+ 
+functionstruct = struct('addxy',@add,'showhello',@show)
+functionstruct.addxy(3,4)
+functionstruct.showhello
+functionstruct.showhello()

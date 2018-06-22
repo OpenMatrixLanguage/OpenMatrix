@@ -1,0 +1,4 @@
+addtoolbox omlpythonbridge
+disp('importing complex data from python')
+evalpythonscript('pocomp=9+9j');
+[value, status, errorMessage] = getpythonvar('pocomp')

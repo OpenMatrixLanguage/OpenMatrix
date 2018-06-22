@@ -1,0 +1,8 @@
+a = [Matrix] 1 x 3
+10 + 0i  3 + 0i  -1 - 1i
+b = [Matrix] 1 x 3
+2 + 0i  -75 + 0i  -16 - 40i
+c = [Matrix] 1 x 3
+-1 + 0i  30 - 0i  14 + 35i
+d = [Matrix] 1 x 3
+0  1  1

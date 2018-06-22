@@ -1,0 +1,6 @@
+function print_arguments (varargin)
+	for i = 1:length (varargin)
+		disp (varargin{1, i}) 
+	end
+end
+print_arguments(3,2,4,6,5,3,7,10)

@@ -1,0 +1,17 @@
+student = struct [
+name: Murielle
+]
+student = struct [
+age: 20
+name: Murielle
+]
+student = struct [
+age: 20
+id: 902830905
+name: Murielle
+]
+student = struct [
+age: 20
+id: 902830905
+name: Murielle
+]

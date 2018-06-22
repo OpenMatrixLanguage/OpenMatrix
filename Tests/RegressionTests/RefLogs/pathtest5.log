@@ -1,0 +1,4 @@
+Warning: 'nonexistent' is not in path in call to function rmpath at line number 2 in file pathtest5.oml
+Current search path:
+.
+RefLogs

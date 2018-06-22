@@ -1,0 +1,5 @@
+addtoolbox omlpythonbridge
+disp('importing matrix data from python')
+evalpythonscript('import numpy as np');
+evalpythonscript('pomatrix = np.matrix("1 2; 3 4")');
+[value, status, errorMessage] = getpythonvar('pomatrix')

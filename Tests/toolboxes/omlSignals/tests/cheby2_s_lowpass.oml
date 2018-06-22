@@ -1,0 +1,6 @@
+addtoolbox omlSignals
+
+order = 4;
+dBc = 20;
+wc = (2*pi)*100;
+[num,den] = cheby2(order, dBc, wc, 's')

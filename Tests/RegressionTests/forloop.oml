@@ -1,0 +1,5 @@
+sum=0
+for j=1:10
+   sum = sum + j
+end
+sum

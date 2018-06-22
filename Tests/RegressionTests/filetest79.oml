@@ -1,0 +1,4 @@
+fname = 'FileManipulation/EmptyFile.txt'
+fid = fopen(fname, 'r')
+fwrite(fid, 'test')
+fclose(fid)

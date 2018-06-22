@@ -1,0 +1,7 @@
+try
+	a = [1:1e10];
+catch
+    a = -1;
+end
+
+max(a)

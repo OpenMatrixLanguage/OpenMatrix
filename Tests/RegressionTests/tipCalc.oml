@@ -1,0 +1,8 @@
+
+subTotal= 101.68
+salesTaxPercentage= 9.75
+tipPercentage= 20
+
+tipBefore  = subTotal*tipPercentage/100
+tipAfter   = (subTotal*(salesTaxPercentage/100)+subTotal)* (tipPercentage/100)
+difference = tipAfter - tipBefore

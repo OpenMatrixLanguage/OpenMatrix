@@ -1,0 +1,5 @@
+fname = FileManipulation/CreatedFile.txt
+fid = 3
+error = 
+ans = 0
+Error: invalid input in argument 1; type must be string in call to function delete at line number 4 in file delete3.oml

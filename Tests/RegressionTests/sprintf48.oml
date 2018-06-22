@@ -1,0 +1,2 @@
+sprintf('[%20s]', 'crash ahoy')
+sprintf('[%-20s]', 'crash ahoy')

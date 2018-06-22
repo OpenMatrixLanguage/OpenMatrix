@@ -1,0 +1,2 @@
+m = 0 + 21i
+Error: invalid input in argument 1; value must be a nonnegative integer, matrix or cell array in call to function dec2hex at line number 2 in file dec2hex6.oml

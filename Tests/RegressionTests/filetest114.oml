@@ -1,0 +1,10 @@
+fname = 'FileManipulation/FileToWrite45.txt'
+fid = fopen(fname, 'w+')
+fwrite(fid, [250,16.12], 'int16')
+fflush(fid)
+frewind(fid)
+fread(fid)
+frewind(fid)
+fread(fid, inf, 'integer*2')
+fclose(fid)
+delete(fname)

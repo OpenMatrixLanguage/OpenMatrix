@@ -1,0 +1,6 @@
+a = @my_func;
+a(3)
+
+function z=my_func(a)
+  z=a+1;
+end

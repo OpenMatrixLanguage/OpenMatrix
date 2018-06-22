@@ -1,0 +1,23 @@
+﻿function y=mysize(varargin)
+	y=1;
+	for i=1:nargin
+		y=y*varargin{i};
+	end
+end
+
+global mysystem;
+mysystem=struct;
+mysystem.mysize=@mysize;
+
+function f(varargin)
+	g(varargin{:});
+end
+
+function g(varargin)
+	global mysystem;
+	disp('hello');
+	mysystem.mysize(varargin{:})
+	disp('bye');
+end
+
+f(2,3,4);

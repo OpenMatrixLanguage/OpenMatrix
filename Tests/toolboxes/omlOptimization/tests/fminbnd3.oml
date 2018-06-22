@@ -1,0 +1,9 @@
+addtoolbox omlOptimization
+
+function y = func(x)
+    y = -log(x) / x;
+end
+
+interval = [1, 6];
+options = optimset('MaxFunEvals', 9, 'TolX', 1.0e-4);
+[x,fval] = fminbnd(@func, interval, options)

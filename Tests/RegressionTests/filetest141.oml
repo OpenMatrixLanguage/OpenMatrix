@@ -1,0 +1,9 @@
+fname = 'FileManipulation/FileToWrite67.txt'
+fid = fopen(fname, 'w+')
+fwrite(fid, [1e5000,-1e5000], 'uchar')
+fprintf(fid,'hello\n')
+fflush(fid)
+frewind(fid)
+[v,c]=fread(fid)
+fclose(fid)
+delete(fname)

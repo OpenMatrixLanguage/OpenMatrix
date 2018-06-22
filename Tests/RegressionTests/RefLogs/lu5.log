@@ -1,0 +1,7 @@
+=================
+(STATEMENT_LIST (MR_FUNC lu (ID_LIST l u p) (PARAM_LIST (MATRIX (VECTOR (+ 2i 4)) (VECTOR (- i 3)) (VECTOR 8)))) (FUNC print (PARAM_LIST l)) (FUNC print (PARAM_LIST u)) (FUNC print (PARAM_LIST p)))
+=================
+[ 1; -0.375 + 0.125i; 0.5 + 0.25i]
+[ 8]
+[ 0 0 1 ; 0 1 0 ; 1 0 0 ]
+Evaluator result: 0

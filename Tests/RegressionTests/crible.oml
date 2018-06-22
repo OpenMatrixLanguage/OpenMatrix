@@ -1,0 +1,22 @@
+function [vp] = crible(n)
+   % Sieve of Erathostenes; return a vector of all primes vp that are
+   % less or equal than n.  1 is not considered to be a prime number
+   % in crible(). 
+   if n < 2 
+      vp = [];
+   else
+      sieve = 1:n;
+      sieve(1) = 0;  % 1 is not a prime
+      for i=2:sqrt(n)
+                % unset all multiples of i if i has not
+                % already been unset
+                if sieve(i) ~= 0 
+                    sieve(2*i:i:n) = 0;
+                end
+      end
+      vp = sieve(sieve ~= 0);
+   end
+end
+
+z = crible(5e5);
+size(z)

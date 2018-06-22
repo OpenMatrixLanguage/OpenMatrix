@@ -1,0 +1,8 @@
+function [y,z] = myfunc(a,b,c)
+    y=(a+b)*c;
+	z=(a-b)*c;
+end
+
+q=@(x,y) myfunc(y,x,10);
+
+[a,b] = q(1,2)

@@ -1,0 +1,4 @@
+run('sourcefile1.script')
+run('sourcefile2.script')
+run('sourcefile3.script')
+a

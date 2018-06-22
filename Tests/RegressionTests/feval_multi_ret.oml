@@ -1,0 +1,6 @@
+function [x,y] = funcTest12(a,b,c) 
+	x = a+b+c;
+ 	y = 2*b;
+end
+
+[out1,out2] = feval('funcTest12',1,2,3)

@@ -1,0 +1,52 @@
+# ====================================================================
+# OpenMatrix math/statistics makefile
+# ====================================================================
+PROJ := hwstatistics
+
+UNAME := $(shell uname)
+ifneq (,$(findstring NT,$(UNAME)))
+   TARGET = $(BINDIR)/$(PROJ).dll
+else
+   TARGET = $(BINDIR)/lib$(PROJ).so
+endif
+
+include $(OML_ROOT)/src/makebase.cfg
+
+
+# ====================================================================
+SOURCES += $(wildcard _private/*.cxx)
+OBJECTS = $(foreach file,$(SOURCES),$(addprefix $(PLATFORM)/,$(addsuffix .o,$(basename $(notdir $(file))))))
+vpath %.cxx _private
+
+CXX_DEFINES += -DSTATISTICS_EXPORTS 
+
+CXX_INCLUDES += -I. $(HWMATHKERNEL_INC)
+CXX_INCLUDES += -I$(OML_ROOT)/src/math/mathutils
+CXX_INCLUDES += -I$(OML_ROOT)/src/math/optimization
+CXX_INCLUDES += -I$(OML_ROOT)/src/math/polynom
+
+
+ifneq (,$(findstring NT,$(UNAME)))
+   LIBS += hwmathutils.lib hwpolynom.lib hwoptimization.lib
+else
+   LIBS += -lhwmathutils -lhwpolynom -lhwoptimization
+endif
+
+LIBS += $(MATHKERNEL_LIBS)
+
+LIBS += $(LAPACK_LIBS) $(BLAS_LIBS)
+
+# ====================================================================
+
+$(PLATFORM)/%.o : %.cxx $(objdir)
+	$(compile-cxx)
+
+$(TARGET) : $(OBJECTS)
+	$(build-shared-lib)
+
+clean::
+	-$(RM) -rf $(TARGET)
+	-$(RM) -rf $(PLATFORM)
+	-$(RM) -rf $(BINDIR)/$(PROJ).*
+	-$(RM) -rf $(LIBDIR)/$(PROJ).*
+

@@ -1,0 +1,5 @@
+options = struct [
+GradConstr: on
+GradObj: on
+MaxIter: 200
+]

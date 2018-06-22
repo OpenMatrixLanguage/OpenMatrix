@@ -1,0 +1,4 @@
+ans = [Matrix] 2 x 3
+0  0  0
+0  1  0
+ans = 1

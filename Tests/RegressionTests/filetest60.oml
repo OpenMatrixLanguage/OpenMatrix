@@ -1,0 +1,8 @@
+fname = 'FileManipulation/FileToWrite13.txt'
+fid = fopen(fname, 'w')
+fwrite(fid, [2.3, 1.2;9.1,3.5], 'double', 3)
+fclose(fid)
+fid = fopen(fname,'r')
+fread(fid)
+fclose(fid)
+delete(fname)

@@ -1,0 +1,12 @@
+function [a,b] = foo(c,d)
+   if (c==d)
+       a=sqrt(c+d)
+       b='equal'
+   else
+       a=c^2+d^2
+	   b='not equal'
+   end
+end
+
+[y,z] = foo(8,3)
+z

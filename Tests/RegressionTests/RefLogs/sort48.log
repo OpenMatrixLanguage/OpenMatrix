@@ -1,0 +1,12 @@
+sorted = [Matrix] 2 x 4
+1  2  3  4
+2  3  5  9
+index = [Matrix] 2 x 4
+4  3  1  2
+3  2  1  4
+sorted = [Matrix] 2 x 4
+1  2  3  4
+2  3  5  9
+index = [Matrix] 2 x 4
+4  3  1  2
+3  2  1  4

@@ -1,0 +1,5 @@
+a = [Matrix] 1 x 4
+1  0  0  4
+b = 4
+ans = [Matrix] 1 x 4
+1  0  0  1

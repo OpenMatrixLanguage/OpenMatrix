@@ -1,0 +1,4 @@
+function testfunc()
+disp('test')
+end
+func2str(@testfunc)

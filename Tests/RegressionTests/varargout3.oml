@@ -1,0 +1,10 @@
+function varargout = foo()
+ varargout{1} = 'a';
+ varargout{2} = 'b';
+ varargout{3} = 'c';
+ end
+
+foo() % it should return the first element of varargout here
+R = foo() % it should return the first element of varargout here
+[R1, R2] = foo() % it returns 'a' in R1 and 'b' in R2 OK
+[R1,R2, R3] = foo()  % it returns 'a' in R1 and 'b' in R2 OK and 'c' in R3 OK

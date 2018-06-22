@@ -1,0 +1,2 @@
+mystruct=struct('nom',{'Pierre','Paul','Jacques'},'taille',{175,182,163},'metier', {'coiffeur','boulanger','avocat'},'poids',{73,85,72});
+mystruct(:)

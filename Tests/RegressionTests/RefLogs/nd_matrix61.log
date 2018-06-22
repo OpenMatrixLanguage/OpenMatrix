@@ -1,0 +1,10 @@
+M = 
+slice(:, :, 1) = 
+[Matrix] 2 x 2
+5  5
+5  5
+
+slice(:, :, 2) = 
+[Matrix] 2 x 2
+1  1
+1  1

@@ -1,0 +1,3 @@
+addpath('.')
+run('FileManipulation/sourcefile1.script')
+a

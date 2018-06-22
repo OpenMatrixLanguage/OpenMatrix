@@ -1,0 +1,13 @@
+﻿function y=f(x)
+   y=x;
+end
+
+g=@f;
+
+g(3)
+
+function y=f(x)
+   y=x+1;
+end
+
+g(3)

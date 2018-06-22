@@ -1,0 +1,3 @@
+function z=myfunc(a)
+   z=a/2
+end

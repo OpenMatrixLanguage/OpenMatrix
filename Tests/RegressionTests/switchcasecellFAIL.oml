@@ -1,0 +1,10 @@
+e = complex(2-3.1i)
+switch e
+  case {'hello','hi'}
+    f = 'hello'
+  case {'goodbye', 'bye'}
+    f = 'bye'
+  otherwise
+    f = 'neither'
+end
+f

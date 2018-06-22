@@ -1,0 +1,4 @@
+addtoolbox omlpythonbridge
+disp('importing integer data from python')
+evalpythonscript('point = 999'); 
+[value, status, errorMessage] = getpythonvar('point')

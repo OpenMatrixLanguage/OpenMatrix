@@ -1,0 +1,20 @@
+a = [Matrix] 2 x 2
+1  2
+3  4
+[Matrix] 2 x 2
+2  4
+6  8
+[Matrix] 2 x 2
+2  4
+6  8
+[Matrix] 2 x 2
+ 7  10
+15  22
+b = [Matrix] 1 x 2
+-1  -1
+[Matrix] 1 x 2
+-3  -3
+[Matrix] 1 x 2
+-3  -3
+ans = [Matrix] 1 x 2
+-4  -6

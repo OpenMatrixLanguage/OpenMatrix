@@ -1,0 +1,10 @@
+Warning: Rows can be compared only for 2-D matrices; ignoring option 'rows' in call to function unique at line number 1 in file unique30.oml
+a = 
+{
+  [1,1] str1
+  [1,2] str2
+}
+b = [Matrix] 1 x 2
+3  1
+c = [Matrix] 1 x 3
+2  1  1

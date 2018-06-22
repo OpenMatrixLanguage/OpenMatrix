@@ -1,0 +1,4 @@
+function testfunction()
+	disp(x)
+end
+testfunction()

@@ -1,0 +1,6 @@
+function z=myfunc(a,b)
+   z= a(b);
+end
+ 
+myfunc(@(x) sqrt(x), [25,36,49])(2)
+

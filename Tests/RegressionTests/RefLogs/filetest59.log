@@ -1,0 +1,18 @@
+fname = FileManipulation/FileToWrite12.txt
+fid = 3
+ans = 1
+ans = 0
+fid = 3
+ans = [Matrix] 11 x 1
+  0
+  0
+  0
+205
+204
+204
+204
+204
+204
+ 58
+ 64
+ans = 0

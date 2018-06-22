@@ -1,0 +1,13 @@
+function f
+disp('called')
+mlock()
+end
+mislocked('f')
+f()
+mislocked('f')
+clear('f')
+f()
+munlock('f')
+mislocked('f')
+clear('f')
+f()

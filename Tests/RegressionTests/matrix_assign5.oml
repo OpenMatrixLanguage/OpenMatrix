@@ -1,0 +1,6 @@
+Matrix=ones(6,6);
+Matrix(:)=1:36
+Matrix(:)=4
+Matrix(:)=(1:36)*i
+Matrix(:)=8-3i
+Matrix(:)=[]

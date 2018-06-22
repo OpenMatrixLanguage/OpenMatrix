@@ -1,0 +1,10 @@
+﻿function updateTime()
+	persistent local_time;
+
+	local_time
+	local_time(length(local_time)+1) = 9;
+	local_time
+end
+
+updateTime()
+updateTime()

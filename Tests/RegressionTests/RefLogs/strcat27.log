@@ -1,0 +1,1 @@
+Error: strings must have the same number of rows to be concatenated in call to function strcat at line number 1 in file strcat27.oml

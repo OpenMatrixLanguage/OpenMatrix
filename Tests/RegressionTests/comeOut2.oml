@@ -1,0 +1,4 @@
+function out = comeOut2(in)
+	out=in
+end
+comeOut2('hi')

@@ -1,0 +1,4 @@
+addtoolbox omlpythonbridge
+disp('exporting struct data')
+opstruct = struct('key1',123, 'key2','test');
+[status, errorMessage]=exporttopython(opstruct,'opstruct')

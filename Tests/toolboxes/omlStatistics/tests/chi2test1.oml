@@ -1,0 +1,71 @@
+addToolbox('omlStatistics');
+addpath('.');
+run('test_setup')
+
+mask = 1000000; % mask for displaying rounded results
+
+% set distribution parameters
+n = 10;
+z = zeros(1,500);
+% compute exact mean and variance
+avg = n;
+variance = 2*n;
+disp('case 1')
+
+% generate nearly perfect Chi^2 distributed sample
+v = [0.001:0.002:0.999];	% equally cdf spaced samples
+x = chi2inv(v, n);		% near perfect Chi^2 sample
+
+xbar = mean(x);
+sig2 = var(x);
+
+assertCheckAlmostEqual(avg,xbar,0,1e-2)
+assertCheckAlmostEqual(variance,sig2,0,1e-1)
+
+disp('case 2')
+
+% verify that chi2cdf and chi2inv are inverses
+y = chi2cdf(x, n);
+result = round(mask*(y-v))/mask;
+assertCheckAlmostEqual(result,z,1e-10)
+
+disp('case 3')
+
+% verify that chi2pdf is the derivative of chi2cdf
+y1 = chi2cdf(x-0.00005, n);
+y2 = chi2cdf(x+0.00005, n);
+pdf1 = (y2-y1)/0.0001;
+pdf2 = chi2pdf(x, n);
+result = round(mask*(pdf2-pdf1))/mask;
+assertCheckAlmostEqual(result,z,1e-10)
+
+disp('case 4')
+
+% verify that gamfit recovers the original parameters
+[a, b, aCI, bCI] = gamfit(x);
+
+assertCheckAlmostEqual(2*a,n,1e-2)
+assertCheckAlmostEqual(0.5*b,1,1e-2)
+%disp (aCI)	% no good checks for this yet
+%disp (bCI)	% no good checks for this yet
+
+disp('case 5')
+
+% verify that chi2rnd produces appropriate data
+numSamp = 10000;
+rand('seed', 2003);
+x2 = chi2rnd(n, 1, numSamp);
+[a3, b3, aCI, bCI] = gamfit(x2);
+
+assertCheckAlmostEqual(a3*2,n,1e-2)
+assertCheckAlmostEqual(b3*0.5,1,1e-2)
+
+disp('case 6')
+
+xbar = mean(x2);
+sig2 = var(x2);
+
+assertCheckAlmostEqual(avg,xbar,1e-2)
+assertCheckAlmostEqual(variance,sig2,1e-2)
+
+disp('TEST PASSED')

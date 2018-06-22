@@ -1,0 +1,3 @@
+Warning: maximum number of function evaluations exceeded, returned last estimate in call to function fzero at line number 9 in file fzero3.oml
+x = 4.99999915
+fval = -2.72282456e-05

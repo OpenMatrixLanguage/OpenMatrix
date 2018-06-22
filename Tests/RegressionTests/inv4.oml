@@ -1,0 +1,3 @@
+[a,b]=inv(2i-9)
+disp(a)
+disp(b)

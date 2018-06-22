@@ -1,0 +1,2 @@
+a =  struct('coordinate',[1,1],'second',10);
+a.nonexist

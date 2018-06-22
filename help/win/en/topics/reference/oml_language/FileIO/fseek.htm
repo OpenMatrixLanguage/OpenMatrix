@@ -1,0 +1,141 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="fseek" /><meta name="abstract" content="Sets the file pointer to a position in fileID. Returns 0 if successful; returns -1 if unsuccessful." /><meta name="description" content="Sets the file pointer to a position in fileID. Returns 0 if successful; returns -1 if unsuccessful." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="File I/O Commands" /><meta name="indexterms" content="fseek" /><meta name="DC.subject" content="fseek" /><meta name="keywords" content="fseek" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/file_i_o_command_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fopen.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/frewind.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/ftell.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>fseek</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/file_i_o_command_r.htm" title="File I/O Commands">File I/O Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/FileIO/file_i_o_command_r.htm" title="File I/O Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">File I/O Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">fseek</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Sets the file pointer to a position in <var class="keyword varname">fileID</var>. Returns
+      <samp class="ph systemoutput">0</samp> if successful; returns <samp class="ph systemoutput">-1</samp> if
+    unsuccessful. </p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">R = fseek<span class="ph var">(fileID, offset)</span></span></p>
+
+      <p class="p"><span class="ph synph">R = fseek<span class="ph var">(fileID, offset, origin)</span></span></p>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">fileID</var></dt>
+
+          <dd class="dd pd">File ID returned from <span class="keyword cmdname">fopen()</span>.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">offset</var></dt>
+
+            <dd class="dd pd">Number of positions to move in the file.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">origin</var></dt>
+
+          <dd class="dd pd">Position from which to begin counting the offset.  SEEK_SET is the default.</dd>
+
+          <dd class="dd pd ddexpand"><span class="keyword option">SEEK_CUR</span> or <span class="keyword option">'cof</span>' for current position in file.</dd>
+
+          <dd class="dd pd ddexpand"><span class="keyword option">SEEK_SET</span> or <span class="keyword option">'bof'</span> for beginning of file.</dd>
+
+          <dd class="dd pd ddexpand"><span class="keyword option">SEEK_END</span> or <span class="keyword option">'eof'</span> for end of file.</dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+          <dd class="dd pd">Scalar 0 or -1</dd>
+
+        
+      </dl>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example </h2>
+      
+      <div class="p"><span class="keyword cmdname">fseek</span> and related
+        functions:<pre class="pre codeblock"><code>% example for fseek, ftell, SEEK_END, 'eof', SEEK_SET, 'bof', SEEK_CUR, 'cof'
+fileID = fopen('testfile7', 'r')
+printf('starting position in file %d\n', ftell(fileID))
+
+% go to end of file and show position
+printf('fseek result %d\n', fseek(fileID, 0, SEEK_END))	% can use SEEK_END or 'eof'
+printf('after SEEK_END position in file %d\n', ftell(fileID))
+
+% return to begining of file and show position
+printf('fseek result %d\n', fseek(fileID, 0, SEEK_SET))	% can use SEEK_SET or 'bof'
+printf('after SEEK_SET position in file %d\n', ftell(fileID))
+
+% change position +8 characters forward and show position
+printf('fseek result %d\n', fseek(fileID, +8, SEEK_CUR))	% can use SEEK_CUR or 'cof'
+printf('after SEEK_CUR +8 position in file %d\n', ftell(fileID))
+
+% change position 4 characters backward and show position
+printf('fseek result %d\n', fseek(fileID, -4, SEEK_CUR))	% can use SEEK_CUR or 'cof'
+printf('after SEEK_CUR -4 position in file %d\n', ftell(fileID))
+
+printf('fclose result %d\n', fclose(fileID))</code></pre><pre class="pre codeblock"><code><code class="ph codeph">fileID = 3
+starting position in file 0
+fseek result 0
+after SEEK_END position in file 15
+fseek result 0
+after SEEK_SET position in file 0
+fseek result 0
+after SEEK_CUR +8 position in file 8
+fseek result 0
+after SEEK_CUR -4 position in file 4
+fclose result 0</code></code></pre></div>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+      
+      <p class="p"><span class="keyword">1.0</span></p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/fopen.htm" title="Opens a file for reading. Returns an integer file ID to be used to for reference later.">fopen</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/frewind.htm" title="Moves the file pointer to the beginning of the file fileID. Returns 0 on success.">frewind</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/ftell.htm" title="Returns the current position of the file pointer.">ftell</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/FileIO/file_i_o_command_r.htm" title="File I/O Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">File I/O Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

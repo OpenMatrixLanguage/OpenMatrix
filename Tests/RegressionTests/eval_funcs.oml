@@ -1,0 +1,5 @@
+function z=goo(a,b)
+    z=a+sqrt(b)
+end
+
+eval('goo(3,4)')

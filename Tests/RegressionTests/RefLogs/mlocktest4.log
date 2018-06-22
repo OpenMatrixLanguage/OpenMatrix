@@ -1,0 +1,6 @@
+ans = 0
+called
+ans = 1
+called
+ans = 0
+Unknown function: f at line number 13 in file mlocktest4.oml

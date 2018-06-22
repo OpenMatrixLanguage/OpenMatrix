@@ -1,0 +1,6 @@
+d = [Matrix] 1 x 4
+2  4  3  7
+ans = [Matrix] 1 x 4
+2  4  3  7
+ans = [Matrix] 1 x 4
+2  4  3  0

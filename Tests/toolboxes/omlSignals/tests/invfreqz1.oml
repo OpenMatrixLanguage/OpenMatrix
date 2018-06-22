@@ -1,0 +1,8 @@
+addtoolbox omlSignals
+fc = 200;
+fs = 1000;
+order = 4;
+[num,den] = butter(order, fc/(fs/2), 'z')
+f = [1:1:14] * 0.1 * fc;
+h = freqz(num,den,f,fs);
+[b,a] = invfreqz(h,f/(fs/2)*pi,order,order)

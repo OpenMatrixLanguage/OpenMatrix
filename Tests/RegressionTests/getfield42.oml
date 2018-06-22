@@ -1,0 +1,5 @@
+a.b=4;
+a(1,2).b=3;
+getfield(a,{})
+getfield(a,{1,2},{})
+getfield(a,{},{1,2})

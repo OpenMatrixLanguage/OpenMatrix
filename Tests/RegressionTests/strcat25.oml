@@ -1,0 +1,1 @@
+strcat(['test ';'test',32],' test2  ')

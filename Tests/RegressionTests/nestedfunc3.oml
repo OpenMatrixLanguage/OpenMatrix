@@ -1,0 +1,9 @@
+function outer()
+	function inner()
+		disp('inside the inner')
+	end
+	inner()
+	inner()
+end
+
+outer

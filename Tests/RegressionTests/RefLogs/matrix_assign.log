@@ -1,0 +1,15 @@
+a = [Matrix] 2 x 2
+1  2
+3  4
+b = [Matrix] 2 x 2
+1  2
+3  4
+b = [Matrix] 2 x 2
+-1  2
+ 3  4
+[Matrix] 2 x 2
+1  2
+3  4
+[Matrix] 2 x 2
+-1  2
+ 3  4

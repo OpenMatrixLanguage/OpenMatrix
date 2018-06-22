@@ -1,0 +1,2 @@
+assert({5},{6},0.5)
+disp('no crash')

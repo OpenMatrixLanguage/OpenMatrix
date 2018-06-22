@@ -1,0 +1,5 @@
+function r = foo(a,b,c)
+ r = a + b + c
+ end 
+
+r = foo(1,2,3,4,5)

@@ -1,0 +1,29 @@
+fname = FileManipulation/FileToWrite16.txt
+fid = 3
+ans = 21
+ans = 8
+ans = 0
+fid = 3
+ans = [Matrix] 21 x 1
+ 84
+ 72
+115
+107
+105
+ 73
+ 83
+112
+116
+101
+ 84
+ 69
+115
+116
+ 95
+ 83
+ 84
+ 82
+ 73
+ 78
+ 71
+ans = 0

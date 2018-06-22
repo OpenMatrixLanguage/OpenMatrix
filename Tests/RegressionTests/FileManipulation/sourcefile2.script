@@ -1,0 +1,3 @@
+function testfunction()
+	disp('true')
+end

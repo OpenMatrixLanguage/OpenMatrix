@@ -1,0 +1,7 @@
+a=4
+switch a
+   case {1,3,4}
+        disp('good')
+  otherwise
+       disp(bad)
+end

@@ -1,0 +1,1 @@
+fwrite(stdout, 'test','long',-2)

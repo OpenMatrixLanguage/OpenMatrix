@@ -1,0 +1,5 @@
+c = struct [
+d: struct [
+b: 5
+]
+]

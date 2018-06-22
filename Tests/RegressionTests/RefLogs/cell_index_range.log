@@ -1,0 +1,15 @@
+A = 
+{
+  [1,1] r
+  [1,2] erf
+  [2,1] qeqfd
+  [2,2] 
+  [3,1] zezerrzrz
+  [3,2] 
+}
+ans = 
+{
+  [1,1] r
+  [2,1] qeqfd
+  [3,1] zezerrzrz
+}

@@ -1,0 +1,1 @@
+[a,b]=setdiff({'test1'},'test2')

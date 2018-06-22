@@ -1,0 +1,7 @@
+addtoolbox omlSignals
+
+% test 7 - unstable negative real pole
+fs = 2000;
+num = [1, 2, 1];
+den = [1, 4, 4];
+[x,t] = impz(num, den, [], fs)

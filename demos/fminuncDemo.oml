@@ -1,0 +1,48 @@
+
+
+% OML - This example shows how to the smallest distance between 
+% two shapes using fminunc 
+
+% Consider the two following ellipsoids:
+% (x-1)^2/25 + (y-2)^2/16 + (z-3)^2/9 = 1
+% (x-12)^2/49 + (y-13)^2/81 + (z-14)^2/36 = 1
+
+% Solution with fminunc
+% Let the objective be the squared distance between (x1,y1,z1) and (x2,y2,z2).
+% objective: f(x1,y1,z1,x2,y2,z2) = (x1-x2)^2 + (y1-y2)^2 + (z1-z2)^2
+
+% Objective function
+function obj = ObjFunc(angles)
+	% parameterize (x,y,z) on each constraint ellipsoids in terms
+	% of angles theta and phi.
+	% define angles = [theta1, phi1, theta2, phi2]
+	theta1 = angles(1);
+	phi1 = angles(2);
+	theta2 = angles(3);
+	phi2 = angles(4);
+	x1 = 5*cos(theta1) + 1;
+	y1 = 4*sin(theta1)*cos(phi1) + 2;
+	z1 = 3*sin(theta1)*sin(phi1) + 3;
+	x2 = 7*cos(theta2) + 12;
+	y2 = 9*sin(theta2)*cos(phi2) + 13;
+	z2 = 6*sin(theta2)*sin(phi2) + 14;
+	obj = (x1-x2)^2 + (y1-y2)^2 + (z1-z2)^2;
+end
+
+% Initial angle estimates
+
+angles0 = [0.1, 0.1, 0.1, 0.1];		
+
+% Actual optimization
+
+[angles,fval] = fminunc(@ObjFunc, angles0);
+
+% Results 
+
+theta1 = angles(1);
+phi1 = angles(2);
+theta2 = angles(3);
+phi2 = angles(4);
+p1 = [5*cos(theta1) + 1, 4*sin(theta1)*cos(phi1) + 2, 3*sin(theta1)*sin(phi1) + 3]
+p2 = [7*cos(theta2) + 12, 9*sin(theta2)*cos(phi2) + 13, 6*sin(theta2)*sin(phi2) + 14]
+d = norm(p1-p2)

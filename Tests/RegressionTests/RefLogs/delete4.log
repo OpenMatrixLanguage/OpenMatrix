@@ -1,0 +1,7 @@
+fname = FileManipulation/CreatedFile.txt
+fid = 3
+error = 
+ans = 0
+fid = -1
+error = No such file or directory
+Error: invalid file stream id: -1 in call to function fclose at line number 6 in file delete4.oml

@@ -1,0 +1,1 @@
+[a,b,c]=unique(['test1';'test2';'tes','t1'],'rows')

@@ -1,0 +1,1 @@
+strjoin({['aaa';'bbb'],['ccc';'ddd']},['AA';'BB'])

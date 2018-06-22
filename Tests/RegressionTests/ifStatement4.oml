@@ -1,0 +1,9 @@
+x= 3
+if x == 4
+	y= 'hello 4'
+elseif x == 5
+	y='hello 5'
+else
+	y= 'hello number'
+end	
+y

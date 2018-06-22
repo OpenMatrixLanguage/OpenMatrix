@@ -1,0 +1,23 @@
+a = struct [
+b: 2
+]
+a = struct [
+Struct array of size 1 x 2 with fields:
+b
+]
+x = struct [
+Struct array of size 1 x 2 with fields:
+b
+]
+ans = struct [
+b: 5
+]
+ans = struct [
+b: 3
+]
+ans = struct [
+b: 2
+]
+ans = struct [
+b: 3
+]

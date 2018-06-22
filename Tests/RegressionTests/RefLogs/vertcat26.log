@@ -1,0 +1,20 @@
+a = struct [
+b: 3
+]
+a = struct [
+b: 3
+c: 4
+]
+a = struct [
+Struct array of size 1 x 2 with fields:
+b
+c
+]
+A = struct [
+b: -4
+]
+A = struct [
+b: -4
+c: -3
+]
+Error: inputs must have the same number of rows to be concatenated horizontally in call to function vertcat at line number 6 in file vertcat26.oml

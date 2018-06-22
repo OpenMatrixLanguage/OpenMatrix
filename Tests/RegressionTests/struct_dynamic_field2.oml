@@ -1,0 +1,9 @@
+st.A= 1;
+st.B= 2;
+st.C= 3;
+st.D= 4;
+
+names = fieldnames(st);
+for k = 1: length(names)
+disp(st.(names{k}));
+end

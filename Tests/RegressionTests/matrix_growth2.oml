@@ -1,0 +1,7 @@
+﻿str = '';
+
+for j=1:10
+   str = [str num2str(j)];
+end
+
+str

@@ -1,0 +1,5 @@
+Warning: singular matrix divisor (to within machine precision) at line number 1 in file ldivide6.oml
+ans = [Matrix] 3 x 3
+0.33333  0.33333  0.33333
+0.33333  0.33333  0.33333
+0.33333  0.33333  0.33333

@@ -1,0 +1,7 @@
+for i=1:10
+    strcell{1,i} = ['This is cell number ', num2str(i)];
+end
+
+for i=1:size(strcell)(2)
+    zz = [strcell{j, i}, '\n'];
+end

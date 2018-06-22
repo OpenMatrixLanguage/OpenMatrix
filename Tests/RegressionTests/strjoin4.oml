@@ -1,0 +1,1 @@
+strjoin({'this','is','a','test','string'},{'DELIM1','DELIM2','DELIM3','DELIM4','DELIM5'})

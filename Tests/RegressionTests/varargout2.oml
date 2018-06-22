@@ -1,0 +1,7 @@
+function varargout = foo()
+ varargout{1} = 10;
+ varargout{2} = 20;
+ varargout{3} = 30;
+ end
+
+[a] = foo()

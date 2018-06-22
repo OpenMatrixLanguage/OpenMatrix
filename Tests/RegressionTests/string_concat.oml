@@ -1,0 +1,2 @@
+﻿a=cell(1,2);
+disp(['try this ',a{1}])

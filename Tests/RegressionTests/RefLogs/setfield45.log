@@ -1,0 +1,8 @@
+a = struct [
+b: 2
+]
+a = struct [
+Struct array of size 1 x 2 with fields:
+b
+]
+Error: invalid input in argument 3; type struct cannot be indexed in call to function setfield at line number 3 in file setfield45.oml

@@ -1,0 +1,9 @@
+function b=sqrt(a)
+    b=a
+end
+
+disp(sqrt(4))
+
+clear sqrt
+
+disp(sqrt(4))

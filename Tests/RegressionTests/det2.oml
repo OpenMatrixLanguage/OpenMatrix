@@ -1,0 +1,3 @@
+[a,b]=det([])
+disp(a)
+disp(b)

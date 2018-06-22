@@ -1,0 +1,7 @@
+Warning: Rows can be compared only for 2-D matrices; ignoring option 'rows' in call to function unique at line number 1 in file unique29.oml
+a = 
+{
+  [1,1] test
+}
+b = 1
+c = 1

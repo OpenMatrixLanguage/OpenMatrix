@@ -1,0 +1,17 @@
+function tocall
+    evalin('caller','disp(x)')
+end
+
+function outer
+    x=0
+    function inner
+        tocall
+    end
+end
+
+x=8;
+tocall;
+disp(x);
+outer;
+disp(x);
+

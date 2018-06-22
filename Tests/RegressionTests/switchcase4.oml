@@ -1,0 +1,4 @@
+switch inf
+case 'string'
+	disp('test case1')
+end

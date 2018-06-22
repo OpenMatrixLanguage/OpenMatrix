@@ -1,0 +1,19 @@
+Running KeywordDisplay.hml
+At one time, some keywords in a string caused a syntax error
+There should be no syntax errors running this script
+Display keywords in strings - begin
+if
+while
+for
+switch
+case
+otherwise
+global
+persistent
+return
+break
+try
+end
+function
+Display keywords in strings - completed
+Running KeywordDisplay.hml - completed

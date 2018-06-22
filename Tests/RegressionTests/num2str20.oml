@@ -1,0 +1,4 @@
+num2str(inf)
+num2str(-inf)
+num2str(nan)
+num2str(-nan)

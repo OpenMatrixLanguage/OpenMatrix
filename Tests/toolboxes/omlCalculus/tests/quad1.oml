@@ -1,0 +1,14 @@
+addtoolbox omlCalculus
+
+function y = Integrand(x)
+    if (x < 0)
+        y = sqrt(x+1);
+    elseif (x < 1)
+        y = exp(x);
+    else
+        y = cos(pi/2*(x-1));
+    end
+end
+
+[area,count] = quad(@Integrand, -1, 2, 1.0e-6)
+check = exp(1) + 2/pi - 1/3

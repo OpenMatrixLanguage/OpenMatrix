@@ -1,0 +1,1 @@
+Error: cell array contains mixed element types; cannot concatenate them in call to function cell2mat at line number 1 in file cell2mat45.oml

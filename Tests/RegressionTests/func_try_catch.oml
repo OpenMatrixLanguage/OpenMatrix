@@ -1,0 +1,9 @@
+function myaddtoolbox(boxname)
+	try
+		addtoolbox(boxname);
+	catch
+		disp(sprintf('*** Error loading toolbox %s', boxname));
+	end
+end
+
+myaddtoolbox('doesnotexist');

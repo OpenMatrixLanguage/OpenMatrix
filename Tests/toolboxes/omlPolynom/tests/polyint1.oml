@@ -1,0 +1,6 @@
+addtoolbox omlPolynom
+
+p = [6 8 3];
+d = polyint(p, 7)
+polyint(p, 7)
+polyint(p)

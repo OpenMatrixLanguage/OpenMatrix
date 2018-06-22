@@ -1,0 +1,5 @@
+addpath('.')
+function testfunction()
+disp('false')
+end
+run('FileManipulation/sourcefile3.script')

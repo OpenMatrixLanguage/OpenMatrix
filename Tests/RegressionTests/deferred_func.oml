@@ -1,0 +1,12 @@
+﻿my_func
+
+function my_func
+	disp('func 1')  
+
+	q = @(x) func_2(x);
+	q('func 2');
+end
+
+function func_2(q)
+   disp(q);
+end

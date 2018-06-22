@@ -1,0 +1,253 @@
+addtoolbox omlSignals
+
+function result = EllipLP()
+	result = 'fail';
+	dBp = 1;
+	dBs = 30;
+	wc = (2*pi)*200;
+
+	for order=1:9
+		[num,den] = ellip(order, dBp, dBs, wc, 's');
+
+		if (length(num) ~= order + 1)
+			break;
+		end
+
+		if (length(den) ~= order + 1)
+			break;
+		end
+
+		w = [0,wc-1,wc,wc+1];
+		m = abs(freqs(num,den,w));
+		if (mod(order,2) == 0)
+			if (abs(-20 * log10(m(1)) - dBp) > 1.0e-4)
+				break;
+			end
+		else
+			if (abs(m(1) - 1.0) > 1.0e-4)
+				break;
+			end
+		end
+
+		if (-20 * log10(m(2)) > dBp)
+			break;
+		end
+
+		if (abs(-20 * log10(m(3)) - dBp) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(4)) < dBp)
+			break;
+		end
+
+		order = order + 1;
+	end
+
+	if (order == 10)
+		result = 'pass';
+	end
+end
+
+function result = EllipHP()
+	result = 'fail';
+	dBp = 1;
+	dBs = 30;
+	wc = (2*pi)*300;
+
+	for order=1:9
+		[num,den] = ellip(order, dBp, dBs, wc, 'high', 's');
+
+		if (length(num) ~= order + 1)
+			break;
+		end
+
+		if (length(den) ~= order + 1)
+			break;
+		end
+
+		w = [0,wc-1,wc,wc+1];
+		m = abs(freqs(num,den,w));
+
+		if (mod(order,2) == 0)
+			if (abs(-20 * log10(m(1)) - dBs) > 1.0e-4)
+				break;
+			end
+		else
+			if (m(1) > 1.0e-4)
+				break;
+			end
+		end
+
+		if (-20 * log10(m(2)) < dBp)
+			break;
+		end
+
+		if (abs(-20 * log10(m(3)) - dBp) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(4)) > dBp)
+			break;
+		end
+
+		order = order + 1;
+	end
+
+	if (order == 10)
+		result = 'pass';
+	end
+end
+
+function result = EllipBP()
+	result = 'fail';
+	dBp = 1;
+	dBs = 30;
+	wc1 = (2*pi)*200;
+	wc2 = (2*pi)*350;
+	wcc = sqrt(wc1*wc2);
+
+	for order=1:9
+		[num,den] = ellip(order, dBp, dBs, [wc1, wc2], 's');
+
+		if (length(num) ~= 2 * order + 1)
+			break;
+		end
+
+		if (length(den) ~= 2 * order + 1)
+			break;
+		end
+
+		w = [0,wc1-1,wc1,wc1+1,wcc,wc2-1,wc2,wc2+1];
+		m = abs(freqs(num,den,w));
+
+		if (mod(order,2) == 0)
+			if (abs(-20 * log10(m(1)) - dBs) > 1.0e-4)
+				break;
+			end
+		else
+			if (m(1) > 1.0e-4)
+				break;
+			end
+		end
+
+		if (-20 * log10(m(2)) < dBp)
+			break;
+		end
+
+		if (abs(-20 * log10(m(3)) - dBp) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(4)) > dBp)
+			break;
+		end
+
+		if (mod(order,2) == 0)
+			if (abs(-20 * log10(m(5)) - dBp) > 1.0e-4)
+				break;
+			end
+		else
+			if (abs(m(5) - 1.0) > 1.0e-4)
+				break;
+			end
+		end
+
+		if (-20 * log10(m(6)) > dBp)
+			break;
+		end
+
+		if (abs(-20 * log10(m(7)) - dBp) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(8)) < dBp)
+			break;
+		end
+
+		order = order + 1;
+	end
+
+	if (order == 10)
+		result = 'pass';
+	end
+end
+
+function result = EllipBS()
+	result = 'fail';
+	dBp = 1;
+	dBs = 30;
+	wc1 = (2*pi)*200;
+	wc2 = (2*pi)*350;
+	wcc = sqrt(wc1*wc2);
+
+	for order=1:9
+		[num,den] = ellip(order, dBp, dBs, [wc1, wc2], 'stop', 's');
+
+		if (length(num) ~= 2 * order + 1)
+			break;
+		end
+
+		if (length(den) ~= 2 * order + 1)
+			break;
+		end
+
+		w = [0,wc1-1,wc1,wc1+1,wcc,wc2-1,wc2,wc2+1];
+		m = abs(freqs(num,den,w));
+
+		if (mod(order,2) == 0)
+			if (abs(-20 * log10(m(1)) - dBp) > 1.0e-4)
+				break;
+			end
+		else
+			if (abs(m(1) - 1.0) > 1.0e-4)
+				break;
+			end
+		end
+
+		if (-20 * log10(m(2)) > dBp)
+			break;
+		end
+
+		if (abs(-20 * log10(m(3)) - dBp) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(4)) < dBp)
+			break;
+		end
+
+		if (mod(order,2) == 0)
+			if (abs(-20 * log10(m(5)) - dBs) > 1.0e-4)
+				break;
+			end
+		else
+			if (m(5) > 1.0e-4)
+				break;
+			end
+		end
+
+		if (-20 * log10(m(6)) < dBp)
+			break;
+		end
+
+		if (abs(-20 * log10(m(7)) - dBp) > 1.0e-4)
+			break;
+		end
+
+		if (-20 * log10(m(8)) > dBp)
+			break;
+		end
+
+		order = order + 1;
+	end
+
+	if (order == 10)
+		result = 'pass';
+	end
+end
+
+ellipLP = EllipLP()
+ellipHP = EllipHP()
+ellipBP = EllipBP()
+ellipBS = EllipBS()

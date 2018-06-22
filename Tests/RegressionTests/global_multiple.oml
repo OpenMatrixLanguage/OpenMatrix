@@ -1,0 +1,4 @@
+global a b c
+isglobal a
+isglobal b
+isglobal c

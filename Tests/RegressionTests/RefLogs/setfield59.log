@@ -1,0 +1,3 @@
+j = struct [
+foo: 3
+]

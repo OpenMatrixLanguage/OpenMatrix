@@ -1,0 +1,9 @@
+global z
+z=4
+
+function b=foo(a)
+  global z
+  b=z+a
+end
+
+foo(3)

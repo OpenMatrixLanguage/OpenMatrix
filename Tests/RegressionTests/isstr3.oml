@@ -1,0 +1,2 @@
+isstr('test')
+islogical(ans)

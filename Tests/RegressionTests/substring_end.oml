@@ -1,0 +1,3 @@
+a = 'The is a string';
+temp = [4 5]; 
+a(temp(1):end)

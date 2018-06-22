@@ -1,0 +1,12 @@
+﻿function ff
+ disp('Me');
+ ff;
+
+ function ff
+     disp('New');
+ end
+ 
+ disp('3'); 
+end
+
+ff;

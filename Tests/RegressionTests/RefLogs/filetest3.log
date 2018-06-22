@@ -1,0 +1,12 @@
+fname = FileManipulation/EmptyFile.txt
+fid1 = 3
+error = 
+fid2 = 4
+error = 
+filepath = FileManipulation/EmptyFile.txt
+filemode = rb
+filepath = FileManipulation/EmptyFile.txt
+filemode = rb
+ans = 0
+ans = 0
+ans = [Matrix] 1 x 0

@@ -1,0 +1,5 @@
+function tocall
+    assignin('caller','x',1);
+end
+tocall;
+disp(x);

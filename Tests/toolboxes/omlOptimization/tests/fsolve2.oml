@@ -1,0 +1,28 @@
+addtoolbox omlOptimization
+% intersection of two paraboloids and a plane
+% with Jacobian
+
+function [res, Jac] = Residuals(x)
+    x = 0.1 * x;
+    v1 = (x(1))^2 + (x(2))^2 + 6;
+    v2 = 2*(x(1))^2 + 2*(x(2))^2 + 4;
+    v3 = 5*x(1) - 5*x(2);
+    res = zeros(2,1);
+    res(1,1) = v1 - v3;
+    res(2,1) = v2 - v3;
+
+    if nargout > 1
+        % compute the Jacobian
+        Jac = [];
+        Jac(1,1) = .2*x(1) - .5;
+        Jac(1,2) = .2*x(2) + .5;
+        Jac(2,1) = .4*x(1) - .5;
+        Jac(2,2) = .4*x(2) + .5;
+    end
+end
+
+options = optimset('MaxIter', 200, 'Jacobian', 'on');
+init = [1, 2];
+
+[x,fval] = fsolve(@Residuals, init, options)
+

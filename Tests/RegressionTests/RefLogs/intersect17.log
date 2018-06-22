@@ -1,0 +1,11 @@
+a = 
+{
+  [1,1] test2
+  [2,1] test3
+}
+b = [Matrix] 2 x 1
+2
+3
+c = [Matrix] 2 x 1
+1
+2

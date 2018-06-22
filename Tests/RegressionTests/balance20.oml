@@ -1,0 +1,4 @@
+[a,b,c]=balance([1,6,-2;3,9,-7.1;-2.1,-6,7], 'p')
+disp(a)
+disp(b)
+disp(c)

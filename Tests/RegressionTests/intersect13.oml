@@ -1,0 +1,1 @@
+[a,b,c]=intersect('test2',{'test1'})

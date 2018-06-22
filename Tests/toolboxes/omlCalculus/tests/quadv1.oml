@@ -1,0 +1,7 @@
+addtoolbox omlCalculus
+
+function y = Integrand(x)
+    y = sin(x);
+end
+
+[area,count] = quadv(@Integrand, 0, 5*pi, 1.0e-6)

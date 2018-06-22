@@ -1,0 +1,3 @@
+field = 'jeff';
+a.(field) = 3
+a.(field)

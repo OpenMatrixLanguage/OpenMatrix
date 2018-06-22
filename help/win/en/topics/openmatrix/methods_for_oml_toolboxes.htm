@@ -1,0 +1,366 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Methods for OML Toolboxes" /><meta name="abstract" content="This section describes the methods exposed in OML to interface new toolboxes." /><meta name="description" content="This section describes the methods exposed in OML to interface new toolboxes." /><meta name="DC.Relation" scheme="URI" content="../../topics/openmatrix/creating_toolboxes_openmatrix_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="methods_for_oml_toolboxes" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>Methods for OML Toolboxes</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/openmatrix/../../topics/openmatrix/openmatrix_users_guide_c.htm" title="User's Guide">User's Guide</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/openmatrix/creating_toolboxes_openmatrix_r.htm" title="Additional toolboxes can be written in the C/C++ language and interfaced with OML.">Creating Toolboxes for OpenMatrix</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../topics/openmatrix/creating_toolboxes_openmatrix_r.htm" title="Additional toolboxes can be written in the C/C++ language and interfaced with OML."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Creating Toolboxes for OpenMatrix</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1"><article class="nested0" aria-labelledby="ariaid-title1" id="methods_for_oml_toolboxes">
+  <h1 class="title topictitle1" id="ariaid-title1">Methods for <span class="keyword">OML</span> Toolboxes</h1>
+
+  
+  <div class="body refbody"><p class="shortdesc">This section describes the methods exposed in <span class="keyword">OML</span> to interface new
+    toolboxes.</p>
+</div>
+
+<nav role="navigation" class="related-links"></nav><article class="topic reference nested1" aria-labelledby="ariaid-title2" id="omlinterface_class_methods_r">
+  <h2 class="title topictitle2" id="ariaid-title2">OMLInterface Class Methods</h2>
+
+  
+  <div class="body refbody"><p class="shortdesc"></p>
+
+    <section class="section" id="omlinterface_class_methods_r__section_gnz_4mr_mbb">
+      <pre class="pre codeblock example"><code>RegisterFunction(const char* function_name, FUNCPTR function_pointer)</code></pre>
+      <div class="p">It is often convenient to define FUNCPTR using the following
+        typedef:<pre class="pre codeblock example"><code>typedef bool (*FUNCPTR) (OMLInterface*, const OMLCurrencyList* inputs, OMLCurrencyList* outputs);</code></pre></div>
+
+      <p class="p">This method is called once for each function that the toolbox needs to register with OML.
+        If a function with the given name already exists, it will be replaced by this function
+        call.</p>
+
+      <pre class="pre codeblock example"><code>ThrowError(const char* message)</code></pre>
+      <p class="p">Call this method when an unrecoverable error occurs. Execution of the script will be halted
+        and the message will be reported to the user.</p>
+
+      <pre class="pre codeblock example"><code>int Nargout() const</code></pre>
+      <p class="p">Returns the number of outputs expected from this function for the given call. This value is
+        dependent on how the function is called, not on anything in the function itself.</p>
+
+    </section>
+
+  </div>
+
+</article>
+<article class="topic reference nested1" aria-labelledby="ariaid-title3" id="omlcurrencylist_class_const_methods_r">
+  <h2 class="title topictitle2" id="ariaid-title3">OMLCurrencyList Class Const Methods</h2>
+
+  
+  <div class="body refbody"><p class="shortdesc">These are the only methods that can be called on the inputs list.</p>
+
+    <section class="section" id="omlcurrencylist_class_const_methods_r__section_scr_zmr_mbb">
+      <pre class="pre codeblock example"><code>int Size() const</code></pre>
+      <p class="p">Returns the number of OMLCurrency objects in the list. It may be 0.</p>
+
+      <pre class="pre codeblock example"><code>const OMLCurrency* Get(int idx) const</code></pre>
+      <p class="p">Returns a pointer to the specified OMLCurrency. The index is 0-based. If the index is out
+        of range, a NULL pointer is returned.</p>
+
+    </section>
+
+  </div>
+
+</article>
+<article class="topic reference nested1" aria-labelledby="ariaid-title4" id="omlcurrencylist_class_non_const_methods_r">
+  <h2 class="title topictitle2" id="ariaid-title4">OMLCurrencyList Class Non-const Methods</h2>
+
+  
+  <div class="body refbody"><p class="shortdesc"></p>
+
+    <section class="section" id="omlcurrencylist_class_non_const_methods_r__section_gmk_jnr_mbb">
+      <pre class="pre codeblock example"><code>void AddScalar(double);</code></pre>
+      <p class="p">Appends the specified double value to the list. </p>
+
+      <pre class="pre codeblock example"><code>void AddString(const char* string)</code></pre>
+      <p class="p">Appends the specified (NULL terminated) string to the list. </p>
+
+      <pre class="pre codeblock example"><code>void AddCellArray(OMLCellArray*)</code></pre>
+      <p class="p">Appends the specified cellarray object to the list. </p>
+
+      <pre class="pre codeblock example"><code>void AddStruct(OMLStruct*)</code></pre>
+      <p class="p">Appends the specified struct object to the list. </p>
+
+      <pre class="pre codeblock example"><code>void AddMatrix(OMLMatrix* matrix)</code></pre>
+      <p class="p">Appends the specified 2-dimensional matrix to the list.</p>
+
+      <pre class="pre codeblock example"><code>void AddNDMatrix(OMLNDMatrix* nd_matrix)</code></pre>
+      <p class="p">Appends the specified N-dimensional matrix to the list. </p>
+
+      <pre class="pre codeblock example"><code>void AddComplex(OMLComplex* complex)</code></pre>
+      <p class="p">Appends the specified complex value to the list. </p>
+
+      <pre class="pre codeblock example"><code>OMLCellArray* CreateCellArray(int rows, int cols)</code></pre>
+      <p class="p">Creates an empty OMLCellArray object with the specified dimensions and returns a pointer to
+        it. You need to fill in the contents of this object.</p>
+
+      <pre class="pre codeblock example"><code>OMLStruct* CreateStruct(int rows, int cols)</code></pre>
+      <p class="p">Creates an empty OMLStruct object with the specified dimensions and returns a pointer to
+        it. You need to fill in the contents of this object and then add it to the outputs if
+        desired.</p>
+
+      <pre class="pre codeblock example"><code>OMLMatrix* CreateMatrix(int rows, int cols, double* data)</code></pre>
+      <p class="p">Creates an OMLMatrix object with the specified dimensions using the real data supplied and
+        returns a pointer to it. The data is assumed to be column-major.</p>
+
+      <pre class="pre codeblock example"><code>OMLMatrix* CreateMatrix(int rows, int cols, double* real, double* imag)</code></pre>
+      <p class="p">Creates an OMLMatrix object with the specified dimensions using the complex data supplied
+        and returns a pointer to it. The data is assumed to be column-major.</p>
+
+      <pre class="pre codeblock example"><code>OMLNDMatrix* CreateNDMatrix(int num_dims, int* dims, double* real)</code></pre>
+      <p class="p">Creates an OMLNDMatrix object with the specified dimensions using the real data supplied
+        and returns a pointer to it. The data is assumed to be stored FORTRAN-style.</p>
+
+      <pre class="pre codeblock example"><code>OMLNDMatrix* CreateNDMatrix(int num_dims, int* dims, double* real, double* imag)</code></pre>
+      <p class="p">Creates an OMLNDMatrix object with the specified dimensions using the complex data supplied
+        and returns a pointer to it. The data is assumed to be stored FORTRAN-style.</p>
+
+      <pre class="pre codeblock example"><code>OMLComplex* CreateComplex(double real, double imag)</code></pre>
+      <p class="p">Creates an OMLComplex object using data supplied and returns a pointer to it.</p>
+
+      <pre class="pre codeblock example"><code>OMLCurrency* CreateCurrencyFromDouble(double dbl)</code></pre>
+      <p class="p">Creates an OMLCurrency object using data supplied and returns a pointer to it. This is
+        useful when inserting a double value into an OMLCellArray or OMLStruct.</p>
+
+      <pre class="pre codeblock example"><code>OMLCurrency* CreateCurrencyFromString(const char* str)</code></pre>
+      <p class="p">Creates an OMLCurrency object using data supplied and returns a pointer to it. This is
+        useful when inserting a string value into an OMLCellArray or OMLStruct.</p>
+
+    </section>
+
+  </div>
+
+</article>
+<article class="topic reference nested1" aria-labelledby="ariaid-title5" id="omlcurrency_class_methods__all_are_const_r">
+  <h2 class="title topictitle2" id="ariaid-title5">OMLCurrency Class Methods (all are const)</h2>
+
+  
+  <div class="body refbody"><p class="shortdesc"></p>
+
+    <section class="section" id="omlcurrency_class_methods__all_are_const_r__section_wcx_lnr_mbb">
+      <pre class="pre codeblock example"><code>bool IsScalar()</code></pre>
+      <p class="p">Returns true if this OMLCurrency is a scalar.</p>
+
+      <pre class="pre codeblock example"><code>bool IsComplex()</code></pre>
+      <p class="p">Returns true if this OMLCurrency is a single complex value.</p>
+
+      <pre class="pre codeblock example"><code>bool IsString()</code></pre>
+      <p class="p">Returns true if this OMLCurrency is a string. The string may span multiple lines.</p>
+
+      <pre class="pre codeblock example"><code>bool IsMatrix()</code></pre>
+      <p class="p">Returns true if this OMLCurrency is a two-dimensional matrix or a one-dimensional
+        vector.</p>
+
+      <pre class="pre codeblock example"><code>bool IsNDMatrix()</code></pre>
+      <p class="p">Returns true if this OMLCurrency is a multi-dimensional matrix.</p>
+
+      <pre class="pre codeblock example"><code>bool IsCellArray()</code></pre>
+      <p class="p">Returns true if this OMLCurrency is a cell array. It may be a single cell.</p>
+
+      <pre class="pre codeblock example"><code>bool IsStruct()</code></pre>
+      <p class="p">Returns true if this OMLCurrency is a struct array. It may be a single struct.</p>
+
+      <pre class="pre codeblock example"><code>double GetScalar()</code></pre>
+      <p class="p">Returns the underlying double value for this OMLCurrency.</p>
+
+      <pre class="pre codeblock example"><code>const char* GetString()</code></pre>
+      <p class="p">Returns a pointer to the underlying character string for this OMLCurrency.</p>
+
+      <pre class="pre codeblock example"><code>const OMLCellArray* GetCellArray()</code></pre>
+      <p class="p">Returns a pointer to the underlying OMLCellArray for this OMLCurrency.</p>
+
+      <pre class="pre codeblock example"><code>const OMLMatrix* GetMatrix()</code></pre>
+      <p class="p">Returns a pointer to the underlying OMLMatrix for this OMLCurrency.</p>
+
+      <pre class="pre codeblock example"><code>const OMLNDMatrix* GetNDMatrix()</code></pre>
+      <p class="p">Returns a pointer to the underlying OMLNDMatrix for this OMLCurrency.</p>
+
+      <pre class="pre codeblock example"><code>const OMLComplex* GetComplex()</code></pre>
+      <p class="p">Returns a pointer to the underlying OMLComplex for this OMLCurrency.</p>
+
+      <pre class="pre codeblock example"><code>const OMLStruct* GetStruct()</code></pre>
+      <p class="p">Returns a pointer to the underlying OMLStruct for this OMLCurrency.</p>
+
+      <p class="p">Note that calling an improper Get method will not generate an error, but it will return
+        unsafe data that could result in a crash later.</p>
+
+    </section>
+
+  </div>
+
+</article>
+<article class="topic reference nested1" aria-labelledby="ariaid-title6" id="omlcomplex_class_methods__all_are_const_r">
+  <h2 class="title topictitle2" id="ariaid-title6">OMLComplex Class Methods (all are const)</h2>
+
+  
+  <div class="body refbody"><p class="shortdesc"></p>
+
+    <section class="section" id="omlcomplex_class_methods__all_are_const_r__section_knz_4nr_mbb">
+      <pre class="pre codeblock example"><code>double GetReal() </code></pre>
+      <p class="p">Returns the real value of the OMLComplex.</p>
+
+      <pre class="pre codeblock example"><code>double GetImag() </code></pre>
+      <p class="p">Returns the imaginary value of the OMLComplex.</p>
+
+      <pre class="pre codeblock example"><code>OMLCurrency* GetCurrency()</code></pre>
+      <p class="p">Returns a pointer to an OMLCurrency that contains the given OMLComplex. This is useful to
+        insert an OMLComplex into an OMLCellArray or OMLStruct.</p>
+
+    </section>
+
+  </div>
+
+</article>
+<article class="topic reference nested1" aria-labelledby="ariaid-title7" id="omlmatrix_class_methods__all_are_const_r">
+  <h2 class="title topictitle2" id="ariaid-title7">OMLMatrix Class Methods (all are const)</h2>
+
+  
+  <div class="body refbody"><p class="shortdesc"></p>
+
+    <section class="section" id="omlmatrix_class_methods__all_are_const_r__section_whf_rnr_mbb"><pre class="pre codeblock example"><code>bool IsReal()</code></pre><p class="p">Returns true if the OMLMatrix
+        contains only real
+        data.</p>
+<pre class="pre codeblock example"><code>int GetRows()</code></pre><p class="p">Returns the number of
+        rows in the
+        OMLMatrix.</p>
+<pre class="pre codeblock example"><code>int GetCols()</code></pre><p class="p">Returns the
+        number of columns in the
+        OMLMatrix.</p>
+<pre class="pre codeblock example"><code>const double* GetRealData()</code></pre><p class="p">Returns
+        a const pointer to the underlying real data of the OMLMatrix. The data is stored
+        column-major. This can be used for both real and complex
+        matrices.</p>
+<pre class="pre codeblock example"><code>const double* GetImaginaryData()</code></pre><p class="p">Returns
+        a const pointer to the underlying imaginary data of the OMLMatrix. The data is stored
+        column-major. This method will return NULL for a real OMLMatrix.
+        </p>
+<pre class="pre codeblock example"><code>OMLCurrency* GetCurrency() </code></pre><p class="p">Returns a
+        pointer to an OMLCurrency that contains the given OMLMatrix. This is useful to insert an
+        OMLMatrix into an OMLCellArray or OMLStruct.</p>
+.</section>
+
+  </div>
+
+</article>
+<article class="topic reference nested1" aria-labelledby="ariaid-title8" id="omlndmatrix_class_methods_r">
+  <h2 class="title topictitle2" id="ariaid-title8">OMLNDMatrix Class Methods</h2>
+
+  
+  <div class="body refbody"><p class="shortdesc"></p>
+
+    <section class="section" id="omlndmatrix_class_methods_r__section_izv_vnr_mbb">
+      <pre class="pre codeblock example"><code>bool IsReal()</code></pre>
+      <p class="p">Returns true if the OMLNDMatrix contains only real data.</p>
+
+      <pre class="pre codeblock example"><code>int GetNumDimensions()</code></pre>
+      <p class="p">Returns the number of dimensions in the OMLNDMatrix.</p>
+
+      <pre class="pre codeblock example"><code>int GetDimension(int index)</code></pre>
+      <p class="p">Returns the requested dimension of the OMLNDMatrix. Index is 0-based.</p>
+
+      <pre class="pre codeblock example"><code>const double* GetRealData()</code></pre>
+      <p class="p">Returns a const pointer to the underlying real data of the OMLNDMatrix. The data is stored
+        using FORTRAN storage. This can be used for both real and complex matrices (But currently it
+        will not work properly for complex matrices.)</p>
+
+      <pre class="pre codeblock example"><code>const double* GetImaginaryData()</code></pre>
+      <p class="p">(This method is not yet implemented and will always return NULL.) Returns a const pointer
+        to the underlying imaginary data of the OMLNDMatrix. The data is stored using FORTRAN
+        storage. This method should not be called on a real OMLNDMatrix. </p>
+
+      <pre class="pre codeblock example"><code>OMLCurrency* GetCurrency()</code></pre>
+      <p class="p">Returns a pointer to an OMLCurrency that contains the given OMLNDMatrix. This is useful to
+        insert an OMLNDMatrix into an OMLCellArray or OMLStruct.</p>
+
+    </section>
+
+  </div>
+
+</article>
+<article class="topic reference nested1" aria-labelledby="ariaid-title9" id="omlcellarray_class_const_methods">
+  <h2 class="title topictitle2" id="ariaid-title9">OMLCellArray Class Const Methods</h2>
+
+  
+  <div class="body refbody"><p class="shortdesc"></p>
+
+    <section class="section" id="omlcellarray_class_const_methods__section_unn_ynr_mbb">
+      <pre class="pre codeblock example"><code>OMLCurrency* GetValue(int index) </code></pre>
+      <p class="p">Returns a pointer to the OMLCurrency contained within the OMLCellArray at the specified
+        index. The index is 0-based.</p>
+
+      <pre class="pre codeblock example"><code>OMLCurrency* GetValue(int index1, int index2) </code></pre>
+      <p class="p">Returns a pointer to the OMLCurrency contained within the OMLCellArray at the specified
+        indices. The indices are 0-based.</p>
+
+      <pre class="pre codeblock example"><code>int GetRows() </code></pre>
+      <p class="p">Returns the number of rows in the OMLCellArray.</p>
+
+      <pre class="pre codeblock example"><code>int GetCols() </code></pre>
+      <p class="p">Returns the number of columns in the OMLCellArray.</p>
+
+      <pre class="pre codeblock example"><code>OMLCurrency* GetCurrency()</code></pre>
+      <p class="p">Returns a pointer to an OMLCurrency that contains the given OMLCellArray. This is useful to
+        insert an OMLCellArray into an OMLCellArray or OMLStruct. OMLCellArrays can contain other
+        OMLCellArrays. </p>
+
+      <pre class="pre codeblock example"><code>void SetValue(int index, OMLCurrency* val)</code></pre>
+      <p class="p">Sets the cell value at the specified index to val. The index is 0-based.</p>
+
+      <pre class="pre codeblock example"><code>void SetValue(int index1, int index2, OMLCurrency* val)</code></pre>
+      <p class="p">Sets the cell value at the specified indices to val. The indices are 0-based.</p>
+
+    </section>
+
+  </div>
+
+</article>
+<article class="topic reference nested1" aria-labelledby="ariaid-title10" id="omlstruct_class_const_methods_r">
+  <h2 class="title topictitle2" id="ariaid-title10">OMLStruct Class Const Methods</h2>
+
+  
+  <div class="body refbody"><p class="shortdesc"></p>
+
+    <section class="section" id="omlstruct_class_const_methods_r__section_onw_b4r_mbb">
+      <pre class="pre codeblock example"><code>OMLCurrency* GetValue(int index1, const char* field)</code></pre>
+      <p class="p">Returns a pointer to the OMLCurrency contained within the specified field of the OMLStruct
+        at the specified index. The index is 0-based.</p>
+
+      <pre class="pre codeblock example"><code>OMLCurrency* GetValue(int index1, int index2, const char* field)</code></pre>
+      <p class="p">Returns a pointer to the OMLCurrency contained within the specified field of the OMLStruct
+        at the specified indices. The indices are 0-based.</p>
+
+      <pre class="pre codeblock example"><code>int GetRows()</code></pre>
+      <p class="p">Returns the number of rows in the OMLStruct.</p>
+
+      <pre class="pre codeblock example"><code>int GetCols()</code></pre>
+      <p class="p">Returns the number of columns in the OMLStruct.</p>
+
+      <pre class="pre codeblock example"><code>OMLCurrency* GetCurrency()</code></pre>
+      <p class="p">Returns a pointer to an OMLCurrency that contains the given OMLStruct. This is useful to
+        insert an OMLStruct into an OMLCellArray or OMLStruct. OMLStructs can contain other
+        OMLStructs.</p>
+
+      <pre class="pre codeblock example"><code>void SetValue(int index, const char* field, OMLCurrency* val)</code></pre>
+      <p class="p">Sets the value of the field at the specified index to val. The index is 0-based. </p>
+
+      <pre class="pre codeblock example"><code>void SetValue(int index1, int index2, const char* field, OMLCurrency* val)</code></pre>
+      <p class="p">Sets the value of the field at the specified indices to val. The indices are 0-based.</p>
+
+    </section>
+
+  </div>
+
+</article>
+</article>
+</article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../topics/openmatrix/creating_toolboxes_openmatrix_r.htm" title="Additional toolboxes can be written in the C/C++ language and interfaced with OML."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Creating Toolboxes for OpenMatrix</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

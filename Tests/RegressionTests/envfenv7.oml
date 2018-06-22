@@ -1,0 +1,12 @@
+function g(work)
+      clearenvvalue(work, 'A');
+end
+
+function f()
+A=3;
+A
+g(getcurrentenv());
+A
+end
+
+f();

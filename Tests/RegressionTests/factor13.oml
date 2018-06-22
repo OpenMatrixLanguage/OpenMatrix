@@ -1,0 +1,3 @@
+[a,b]=factor(17)
+disp(a)
+disp(b)

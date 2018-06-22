@@ -1,0 +1,13 @@
+importing dictionary data from python
+value = struct [
+key1: 1
+key2: 
+{
+[1,1] a
+[1,2] b
+[1,3] c
+[1,4] d
+}
+]
+status = 1
+errorMessage = 
