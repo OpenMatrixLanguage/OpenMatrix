@@ -72,3 +72,9 @@ dummy
 Network Trash Folder
 Temporary Items
 .apdisk
+
+"src\oml\toolboxes\omlpythonbridge\OmlPythonBridge.h" 
+"src\oml\toolboxes\omlpythonbridge\OmlPythonToolbox.h" 
+"src\oml\toolboxes\omlpythonbridge\OmlPythonToolboxDefs.h" 
+"src\oml\toolboxes\omlpythonbridge\_private\OmlPythonBridge.cxx" 
+"src\oml\toolboxes\omlpythonbridge\_private\OmlPythonToolbox.cxx" 
