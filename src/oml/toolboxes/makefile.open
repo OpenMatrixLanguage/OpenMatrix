@@ -11,7 +11,7 @@ default:
 	make -C omlCAE          -f makefile.open
 	make -C plot            -f makefile.open
 	make -C omlMatio        -f makefile.open
-	make -C omlpythonbridge -f makefile.open
+#	make -C omlpythonbridge -f makefile.open
 	
 clean:
 	make -C omlMathUtils    clean -f makefile.open
