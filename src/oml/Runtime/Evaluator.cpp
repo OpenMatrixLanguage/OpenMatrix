@@ -523,7 +523,17 @@ Currency ExprTreeEvaluator::CallBuiltinFunction(ALT_FUNCPTR alt_fptr, const std:
 	if (out_list.Size() > 0)
 	{
 		const OMLCurrencyImpl* temp = (OMLCurrencyImpl*)out_list.Get(0);
-		return temp->GetCurrency();
+		Currency cur = temp->GetCurrency();
+
+		OMLCurrencyImpl::GarbageCollect();
+		OMLComplexImpl::GarbageCollect();
+		OMLMatrixImpl::GarbageCollect();
+		OMLNDMatrixImpl::GarbageCollect();
+		OMLCellArrayImpl::GarbageCollect();
+		OMLStructImpl::GarbageCollect();
+		OMLFunctionHandleImpl::GarbageCollect();
+
+		return cur;
 	}
 	else
 	{
