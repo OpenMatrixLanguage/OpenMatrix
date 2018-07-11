@@ -53,7 +53,7 @@
 #include "StructData.h"
 #include "MatrixNUtils.h"
 
-#include <math.h>
+#include <cmath>
 #include <time.h>
 #include <stdio.h>
 #include <cctype>

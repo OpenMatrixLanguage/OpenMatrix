@@ -23,7 +23,7 @@
 #ifndef _hwTComplex_h
 #define _hwTComplex_h
 
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <sstream>
 #include <string>

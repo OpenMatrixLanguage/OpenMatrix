@@ -21,7 +21,7 @@
 #include <cctype>  // For std::isdigit
 #include <climits>
 #include <iomanip>
-#include <math.h>
+#include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>

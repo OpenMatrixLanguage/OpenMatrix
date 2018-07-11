@@ -22,7 +22,7 @@
 
 #ifndef OS_WIN
   #include <stdlib.h>
-  #include <math.h>
+  #include <cmath>
 #endif
 
 //*******************************************************************
