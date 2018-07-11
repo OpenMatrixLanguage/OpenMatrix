@@ -175,6 +175,8 @@ public:
 	virtual void AddNDMatrix(OMLNDMatrix*) = 0;
 	virtual void AddComplex(OMLComplex*) = 0;
 
+	virtual double* AllocateData(int size) = 0;
+
 	// These two are needed to push doubles/strings into cells/structs
 	virtual OMLCurrency*  CreateCurrencyFromDouble(double dbl) = 0;
 	virtual OMLCurrency*  CreateCurrencyFromString(const char* str) = 0;
