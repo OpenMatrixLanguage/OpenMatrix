@@ -27,7 +27,7 @@
 static EvaluatorInterface* FMINUNC_eval_ptr        = nullptr;
 static FunctionInfo*       FMINUNC_oml_func        = nullptr;
 static FUNCPTR             FMINUNC_oml_pntr        = nullptr;
-static bool                FMINUNC_oml_func_isanon = nullptr;
+static bool                FMINUNC_oml_func_isanon(nullptr);
 
 //------------------------------------------------------------------------------
 // Wrapper for the objective function called in OmlFminunc by oml scripts
