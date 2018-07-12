@@ -20,7 +20,7 @@
 #include <cassert>
 #include <climits>
 #include <iomanip>
-#include <math.h>
+#include <cmath>
 
 #include "BuiltInFuncsUtils.h"
 #include "OML_Error.h"

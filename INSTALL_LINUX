@@ -11,7 +11,7 @@ Working directory/
     third_party/
         ANTLR/
             libantlr3c-3.4/
-        bost/
+        boost/
             boost_1_64_0/
         lapack/
             lapack-3.7.1/
@@ -55,7 +55,7 @@ NOOPT   = -O0 -frecursive -fPIC
 
       4.  Run the following command to create LAPACK and BLAS files.
 
-make.exe -f Makefile
+make -f Makefile
 
 The makefile produces the following archive files which are specified in the OpenMatrix make files.
 
@@ -121,7 +121,7 @@ Set OML_ROOT=~/oss/oml
 
 Set OML_THIRDPARTY=~/oss/third_party
 
-make -f Makefile.open - This will build the omlconsole and shared object files in the following directory:
+make -f makefile.open - This will build the omlconsole and shared object files in the following directory:
 
 ~/oss/oml/src/bin/linux64
 
