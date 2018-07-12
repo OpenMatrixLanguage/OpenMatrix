@@ -49,7 +49,7 @@ private:
 class OMLCurrencyImpl : public OMLCurrency2
 {
 public:
-	OMLCurrencyImpl(Currency in_cur) { _cur = in_cur; }
+	OMLCurrencyImpl(Currency in_cur) { _cur = in_cur; cached_pointers.push_back(this); }
 
 	bool IsScalar() const;
 	bool IsComplex() const;
@@ -70,29 +70,37 @@ public:
 	const OMLComplex*        GetComplex() const;
 	const OMLStruct*         GetStruct() const;
 	const OMLFunctionHandle* GetFunctionHandle() const;
+	
+	static void GarbageCollect();
 
 private:
 	Currency _cur;
+
+	static std::vector<OMLCurrencyImpl*> cached_pointers;
 };
 
 class OMLComplexImpl : public OMLComplex
 {
 public:
-	OMLComplexImpl(double real, double imag) : cplx(real, imag) {}
+	OMLComplexImpl(double real, double imag) : cplx(real, imag) { cached_pointers.push_back(this); }
 
 	double GetReal() const;
 	double GetImag() const;
 
 	OMLCurrency* GetCurrency() const;
 
+	static void GarbageCollect();
+
 private:
 	hwComplex      cplx;
+
+	static std::vector<OMLComplexImpl*> cached_pointers;
 };
 
 class OMLMatrixImpl : public OMLMatrix
 {
 public:
-		OMLMatrixImpl(const hwMatrix* in_mtx) { _mtx = (hwMatrix*)in_mtx; } 
+		OMLMatrixImpl(const hwMatrix* in_mtx) { _mtx = (hwMatrix*)in_mtx; cached_pointers.push_back(this); } 
 
 		bool    IsReal() const;
 
@@ -105,14 +113,18 @@ public:
 		OMLCurrency*   GetCurrency() const;
 		hwMatrix*      GetMatrixPointer() const;
 
+		static void GarbageCollect();
+
 private:
 		hwMatrix* _mtx;
+		
+		static std::vector<OMLMatrixImpl*> cached_pointers;
 };
 
 class OMLNDMatrixImpl : public OMLNDMatrix
 {
 public:
-		OMLNDMatrixImpl(const hwMatrixN* in_mtx) { _mtx = (hwMatrixN*)in_mtx; } 
+		OMLNDMatrixImpl(const hwMatrixN* in_mtx) { _mtx = (hwMatrixN*)in_mtx; cached_pointers.push_back(this); } 
 
 		bool    IsReal() const;
 
@@ -125,14 +137,18 @@ public:
 		OMLCurrency*   GetCurrency() const;
 		hwMatrixN*     GetMatrixPointer() const;
 
+		static void GarbageCollect();
+
 private:
 		hwMatrixN* _mtx;
+
+		static std::vector<OMLNDMatrixImpl*> cached_pointers;
 };
 
 class OMLCellArrayImpl : public OMLCellArray
 {
 public:
-	OMLCellArrayImpl(HML_CELLARRAY* in_cells) { _cells = in_cells; } 
+	OMLCellArrayImpl(HML_CELLARRAY* in_cells) { _cells = in_cells; cached_pointers.push_back(this); } 
 
 	OMLCurrency* GetValue(int index1) const;
 	OMLCurrency* GetValue(int index1, int index2) const;
@@ -146,14 +162,18 @@ public:
 	OMLCurrency*   GetCurrency() const;
 	HML_CELLARRAY* GetCells() const;
 
+	static void GarbageCollect();
+
 private:
 	HML_CELLARRAY* _cells;
+
+	static std::vector<OMLCellArrayImpl*> cached_pointers;
 };
 
 class OMLStructImpl : public OMLStruct
 {
 public:
-	OMLStructImpl(StructData* in_sd) { _sd = in_sd; } 
+	OMLStructImpl(StructData* in_sd) { _sd = in_sd; cached_pointers.push_back(this); } 
 
 	OMLCurrency* GetValue(int index1, const char* field) const;
 	OMLCurrency* GetValue(int index1, int index2, const char* field) const;
@@ -167,25 +187,35 @@ public:
 	OMLCurrency* GetCurrency() const;
 	StructData*  GetStructData() const;
 
+	static void GarbageCollect();
+
 private:
 	StructData* _sd;
+
+	static std::vector<OMLStructImpl*> cached_pointers;
 };
 
 class OMLFunctionHandleImpl : public OMLFunctionHandle
 {
 public:
-		OMLFunctionHandleImpl(const FunctionInfo* in_fh) { _fi = (FunctionInfo*)in_fh; } 
+		OMLFunctionHandleImpl(const FunctionInfo* in_fh) { _fi = (FunctionInfo*)in_fh; cached_pointers.push_back(this); } 
 
 		FunctionInfo*      GetFunctionInfo() const { return _fi; }
 
+		static void GarbageCollect();
+
 private:
 		FunctionInfo* _fi;
+
+		static std::vector<OMLFunctionHandleImpl*> cached_pointers;
 };
 
 class OMLCurrencyListImpl : public OMLCurrencyList
 {
 public:
 	OMLCurrencyListImpl() { _list = nullptr; _count = 0; }
+	~OMLCurrencyListImpl();
+
 	int Size() const;
 	const OMLCurrency* Get(int idx) const;
 
@@ -198,9 +228,12 @@ public:
 	void AddNDMatrix(OMLNDMatrix*);
 	void AddNDMatrix(const hwMatrixN*);
 	void AddComplex(OMLComplex*);
+	void AddComplex(hwComplex);
 	void AddStruct(OMLStruct*);
 	void AddStruct(StructData*);
 	void AddFunctionHandle(FunctionInfo*);
+
+	double* AllocateData(int size);
 
 	// I'd love for these to be static, but since there are no static virtual functions,
 	// I have to either do this or play the factory game
