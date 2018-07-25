@@ -44,7 +44,7 @@ eval_toolbox_test omlMathUtils
 eval_toolbox_test omlMatio
 eval_toolbox_test omlOptimization
 eval_toolbox_test omlPolynom
-eval_toolbox_test omlpythonbridge
+#eval_toolbox_test omlpythonbridge
 eval_toolbox_test omlSignals
 eval_toolbox_test omlStatistics
 
