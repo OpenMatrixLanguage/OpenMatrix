@@ -10,7 +10,7 @@ before_install:
 - git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Linux.git Linux
 env:
   SH=bash
-  OML_ROOT=$PWD/OpenMatrixPublic
+  OML_ROOT=$PWD
   OML_THIRDPARTY=$PWD/Linux/third_party
   LD_LIBRARY_PATH=$OML_THIRDPARTY/fftw/fftw-3.2.2/.libs:$LD_LIBRARY_PATH
   LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/lapack/lapack-3.7.1
