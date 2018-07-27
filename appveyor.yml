@@ -1,0 +1,78 @@
+version: 1.0.{build}
+configuration: Release
+platform: x64
+clone_folder: c:\oss
+init:
+- cmd: >-
+    
+    git config --global core.autocrlf true
+    
+    git config --list
+    
+    if exist .gitattributes type .gitattributes
+    
+    if exist .gitignore type .gitignore
+    
+    SET 
+    
+
+environment:
+  OML_ROOT: c:\oss
+  OML_THIRDPARTY: c:\oss\third_party\third_party
+  OML_APPVEYOR: TRUE
+  OML_PYTHON: c:\python36-x64
+  
+
+before_build:
+- cmd: >-
+    
+    dir
+    
+    git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Windows.git c:\oss\third_party
+    
+    dir c:\oss
+    
+    dir %OML_ROOT%
+    
+    dir %OML_THIRDPARTY%
+    
+    set OML
+    
+
+
+build:
+  project: c:\oss\OpenMatrixPublic\VS2015\OpenMatrix\OpenMatrix.sln
+  verbosity: minimal
+  
+
+test_script:
+- cmd: >-
+    set PATH=C:\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1\mingw64\bin;%PATH%
+    
+    set PATH=%OML_ROOT%\VS2015\OpenMatrix\x64\Release;%PATH%
+    
+    set PATH=%OML_THIRDPARTY%\lapack\lapack-3.7.1-build\bin;%PATH%
+    
+    set PATH=%OML_THIRDPARTY%\fftw\fftw-3.2.2\fftw-3.2.2-libs\x64\Release;%PATH%
+    
+    set PATH=%OML_THIRDPARTY%\matio\matio-1.5.11\visual_studio\x64\Release;%PATH%
+    
+    set PATH=%OML_THIRDPARTY%\sundials\sundials-3.1.0-install\lib;%PATH%
+    
+    cd %OML_ROOT%\Tests
+    
+    dir
+    
+    cd %OML_ROOT%\Tests\RegressionTests
+    
+    perl %OML_ROOT%\Tests\regressOMLConsole.pl
+    
+    cd %OML_ROOT%\Tests
+    
+    run_toolbox_tests.bat
+    
+    cd %OML_ROOT%\Tests
+    
+    evaluate_test_results.bat
+    
+
