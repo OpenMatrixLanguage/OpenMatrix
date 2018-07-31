@@ -41,7 +41,7 @@ before_build:
 
 
 build:
-  project: c:\oss\OpenMatrixPublic\VS2015\OpenMatrix\OpenMatrix.sln
+  project: c:\oss\VS2015\OpenMatrix\OpenMatrix.sln
   verbosity: minimal
   
 
