@@ -20,7 +20,7 @@
     <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       <p class="p"><span class="ph synph">filtfilt<span class="ph var">(b,a,x)</span></span></p>
 
-      
+      <?STOP?>
     </section>
 
     <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
@@ -53,7 +53,7 @@
         
       </dl>
 
-      
+      <?STOPINP?>
     </section>
 
     <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
@@ -67,7 +67,7 @@
         
       </dl>
 
-      
+      <?STOPOUT?>
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Example</h2>
@@ -110,12 +110,13 @@ legend('raw signal', 'filtered signal');</code></pre>
           <span class="keyword cmdname">filtfilt</span> compensates for filtering end effects by using a reflection
         technique, combined with matching the initial filter conditions to the signal endpoints.</p>
 
+      <p class="p">When <var class="keyword varname">x</var> is a matrix, the function operates along the first dimension,
+        which is the column dimension in the 2D case.</p>
+
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+    <section class="section">
       
-      <p class="p"><span class="keyword">1.0</span></p>
-
       
     </section>
 

@@ -20,7 +20,7 @@
     <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       <p class="p"><span class="ph synph">options = optimset<span class="ph var">('option1', value1, 'option2', value2, ...)</span></span></p>
 
-      
+      <?STOP?>
     </section>
 
     <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
@@ -35,12 +35,12 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">valueN</var></dt>
 
-          <dd class="dd pd">The value of option N. 
-          </dd>
+          <dd class="dd pd">The value of option N.  </dd>
 
         
       </dl>
 
+      <?STOPINP?>
     </section>
 
     <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
@@ -67,30 +67,30 @@
               <li class="li"><span class="keyword option">GradObj</span>: An 'on'/'off' flag to indicate whether the objective
                 function will return the gradient as an optional second return value. (Only for
                   <span class="keyword cmdname">fminunc</span>). The function signature is as follows:
-                <pre class="pre codeblock"><code>function [sys, grad] = System(x)</code></pre> where <var class="keyword varname">sys</var>
-                and <var class="keyword varname">grad</var> contain the system function and its gradient.</li>
+                  <span class="ph synph">function [sys, grad] = System(x)</span>, where <var class="keyword varname">sys</var> and
+                  <var class="keyword varname">grad</var> contain the system function and its gradient.</li>
 
               <li class="li"><span class="keyword option">GradConstr</span>: An 'on'/'off' flag to indicate whether the non-linear
                 constraint function will return the gradients as the optional third and fourth
-                return value. If a non-linear constraint is used then <span class="keyword option">GradConstr</span>
+                return value. If a non-linear constraint is used, then <span class="keyword option">GradConstr</span>
                 must be set the same as <span class="keyword option">GradObj</span>.  The
-                function signature is as follows:
-                <pre class="pre codeblock"><code>function [c, ceq, cj, ceqj] = ConFunc(x)</code></pre> where
-                  <var class="keyword varname">c</var> and <var class="keyword varname">ceq</var> contain inequality and equality
-                contraints, respectively, and <var class="keyword varname">cj</var> and <var class="keyword varname">ceqj</var>
-                contain their Jacobians. The inequality constraints are assumed to have upper bounds
-                of 0.</li>
+                function signature is as follows: <span class="ph synph">function [c, ceq, cj, ceqj] =
+                  ConFunc(x)</span>, where <var class="keyword varname">c</var> and <var class="keyword varname">ceq</var> contain
+                inequality and equality contraints, respectively, and <var class="keyword varname">cj</var> and
+                  <var class="keyword varname">ceqj</var> contain their Jacobians. The inequality constraints are
+                assumed to have upper bounds of 0.</li>
 
               <li class="li"><span class="keyword option">Jacobian</span>: An 'on'/'off' flag to indicate whether the objective
-                function will return the Jacobian as an optional second return value
-                (Only for <span class="keyword cmdname">fsolve</span>, <span class="keyword cmdname">lsqcurvefit</span>).
-                The function signature is as follows:
-                <pre class="pre codeblock"><code>function [res, jac] = System(x)</code></pre>
-                where <var class="keyword varname">res</var> and <var class="keyword varname">jac</var> contain the residuals vector of the
-                system function and its Jacobian.</li>
+                function will return the Jacobian as an optional second return value (Only for
+                  <span class="keyword cmdname">fsolve</span>, <span class="keyword cmdname">lsqcurvefit</span>). The function signature
+                is as follows: <span class="ph synph">function [res, jac] = System(x)</span>, where
+                  <var class="keyword varname">res</var> and <var class="keyword varname">jac</var> contain the residuals vector of
+                the system function and its Jacobian.</li>
 
-              <li class="li"><span class="keyword option">Display</span>: An 'iter'/'off' flag to indicate whether results at each
-                iteration will be displayed.</li>
+              <li class="li"><span class="keyword option">Display</span>: An 'iter'/'off' flag to indicate whether objective
+                function results will be displayed at each iteration. For more extensive iteration
+                information, see the <var class="keyword varname">output</var> return argument of the
+                  <span class="keyword cmdname">optimization</span> function</li>
 
             </ul>
 </dd>
@@ -98,7 +98,7 @@
         
       </dl>
 
-      
+      <?STOPOUT?>
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Examples</h2>
@@ -164,10 +164,8 @@ Jacobian: on
 
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+    <section class="section">
       
-      <p class="p"><span class="keyword">1.0</span></p>
-
       
     </section>
 
@@ -177,7 +175,7 @@ Jacobian: on
 <div class="linklist linklist"><strong>See Also</strong><br />
 
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/fminunc.htm" title="Find the unconstrained minimum of a real function.">fminunc</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/fsolve.htm" title="Find a solution of a system of real, nonlinear equations.">fsolve</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/fsolve.htm" title="Find a solution of a system of real nonlinear equations.">fsolve</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/lsqcurvefit.htm" title="Find the equation parameters that produce the least squares best fit to a data set.">lsqcurvefit</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/fminsearch.htm" title="Find the unconstrained minimum of a real function using the Nelder-Mead simplex algorithm.">fminsearch</a></div></div>
 </nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->

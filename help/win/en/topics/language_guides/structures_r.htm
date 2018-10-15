@@ -44,6 +44,34 @@ student(end).id = 90294067</code></pre></div>
 outer_struct.data = inner_struct;
 outer_struct.data.value =&gt; 5</code></pre></div>
 
+      <div class="p">Structure fields names can be dynamically set from a variable. For example, continuing the
+          <code class="ph codeph">student</code> structure example above, this can be
+        done:<pre class="pre codeblock"><code>fieldnameA = 'score';
+  student(1).(fieldnameA) = [56];
+  student(2).(fieldnameA) = [89];
+fieldnameB = 'status';
+  student(1).(fieldnameB) = ['pending'];
+  student(2).(fieldnameB) = ['registered'];</code></pre></div>
+
+      <div class="p">This will produce this
+        structure:<pre class="pre codeblock"><code>&gt; student(2)
+ans = struct [
+age: 21
+id: 90294067
+name: Nicole
+score: 89
+status: registered
+]</code></pre></div>
+
+      <div class="p">And the fields can be accessed as
+        follows:<pre class="pre codeblock"><code>&gt; student.score
+ans = 56
+ans = 89
+&gt; student.(fieldnameA)
+ans = 56
+ans = 89
+&gt;</code></pre></div>
+
       
     </section>
 
