@@ -6,4 +6,4 @@ end
 
 interval = [1, 6];
 options = optimset('MaxFunEvals', 8, 'TolX', 1.0e-8);
-[x,fval] = fzero(@func, interval, options)
+[x,fval,info,output] = fzero(@func, interval, options)

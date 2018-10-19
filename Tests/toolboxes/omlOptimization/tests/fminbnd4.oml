@@ -1,4 +1,5 @@
 addtoolbox omlOptimization
 
 interval = [1, 6];
-[x,fval] = fminbnd(@(x) -log(x) / x, interval)
+options = optimset('Display', 'iter');
+[x,fval] = fminbnd(@(x) -log(x) / x, interval, options)
