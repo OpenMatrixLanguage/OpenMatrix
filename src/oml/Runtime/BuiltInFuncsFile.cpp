@@ -51,8 +51,8 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
     }
 
     // First argument is file
-    const Currency& fileinput = inputs[0];        
-    std::string     filename;
+    Currency fileinput = inputs[0];        
+    std::string filename;
 
     if (fileinput.IsString())
     {
@@ -89,7 +89,7 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
     std::string delims;
     if (numargin > 1)
     {
-        const Currency& in2 = inputs[1];
+        Currency in2 = inputs[1];
         if (!in2.IsString()) 
         {
             throw OML_Error(OML_ERR_STRING, 2, OML_VAR_TYPE);
@@ -154,31 +154,46 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
         formats.push_back("%lf");
 
     bool newlinedelim = false;
+    if (!delims.empty())
+    {
+        size_t pos = delims.find("\\t");
+        if (pos != std::string::npos)
+        {
+            delims.replace(pos, 2, "\t");
+        }
+
+        pos = delims.find("\\n");
+        if (pos != std::string::npos)
+        {
+            if (delims == "\\n")
+            {
+                newlinedelim = true;
+            }
+            else
+            {
+                std::string tmp = delims.substr(0, pos);
+                tmp += delims.substr(pos + 2);
+                delims = tmp;
+            }
+        }
+        pos = delims.find("\\r");
+        if (pos != std::string::npos)
+        {
+            if (delims == "\\r")
+            {
+                newlinedelim = true;
+            }
+            else
+            {
+                std::string tmp = delims.substr(0, pos);
+                tmp += delims.substr(pos + 2);
+                delims = tmp;
+            }
+        }
+    }
     if (delims.empty())
     {
         delims = " ";
-    }
-    else if (delims.find("\\n") != std::string::npos ||
-             delims.find("\\r") != std::string::npos)
-    {
-        newlinedelim = true;
-    }
-
-    size_t pos = delims.find("\\t");
-    if (pos != std::string::npos)
-    {
-        delims.replace(pos, 2, "\t");
-    }
-
-    pos = delims.find("\\n");
-    if (pos != std::string::npos)
-    {
-        delims.replace(pos, 2, "\n");
-    }
-    pos = delims.find("\\r");
-    if (pos != std::string::npos)
-    {
-        delims.replace(pos, 2, "\r");
     }
 
     // Pad formats to match outputs
@@ -186,6 +201,7 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
     int numformats = static_cast<int>(formats.size());
     if (numoutputs > numformats)
     {
+        formats.reserve(numoutputs);
         while (numformats < numoutputs)
         {
             formats.push_back("%lf");
@@ -234,9 +250,9 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
     std::map<int, std::vector<std::string> > mapIdxStr;
     std::map<int, hwMatrix*>                 mapIdxMtx;
 
+    char lineC [2048];
     while (!eval.IsInterrupt())
     {
-        char lineC [1024];
         memset(lineC, 0, sizeof(lineC));
         if (fgets(lineC, sizeof(lineC), f) == nullptr)
         {
@@ -250,10 +266,40 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
 			continue; 
 		}
 
-        if (line[line.size() - 1] == '\n')
+#ifdef OS_WIN
+        if (!strstr(lineC, "\n"))
+#else
+        if (!strstr(lineC, "\n") && !strstr(lineC, "\r"))
+#endif
+        {
+            while(1)
+            {
+                memset(lineC, 0, sizeof(lineC));
+                if (fgets(lineC, sizeof(lineC), f) == nullptr)
+                {
+                    break;
+                }
+                line += lineC;
+
+#ifdef OS_WIN
+                if (strstr(lineC, "\n"))
+#else
+                if (strstr(lineC, "\n") || strstr(lineC, "\r"))
+#endif
+                {
+                    break;
+                }
+            }
+        }
+
+        if (line[line.size() - 1] == '\n' || line[line.size() - 1] == '\r')
         {
             line.pop_back();
         }
+
+#ifndef OS_WIN
+        BuiltInFuncsUtils::StripTrailingNewline(line);
+#endif
 
         if (line.empty())
         {
@@ -1057,20 +1103,46 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
     assert(basefmts.size() == rawfmts.size());
 
     bool newlinedelim = false;
+    if (!delims.empty())
+    {
+        size_t pos = delims.find("\\t");
+        if (pos != std::string::npos)
+        {
+            delims.replace(pos, 2, "\t");
+        }
+
+        pos = delims.find("\\n");
+        if (pos != std::string::npos)
+        {
+            if (delims == "\\n")
+            {
+                newlinedelim = true;
+            }
+            else
+            {
+                std::string tmp = delims.substr(0, pos);
+                tmp += delims.substr(pos + 2);
+                delims = tmp;
+            }
+        }
+        pos = delims.find("\\r");
+        if (pos != std::string::npos)
+        {
+            if (delims == "\\r")
+            {
+                newlinedelim = true;
+            }
+            else
+            {
+                std::string tmp = delims.substr(0, pos);
+                tmp += delims.substr(pos + 2);
+                delims = tmp;
+            }
+        }
+    }
     if (delims.empty())
     {
         delims = " ";
-    }
-    else if (delims.find("\\n") != std::string::npos ||
-             delims.find("\\r") != std::string::npos)
-    {
-        newlinedelim = true;
-    }
-
-    size_t pos = delims.find("\\t");
-    if (pos != std::string::npos)
-    {
-        delims.replace(pos, 2, "\t");
     }
 
     int numformats = static_cast<int>(basefmts.size());
@@ -1094,7 +1166,7 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
 
     bool quitLoop = false;
     int  linenum  = 0;   
-    char lineC [1048];
+    char lineC [2048];
 
     while (!quitLoop && !eval.IsInterrupt())
     {
@@ -1123,6 +1195,34 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
             }
 			continue; 
 		}
+
+        if (f)
+        {
+#ifdef OS_WIN
+            if (!strstr(lineC, "\n"))
+#else
+            if (!strstr(lineC, "\n") && !strstr(lineC, "\r"))
+#endif
+            {
+                while(1)
+                {
+                    memset(lineC, 0, sizeof(lineC));
+                    if (fgets(lineC, sizeof(lineC), f) == nullptr)
+                    {
+                        break;
+                    }
+                    line += lineC;
+#ifdef OS_WIN
+                    if (strstr(lineC, "\n"))
+#else
+                    if (strstr(lineC, "\n") || strstr(lineC, "\r"))
+#endif
+                    {
+                        break;
+                    }
+                }
+            }
+        }
 
         if (line[line.size() - 1] == '\n')
         {

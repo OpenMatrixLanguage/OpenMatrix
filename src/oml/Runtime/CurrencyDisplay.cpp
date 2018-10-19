@@ -122,9 +122,29 @@ void CurrencyDisplay::SetModeData()
     switch(m_mode)
     {
         case DISPLAYMODE_DOWN:
-        case DISPLAYMODE_FORWARD: SetForwardDisplayData(); break;
+            if (CanPaginateColumns())
+            {
+                SetDownDisplayData();
+            }
+            else
+            {
+                SetForwardDisplayData();
+            }
+            break;
 
         case DISPLAYMODE_UP:
+            if (CanPaginateColumns())
+            {
+                SetUpDisplayData();
+            }
+            else
+            {
+                SetBackDisplayData();
+            }
+            break;
+
+        case DISPLAYMODE_FORWARD: SetForwardDisplayData(); break;
+
         case DISPLAYMODE_BACK:    SetBackDisplayData();    break;
 
         case DISPLAYMODE_RIGHT:   SetRightDisplayData();   break;

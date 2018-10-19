@@ -21,6 +21,7 @@
 
 #include "FunctionInfo.h"
 #include "MemoryScope.h"
+#include "StructData.h"
 // End defines/includes
 
 //------------------------------------------------------------------------------
@@ -41,11 +42,19 @@ ClassInfo::~ClassInfo()
 //------------------------------------------------------------------------------
 FunctionInfo* ClassInfo::GetFunctionInfo(const std::string& name) const
 {
-    if (name.empty() || _methods.empty()) return NULL;
+    if (name.empty()) 
+		return NULL;
 
     std::map<std::string, FunctionInfo*>::const_iterator itr = _methods.find(name);
     if (itr != _methods.end()) 
         return itr->second;
+
+	for (int j=0; j<_baseclass.size(); ++j)
+	{
+		FunctionInfo* fi = _baseclass[j]->GetFunctionInfo(name);
+		if (fi)
+			return fi;
+	}
 
     return NULL;
 }
@@ -53,13 +62,13 @@ FunctionInfo* ClassInfo::GetFunctionInfo(const std::string& name) const
 //! Adds a base class
 //! \param[in] name Given base class name
 //------------------------------------------------------------------------------
-void ClassInfo::AddBaseClass(const std::string& name)
+void ClassInfo::AddBaseClass(const ClassInfo* base_class)
 {
-    if (name.empty()) return;
+    if (!base_class) return;
 
     if (_baseclass.empty() || 
-        std::find(_baseclass.begin(), _baseclass.end(), name) == _baseclass.end())
-        _baseclass.push_back(name);
+        std::find(_baseclass.begin(), _baseclass.end(), base_class) == _baseclass.end())
+        _baseclass.push_back(base_class);
 }
 //------------------------------------------------------------------------------
 //! Returns true if given class name is a base class - used only in language
@@ -69,12 +78,14 @@ bool ClassInfo::IsSubclassOf(const std::string& baseclass) const
 {
     if (baseclass.empty()) return false;
 
-    std::vector<std::string>::const_iterator itr = 
-        std::find(_baseclass.begin(), _baseclass.end(), baseclass);
+	for (int j=0; j<_baseclass.size(); j++)
+	{
+		const ClassInfo* base_class = _baseclass[j];
+		if (base_class->_class_name == baseclass)
+			return true;
+	}
 
-    if (itr == _baseclass.end()) return false;
-
-    return true;
+    return false;
 }
 //------------------------------------------------------------------------------
 //! Adds class method
@@ -94,12 +105,25 @@ bool ClassInfo::IsClassMethod(FunctionInfo* fi) const
 {
     if (!fi) return false;
 
+	if (fi->IsConstructor())
+	{
+		if (fi->FunctionName() == _class_name)
+			return true;
+	}
+
 	std::map<std::string, FunctionInfo*>::const_iterator iter = _methods.begin();
 	for (; iter != _methods.end(); ++iter)
 	{
 		if (iter->second == fi)
 			return true;
 	}
+
+	for (int j=0; j<_baseclass.size(); ++j)
+	{
+		if (_baseclass[j]->IsClassMethod(fi))
+			return true;
+	}
+
 	return false;
 }
 //------------------------------------------------------------------------------
@@ -156,3 +180,24 @@ bool ClassInfo::IsPropertyPrivate(const std::string& name) const
     return (prop && prop->IsPrivate());
 }
 // end of file:
+
+Currency ClassInfo::CreateEmpty() const
+{
+	Currency cur;
+	cur.MakeStruct();
+
+	if (_baseclass.size())
+	{
+		// not allowing multiple inheritance for now
+		cur = _baseclass[0]->CreateEmpty();
+	}
+
+	StructData* sd = cur.Struct();
+
+	for (int j=0; j<_properties.size(); j++)
+		sd->SetValue(0, 0, _properties[j]->Name(), new hwMatrix); 
+
+	cur.SetClass(_class_name);
+
+	return cur;
+}

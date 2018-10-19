@@ -22,6 +22,8 @@
 #include "StructData.h"
 
 #define DIFF "DifferentialEquations"
+#define TBOXVERSION 2019.0
+
 
 //------------------------------------------------------------------------------
 // Entry point which registers differential equations functions with oml
@@ -122,4 +124,11 @@ bool OmlOdeset(EvaluatorInterface           eval,
 
     outputs.push_back(out);
     return true;
+}
+//------------------------------------------------------------------------------
+// Returns toolbox version
+//------------------------------------------------------------------------------
+double GetToolboxVersion(EvaluatorInterface eval)
+{
+    return TBOXVERSION;
 }

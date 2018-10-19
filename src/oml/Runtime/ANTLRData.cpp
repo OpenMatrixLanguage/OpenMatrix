@@ -414,6 +414,8 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 					real_quote = false;
 				else if (prev_tok->getType(prev_tok) == IDENT)
 					real_quote = false;
+				else if (prev_tok->getType(prev_tok) == NUMBER)
+					real_quote = false;
 			}
 
 			if (real_quote)
@@ -499,6 +501,8 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 						else if (prev_tok->getType(prev_tok) == RPAREN)
 							real_quote = false;
 						else if (prev_tok->getType(prev_tok) == IDENT)
+							real_quote = false;
+						else if (prev_tok->getType(prev_tok) == NUMBER)
 							real_quote = false;
 					}
 

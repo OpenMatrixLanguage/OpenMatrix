@@ -50,20 +50,20 @@ typedef hwMathStatus (*NelderMeadFunc)(const hwMatrix& X,
 //! \param designHist
 //! \param userData    User data
 //!
-HWOPTIMIZATION_DECLS hwMathStatus NLCurveFit(const LSqFitFunc pRespFunc, 
+HWOPTIMIZATION_DECLS hwMathStatus NLCurveFit(const LSqFitFunc pRespFunc,
                                              const LSqFitFunc pJacFunc,
                                              hwMatrix&        P,
-                                             const hwMatrix&  X, 
+                                             const hwMatrix&  X,
                                              const hwMatrix&  y,
-                                             hwMatrix*        stats       = NULL, 
-                                             hwMatrix*        yEst        = NULL, 
-                                             int              maxIter     = 200,
-                                             int              maxFuncEval = 400, 
-                                             double           tolf        = 1.0e-6, 
+                                             int&             maxIter,
+                                             int&             maxFuncEval,
+                                             hwMatrix*        stats       = nullptr,
+                                             hwMatrix*        yEst        = nullptr,
+                                             double           tolf        = 1.0e-6,
                                              double           tolx        = 1.0e-6,
-                                             hwMatrix*        objHist     = NULL, 
-                                             hwMatrix*        designHist  = NULL,
-                                             const hwMatrix*  userData    = NULL);
+                                             hwMatrix*        objHist     = nullptr,
+                                             hwMatrix*        designHist  = nullptr,
+                                             const hwMatrix*  userData    = nullptr);
 
 //!
 //! Solve a nonlinear system of equations
@@ -80,18 +80,18 @@ HWOPTIMIZATION_DECLS hwMathStatus NLCurveFit(const LSqFitFunc pRespFunc,
 //! \param designHist
 //! \param userData
 //! 
-HWOPTIMIZATION_DECLS hwMathStatus NLSolve(const LSqFitFunc pRespFunc, 
-                                          const LSqFitFunc pJacFunc, 
+HWOPTIMIZATION_DECLS hwMathStatus NLSolve(const LSqFitFunc pRespFunc,
+                                          const LSqFitFunc pJacFunc,
                                           hwMatrix&        P,
-                                          double&          minVal, 
-                                          int              numEqns_    = -1, 
-                                          int              maxIter     = 200, 
-                                          int              maxFuncEval = 400,
-                                          double           tolf        = 1.0e-6, 
-                                          double           tolx        = 1.0e-6, 
-                                          hwMatrix*        objHist     = NULL,
-                                          hwMatrix*        designHist  = NULL, 
-                                          const hwMatrix*  userData    = NULL);
+                                          double&          minVal,
+                                          int&             maxIter,
+                                          int&             maxFuncEval,
+                                          int              numEqns_    = -1,
+                                          double           tolf        = 1.0e-6,
+                                          double           tolx        = 1.0e-6,
+                                          hwMatrix*        objHist     = nullptr,
+                                          hwMatrix*        designHist  = nullptr,
+                                          const hwMatrix*  userData    = nullptr);
 //!
 //! Find the minimum of a function without derivatives using Brent's method
 //! \param f           Function which evaluates f(x) for any x in interval (a,b)
@@ -105,16 +105,18 @@ HWOPTIMIZATION_DECLS hwMathStatus NLSolve(const LSqFitFunc pRespFunc,
 //! \param numIters    Number of iterations
 //! \param numFunEvals
 //!
-HWOPTIMIZATION_DECLS hwMathStatus Brent(const BrentFunc f, 
-                                        double&         a, 
-                                        double&         b, 
-                                        double&         fa, 
+HWOPTIMIZATION_DECLS hwMathStatus Brent(const BrentFunc f,
+                                        double&         a,
+                                        double&         b,
+                                        double&         fa,
                                         double&         fb,
-                                        double&         min, 
-                                        double&         fmin, 
-                                        double          tol, 
-                                        int&            numIters,
-                                        int&            numFunEvals);
+                                        double&         min,
+                                        double&         fmin,
+                                        int&            maxIter,
+                                        int&            maxFuncEval, 
+                                        double          tol,
+                                        hwMatrix*       objHist    = nullptr,
+                                        hwMatrix*       designHist = nullptr);
 //!
 //! Find zero of a function without derivatives using the TOMS 748 algorithm
 //! \param f
@@ -128,16 +130,18 @@ HWOPTIMIZATION_DECLS hwMathStatus Brent(const BrentFunc f,
 //! \param numIters
 //! \param numFunEvals
 //!
-HWOPTIMIZATION_DECLS hwMathStatus F_zero(const TOMS748Func f, 
-                                         double&           a, 
-                                         double&           b, 
-                                         double&           fa, 
+HWOPTIMIZATION_DECLS hwMathStatus F_zero(const TOMS748Func f,
+                                         double&           a,
+                                         double&           b,
+                                         double&           fa,
                                          double&           fb,
-                                         double&           root, 
-                                         double&           froot, 
+                                         double&           root,
+                                         double&           froot,
+                                         int&              maxIter,
+                                         int&              maxFuncEval,
                                          double            tol,
-                                         int&              numIters, 
-                                         int&              numFunEvals);
+                                         hwMatrix*         objHist    = nullptr,
+                                         hwMatrix*         designHist = nullptr);
 //!
 //! Finds minimum of a function without derivatives using Nelder-Mead simplex method
 //! \param f
@@ -146,11 +150,14 @@ HWOPTIMIZATION_DECLS hwMathStatus F_zero(const TOMS748Func f,
 //! \param numFunEvals
 //! \param tolx
 //!
-HWOPTIMIZATION_DECLS hwMathStatus NelderMead(const NelderMeadFunc f, 
-                                             hwMatrix&            optPoint, 
+HWOPTIMIZATION_DECLS hwMathStatus NelderMead(const NelderMeadFunc f,
+                                             hwMatrix&            optPoint,
                                              double&              minVal,
-                                             int&                 numFunEvals, 
-                                             double               tolx = 1.0e-6);
+                                             int&                 maxIter,
+                                             int&                 maxFuncEval,
+                                             double               tolx = 1.0e-6,
+                                             hwMatrix*            objHist = nullptr,
+                                             hwMatrix*            designHist = nullptr);
 
 //!
 //! Find the unconstrained minimum of a multivariate function
@@ -166,17 +173,17 @@ HWOPTIMIZATION_DECLS hwMathStatus NelderMead(const NelderMeadFunc f,
 //! \param designHist
 //! \param userData
 //!
-HWOPTIMIZATION_DECLS hwMathStatus FMinUncon(const UnConMinObjFunc  pRespFunc, 
+HWOPTIMIZATION_DECLS hwMathStatus FMinUncon(const UnConMinObjFunc  pRespFunc,
                                             const UnConMinGradFunc pGradFunc,
-                                            hwMatrix&              P, 
-                                            double&                minVal, 
-                                            int                    maxIter     = 200, 
-                                            int                    maxFuncEval = 400,
+                                            hwMatrix&              P,
+                                            double&                minVal,
+                                            int&                   maxIter,
+                                            int&                   maxFuncEval,
                                             double                 tolf        = 1.0e-6,
                                             double                 tolx        = 1.0e-6,
-                                            hwMatrix*              objHist     = NULL,
-                                            hwMatrix*              designHist  = NULL, 
-                                            const hwMatrix*        userData    = NULL);
+                                            hwMatrix*              objHist     = nullptr,
+                                            hwMatrix*              designHist  = nullptr, 
+                                            const hwMatrix*        userData    = nullptr);
 
 
 #endif // __HWOPTIMIZATIONFUNCS_H__

@@ -421,10 +421,24 @@ OMLTree* FunctionInfo::Statements() const
 	return NULL;
 }
 
-void FunctionInfo::ClearAnonymousVariable(const std::string* var)
-{
-	if (_anon_scope)
-		_anon_scope->Remove(*var);
+void FunctionInfo::SetAnonymous(MemoryScope* dummy)
+{ 
+	std::vector<std::string> idents;
+
+	_stmts->Statements()->GetListOfIdents(idents);
+
+	_anon_scope = new MemoryScope(NULL);
+
+	// may want to ignore parameters here
+	for (int j=0; j<idents.size(); j++)
+	{
+		const std::string* str_ptr = Currency::vm.GetStringPointer(idents[j]);
+
+		if (dummy->Contains(str_ptr))
+			_anon_scope->SetValue(str_ptr, dummy->GetValue(str_ptr));
+		else if (dummy->IsGlobal(*str_ptr))
+			_anon_scope->AddGlobalReference(*str_ptr);
+	}
 }
 
 bool FunctionInfo::HasDefaultValue(const std::string* param_name) const

@@ -725,15 +725,73 @@ namespace omlplot{
         return true;
     }
 
-    bool vml_doNothing(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs){
+    bool oml_doNothing(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs){
+        static bool firstCall = true;
+        if (firstCall){
+            std::cout << "\nError: Gnuplot not found. Please install it and try again.\n" << std::endl;
+            firstCall = false;
+        }
         return true;
+    }
+
+#define TBOXVERSION 2019.0
+    extern "C" OMLPLOT_EXPORT
+    double GetToolboxVersion(EvaluatorInterface eval){
+        return TBOXVERSION;
     }
 
     extern "C" OMLPLOT_EXPORT
     int InitDll(EvaluatorInterface evl)
     {
         if (! GnuplotOutput::isGnuplotReady()){
-            throw OML_Error(OML_ERR_PLOT_GNUPLOT_NOT_FOUND);
+            evl.RegisterBuiltInFunction("plot", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("bar", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("hist", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("area", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("polar", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("line", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("scatter", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("plot3", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("fill", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("stem", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("scatter3", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("surf", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("mesh", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("waterfall", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("contour3", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("contour", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("loglog", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("semilogx", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("semilogy", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("figure", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("subplot", oml_doNothing, FunctionMetaData(3, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("axes", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("get", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("set", oml_doNothing, FunctionMetaData(3, 0, "Plotting"));
+            evl.RegisterBuiltInFunction("gcf", oml_doNothing, FunctionMetaData(0, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("gca", oml_doNothing, FunctionMetaData(0, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("clf", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("cla", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("close", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("hold", oml_doNothing, FunctionMetaData(-1, 0, "Plotting"));
+            evl.RegisterBuiltInFunction("ishold", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("ishandle", oml_doNothing, FunctionMetaData(1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("isfigure", oml_doNothing, FunctionMetaData(1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("isaxes", oml_doNothing, FunctionMetaData(1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("grid", oml_doNothing, FunctionMetaData(-1, 0, "Plotting"));
+            evl.RegisterBuiltInFunction("title", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("xlabel", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("ylabel", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("zlabel", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("axis", oml_doNothing, FunctionMetaData(-1, -1, "Plotting"));
+            evl.RegisterBuiltInFunction("xlim", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("ylim", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("zlim", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("legend", oml_doNothing, FunctionMetaData(-1, 0, "Plotting"));
+            evl.RegisterBuiltInFunction("text", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("saveas", oml_doNothing, FunctionMetaData(-1, 0, "Plotting"));
+            evl.RegisterBuiltInFunction("view", oml_doNothing, FunctionMetaData(-1, 0, "Plotting"));
+            return 0;
         }
 
         evl.RegisterBuiltInFunction("plot", plot, FunctionMetaData(-1, 1, "Plotting"));
@@ -782,10 +840,7 @@ namespace omlplot{
         evl.RegisterBuiltInFunction("legend", legend, FunctionMetaData(-1, 0, "Plotting"));
         evl.RegisterBuiltInFunction("text", text, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("saveas", saveas, FunctionMetaData(-1, 0, "Plotting"));
-        evl.RegisterBuiltInFunction("view", vml_doNothing, FunctionMetaData(-1, 0, "Plotting"));
-        //evl.RegisterBuiltInFunction("uicontrol", vml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
-        //evl.RegisterBuiltInFunction("uibuttongroup", vml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
-        //evl.RegisterBuiltInFunction("uipanel", vml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("view", oml_doNothing, FunctionMetaData(-1, 0, "Plotting"));
 #ifdef _DEBUG
         evl.RegisterBuiltInFunction("dump", dump, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("out", out, FunctionMetaData(-1, 1, "Plotting"));

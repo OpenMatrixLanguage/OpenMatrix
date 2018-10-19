@@ -27,6 +27,7 @@
 
 class CurrencyDisplay;
 class FunctionInfo;
+class Interpreter;
 // End defines/includes
 
 //------------------------------------------------------------------------------
@@ -108,8 +109,15 @@ public:
     //! Execute passed in function
     //! \param[in] funinfo handler to function
     //! \param[in] inputs   Inputs to the function
-    virtual void ExecuteCallBack(FunctionInfo* finfo, 
+    virtual void ExecuteCallBack(FunctionInfo* finfo,
+																 const std::string& fname,
                                  const std::vector<Currency>& inputs) {}
+    //! Set the current interpreter
+    //! \param[in] interp handle to current interpreter
+    virtual void SetCurrentInterp(Interpreter* interp) {}
+    //! Returns the current interpreter
+    virtual Interpreter* GetCurrentInterp() const { return NULL; }
+
 protected:
     SignalHandlerBase() {}          //! Constructor
 private:

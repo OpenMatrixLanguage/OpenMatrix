@@ -23,20 +23,16 @@ hwTrustRegionMinimizer::hwTrustRegionMinimizer(const hwMatrix& P_,
                                                int             maxFuncEval, 
                                                double          tolf, 
                                                double          tolx)
-    : Obj_history    (NULL)
-    , DV_history     (NULL)
-    , m_maxIter      (maxIter)
-    , m_numFuncEvals (maxFuncEval)
-    , m_tolf         (tolf)
-    , m_tolx         (tolx)
-    , m_numIter      (0)
-    , m_numHistPnts  (0)
-    , m_objFuncVal   (0.0)
-
+    : Obj_history    (nullptr),
+      DV_history     (nullptr),
+      m_maxIter      (maxIter),
+      m_numFuncEvals (maxFuncEval),
+      m_tolf         (tolf),
+      m_tolx         (tolx),
+      m_numIter      (0),
+      m_numHistPnts  (0),
+      m_objFuncVal   (0.0)
 {
-    //\todo: In the future separate classes need to be derived. One to function
-    // as the existing class does, and another to use when the parameters are
-    // not stored in a vector.
     if (P_.IsEmpty())
     {
         m_status(HW_MATH_ERR_EMPTYMATRIX, 1);
@@ -114,15 +110,6 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
     {
         return m_status;
     }
-
-#if 0 // Commented code
-    // std::fstream file;
-    // file.open("c:\\Temp\\Rosenbrock.txt", fstream::out | fstream::trunc);
-    // char buffer[81];
-    // std::string line;
-    // int count = 0;
-    // file.close();    // move where needed
-#endif
 
     // get initial estimates for parameters and objective function
     hwMatrix Pcand(m_numParams, 1, hwMatrix::REAL);   // candidate parameter estimates
@@ -202,6 +189,7 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
 
                 if (trRadius <= trRadiusMin)
                 {
+                    m_status(HW_MATH_INFO_SMALLTRUST);
                     break;
                 }
 
@@ -230,6 +218,7 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
 
             if (trRadius <= trRadiusMin)
             {
+                m_status(HW_MATH_INFO_SMALLTRUST);
                 break;
             }
             trRadius    = _max(0.25 * PstepLength, trRadiusMin);
@@ -251,6 +240,7 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
                 if (gradLength == 0.0)
                 {
                     converged = true;
+                    m_status(HW_MATH_INFO_TOLXCONV);
                     break;
                 }
             }
@@ -271,7 +261,8 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
 
                 if (trRadius <= trRadiusMin)
                 {
-                    return m_status(HW_MATH_ERR_NOLOCALMIN);
+                    return m_status(HW_MATH_INFO_SMALLTRUST);
+                    // return m_status(HW_MATH_ERR_NOLOCALMIN);
                 }
 
                 trRadius    = _max(0.25 * PstepLength, trRadiusMin);
@@ -304,7 +295,7 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
 
                 if (fabs(f_new) > _max(1.0e-6 * m_tolf, 1.0e-20))
                 {
-                    if (fabs(f - f_new) < m_tolf * fabs(f_new))
+                    if (fabs(f - f_new) < m_tolf * fabs(f))
                     {
                         f = f_new;
                         SetParams(Pnew);
@@ -312,6 +303,7 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
                         if (m_tolf < 1.0e-20 || gradLength * m_tolx < 100.0 * m_tolf)   // sanity check on gradient
                         {
                             converged = true;
+                            m_status(HW_MATH_INFO_TOLFCONV_R);
                             break;
                         }
                     }
@@ -326,6 +318,7 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
                         if (m_tolf < 1.0e-20 || gradLength * m_tolx < 100.0 * m_tolf)   // sanity check on gradient
                         {
                             converged = true;
+                            m_status(HW_MATH_INFO_TOLFCONV);
                             break;
                         }
                     }
@@ -438,11 +431,17 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
                 if (m_tolf < 1.0e-20 || gradLength * PstepLength < 100.0 * m_tolf)   // sanity check on gradient
                 {
                     converged = true;
+                    m_status(HW_MATH_INFO_TOLXCONV_R);
+                    Pnew = Pcand - Pstep;
+                    SetParams(Pnew);
                     break;
                 }
                 else if (PstepLength <= trRadiusMin)
                 {
                     converged = true;
+                    m_status(HW_MATH_INFO_TOLXCONV);
+                    Pnew = Pcand - Pstep;
+                    SetParams(Pnew);
                     break;
                 }
             }
@@ -454,11 +453,17 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
                 if (m_tolf < 1.0e-20 || gradLength * PstepLength < 100.0 * m_tolf)   // sanity check on gradient
                 {
                     converged = true;
+                    m_status(HW_MATH_INFO_TOLXCONV);
+                    Pnew = Pcand - Pstep;
+                    SetParams(Pnew);
                     break;
                 }
                 else if (PstepLength <= trRadiusMin)
                 {
                     converged = true;
+                    m_status(HW_MATH_INFO_TOLXCONV);
+                    Pnew = Pcand - Pstep;
+                    SetParams(Pnew);
                     break;
                 }
             }
@@ -527,7 +532,7 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
         }
     }
 
-    m_numIter    = i;
+    m_numIter    = i + 1;
     m_objFuncVal = f;
 
     if (!converged)

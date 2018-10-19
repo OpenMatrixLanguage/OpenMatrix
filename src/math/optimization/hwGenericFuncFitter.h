@@ -25,8 +25,8 @@
 //! 2. For solving nonlinear systems of equations of the form f(P)=0, pass a 
 //! dummy variable for X
 //!
-typedef hwMathStatus (*LSqFitFunc)(const hwMatrix& P, 
-                                   const hwMatrix& X, 
+typedef hwMathStatus (*LSqFitFunc)(const hwMatrix& P,
+                                   const hwMatrix& X,
                                    const hwMatrix* userData,
                                    hwMatrix&       result);
 
@@ -54,14 +54,14 @@ public:
     //! \param tolx
     //! \param userData
     //!
-    hwGenericFuncFitter(const LSqFitFunc pObjFunc, 
+    hwGenericFuncFitter(const LSqFitFunc pObjFunc,
                         const LSqFitFunc pJacFunc,
-                        const hwMatrix&  P, 
-                        const hwMatrix&  X_, 
+                        const hwMatrix&  P,
+                        const hwMatrix&  X_,
                         const hwMatrix&  y_,
-                        int              maxIter     = 200, 
-                        int              maxFuncEval = 400,
-                        double           tolf        = 1.0e-6, 
+                        int              maxIter     = 200,
+                        int              maxFuncEval = 400, 
+                        double           tolf        = 1.0e-6,
                         double           tolx        = 1.0e-6,
                         const hwMatrix*  userData    = NULL);
     //!
@@ -76,13 +76,13 @@ public:
     //! \param tolx
     //! \param userData
     //!
-    hwGenericFuncFitter(const LSqFitFunc pObjFunc, 
+    hwGenericFuncFitter(const LSqFitFunc pObjFunc,
                         const LSqFitFunc pJacFunc,
-                        const hwMatrix&  P, 
+                        const hwMatrix&  P,
                         int              numEqns,
-                        int              maxIter     = 200, 
-                        int              maxFuncEval = 400,
-                        double           tolf        = 1.0e-6, 
+                        int              maxIter     = 200,
+                        int              maxFuncEval = 400, 
+                        double           tolf        = 1.0e-6,
                         double           tolx        = 1.0e-6,
                         const hwMatrix*  userData    = NULL);
     //!

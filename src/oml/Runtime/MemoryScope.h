@@ -43,7 +43,7 @@ public:
 	void            SetValue(const std::string& varname, const Currency& new_val);
 	void            SetValue(const std::string* var_ptr, const Currency& new_val);
 	bool            IsGlobal(const std::string& varname) const;
-
+	bool            IsPersistent(const std::string* varname) const;
 	bool            Contains(const std::string* var_ptr) const;
 
 	bool            IsAnonymous() const;
@@ -64,9 +64,11 @@ public:
 	int                GetLineNumber() const { return debug_line; }
 	void               RegisterNestedFunction(FunctionInfo* fi);
 
-	void            Remove(const std::string& varname);
+	void			   Remove(const std::string& varname);
+
+	void               AddGlobalReference(const std::string& varname);
+
 protected:
-	void            AddGlobalReference(const std::string& varname);
 	void            RemoveGlobalReference(const std::string& varname);
 	void            AddPersistentReference(const std::string& varname);
 	bool            Remove(const std::regex& varname);
@@ -126,11 +128,13 @@ public:
 	Currency&       GetMutableValue(const std::string* var_ptr);
 	Currency&       GetMutableParentValue(const std::string& varname);
 	bool            IsGlobal(const std::string& varname) const;
+	bool            IsPersistent(const std::string* var_ptr) const;
 	bool            Contains(const std::string* var_ptr) const;
 
 	int                         GetStackDepth() const { return (int) memory_stack.size(); }
 	std::vector<DebugStateInfo> GetCallStack() const;
 	MemoryScopeManager*         MakeContextCopy(bool base) const;
+	bool                        IsFunctionInCallStack(const std::string&);
 
 	FunctionInfo*   GetNestedFunction(const std::string* func_name) const;
 	FunctionInfo*   GetLocalFunction(const std::string* func_name) const;

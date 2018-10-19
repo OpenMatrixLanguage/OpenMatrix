@@ -107,6 +107,8 @@
 #define OML_MSG_SCALAR_REALMTX              "Error: invalid input; must be a scalar or real matrix"
 #define OML_MSG_INTEGER_INTMTX              "Error: invalid input; must be an integer or a matrix of integers"
 #define OML_MSG_LOGICAL                     "Error: invalid input; must be true or false"
+#define OML_MSG_INVALID_DLL                 "Error: invalid dynamic library"
+#define OML_MSG_INVALID_VERSION        "Error: invalid version"
 
 // plot messages
 #define OML_MSG_PLOT_OUT_OF_RANGE				"Error: index out of range; check input"
@@ -224,6 +226,7 @@ enum omlMathErrCode
     OML_ERR_SCALAR_REALMTX,
     OML_ERR_INTEGER_INTMTX,
     OML_ERR_LOGICAL,
+    OML_ERR_INVALID_VERSION,
 
     // plot codes
     OML_ERR_PLOT_OUT_OF_RANGE,

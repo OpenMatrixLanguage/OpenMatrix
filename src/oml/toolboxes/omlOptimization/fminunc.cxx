@@ -24,10 +24,10 @@
 #include "hwOptimizationFuncs.h"
 
 // File scope variables and functions
-static EvaluatorInterface* FMINUNC_eval_ptr        = nullptr;
-static FunctionInfo*       FMINUNC_oml_func        = nullptr;
-static FUNCPTR             FMINUNC_oml_pntr        = nullptr;
-static bool                FMINUNC_oml_func_isanon(nullptr);
+static std::vector<EvaluatorInterface*> FMINUNC_eval_ptr_stack;
+static std::vector<FunctionInfo*>       FMINUNC_oml_func_stack;
+static std::vector<FUNCPTR>             FMINUNC_oml_pntr_stack;
+static std::vector<bool>                FMINUNC_oml_bool_stack;
 
 //------------------------------------------------------------------------------
 // Wrapper for the objective function called in OmlFminunc by oml scripts
@@ -36,11 +36,15 @@ static hwMathStatus FMinUnconFunc(const hwMatrix& P,
                                   const hwMatrix* userData, 
                                   double&         min)
 {
-    std::vector<Currency> outputs;
     std::vector<Currency> inputs;
-
     inputs.push_back(EvaluatorInterface::allocateMatrix(&P));
     int numinputs = static_cast<int>(inputs.size()); 
+    std::vector<Currency> outputs;
+
+    EvaluatorInterface* FMINUNC_eval_ptr        = FMINUNC_eval_ptr_stack.back();
+    FunctionInfo*       FMINUNC_oml_func        = FMINUNC_oml_func_stack.back();
+    FUNCPTR             FMINUNC_oml_pntr        = FMINUNC_oml_pntr_stack.back();
+    bool                FMINUNC_oml_func_isanon = FMINUNC_oml_bool_stack.back();
 
     if (FMINUNC_oml_func_isanon)
     {
@@ -112,11 +116,14 @@ static hwMathStatus FMinUnconGradient(const hwMatrix& P,
                                       const hwMatrix* userData, 
                                       hwMatrix&       grad)
 {
-    std::vector<Currency> outputs;
     std::vector<Currency> inputs;
-
     inputs.push_back(EvaluatorInterface::allocateMatrix(&P));
     int numinputs = static_cast<int>(inputs.size());    
+    std::vector<Currency> outputs;
+
+    EvaluatorInterface* FMINUNC_eval_ptr = FMINUNC_eval_ptr_stack.back();
+    FunctionInfo*       FMINUNC_oml_func = FMINUNC_oml_func_stack.back();
+    FUNCPTR             FMINUNC_oml_pntr = FMINUNC_oml_pntr_stack.back();
 
     if (FMINUNC_oml_func)
     {
@@ -167,7 +174,7 @@ static hwMathStatus FMinUnconGradient(const hwMatrix& P,
     }
     else
     {
-        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+        return hwMathStatus(HW_MATH_ERR_USERFUNCREAL, 222);
     }
       
     return hwMathStatus();
@@ -180,6 +187,7 @@ bool OmlFminunc(EvaluatorInterface           eval,
                 std::vector<Currency>&       outputs)
 {
     int nargin = eval.GetNarginValue();
+    int nargout = eval.GetNargoutValue();
 
     if (nargin < 2 || nargin > 3)
     {
@@ -200,14 +208,18 @@ bool OmlFminunc(EvaluatorInterface           eval,
     if (funcName == "anonymous")
     {
         funcInfo = cur1.FunctionHandle();
-        std::string script_func = funcInfo->RedirectedFunction();
-        FMINUNC_oml_func_isanon = 
-            (script_func.size()) ? false: // Inner function
-                                   true;  // true anonymous function
+        (funcInfo->RedirectedFunction().empty()) ?
+            FMINUNC_oml_bool_stack.push_back(true):  // true anonymous function
+            FMINUNC_oml_bool_stack.push_back(false); // handle to an inner function
     }
-    else if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr))
+    else
     {
-        throw OML_Error(OML_ERR_FUNCNAME, 1);
+        FMINUNC_oml_bool_stack.push_back(false);
+
+        if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr))
+        {
+            throw OML_Error(OML_ERR_FUNCNAME, 1);
+        }
     }
 
     if (funcInfo && funcInfo->Parameters().size() != 1)
@@ -215,7 +227,7 @@ bool OmlFminunc(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN, 1);
     }
 
-    Currency  cur2 = inputs[1];
+    Currency cur2 = inputs[1];
 
     if (!cur2.IsScalar() && !cur2.IsMatrix())
         throw OML_Error(OML_ERR_SCALARVECTOR, 2);
@@ -345,14 +357,15 @@ bool OmlFminunc(EvaluatorInterface           eval,
     }
 
     // set file scope variables
-    FMINUNC_eval_ptr = &eval;
-    FMINUNC_oml_func = funcInfo;
-    FMINUNC_oml_pntr = funcPntr;
+    FMINUNC_eval_ptr_stack.push_back(&eval);
+    FMINUNC_oml_func_stack.push_back(funcInfo);
+    FMINUNC_oml_pntr_stack.push_back(funcPntr);
 
     // call algorithm
-    hwMatrix*    objHist    = (displayHist) ? EvaluatorInterface::allocateMatrix() :
-                              nullptr;
-    hwMatrix*    designHist = nullptr;
+    hwMatrix*    objHist    = (displayHist || nargout > 3) ?
+                              EvaluatorInterface::allocateMatrix() : nullptr;
+    hwMatrix*    designHist = (nargout > 3) ?
+                              EvaluatorInterface::allocateMatrix() : nullptr;
     hwMatrix*    userData   = nullptr;
     hwMathStatus status;
     double       minVal;
@@ -369,10 +382,9 @@ bool OmlFminunc(EvaluatorInterface           eval,
     }
 
     // display history
-    if (displayHist && status.IsOk())
+    if (displayHist && (status.IsOk() || status.IsWarning() || status.IsInfoMsg()))
     {
-
-        std::string line = "Iteration      f(x)\n";
+        std::string line = "Iteration    f(x)\n";
         eval.PrintResult(line);
 
         for (int i = 0; i < objHist->Size(); ++i)
@@ -396,55 +408,124 @@ bool OmlFminunc(EvaluatorInterface           eval,
         eval.PrintResult(line);
     }
 
-    if (objHist)
-    {
-        delete objHist;
-        objHist = nullptr;
-    }
-
     if (!status.IsOk())
     {
-        if (status.GetArg1() == 111)
+        if (status == HW_MATH_WARN_MAXITERATE ||
+            status == HW_MATH_WARN_MAXFUNCEVAL ||
+            status == HW_MATH_WARN_NOTCONVERGE ||
+            status.IsInfoMsg())
         {
-            status.SetUserFuncName(funcName);
-            status.SetArg1(1);
-        }
-        else if (status.GetArg1() == 3)
-        {
-            status.SetArg1(2);
-        }
-        else if (status.GetArg1() > 4 && status.GetArg1() < 7)
-        {
-            status.SetArg1(3);
+            // warning message has been replaced by a return value
         }
         else
         {
-            status.ResetArgs();
-        }
-
-        if (status.IsWarning())
-        {
-            BuiltInFuncsUtils::SetWarning(eval, status.GetMessageString());
-        }
-        else
-        {
-            if (optPoint)
+            if (status.GetArg1() == 111)
             {
-                delete optPoint;
-                optPoint = nullptr;
+                status.SetUserFuncName(funcName);
+                status.SetArg1(1);
             }
-            throw OML_Error(status);
+            else if (status.GetArg1() == 3)
+            {
+                status.SetArg1(2);
+            }
+            else if (status.GetArg1() > 4 && status.GetArg1() < 9)
+            {
+                status.SetArg1(3);
+            }
+            else
+            {
+                status.ResetArgs();
+            }
+
+            if (status.IsWarning())
+            {
+                BuiltInFuncsUtils::SetWarning(eval, status.GetMessageString());
+            }
+            else
+            {
+                FMINUNC_eval_ptr_stack.clear();
+                FMINUNC_oml_func_stack.clear();
+                FMINUNC_oml_pntr_stack.clear();
+                FMINUNC_oml_bool_stack.clear();
+
+                if (optPoint)
+                {
+                    delete optPoint;
+                    optPoint = nullptr;
+                }
+
+                if (objHist)
+                {
+                    delete objHist;
+                    objHist = nullptr;
+                }
+
+                if (designHist)
+                {
+                    delete designHist;
+                    designHist = nullptr;
+                }
+
+                throw OML_Error(status);
+            }
         }
     }
 
     // pack outputs
-    int nargout = eval.GetNargoutValue();
-
-    if (nargout > 0)
-        outputs.push_back(optPoint);
+    outputs.push_back(optPoint);
 
     if (nargout > 1)
         outputs.push_back(minVal);
+
+    if (nargout > 2)
+    {
+        if (status == HW_MATH_INFO_TOLFCONV)
+            outputs.push_back(1.0);
+        else if (status == HW_MATH_INFO_TOLXCONV)
+            outputs.push_back(2.0);
+        else if (status == HW_MATH_INFO_TOLFCONV_R)
+            outputs.push_back(3.0);
+        else if (status == HW_MATH_INFO_TOLXCONV_R)
+            outputs.push_back(4.0);
+        else if (status == HW_MATH_WARN_MAXITERATE ||
+                 status == HW_MATH_WARN_MAXFUNCEVAL ||
+                 status == HW_MATH_WARN_NOTCONVERGE)
+            outputs.push_back(0.0);
+        else if (status == HW_MATH_INFO_SMALLTRUST)
+            outputs.push_back(-3.0);
+    }
+
+    if (nargout > 3)
+    {
+        objHist->Transpose();
+        designHist->Transpose();
+
+        Currency out = EvaluatorInterface::allocateStruct();
+        out.Struct()->SetValue(0, -1, "iterations", maxIter);
+        out.Struct()->SetValue(0, -1, "nfev",       maxFuncEval);
+        out.Struct()->SetValue(0, -1, "xiter",      designHist);
+        out.Struct()->SetValue(0, -1, "fvaliter",   objHist);
+        outputs.push_back(out);
+    }
+    else
+    {
+        if (objHist)
+        {
+            delete objHist;
+            objHist = nullptr;
+        }
+
+        if (designHist)
+        {
+            delete designHist;
+            designHist = nullptr;
+        }
+    }
+
+    FMINUNC_eval_ptr_stack.pop_back();
+    FMINUNC_oml_func_stack.pop_back();
+    FMINUNC_oml_pntr_stack.pop_back();
+    FMINUNC_oml_bool_stack.pop_back();
 
     return true;
 }

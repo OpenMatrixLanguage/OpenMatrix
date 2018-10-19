@@ -33,6 +33,11 @@
 //! \param eval Evaluator interface
 //!
 extern "C" OMLDIFFEQTBOX_DECLS int InitDll(EvaluatorInterface eval);
+//!
+//! Returns toolbox version
+//! \param eval Evaluator interface
+//!
+extern "C" OMLDIFFEQTBOX_DECLS double GetToolboxVersion(EvaluatorInterface eval);
 
 //!
 //! Sets ordinary differential equation options [odeset]

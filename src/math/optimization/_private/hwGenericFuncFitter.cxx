@@ -19,18 +19,18 @@
 //------------------------------------------------------------------------------
 // Constructor - Find parameters when fitting equations of the form y=f(x)
 //------------------------------------------------------------------------------
-hwGenericFuncFitter::hwGenericFuncFitter(const LSqFitFunc pObjFunc, 
+hwGenericFuncFitter::hwGenericFuncFitter(const LSqFitFunc pObjFunc,
                                          const LSqFitFunc pJacFunc,
-                                         const hwMatrix&  P, 
-                                         const hwMatrix&  X_, 
+                                         const hwMatrix&  P,
+                                         const hwMatrix&  X_,
                                          const hwMatrix&  y_,
-                                         int              maxIter, 
-                                         int              maxFuncEval, 
+                                         int              maxIter,
+                                         int              maxFuncEval,
                                          double           tolf,
                                          double           tolx,
                                          const hwMatrix*  userData)
-    : hwGaussNewtLSqFit(P, y_.Size(), maxIter, maxFuncEval, tolf, tolx)
-    , X (NULL)
+    : hwGaussNewtLSqFit(P, y_.Size(), maxIter, maxFuncEval, tolf, tolx),
+      X (nullptr)
 {
     if (!m_status.IsOk())
     {
@@ -99,15 +99,15 @@ hwGenericFuncFitter::hwGenericFuncFitter(const LSqFitFunc pObjFunc,
 // -----------------------------------------------------------------------------
 hwGenericFuncFitter::hwGenericFuncFitter(const LSqFitFunc pObjFunc,
                                          const LSqFitFunc pJacFunc,
-                                         const hwMatrix&  P, 
+                                         const hwMatrix&  P,
                                          int              numEqns,
                                          int              maxIter,
-                                         int              maxFuncEval, 
-                                         double           tolf, 
+                                         int              maxFuncEval,
+                                         double           tolf,
                                          double           tolx,
                                          const hwMatrix*  userData)
-    : hwGaussNewtLSqFit(P, numEqns, maxIter, maxFuncEval, tolf, tolx)
-    , X (NULL)
+    : hwGaussNewtLSqFit(P, numEqns, maxIter, maxFuncEval, tolf, tolx),
+      X (nullptr)
 {
     if (!m_status.IsOk())
     {
@@ -240,7 +240,9 @@ void hwGenericFuncFitter::EvalJacobian()
 
             if (!m_status.IsOk())
             {
-                m_status.ResetArgs();
+                if (m_status.GetArg1() != 111)
+                    m_status.ResetArgs();
+
                 return;
             }
 
@@ -252,7 +254,9 @@ void hwGenericFuncFitter::EvalJacobian()
 
             if (!m_status.IsOk())
             {
-                m_status.ResetArgs();
+                if (m_status.GetArg1() != 111)
+                    m_status.ResetArgs();
+
                 return;
             }
 

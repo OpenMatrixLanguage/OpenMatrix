@@ -25,12 +25,13 @@
 #include "OML_Error.h"
 
 #define CALC "Calculus"
+#define TBOXVERSION 2019.0
 
 // file scope variables and functions
-static FunctionInfo* quad_oml_sys_func;
-static std::string quad_oml_sys_name;
-static FUNCPTR quad_oml_sys_pntr;
-static EvaluatorInterface* quad_eval_ptr;
+static std::vector<FunctionInfo*>       quad_oml_sys_func_stack;
+static std::vector<std::string>         quad_oml_sys_name_stack;
+static std::vector<FUNCPTR>             quad_oml_sys_pntr_stack;
+static std::vector<EvaluatorInterface*> quad_eval_ptr_stack;
 
 //------------------------------------------------------------------------------
 // Entry point which registers oml Calculus functions with oml
@@ -56,6 +57,11 @@ static hwMathStatus quad_file_func(double x, double& y)
     std::vector<Currency> inputs;
     inputs.push_back(x);
     Currency result;
+
+    FunctionInfo*       quad_oml_sys_func  = quad_oml_sys_func_stack.back();
+    std::string         quad_oml_sys_name  = quad_oml_sys_name_stack.back();
+    FUNCPTR             quad_oml_sys_pntr  = quad_oml_sys_pntr_stack.back();
+    EvaluatorInterface* quad_eval_ptr      = quad_eval_ptr_stack.back();
 
     if (quad_oml_sys_func)
         result = quad_eval_ptr->CallInternalFunction(quad_oml_sys_func, inputs);
@@ -141,10 +147,10 @@ bool OmlQuad(EvaluatorInterface           eval,
     }
 
     // set file scope variables
-    quad_oml_sys_func = funcInfo;
-    quad_oml_sys_name = funcName;
-    quad_oml_sys_pntr = funcPntr;
-    quad_eval_ptr     = &eval;
+    quad_oml_sys_func_stack.push_back(funcInfo);
+    quad_oml_sys_name_stack.push_back(funcName);
+    quad_oml_sys_pntr_stack.push_back(funcPntr);
+    quad_eval_ptr_stack.push_back(&eval);
 
     // call algorithm
     hwMathStatus status;
@@ -174,6 +180,11 @@ bool OmlQuad(EvaluatorInterface           eval,
                 status.SetArg1(4);
             }
             
+            quad_oml_sys_func_stack.clear();
+            quad_oml_sys_name_stack.clear();
+            quad_oml_sys_pntr_stack.clear();
+            quad_eval_ptr_stack.clear();
+
             BuiltInFuncsUtils::CheckMathStatus(eval, status);
         }
 
@@ -223,6 +234,11 @@ bool OmlQuad(EvaluatorInterface           eval,
                     status.SetArg1(5);
                 }
 
+                quad_oml_sys_func_stack.clear();
+                quad_oml_sys_name_stack.clear();
+                quad_oml_sys_pntr_stack.clear();
+                quad_eval_ptr_stack.clear();
+
                 BuiltInFuncsUtils::CheckMathStatus(eval, status);
             }
         }
@@ -271,6 +287,11 @@ bool OmlQuad(EvaluatorInterface           eval,
                 {
                     status.SetArg1(5);
                 }
+
+                quad_oml_sys_func_stack.clear();
+                quad_oml_sys_name_stack.clear();
+                quad_oml_sys_pntr_stack.clear();
+                quad_eval_ptr_stack.clear();
 
                 BuiltInFuncsUtils::CheckMathStatus(eval, status);
             }
@@ -328,6 +349,11 @@ bool OmlQuad(EvaluatorInterface           eval,
                     status.SetArg1(5);
                 }
 
+                quad_oml_sys_func_stack.clear();
+                quad_oml_sys_name_stack.clear();
+                quad_oml_sys_pntr_stack.clear();
+                quad_eval_ptr_stack.clear();
+
                 BuiltInFuncsUtils::CheckMathStatus(eval, status);
             }
         }
@@ -341,6 +367,11 @@ bool OmlQuad(EvaluatorInterface           eval,
         if (nargout > 1)
             outputs.push_back(count.release());
     }
+
+    quad_oml_sys_func_stack.pop_back();
+    quad_oml_sys_name_stack.pop_back();
+    quad_oml_sys_pntr_stack.pop_back();
+    quad_eval_ptr_stack.pop_back();
 
     return true;
 }
@@ -399,10 +430,10 @@ bool OmlQuadv(EvaluatorInterface           eval,
     }
 
     // set file scope variables
-    quad_oml_sys_func = funcInfo;
-    quad_oml_sys_name = funcName;
-    quad_oml_sys_pntr = funcPntr;
-    quad_eval_ptr = &eval;
+    quad_oml_sys_func_stack.push_back(funcInfo);
+    quad_oml_sys_name_stack.push_back(funcName);
+    quad_oml_sys_pntr_stack.push_back(funcPntr);
+    quad_eval_ptr_stack.push_back(&eval);
 
     // call algorithm
     hwMathStatus status;
@@ -431,6 +462,11 @@ bool OmlQuadv(EvaluatorInterface           eval,
             {
                 status.SetArg1(4);
             }
+
+            quad_oml_sys_func_stack.clear();
+            quad_oml_sys_name_stack.clear();
+            quad_oml_sys_pntr_stack.clear();
+            quad_eval_ptr_stack.clear();
 
             BuiltInFuncsUtils::CheckMathStatus(eval, status);
         }
@@ -478,6 +514,11 @@ bool OmlQuadv(EvaluatorInterface           eval,
                     status.SetArg1(5);
                 }
 
+                quad_oml_sys_func_stack.clear();
+                quad_oml_sys_name_stack.clear();
+                quad_oml_sys_pntr_stack.clear();
+                quad_eval_ptr_stack.clear();
+
                 BuiltInFuncsUtils::CheckMathStatus(eval, status);
             }
         }
@@ -524,6 +565,11 @@ bool OmlQuadv(EvaluatorInterface           eval,
                 {
                     status.SetArg1(5);
                 }
+
+                quad_oml_sys_func_stack.clear();
+                quad_oml_sys_name_stack.clear();
+                quad_oml_sys_pntr_stack.clear();
+                quad_eval_ptr_stack.clear();
 
                 BuiltInFuncsUtils::CheckMathStatus(eval, status);
             }
@@ -579,6 +625,11 @@ bool OmlQuadv(EvaluatorInterface           eval,
                     status.SetArg1(5);
                 }
 
+                quad_oml_sys_func_stack.clear();
+                quad_oml_sys_name_stack.clear();
+                quad_oml_sys_pntr_stack.clear();
+                quad_eval_ptr_stack.clear();
+
                 BuiltInFuncsUtils::CheckMathStatus(eval, status);
             }
         }
@@ -592,6 +643,11 @@ bool OmlQuadv(EvaluatorInterface           eval,
         if (nargout > 1)
             outputs.push_back(count.release());
     }
+
+    quad_oml_sys_func_stack.pop_back();
+    quad_oml_sys_name_stack.pop_back();
+    quad_oml_sys_pntr_stack.pop_back();
+    quad_eval_ptr_stack.pop_back();
 
     return true;
 }
@@ -642,4 +698,11 @@ bool OmlCumtrapz(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
     outputs.push_back(result);
 
     return true;
+}
+//------------------------------------------------------------------------------
+// Returns toolbox version
+//------------------------------------------------------------------------------
+double GetToolboxVersion(EvaluatorInterface eval)
+{
+    return TBOXVERSION;
 }

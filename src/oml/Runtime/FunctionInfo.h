@@ -50,7 +50,7 @@ public:
 	FunctionInfo(const FunctionInfo&);
 	~FunctionInfo();
 
-	void SetAnonymous(MemoryScope* dummy) { _anon_scope = new MemoryScope(*dummy, NULL); }
+	void SetAnonymous(MemoryScope* dummy);
 	bool IsAnonymous() const { return _anon_scope != 0; }
 	bool IsNested() const { return _is_nested; }
 	void IsNested(bool nest) { _is_nested = nest; }
@@ -72,8 +72,6 @@ public:
 	OMLTree*                        Statements() const;
 	FUNCPTR                         Builtin() const { return _builtin; }
 	MemoryScope*                    AnonScope() const { return _anon_scope; }
-
-	void ClearAnonymousVariable(const std::string* var);
 
 	std::string GetAST() const;
 

@@ -35,6 +35,11 @@ extern "C"
     //! \param eval Evaluator interface
     //!
     POLYNOMIALOMLTBOX_DECLS int InitDll(EvaluatorInterface eval);
+    //!
+    //! Returns toolbox version
+    //! \param eval Evaluator interface
+    //!
+    POLYNOMIALOMLTBOX_DECLS double GetToolboxVersion(EvaluatorInterface eval);
 }
 
 //!

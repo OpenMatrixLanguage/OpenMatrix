@@ -23,10 +23,10 @@
 #include "hwOptimizationFuncs.h"
 
 // File scope variables and functions
-static EvaluatorInterface* FSOLVE_eval_ptr        = nullptr;
-static FunctionInfo*       FSOLVE_oml_func        = nullptr;
-static FUNCPTR             FSOLVE_oml_pntr        = nullptr;
-static bool                FSOLVE_oml_func_isanon = false;
+static std::vector<EvaluatorInterface*> FSOLVE_eval_ptr_stack;
+static std::vector<FunctionInfo*>       FSOLVE_oml_func_stack;
+static std::vector<FUNCPTR>             FSOLVE_oml_pntr_stack;
+static std::vector<bool>                FSOLVE_oml_bool_stack;
 
 //------------------------------------------------------------------------------
 // System of equation to be solved. Wrapper function for the system function
@@ -42,9 +42,13 @@ static hwMathStatus NLSolveFuncs(const hwMatrix& P,
 
     std::vector<Currency> inputs;
     inputs.push_back(EvaluatorInterface::allocateMatrix(&P));
-
     std::vector<Currency> outputs;
     Currency result;
+
+    EvaluatorInterface* FSOLVE_eval_ptr        = FSOLVE_eval_ptr_stack.back();
+    FunctionInfo*       FSOLVE_oml_func        = FSOLVE_oml_func_stack.back();
+    FUNCPTR             FSOLVE_oml_pntr        = FSOLVE_oml_pntr_stack.back();
+    bool                FSOLVE_oml_func_isanon = FSOLVE_oml_bool_stack.back();
 
     if (FSOLVE_oml_func_isanon)
     {
@@ -87,7 +91,7 @@ static hwMathStatus NLSolveFuncs(const hwMatrix& P,
         }
         else
         {
-            return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
+            return hwMathStatus(HW_MATH_ERR_USERFUNCREAL, 111);
         }
     }
     else
@@ -106,10 +110,14 @@ static hwMathStatus NLSolveJacobian(const hwMatrix& P,
                                     hwMatrix&       J)
 {
     // X is not used - see NLCurveFit.cxx
-
     std::vector<Currency> inputs;
     inputs.push_back(EvaluatorInterface::allocateMatrix(&P));
     std::vector<Currency> outputs;
+
+    EvaluatorInterface* FSOLVE_eval_ptr        = FSOLVE_eval_ptr_stack.back();
+    FunctionInfo*       FSOLVE_oml_func        = FSOLVE_oml_func_stack.back();
+    FUNCPTR             FSOLVE_oml_pntr        = FSOLVE_oml_pntr_stack.back();
+    bool                FSOLVE_oml_func_isanon = FSOLVE_oml_bool_stack.back();
 
     if (FSOLVE_oml_func)
     {
@@ -150,7 +158,7 @@ static hwMathStatus NLSolveJacobian(const hwMatrix& P,
         }
         else
         {
-            return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+            return hwMathStatus(HW_MATH_ERR_USERFUNCREAL, 222);
         }
     }
     else
@@ -167,6 +175,7 @@ bool OmlFsolve(EvaluatorInterface           eval,
                std::vector<Currency>&       outputs)
 {
     int nargin = eval.GetNarginValue();
+    int nargout = eval.GetNargoutValue();
 
     if (nargin < 2 || nargin > 3)
         throw OML_Error(OML_ERR_NUMARGIN);
@@ -183,13 +192,18 @@ bool OmlFsolve(EvaluatorInterface           eval,
     if (funcName == "anonymous")
     {
         funcInfo = cur1.FunctionHandle();
-        FSOLVE_oml_func_isanon  = (!funcInfo->RedirectedFunction().empty()) ?
-            false : // handle to an inner function
-            true  ; // true anonymous function
+        (funcInfo->RedirectedFunction().empty()) ?
+            FSOLVE_oml_bool_stack.push_back(true):  // true anonymous function
+            FSOLVE_oml_bool_stack.push_back(false); // handle to an inner function
     }
-    else if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr))
+    else
     {
-        throw OML_Error(OML_ERR_FUNCNAME, 1);
+        FSOLVE_oml_bool_stack.push_back(false);
+
+        if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr))
+        {
+            throw OML_Error(OML_ERR_FUNCNAME, 1);
+        }
     }
 
     if (funcInfo && funcInfo->Parameters().size() != 1)
@@ -297,9 +311,9 @@ bool OmlFsolve(EvaluatorInterface           eval,
     }
 
     // set file scope variables
-    FSOLVE_oml_func = funcInfo;
-    FSOLVE_oml_pntr = funcPntr;
-    FSOLVE_eval_ptr = &eval;
+    FSOLVE_eval_ptr_stack.push_back(&eval);
+    FSOLVE_oml_func_stack.push_back(funcInfo);
+    FSOLVE_oml_pntr_stack.push_back(funcPntr);
 
     // call user function to figure out how many equations are in the system
     std::vector<Currency> temp_outputs;
@@ -309,7 +323,7 @@ bool OmlFsolve(EvaluatorInterface           eval,
 
     if (funcName == "anonymous")
     {
-        std::string script_func = FSOLVE_oml_func->RedirectedFunction();
+        std::string script_func = funcInfo->RedirectedFunction();
 
         if (!script_func.empty()) // handle to an inner function
         {
@@ -319,26 +333,26 @@ bool OmlFsolve(EvaluatorInterface           eval,
             if (!eval.FindFunctionByName(script_func, &script_func_fi, &dummy))
                 throw OML_Error(OML_ERR_FUNCNAME, 1);
 
-            FSOLVE_oml_func_isanon = false;
+            FSOLVE_oml_bool_stack.push_back(false); // handle to an inner function
         }
         else
         {
-            FSOLVE_oml_func_isanon = true; // true anonymous function
+            FSOLVE_oml_bool_stack.push_back(true);  // true anonymous function
         }
     }
 
-    if (FSOLVE_oml_func_isanon)
+    if (FSOLVE_oml_bool_stack.back())
     {
-        Currency cur = FSOLVE_eval_ptr->CallInternalFunction(FSOLVE_oml_func,
-                       temp_inputs);
+        Currency cur = eval.CallInternalFunction(funcInfo, temp_inputs);
         temp_outputs.push_back(cur);
     }
     else
     {
-        temp_outputs = FSOLVE_eval_ptr->DoMultiReturnFunctionCall(FSOLVE_oml_func,
+        temp_outputs = eval.DoMultiReturnFunctionCall(funcInfo,
              temp_inputs, static_cast<int>(temp_inputs.size()), 1, true);
     }
 
+    // call algorithm
     int      numEqns = -1;
     Currency result  = temp_outputs[0];
 
@@ -347,31 +361,30 @@ bool OmlFsolve(EvaluatorInterface           eval,
     else if (result.IsMatrix())
         numEqns = result.Matrix()->Size();
 
-    int          maxIter_to_use = 200;
-    hwMatrix*    designHist = nullptr;
+    hwMatrix*    objHist    = (displayHist || nargout > 3) ?
+                              EvaluatorInterface::allocateMatrix() : nullptr;
+    hwMatrix*    designHist = (nargout > 3) ?
+                              EvaluatorInterface::allocateMatrix() : nullptr;
     hwMatrix*    userData = nullptr;
     hwMathStatus status;
-
-    hwMatrix* objHist = (displayHist) ? EvaluatorInterface::allocateMatrix() :
-                        nullptr;
 
     if (analyticalJacobian)
     {
         status = NLSolve(NLSolveFuncs, NLSolveJacobian, *optPoint, minVal, 
-            numEqns, maxIter, maxFuncEval, tolf, tolx, objHist, designHist, 
+            maxIter, maxFuncEval, numEqns, tolf, tolx, objHist, designHist, 
             userData);
     }
     else
     {
         status = NLSolve(NLSolveFuncs, (LSqFitFunc) NULL, *optPoint, minVal, 
-            numEqns, maxIter, maxFuncEval, tolf, tolx, objHist, designHist, 
+            maxIter, maxFuncEval, numEqns, tolf, tolx, objHist, designHist, 
             userData);
     }
 
     // display history
-    if (displayHist && status.IsOk())
+    if (displayHist && (status.IsOk() || status.IsWarning() || status.IsInfoMsg()))
     {
-        std::string line = "Iteration      f(x)\n";
+        std::string line = "Iteration    f(x)\n";
         eval.PrintResult(line);
 
         for (int i = 0; i < objHist->Size(); ++i)
@@ -394,57 +407,122 @@ bool OmlFsolve(EvaluatorInterface           eval,
         eval.PrintResult(line);
     }
 
-    if (objHist)
-    {
-        delete objHist;
-        objHist = nullptr;
-    }
-
     if (!status.IsOk())
     {
-        if (status.GetArg1() == 111)
+        if (status == HW_MATH_WARN_MAXITERATE ||
+            status == HW_MATH_WARN_MAXFUNCEVAL ||
+            status == HW_MATH_WARN_LOCALMIN ||
+            status == HW_MATH_WARN_NOTCONVERGE ||
+            status.IsInfoMsg())
         {
-            status.SetUserFuncName(funcName);
-            status.SetArg1(1);
-        }
-        else if (status.GetArg1() == 3)
-        {
-            status.SetArg1(2);
-        }
-        else if (status.GetArg1() > 6 && status.GetArg1() < 9)
-        {
-            status.SetArg1(3);
+            // warning message has been replaced by a return value
         }
         else
         {
-            status.ResetArgs();
-        }
+            if (status.GetArg1() == 111)
+            {
+                status.SetUserFuncName(funcName);
+                status.SetArg1(1);
+            }
+            else if (status.GetArg1() == 3)
+            {
+                status.SetArg1(2);
+            }
+            else if (status.GetArg1() > 4 && status.GetArg1() < 10)
+            {
+                status.SetArg1(3);
+            }
+            else
+            {
+                status.ResetArgs();
+            }
 
-        if (status.IsWarning())
-        {
-            BuiltInFuncsUtils::SetWarning(eval, status.GetMessageString());
-        }
-        else
-        {
-            delete optPoint;
-            optPoint = nullptr;
-            throw OML_Error(status);
+            if (status.IsWarning())
+            {
+                BuiltInFuncsUtils::SetWarning(eval, status.GetMessageString());
+            }
+            else
+            {
+                FSOLVE_eval_ptr_stack.clear();
+                FSOLVE_oml_func_stack.clear();
+                FSOLVE_oml_pntr_stack.clear();
+                FSOLVE_oml_bool_stack.clear();
+
+                delete optPoint;
+                optPoint = nullptr;
+
+                if (objHist)
+                {
+                    delete objHist;
+                    objHist = nullptr;
+                }
+
+                if (designHist)
+                {
+                    delete designHist;
+                    designHist = nullptr;
+                }
+
+                throw OML_Error(status);
+            }
         }
     }
 
     // pack outputs
-    int nargout = eval.GetNargoutValue();
-
-    if (nargout > 0)
-        outputs.push_back(optPoint);
+    outputs.push_back(optPoint);
 
     if (nargout > 1)
     {
         hwMatrix dummy;
         hwMatrix* fval = EvaluatorInterface::allocateMatrix(numEqns, 1,
                          hwMatrix::REAL);
-        status = NLSolveFuncs(*optPoint, dummy, userData, *fval);
+        hwMathStatus status2 = NLSolveFuncs(*optPoint, dummy, userData, *fval);
         outputs.push_back(fval);
+    }
+
+    if (nargout > 2)
+    {
+        if (status == HW_MATH_INFO_TOLFCONV)
+            outputs.push_back(1.0);
+        else if (status == HW_MATH_INFO_TOLXCONV)
+            outputs.push_back(2.0);
+        else if (status == HW_MATH_INFO_TOLFCONV_R)
+            outputs.push_back(3.0);
+        else if (status == HW_MATH_INFO_TOLXCONV_R)
+            outputs.push_back(4.0);
+        else if (status == HW_MATH_WARN_MAXITERATE ||
+                 status == HW_MATH_WARN_MAXFUNCEVAL ||
+                 status == HW_MATH_WARN_NOTCONVERGE)
+            outputs.push_back(0.0);
+        else if (status == HW_MATH_INFO_SMALLTRUST)
+            outputs.push_back(-3.0);
+    }
+
+    if (nargout > 3)
+    {
+        objHist->Transpose();
+        designHist->Transpose();
+
+        Currency out = EvaluatorInterface::allocateStruct();
+        out.Struct()->SetValue(0, -1, "iterations", maxIter);
+        out.Struct()->SetValue(0, -1, "nfev",       maxFuncEval);
+        out.Struct()->SetValue(0, -1, "xiter",      designHist);
+        out.Struct()->SetValue(0, -1, "fvaliter",   objHist);
+        outputs.push_back(out);
+    }
+    else
+    {
+        if (objHist)
+        {
+            delete objHist;
+            objHist = nullptr;
+        }
+
+        if (designHist)
+        {
+            delete designHist;
+            designHist = nullptr;
+        }
     }
 
     return true;

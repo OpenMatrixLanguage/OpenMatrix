@@ -633,7 +633,18 @@ bool BuiltInFuncsCore::AddToolbox(EvaluatorInterface           eval,
 
     void* symbol = BuiltInFuncsCore::DyGetFunction(vResult, "InitDll");
     if (!symbol)  // Check if this is being loaded using oml wrappers
+    {
         symbol = BuiltInFuncsCore::DyGetFunction(vResult, "InitDllOmlWrap");
+    }
+    else // Additional version check for toolboxes
+    {
+        // Adding additional check only for omlziptoolbox now
+        if (!DyGetFunction(vResult, "GetToolboxVersion"))
+        {
+            throw OML_Error(OML_MSG_INVALID_VERSION + std::string(" in ") +
+                            importDll);  
+        }
+    }
 
 	if (!symbol)	
 	{

@@ -25,6 +25,8 @@
 #include "StructData.h"
 
 #define OPTIM "Optimization"
+#define TBOXVERSION 2019.0
+
 
 //------------------------------------------------------------------------------
 // Entry point which registers optimization functions with oml
@@ -203,4 +205,11 @@ bool OmlOptimoptions(EvaluatorInterface           eval,
 
     //\todo: Complete implementation
     return true;
+}
+//------------------------------------------------------------------------------
+// Returns toolbox version
+//------------------------------------------------------------------------------
+double GetToolboxVersion(EvaluatorInterface eval)
+{
+    return TBOXVERSION;
 }

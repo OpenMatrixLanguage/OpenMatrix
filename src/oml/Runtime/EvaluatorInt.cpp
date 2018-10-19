@@ -250,7 +250,10 @@ void EvaluatorInterface::ClearGlobals()
 
 Currency EvaluatorInterface::CallInternalFunction(FunctionInfo*fi, const std::vector<Currency>& param_values)
 {
-    return eval->CallInternalFunction(fi, param_values);
+	FunctionInfo* temp = new FunctionInfo(*fi);
+    Currency      ret  =  eval->CallInternalFunction(temp, param_values);
+	delete temp;
+	return ret;
 }
 
 void EvaluatorInterface::ResetFuncSearchCache()
@@ -831,4 +834,9 @@ void EvaluatorInterface::WritePFile(const std::string& infile, const std::string
 Currency EvaluatorInterface::Analyze(const std::string& infile)
 {
 	return eval->Analyze(infile);
+}
+
+Currency EvaluatorInterface::GetMetadata(const std::string& infile)
+{
+	return eval->GetMetadata(infile);
 }

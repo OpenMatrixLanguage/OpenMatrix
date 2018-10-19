@@ -29,6 +29,7 @@
 #include "OML_Error.h"
 
 #define SIGN "SignalProcessing"
+#define TBOXVERSION 2019.0
 
 //------------------------------------------------------------------------------
 // Entry point which registers oml Signals functions with oml
@@ -5139,3 +5140,11 @@ bool OmlFindPeaks(EvaluatorInterface           eval,
 
     return true;
 }
+//------------------------------------------------------------------------------
+// Returns toolbox version
+//------------------------------------------------------------------------------
+double GetToolboxVersion(EvaluatorInterface eval)
+{
+    return TBOXVERSION;
+}
+

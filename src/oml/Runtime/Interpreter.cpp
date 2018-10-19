@@ -30,6 +30,7 @@
 #include "ErrorInfo.h"
 #include "OML_Error.h"
 #include "Evaluator.h"
+#include "FunctionInfo.h"
 #include "ANTLRData.h"
 #include "BuiltInFuncs.h"
 #include "OutputFormat.h"
@@ -84,7 +85,7 @@ public:
     void TriggerInterrupt() { _eval.SetInterrupt(true); }
 
     //! Trigger input
-    void TriggerPause(bool state) { _eval.SetPause(state); }
+    void TriggerPause(bool state) { _eval.SetPauseRequestPending(state); }
 
     //! Reads file and returns results
 	Currency DoFile(const std::string& filename);
@@ -639,6 +640,10 @@ FunctionInfo* InterpreterImpl::FunctionInfoFromName(const std::string& funcName)
     FUNCPTR       fptr = nullptr;
 
     _eval.FindFunctionByName(funcName, &fi, &fptr);
+
+	if (!fi && fptr)
+		return new FunctionInfo(funcName, fptr);
+
     return fi;
 }
 //------------------------------------------------------------------------------
@@ -647,6 +652,7 @@ FunctionInfo* InterpreterImpl::FunctionInfoFromName(const std::string& funcName)
 Interpreter::Interpreter()
 {
     _impl = new InterpreterImpl(this);
+	_user_data = NULL;
 }
 //------------------------------------------------------------------------------
 //! Constructor
@@ -654,6 +660,7 @@ Interpreter::Interpreter()
 Interpreter::Interpreter(ExprTreeEvaluator* source)
 {
     _impl = new InterpreterImpl(this, source);
+	_user_data = NULL;
 }
 //------------------------------------------------------------------------------
 //! Constructor
@@ -661,6 +668,7 @@ Interpreter::Interpreter(ExprTreeEvaluator* source)
 Interpreter::Interpreter(EvaluatorInterface& source)
 {
     _impl = new InterpreterImpl(this, source.eval);
+	_user_data = NULL;
 }
 //------------------------------------------------------------------------------
 //! Destructor
@@ -997,14 +1005,17 @@ bool Interpreter::IsInterrupt() const
     return eval->IsInterrupt();
 }
 //------------------------------------------------------------------------------
-//! True if execution has been paused by evaluator
+// True if execution has been paused by evaluator
 //------------------------------------------------------------------------------
 bool Interpreter::IsPaused() const
 {
     ExprTreeEvaluator* eval = _impl->GetEvaluator();
     assert(eval);
-    if (!eval) false;
-    return eval->IsPaused();
+    if (eval) 
+    {
+        return eval->IsPaused();
+    }
+    return false;
 }
 //------------------------------------------------------------------------------
 //! //! Resets function search cache, called after cd in file browser
@@ -1223,6 +1234,19 @@ int  Interpreter::ArgumentsForFunction(const std::string& functionName, const st
 FunctionInfo* Interpreter::FunctionInfoFromName(const std::string& funcname)
 {
     return _impl->FunctionInfoFromName(funcname);
+}
+//------------------------------------------------------------------------------
+// True if a pause request is pending in the evaluator
+//------------------------------------------------------------------------------
+bool Interpreter::IsPauseRequestPending() const
+{
+    ExprTreeEvaluator* eval = _impl->GetEvaluator();
+    assert(eval);
+    if (eval) 
+    {
+        return eval->IsPauseRequestPending();
+    }
+    return false;
 }
 
 // End of file:

@@ -439,7 +439,7 @@ bool BuiltInFuncsSystem::Delete(EvaluatorInterface           eval,
 #ifdef OS_WIN
             cmd = "del \"" + name + "\" /F /Q";
 #else
-            cmd = "rm \"" + name + "\" > /dev/null";
+            cmd = "rm -rf " + name + " > /dev/null";
 #endif
 
             if (system(cmd.c_str()) != 0)

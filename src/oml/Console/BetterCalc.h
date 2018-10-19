@@ -19,35 +19,84 @@
 
 class ConsoleWrapper;
 
+//!
 //! Handles user interrupt returns true if application needs to quit
-//! \param[in] omlWrapper Oml interpreter wrapper
-bool HandleUserInterrupt( ConsoleWrapper* omlWrapper);
+//! \param omlWrapper Oml interpreter wrapper
+//!
+bool HandleUserInterrupt(ConsoleWrapper* omlWrapper);
+//!
 //! Sets user interrupt
+//!
 void SetUserInterrupt();
+//!
 //! Sets user interrupt handler - hooks to control C
+//!
 void SetUserInterruptHandler();
-
+//!
 //! Prints banner
+//!
 void PrintBanner();
-
+//!
 //! Gets input command
-//! \param[in] interpwrapper Oml interp wrapper
-std::string GetInputCommand( ConsoleWrapper* interpwrapper);
+//! \param interpwrapper Oml interp wrapper
+//!
+std::string GetInputCommand(ConsoleWrapper* interpwrapper);
+//!
+//! Clears command window (clc command)
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool hml_clc(EvaluatorInterface           eval, 
+             const std::vector<Currency>& inputs, 
+             std::vector<Currency>&       outputs);
+//!
+//! Encrypts given file (encrypt command)
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool oml_encryptfile(EvaluatorInterface           eval, 
+                     const std::vector<Currency>& inputs, 
+                     std::vector<Currency>&       outputs);
 
-bool hml_keylist(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool hml_varlist(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool hml_vardetail(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-
-bool hml_clc(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-
-bool oml_encryptfile(EvaluatorInterface eval_int, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-
-bool OML_help();
-
+//!
+//! Prints help
+//!
+void OML_help();
+//!
 //! Gets the version string of the application
-std::string GetVersion(const std::string appdir);
-//! Returns true if successful in getting the version string
+//! \param appdir Application directory
+//!
+std::string GetVersion(const std::string& appdir);
+//! Returns true if successful in getting the version string (version command)
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
 bool OmlVersion(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs);
+//! 
+//! Registers oml built in functions
+//! 
+void RegisterBuiltInFuncs();
+//!
+//! Gets argc (getargc command)
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlGetArgC(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs);
+//!
+//! Gets argv at the given index (getargv command)
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlGetArgV(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs,
                 std::vector<Currency>&       outputs);
 

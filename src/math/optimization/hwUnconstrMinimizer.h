@@ -51,14 +51,14 @@ public:
     //! \param tolx
     //! \param userData    User data
     //! 
-    hwUnconstrMinimizer(const UnConMinObjFunc  pObjFunc, 
+    hwUnconstrMinimizer(const UnConMinObjFunc  pObjFunc,
                         const UnConMinGradFunc pGradFunc,
-                        const hwMatrix&        P, 
-                        int                    maxIter     = 200, 
-                        int                    maxFuncEval = 400,
-                        double                 tolf        = 1.0e-6, 
+                        const hwMatrix&        P,
+                        int                    maxIter     = 200,
+                        int                    maxFuncEval = 400, 
+                        double                 tolf        = 1.0e-6,
                         double                 tolx        = 1.0e-6,
-                        const hwMatrix*        userData    = NULL);
+                        const hwMatrix*        userData    = nullptr);
     //!
     //! Destructor
     //!
@@ -77,7 +77,7 @@ protected:
     hwMatrix         Bk;	        //!< Hessian approx at previous step
     const hwMatrix*  m_userData;    //!< user Data
     UnConMinObjFunc  m_pObjFunc;    //!< objective function
-    UnConMinGradFunc m_pGradFunc;   //!< Gradient - if NULL use numerical derivatives
+    UnConMinGradFunc m_pGradFunc;   //!< Gradient - if nullptr use numerical derivatives
 
     //!
     //! Evaluates objective function

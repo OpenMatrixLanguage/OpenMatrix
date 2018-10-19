@@ -186,9 +186,7 @@ Currency::Currency(Currency* ptr) : type(TYPE_POINTER), out_name(NULL)
 	data.cur_ptr = ptr;
 }
 //------------------------------------------------------------------------------
-//! Constructor for swig bound objects
-//! \param[in] obj  Pointer to bound object
-//! \param[in] name Class name associated with the bound object
+// Constructor for swig bound objects
 //------------------------------------------------------------------------------
 Currency::Currency(void* obj, const std::string& name) 
     : type         (TYPE_BOUNDOBJECT)
@@ -196,6 +194,7 @@ Currency::Currency(void* obj, const std::string& name)
     , _display     (0)
     , _outputType  (OUTPUT_TYPE_DEFAULT)
     , classname    (NULL)
+    , mask         (MASK_NONE)
 {
     assert(!name.empty());
 

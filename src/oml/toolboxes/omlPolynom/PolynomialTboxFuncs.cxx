@@ -25,6 +25,8 @@
 
 #include <memory>
 #define POLY   "PolynomialMath"
+#define TBOXVERSION 2019.0
+
 
 //------------------------------------------------------------------------------
 // Entry point which registers polynomial functions with oml
@@ -140,7 +142,6 @@ bool OmlSpline(EvaluatorInterface           eval,
             {
                 unsorted = false;
                 bool retv = OmlSpline(eval, inputs2, outputs); // call function on sorted_x, reordered_y
-                unsorted = true;    // reset
                 return retv;
             }
             catch (OML_Error&)
@@ -155,8 +156,11 @@ bool OmlSpline(EvaluatorInterface           eval,
             }	
         }
         
-        unsorted = false;
         outputs.clear();
+    }
+    else
+    {
+        unsorted = true;    // reset
     }
 
     // make sure x_new is a row when y is not a vector
@@ -346,7 +350,6 @@ bool OmlInterp1(EvaluatorInterface           eval,
             {
                 unsorted = false;
                 bool retv = OmlInterp1(eval, inputs2, outputs); // call function on sorted_x, reordered_y
-                unsorted = true;    // reset
                 return retv;
             }
             catch (OML_Error&)
@@ -361,8 +364,11 @@ bool OmlInterp1(EvaluatorInterface           eval,
             }	
         }
         
-        unsorted = false;
         outputs.clear();
+    }
+    else
+    {
+        unsorted = true;    // reset
     }
 
     // make sure xi is a column when y is not a vector
@@ -741,4 +747,11 @@ bool OmlPolyint(EvaluatorInterface           eval,
     }
 
     return true;
+}
+//------------------------------------------------------------------------------
+// Returns toolbox version
+//------------------------------------------------------------------------------
+double GetToolboxVersion(EvaluatorInterface eval)
+{
+    return TBOXVERSION;
 }

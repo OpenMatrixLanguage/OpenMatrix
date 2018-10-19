@@ -294,3 +294,12 @@ void OMLTree::WriteToBinaryFile(FILE* outfile)
 	for (int j=0; j < num_children; j++)
 		_children[j]->WriteToBinaryFile(outfile);
 }
+
+void OMLTree::GetListOfIdents(std::vector<std::string>& idents) const
+{
+	if (_type == IDENT)
+		idents.push_back(_text);
+
+	for (int j=0; j<_children.size(); j++)
+		GetChild(j)->GetListOfIdents(idents);
+}

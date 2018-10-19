@@ -387,28 +387,20 @@ inline hwTComplex<T> hwTComplex<T>::operator/(const hwTComplex<T>& z) const
     T magSq = z.MagSq();
     hwTComplex<T> c;
 
-    //c = (*this) * z.Conjugate();
-
-    // if (magSq > 0.0)
-    //c /= magSq;
-
     // ieee 754 complex division with 0, NaN
-    if ((z.x == 0.) && (z.y == 0))
+    if ((z.x == 0.0) && (z.y == 0.0))
     {
-        if (((x == 0.) && (y == 0.)) || ((x != x) || (y != y)))
+        if (((x == 0.0) && (y == 0.0)) || ((x != x) || (y != y)))
         {
             // NaN
-            double d = 0;
-            c.x = 0. / d;
-            c.y = 0.;
-
+            c.x = std::numeric_limits<T>::quiet_NaN();
+            c.y = 0.0;
         }
         else
         {
             // Inf
-            double d = 0;
-            c.x = 1. / d;
-            c.y = 0.;
+            c.x = std::numeric_limits<T>::infinity();
+            c.y = 0.0;
         }
     }
     else
@@ -432,6 +424,7 @@ inline hwTComplex<T> hwTComplex<T>::operator/(const hwTComplex<T>& z) const
             c.y = imagNum / den;
         }
     }
+
     return c;
 }
 
@@ -594,19 +587,24 @@ inline hwTComplex<T> hwTComplex<T>::sqrt(const hwTComplex<T>& z)
 template < typename T >
 inline hwTComplex<T> hwTComplex<T>::pow(const hwTComplex<T>& base, T power)
 {
-    T mag = base.Mag();
-    mag = CustomPow(mag, power);
+    T mag = base.MagSq();
+    
+    if (power != (T) 2)
+        mag = CustomPow(mag, power / (T) 2);
+
     T arg = base.Arg();
-    arg *= power;
 
     if (arg != (T)0)
     {
         // check for pure real or imaginary solutions
-        T factor = (T)2 * arg / PI; // = arg / (PI/2)
+        T factor = (T)2 * (arg / PI) * power; // = arg / (PI/2) * power
 
         if (IsInteger(factor, 1.0e-15).IsOk())      // needs modification if T != double
         {
             int numQuads = ((int) RoundT(factor)) %4;
+
+            if (numQuads < 0)
+                numQuads += 4;
 
             if (numQuads == 0)   // arg = 0
                 return hwTComplex<T>(mag, (T)0);
@@ -618,6 +616,7 @@ inline hwTComplex<T> hwTComplex<T>::pow(const hwTComplex<T>& base, T power)
                 return hwTComplex<T>((T)0, -mag);
         }
 
+        arg *= power;
         return hwTComplex<T>(mag * ::cos(arg), mag * ::sin(arg));
     }
 

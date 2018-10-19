@@ -47,6 +47,8 @@ public:
     void SetTboxFuncName(const std::string& tboxFuncName);
     void SetUserFuncName(const std::string& userFuncName);
     bool IsWarning() const { return (m_pContent && GetMsgCode() < HW_MATH_WARN_EOL) ? true : false; }
+    bool IsInfoMsg() const { return (m_pContent && GetMsgCode() > HW_MATH_WARN_EOL &&
+                                                   GetMsgCode() < HW_MATH_INFO_EOL) ? true : false; }
     hwMathStatus& operator()(hwMathMsgCode mathCode,
                              int arg1 = -1, int arg2 = -1);
     hwMathMsgCode operator()() const { return GetMsgCode(); }   // shorthand

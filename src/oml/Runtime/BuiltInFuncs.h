@@ -330,21 +330,19 @@ bool oml_checksyntax(EvaluatorInterface, const std::vector<Currency>& inputs, st
 bool oml_ast(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_writepfile(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_analyze(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_getmetadata(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_help(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_helptest(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_helpmodule(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-//! Throws an error without stack information [erromsgonly]
+//! Throws an error without stack information [errormsgonly]
 bool oml_erromsgonly(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
+//! Sets a warning without stack information [warningmsgonly]
+bool oml_warningmsgonly(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 
 //! List variables in the current session matching given pattern
 bool oml_who(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 bool oml_logspace(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_rot90(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-
-// Dummy methods - implementation specific to clients or GUI only
-bool dummyint(EvaluatorInterface,   const std::vector<Currency>&, std::vector<Currency>&);
-bool dummystring(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
-bool dummycell(EvaluatorInterface,   const std::vector<Currency>&, std::vector<Currency>&);
 
 // function replacement methods
 HML2DLL_DECLS void _OML_Error(EvaluatorInterface& eval, std::vector<Currency>::const_iterator start, std::vector<Currency>::const_iterator end);
@@ -811,11 +809,13 @@ void celldisp(EvaluatorInterface& eval,
               const std::string&  cellname);
 //!
 //! Returns regular expression string matching results
+//! \param eval    Evaluator interface
 //! \param search  String to search in
 //! \param pattern Pattern to search for
 //! \param options Output options, in user specified order if applicable
 //!
-std::vector<Currency> DoRegExp(const std::string&              search, 
+std::vector<Currency> DoRegExp(EvaluatorInterface&             eval,
+                               const std::string&              search, 
                                const std::string&              pattern, 
                                const std::vector<std::string>& options);
 //!

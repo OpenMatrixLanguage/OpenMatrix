@@ -92,7 +92,7 @@ std::string MatrixDisplay::GetOutput(const OutputFormat* fmt,
     const_cast<MatrixDisplay*>(this)->Initialize(fmt, NULL, NULL); 
     if (!m_initialized) return "";
 
-    m_linesPrinted ++;  // Matrix header will be printed
+    // m_linesPrinted ++;  // Matrix header will be printed
 
 	if (m_mode == DISPLAYMODE_FORWARD || m_mode == DISPLAYMODE_RIGHT ||
 		m_mode == DISPLAYMODE_DOWN)
@@ -218,15 +218,17 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
     int i        = 0;
     int j        = 0;
     int maxlines = std::max(GetNumRowsToFit()-1, 1); // Add pagination msg
-    if (m_linesPrinted >= maxlines)
+
+    if (m_linesPrinted >= m_maxRows - 1)
     {
-         m_linesPrinted = maxlines - 1;  // Force print 1 line
+         m_linesPrinted = m_maxRows - 2;  // Force print 1 line
     }
          
     bool firstheader     = true;
     bool linesprinted    = false;
     bool skipFirstHeader = (!IsHeaderPrinted());
-    if (skipFirstHeader)
+
+    if (!m_parentDisplay && skipFirstHeader)
     {
         m_deleteLine = true;
     }
@@ -237,7 +239,19 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
     int cend   = m_colEnd;
 
     std::string myindent = GetIndentString(m_indent);
-    while (m_linesPrinted < maxlines && (i < numrows || j < numcols))
+
+    bool multisection = false;
+    int  firstrow     = 0;
+    int  firstcol     = 0;
+    int  lastrow      = 0;
+    int  lastcol      = 0;
+
+    int numbreaks = 0;
+    bool quitearly = false;
+        int endrow = 0;
+        int endcol = 0;
+
+    while (m_linesPrinted < m_maxRows - 1 && (i < numrows || j < numcols) && !quitearly)
     {
         bool wasPaginating = WasPaginating();
 
@@ -245,9 +259,29 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
 	    int startcol  = (m_colBegin >= 0) ? m_colBegin : 0;			
         int maxcols   = GetNumColumnsToFit(startcol, numcols, true, isrealdata);
 
-	    int totalrows = std::min(numrows, startrow + maxlines-m_linesPrinted);
+
+	    int totalrows = std::min(numrows, startrow + maxlines);
         int totalcols = std::min(numcols, startcol + maxcols);
 
+        if (!multisection)
+        {
+            firstrow = startrow;
+            firstcol = startcol;
+        }
+        // If there is only one row left, print instead of paginating
+        if (m_parentDisplay)
+        {
+            if (totalrows == numrows - 1 && numrows > 1) 
+            {
+                maxlines += 1;
+                totalrows += 1;
+            }
+            else if (totalrows == numrows - 2)
+            {
+                maxlines += 2;
+                totalrows += 2;
+            }
+        }
         for (i = startrow; i < totalrows; ++i)
         {
             data += myindent;
@@ -263,11 +297,27 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
             }
             data += "\n";
             m_linesPrinted++;
+            if (m_linesPrinted >= m_maxRows - 1 && i < totalrows - 1)
+            {
+                totalrows = std::min(totalrows, i + 1);
+                if (multisection)
+                {
+                    quitearly = true;
+                    m_rowEnd = lastrow;
+                    m_colEnd = lastcol;
+                }
+                break;
+            }
             linesprinted = true;
+        }
+        if (quitearly)
+        {
+            break;
         }
         m_rowEnd = std::max(totalrows-1, 0);
         m_colEnd = std::max(totalcols-1, 0);
-
+        lastrow  = m_rowEnd;
+        lastcol  = m_colEnd;
         if (!skipFirstHeader)
         {
             if (wasPaginating || IsPaginating())
@@ -288,30 +338,45 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
                 header += "\n";
             }
         }
-        else
+        else if (m_parentDisplay && m_parentDisplay->IsNDMatrixDisplay())
         {
-            skipFirstHeader = false;
+            if (wasPaginating)
+            {
+                if (IsPaginating() || (!IsPaginating() && numrows >= m_maxRows))
+                {
+                    header += GetPaginationHeader(numrows, numcols);
+                    firstheader = false;
+                    m_deleteLine = true;
+                }
+            }
         }
-
+        skipFirstHeader = false;
         output += header + data;
         m_linesPrinted ++;
         linesprinted = true;
 
         int cachedLines = m_linesPrinted + 1;
-        if (cachedLines < maxlines && IsPaginating())
+        if (cachedLines < m_maxRows - 1 && IsPaginating())
         {
             const_cast<MatrixDisplay*>(this)->SetForwardDisplayData();
             m_linesPrinted = cachedLines;
         }
-        else if (cachedLines >= maxlines && !firstheader)
+        else if (cachedLines >= m_maxRows - 1 && !firstheader)
         {
             break;
         }
 
         header = "";
         data   = "";
+        multisection = true;
     }
     StripEndline(output);
+
+    if (multisection)
+    {
+        m_rowBegin = firstrow;
+        m_colBegin = firstcol;
+    }
 
     if (!linesprinted)
     {
@@ -320,6 +385,14 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
         m_colBegin = cbegin;
         m_colEnd   = cend;
     }
+
+    if (m_parentDisplay && m_parentDisplay->IsNDMatrixDisplay() && IsPaginating())
+    {
+        if (numrows - m_rowEnd - 1 < m_maxRows)
+        {
+            m_deleteLine = true;
+        }
+    } 
     return output;
 }
 //------------------------------------------------------------------------------
@@ -399,18 +472,43 @@ std::string MatrixDisplay::GetOutputBackPagination(const OutputFormat* fmt) cons
     int rend   = m_rowEnd;
     int cend   = m_colEnd;
 
-    std::string myindent    = GetIndentString(m_indent);
+    std::string myindent = GetIndentString(m_indent);
+        
+    int prevstartrow = -1;
+    int prevstartcol = -1;
 
-    while (m_linesPrinted < maxlines && (i < numrows || j < numcols))
+    bool multisection = false;
+
+    int lastrow = 0;
+    int lastcol = 0;
+    int firstrow = 0;
+    int firstcol = 0;
+
+    while (m_linesPrinted <= m_maxRows && (i < numrows || j < numcols))
     {
         bool wasPaginating = WasPaginating();
 
 	    int endrow = (m_rowEnd > 0 && m_rowEnd < numrows) ? m_rowEnd : numrows - 1;
 	    int endcol = (m_colEnd > 0 && m_colEnd < numcols) ? m_colEnd : numcols - 1;
 
-        int maxcols = GetNumColumnsToFit(0, numcols, true, isrealdata);
-        int startrow = std::max(0, endrow+1 - maxlines+m_linesPrinted);
+        int maxcols = GetNumColumnsToFit(endcol, numcols, false, isrealdata);
+        int startrow = std::max(0, endrow+1 - maxlines);
         int startcol = std::max(0, endcol+1 - maxcols);
+
+        if (!multisection)
+        {
+            lastrow = endrow;
+            lastcol = endcol;
+        }
+
+        if (prevstartrow == 0 && prevstartcol == 0) // Quit once ew reach the end
+        {
+            m_rowBegin = -1;
+            m_colBegin = -1;
+            m_colEnd = -1;
+            m_rowEnd = -1;
+            break;
+        }
 
         for (i = startrow; i < numrows && i <= endrow; ++i)
         {
@@ -432,9 +530,12 @@ std::string MatrixDisplay::GetOutputBackPagination(const OutputFormat* fmt) cons
         m_rowBegin = startrow;
         m_colBegin = startcol;
 
+        firstrow = m_rowBegin;
+        firstcol = m_colBegin;
+         
         if (wasPaginating || IsPaginating())
         {          
-            if (!wasPaginating || firstheader)
+            if (!wasPaginating)
             {
                 header += " ";
             }
@@ -452,7 +553,14 @@ std::string MatrixDisplay::GetOutputBackPagination(const OutputFormat* fmt) cons
 
         if (linesprinted)
         {
-            output += header + data;
+            if (output.empty())
+            {
+                output = header + data;
+            }
+            else
+            {
+                output.insert(0, (header + data));
+            }
         }
         m_linesPrinted ++;
         linesprinted = true;
@@ -470,6 +578,13 @@ std::string MatrixDisplay::GetOutputBackPagination(const OutputFormat* fmt) cons
 
         header = "";
         data   = "";
+        prevstartrow = startrow;
+        prevstartcol = startcol;
+        multisection = true;
+    }
+    if (!output.empty() && output[0] == '\n')
+    {
+        output[0] = ' ';
     }
     StripEndline(output);
     if (!linesprinted)
@@ -480,6 +595,20 @@ std::string MatrixDisplay::GetOutputBackPagination(const OutputFormat* fmt) cons
         m_colEnd   = cend;
     }
 
+    if (multisection)
+    {
+        m_rowEnd = lastrow;
+        m_colEnd = lastcol;
+    }
+
+    if (m_rowBegin == 0 && m_colBegin == 0)
+    {
+        // Reached the end
+        m_rowBegin = -1;
+        m_rowEnd   = -1;
+        m_colBegin = -1;
+        m_colEnd   = -1;
+    }
     return output;
 }
 //------------------------------------------------------------------------------
@@ -611,6 +740,51 @@ void MatrixDisplay::SetLeftDisplayData()
 	if (m_colEnd > 0 && numcols > 0 && m_colEnd + 1 <= numcols)
 		m_colEnd = m_colBegin - 1;	
 }
+//------------------------------------------------------------------------------
+// Sets indices for down pagination
+//------------------------------------------------------------------------------
+void MatrixDisplay::SetDownDisplayData()
+{	
+    m_linesPrinted = 0;     // Reset number of lines printed
+	if (IsPaginatingRows()) // Row pagination
+    {
+		m_rowBegin = m_rowEnd + 1;
+    }
+    else     // Not paginating rows anymore, so switch to forward pagination
+    {   
+        int numrowstofit = GetNumRowsToFit();
+        int rows         = 0;
+        int cols         = 0;
+        GetCurrencySize(rows,cols);
+        if (rows < numrowstofit)
+        {
+            SetForwardDisplayData();
+        }
+    }
+}
+//------------------------------------------------------------------------------
+// Sets indices for up pagination
+//------------------------------------------------------------------------------
+void MatrixDisplay::SetUpDisplayData()
+{
+    m_linesPrinted = 0;     // Reset number of lines printed
+	
+	if (m_rowBegin == 0)
+    {   // We have reached the beginning of the matrix, so we cannot go back further
+        int numrowstofit = GetNumRowsToFit();
+        int rows         = 0;
+        int cols         = 0;
+        GetCurrencySize(rows,cols);
+        if (rows < numrowstofit)
+        {
+            SetBackDisplayData();
+        }
+        return;
+    }
+
+	m_rowEnd = m_rowBegin - 1;
+}
+
 //------------------------------------------------------------------------------
 // Resets format
 //------------------------------------------------------------------------------

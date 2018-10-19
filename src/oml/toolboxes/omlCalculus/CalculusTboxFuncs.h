@@ -35,6 +35,11 @@ extern "C"
     //! \param eval Evaluator interface
     //!
     CALCULUSOMLTBOX_DECLS int InitDll(EvaluatorInterface eval);
+    //!
+    //! Returns toolbox version
+    //! \param eval Evaluator interface
+    //!
+    CALCULUSOMLTBOX_DECLS double GetToolboxVersion(EvaluatorInterface eval);
 }
 
 //! 

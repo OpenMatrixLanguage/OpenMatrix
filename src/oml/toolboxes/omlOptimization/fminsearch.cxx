@@ -24,11 +24,10 @@
 #include "hwOptimizationFuncs.h"
 
 // File scope variables and functions
-static EvaluatorInterface* FMINSEARCH_eval_ptr        = nullptr;
-static FunctionInfo*       FMINSEARCH_oml_func        = nullptr;
-static FUNCPTR             FMINSEARCH_oml_pntr        = nullptr;
-static bool                FMINSEARCH_oml_func_isanon = false;
-static std::string         FMINSEARCH_oml_name;
+static std::vector<EvaluatorInterface*> FMINSEARCH_eval_ptr_stack;
+static std::vector<FunctionInfo*>       FMINSEARCH_oml_func_stack;
+static std::vector<FUNCPTR>             FMINSEARCH_oml_pntr_stack;
+static std::vector<std::string>         FMINSEARCH_oml_name_stack;
 
 //------------------------------------------------------------------------------
 // Helper function for fminsearch algorithm
@@ -37,9 +36,12 @@ static hwMathStatus FMINSEARCH_file_func(const hwMatrix& X, double& y)
 {
     std::vector<Currency> inputs;
     inputs.push_back(EvaluatorInterface::allocateMatrix(&X));
-
-    std::vector<Currency> outputs;
     Currency result;
+
+    EvaluatorInterface* FMINSEARCH_eval_ptr = FMINSEARCH_eval_ptr_stack.back();
+    FunctionInfo*       FMINSEARCH_oml_func = FMINSEARCH_oml_func_stack.back();
+    FUNCPTR             FMINSEARCH_oml_pntr = FMINSEARCH_oml_pntr_stack.back();
+    std::string         FMINSEARCH_oml_name = FMINSEARCH_oml_name_stack.back();
 
     if (FMINSEARCH_oml_func)
     {
@@ -58,7 +60,7 @@ static hwMathStatus FMINSEARCH_file_func(const hwMatrix& X, double& y)
     if (result.IsScalar())
         y = result.Scalar();
     else
-        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
+        return hwMathStatus(HW_MATH_ERR_USERFUNCREALNUM, 111);
 
     return hwMathStatus();
 }
@@ -71,6 +73,7 @@ bool OmlFminsearch(EvaluatorInterface           eval,
                    std::vector<Currency>&       outputs)
 {
     int nargin = eval.GetNarginValue();
+    int nargout = eval.GetNargoutValue();
 
     if (nargin < 2 || nargin > 3)
         throw OML_Error(OML_ERR_NUMARGIN);
@@ -110,77 +113,182 @@ bool OmlFminsearch(EvaluatorInterface           eval,
     if (optPoint->M() == 1)
         optPoint->Transpose();
 
+    bool   displayHist  = false;
     int    maxIter      = 100;
     int    maxFunEval   = 400;
     double tolx         = 1.0e-7;
 
-    if (nargin > 2)
+    if (nargin > 2 && inputs[2].IsStruct())
     {
-        if (inputs[2].IsStruct())
+        StructData* opt = inputs[2].Struct();
+        if (opt->N() != 1)
+            throw OML_Error(OML_ERR_OPTION, 3);
+
+        Currency maxIterC = opt->GetValue(0, -1, "MaxIter");
+        if (maxIterC.IsPositiveInteger())
+            maxIter = static_cast<int>(maxIterC.Scalar());
+        else if (!maxIterC.IsEmpty())
+
+            throw OML_Error(OML_ERR_OPTIONVAL, 3, OML_VAR_MAXITER);               
+
+        Currency maxFunEvalC = opt->GetValue(0, -1, "MaxFunEvals");
+
+        if (maxFunEvalC.IsPositiveInteger())
+            maxFunEval = static_cast<int>(maxFunEvalC.Scalar());
+        else if (!maxFunEvalC.IsEmpty()) 
+            throw OML_Error(OML_ERR_OPTIONVAL, 3, OML_VAR_MAXFUNEVALS);
+
+        Currency tolxC = opt->GetValue(0, -1, "TolX");
+
+        if (tolxC.IsScalar())
+            tolx = tolxC.Scalar();
+        else if (!tolxC.IsEmpty())
+            throw OML_Error(OML_ERR_OPTIONVAL, 3, OML_VAR_TOLX);
+
+        Currency displayC = opt->GetValue(0, -1, "Display");
+
+        if (displayC.IsString())
         {
-            StructData* opt = inputs[2].Struct();
-            if (opt->N() != 1)
-                throw OML_Error(OML_ERR_OPTION, 3);
+            std::string val (displayC.StringVal());
 
-            Currency maxIterC = opt->GetValue(0, -1, "MaxIter");
-            if (maxIterC.IsPositiveInteger())
-                maxIter = static_cast<int>(maxIterC.Scalar());
-            else if (!maxIterC.IsEmpty())
-
-                throw OML_Error(OML_ERR_OPTIONVAL, 3, OML_VAR_MAXITER);               
-
-            Currency maxFunEvalC = opt->GetValue(0, -1, "MaxFunEvals");
-
-            if (maxFunEvalC.IsPositiveInteger())
-                maxFunEval = static_cast<int>(maxFunEvalC.Scalar());
-            else if (!maxFunEvalC.IsEmpty()) 
-                throw OML_Error(OML_ERR_OPTIONVAL, 3, OML_VAR_MAXFUNEVALS);
-
-            Currency tolxC = opt->GetValue(0, -1, "TolX");
-
-            if (tolxC.IsScalar())
-                tolx = tolxC.Scalar();
-            else if (!tolxC.IsEmpty())
-                throw OML_Error(OML_ERR_OPTIONVAL, 3, OML_VAR_TOLX);
+            if (val == "iter")
+                displayHist = true;
+            else if (val != "off")
+                throw OML_Error(OML_ERR_OPTIONVAL, 3, OML_VAR_DISPLAY);
+        }
+        else if (!displayC.IsEmpty())
+        {
+            throw OML_Error(OML_ERR_OPTIONVAL, 3, OML_VAR_DISPLAY);
         }
     }
 
     // set file scope variables
-    FMINSEARCH_eval_ptr = &eval;
-    FMINSEARCH_oml_func = funcInfo;
-    FMINSEARCH_oml_pntr = funcPntr;
-    FMINSEARCH_oml_name = funcName;
+    FMINSEARCH_eval_ptr_stack.push_back(&eval);
+    FMINSEARCH_oml_func_stack.push_back(funcInfo);
+    FMINSEARCH_oml_pntr_stack.push_back(funcPntr);
+    FMINSEARCH_oml_name_stack.push_back(funcName);
 
     // call algorithm
-    double       minVal;
+    hwMatrix* objHist    = (displayHist || nargout > 3) ?
+                           EvaluatorInterface::allocateMatrix() : nullptr;
+    hwMatrix* designHist = (nargout > 3) ?
+                           EvaluatorInterface::allocateMatrix() : nullptr;
+    double    minVal;
 
     hwMathStatus status = NelderMead(FMINSEARCH_file_func, *optPoint, minVal, 
-                          maxFunEval, tolx);
+                          maxIter, maxFunEval, tolx, objHist, designHist);
+
+    // display history
+    if (displayHist && (status.IsOk() || status.IsWarning() || status.IsInfoMsg()))
+    {
+        std::string line = "Iteration      f(x)\n";
+        eval.PrintResult(line);
+
+        for (int i = 0; i < objHist->Size(); ++i)
+        {
+            char intChar[8];
+            char numChar[20];
+
+#ifdef OS_WIN  // sprintf_s is a safer option
+            sprintf_s(intChar, sizeof(intChar), "%5d",    i+1);
+            sprintf_s(numChar, sizeof(numChar), "%12.5f", (*objHist)(i));
+#else
+            sprintf(intChar, "%5d", i+1);
+            sprintf(numChar, "%12.5f", (*objHist)(i));
+#endif
+            line = std::string(intChar) + "  " + std::string(numChar) + "\n";
+
+            eval.PrintResult(line);
+        }
+
+        line = "\n";
+        eval.PrintResult(line);
+    }
 
     if (!status.IsOk())
     {
-        if (status.GetArg1() == 111)
+        if (status == HW_MATH_WARN_MAXITERATE ||
+            status == HW_MATH_WARN_MAXFUNCEVAL ||
+            status.IsInfoMsg())
         {
-            status.SetUserFuncName(funcName);
-            status.SetArg1(1);
+            // warning message has been replaced by a return value
         }
+        else
+        {
+            FMINSEARCH_eval_ptr_stack.clear();
+            FMINSEARCH_oml_func_stack.clear();
+            FMINSEARCH_oml_pntr_stack.clear();
+            FMINSEARCH_oml_name_stack.clear();
 
-        // Set warning or throw error
-        BuiltInFuncsUtils::CheckMathStatus(eval, status);
+            if (status.GetArg1() == 111)
+            {
+                status.SetUserFuncName(funcName);
+                status.SetArg1(1);
+            }
+
+            if (objHist)
+            {
+                delete objHist;
+                objHist = nullptr;
+            }
+
+            if (designHist)
+            {
+                delete designHist;
+                designHist = nullptr;
+            }
+
+            // Set warning or throw error
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+        }
     }
 
-    size_t nargout = eval.GetNargoutValue();
+    // pack outputs
+    if (cur2.Matrix()->M() == 1)
+        optPoint->Transpose();
 
-    if (nargout >= 0)
-    {
-        if (cur2.Matrix()->M() == 1)
-            optPoint->Transpose();
-
-        outputs.push_back(optPoint);
-    }
+    outputs.push_back(optPoint);
 
     if (nargout > 1)
         outputs.push_back(minVal);
+
+    if (nargout > 2)
+    {
+        if (status.IsOk())
+            outputs.push_back(1.0);
+        else if (status == HW_MATH_WARN_MAXITERATE ||
+                 status == HW_MATH_WARN_MAXFUNCEVAL)
+            outputs.push_back(0.0);
+    }
+
+    if (nargout > 3)
+    {
+        Currency out = EvaluatorInterface::allocateStruct();
+        out.Struct()->SetValue(0, -1, "iterations", maxIter);
+        out.Struct()->SetValue(0, -1, "nfev",       maxFunEval);
+        out.Struct()->SetValue(0, -1, "xiter",      designHist);
+        out.Struct()->SetValue(0, -1, "fvaliter",   objHist);
+        outputs.push_back(out);
+    }
+    else
+    {
+        if (objHist)
+        {
+            delete objHist;
+            objHist = nullptr;
+        }
+
+        if (designHist)
+        {
+            delete designHist;
+            designHist = nullptr;
+        }
+    }
+
+    FMINSEARCH_eval_ptr_stack.pop_back();
+    FMINSEARCH_oml_func_stack.pop_back();
+    FMINSEARCH_oml_pntr_stack.pop_back();
+    FMINSEARCH_oml_name_stack.pop_back();
 
     return true;
 }

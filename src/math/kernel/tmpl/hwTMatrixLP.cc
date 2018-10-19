@@ -2464,8 +2464,8 @@ inline hwMathStatus hwTMatrix<double>::RCond(double& rCondNum) const
     {
         double d = 0.0;
         double n = 1.0;
-        rCondNum = n / d;   // empty matrix returns Inf
-        return status(HW_MATH_ERR_NONE);
+        rCondNum = std::numeric_limits<double>::infinity();
+        return status;
     }
 
     if (IsReal())
@@ -2525,7 +2525,7 @@ inline hwMathStatus hwTMatrix<double>::QRSolve(const hwTMatrix<double>& A, const
         if (A.IsEmpty())
         {
             X.SetElements(0.0);
-            return status(HW_MATH_ERR_NONE);
+            return status;
         }
 
         double* a = Acopy.m_real;
@@ -3882,7 +3882,7 @@ inline hwMathStatus hwTMatrix<double>::MatExp(const hwTMatrix<double>& power)
     else
         exponent = 0;
 
-    value = (double) (1 << exponent);
+    value = pow(2.0, (double) exponent);
     status = B.Divide(power, value);
 
     if (!status.IsOk())
@@ -3984,7 +3984,7 @@ inline hwMathStatus hwTMatrix<double>::LSolveT(const hwTMatrix<double>& D, const
     *this = B;
 
     if (B.IsEmpty())
-        return status(HW_MATH_ERR_NONE);
+        return status;
 
     if (IsEmpty())
         return status(HW_MATH_ERR_ALLOCFAILED);
@@ -4045,7 +4045,7 @@ inline hwMathStatus hwTMatrix<double>::LSolveB(const hwTMatrix<double>& A, int k
     *this = B;
 
     if (B.IsEmpty())
-        return status(HW_MATH_ERR_NONE);
+        return status;
 
     if (IsEmpty())
         return status(HW_MATH_ERR_ALLOCFAILED);
@@ -4099,7 +4099,7 @@ inline hwMathStatus hwTMatrix<double>::LSolveSPD(const hwTMatrix<double>& A, con
     X = B;
 
     if (B.IsEmpty())
-        return status(HW_MATH_ERR_NONE);
+        return status;
 
     if (X.IsEmpty())
         return status(HW_MATH_ERR_ALLOCFAILED);
@@ -4159,7 +4159,7 @@ inline hwMathStatus hwTMatrix<double>::LSolveSPDT(const hwTMatrix<double>& D, co
     *this = B;
 
     if (B.IsEmpty())
-        return status(HW_MATH_ERR_NONE);
+        return status;
 
     if (IsEmpty())
         return status(HW_MATH_ERR_ALLOCFAILED);
@@ -4219,7 +4219,7 @@ inline hwMathStatus hwTMatrix<double>::LSolveSPDB(const hwTMatrix<double>& A, in
     *this = B;
 
     if (B.IsEmpty())
-        return status(HW_MATH_ERR_NONE);
+        return status;
 
     if (IsEmpty())
         return status(HW_MATH_ERR_ALLOCFAILED);
@@ -4271,7 +4271,7 @@ inline hwMathStatus hwTMatrix<double>::LSolveSI(const hwTMatrix<double>& A, cons
     *this = B;
 
     if (B.IsEmpty())
-        return status(HW_MATH_ERR_NONE);
+        return status;
 
     if (IsEmpty())
         return status(HW_MATH_ERR_ALLOCFAILED);
@@ -4831,7 +4831,7 @@ inline hwMathStatus hwTMatrix<double>::EigenST(const hwTMatrix<double>& D, const
     W = D;
 
     if (D.IsEmpty())
-        return status(HW_MATH_ERR_NONE);
+        return status;
 
     char jobz = 'V';
     int info;
