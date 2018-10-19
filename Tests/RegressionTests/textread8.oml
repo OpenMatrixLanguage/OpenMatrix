@@ -1,0 +1,3 @@
+fildpath = 'FileManipulation/textread8.txt';
+M = textread(fildpath,'%s','delimiter','\n');
+toascii(M{1,1})

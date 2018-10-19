@@ -1,0 +1,5 @@
+addtoolbox omlOptimization
+
+function e=f(x) e=x-1; end
+function e=g(x) y=fzero(@f,[0,5]); e=y-x; end
+fzero(@g,[-1,4])

@@ -1,0 +1,13 @@
+psdObj = object [
+FFTData: struct [
+F_max: 5
+]
+Input: struct [
+Fc: 1
+Fs: 1
+TimeValues: [Matrix] 1 x 5
+1  2  3  4  5
+Ts: 0.1
+overlap: 0.5
+]
+]

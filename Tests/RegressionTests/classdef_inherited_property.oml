@@ -1,0 +1,26 @@
+﻿classdef A
+	properties
+		a
+	end
+
+    methods
+	   function hello(self)
+	      disp('hello');
+	   end
+	end
+end
+
+classdef B < A
+	properties
+		b
+	end
+
+    methods
+	    function z=B()
+		   z.b=1;
+		   z.a=2;
+		end
+	end
+end
+
+b=B()

@@ -1,0 +1,8 @@
+﻿function b=ff
+  persistent a b;
+  if isempty(b)
+    b=1;
+  end
+end
+ 
+ff

@@ -1,0 +1,20 @@
+﻿classdef myClass
+	properties (Access = protected)
+		n
+	end
+	methods
+			function obj = myClass(val)
+				obj.n = val;
+				
+			end
+			
+			function [t t1] = first(obj,param1,param2,varargin)
+				t = obj.n;
+				t1 = param1+param2;
+				varargin
+			end
+	end
+end
+
+a = myClass(3);
+[a1,a2] = a.first(2,3,4,5,1,6);

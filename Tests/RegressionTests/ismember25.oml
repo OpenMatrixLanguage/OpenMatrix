@@ -1,0 +1,7 @@
+﻿base = 3;
+obj.expo = [2 5/3 4/3 1 2/3 1/3 0];
+obj.coef = [4 0 0 0 0 1 4];
+expo_sub = base*obj.expo;
+exquidis_expo_sub=round(expo_sub(1)):-1:0;
+polynom_sub = zeros(1,length(exquidis_expo_sub));
+polynom_sub(ismember(exquidis_expo_sub,round(expo_sub)))=obj.coef

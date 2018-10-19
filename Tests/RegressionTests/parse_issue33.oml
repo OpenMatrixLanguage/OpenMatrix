@@ -1,0 +1,4 @@
+﻿if h>0 clf(h)
+     
+else h=vssCreateFigure(block,'');
+end

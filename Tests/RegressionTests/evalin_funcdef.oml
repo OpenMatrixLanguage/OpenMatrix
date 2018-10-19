@@ -1,0 +1,6 @@
+﻿function fff
+    evalin('base', 'function z=goo(x) z=x+1; end') 
+end
+
+fff
+goo(4)

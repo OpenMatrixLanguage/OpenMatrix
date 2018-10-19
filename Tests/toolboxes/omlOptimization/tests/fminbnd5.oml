@@ -1,0 +1,5 @@
+addtoolbox omlOptimization
+
+function e=f(x) e=(x-2)^2+1; end
+function e=g(x) y=fminbnd(@f,[1,4]); e=(y-x)^2; end
+fminbnd(@g,[0,3])

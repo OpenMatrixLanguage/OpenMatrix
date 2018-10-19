@@ -1,0 +1,23 @@
+﻿classdef psd
+	properties (Access = private)
+		FFTData
+		Input
+	end
+
+	methods
+		function obj = psd(TimeValues,Ts)
+			obj.Input.Fc = 1;
+			obj.Input.Fs = 1;
+			obj.Input.overlap =0.5;
+			obj.Input.TimeValues = TimeValues;
+			obj.Input.Ts = Ts;
+			obj = obj.getFFT();
+		end
+
+		function obj = getFFT(obj)
+			obj.FFTData.F_max     = 1/(2*obj.Input.Ts);
+		end 
+	end
+end
+
+psdObj = psd([1 2 3 4 5],0.1)
