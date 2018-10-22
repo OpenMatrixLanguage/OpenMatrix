@@ -34,6 +34,20 @@ MATHCORE_DECLS void polyNomMultAccum(double* a, int n, double* b, int m);
 MATHCORE_DECLS bool quadraticRoots(double a, double b, double c,
 								   double& zero1, double& zero2);
 
+//*******************************************************************
+//                     Transcendental functions
+//*******************************************************************
+#ifdef OS_WIN
+  #if _MSC_VER < 1900
+    namespace hmath_OS_WIN
+    {
+        MATHCORE_DECLS double asinh(double x);
+        MATHCORE_DECLS double acosh(double x);
+        MATHCORE_DECLS double atanh(double x);
+        MATHCORE_DECLS double log2(double x);
+    }
+  #endif
+#endif
 
 //*******************************************************************
 //                    General utility functions

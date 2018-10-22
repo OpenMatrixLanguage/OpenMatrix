@@ -25,6 +25,7 @@
 #include "SpecialFuncs.h"
 
 #define STATAN "StatisticalAnalysis"
+#define TBOXVERSION 2019.0
 
 //------------------------------------------------------------------------------
 // Entry point which registers toolbox with oml
@@ -131,4 +132,11 @@ bool OmlBins(EvaluatorInterface           eval,
 
     outputs.push_back(result.release());
     return true;
+}
+//------------------------------------------------------------------------------
+// Returns toolbox version
+//------------------------------------------------------------------------------
+double GetToolboxVersion(EvaluatorInterface eval)
+{
+    return TBOXVERSION;
 }

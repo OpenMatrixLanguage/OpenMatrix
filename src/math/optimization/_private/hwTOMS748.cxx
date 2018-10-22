@@ -14,7 +14,7 @@
 * Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 #include "hwTOMS748.h"
-
+#include "hwMatrix.h"
 #include "GeneralFuncs.h"
 
 //------------------------------------------------------------------------------
@@ -46,15 +46,15 @@ void tole(double  b,
 //------------------------------------------------------------------------------
 // Gets a shrinked enclosing interval and updates termination criterion
 //------------------------------------------------------------------------------
-void Bracket(const TOMS748Func f, 
-             double&           a, 
-             double&           b, 
-             double            c, 
-             double&           fa, 
+void Bracket(const TOMS748Func f,
+             double&           a,
+             double&           b,
+             double            c,
+             double&           fa,
              double&           fb,
-             double&           tol, 
+             double&           tol,
              int               neps,
-             double            eps, 
+             double            eps,
              double&           d,
              double&           fd)
 {
@@ -136,13 +136,13 @@ int ISIGN(double x)
 // Uses Newton steps to approximate 0 in (A,B) of the quadratic polynomial
 // interpolating f(x) at a, b and d. Safeguard is used to avoid overflow
 //------------------------------------------------------------------------------
-void NewtonQuad(double  a, 
-                double  b, 
-                double  d, 
-                double  fa, 
-                double  fb, 
+void NewtonQuad(double  a,
+                double  b,
+                double  d,
+                double  fa,
+                double  fb,
                 double  fd,
-                double& c, 
+                double& c,
                 int     k)
 {
     // Initialization
@@ -196,14 +196,14 @@ void NewtonQuad(double  a,
 // Introduction to Numerical Analysis, Springer-Verlag, New York (1980)
 // d and e lie outside the interval [a,b]
 //------------------------------------------------------------------------------
-void Pzero(double  a, 
-           double  b, 
-           double  d, 
-           double  e, 
-           double  fa, 
-           double  fb, 
+void Pzero(double  a,
+           double  b,
+           double  d,
+           double  e,
+           double  fa,
+           double  fb,
            double  fd,
-           double  fe, 
+           double  fe,
            double& c)
 {        
     double q11 = (d - e) * fd / (fe - fd);
@@ -221,18 +221,55 @@ void Pzero(double  a,
     c += a;
 }
 //------------------------------------------------------------------------------
+// Utility to update TOMS748 history
+//------------------------------------------------------------------------------
+static void TOMS748History(hwMatrix* designHist,
+                           hwMatrix* objHist,
+                           double    a,
+                           double    b,
+                           double    fa,
+                           double    fb,
+                           int       iter)
+{
+    hwMathStatus status;
+
+    if (objHist)
+    {
+        if (objHist->IsEmpty())
+            status = objHist->Dimension(iter, 2, hwMatrix::REAL);
+        else
+            status = objHist->Resize(iter, 2);
+
+        (*objHist)(iter-1, 0) = fa;
+        (*objHist)(iter-1, 1) = fb;
+    }
+
+    if (designHist)
+    {
+        if (designHist->IsEmpty())
+            status = designHist->Dimension(iter, 2, hwMatrix::REAL);
+        else
+            status = designHist->Resize(iter, 2);
+
+        (*designHist)(iter-1, 0) = a;
+        (*designHist)(iter-1, 1) = b;
+    }
+}
+//------------------------------------------------------------------------------
 // Finds zero of a function without derivates using TOMS 748 algorithm
 //------------------------------------------------------------------------------
-hwMathStatus TOMS748(const TOMS748Func f, 
-                     double&           a, 
-                     double&           b, 
-                     double&           fa, 
+hwMathStatus TOMS748(const TOMS748Func f,
+                     double&           a,
+                     double&           b,
+                     double&           fa,
                      double&           fb,
-                     double&           root, 
-                     double&           froot, 
-                     double            eps, 
-                     int&              numIters, 
-                     int&              numFunEvals)
+                     double&           root,
+                     double&           froot,
+                     int&              numIters,
+                     int&              numFunEvals,
+                     double            eps,
+                     hwMatrix*         objHist,
+                     hwMatrix*         designHist)
 {
     // Subroutine rroot(nprob, neps, eps, a, b, root)
     // Finds either an exact solution or an approximate solution of the equation
@@ -280,6 +317,9 @@ hwMathStatus TOMS748(const TOMS748Func f,
         b0 = b;
 
         numIters++; // Update iteration number
+
+        if (objHist || designHist)
+            TOMS748History(designHist, objHist, a, b, fa, fb, numIters);
 
         // Calculates termination criterion and stops if criterion is satisfied
         if (fabs(fb) < fabs(fa))
@@ -411,11 +451,15 @@ hwMathStatus TOMS748(const TOMS748Func f,
         // criterion.
         Bracket(f, a, b, a + 0.5*(b-a), fa, fb, tol, neps, eps, d, fd);
         ++numFunEvals;
+
         if (fa == 0.0 || b-a <= tol || numFunEvals == maxFunEvals)
         {
             break;
         }
     }
+
+    if (objHist || designHist)
+        TOMS748History(designHist, objHist, a, b, fa, fb, numIters+1);
 
     root  = a;
     froot = fa;
@@ -424,7 +468,7 @@ hwMathStatus TOMS748(const TOMS748Func f,
     {
         status(HW_MATH_WARN_MAXITERATE);
     }
-    else if (numFunEvals == maxFunEvals)
+    else if (numFunEvals >= maxFunEvals)
     {
         status(HW_MATH_WARN_MAXFUNCEVAL);
     }

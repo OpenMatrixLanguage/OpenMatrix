@@ -1,0 +1,6 @@
+addtoolbox('omlStatistics')
+a = 5;
+b = 6;
+rand('seed', 2003);
+
+x = (normrnd(a,b,3,4,2) - a) / b

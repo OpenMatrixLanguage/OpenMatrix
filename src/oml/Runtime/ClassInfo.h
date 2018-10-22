@@ -55,7 +55,7 @@ public:
 
     //! Adds a base class
     //! \param[in] name Given base class name
-    void AddBaseClass( const std::string& name);
+    void AddBaseClass( const ClassInfo* base_class);
     //! Returns true if given class name is a base class - used only in language
     //! \param[in] name Given base class name
 	bool IsSubclassOf( const std::string& name) const;
@@ -75,10 +75,12 @@ public:
     //! \param[in] name Name of the property
     bool IsPropertyPrivate( const std::string& name) const;
 
+	Currency CreateEmpty() const;
+
 private:
 	std::string                          _class_name;   //! External class name
     std::vector<PropertyInfo*>           _properties;   //! Properties
-    std::vector<std::string>             _baseclass;    //! Base classes
+    std::vector<const ClassInfo*>        _baseclass;    //! Base classes
     std::map<std::string, FunctionInfo*> _methods;      //! Methods in language
 }; 
 //------------------------------------------------------------------------------

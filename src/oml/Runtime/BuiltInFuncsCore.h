@@ -173,7 +173,17 @@ public:
     static bool OmlSleep(EvaluatorInterface           eval, 
                          const std::vector<Currency>& inputs, 
                          std::vector<Currency>&       outputs);
-    
+    //!
+    //! Dynamically loads a library and returns handle to it
+    //! \param name Library name
+    //!
+    static void* DyLoadLibrary(const std::string& name);
+    //! Returns function pointer from a dynamically loaded library
+    //! \param handle Handle to dynamically loaded library
+    //! \param name   Function name
+    //!
+    static void* DyGetFunction(void*              handle,
+                               const std::string& name);    
 private:
     //!
     //! Constructor
@@ -199,17 +209,6 @@ private:
     //! \param cur Given currency
     //!
     int GetsBytesUsed( const Currency& cur) const;
-    //!
-    //! Dynamically loads a library and returns handle to it
-    //! \param name Library name
-    //!
-    static void* DyLoadLibrary( const std::string& name);
-    //! Returns function pointer from a dynamically loaded library
-    //! \param handle Handle to dynamically loaded library
-    //! \param name   Function name
-    //!
-    static void* DyGetFunction( void*              handle,
-                                const std::string& name);
 };
 
 #endif // __BUILTINFUNCSCORE__

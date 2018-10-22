@@ -54,6 +54,8 @@ public:
 	void            ReadFromBinaryFile(FILE* outfile, const std::string* filename);
 	void            WriteToBinaryFile(FILE* outfile);
 
+	void GetListOfIdents(std::vector<std::string>&) const;
+
 	std::string DumpAST();
 
 	void*      u; // user data

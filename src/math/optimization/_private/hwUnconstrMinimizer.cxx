@@ -23,7 +23,7 @@ hwUnconstrMinimizer::hwUnconstrMinimizer(const UnConMinObjFunc  pObjFunc,
                                          const UnConMinGradFunc pGradFunc,
                                          const hwMatrix&        P, 
                                          int                    maxIter,
-                                         int                    maxFuncEval,
+                                         int                    maxFuncEval, 
                                          double                 tolf, 
                                          double                 tolx,
                                          const hwMatrix*        userData)

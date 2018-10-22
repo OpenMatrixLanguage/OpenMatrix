@@ -1121,21 +1121,22 @@ hwMathStatus BetaFit(const hwMatrix& data,
         value2 += log(1.0 - data(i));
     }
 
-    userData(0) = (double) n;
-    userData(1) = value1;
-    userData(2) = value2;
+    userData(0)     = (double) n;
+    userData(1)     = value1;
+    userData(2)     = value2;
+    int maxIter     = 200;
+    int maxFuncEval = 1000;
 
-    status = FMinUncon(BetaLogLike, nullptr, param, min, 200, 1000, 1.0e-8,
-                       1.0e-6, nullptr, nullptr, &userData);
+    status = FMinUncon(BetaLogLike, nullptr, param, min, maxIter, maxFuncEval,
+                       1.0e-8, 1.0e-6, nullptr, nullptr, &userData);
 
-    if (!status.IsOk())
+    if (!status.IsOk() && !status.IsInfoMsg() && !status.IsWarning())
     {
         status.ResetArgs();
-        if (!status.IsWarning())
-        {
-            return status;
-        }
+        return status(HW_MATH_ERR_NOTCONVERGE);
     }
+
+    status = hwMathStatus();
 
     aHat = param(0) * param(0);
     bHat = param(1) * param(1);
@@ -1612,21 +1613,22 @@ hwMathStatus GammaFit(const hwMatrix& data,
     // optimization step
     hwMatrix userData(3, hwMatrix::REAL);
 
-    userData(0) = (double) n;
-    userData(1) = ld;
-    userData(2) = sd;
+    userData(0)     = (double) n;
+    userData(1)     = ld;
+    userData(2)     = sd;
+    int maxIter     = 200;
+    int maxFuncEval = 1000;
 
-    status = NLSolve(GammaLogLikeUtil, nullptr, param, min, 1, 200, 1000, 1.0e-6, 
-                     1.0e-6, nullptr, nullptr, &userData);
+    status = NLSolve(GammaLogLikeUtil, nullptr, param, min, maxIter, maxFuncEval,
+                     1, 1.0e-6, 1.0e-6, nullptr, nullptr, &userData);
 
-    if (!status.IsOk())
+    if (!status.IsOk() && !status.IsInfoMsg() && !status.IsWarning())
     {
         status.ResetArgs();
-        if (!status.IsWarning())
-        {
-            return status;
-        }
+        return status(HW_MATH_ERR_NOTCONVERGE);
     }
+
+    status = hwMathStatus();
 
     aHat = param(0);
     bHat = sd * nRec / aHat;
@@ -3790,21 +3792,21 @@ hwMathStatus WeibullFit(const hwMatrix& data,
         return status;
     }
 
-    cv2(0) = var / (mean*mean);
-    b(0) = mean / sqrt(var);    // = 1 / sqrt(cv2(0)) - initial estimate
+    cv2(0)          = var / (mean*mean);
+    b(0)            = mean / sqrt(var);  // = 1/sqrt(cv2(0)) - initial estimate
+    int maxIter     = 200;
+    int maxFuncEval = 1000;
 
-    status = NLSolve(WeibullFitUtil_MM, nullptr, b, min, 1, 200, 1000, 1.0e-6,
-                     1.0e-6, nullptr, nullptr, &cv2);
+    status = NLSolve(WeibullFitUtil_MM, nullptr, b, min, maxIter, maxFuncEval,
+                     1, 1.0e-6, 1.0e-6, nullptr, nullptr, &cv2);
 
-    if (!status.IsOk())
+    if (!status.IsOk() && !status.IsInfoMsg() && !status.IsWarning())
     {
-        if (status != HW_MATH_WARN_NOTCONVERGE &&
-            status != HW_MATH_WARN_LOCALMIN    &&
-            status != HW_MATH_WARN_NOSOLUTION)
-        {
-            return status;
-        }
+        status.ResetArgs();
+        return status(HW_MATH_ERR_NOTCONVERGE);
     }
+
+    status = hwMathStatus();
 
     aHat = mean / GammaFunc(1.0 + 1.0 / b(0));
     bHat = b(0);
@@ -3814,14 +3816,19 @@ hwMathStatus WeibullFit(const hwMatrix& data,
 
     param(0) = aHat;
     param(1) = bHat;
+    maxIter     = 200;
+    maxFuncEval = 1000;
 
-    status = FMinUncon(WeibullLogLike, WeibullLLGrad, param, min, 200, 1000, 
-                       31.0e-6, 1.0e-6, nullptr, nullptr, &data);
+    status = FMinUncon(WeibullLogLike, WeibullLLGrad, param, min, maxIter,
+                       maxFuncEval, 1.0e-6, 1.0e-6, nullptr, nullptr, &data);
 
-    if (!status.IsOk() && status != HW_MATH_WARN_NOTCONVERGE)
+    if (!status.IsOk() && !status.IsInfoMsg() && !status.IsWarning())
     {
+        status.ResetArgs();
         return status(HW_MATH_ERR_NOTCONVERGE);
     }
+
+    status = hwMathStatus();
 
     aHat = param(0);
     bHat = param(1);

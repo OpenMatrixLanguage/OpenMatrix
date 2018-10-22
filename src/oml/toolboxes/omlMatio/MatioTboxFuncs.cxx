@@ -25,6 +25,8 @@
 #include "StructData.h" 
 #include "matio.h"
 
+#define TBOXVERSION 2019.0
+
 // Returns true after loading file in ascii format
 bool ReadASCIIFile(EvaluatorInterface           eval, 
                    const std::vector<Currency>& inputs, 
@@ -603,12 +605,11 @@ bool OmlSave(EvaluatorInterface           eval,
 	
     for (int i = 1; i < nargin; ++i)
     {
-        Currency cur = inputs[i];
-        if (!cur1.IsString())
+        if (!inputs[i].IsString())
         {
             throw OML_Error(OML_ERR_STRING, i + 1, OML_VAR_TYPE);
         }
-        std::string val (cur.StringVal());
+        std::string val (inputs[i].StringVal());
         if (val.empty())
         {
             continue;
@@ -971,4 +972,11 @@ bool SaveAsciiFile(EvaluatorInterface              eval,
 
     fclose(fp);
 	return true;
+}
+//------------------------------------------------------------------------------
+// Returns toolbox version
+//------------------------------------------------------------------------------
+double GetToolboxVersion(EvaluatorInterface eval)
+{
+    return TBOXVERSION;
 }

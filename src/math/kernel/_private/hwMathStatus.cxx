@@ -27,7 +27,7 @@
 
 //! Empty constructor
 hwMathStatus::hwMathStatus()
-    : m_pContent(NULL)
+    : m_pContent(nullptr)
 {
 }
 

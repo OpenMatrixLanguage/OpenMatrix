@@ -66,6 +66,18 @@ std::string GetHMathErrMsg(hwMathMsgCode code)
             default:                            retStr = HW_MATH_MSG_UNKNOWN;
         }
     }
+    else if (code < HW_MATH_INFO_EOL)   // information
+    {
+        switch (code)
+        {
+            // general errors
+            case HW_MATH_INFO_TOLFCONV:         retStr = HW_MATH_MSG_TOLFCONV;          break;
+            case HW_MATH_INFO_TOLFCONV_R:       retStr = HW_MATH_MSG_TOLFCONV_R;        break;
+            case HW_MATH_INFO_TOLXCONV:         retStr = HW_MATH_MSG_TOLXCONV;          break;
+            case HW_MATH_INFO_TOLXCONV_R:       retStr = HW_MATH_MSG_TOLXCONV_R;        break;
+            case HW_MATH_INFO_SMALLTRUST:       retStr = HW_MATH_MSG_SMALLTRUST;        break;
+        }
+    }
     else    // error
     {
         switch (code)
@@ -155,6 +167,7 @@ std::string GetHMathErrMsg(hwMathMsgCode code)
             case HW_MATH_ERR_QUADSTEPSIZE:          retStr = HW_MATH_MSG_QUADSTEPSIZE;      break;
             case HW_MATH_ERR_FUNCTIONCOUNT:         retStr = HW_MATH_MSG_FUNCTIONCOUNT;     break;
             case HW_MATH_ERR_NOUNIQUEROOT:          retStr = HW_MATH_MSG_NOUNIQUEROOT;      break;
+            case HW_MATH_ERR_NESTSUPPORT:           retStr = HW_MATH_MSG_NESTSUPPORT;       break;
             case HW_MATH_ERR_INTERNALERROR:         retStr = HW_MATH_MSG_INTERNALERROR;     break;
             // signal processing errors
             case HW_MATH_ERR_FILTERTYPE:            retStr = HW_MATH_MSG_FILTERTYPE;        break;

@@ -1,0 +1,13 @@
+﻿function y=f()
+y=3;
+disp(nargout)
+end
+
+function nn=g
+f;
+nn=1;
+disp(nargout)
+end
+
+g;
+n=g;

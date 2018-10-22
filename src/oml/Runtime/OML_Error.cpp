@@ -248,6 +248,7 @@ std::string GetComposeErrMsg(omlMathErrCode errCode)
     case OML_ERR_SCALAR_REALMTX:                msgStr = OML_MSG_SCALAR_REALMTX; break;
     case OML_ERR_INTEGER_INTMTX:                msgStr = OML_MSG_INTEGER_INTMTX; break;
     case OML_ERR_LOGICAL:                       msgStr = OML_MSG_LOGICAL; break;
+    case OML_ERR_INVALID_VERSION:               msgStr = OML_MSG_INVALID_VERSION; break;
 
     // plot error messages:
     case OML_ERR_PLOT_OUT_OF_RANGE:             msgStr = OML_MSG_PLOT_OUT_OF_RANGE;             break;

@@ -96,8 +96,16 @@ public:
 	bool IsPartialExpression(const std::string& expr) const;   
     //! True if interrupt has been requested by evaluator
     bool IsInterrupt() const;
+
+    //!
     //! True if execution has been paused by evaluator
+    //!
     bool IsPaused() const;
+    //!
+    //! True if a pause request is pending in the evaluator
+    //!
+    bool IsPauseRequestPending() const;
+
           
     //! Returns true if successful in registering a built in function
     bool RegisterBuiltInFunction(const std::string& funcname, 
@@ -179,6 +187,9 @@ public:
 	int         GetSyntaxErrorLine() const;
 	std::string GetSyntaxErrorFile() const;
 
+	void* GetUserData()            { return _user_data; }
+	void  SetUserData(void* _data) { _user_data = _data; }
+
 private:
     friend class InterpreterImpl; //! Access private/protected members
     InterpreterImpl* _impl;       //! Internal implementation
@@ -187,6 +198,8 @@ private:
 	Interpreter(const Interpreter&);  
     //! Assignment op - disallow
 	Interpreter& operator=(const Interpreter&);
+
+	void* _user_data;
 };
 #endif
 // End of file:

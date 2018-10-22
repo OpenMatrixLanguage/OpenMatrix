@@ -1,4 +1,4 @@
-Warning: maximum number of function evaluations exceeded, returned last estimate in call to function fminunc at line number 6 in file fminunc6.oml
 x = [Matrix] 1 x 2
 0.99977  0.99951
 fval = 1.16100e-07
+info = 0

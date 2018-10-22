@@ -25,6 +25,7 @@
 #include "OML_Error.h"
 
 #define CAE "CAE"
+#define TBOXVERSION 2019.0
 
 //------------------------------------------------------------------------------
 // Entry point which registers omlCAE toolbox with oml
@@ -299,4 +300,11 @@ bool OmlSAEfilt95(EvaluatorInterface           eval,
 
     outputs.push_back(outSignal.release());
     return true;
+}
+//------------------------------------------------------------------------------
+// Returns toolbox version
+//------------------------------------------------------------------------------
+double GetToolboxVersion(EvaluatorInterface eval)
+{
+    return TBOXVERSION;
 }

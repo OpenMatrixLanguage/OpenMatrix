@@ -10,4 +10,10 @@ end
 init = [-1.2, 1.0];
 options = optimset('TolX', 1.0e-5);
 
-[x,fval] = fminsearch(@Rosenbrock, init, options)
+[x,fval,info,output] = fminsearch(@Rosenbrock, init, options);
+
+output.xiter = round(output.xiter*(2^30))/(2^30);
+x
+fval
+info
+output

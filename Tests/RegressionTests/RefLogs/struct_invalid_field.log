@@ -1,1 +1,1 @@
-Error: invalid field name at line number 2 in file struct_invalid_field.oml
+Error: invalid field nonexist at line number 2 in file struct_invalid_field.oml

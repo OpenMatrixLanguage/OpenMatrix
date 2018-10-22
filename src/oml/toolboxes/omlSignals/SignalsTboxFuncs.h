@@ -38,6 +38,11 @@ extern "C"
     //! \param eval Evaluator interface
     //!
     SIGNALSOMLTBOX_DECLS int InitDll(EvaluatorInterface eval);
+    //!
+    //! Returns toolbox version
+    //! \param eval Evaluator interface
+    //!
+    SIGNALSOMLTBOX_DECLS double GetToolboxVersion(EvaluatorInterface eval);
 }
 
 int determineFftSize(const hwMatrix *mtx);

@@ -176,6 +176,7 @@ public:
     std::vector<Currency> DoMultiReturnFunctionCall(FUNCPTR fptr, const std::string& func_name, std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars);
 
 	void DoMultiReturnFunctionCall(FUNCPTR fptr,     const std::string& func_name, std::vector<Currency>& param_values, int num_ins, bool suppress_output, OMLTree* out_tree);
+	void DoMultiReturnFunctionCall(ALT_FUNCPTR fptr,     const std::string& func_name, std::vector<Currency>& param_values, int num_ins, bool suppress_output, OMLTree* out_tree);
 	void DoMultiReturnFunctionCall(FunctionInfo* fi, std::vector<Currency>& param_values, int num_ins, bool suppress_output, OMLTree* out_tree);
 
 	std::vector<Currency> DoAnonymousMultiReturnFunctionCall(FunctionInfo* fi, std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars = nullptr);
@@ -283,10 +284,21 @@ public:
 	void     SetInterrupt(bool);
 	bool	 IsInterrupt();
 
-	void     SetPause(bool);
-	bool	 IsPause();
+    //!
+    //! Returns true if there is a pause request pending
+    //!
+    bool IsPauseRequestPending() const { return _pauseRequestPending; }
+    //!
+    //! Requests/resets pause. Pause request/reset will be processed after 
+    //! execution of current statement
+    //! \param val True if a pause request is intiated, false otherwise
+    //!
+    void SetPauseRequestPending(bool val) { _pauseRequestPending = val; }
+    //!
+    //! Returns true if interpreter is paused
+    //!
+    bool IsPaused() const { return _paused; }
 
-    bool     IsPaused() const { return _paused; }
 	void     SetDiary(bool);
 	void     SetDiary(std::string filename);
 	bool     IsDiaryOpen();
@@ -398,6 +410,7 @@ public:
 	void WritePFile(const std::string& infile, const std::string& outfile);
 	
 	Currency Analyze(const std::string& infile);
+	Currency GetMetadata(const std::string& infile);
 
 private:
 	Currency AddOperator(const Currency&, const Currency&);
@@ -602,9 +615,11 @@ private:
 	bool _lhs_eval;
 
 	bool _interrupt;
-	bool _pause;
-    bool _paused;
     bool _quit;                 //! True if evaluator is quitting
+
+	bool _pauseRequestPending;  //!< True if pause request is pending
+    bool _paused;               //!< True if interpreter is paused
+
 
     OutputFormat* format;
 

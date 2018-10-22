@@ -24,10 +24,10 @@
 #include "hwOptimizationFuncs.h"
 
 // File scope variables and functions
-static EvaluatorInterface* LSQCURVEFIT_eval_ptr = nullptr;
-static FunctionInfo*       LSQCURVEFIT_oml_func = nullptr;
-static FUNCPTR             LSQCURVEFIT_oml_pntr = nullptr;
-static bool                LSQCURVEFIT_oml_func_isanon;
+static std::vector<EvaluatorInterface*> LSQCURVEFIT_eval_ptr_stack;
+static std::vector<FunctionInfo*>       LSQCURVEFIT_oml_func_stack;
+static std::vector<FUNCPTR>             LSQCURVEFIT_oml_pntr_stack;
+static std::vector<bool>                LSQCURVEFIT_oml_bool_stack;
 
 //------------------------------------------------------------------------------
 // Wrapper for the system function called by lsqcurvefit algorithm.
@@ -44,9 +44,13 @@ static hwMathStatus NLCurveFitFunc(const hwMatrix& P,
     std::vector<Currency> inputs;
     inputs.push_back(EvaluatorInterface::allocateMatrix(&P));
     inputs.push_back(EvaluatorInterface::allocateMatrix(&X));
-
     std::vector<Currency> outputs;
     Currency result;
+
+    EvaluatorInterface* LSQCURVEFIT_eval_ptr        = LSQCURVEFIT_eval_ptr_stack.back();
+    FunctionInfo*       LSQCURVEFIT_oml_func        = LSQCURVEFIT_oml_func_stack.back();
+    FUNCPTR             LSQCURVEFIT_oml_pntr        = LSQCURVEFIT_oml_pntr_stack.back();
+    bool                LSQCURVEFIT_oml_func_isanon = LSQCURVEFIT_oml_bool_stack.back();
 
     if (LSQCURVEFIT_oml_func_isanon)
     {
@@ -95,7 +99,7 @@ static hwMathStatus NLCurveFitFunc(const hwMatrix& P,
         }
         else
         {
-            return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
+            return hwMathStatus(HW_MATH_ERR_USERFUNCREAL, 111);
         }
     }
     else
@@ -113,11 +117,15 @@ static hwMathStatus NLCurveFitJacobian(const hwMatrix& P,
                                        const hwMatrix* userData, 
                                        hwMatrix&       J)
 {
-    std::vector<Currency> outputs;
-
     std::vector<Currency> inputs;
     inputs.push_back(EvaluatorInterface::allocateMatrix(&P));
     inputs.push_back(EvaluatorInterface::allocateMatrix(&X));
+    std::vector<Currency> outputs;
+
+    EvaluatorInterface* LSQCURVEFIT_eval_ptr        = LSQCURVEFIT_eval_ptr_stack.back();
+    FunctionInfo*       LSQCURVEFIT_oml_func        = LSQCURVEFIT_oml_func_stack.back();
+    FUNCPTR             LSQCURVEFIT_oml_pntr        = LSQCURVEFIT_oml_pntr_stack.back();
+    bool                LSQCURVEFIT_oml_func_isanon = LSQCURVEFIT_oml_bool_stack.back();
 
     if (LSQCURVEFIT_oml_func)
     {
@@ -164,7 +172,7 @@ static hwMathStatus NLCurveFitJacobian(const hwMatrix& P,
         }
         else
         {
-            return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+            return hwMathStatus(HW_MATH_ERR_USERFUNCREAL, 222);
         }
     }
     else
@@ -183,6 +191,7 @@ bool OmlLsqcurvefit(EvaluatorInterface           eval,
                     std::vector<Currency>&       outputs)
 {
     int nargin = eval.GetNarginValue();
+    int nargout = eval.GetNargoutValue();
 
     if (nargin < 4 || nargin == 5 || nargin > 7)
         throw OML_Error(OML_ERR_NUMARGIN);
@@ -199,14 +208,18 @@ bool OmlLsqcurvefit(EvaluatorInterface           eval,
     if (funcName == "anonymous")
     {
         funcInfo = cur1.FunctionHandle();
-        std::string script_func (funcInfo->RedirectedFunction());
-        LSQCURVEFIT_oml_func_isanon = (!script_func.empty()) ? 
-            false: // handle to an inner function
-            true;  // true anonymous function
+        (funcInfo->RedirectedFunction().empty()) ?
+            LSQCURVEFIT_oml_bool_stack.push_back(true):  // true anonymous function
+            LSQCURVEFIT_oml_bool_stack.push_back(false); // handle to an inner function
     }
-    else if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr))
+    else
     {
-        throw OML_Error(OML_ERR_FUNCNAME, 1);
+        LSQCURVEFIT_oml_bool_stack.push_back(false);
+
+        if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr))
+        {
+            throw OML_Error(OML_ERR_FUNCNAME, 1);
+        }
     }
 
     if (funcInfo && funcInfo->Parameters().size() != 2)
@@ -214,7 +227,7 @@ bool OmlLsqcurvefit(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN, 1);
     }
 
-    Currency  cur2 = inputs[1];
+    Currency cur2 = inputs[1];
 
     if (!cur2.IsScalar() && !cur2.IsMatrix())
         throw OML_Error(OML_ERR_SCALARVECTOR, 2);
@@ -351,37 +364,37 @@ bool OmlLsqcurvefit(EvaluatorInterface           eval,
     }
 
     // set file scope variables
-    LSQCURVEFIT_oml_func = funcInfo;
-    LSQCURVEFIT_oml_pntr = funcPntr;
-    LSQCURVEFIT_eval_ptr = &eval;
+    LSQCURVEFIT_eval_ptr_stack.push_back(&eval);
+    LSQCURVEFIT_oml_func_stack.push_back(funcInfo);
+    LSQCURVEFIT_oml_pntr_stack.push_back(funcPntr);
     
+    // call algorithm
     hwMatrix*    stats      = nullptr;
     hwMatrix*    yEst       = nullptr;
-    hwMatrix*    designHist = nullptr;
+    hwMatrix*    objHist    = (displayHist || nargout > 1) ? 
+                              EvaluatorInterface::allocateMatrix() : nullptr;
+    hwMatrix*    designHist = (nargout > 4) ?
+                              EvaluatorInterface::allocateMatrix() : nullptr;
     hwMatrix*    userData   = nullptr;
     hwMathStatus status;
-
-    int       nargout = eval.GetNargoutValue();
-    hwMatrix* objHist = (displayHist || nargout > 1) ? 
-                        EvaluatorInterface::allocateMatrix()  : nullptr;
 
     if (analyticalJacobian)
     {
         status = NLCurveFit(NLCurveFitFunc, NLCurveFitJacobian, *optParam, *X, 
-            *y, stats, yEst, maxIter, maxFuncEval, tolf, tolx, objHist, 
+            *y, maxIter, maxFuncEval, stats, yEst, tolf, tolx, objHist, 
             designHist, userData);
     }
     else
     {
         status = NLCurveFit(NLCurveFitFunc, (LSqFitFunc) NULL, *optParam, *X, 
-            *y, stats, yEst, maxIter, maxFuncEval, tolf, tolx, objHist, 
+            *y, maxIter, maxFuncEval, stats, yEst, tolf, tolx, objHist, 
             designHist, userData);
     }
 
     // display history
-    if (displayHist && status.IsOk())
+    if (displayHist && (status.IsOk() || status.IsWarning() || status.IsInfoMsg()))
     {
-        std::string line = "Iteration      f(x)\n";
+        std::string line = "Iteration    f(x)\n";
         eval.PrintResult(line);
 
         for (int i = 0; i < objHist->Size(); ++i)
@@ -407,63 +420,92 @@ bool OmlLsqcurvefit(EvaluatorInterface           eval,
     // clean up
     if (!status.IsOk())
     {
-        if (status.GetArg1() == 111)
+        if (status == HW_MATH_WARN_MAXITERATE ||
+            status == HW_MATH_WARN_MAXFUNCEVAL ||
+            status == HW_MATH_WARN_NOTCONVERGE ||
+            status.IsInfoMsg())
         {
-            status.SetUserFuncName(funcName);
-            status.SetArg1(1);
-        }
-        else if (status.GetArg1() == 3)
-        {
-            status.SetArg1(2);
-        }
-        else if (status.GetArg1() == 4)
-        {
-            status.SetArg1(3);
-        }
-        else if (status.GetArg1() == 5)
-        {
-            status.SetArg1(4);
-        }
-        else if (status.GetArg1() > 7 && status.GetArg1() < 10)
-        {
-            status.SetArg1(7);
+            // warning message has been replaced by a return value
         }
         else
         {
-            status.ResetArgs();
-        }
-
-        if (status.GetArg2() == 4)
-        {
-            status.SetArg2(3);
-        }
-        else if (status.GetArg2() == 5)
-        {
-            status.SetArg2(4);
-        }
-
-        if (status.IsWarning())
-        {
-            BuiltInFuncsUtils::SetWarning(eval, status.GetMessageString());
-        }
-        else
-        {
-            delete optParam;
-            optParam = nullptr;
-
-            if (objHist)
+            if (status.GetArg1() == 111)
             {
-                delete objHist;
-                objHist = nullptr;
+                status.SetUserFuncName(funcName);
+                status.SetArg1(1);
+            }
+            else if (status.GetArg1() == 3)
+            {
+                status.SetArg1(2);
+            }
+            else if (status.GetArg1() == 4)
+            {
+                status.SetArg1(3);
+            }
+            else if (status.GetArg1() == 5)
+            {
+                status.SetArg1(4);
+            }
+            else if (status.GetArg1() > 5 && status.GetArg1() < 12)
+            {
+                status.SetArg1(7);
+            }
+            else
+            {
+                status.ResetArgs();
             }
 
-            throw OML_Error(status);
+            if (status.GetArg2() == 4)
+            {
+                status.SetArg2(3);
+            }
+            else if (status.GetArg2() == 5)
+            {
+                status.SetArg2(4);
+            }
+
+            if (status.IsWarning())
+            {
+                BuiltInFuncsUtils::SetWarning(eval, status.GetMessageString());
+            }
+            else
+            {
+                LSQCURVEFIT_eval_ptr_stack.clear();
+                LSQCURVEFIT_oml_func_stack.clear();
+                LSQCURVEFIT_oml_pntr_stack.clear();
+                LSQCURVEFIT_oml_bool_stack.clear();
+
+                delete optParam;
+                optParam = nullptr;
+
+                if (objHist)
+                {
+                    delete objHist;
+                    objHist = nullptr;
+                }
+
+                delete optParam;
+                optParam = nullptr;
+
+                if (objHist)
+                {
+                    delete objHist;
+                    objHist = nullptr;
+                }
+
+                if (designHist)
+                {
+                    delete designHist;
+                    designHist = nullptr;
+                }
+
+                throw OML_Error(status);
+            }
         }
     }
 
     // pack outputs
-    if (nargout > 0)
-        outputs.push_back(optParam);
+    outputs.push_back(optParam);
 
     if (nargout > 1)
     {
@@ -473,11 +515,70 @@ bool OmlLsqcurvefit(EvaluatorInterface           eval,
             outputs.push_back((*objHist)(size-1));
     }
 
-    if (objHist)
+    if (nargout > 2)
     {
-        delete objHist;
-        objHist = nullptr;
+        hwMatrix dummy;
+        hwMatrix* res = EvaluatorInterface::allocateMatrix(y->Size(), 1,
+                         hwMatrix::REAL);
+        hwMathStatus status2 = NLCurveFitFunc(*optParam, *X, userData, *res);
+
+        int size = res->Size();
+
+        for (int i = 0; i < size; ++i)
+            (*res)(i) = (*y)(i) - (*res)(i);
+
+        outputs.push_back(res);
     }
+
+    if (nargout > 3)
+    {
+        if (status == HW_MATH_INFO_TOLFCONV)
+            outputs.push_back(1.0);
+        else if (status == HW_MATH_INFO_TOLXCONV)
+            outputs.push_back(2.0);
+        else if (status == HW_MATH_INFO_TOLFCONV_R)
+            outputs.push_back(3.0);
+        else if (status == HW_MATH_INFO_TOLXCONV_R)
+            outputs.push_back(4.0);
+        else if (status == HW_MATH_WARN_MAXITERATE ||
+                 status == HW_MATH_WARN_MAXFUNCEVAL ||
+                 status == HW_MATH_WARN_NOTCONVERGE)
+            outputs.push_back(0.0);
+        else if (status == HW_MATH_INFO_SMALLTRUST)
+            outputs.push_back(-3.0);
+    }
+
+    if (nargout > 4)
+    {
+        objHist->Transpose();
+        designHist->Transpose();
+
+        Currency out = EvaluatorInterface::allocateStruct();
+        out.Struct()->SetValue(0, -1, "iterations", maxIter);
+        out.Struct()->SetValue(0, -1, "nfev",       maxFuncEval);
+        out.Struct()->SetValue(0, -1, "xiter",      designHist);
+        out.Struct()->SetValue(0, -1, "fvaliter",   objHist);
+        outputs.push_back(out);
+    }
+    else
+    {
+        if (objHist)
+        {
+            delete objHist;
+            objHist = nullptr;
+        }
+
+        if (designHist)
+        {
+            delete designHist;
+            designHist = nullptr;
+        }
+    }
+
+    LSQCURVEFIT_eval_ptr_stack.pop_back();
+    LSQCURVEFIT_oml_func_stack.pop_back();
+    LSQCURVEFIT_oml_pntr_stack.pop_back();
+    LSQCURVEFIT_oml_bool_stack.pop_back();
 
     return true;
 }

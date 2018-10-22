@@ -1152,7 +1152,7 @@ void BuiltInFuncsUtils::StripTrailingNewline(std::string& str)
     while (!str.empty())
     {
         char last = str.back();
-        if (last == '\n' || last == '\\r')
+        if (last == '\n' || last == '\r')
         {
             str.erase(str.end() - 1);
         }

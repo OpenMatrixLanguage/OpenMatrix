@@ -23,9 +23,9 @@
 
       <p class="p"><span class="ph synph">x = fminunc<span class="ph var">(@func,x0,options)</span></span></p>
 
-      <p class="p"><span class="ph synph">[x,fval] = fminunc<span class="ph var">(...)</span></span></p>
+      <p class="p"><span class="ph synph">[x,fval,info,output] = fminunc<span class="ph var">(...)</span></span></p>
 
-      
+      <?STOP?>
     </section>
 
     <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
@@ -34,8 +34,8 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">func</var></dt>
 
-          <dd class="dd pd">The function to minimize.
-	    See <span class="keyword cmdname">optimset</span> option <span class="keyword option">GradObj</span> for details.</dd>
+          <dd class="dd pd">The function to minimize. See the <span class="keyword cmdname">optimset</span> option
+              <span class="keyword option">GradObj</span> for details.</dd>
 
         
         
@@ -47,14 +47,14 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">options</var></dt>
 
-          <dd class="dd pd">A struct containing options settings.</dd>
+          <dd class="dd pd">A struct containing option settings.</dd>
 
           <dd class="dd pd ddexpand">See <span class="keyword cmdname">optimset</span> for details.</dd>
 
         
       </dl>
 
-      
+      <?STOPINP?>
     </section>
 
     <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
@@ -72,17 +72,94 @@
           <dd class="dd pd">The minimum of the function.</dd>
 
         
+        
+          <dt class="dt pt dlterm"><span class="ph synph">info</span></dt>
+
+          <dd class="dd pd">The convergence status flag.<dl class="dl table">
+              
+                <dt class="dt dlterm">info = 4</dt>
+
+                <dd class="dd">Relative step size converged to within <span class="keyword option">tolX</span>.</dd>
+
+              
+              
+                <dt class="dt dlterm">info = 3</dt>
+
+                <dd class="dd">Relative function value converged to within <span class="keyword option">tolFun</span>.</dd>
+
+              
+              
+                <dt class="dt dlterm">info = 2</dt>
+
+                <dd class="dd">Step size converged to within <span class="keyword option">tolX</span>.</dd>
+
+              
+              
+                <dt class="dt dlterm">info = 1</dt>
+
+                <dd class="dd">Function value converged to within <span class="keyword option">tolFun</span>.</dd>
+
+              
+              
+                <dt class="dt dlterm">info = 0</dt>
+
+                <dd class="dd">Reached maximum number of iterations or function calls, or the algorithm aborted
+                  because it was not converging.</dd>
+
+              
+              
+                <dt class="dt dlterm">info = -3</dt>
+
+                <dd class="dd">Trust region became too small to continue.</dd>
+
+              
+            </dl>
+</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">output</span></dt>
+
+          <dd class="dd pd">A struct containing iteration details. The members are as follows:<dl class="dl table">
+              
+                <dt class="dt dlterm">iterations</dt>
+
+                <dd class="dd">The number of iterations.</dd>
+
+              
+              
+                <dt class="dt dlterm">nfev</dt>
+
+                <dd class="dd">The number of function evaluations.</dd>
+
+              
+              
+                <dt class="dt dlterm">xiter</dt>
+
+                <dd class="dd">The candidate solution at each iteration.</dd>
+
+              
+              
+                <dt class="dt dlterm">fvaliter</dt>
+
+                <dd class="dd">The objective function value at each iteration.</dd>
+
+              
+            </dl>
+</dd>
+
+        
       </dl>
 
-      
+      <?STOPOUT?>
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Example</h2>
       
       <p class="p">Minimize the Rosenbrock function.</p>
 
-      <pre class="pre codeblock"><code>function obj = Rosenbrock(x)
-    obj = (1 - x(1))^2 + 100 * (x(2) - x(1)^2)^2;
+      <pre class="pre codeblock"><code>function obj = Rosenbrock(x)<?oxy_custom_start type="oxy_content_highlight" color="255,255,0"?>
+<?oxy_custom_end?>    obj = (1 - x(1))^2 + 100 * (x(2) - x(1)^2)^2;
 end
 
 x0 = [-1.2, 1.0];
@@ -94,14 +171,16 @@ fval = 1.29122e-15</code></code></pre>
 
     <section class="section"><h2 class="title sectiontitle">Comments</h2>
       
-      <p class="p"><span class="keyword cmdname">fminunc</span> uses a quasi-Netwon algorithm with BFGS updates and a trust region method.</p>
+      <p class="p"><span class="keyword cmdname">fminunc</span> uses a quasi-Netwon algorithm with damped BFGS updates
+        and a trust region method.</p>
 
       <p class="p">Options for convergence tolerance controls and analytical derivatives are specified
         with <span class="keyword cmdname">optimset</span>.</p>
 
-      <p class="p">To pass additional parameters to a function argument, use an anonymous function.</p>
+      <p class="p">To pass additional parameters to a function argument, use an <span class="keyword cmdname">anonymous</span>
+        function.</p>
 
-      <div class="p">The <span class="keyword cmdname">optimset</span> options and defaults are as follows. <ul class="ul" id="reference_wpv_kyv_pr__ul_xc3_3q4_ldb">
+      <div class="p">The <span class="keyword cmdname">optimset</span> options and defaults are as follows:<ul class="ul">
           <li class="li"><span class="keyword option">MaxIter</span>: 100</li>
 
           <li class="li"><span class="keyword option">MaxFunEvals</span>: 400</li>
@@ -120,10 +199,7 @@ fval = 1.29122e-15</code></code></pre>
 
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Version History</h2>
-      
-      <p class="p"><span class="keyword">1.0</span></p>
-
+    <section class="section">
       
     </section>
 

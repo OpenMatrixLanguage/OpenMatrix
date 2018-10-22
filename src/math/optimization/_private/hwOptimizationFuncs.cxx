@@ -56,19 +56,19 @@ hwMathStatus TotalSumOfSquares(const hwMatrix& data,
 //------------------------------------------------------------------------------
 // Nonlinear curve fit which works on surfaces and curves
 //------------------------------------------------------------------------------
-hwMathStatus NLCurveFit(const LSqFitFunc pRespFunc, 
+hwMathStatus NLCurveFit(const LSqFitFunc pRespFunc,
                         const LSqFitFunc pJacFunc,
-                        hwMatrix&        P, 
-                        const hwMatrix&  X, 
+                        hwMatrix&        P,
+                        const hwMatrix&  X,
                         const hwMatrix&  y,
+                        int&             maxIter,
+                        int&             maxFuncEval,
                         hwMatrix*        stats,
-                        hwMatrix*        yEst, 
-                        int              maxIter,
-                        int              maxFuncEval, 
-                        double           tolf, 
-                        double           tolx, 
+                        hwMatrix*        yEst,
+                        double           tolf,
+                        double           tolx,
                         hwMatrix*        objHist,
-                        hwMatrix*        designHist, 
+                        hwMatrix*        designHist,
                         const hwMatrix*  userData)
 {
     hwGenericFuncFitter fittedFunc(pRespFunc, pJacFunc, P, X, y, maxIter,
@@ -83,8 +83,6 @@ hwMathStatus NLCurveFit(const LSqFitFunc pRespFunc,
     {
         switch (status.GetArg1())
         {
-            case 6:  status.SetArg1(8);  break;
-            case 7:  status.SetArg1(9);  break; 
             case 8:  status.SetArg1(10); break;
             case 9:  status.SetArg1(11); break;
             default: break;
@@ -96,13 +94,15 @@ hwMathStatus NLCurveFit(const LSqFitFunc pRespFunc,
             return status;
         }
 
-        if (!status.IsWarning())
+        if (!status.IsWarning() && !status.IsInfoMsg())
         {
             return status;
         }
     }
 
     fittedFunc.GetParams(P);
+    maxIter = fittedFunc.Iterations();
+    maxFuncEval -= fittedFunc.FunctionEvals();
 
     // compute statistics and fitted points
     int n = y.Size();
@@ -224,9 +224,9 @@ hwMathStatus NLSolve(const LSqFitFunc pRespFunc,
                      const LSqFitFunc pJacFunc,
                      hwMatrix&        P,
                      double&          minVal,
+                     int&             maxIter,
+                     int&             maxFuncEval,
                      int              numEqns_,
-                     int              maxIter,
-                     int              maxFuncEval,
                      double           tolf,
                      double           tolx,
                      hwMatrix*        objHist,
@@ -239,6 +239,7 @@ hwMathStatus NLSolve(const LSqFitFunc pRespFunc,
 
     hwGenericFuncFitter fittedFunc(pRespFunc, pJacFunc, P, numEqns, maxIter,
                                    maxFuncEval, tolf, tolx, userData);
+
     fittedFunc.RequestDesignHist(designHist);
     fittedFunc.RequestObjectiveHist(objHist);
 
@@ -247,8 +248,7 @@ hwMathStatus NLSolve(const LSqFitFunc pRespFunc,
     {
         switch (status.GetArg1())
         {
-            case 5: status.SetArg1(6); break;
-            case 6: status.SetArg1(7); break;
+            case 4: status.SetArg1(7); break;
             case 7: status.SetArg1(8); break;
             case 8: status.SetArg1(9); break;
             default: break;
@@ -258,7 +258,8 @@ hwMathStatus NLSolve(const LSqFitFunc pRespFunc,
         {
             status.SetArg2(5);
         }
-        if (!status.IsWarning())
+
+        if (!status.IsWarning() && !status.IsInfoMsg())
         {
             return status;
         }
@@ -266,6 +267,8 @@ hwMathStatus NLSolve(const LSqFitFunc pRespFunc,
 
     fittedFunc.GetParams(P);
     minVal = fittedFunc.ObjFuncVal();
+    maxIter = fittedFunc.Iterations();
+    maxFuncEval -= fittedFunc.FunctionEvals();
 
     if (!status.IsWarning())
     {
@@ -288,6 +291,41 @@ hwMathStatus NLSolve(const LSqFitFunc pRespFunc,
     return status;
 }
 //------------------------------------------------------------------------------
+// Utility to update Brent history
+//------------------------------------------------------------------------------
+static void BrentHistory(hwMatrix* designHist,
+                         hwMatrix* objHist,
+                         double    a,
+                         double    b,
+                         double    fa,
+                         double    fb,
+                         int       iter)
+{
+    hwMathStatus status;
+
+    if (objHist)
+    {
+        if (objHist->IsEmpty())
+            status = objHist->Dimension(iter, 2, hwMatrix::REAL);
+        else
+            status = objHist->Resize(iter, 2);
+
+        (*objHist)(iter-1, 0) = fa;
+        (*objHist)(iter-1, 1) = fb;
+    }
+
+    if (designHist)
+    {
+        if (designHist->IsEmpty())
+            status = designHist->Dimension(iter, 2, hwMatrix::REAL);
+        else
+            status = designHist->Resize(iter, 2);
+
+        (*designHist)(iter-1, 0) = a;
+        (*designHist)(iter-1, 1) = b;
+    }
+}
+//------------------------------------------------------------------------------
 // Find the minimum of a function without derivatives using Brent's method
 //------------------------------------------------------------------------------
 hwMathStatus Brent(const BrentFunc f,
@@ -297,9 +335,11 @@ hwMathStatus Brent(const BrentFunc f,
                    double&         fb,
                    double&         min,
                    double&         fmin,
+                   int&            maxIter,
+                   int&            maxFuncEval, 
                    double          tol,
-                   int&            numIters,
-                   int&            numFunEvals)
+                   hwMatrix*       objHist,
+                   hwMatrix*       designHist)
 {
   // An approximation x to the point where f attains a minimum on the interval
   // (a,b)  is determined.
@@ -319,9 +359,6 @@ hwMathStatus Brent(const BrentFunc f,
   // Richard Brent, algorithms for minimization without derivatives, 
   // Prentice-Hall, Inc. (1973).
 
-    int maxIters    = numIters;
-    int maxFunEvals = numFunEvals;
-
     // c is the squared inverse of the golden ratio
     double c = 0.5 * (3.0 - sqrt(5.0));
 
@@ -333,15 +370,18 @@ hwMathStatus Brent(const BrentFunc f,
     double w = v;
     double x = v;
     double e = 0.0;
-    
     double fx;
+
     hwMathStatus status = f(x, fx);
 
-    double fv   = fx;
-    double fw   = fx;
-    numFunEvals = 1;
-    numIters    = 0;
+    if (objHist || designHist)
+    {
+        status = f(a, fa);
+        status = f(b, fb);
+    }
 
+    double fv       = fx;
+    double fw       = fx;
     double d;
     double xm;
     double p;
@@ -352,10 +392,15 @@ hwMathStatus Brent(const BrentFunc f,
     double u;
     double fu;
     bool   parabolicStep;
+    int numFunEvals = 1;
+    int numIters    = 0;
 
     // main loop starts here
-    while (numIters < maxIters && numFunEvals < maxFunEvals)
+    while (numIters < maxIter && numFunEvals < maxFuncEval)
     {
+        if (objHist || designHist)
+            BrentHistory(designHist, objHist, a, b, fa, fb, numIters+1);
+
         xm   = (a + b) / 2.0;
         tol1 = eps * fabs(x) + tol / 3.0;
         tol2 = 2.0 * tol1;
@@ -490,14 +535,18 @@ hwMathStatus Brent(const BrentFunc f,
     min  = x;
     fmin = fx;
 
-    if (numIters == maxIters)
+    if (numIters == maxIter)
     {
         status(HW_MATH_WARN_MAXITERATE);
     }
-    else if (numFunEvals == maxFunEvals)
+    else if (numFunEvals >= maxFuncEval)
     {
         status(HW_MATH_WARN_MAXFUNCEVAL);
     }
+
+    maxIter     = numIters;
+    maxFuncEval = numFunEvals;
+
     return status;
 }
 //------------------------------------------------------------------------------
@@ -510,11 +559,47 @@ hwMathStatus F_zero(const TOMS748Func f,
                     double&           fb,
                     double&           root, 
                     double&           froot, 
+                    int&              maxIter,
+                    int&              maxFuncEval,
                     double            tol,
-                    int&              numIters, 
-                    int&              numFunEvals)
+                    hwMatrix*         objHist,
+                    hwMatrix*         designHist)
 {
-    return TOMS748(f, a, b, fa, fb, root, froot, tol, numIters, numFunEvals);
+    return TOMS748(f, a, b, fa, fb, root, froot, maxIter, maxFuncEval, tol,
+                   objHist, designHist);
+}
+//------------------------------------------------------------------------------
+// Utility to update NelderMead history
+//------------------------------------------------------------------------------
+static void NelderMeadHistory(hwMatrix*       designHist,
+                              hwMatrix*       objHist,
+                              const hwMatrix& x,
+                              double          fx,
+                              int             iter)
+{
+    int size = x.Size();
+    hwMathStatus status;
+
+    if (objHist)
+    {
+        if (objHist->IsEmpty())
+            status = objHist->Dimension(iter, 1, hwMatrix::REAL);
+        else
+            status = objHist->Resize(iter, 1);
+
+        (*objHist)(iter-1, 0) = fx;
+    }
+
+    if (designHist)
+    {
+        if (designHist->IsEmpty())
+            status = designHist->Dimension(iter, size, hwMatrix::REAL);
+        else
+            status = designHist->Resize(iter, size);
+
+        for (int i = 0; i < size; ++i)
+            (*designHist)(iter-1, i) = x(i);
+    }
 }
 //------------------------------------------------------------------------------
 // Finds minimum of a function without derivatives using Nelder-Mead simplex method
@@ -522,8 +607,11 @@ hwMathStatus F_zero(const TOMS748Func f,
 hwMathStatus NelderMead(const NelderMeadFunc f, 
                         hwMatrix&            optPoint, 
                         double&              minVal,
-                        int&                 numFunEvals, 
-                        double               tolx)
+                        int&                 maxIter,
+                        int&                 maxFuncEval,
+                        double               tolx,
+                        hwMatrix*            objHist,
+                        hwMatrix*            designHist)
 {
     hwMathStatus status;
 
@@ -552,9 +640,10 @@ hwMathStatus NelderMead(const NelderMeadFunc f,
     }
 
     // evaulate the function at each vertex
+    int numFunEvals = dim + 1;
+
     for (int i = 0; i < dim + 1; i++)
     {
-        --numFunEvals;
         status = f(*vertex[i], fx(i));
 
         if (!status.IsOk())
@@ -577,10 +666,11 @@ hwMathStatus NelderMead(const NelderMeadFunc f,
     hwMatrix line(dim,     hwMatrix::REAL);
     hwMatrix nextv(dim,    hwMatrix::REAL);
 
-    hwMatrix* minv = nullptr;
-    hwMatrix* maxv = nullptr;
+    hwMatrix* minv        = nullptr;
+    hwMatrix* maxv        = nullptr;
+    int       numIters    = 0;
 
-    while (numFunEvals)
+    while (numIters < maxIter && numFunEvals < maxFuncEval)
     {
         // find simplex extremes
         if (fx(0) > fx(1))
@@ -623,6 +713,9 @@ hwMathStatus NelderMead(const NelderMeadFunc f,
         status = (*maxv-*minv).L2Norm(norm1);
         status = maxv->L2Norm(norm2);
 
+        if (objHist || designHist)
+            NelderMeadHistory(designHist, objHist, *minv, *min, numIters+1);
+
         if (norm1 < norm2 * tolx + 0.1 * tolx)
         {
             break;
@@ -645,7 +738,7 @@ hwMathStatus NelderMead(const NelderMeadFunc f,
         // update simplex
         scale = -1.0;   // reflect
         nextv = midpoint + scale * line;
-        --numFunEvals;
+        ++numFunEvals;
         status = f(nextv, next);
 
         if (!status.IsOk())
@@ -663,7 +756,7 @@ hwMathStatus NelderMead(const NelderMeadFunc f,
         {
             scale = -2.0;   // extend
             nextv = midpoint + scale * line;
-            --numFunEvals;
+            ++numFunEvals;
 
             status = f(nextv, next);
             if (!status.IsOk())
@@ -681,7 +774,7 @@ hwMathStatus NelderMead(const NelderMeadFunc f,
         {
             scale = 0.5;    // contract
             nextv = midpoint + scale * line;
-            --numFunEvals;
+            ++numFunEvals;
 
             status = f(nextv, next);
             if (!status.IsOk())
@@ -702,7 +795,7 @@ hwMathStatus NelderMead(const NelderMeadFunc f,
                     if (vertex[i] != minv)
                     {
                         *vertex[i] = scale * (*vertex[i] + *minv);
-                        --numFunEvals;
+                        ++numFunEvals;
 
                         status = f(*vertex[i], fx(i));
                         if (!status.IsOk())
@@ -713,11 +806,18 @@ hwMathStatus NelderMead(const NelderMeadFunc f,
                 }
             }
         }
+
+        ++numIters;
     }
 
     if (status.IsOk())
     {
-        if (numFunEvals <= 0)
+        if (numIters >= maxIter)
+        {
+            status.ResetArgs();
+            status(HW_MATH_WARN_MAXITERATE);
+        }
+        else if (numFunEvals >= maxFuncEval)
         {
             status.ResetArgs();
             status(HW_MATH_WARN_MAXFUNCEVAL);
@@ -726,6 +826,9 @@ hwMathStatus NelderMead(const NelderMeadFunc f,
         minVal   = *min;
         optPoint = *minv;
     }
+
+    maxIter     = numIters;
+    maxFuncEval = numFunEvals;
 
     for (int i = 0; i < dim+1; ++i)
     {
@@ -742,8 +845,8 @@ hwMathStatus FMinUncon(const UnConMinObjFunc  pRespFunc,
                        const UnConMinGradFunc pGradFunc,
                        hwMatrix&              P, 
                        double&                minVal, 
-                       int                    maxIter, 
-                       int                    maxFuncEval, 
+                       int&                   maxIter,
+                       int&                   maxFuncEval,
                        double                 tolf,
                        double                 tolx, 
                        hwMatrix*              objHist, 
@@ -769,7 +872,7 @@ hwMathStatus FMinUncon(const UnConMinObjFunc  pRespFunc,
             default: break;
         }
 
-        if (!status.IsWarning())
+        if (!status.IsWarning() && !status.IsInfoMsg())
         {
             return status;
         }
@@ -777,6 +880,8 @@ hwMathStatus FMinUncon(const UnConMinObjFunc  pRespFunc,
 
     minimizer.GetParams(P);
     minVal = minimizer.ObjFuncVal();
+    maxIter = minimizer.Iterations();
+    maxFuncEval -= minimizer.FunctionEvals();
 
     return status;
 }

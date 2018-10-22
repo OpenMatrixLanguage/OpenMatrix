@@ -82,6 +82,14 @@ static const double MAXGAM  = 171.624376956302725;
 #define HW_MATH_MSG_SMALLVARIANCE   "Warning: data has minor variation; reported correlation may not be meaningful"
 
 //////////////////////////////////////////////////////////////////////
+// Information messages
+#define HW_MATH_MSG_TOLFCONV        "Information: function converged to within tolFun specification"
+#define HW_MATH_MSG_TOLFCONV_R      "Information: function converged to within relative tolFun specification"
+#define HW_MATH_MSG_TOLXCONV        "Information: step size converged to within tolX specification"
+#define HW_MATH_MSG_TOLXCONV_R      "Information: step size converged to within relative tolX specification"
+#define HW_MATH_MSG_SMALLTRUST      "Information: aborted due to trust region becoming too small"
+
+//////////////////////////////////////////////////////////////////////
 // Error messages
 // general errors
 #define HW_MATH_MSG_NULLPOINTER     "Error: null pointer"
@@ -157,7 +165,7 @@ static const double MAXGAM  = 171.624376956302725;
 #define HW_MATH_MSG_TOOFEWPOINTS_E  "Error: invalid input; does not contain enough data points"
 #define HW_MATH_MSG_DISTINCTVALS3   "Error: invalid input; must contain at least 3 distinct values"
 #define HW_MATH_MSG_TIGHTTOL        "Error: invalid tolerance; may be too small"
-#define HW_MATH_MSG_GAMAXITERS_E    "Error: requested maximum iterations exceeds 1000"
+#define HW_MATH_MSG_GAMAXITERS_E    "Error: requested maximum iterations has been exceeded"
 #define HW_MATH_MSG_POPSIZE         "Error: invalid population size; must be 0 or greater than 2"
 #define HW_MATH_MSG_GLOBALSEARCH    "Error: invalid global search; must be 1, 2 or 3"
 #define HW_MATH_MSG_TOOFEWVEHICLES  "Error: invalid vehicles; not enough available"
@@ -168,6 +176,7 @@ static const double MAXGAM  = 171.624376956302725;
 #define HW_MATH_MSG_QUADSTEPSIZE    "Error: minimum allowed step size has been reached"
 #define HW_MATH_MSG_FUNCTIONCOUNT   "Error: maximum allowed number of function calls has been reached"
 #define HW_MATH_MSG_NOUNIQUEROOT    "Error: invalid polynomial; does not have a unique root"
+#define HW_MATH_MSG_NESTSUPPORT     "Error: nested calls are not supported"
 #define HW_MATH_MSG_INTERNALERROR   "Error: an internal error occurred"
 // signal processing errors
 #define HW_MATH_MSG_FILTERTYPE      "Error: invalid filter; must be a supported type"
@@ -249,6 +258,16 @@ enum hwMathMsgCode
     HW_MATH_WARN_SMALLVARIANCE,
     // end of warning list
     HW_MATH_WARN_EOL,
+
+    // information codes
+    HW_MATH_INFO_TOLFCONV,
+    HW_MATH_INFO_TOLFCONV_R,
+    HW_MATH_INFO_TOLXCONV,
+    HW_MATH_INFO_TOLXCONV_R,
+    HW_MATH_INFO_SMALLTRUST,
+    // end of information list
+    HW_MATH_INFO_EOL,
+
     // general errors
     HW_MATH_ERR_NULLPOINTER,
     HW_MATH_ERR_INVALIDINPUT,
@@ -334,6 +353,7 @@ enum hwMathMsgCode
     HW_MATH_ERR_QUADSTEPSIZE,
     HW_MATH_ERR_FUNCTIONCOUNT,
     HW_MATH_ERR_NOUNIQUEROOT,
+    HW_MATH_ERR_NESTSUPPORT,
     HW_MATH_ERR_INTERNALERROR,
     // signal processing errors
     HW_MATH_ERR_FILTERTYPE,

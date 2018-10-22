@@ -45,10 +45,6 @@ hwMathStatus hwAdaptiveQuadrature::Compute(const UnivarFunc pFunc,
     {
         return hwMathStatus(HW_MATH_ERR_NULLPOINTER, 1);
     }
-    if (fabs(a - b) < 1.0e-12)
-    {
-        return hwMathStatus(HW_MATH_ERR_QUADSTEPSIZE);
-    }
     if (reltol < 0.0)
     {
         return hwMathStatus(HW_MATH_ERR_NEGATIVE, 6);
@@ -56,6 +52,15 @@ hwMathStatus hwAdaptiveQuadrature::Compute(const UnivarFunc pFunc,
     if (abstol < 0.0)
     {
         return hwMathStatus(HW_MATH_ERR_NEGATIVE, 7);
+    }
+    if (a == b)
+    {
+        area = 0.0;
+        return hwMathStatus();
+    }
+    if (fabs(a - b) < 1.0e-12)
+    {
+        return hwMathStatus(HW_MATH_ERR_QUADSTEPSIZE);
     }
     if (count > 10000)
     {
@@ -325,7 +330,9 @@ hwMathStatus hwAdaptiveQuadrature::ComputeRLog(const UnivarFunc pFunc,
 
         if (fabs(1.0/log(b+1.0) - 1.0/log(a+1.0)) < 1.0e-12)
         {
-            return hwMathStatus(HW_MATH_ERR_QUADSTEPSIZE);
+            //return hwMathStatus(HW_MATH_ERR_QUADSTEPSIZE);
+            area = 0.0;
+            return hwMathStatus();
         }
     }
     else if (a < 0.0 && b < 0.0)
@@ -334,7 +341,9 @@ hwMathStatus hwAdaptiveQuadrature::ComputeRLog(const UnivarFunc pFunc,
 
         if (fabs(1.0/log(-b+1.0) - 1.0/log(-a+1.0)) < 1.0e-12)
         {
-            return hwMathStatus(HW_MATH_ERR_QUADSTEPSIZE);
+            //return hwMathStatus(HW_MATH_ERR_QUADSTEPSIZE);
+            area = 0.0;
+            return hwMathStatus();
         }
     }
     else
@@ -404,7 +413,9 @@ hwMathStatus hwAdaptiveQuadrature::ComputeSqrt1(const UnivarFunc pFunc,
 {
     if (fabs(sqrt(b-a)) < 1.0e-12)
     {
-        return hwMathStatus(HW_MATH_ERR_QUADSTEPSIZE);
+        // return hwMathStatus(HW_MATH_ERR_QUADSTEPSIZE);
+        area = 0.0;
+        return hwMathStatus();
     }
 
     if (count > 10000)
@@ -460,7 +471,9 @@ hwMathStatus hwAdaptiveQuadrature::ComputeSqrt2(const UnivarFunc pFunc,
 {
     if (fabs(sqrt(b-a)) < 1.0e-12)
     {
-        return hwMathStatus(HW_MATH_ERR_QUADSTEPSIZE);
+        // return hwMathStatus(HW_MATH_ERR_QUADSTEPSIZE);
+        area = 0.0;
+        return hwMathStatus();
     }
 
     if (count > 10000)

@@ -24,7 +24,7 @@
       
       <p class="p"><span class="ph synph">run<span class="ph var">('s')</span></span></p>
 
-      
+      <?STOP?>
     </section>
 
     <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
@@ -41,99 +41,23 @@
         
       </dl>
 
-     
-      
+     <?STOPINP?>
+      <?STOPOUT?>
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
-      <p class="p">Execute a script with the fully qualified path:</p>
+      <div class="p">Execute a script with the fully qualified
+        path:<pre class="pre codeblock"><code>run('c:/testscripts/abs1.oml')</code></pre><pre class="pre codeblock"><code><samp class="ph systemoutput">ans = 0.5</samp></code></pre></div>
 
-      <pre class="pre codeblock"><code>run('c:/testscripts/abs1.oml')&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd"&gt;
-&lt;reference id="reference_wpv_kyv_pr"&gt;
-  &lt;title&gt;rmpath&lt;/title&gt;
-  &lt;shortdesc&gt;Updates the search path for functions by removing the given directories &lt;varname&gt;d,
-      ...&lt;/varname&gt; from the existing path &lt;varname&gt;R&lt;/varname&gt;. &lt;/shortdesc&gt;
-    &lt;prolog&gt;
-    &lt;metadata&gt;
-      &lt;category&gt;&lt;keyword keyref="product"/&gt; Language&lt;/category&gt;
-      &lt;category&gt;Core Minimal Interpreter Commands&lt;/category&gt;
-      &lt;keywords&gt;
-        &lt;indexterm&gt;rmpath&lt;/indexterm&gt;
-      &lt;/keywords&gt;
-    &lt;/metadata&gt;
-  &lt;/prolog&gt;
-  &lt;refbody&gt;
-    &lt;section&gt;
-      &lt;title&gt;Syntax&lt;/title&gt;
-      &lt;p&gt;&lt;synph&gt;R = rmpath &lt;var&gt;(d,...)&lt;/var&gt;&lt;/synph&gt;&lt;/p&gt;
-      &lt;p&gt;&lt;synph&gt;R = rmpath &lt;var&gt;('d1; d2; d3; ...')&lt;/var&gt;&lt;/synph&gt;&lt;/p&gt;
-      &lt;?STOP?&gt;
-    &lt;/section&gt;
-    &lt;section&gt;
-      &lt;title&gt;&lt;keyword keyref="inputs"/&gt;&lt;/title&gt;
-      &lt;parml&gt;
-        &lt;plentry&gt;
-          &lt;pt&gt;&lt;varname&gt;d,...&lt;/varname&gt;&lt;/pt&gt;
-          &lt;pd&gt;Directories to be removed from the search path. The directories
-            must exist. An absolute path is not needed if directories are nested
-            in the currennt directory.&lt;/pd&gt;
-          &lt;pd&gt;Type: &lt;keyword keyref="string"/&gt;&lt;/pd&gt;
-        &lt;/plentry&gt;
-        &lt;plentry&gt;
-          &lt;pt&gt;&lt;varname&gt;'d1; d2; d3; ...'&lt;/varname&gt;&lt;/pt&gt;
-          &lt;pd&gt;Multiple directories can be specified in the same string by
-            using a semicolon(;) as the delimiter.&lt;/pd&gt;
-          &lt;pd&gt;Type: &lt;keyword keyref="string"/&gt;&lt;/pd&gt;
-        &lt;/plentry&gt;
-      &lt;/parml&gt;
-      &lt;?STOPINP?&gt;
-    &lt;/section&gt;
-    &lt;section&gt;
-      &lt;title&gt;&lt;keyword keyref="outputs"/&gt;&lt;/title&gt;
-      &lt;parml&gt;
-        &lt;plentry&gt;
-          &lt;pt&gt;&lt;synph&gt;R&lt;/synph&gt;&lt;/pt&gt;
-          &lt;pd&gt;Updated search path for functions.&lt;/pd&gt;
-          &lt;pd&gt;Type: &lt;keyword keyref="string"/&gt;.&lt;/pd&gt;
-        &lt;/plentry&gt;
-      &lt;/parml&gt;
-      &lt;?STOPOUT?&gt;
-    &lt;/section&gt;
-    &lt;section&gt;
-      &lt;title&gt;Examples&lt;/title&gt;
-      &lt;p&gt;Remove directory from the search path:&lt;/p&gt;
-      &lt;codeblock&gt;R = rmpath('Functions')&lt;/codeblock&gt;
-      &lt;codeblock&gt;&lt;codeph&gt;R = Tests;C:/Users/Default/TestScripts;C:/Program Files/Toolboxes&lt;/codeph&gt;&lt;/codeblock&gt;
-      &lt;p&gt;Remove multiple directories, specified in a single string, from the search
-        path:&lt;codeblock&gt;R = rmpath('Tests; C:/Users/Default/TestScripts')&lt;/codeblock&gt;&lt;codeblock&gt;&lt;codeph&gt;R = C:/Program Files/Toolboxes&lt;/codeph&gt;&lt;/codeblock&gt;&lt;/p&gt;
-    &lt;/section&gt;
-    &lt;section&gt;
-      &lt;title&gt;Comments&lt;/title&gt;
-      &lt;p&gt;Multiple directories can be specified in the same input string using the syntax
-          &lt;varname&gt;d1; d2; d3; ...&lt;/varname&gt;, where a semicolon is used as the delimiter for
-        directories. A warning is returned if one or more of the given directories &lt;varname&gt;d,
-          ...&lt;/varname&gt; are not in the current search path.&lt;/p&gt;
-    &lt;/section&gt;
-    &lt;section&gt;
-      &lt;title&gt;Version History&lt;/title&gt;
-      &lt;p&gt;&lt;keyword keyref="version"/&gt;&lt;/p&gt;
-      &lt;draft-comment author="denby"&gt;See Also: path, addpath, restoredefaultpaht, pathsep, , , &lt;/draft-comment&gt;
-    &lt;/section&gt;
-  &lt;/refbody&gt;
-&lt;/reference&gt;</code></pre>
-      <pre class="pre codeblock"><code><code class="ph codeph">ans = 0.5</code></code></pre>
       <div class="p">Execute a script which is in the search path of the current session of the
         application:<pre class="pre codeblock"><code>addpath('c:/testscripts')
 run('abs1.oml')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">ans = 0.5</code></code></pre></div>
 
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+    <section class="section">
       
-      <p class="p"><span class="keyword">1.0</span></p>
-
       
     </section>
 

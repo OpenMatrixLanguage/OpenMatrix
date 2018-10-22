@@ -364,10 +364,22 @@ bool MemoryScope::IsAnonymous() const
 		return false;
 }
 
-
 bool MemoryScope::IsGlobal(const std::string& varname) const
 {
 	return global_names.find(varname) != global_names.end();
+}
+
+bool MemoryScope::IsPersistent(const std::string* varname) const
+{
+	if (fi && fi->Persistent())
+	{
+		MemoryScope* pers = fi->Persistent();
+
+		if (pers->Contains(varname))
+			return true;
+	}
+
+	return false;
 }
 
 std::string MemoryScope::FunctionName() const
@@ -728,6 +740,11 @@ bool MemoryScopeManager::IsGlobal(const std::string& varname) const
 	return GetCurrentScope()->IsGlobal(varname);
 }
 
+bool MemoryScopeManager::IsPersistent(const std::string* var_ptr) const
+{
+	return GetCurrentScope()->IsPersistent(var_ptr);
+}
+
 std::vector<DebugStateInfo> MemoryScopeManager::GetCallStack() const
 {
 	std::vector<DebugStateInfo> call_stack;
@@ -958,4 +975,17 @@ void MemoryScopeManager::ClearEnv(MemoryScope* ms)
 		temp2 = _envs.find(idx);
 		_envs.erase(temp2);
 	}
+}
+
+bool MemoryScopeManager::IsFunctionInCallStack(const std::string& target)
+{
+	for (int j=0; j<memory_stack.size(); j++)
+	{
+		MemoryScope*  scope = memory_stack[j];
+		FunctionInfo* fi    = scope->GetFunctionInfo();
+		if (fi && fi->FunctionName() == target)
+			return true;
+	}
+
+	return false;
 }

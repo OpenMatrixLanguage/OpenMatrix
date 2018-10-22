@@ -20,7 +20,7 @@
 #include "OmlPythonBridge.h"
 #include "EvaluatorInt.h" 
 #include "OML_Error.h"
-
+#define TBOXVERSION 2019.0
 // End defines/includes
 
 bool Oml_EvalPythonFile(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
@@ -180,4 +180,12 @@ extern "C" OMLPYTHONBRIDGE_DECLS int InitDll(EvaluatorInterface evl)
 	evl.RegisterBuiltInFunction("exporttopython", Oml_SetPythonVariable, FunctionMetaData(2, 2, "PythonBridgeOmlCommands"));
 
     return 0;
+}
+
+//------------------------------------------------------------------------------
+// Returns toolbox version
+//------------------------------------------------------------------------------
+extern "C" OMLPYTHONBRIDGE_DECLS double GetToolboxVersion(EvaluatorInterface eval)
+{
+    return TBOXVERSION;
 }

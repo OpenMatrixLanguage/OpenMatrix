@@ -34,6 +34,11 @@ extern "C"
     //! \param eval Evaluator interface
     //!
     CAEOMLTBOX_DECLS int InitDll(EvaluatorInterface eval);
+    //!
+    //! Returns toolbox version
+    //! \param eval Evaluator interface
+    //!
+    CAEOMLTBOX_DECLS double GetToolboxVersion(EvaluatorInterface eval);
 }
 
 //!

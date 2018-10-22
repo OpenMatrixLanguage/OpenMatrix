@@ -1,0 +1,2 @@
+﻿function e=g3(x) y=A*b; e=(y-x)^2; end
+g3(3)

@@ -29,6 +29,7 @@
 #include "StatisticsTests.h"
 
 #define STATAN "StatisticalAnalysis"
+#define TBOXVERSION 2019.0
 
 static hwMersenneTwisterState* twister = nullptr;
 
@@ -1595,161 +1596,179 @@ bool OmlNormrnd(EvaluatorInterface           eval,
                 std::vector<Currency>&       outputs)
 {
     size_t nargin = inputs.size();
+
     int firstDimArg = 3;
     bool NDout = RNG_areDimArgsND(eval, inputs, firstDimArg);
 
-    if (inputs[0].IsScalar())
+    if (nargin == 1)
     {
-        if (!inputs[1].IsScalar() && nargin > 2)
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (nargin > 2)
+    {
+        if (!inputs[0].IsScalar())
         {
             throw OML_Error(OML_ERR_ARRAYSIZE, 1, static_cast<int>(nargin), OML_VAR_DIMS);
         }
 
-        if (inputs[1].IsNDMatrix())
+        if (!inputs[1].IsScalar())
         {
-            // convert matrix to 2D
-            const hwMatrixN* matrix = inputs[1].MatrixN();
-            const std::vector<int>& dims = matrix->Dimensions();
-            std::vector<hwSliceArg> sliceArgs;
-            sliceArgs.push_back(hwSliceArg());
-            hwMatrixN slice;
-            matrix->SliceRHS(sliceArgs, slice);
-
-            hwMatrix* slice2D = new hwMatrix;
-            slice.ConvertNDto2D(*slice2D);
-
-            // call computation function
-            std::vector<Currency> inputs2;
-            std::vector<Currency> outputs2;
-
-            inputs2.push_back(inputs[0]);
-            inputs2.push_back(slice2D);
-            bool retv = OmlNormrnd(eval, inputs2, outputs2);
-
-            // convert output to ND
-            if (outputs2.size() && outputs2[0].IsMatrix())
-            {
-                // convert from vector to ND
-                hwMatrixN* outMatrix = new hwMatrixN;
-                outMatrix->Convert2DtoND(*outputs2[0].Matrix());
-                outMatrix->Reshape(dims);
-
-                Currency out(outMatrix);
-                outputs.push_back(out);
-            }
-
-            return retv;
+            throw OML_Error(OML_ERR_ARRAYSIZE, 2, static_cast<int>(nargin), OML_VAR_DIMS);
         }
     }
-    else if (inputs[0].IsMatrix())
+
+    if (nargin)
     {
-        if (nargin > 2)
+        if (inputs[0].IsScalar())
         {
-            throw OML_Error(OML_ERR_ARRAYSIZE, 1, static_cast<int>(nargin), OML_VAR_DIMS);
-        }
-
-        if (inputs[1].IsNDMatrix())
-        {
-            throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
-        }
-    }
-    else if (inputs[0].IsNDMatrix())
-    {
-        if (nargin > 2)
-        {
-            throw OML_Error(OML_ERR_ARRAYSIZE, 1, static_cast<int>(nargin), OML_VAR_DIMS);
-        }
-
-        if (inputs[1].IsScalar())
-        {
-            // convert matrix to 2D
-            const hwMatrixN* matrix = inputs[0].MatrixN();
-            const std::vector<int>& dims = matrix->Dimensions();
-            std::vector<hwSliceArg> sliceArgs;
-            sliceArgs.push_back(hwSliceArg());
-            hwMatrixN slice;
-            matrix->SliceRHS(sliceArgs, slice);
-
-            hwMatrix* slice2D = new hwMatrix;
-            slice.ConvertNDto2D(*slice2D);
-
-            // call computation function
-            std::vector<Currency> inputs2;
-            std::vector<Currency> outputs2;
-
-            inputs2.push_back(slice2D);
-            inputs2.push_back(inputs[1]);
-            bool retv = OmlNormrnd(eval, inputs2, outputs2);
-
-            // convert output to ND
-            if (outputs2.size() && outputs2[0].IsMatrix())
+            if (inputs[1].IsNDMatrix())
             {
-                // convert from vector to ND
-                hwMatrixN* outMatrix = new hwMatrixN;
-                outMatrix->Convert2DtoND(*outputs2[0].Matrix());
-                outMatrix->Reshape(dims);
+                // convert matrix to 2D
+                const hwMatrixN* matrix = inputs[1].MatrixN();
+                const std::vector<int>& dims = matrix->Dimensions();
+                std::vector<hwSliceArg> sliceArgs;
+                sliceArgs.push_back(hwSliceArg());
+                hwMatrixN slice;
+                matrix->SliceRHS(sliceArgs, slice);
 
-                Currency out(outMatrix);
-                outputs.push_back(out);
+                hwMatrix* slice2D = new hwMatrix;
+                slice.ConvertNDto2D(*slice2D);
+
+                // call computation function
+                std::vector<Currency> inputs2;
+                std::vector<Currency> outputs2;
+
+                inputs2.push_back(inputs[0]);
+                inputs2.push_back(slice2D);
+                bool retv = OmlNormrnd(eval, inputs2, outputs2);
+
+                // convert output to ND
+                if (outputs2.size() && outputs2[0].IsMatrix())
+                {
+                    // convert from vector to ND
+                    hwMatrixN* outMatrix = new hwMatrixN;
+                    outMatrix->Convert2DtoND(*outputs2[0].Matrix());
+                    outMatrix->Reshape(dims);
+
+                    Currency out(outMatrix);
+                    outputs.push_back(out);
+                }
+
+                return retv;
             }
 
-            return retv;
+            if (!inputs[1].IsScalar() && !inputs[1].IsMatrix())
+            {
+                throw OML_Error(OML_ERR_SCALARMATRIX, 2, OML_VAR_TYPE);
+            }
         }
-        if (inputs[1].IsMatrix())
+        else if (inputs[0].IsMatrix())
         {
-            throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
-        }
-        else if (inputs[1].IsNDMatrix())
-        {
-            const hwMatrixN* matrix1 = inputs[0].MatrixN();
-            const hwMatrixN* matrix2 = inputs[1].MatrixN();
-            const std::vector<int>& dims = matrix1->Dimensions();
-
-            if (matrix2->Dimensions() != dims)
+            if (inputs[1].IsNDMatrix())
+            {
                 throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
-
-            // convert matrices to 2D
-            std::vector<hwSliceArg> sliceArgs;
-            sliceArgs.push_back(hwSliceArg());
-            hwMatrixN slice1;
-            hwMatrixN slice2;
-            matrix1->SliceRHS(sliceArgs, slice1);
-            matrix2->SliceRHS(sliceArgs, slice2);
-
-            hwMatrix* slice2D_1 = new hwMatrix;
-            hwMatrix* slice2D_2 = new hwMatrix;
-            slice1.ConvertNDto2D(*slice2D_1);
-            slice2.ConvertNDto2D(*slice2D_2);
-
-            // call computation function
-            std::vector<Currency> inputs2;
-            std::vector<Currency> outputs2;
-
-            inputs2.push_back(slice2D_1);
-            inputs2.push_back(slice2D_2);
-
-            bool retv = OmlNormrnd(eval, inputs2, outputs2);
-
-            // convert output to ND
-            if (outputs2.size() && outputs2[0].IsMatrix())
-            {
-                // convert from vector to ND
-                hwMatrixN* outMatrix = new hwMatrixN;
-                outMatrix->Convert2DtoND(*outputs2[0].Matrix());
-                outMatrix->Reshape(dims);
-                outputs.push_back(outMatrix);
             }
 
-            return retv;
+            if (!inputs[1].IsScalar() && !inputs[1].IsMatrix())
+            {
+                throw OML_Error(OML_ERR_SCALARMATRIX, 2, OML_VAR_TYPE);
+            }
+        }
+        else if (inputs[0].IsNDMatrix())
+        {
+            if (inputs[1].IsScalar())
+            {
+                // convert matrix to 2D
+                const hwMatrixN* matrix = inputs[0].MatrixN();
+                const std::vector<int>& dims = matrix->Dimensions();
+                std::vector<hwSliceArg> sliceArgs;
+                sliceArgs.push_back(hwSliceArg());
+                hwMatrixN slice;
+                matrix->SliceRHS(sliceArgs, slice);
+
+                hwMatrix* slice2D = new hwMatrix;
+                slice.ConvertNDto2D(*slice2D);
+
+                // call computation function
+                std::vector<Currency> inputs2;
+                std::vector<Currency> outputs2;
+
+                inputs2.push_back(slice2D);
+                inputs2.push_back(inputs[1]);
+                bool retv = OmlNormrnd(eval, inputs2, outputs2);
+
+                // convert output to ND
+                if (outputs2.size() && outputs2[0].IsMatrix())
+                {
+                    // convert from vector to ND
+                    hwMatrixN* outMatrix = new hwMatrixN;
+                    outMatrix->Convert2DtoND(*outputs2[0].Matrix());
+                    outMatrix->Reshape(dims);
+
+                    Currency out(outMatrix);
+                    outputs.push_back(out);
+                }
+
+                return retv;
+            }
+
+            if (inputs[1].IsNDMatrix())
+            {
+                const hwMatrixN* matrix1 = inputs[0].MatrixN();
+                const hwMatrixN* matrix2 = inputs[1].MatrixN();
+                const std::vector<int>& dims = matrix1->Dimensions();
+
+                if (matrix2->Dimensions() != dims)
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+
+                // convert matrices to 2D
+                std::vector<hwSliceArg> sliceArgs;
+                sliceArgs.push_back(hwSliceArg());
+                hwMatrixN slice1;
+                hwMatrixN slice2;
+                matrix1->SliceRHS(sliceArgs, slice1);
+                matrix2->SliceRHS(sliceArgs, slice2);
+
+                hwMatrix* slice2D_1 = new hwMatrix;
+                hwMatrix* slice2D_2 = new hwMatrix;
+                slice1.ConvertNDto2D(*slice2D_1);
+                slice2.ConvertNDto2D(*slice2D_2);
+
+                // call computation function
+                std::vector<Currency> inputs2;
+                std::vector<Currency> outputs2;
+
+                inputs2.push_back(slice2D_1);
+                inputs2.push_back(slice2D_2);
+
+                bool retv = OmlNormrnd(eval, inputs2, outputs2);
+
+                // convert output to ND
+                if (outputs2.size() && outputs2[0].IsMatrix())
+                {
+                    // convert from vector to ND
+                    hwMatrixN* outMatrix = new hwMatrixN;
+                    outMatrix->Convert2DtoND(*outputs2[0].Matrix());
+                    outMatrix->Reshape(dims);
+                    outputs.push_back(outMatrix);
+                }
+
+                return retv;
+            }
+
+            if (inputs[1].IsMatrix())
+            {
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+            }
+
+            throw OML_Error(OML_ERR_SCALARMATRIX, 2, OML_VAR_TYPE);
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_SCALARMATRIX, 1, OML_VAR_TYPE);
         }
     }
-    else
-    {
-        throw OML_Error(OML_ERR_SCALARMATRIX, 1, OML_VAR_TYPE);
-    }
-
-    if (!inputs[1].IsScalar() && !inputs[1].IsMatrix())
-        throw OML_Error(OML_ERR_SCALARMATRIX, 2, OML_VAR_TYPE);
 
     CreateTwister();
 
@@ -1759,58 +1778,70 @@ bool OmlNormrnd(EvaluatorInterface           eval,
         if (nargin > 4)
             throw OML_Error(OML_ERR_ARRAYSIZE, 1, static_cast<int>(nargin), OML_VAR_DIMS);
 
-        int m;
-        int n;
-
-        RNG_numRowsAndCols(eval, inputs, 3, m, n);
-
-        Currency cur1 = inputs[0];
-        Currency cur2 = inputs[1];
-        bool isScalarM = cur1.IsScalar();
-        bool isScalarS = cur2.IsScalar();
-
-        if (isScalarM && isScalarS)
+        if (!nargin)
         {
-            double mu    = cur1.Scalar();
-            double sigma = cur2.Scalar();
-
-            if (m == 1 && n == 1)  // Only a single random number is needed
-            {
-                double result;
-                hwMathStatus mstat = NormRnd(mu, sigma, twister, nullptr, result);
-                BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
-                outputs.push_back(result);
-            }
-            else
-            {
-                hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
-                hwMathStatus mstat = NormRnd(mu, sigma, twister, nullptr, *result);
-                BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
-                outputs.push_back(result);
-            }
+            double mu    = 0.0;
+            double sigma = 1.0;
+            double result;
+            hwMathStatus mstat = NormRnd(mu, sigma, twister, nullptr, result);
+            BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
+            outputs.push_back(result);
         }
         else
         {
-            if (!isScalarM && (!cur1.IsMatrix() || !cur1.Matrix()->IsReal()))
-                throw OML_Error(OML_ERR_SCALAR_REALMTX, 1, OML_VAR_PARAMETER);
+            int m;
+            int n;
 
-            hwMatrix* Mu = (isScalarM) ?
-                EvaluatorInterface::allocateMatrix(m, n, cur1.Scalar()) :
+            RNG_numRowsAndCols(eval, inputs, 3, m, n);
+
+            Currency cur1 = inputs[0];
+            Currency cur2 = inputs[1];
+            bool isScalarM = cur1.IsScalar();
+            bool isScalarS = cur2.IsScalar();
+
+            if (isScalarM && isScalarS)
+            {
+                double mu    = cur1.Scalar();
+                double sigma = cur2.Scalar();
+
+                if (m == 1 && n == 1)  // Only a single random number is needed
+                {
+                    double result;
+                    hwMathStatus mstat = NormRnd(mu, sigma, twister, nullptr, result);
+                    BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
+                    outputs.push_back(result);
+                }
+                else
+                {
+                    hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+                    hwMathStatus mstat = NormRnd(mu, sigma, twister, nullptr, *result);
+                    BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
+                    outputs.push_back(result);
+                }
+            }
+            else
+            {
+                if (!isScalarM && (!cur1.IsMatrix() || !cur1.Matrix()->IsReal()))
+                    throw OML_Error(OML_ERR_SCALAR_REALMTX, 1, OML_VAR_PARAMETER);
+
+                hwMatrix* Mu = (isScalarM) ?
+                    EvaluatorInterface::allocateMatrix(m, n, cur1.Scalar()) :
                 EvaluatorInterface::allocateMatrix(cur1.Matrix());
 
-            if (!isScalarS && (!cur2.IsMatrix() || !cur2.Matrix()->IsReal()))
-                throw OML_Error(OML_ERR_SCALAR_REALMTX, 2, OML_VAR_PARAMETER);
+                if (!isScalarS && (!cur2.IsMatrix() || !cur2.Matrix()->IsReal()))
+                    throw OML_Error(OML_ERR_SCALAR_REALMTX, 2, OML_VAR_PARAMETER);
 
-            hwMatrix* Sigma = (isScalarS) ?
-                EvaluatorInterface::allocateMatrix(m, n, cur2.Scalar()) :
+                hwMatrix* Sigma = (isScalarS) ?
+                    EvaluatorInterface::allocateMatrix(m, n, cur2.Scalar()) :
                 EvaluatorInterface::allocateMatrix(cur2.Matrix());
 
-            hwMatrix*    result = EvaluatorInterface::allocateMatrix();
-            hwMathStatus mstat  = NormRnd(*Mu, *Sigma, twister, nullptr, *result);
-            delete Mu;
-            delete Sigma;
-            BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
-            outputs.push_back(result);
+                hwMatrix*    result = EvaluatorInterface::allocateMatrix();
+                hwMathStatus mstat  = NormRnd(*Mu, *Sigma, twister, nullptr, *result);
+                delete Mu;
+                delete Sigma;
+                BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
+                outputs.push_back(result);
+            }
         }
     }
     else    // ND case
@@ -9964,3 +9995,10 @@ void getRndArg(const Currency& input, hwMatrixI*& arg, std::unique_ptr<hwMatrixI
 }
 
 #endif
+//------------------------------------------------------------------------------
+// Returns toolbox version
+//------------------------------------------------------------------------------
+double GetToolboxVersion(EvaluatorInterface eval)
+{
+    return TBOXVERSION;
+}

@@ -40,6 +40,11 @@ extern "C"
     //! \param eval Evaluator interface
     //!
     STATISTICSOMLTBOX_DECLS int InitDll(EvaluatorInterface eval);
+    //!
+    //! Returns toolbox version
+    //! \param eval Evaluator interface
+    //!
+    STATISTICSOMLTBOX_DECLS double GetToolboxVersion(EvaluatorInterface eval);
 }
 
 //!

@@ -218,7 +218,13 @@ void StructData::SetElement(int index_1, int index_2, StructData* sd)
 		if (index_1 > field_values->M())
 			throw OML_Error(HW_ERROR_INDEXRANGE);
 
+		if (index_1 < 1)
+			throw OML_Error(HW_ERROR_INDEXRANGE);
+
 		if (index_2 > field_values->N())
+			throw OML_Error(HW_ERROR_INDEXRANGE);
+
+		if (index_2 < 1)
 			throw OML_Error(HW_ERROR_INDEXRANGE);
 
 		(*field_values)(index_1-1, index_2-1) = (*sd->field_values)(0);
@@ -226,6 +232,9 @@ void StructData::SetElement(int index_1, int index_2, StructData* sd)
 	else
 	{
 		if (index_1 > field_values->Size())
+			throw OML_Error(HW_ERROR_INDEXRANGE);
+
+		if (index_1 < 1)
 			throw OML_Error(HW_ERROR_INDEXRANGE);
 
 		(*field_values)(index_1-1) = (*sd->field_values)(0);

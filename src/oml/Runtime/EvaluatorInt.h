@@ -81,7 +81,9 @@ public:
     HML_CELLARRAY* CreateVararginCell(const std::vector<Currency>& params, int start_index);
 
 	void WritePFile(const std::string& infile, const std::string& outfile);
+
    	Currency Analyze(const std::string& infile);
+   	Currency GetMetadata(const std::string& infile);
 
     void ClearPath();
     bool RemovePath(std::string &pathname);

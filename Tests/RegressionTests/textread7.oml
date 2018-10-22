@@ -1,0 +1,3 @@
+f='FileManipulation/large1.csv';
+t2=textread(f, '%f', 'delimiter', ',\n:');
+t2(1)

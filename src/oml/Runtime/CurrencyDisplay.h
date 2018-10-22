@@ -282,6 +282,15 @@ protected:
     //!
     virtual void SetLeftDisplayData() {}
     //!
+    //! Sets data for up pagination
+    //!
+    virtual void SetUpDisplayData() {}
+    //!
+    //! Sets data for down pagination
+    //!
+    virtual void SetDownDisplayData() {}
+
+    //!
     //! Gets number of rows that can be fit
     //!
     virtual int GetNumRowsToFit() const;

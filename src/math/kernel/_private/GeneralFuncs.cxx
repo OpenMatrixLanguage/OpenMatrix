@@ -155,23 +155,63 @@ bool quadraticRoots(double a, double b, double c,
 }
 
 //*******************************************************************
+//                     Transcendental functions
+//*******************************************************************
+#ifdef OS_WIN
+  #if _MSC_VER < 1900
+    namespace hmath_OS_WIN
+    {
+        //! Real inverse hyperbolic sine
+        double asinh(double x)
+        {
+            return log(x + sqrt(x * x + 1.0));
+        }
+
+        //! Real inverse hyperbolic cosine
+        double acosh(double x)
+        {
+            return log(x + sqrt(x - 1.0) * sqrt(x + 1.0));
+        }
+
+        //! Real inverse hyperbolic tangent
+        double atanh(double x)
+        {
+            return 0.5 * log((1.0 + x) / (1.0 - x));
+        }
+
+        //! Real logarithm (base 2) producing real output
+        double log2(double x)
+        {
+            return log(x) / log(2.0);
+        }
+    }   // end namespace hmath_OS_WIN
+  #endif
+#endif
+
+//*******************************************************************
 //                    General utility functions
 //*******************************************************************
-//! Check to see if a value is an integer to with a tolerance
+//! Check to see if a value is an integer to within a tolerance
 hwMathStatus IsInteger(double value, double tol)
 {
     if (tol < 0.0)
         return hwMathStatus(HW_MATH_ERR_NEGATIVE, 2);
 
-    if (fabs(value - floor(value)) > tol)
-        return hwMathStatus(HW_MATH_ERR_NONINTEGER, 1);
+    if (value >= 0.0)
+    {
+        if (value > std::numeric_limits<int>::max())
+            return hwMathStatus(HW_MATH_ERR_BADRANGE, 1);
+
+        if (fabs(value - floor(value + 0.5)) > tol)
+            return hwMathStatus(HW_MATH_ERR_NONINTEGER, 1);
+    }
     else
     {
         if (value < std::numeric_limits<int>::min())
             return hwMathStatus(HW_MATH_ERR_BADRANGE, 1);
 
-        if (value > std::numeric_limits<int>::max())
-            return hwMathStatus(HW_MATH_ERR_BADRANGE, 1);
+        if (fabs(value - ceil(value - 0.5)) > tol)
+            return hwMathStatus(HW_MATH_ERR_NONINTEGER, 1);
     }
     
     return hwMathStatus();

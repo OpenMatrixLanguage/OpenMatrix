@@ -1,7 +1,7 @@
-Warning: maximum number of function evaluations exceeded, returned last estimate in call to function fsolve at line number 17 in file fsolve7.oml
 x = [Matrix] 2 x 1
 14.00212
 -1.99788
 fval = [Matrix] 2 x 1
 0.00051
 0.00102
+info = 0

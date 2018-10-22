@@ -14,4 +14,4 @@ end
 options = optimset('MaxIter', 200, 'MaxFunEvals', 40, 'TolFun', 1.0e-12, 'TolX', 1.0e-5);
 init = [1; 2];
 
-[x,fval] = fsolve(@Residuals, init, options)
+[x,fval,info] = fsolve(@Residuals, init, options)

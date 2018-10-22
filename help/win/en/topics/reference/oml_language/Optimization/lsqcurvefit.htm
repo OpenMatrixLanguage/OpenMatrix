@@ -26,9 +26,9 @@
 
       <p class="p"><span class="ph synph">x = lsqcurvefit<span class="ph var">(@func,x0,xdata,ydata,lb,ub,options)</span></span></p>
 
-      <p class="p"><span class="ph synph">[x,res] = lsqcurvefit<span class="ph var">(...)</span></span></p>
+      <p class="p"><span class="ph synph">[x,resnorm,residual,exitflag,output] = lsqcurvefit<span class="ph var">(...)</span></span></p>
 
-      
+      <?STOP?>
     </section>
 
     <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
@@ -85,7 +85,7 @@
         
       </dl>
 
-      
+      <?STOPINP?>
     </section>
 
     <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
@@ -98,14 +98,97 @@
 
         
         
-          <dt class="dt pt dlterm"><span class="ph synph">res</span></dt>
+          <dt class="dt pt dlterm"><span class="ph synph">resnorm</span></dt>
 
-          <dd class="dd pd">The length of the residual vector.</dd>
+          <dd class="dd pd">The squared length of the residuals vector.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">residual</span></dt>
+
+          <dd class="dd pd">The residuals vector.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">info</span></dt>
+
+          <dd class="dd pd">The convergence status flag.<dl class="dl table">
+              
+                <dt class="dt dlterm">info = 4</dt>
+
+                <dd class="dd">Relative step size converged to within <span class="keyword option">tolX</span>.</dd>
+
+              
+              
+                <dt class="dt dlterm">info = 3</dt>
+
+                <dd class="dd">Relative function value converged to within <span class="keyword option">tolFun</span>.</dd>
+
+              
+              
+                <dt class="dt dlterm">info = 2</dt>
+
+                <dd class="dd">Step size converged to within <span class="keyword option">tolX</span>.</dd>
+
+              
+              
+                <dt class="dt dlterm">info = 1</dt>
+
+                <dd class="dd">Function value converged to within tolFun.</dd>
+
+              
+              
+                <dt class="dt dlterm">info = 0</dt>
+
+                <dd class="dd">Reached maximum number of iterations or function calls, or the algorithm aborted
+                  because it was not converging.</dd>
+
+              
+              
+                <dt class="dt dlterm">info = -3</dt>
+
+                <dd class="dd">Trust region became too small to continue.</dd>
+
+              
+            </dl>
+</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">output</span></dt>
+
+          <dd class="dd pd">A struct containing iteration details. The members are as follows:<dl class="dl table">
+              
+                <dt class="dt dlterm">iterations</dt>
+
+                <dd class="dd">The number of iterations.</dd>
+
+              
+              
+                <dt class="dt dlterm">nfev</dt>
+
+                <dd class="dd">The number of function evaluations.</dd>
+
+              
+              
+                <dt class="dt dlterm">xiter</dt>
+
+                <dd class="dd">The candidate solution at each iteration.</dd>
+
+              
+              
+                <dt class="dt dlterm">resnormiter</dt>
+
+                <dd class="dd">The objective function value at each iteration.</dd>
+
+              
+            </dl>
+</dd>
 
         
       </dl>
 
-      
+      <?STOPOUT?>
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Example</h2>
@@ -133,9 +216,10 @@ res = 0.00190995098</code></code></pre>
       <p class="p">Options for convergence tolerance controls and analytical derivatives are specified
         with <span class="keyword cmdname">optimset</span>.</p>
 
-      <p class="p">To pass additional parameters to a function argument, use an anonymous function.</p>
+      <p class="p">To pass additional parameters to a function argument, use an <span class="keyword cmdname">anonymous</span>
+        function.</p>
 
-      <div class="p">The <span class="keyword cmdname">optimset</span> options and defaults are as follows. <ul class="ul" id="reference_wpv_kyv_pr__ul_nm3_gr4_ldb">
+      <div class="p">The <span class="keyword cmdname">optimset</span> options and defaults are as follows: <ul class="ul">
           <li class="li"><span class="keyword option">MaxIter</span>: 100</li>
 
           <li class="li"><span class="keyword option">MaxFunEvals</span>: 400</li>
@@ -154,10 +238,7 @@ res = 0.00190995098</code></code></pre>
 
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Version History</h2>
-      
-      <p class="p"><span class="keyword">1.0</span></p>
-
+    <section class="section">
       
     </section>
 
@@ -167,7 +248,7 @@ res = 0.00190995098</code></code></pre>
 <div class="linklist linklist"><strong>See Also</strong><br />
 
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/optimset.htm" title="Specify optimization function options.">optimset</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/fsolve.htm" title="Find a solution of a system of real, nonlinear equations.">fsolve</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/fsolve.htm" title="Find a solution of a system of real nonlinear equations.">fsolve</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/language_guides/anonymous_functions_r.htm" title="Anonymous functions can be defined anywhere inside a script.">Anonymous Functions</a></div></div>
 </nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Optimization/optimization_command_r.htm" title="Optimization Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Optimization Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">

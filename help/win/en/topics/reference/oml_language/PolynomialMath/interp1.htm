@@ -27,7 +27,7 @@
 
       <p class="p"><span class="ph synph">yi = interp1<span class="ph var">(x,y,xi,method,extrap)</span></span></p>
 
-      
+      <?STOP?>
     </section>
 
     <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
@@ -56,13 +56,27 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">method</var></dt>
 
-          <dd class="dd pd">The available options are:</dd>
+          <dd class="dd pd">The available options are:<dl class="dl table">
+              
+                <dt class="dt dlterm">'linear'</dt>
 
-          <dd class="dd pd ddexpand">'linear': Returns the linear interpolation from the nearest neighbors.</dd>
+                <dd class="dd">Returns the linear interpolation from the nearest neighbors.</dd>
 
-          <dd class="dd pd ddexpand">'pchip': Returns shape preserving piece-wise cubic Hermite interpolation.</dd>
+              
+              
+                <dt class="dt dlterm">'pchip'</dt>
 
-          <dd class="dd pd ddexpand">'spline': Returns the cubic spline interpolation.</dd>
+                <dd class="dd">Returns shape preserving piece-wise cubic Hermite interpolation.</dd>
+
+              
+              
+                <dt class="dt dlterm">'spline'</dt>
+
+                <dd class="dd">Returns the cubic spline interpolation.</dd>
+
+              
+            </dl>
+</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
 
@@ -70,18 +84,28 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">extrap</var></dt>
 
-          <dd class="dd pd">The available options are:</dd>
+          <dd class="dd pd">The available options are:<dl class="dl table">
+              
+                <dt class="dt dlterm">'extrap'</dt>
 
-          <dd class="dd pd ddexpand">'extrap': Allows extrapolation beyond the interval.</dd>
+                <dd class="dd">Allows extrapolation beyond the interval.</dd>
 
-          <dd class="dd pd ddexpand">'noextrap': Does not allow extrapolation (default).</dd>
+              
+              
+                <dt class="dt dlterm">'noextrap'</dt>
+
+                <dd class="dd">Does not allow extrapolation (default).</dd>
+
+              
+            </dl>
+</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
 
         
       </dl>
 
-      
+      <?STOPINP?>
     </section>
 
     <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
@@ -92,12 +116,10 @@
 
           <dd class="dd pd">The interpolated y values corresponding to <var class="keyword varname">xi</var>.</dd>
 
-          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector</span></dd>
-
         
       </dl>
 
-      
+      <?STOPOUT?>
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Examples</h2>
@@ -132,12 +154,14 @@ yi = interp1(x,y,xi,'spline')</code></pre>
       
       <p class="p">The 'spline' method uses the not-a-knot cubic spline.</p>
 
+      <p class="p">When <var class="keyword varname">y</var> is a matrix, the function operates along the first dimension,
+        which is the column dimension in the 2D case. This is the opposite convention from
+          <span class="keyword cmdname">spline</span>.</p>
+
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Version History</h2>
+    <section class="section">
       
-      <p class="p"><span class="keyword">1.0</span></p>
-
       
     </section>
 

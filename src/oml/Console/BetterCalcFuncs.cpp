@@ -17,36 +17,32 @@
 // Begin defines/includes
 
 #include "../Runtime/BuiltInFuncsCore.h"
+#include "../Runtime/BuiltInFuncsUtils.h"
+#include "../Runtime/CurrencyDisplay.h"
 #include "../Runtime/Interpreter.h"
 #include "../Runtime/StructData.h"
 #include "../Runtime/ErrorInfo.h"
 #include "../Runtime/OML_Error.h"
+
 #include "BetterCalc.h"
+#include "ConsoleWrapper.h"
+
+#include <cassert>
 
 #if OS_WIN
 #include <Windows.h>
 #endif
 
-extern Interpreter* interp;
+extern Interpreter*    interp;
+extern ConsoleWrapper* wrapper;
+
 #define OML_PRODUCT "OpenMatrix "
 #define OML_VERSION "1.0"
 // End defines/includes
 
-
-bool hml_keylist(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
-{
-    // std::cout << "hml_keylist running..." << std::endl;
-	std::vector<std::string> funclist = interp->GetKeywords();
-	std::string funcstring;
-	for (std::vector<std::string>::iterator it = funclist.begin() ; it != funclist.end(); ++it)
-      std::cout << ' ' << *it;
-	std::cout << "" << std::endl;
-	// std::cout << "hml_keylist completed." << std::endl;
-	return true;
-}
-
 #if OS_WIN
-void WindowsClear() {
+void WindowsClear()
+{
     COORD topLeft  = { 0, 0 };
     HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
     CONSOLE_SCREEN_BUFFER_INFO screen;
@@ -62,114 +58,63 @@ void WindowsClear() {
     );
     SetConsoleCursorPosition(console, topLeft);
 }
-
-// The following does not compile for me.  I'm not aware of any problems with the
-// above code on windows.  But I'll keep this code for now.
-#if 1
-void WindowsScreenFilling()
-{
-	CONSOLE_SCREEN_BUFFER_INFO Info;
-	HANDLE ConsoleHandle;
-	ConsoleHandle = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-		// dwDesiredAccess
-		// dwShareMode
-		// SECURITY_ATTRIBUTES *lpSecurityAttributes,
-		// dwFlags this is fixed
-		// Reserved
-	// wrong? GetConsoleWindowInfo(ConsoleHandle, &Info) ;
-	GetConsoleScreenBufferInfo(ConsoleHandle, &Info) ;
-	SHORT Width = Info.srWindow.Right - Info.srWindow.Left + 1 ;
-	for ( SHORT N = Info.srWindow.Top ; N <= Info.srWindow.Bottom ; ++N ) {
-		DWORD Chars ;
-		COORD Pos = { Info.srWindow.Left, N } ;
-		FillConsoleOutputCharacter(ConsoleHandle, ' ', Width, Pos, &Chars) ;
-		// FillConsoleOutputAttribute(ConsoleHandle, attr, Width, Pos, &Chars) ;
-		FillConsoleOutputAttribute(ConsoleHandle, NULL, Width, Pos, &Chars) ;
-	}
-	COORD TopLeft = { Info.srWindow.Left, Info.srWindow.Top } ;
-	SetConsoleCursorPosition(ConsoleHandle, TopLeft) ;
-}
-
-void WindowsScreenScrolling()
-{
-	CONSOLE_SCREEN_BUFFER_INFO Info;
-	HANDLE ConsoleHandle;
-	ConsoleHandle = CreateConsoleScreenBuffer(
-			GENERIC_READ | GENERIC_WRITE, // dwDesiredAccess
-			FILE_SHARE_READ | FILE_SHARE_WRITE, // dwShareMode
-			NULL, // SECURITY_ATTRIBUTES *lpSecurityAttributes,
-			CONSOLE_TEXTMODE_BUFFER, // dwFlags this is fixed
-			NULL // Reserved
-			);
-	// Wrong? GetConsoleWindowInfo(ConsoleHandle, &Info) ;
-	GetConsoleScreenBufferInfo(ConsoleHandle, &Info) ;
-	CHAR_INFO space ;
-	space.Char.AsciiChar = ' ' ;
-	space.Attributes = NULL; // attr ;
-	SHORT Height = Info.srWindow.Bottom - Info.srWindow.Top + 1 ;
-	COORD Origin = { Info.srWindow.Left, Info.srWindow.Top - Height } ;
-	ScrollConsoleScreenBuffer(ConsoleHandle, &Info.srWindow, NULL, Origin, &space) ;
-	COORD TopLeft = { Info.srWindow.Left, Info.srWindow.Top } ;
-	SetConsoleCursorPosition(ConsoleHandle, TopLeft) ;
-}
 #endif
-#endif
-
-bool hml_clc(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+//------------------------------------------------------------------------------
+// Clears screen (clc command)
+//------------------------------------------------------------------------------
+bool hml_clc(EvaluatorInterface           eval, 
+             const std::vector<Currency>& inputs, 
+             std::vector<Currency>&       outputs)
 {
+    CurrencyDisplay::ClearLineCount();
+
 #if OS_WIN
-	// windows clear with system call
-	system("cls");
-	return true;
-#else
-	// try this for Linux build.
-	system("clear");
-	return true;
-#endif
-#if 0
-	// generic clear by writing multiple rows of blank lines.
-	int screen_size = 50;
-	int screen_width = 50;
-	std::string blanks;
-	blanks.assign(screen_width, ' ');
-	std::string command = "disp('";
-	command.append(blanks);
-	command.append("')");
-	for(int i=0; i < screen_size; i++)
-		// std::cout << blanks << std::endl;
-    	interp->DoString(command);
-	return true;
-#endif 
-}
+    // Avoid using cls command as it prints junk characters if output is 
+    // redirected to a file
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
 
-bool OML_help()
+    // Get the number of cells in the current buffer
+    CONSOLE_SCREEN_BUFFER_INFO info;
+    GetConsoleScreenBufferInfo(handle, &info);
+
+    DWORD consolesize = info.dwSize.X * info.dwSize.Y;
+    DWORD count;
+    COORD start = { 0, 0 };
+
+    // Fill the entire buffer with spaces
+    FillConsoleOutputCharacter(handle, (TCHAR) ' ', consolesize, start, &count);
+
+    // Fill the entire buffer with the current colors and attributes
+    FillConsoleOutputAttribute(handle, info.wAttributes, consolesize, start, &count);
+
+    // Move the cursor to start position
+    SetConsoleCursorPosition(handle, start);
+#else
+	system("clear");
+#endif
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Prints help
+//------------------------------------------------------------------------------
+void OML_help()
 {
-	// This could be added as a OML function if needed.   I did not implement as such because:
-	// The requested argument to invoke this help list was -help, not a valid function name.
-	// A help function already exists in OML.DLL in the BuildInFuncs.cpp module.
 	std::cout << OML_PRODUCT << " Console Help:" << std::endl;
 	std::cout << "-e \"any valid OML command\" --> execute the OML command in " << OML_PRODUCT << " and then quit." << std::endl;
 	std::cout << "-f foo.oml --> load and execute the OML script called foo.oml in " << OML_PRODUCT << " and then quit" << std::endl;
 	std::cout << "-help      --> give the list of supported optional arguments" << std::endl;
 	std::cout << "-version   --> give the version of " << OML_PRODUCT << std::endl;
-	return true;
 }
 //------------------------------------------------------------------------------
 //! Gets the version string of the application
 //------------------------------------------------------------------------------
-std::string GetVersion(const std::string appdir)
+std::string GetVersion(const std::string& appdir)
 {
     std::string version (OML_PRODUCT);
     version += " Version ";
     version += OML_VERSION;
-#if 0
-    std::string vfile = appdir;
-    if (!vfile.empty())
-        vfile += "/";
-    vfile += "config/hypermath/version.xml";
 
-    version += BuiltInFuncsCore::GetBuildNumber(vfile);
-#endif 
     return version;
 }
 //------------------------------------------------------------------------------
@@ -187,6 +132,53 @@ bool OmlVersion(EvaluatorInterface           eval,
     out.DispOutput();
 
     outputs.push_back(out);
+    return true;
+}
+//------------------------------------------------------------------------------
+// Gets argc (getargc command)
+//------------------------------------------------------------------------------
+bool OmlGetArgC(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
+{
+    assert(wrapper);
+
+    outputs.push_back(wrapper->GetArgc());
+    return true;
+}
+//------------------------------------------------------------------------------
+// Gets argv at the given index (getargv command)
+//------------------------------------------------------------------------------
+bool OmlGetArgV(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
+{
+    assert(wrapper);
+
+    if (inputs.size() != 1)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+    if (!inputs[0].IsPositiveInteger())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 1, OML_VAR_VALUE);
+    }
+    int idx  = static_cast<int>(inputs[0].Scalar()) - 1;
+    int argc = wrapper->GetArgc();
+    if (idx > argc)
+    {
+        std::string msg ("Error: invalid input in argument 1; value must be ");
+        if (argc == 1)
+        {
+            msg += "1";
+        }
+        else
+        {
+            msg += "in the range of 1 and " + std::to_string(static_cast<long long>(argc));
+        }
+        throw OML_Error(msg);
+    }
+    outputs.push_back(wrapper->GetArgv(idx));
     return true;
 }
 

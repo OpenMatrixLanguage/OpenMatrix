@@ -16,107 +16,133 @@
 
 #include "../Runtime/Hml2Dll.h"
 #include "../Runtime/Currency.h"
+#include "../Runtime/CurrencyDisplay.h"
 #include "../Runtime/Interpreter.h"
 #include "../Runtime/EvaluatorDebug.h"
+#include "../Runtime/BuiltInFuncsUtils.h"
 #include "../Runtime/StructData.h"	// hml2 for now 
 
 #include <cassert>
 #include <clocale>
 #include <fstream>
 #include <memory>
+
 #include "BetterCalc.h"
 #include "ConsoleWrapper.h"
 #include "SignalHandler.h"
-
 #include "OmlServer.h"
 
-//! Shows new prompt on console
-//! \param[in] wrapper Interpreter wrapper
-void CallNewConsolePrompting( ConsoleWrapper* wrapper);
-// global variables for now
-Interpreter* interp = NULL;
-std::string dummyFilename;
+// Shows new prompt on console
+// \param interpWrapper Interpreter wrapper
+// \param license       License
+void CallNewConsolePrompting(ConsoleWrapper* wrapper);
 
-bool ClearCommandString = false;
+// global variables
+Interpreter*    interp  = NULL;
+ConsoleWrapper* wrapper = nullptr;
+std::string     dummyFilename;
+bool            ClearCommandString = false;
 #define DEFAULT_PORT "9099"
 
 // User interrupt related variables, decls
 static int g_numUserInterrupts = 0;  //! Number of control-C interrrupts pressed
 #ifdef OS_WIN
 #   include <Windows.h>
-//! Called when control key is down
-//! \param[in] controlType Control type
-BOOL OnControlKeyDown( DWORD controlType);
+// Called when control key is down
+// \param controlType Control type
+BOOL OnControlKeyDown(DWORD controlType);
 #else
 #   include <signal.h>
 #   include <time.h>
 #   include <stdio.h>
 #   include <unistd.h>
-//! Called when control key is down
-//! \param[in] controlType Control type
-void OnControlKeyDown( int controlType);
+// Called when control key is down
+// \param controlType Control type
+void OnControlKeyDown(int controlType);
 #endif
 
-class MyDebugListener : public EvaluatorDebugInterface
-{
-public:
-	MyDebugListener(void* debuggee):_debuggee(debuggee) {}
-
-	// we'll need to push the dsi info into the debuggee first, then call ProcessWhatever (dependent on type of event)
-	virtual void PreFunctionCall(DebugStateInfo dsi) { std::cout << "Call " << dsi.function_name << std::endl;}
-	virtual void PreStatement(DebugStateInfo dsi) { std::cout << "Execute " << dsi.filename << " line " << dsi.line_number << std::endl;}
-	virtual void PreFunctionReturn(DebugStateInfo dsi) { std::cout << "Return " << dsi.function_name << std::endl;}
-
-private:
-	void* _debuggee; // this should be an actual hwdbgHMLDebuggee pointer instead, but I can't do that here yet
-};
-
-
 //------------------------------------------------------------------------------
+// Entry point for console
 //------------------------------------------------------------------------------
-//! Entry point for console/batch
 int main(int argc, char* argv[])
 {
+    interp = new Interpreter;
+    char* cdir = getenv("OML_APPDIR");
+    if (cdir)
+    {
+        interp->SetApplicationDir(std::string(cdir));
+    }
+
+    bool paginateVal = CurrencyDisplay::GetPaginate();
+    CurrencyDisplay::SetPaginate(0);  // Disable pagination
+
     // Flags for command line arguments
+
+	bool continueAfterScript = false; // Needed if commands/files are in cmd line
+    bool continueRequired    = false; // Needed if commands/files are in cmd line	  
+	bool toolbox_load        = false; // True if toolboxes need to be loaded
+#if !defined(_DEBUG)
+	toolbox_load = true;              // always load the toolboxes in release
+#endif 
+
     std::string port;
     bool nextIsPort = false, isServer = false;
-    // -continue flag is required if commands/files are specified in the command line.
-	bool continueAfterScript = false; 
-    // -continue flag is only required if commands/files are specified in the command line.
-	bool continueRequired = false;    
-
-    // True when toolboxes are loaded
-	bool toolbox_loaded = false;
-    // True if toolboxes need to be loaded, not loaded by default in debug
-	bool toolbox_load   = false; // No toolbox functions for debug.
-#if !defined(_DEBUG)
-	toolbox_load = true; // always load the toolboxes in release
-#endif 
 
     // File to execute, if specified
 	std::string scriptPath;
 
     // First pass through arguments.
+    std::vector<std::string> argsv;
+    argsv.reserve(argc);
+    assert(argc > 0);
+    argsv.push_back(std::string(argv[0]));
+
+    std::vector<std::string> argsToProcess;
+    argsToProcess.reserve(argc);
+
 	for (int ix = 1; ix < argc; ++ix)
 	{
 		std::string arg (argv[ix]);
+        argsv.push_back(arg);
+
 		// convert command line argument to lower case for comparison
 		std::string lower_str = arg;
 		std::transform(lower_str.begin(), lower_str.end(), lower_str.begin(), ::tolower);
 
-		if(lower_str == "/toolbox" || lower_str == "-toolbox")
+        std::string cmd;
+        if (!lower_str.empty() && (lower_str[0] == '-' || lower_str[0] == '/'))
+        {
+            cmd = (lower_str.size() != 1) ? lower_str.substr(1) : "";
+        }
+
+		if (cmd == "toolbox")
 		{
 			toolbox_load = true;  // always load the toolboxes
 		}
-		else if(lower_str == "/notoolbox" || lower_str == "-notoolbox")
+		else if (cmd == "notoolbox")
 		{
 			toolbox_load = false;  // provide capability to not load toolboxes
 		}
-		else if(lower_str.compare("/x") == 0 || lower_str.compare("-x") == 0)
+		else if(cmd == "x")
 		{
             interp->SetExperimental(true);
 		}
-        else if (lower_str.compare("-port") == 0)
+        else if (cmd == "continue")
+        {
+			continueAfterScript = true;
+        }
+		else if (cmd == "version")
+		{
+            std::cout << GetVersion(interp->GetApplicationDir()) << std::endl;
+			continueRequired = true;
+		}
+		else if (cmd == "help")
+		{
+			OML_help();
+		    delete interp;
+			return 0;
+		}
+        else if (cmd == "port")
 		{
 			isServer = true;
 			nextIsPort = true;
@@ -126,35 +152,23 @@ int main(int argc, char* argv[])
 			nextIsPort = false;
 			port = arg;
 		}
+        else
+        {
+            argsToProcess.push_back(arg);
+        }
 	}
 
-
-	interp = new Interpreter;
-    
-    char* cdir = getenv("OML_APPDIR");
-    if (cdir)
-        interp->SetApplicationDir(std::string(cdir));
-    
-    interp->RegisterBuiltInFunction("version", OmlVersion, FunctionMetaData(0, 1, "CoreMinimalInterpreter"));
     // Wrapper for interpreter signals and methods
     ConsoleWrapper* wrapper = nullptr; 
-    if(! isServer )
+    if (!isServer)
     {
-        interp->RegisterBuiltInFunction("clc",	   hml_clc,    FunctionMetaData(0, 1, "CoreMinimalInterpreter")); // FunctionMetaData(OML_NO_NARG, OML_NO_NARG));
         wrapper = new ConsoleWrapper (interp);
         assert(wrapper);
+
+        wrapper->SetArgv(argsv);
     }
-
-	/*if(toolbox_load && !toolbox_loaded)
-	{
-        std::string mathtoolbox = interp->GetApplicationDir();
-        if (!mathtoolbox.empty())
-            mathtoolbox += "/";
-        mathtoolbox += "/plugins/scriptview/mathtoolbox/init_console.oml";
-        interp->DoFile(mathtoolbox);
-		toolbox_loaded = true;
-	}*/
-
+    RegisterBuiltInFuncs();
+    
     // Set the interrupt handler after the toolboxes are loaded as this 
     // interferes with fortran libraries loaded in toolboxes and how they handle
     // control C
@@ -164,32 +178,27 @@ int main(int argc, char* argv[])
 	bool f_argument_flag = false;  // -f command line argument
 
 	// second argument parse - evaluate all other arguments
-	for (int ix = 1; ix < argc; ++ix)
+    for (std::vector<std::string>::const_iterator itr = argsToProcess.begin();
+         itr != argsToProcess.end(); ++itr)
 	{
-		std::locale loc;
-		std::string arg (argv[ix]);
+		std::string arg (*itr);
+        if (arg.empty())
+        {
+            continue;
+        }
+
 		// convert command line argument to lower case for comparison
 		std::string lower_str = arg;
 		std::transform(lower_str.begin(), lower_str.end(), lower_str.begin(), ::tolower);
 
-        if(*argv[ix] == '-')
+        char ch = arg[0];
+        if (ch == '-')
 		{
-			e_argument_flag = f_argument_flag = false;  // clear -e and -f 
+			e_argument_flag = false;
+            f_argument_flag = false;  // clear -e and -f 
 		}
 
-		if (lower_str == "/toolbox"   || lower_str == "-toolbox"   || 
-            lower_str == "/notoolbox" || lower_str == "-notoolbox" ||
-            lower_str == "/x"         || lower_str == "-x")
-		{
-			continue;  // These options have been processed
-		}
-		else if (lower_str == "-version")
-		{
-            std::cout << GetVersion(interp->GetApplicationDir()) << std::endl;
-			continueRequired = true;
-			continue;  
-		}
-		else if (lower_str == "-e")
+		if (lower_str == "-e")
 		{
 			// process arguments following as oml commands until the next argument which begins with a dash '-'
 			e_argument_flag = true;
@@ -213,59 +222,42 @@ int main(int argc, char* argv[])
 			interp->DoFile(arg);
 			continueRequired = true;
 		}
-		else if (lower_str == "-help")
-		{
-			OML_help();
-			return 0;
-		}
-		else if (lower_str == "/quiet" || lower_str == "-quiet")
+		else if (lower_str.compare(0,10,"/filename=") == 0)
         {
-            if(wrapper) wrapper->SetQuietMode(true);
-        }
-				
-        else if(lower_str == "/continue" || lower_str == "-continue")
-			continueAfterScript=true;
-
-		else if(lower_str.compare(0,10,"/filename=") == 0)
 			dummyFilename = arg.substr(10, arg.length()-10);
-
+        }
 		else if(lower_str.compare(0,5,"/ansi") == 0)
 		{
 #if OS_WIN
-			// For testing console interface in Windows.  
-			// I don't know if there are Linux equivalents.
-			// set code page to 1252
-			
-			// interp->DoString("system('chcp 1252');");
 			SetConsoleCP(1252);
 			SetConsoleOutputCP(1252);
- 
-			// other windows code pages:
-			// chcp 437 US
-			// chcp 65001 unicode
-			// chcp 850 latin 1
-			// chcp 1252 ansi
 #endif
 		}
 		else if(lower_str.compare(0,5,"/utf8") == 0)
 		{
 #if OS_WIN
-			// For testing console interface in Windows.  
-			// I don't know if there are Linux equivalents.
 			SetConsoleCP(65001);
 			SetConsoleOutputCP(65001);
 #endif 
 		}
+		else if (lower_str == "/quiet" || lower_str == "-quiet")
+        {
+            if (wrapper)
+            {
+                wrapper->SetQuietMode(true);
+            }
+        }
+
         else
 			scriptPath = arg; 
 	}
 
     if (isServer)
 	{
-
-        if ("" == port) 
+        if (port.empty()) 
+        {
             port = DEFAULT_PORT;
-
+        }
         std::unique_ptr<OmlServer> omlserver(new OmlServer(interp));
         omlserver->Start(port);
     }
@@ -274,7 +266,7 @@ int main(int argc, char* argv[])
 	    std::setlocale(LC_ALL, "");
 	    std::setlocale(LC_NUMERIC, "C");
 
-        if(scriptPath.compare("") != 0)
+        if(!scriptPath.empty())
 	    {
 		    Currency output = interp->DoFile(scriptPath);	
 		    continueRequired = true;
@@ -288,9 +280,13 @@ int main(int argc, char* argv[])
 	    }
 
         // Start of interactive mode
+        CurrencyDisplay::SetPaginate(paginateVal);  // Reset pagination value
         PrintBanner();  
 
-        if(wrapper)  CallNewConsolePrompting(wrapper);
+        if (wrapper)  
+        {
+            CallNewConsolePrompting(wrapper);
+        }
     }
 
     delete wrapper;
@@ -299,14 +295,13 @@ int main(int argc, char* argv[])
 	return 0;
 }
 //------------------------------------------------------------------------------
-//! Shows new prompt on console
-//! \param[in] wrapper Interpreter wrapper
+// Shows new prompt on console
 //------------------------------------------------------------------------------
 void CallNewConsolePrompting(ConsoleWrapper* wrapper)
 {
     assert(interp);
     assert(wrapper);
-    wrapper->SetEnablePagination(true);
+    wrapper->SetPaginationVariables();
 
     int  hearbeatcounter = 1;
     bool quietmode       = wrapper->GetQuietMode();
@@ -328,13 +323,14 @@ void CallNewConsolePrompting(ConsoleWrapper* wrapper)
         std::string strCommand = GetInputCommand(wrapper);
         Currency    output = interp->DoString(strCommand);
 
-        if (quietmode && output.IsError()) break;
-
+        if (quietmode && output.IsError()) 
+        {
+            break;
+        }
     }
 }
 //------------------------------------------------------------------------------
-//! Gets input command
-//! \param[in] wrapper Oml interp wrapper
+// Gets input command
 //------------------------------------------------------------------------------
 std::string GetInputCommand(ConsoleWrapper* wrapper)
 {
@@ -381,8 +377,7 @@ std::string GetInputCommand(ConsoleWrapper* wrapper)
 }
 #ifdef OS_WIN
 //------------------------------------------------------------------------------
-//! Called when control key is down
-//! \param[in] controlType Control event type
+// Called when control key is down
 //------------------------------------------------------------------------------
 BOOL OnControlKeyDown(DWORD controlType)
 {
@@ -397,8 +392,7 @@ BOOL OnControlKeyDown(DWORD controlType)
 }
 #else
 //------------------------------------------------------------------------------
-//! Called when control key is down
-//! \param[in] controlType Control event type
+// Called when control key is down
 //------------------------------------------------------------------------------
 void OnControlKeyDown(int controlType)
 {
@@ -412,7 +406,7 @@ void OnControlKeyDown(int controlType)
 #endif
 
 //------------------------------------------------------------------------------
-//! Prints banner
+// Prints banner
 //------------------------------------------------------------------------------
 void PrintBanner()
 {
@@ -426,7 +420,7 @@ void PrintBanner()
 #endif
 }
 //------------------------------------------------------------------------------
-//! Sets user interrupt
+// Sets user interrupt
 //------------------------------------------------------------------------------
 void SetUserInterrupt()
 {
@@ -438,15 +432,20 @@ void SetUserInterrupt()
         interp->TriggerInterrupt();
 }
 //------------------------------------------------------------------------------
-//! Handles user interrupt returns true if application needs to quit
-//! \param[in] omlWrapper Oml interpreter wrapper
+// Handles user interrupt returns true if application needs to quit
 //------------------------------------------------------------------------------
 bool HandleUserInterrupt(ConsoleWrapper* omlWrapper)
 {
-    if (g_numUserInterrupts <= 0) return false;
+    if (g_numUserInterrupts <= 0) 
+    {
+        return false;
+    }
 
     assert(omlWrapper);
-    if (!omlWrapper) return true;
+    if (!omlWrapper) 
+    {
+        return true;
+    }
 
     std::cout << std::endl;
     
@@ -463,7 +462,7 @@ bool HandleUserInterrupt(ConsoleWrapper* omlWrapper)
     return true;
 }
 //------------------------------------------------------------------------------
-//! Sets user interrupt handler - hooks to control C
+// Sets user interrupt handler - hooks to control C
 //------------------------------------------------------------------------------
 void SetUserInterruptHandler()
 {
@@ -472,4 +471,23 @@ void SetUserInterruptHandler()
 #else
     signal(SIGINT, OnControlKeyDown);
 #endif
+}
+//------------------------------------------------------------------------------
+// Registers built in functions
+//------------------------------------------------------------------------------
+void RegisterBuiltInFuncs()
+{
+    assert(interp);
+
+    if (wrapper)
+    {
+	    interp->RegisterBuiltInFunction("clc", hml_clc,    
+            FunctionMetaData(0, 1, "CoreMinimalInterpreter")); 
+    }
+    interp->RegisterBuiltInFunction("version",            OmlVersion, 
+        FunctionMetaData(0, 1, "CoreMinimalInterpreter"));
+	interp->RegisterBuiltInFunction("getargc",            OmlGetArgC,
+        FunctionMetaData(1, 0, "CoreMinimalInterpreter"));
+	interp->RegisterBuiltInFunction("getargv",            OmlGetArgV, 
+        FunctionMetaData(1, 1, "CoreMinimalInterpreter"));
 }

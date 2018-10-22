@@ -260,6 +260,11 @@ static hwMathStatus AdaptiveSimpsonsRule(const UnivarFunc pFunc,
                                          double           tol)
 {    
     double h = b - a;
+    if (h == 0.0)
+    {
+        area = 0.0;
+        return hwMathStatus();
+    }
     if (h < 1.0e-12)
     {
         return hwMathStatus(HW_MATH_ERR_QUADSTEPSIZE);

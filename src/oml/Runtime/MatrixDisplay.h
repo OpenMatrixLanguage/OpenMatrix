@@ -85,6 +85,15 @@ public:
 	//! Sets indices for left pagination
     //!
 	virtual void SetLeftDisplayData();
+    //!
+	//! Sets indices for down pagination
+    //!
+	virtual void SetDownDisplayData();
+    //!
+	//! Sets indices for up pagination
+    //!
+	virtual void SetUpDisplayData();
+
 
     //!
     //! Utility which returns matrix values as string

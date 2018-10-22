@@ -34,6 +34,11 @@
 //! \param eval Evaluator interface
 //!
 extern "C" OMLOPTIMIZATIONTBOX_DECLS int InitDll(EvaluatorInterface eval);
+//!
+//! Returns toolbox version
+//! \param eval Evaluator interface
+//!
+extern "C" OMLOPTIMIZATIONTBOX_DECLS double GetToolboxVersion(EvaluatorInterface eval);
 
 //!
 //! Finds the minimum of a univariate real function within an interval [fminbnd]

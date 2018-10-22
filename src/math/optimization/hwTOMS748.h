@@ -18,6 +18,9 @@
 
 #include "hwOptimizationExports.h"
 
+template <typename T> class hwTComplex;
+template <typename T1, typename T2> class hwTMatrix;
+typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
 class hwMathStatus;
 typedef hwMathStatus (*TOMS748Func)(double x, double& min);
 
@@ -47,9 +50,11 @@ hwMathStatus TOMS748(const TOMS748Func f,
                      double&           fb,
                      double&           root, 
                      double&           froot, 
-                     double            eps, 
                      int&              numIters, 
-                     int&              numFunEvals);
+                     int&              numFunEvals,
+                     double            eps, 
+                     hwMatrix*         objHist    = nullptr,
+                     hwMatrix*         designHist = nullptr);
 
 //!
 //! Indicates sign of the input, 1 if positive, -1 if negative and 0 otherwise

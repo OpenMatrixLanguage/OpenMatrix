@@ -1,0 +1,1 @@
+﻿plot(temp/12'./24,T_CASA(2:end),'r',temp/12'./24,city(temp,3),'b');

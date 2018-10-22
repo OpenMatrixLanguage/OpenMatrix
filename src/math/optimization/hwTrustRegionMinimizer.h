@@ -35,10 +35,10 @@ public:
     //! \param tolf        Function tolerance
     //! \param tolx        Step tolerance
     //!
-    hwTrustRegionMinimizer(const hwMatrix& P_, 
-                           int             maxIter, 
+    hwTrustRegionMinimizer(const hwMatrix& P_,
+                           int             maxIter,
                            int             maxFuncEval,
-                           double          tolf, 
+                           double          tolf,
                            double          tolx);
     //!
     //! Destructor
@@ -63,6 +63,10 @@ public:
     //! Gets number of iterations
     //!
     int Iterations() const { return m_numIter; }
+    //!
+    //! Gets number of iterations
+    //!
+    int FunctionEvals() const { return m_numFuncEvals; }
     //!
     //! Gets objective function value
     double ObjFuncVal() const { return m_objFuncVal; }

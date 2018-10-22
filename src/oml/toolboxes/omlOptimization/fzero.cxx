@@ -24,10 +24,10 @@
 #include "hwOptimizationFuncs.h"
 
 // File scope variables and functions
-static FunctionInfo*       FZERO_oml_sys_func = nullptr;
-static std::string         FZERO_oml_sys_name;
-static FUNCPTR             FZERO_oml_sys_pntr = nullptr;
-static EvaluatorInterface* FZERO_eval_ptr     = nullptr;
+static std::vector<EvaluatorInterface*> FZERO_eval_ptr_stack;
+static std::vector<FunctionInfo*>       FZERO_oml_func_stack;
+static std::vector<FUNCPTR>             FZERO_oml_pntr_stack;
+static std::vector<std::string>         FZERO_oml_name_stack;
 
 //------------------------------------------------------------------------------
 // Helper function for OmlFzero
@@ -36,20 +36,30 @@ static hwMathStatus FZERO_file_func(double x, double& y)
 {
     std::vector<Currency> inputs;
     inputs.push_back(x);
-
     Currency result;
 
-    if (FZERO_oml_sys_func)
-        result = FZERO_eval_ptr->CallInternalFunction(FZERO_oml_sys_func, inputs);
-    else if (FZERO_oml_sys_pntr)
-        result = FZERO_eval_ptr->CallFunction(FZERO_oml_sys_name, inputs);
+    EvaluatorInterface* FZERO_eval_ptr = FZERO_eval_ptr_stack.back();
+    FunctionInfo*       FZERO_oml_func = FZERO_oml_func_stack.back();
+    FUNCPTR             FZERO_oml_pntr = FZERO_oml_pntr_stack.back();
+    std::string         FZERO_oml_name = FZERO_oml_name_stack.back();
+
+    if (FZERO_oml_func)
+    {
+        result = FZERO_eval_ptr->CallInternalFunction(FZERO_oml_func, inputs);
+    }
+    else if (FZERO_oml_pntr)
+    {
+        result = FZERO_eval_ptr->CallFunction(FZERO_oml_name, inputs);
+    }
     else
+    {
         return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
+    }
 
     if (result.IsScalar())
         y = result.Scalar();
     else
-        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
+        return hwMathStatus(HW_MATH_ERR_USERFUNCREALNUM, 111);
 
     return hwMathStatus();
 }
@@ -61,6 +71,7 @@ bool OmlFzero(EvaluatorInterface           eval,
               std::vector<Currency>&       outputs)
 {
     int nargin = eval.GetNarginValue();
+    int nargout = eval.GetNargoutValue();
 
     if (nargin < 2 || nargin > 3)
         throw OML_Error(OML_ERR_NUMARGIN);
@@ -99,9 +110,10 @@ bool OmlFzero(EvaluatorInterface           eval,
     if (interval->Size() != 2)
         throw OML_Error(OML_ERR_PLOT_LIMDATA, 2, OML_VAR_DATA);
 
-    int    maxIter    = 100;
-    int    maxFunEval = 400;
-    double tolx       = 1.0e-7;
+    bool   displayHist = false;
+    int    maxIter     = 100;
+    int    maxFunEval  = 400;
+    double tolx        = 1.0e-7;
 
     if (nargin > 2 && inputs[2].IsStruct())
     {
@@ -139,15 +151,36 @@ bool OmlFzero(EvaluatorInterface           eval,
 
             tolx = curtolx.Scalar();
         }
+
+        Currency displayC = opt->GetValue(0, -1, "Display");
+
+        if (displayC.IsString())
+        {
+            std::string val (displayC.StringVal());
+
+            if (val == "iter")
+                displayHist = true;
+            else if (val != "off")
+                throw OML_Error(OML_ERR_OPTIONVAL, 3, OML_VAR_DISPLAY);
+        }
+        else if (!displayC.IsEmpty())
+        {
+            throw OML_Error(OML_ERR_OPTIONVAL, 3, OML_VAR_DISPLAY);
+        }
     }
 
     // set file scope variables
-    FZERO_oml_sys_func = funcInfo;
-    FZERO_oml_sys_name = funcName;
-    FZERO_oml_sys_pntr = funcPntr;
-    FZERO_eval_ptr     = &eval;
+    FZERO_eval_ptr_stack.push_back(&eval);
+    FZERO_oml_func_stack.push_back(funcInfo);
+    FZERO_oml_pntr_stack.push_back(funcPntr);
+    FZERO_oml_name_stack.push_back(funcName);
 
     // call algorithm
+    hwMatrix* objHist    = (displayHist || nargout > 3) ?
+                           EvaluatorInterface::allocateMatrix() : nullptr;
+    hwMatrix* designHist = (nargout > 3) ?
+                           EvaluatorInterface::allocateMatrix() : nullptr;
+
     double a = (*interval)(0);
     double b = (*interval)(1);
     double fa;
@@ -156,40 +189,132 @@ bool OmlFzero(EvaluatorInterface           eval,
     double froot;
 
     hwMathStatus status = F_zero(FZERO_file_func, a, b, fa, fb, root, froot, 
-                          tolx, maxIter, maxFunEval);
+                          maxIter, maxFunEval, tolx, objHist, designHist);
+
+    // display history
+    if (displayHist && (status.IsOk() || status.IsWarning() || status.IsInfoMsg()))
+    {
+        std::string line = "Iteration    f(lb)         f(ub)\n";
+        eval.PrintResult(line);
+
+        for (int i = 0; i < objHist->M(); ++i)
+        {
+            char intChar[8];
+            char numChar1[20];
+            char numChar2[20];
+
+#ifdef OS_WIN  // sprintf_s is a safer option
+            sprintf_s(intChar, sizeof(intChar), "%5d",    i+1);
+            sprintf_s(numChar1, sizeof(numChar1), "%12.5f", (*objHist)(i, 0));
+            sprintf_s(numChar2, sizeof(numChar2), "%12.5f", (*objHist)(i, 1));
+#else
+            sprintf(intChar, "%5d", i+1);
+            sprintf(numChar1, "%12.5f", (*objHist)(i, 0));
+            sprintf(numChar2, "%12.5f", (*objHist)(i, 1));
+#endif
+            line = std::string(intChar) + "  " + std::string(numChar1)
+                                        + "  " + std::string(numChar2) + "\n";
+
+            eval.PrintResult(line);
+        }
+
+        line = "\n";
+        eval.PrintResult(line);
+    }
 
     if (!status.IsOk())
     {
-        if (status.GetArg1() == 111)
+        if (status == HW_MATH_WARN_MAXITERATE ||
+            status == HW_MATH_WARN_MAXFUNCEVAL ||
+            status.IsInfoMsg())
         {
-            status.SetUserFuncName(funcName);
-            status.SetArg1(1);
-        }
-        else if (status.GetArg1() == 3)
-        {
-            status.SetArg1(2);
-        }
-        else if (status.GetArg2() == 3)
-        {
-            status.SetArg2(2);
+            // warning message has been replaced by a return value
         }
         else
         {
-            status.ResetArgs();
-        }
+            FZERO_eval_ptr_stack.clear();
+            FZERO_oml_func_stack.clear();
+            FZERO_oml_pntr_stack.clear();
+            FZERO_oml_name_stack.clear();
 
-        // Sets warning or throws error
-        BuiltInFuncsUtils::CheckMathStatus(eval, status);
+            if (status.GetArg1() == 111)
+            {
+                status.SetUserFuncName(funcName);
+                status.SetArg1(1);
+            }
+            else if (status.GetArg1() == 3)
+            {
+                status.SetArg1(2);
+            }
+            else if (status.GetArg2() == 3)
+            {
+                status.SetArg2(2);
+            }
+            else
+            {
+                status.ResetArgs();
+            }
+
+            if (objHist)
+            {
+                delete objHist;
+                objHist = nullptr;
+            }
+
+            if (designHist)
+            {
+                delete designHist;
+                designHist = nullptr;
+            }
+
+            // Sets warning or throws error
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+        }
     }
 
     // pack outputs
-    size_t nargout = eval.GetNargoutValue();
-
-    if (nargout >= 0)
-        outputs.push_back(root);
+    outputs.push_back(root);
 
     if (nargout > 1)
         outputs.push_back(froot);
+
+    if (nargout > 2)
+    {
+        if (status.IsOk())
+            outputs.push_back(1.0);
+        else if (status == HW_MATH_WARN_MAXITERATE ||
+                 status == HW_MATH_WARN_MAXFUNCEVAL)
+            outputs.push_back(0.0);
+    }
+
+    if (nargout > 3)
+    {
+        Currency out = EvaluatorInterface::allocateStruct();
+        out.Struct()->SetValue(0, -1, "iterations", maxIter);
+        out.Struct()->SetValue(0, -1, "nfev",       maxFunEval);
+        out.Struct()->SetValue(0, -1, "xiter",      designHist);
+        out.Struct()->SetValue(0, -1, "fvaliter",   objHist);
+        outputs.push_back(out);
+    }
+    else
+    {
+        if (objHist)
+        {
+            delete objHist;
+            objHist = nullptr;
+        }
+
+        if (designHist)
+        {
+            delete designHist;
+            designHist = nullptr;
+        }
+    }
+
+    FZERO_eval_ptr_stack.pop_back();
+    FZERO_oml_func_stack.pop_back();
+    FZERO_oml_pntr_stack.pop_back();
+    FZERO_oml_name_stack.pop_back();
 
     return true;
 }

@@ -1,0 +1,8 @@
+addtoolbox omlOptimization
+
+function e=f(c, x) e=c(1)*x+c(2); end
+function e=g(c, x)
+  p=lsqcurvefit(@f,[0,0],[1,2],[2,6]);
+  e=f(c,x)-p;
+end
+lsqcurvefit(@g,[0,0],[1,2],[2,6])

@@ -24,6 +24,7 @@
 #include <cassert>
 #include <sstream>
 
+#include "Runtime/BuiltInFuncsUtils.h"
 #include "Runtime/CurrencyDisplay.h"
 #include "Runtime/Interpreter.h"
 #include "Runtime/OutputFormat.h"
@@ -36,7 +37,7 @@
 #   include <unistd.h>
 #endif
 
-//# define ConsoleWrapper_DBG 1  // Uncomment to print debug info
+//# define CONSOLEWRAPPER_DBG 1  // Uncomment to print debug info
 #ifdef CONSOLERWRAPPER_DBG
 #    define CONSOLEWRAPPER_PRINT(m) { std::cout << m; }
 #    define CONSOLEWRAPPER_PRINT_PAGINATEINFO(rows, cols) {  \
@@ -46,29 +47,28 @@
 #    define CONSOLEWRAPPER_PRINT(m) 0
 #    define CONSOLEWRAPPER_PRINT_PAGINATEINFO(rows, cols) 0
 #endif
+
+int maxcols = 0;
 // End defines/includes
 
 //------------------------------------------------------------------------------
-//! Constructor
-//! \param[in] interpreter
+// Constructor
 //------------------------------------------------------------------------------
 ConsoleWrapper::ConsoleWrapper(Interpreter* interp)
     : WrapperBase(interp)
-    , _enablePagination (false)
     , _quietMode        (false)
     , _appendOutput     (false)
     , _addnewline       (false)
 {
 }
 //------------------------------------------------------------------------------
-//! Destructor
+// Destructor
 //------------------------------------------------------------------------------
 ConsoleWrapper::~ConsoleWrapper()
 {
 }
 //------------------------------------------------------------------------------
-//! Slot called when printing result to console
-//! \param[in] cur Currency to print
+// Slot called when printing result to console
 //------------------------------------------------------------------------------
 void ConsoleWrapper::HandleOnPrintResult(const Currency& cur)
 {	
@@ -77,13 +77,14 @@ void ConsoleWrapper::HandleOnPrintResult(const Currency& cur)
         _resultsToPrint.push_back(cur);  // Print later, once pagination is done
 }
 //------------------------------------------------------------------------------
-//! Gets visible rows and columns from command window screen size
+// Gets visible rows and columns from command window screen size
 //------------------------------------------------------------------------------
 void ConsoleWrapper::GetCommandWindowInfo() const
 {
     int rows = 0;
     int cols = 0;
 
+    maxcols = 0;
 #ifdef OS_WIN  // Windows specific code
     HANDLE hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
     CONSOLE_SCREEN_BUFFER_INFO srBuffInfo;
@@ -102,24 +103,24 @@ void ConsoleWrapper::GetCommandWindowInfo() const
     cols = w.ws_col;
 #endif    
 
+    maxcols = cols;
     CurrencyDisplay::SetMaxCols(cols);
 	CurrencyDisplay::SetMaxRows(rows);
     CONSOLEWRAPPER_PRINT_PAGINATEINFO(rows, cols);
 }
 //------------------------------------------------------------------------------
-//! Print currency. Return false if this currency could not be printed and 
-//! needs to be processed later
-//! \param[in] cur Currency (result) to print
+// Print currency. Return false if this currency could not be printed and 
+// needs to be processed later
 //------------------------------------------------------------------------------
 bool ConsoleWrapper::PrintResult(const Currency& cur)
 {
     assert(_interp);
     const OutputFormat* format = _interp->GetOutputFormat();
 
-    bool canPaginate = CurrencyDisplay::CanPaginate(cur);
-    if (_enablePagination && canPaginate)
-        GetCommandWindowInfo();  // Window could have been resized
+    // Check the pagination environment variable and get command window info
+    SetPaginationVariables();  
 
+    bool canPaginate = CurrencyDisplay::CanPaginate(cur);
     if (!CurrencyDisplay::IsValidDisplaySize()) // No window size available so just print
     {
         PrintToConsole(cur.GetOutputString(format), cur.IsPrintfOutput());
@@ -137,6 +138,7 @@ bool ConsoleWrapper::PrintResult(const Currency& cur)
 
     // At this point, the currency that can paginate. Cache if possible
     CacheDisplay(cur);
+    bool wasPaginating = false;
     
     if (_interp->IsInterrupt())  // Check if there has been an interrupt
     {
@@ -157,6 +159,14 @@ bool ConsoleWrapper::PrintResult(const Currency& cur)
         // Nested pagination
         Currency newcur = const_cast<Currency&>(topdisplay->GetCurrency());
         newcur.SetDisplay(topdisplay);
+        if (topdisplay)
+        {
+            wasPaginating = (topdisplay->IsPaginatingRows() || topdisplay->IsPaginatingCols());
+        }
+        else
+        {
+            wasPaginating = false;
+        }
     }
 
     if (topdisplay->IsPaginatingCols() || topdisplay->IsPaginatingRows())
@@ -165,7 +175,7 @@ bool ConsoleWrapper::PrintResult(const Currency& cur)
         return true;               // Done printing for pagination
     }
 
-    EndPagination(true);           // Done paginating
+    EndPagination(wasPaginating);           // Done paginating
 
     if (!_displayStack.empty())
     {
@@ -181,8 +191,7 @@ bool ConsoleWrapper::PrintResult(const Currency& cur)
     return true;
 }
 //------------------------------------------------------------------------------
-//! Prints message for continuing/skipping pagination
-//! \param[in] showColControl True if paginating
+// Prints message for continuing/skipping pagination
 //------------------------------------------------------------------------------
 void ConsoleWrapper::PrintPaginationMessage(bool showColControl)
 {
@@ -208,7 +217,7 @@ void ConsoleWrapper::PrintPaginationMessage(bool showColControl)
 #endif
 }
 //------------------------------------------------------------------------------
-//! Prints end of pagination message
+// Prints end of pagination message
 //------------------------------------------------------------------------------
 void ConsoleWrapper::PrintPaginationMessage()
 {
@@ -216,24 +225,15 @@ void ConsoleWrapper::PrintPaginationMessage()
     if (!display) return;
 
     std::string strmsg;
-    bool printmsg = display->GetPaginationEndMsg(strmsg);
+    display->GetPaginationEndMsg(strmsg);
     if (!strmsg.empty())
         std::cout << strmsg << std::endl;
-
-    if (!printmsg) return;
-
-    std::string strtype (display->GetCurrency().GetTypeString());
-
-    if (!_interp->IsInterrupt())
-        PrintInfoToOmlWindow("-- End print " + strtype);
 }
 //------------------------------------------------------------------------------
-//! Prints string to console
-//! \param[in] result        Result
-//! \param[in] isprintoutput True if this is a result from printf/fprintf
+// Prints string to console
 //------------------------------------------------------------------------------
 void ConsoleWrapper::PrintToConsole(const std::string& result,
-                                               bool               isprintoutput)
+                                    bool               isprintoutput)
 {	
     if (result.empty()) return;
 
@@ -266,7 +266,7 @@ void ConsoleWrapper::PrintToConsole(const std::string& result,
     _appendOutput = !hasTrailingNewline;   
 }
 //------------------------------------------------------------------------------
-//! Clears results and pagination related to data
+// Clears results and pagination related to data
 //------------------------------------------------------------------------------
 void ConsoleWrapper::HandleOnClearResults()
 {
@@ -276,25 +276,26 @@ void ConsoleWrapper::HandleOnClearResults()
     _resultsToPrint.clear();
 
     while (!_displayStack.empty())
+    {
         EndPagination(false); 
+    }
 }
 //------------------------------------------------------------------------------
-//! Processes pagination
-//! \param[in] flag Pagination flag - forward/back/skip
+// Processes pagination
 //------------------------------------------------------------------------------
 void ConsoleWrapper::ProcessPagination()
 {
     CurrencyDisplay* display = GetCurrentDisplay();
     assert(display);
 
-	std::cout << std::endl;
-
     if (display->GetMode() == CurrencyDisplay::DISPLAYMODE_EXIT)
     {
-        while (!_displayStack.empty())
-            EndPagination(false);
+        std::cout << "\r" << std::endl;
 
-        PrintExitPaginationMessage();
+        while (!_displayStack.empty())
+        {
+            EndPagination(false);
+        }
     }
     else
     {
@@ -308,6 +309,15 @@ void ConsoleWrapper::ProcessPagination()
             const_cast<Currency&>(curBeingPrinted).SetDisplay(display);
 
             std::string out = curBeingPrinted.GetOutputString(_interp->GetOutputFormat());
+            if (display->GetDeleteLine())
+            {
+                std::cout << "\r";
+                display->SetDeleteLine(false);
+            }
+            else
+            {
+                std::cout << std::endl;
+            }
             bool isPrintOutput = curBeingPrinted.IsPrintfOutput();
 
             // Reget display as there could be nested pagination
@@ -327,19 +337,54 @@ void ConsoleWrapper::ProcessPagination()
                 return; // Still printing
             }
         }
+        else
+        {
+            std::cout << "\r" << std::endl;
+            display->SetDeleteLine(false);
+        }
 
         EndPagination(true);  // Done with pagination
 
         if (!_displayStack.empty())
         {
             display = _displayStack.top();
-            assert(display);
-            if (display->IsPaginatingCols() || display->IsPaginatingRows())
+            if (display && display->IsPaginatingCols() || display->IsPaginatingRows())
             {
-                PrintPaginationMessage(display->CanPaginateColumns());
-                return;
+                if (!display->CanPrintRows())
+                {
+                    PrintPaginationMessage(display->CanPaginateColumns());
+                    return;  // Nothing more to print
+                }
+                // Print the next rows
+                display->SetModeData();
+                const Currency& curBeingPrinted = display->GetCurrency();
+                const_cast<Currency&>(curBeingPrinted).SetDisplay(display);
+            
+                std::string out = curBeingPrinted.GetOutputString(_interp->GetOutputFormat());
+                bool        isprintoutput = curBeingPrinted.IsPrintfOutput();
+                PrintToConsole(out, isprintoutput);
+
+                CurrencyDisplay* topdisplay = GetCurrentDisplay();
+                assert(topdisplay);
+                if (topdisplay != display)
+                {
+                    // Nested pagination
+                    Currency newcur = const_cast<Currency&>(topdisplay->GetCurrency());
+                    newcur.SetDisplay(topdisplay);
+                    display = topdisplay;
+                }
+
+                if (topdisplay->IsPaginatingCols() || topdisplay->IsPaginatingRows())
+                {
+                    PrintPaginationMessage(topdisplay->CanPaginateColumns());
+                    return;
+                }
+                
             }
-            EndPagination(true);
+            if (display && !(display->IsPaginatingCols() || display->IsPaginatingRows()))
+            {
+                EndPagination(true);
+            }
         }
     }
 
@@ -359,7 +404,7 @@ void ConsoleWrapper::ProcessPagination()
     }
 }
 //------------------------------------------------------------------------------
-//! Paginates matrix and returns true if user has not pressed quit 
+// Paginates matrix and returns true if user has not pressed quit 
 //------------------------------------------------------------------------------
 void ConsoleWrapper::Paginate()
 {
@@ -399,6 +444,7 @@ void ConsoleWrapper::Paginate()
 
         CurrencyDisplay* display = _displayStack.top();
         assert(display);
+        bool canPaginateCols = display->CanPaginateColumns();
 
         WORD key = input.Event.KeyEvent.wVirtualKeyCode;
 
@@ -406,16 +452,37 @@ void ConsoleWrapper::Paginate()
 			display->SetMode(CurrencyDisplay::DISPLAYMODE_FORWARD);
 		
 		else if (key == 0x51 || key == 0x71)      // (q)uit
+        {
+            DeleteChainedDisplays(display);
 			display->SetMode(CurrencyDisplay::DISPLAYMODE_QUIT);
+        }
 
 		else if (key == 0x42 || key == 0x62)      // (b)ack pagination
 			display->SetMode(CurrencyDisplay::DISPLAYMODE_BACK);
 
 		else if (key == VK_RIGHT)                // right pagination
-			display->SetMode(CurrencyDisplay::DISPLAYMODE_RIGHT);
-
-		else if (key == VK_LEFT)                // right pagination
-			display->SetMode(CurrencyDisplay::DISPLAYMODE_LEFT);
+        {
+            if (canPaginateCols)
+            {
+		        display->SetMode(CurrencyDisplay::DISPLAYMODE_RIGHT);
+            }
+            else
+            {
+                display->SetMode(CurrencyDisplay::DISPLAYMODE_FORWARD);
+            }
+        }
+		else if (key == VK_LEFT)                // left pagination
+        {
+            if (canPaginateCols)
+            {
+		        display->SetMode(CurrencyDisplay::DISPLAYMODE_LEFT);
+            }
+            else
+            {
+                display->SetMode(CurrencyDisplay::DISPLAYMODE_BACK);
+            }
+            break;
+        }
 
 		else if (key == VK_UP)                // Up pagination
 			display->SetMode(CurrencyDisplay::DISPLAYMODE_UP);
@@ -424,16 +491,25 @@ void ConsoleWrapper::Paginate()
 			display->SetMode(CurrencyDisplay::DISPLAYMODE_DOWN);
 
 	    else if (key == 0x45 || key == 0x65)    // (e)xit
+        {
+            DeleteChainedDisplays(display);
 		    display->SetMode(CurrencyDisplay::DISPLAYMODE_EXIT);
+        }
 
-
-		else continue;
+        // Delete the last line has the pagination message
+        std::string deletedline ("\r");
+        for (int i = 1; i < maxcols - 1; ++i)
+        {
+            deletedline += " ";
+        }
+        std::cout << deletedline;
 		
 		ProcessPagination();
-
         bool isPaginating = IsPaginating();
-
-        if (!isPaginating) return;    // Done paginating
+        if (!isPaginating) 
+        {
+            return;    // Done paginating
+        }
     }
 #else
     // Get the terminal settings so there is no echo of input during 
@@ -481,7 +557,7 @@ void ConsoleWrapper::Paginate()
 #endif
 }
 //------------------------------------------------------------------------------
-//! Slot called when interpreter is deleted
+// Slot called when interpreter is deleted
 //------------------------------------------------------------------------------
 void ConsoleWrapper::HandleOnSaveOnExit()
 {	
@@ -493,14 +569,11 @@ void ConsoleWrapper::HandleOnSaveOnExit()
 	
 }
 //------------------------------------------------------------------------------
-//! Slot which displays a prompt and gets user input
-//! \param[in]  prompt    Prompt to display to user
-//! \param[in]  type      Type, if specified
-//! \param[out] userInput Input from user
+// Slot which displays a prompt and gets user input
 //------------------------------------------------------------------------------
 void ConsoleWrapper::HandleOnGetUserInput(const std::string& prompt,
-                                                     const std::string& type,
-													 std::string&       userInput)
+                                          const std::string& type,
+										  std::string&       userInput)
 {
     bool waspaginating = false;
     while (1)
@@ -527,19 +600,15 @@ void ConsoleWrapper::HandleOnGetUserInput(const std::string& prompt,
     }
 }
 //------------------------------------------------------------------------------
-//! Enable/disable pagination
-//! \param[in] enable True if pagination should be enabled
+// Sets pagination variables
 //------------------------------------------------------------------------------
-void ConsoleWrapper::SetEnablePagination(bool enable)
+void ConsoleWrapper::SetPaginationVariables()
 {
-    bool paginationEnv = IsPaginationEnvEnabled();
-    (!paginationEnv) ? _enablePagination = false : // Env takes precedence
-                       _enablePagination = enable;
-
-
-    if (_enablePagination)
+    // Environment variable takes precedence
+    if (BuiltInFuncsUtils::IsPaginationEnvEnabled())
+    {
         GetCommandWindowInfo();
-
+    }
     else
     {
         CurrencyDisplay::SetMaxCols(0);
@@ -547,25 +616,7 @@ void ConsoleWrapper::SetEnablePagination(bool enable)
     }
 }
 //------------------------------------------------------------------------------
-//! True if pagination environment is enabled
-//------------------------------------------------------------------------------
-bool ConsoleWrapper::IsPaginationEnvEnabled() const
-{
-    const char* paginationEnv = getenv("VISSIMMATH_PAGINATE");
-    if (!paginationEnv) return true;  // By default it is enabled
-
-    if (paginationEnv == "0") return false;
-
-    std::string strEnv (paginationEnv);
-    std::transform(strEnv.begin(), strEnv.end(), strEnv.begin(), ::tolower);
-
-    if (strEnv == "false" || strEnv == "0") return false;
-
-    return true;
-}
-//------------------------------------------------------------------------------
-//! Initializes and caches display for the given currency
-//! \param[in] cur Given currency
+// Initializes and caches display for the given currency
 //------------------------------------------------------------------------------
 void ConsoleWrapper::CacheDisplay(const Currency& cur)
 {
@@ -581,7 +632,7 @@ void ConsoleWrapper::CacheDisplay(const Currency& cur)
     _displayStack.push(display);  // This becomes the new top display
 }
 //------------------------------------------------------------------------------
-//! Clears display
+// Clears display
 //------------------------------------------------------------------------------
 void ConsoleWrapper::ClearDisplay()
 {
@@ -593,10 +644,12 @@ void ConsoleWrapper::ClearDisplay()
         _displayStack.pop();
     }
     if (_displayStack.empty())
+    {
         CurrencyDisplay::ClearLineCount();
+    }
 }
 //------------------------------------------------------------------------------
-//! Gets currenct display
+// Gets current display
 //------------------------------------------------------------------------------
 CurrencyDisplay* ConsoleWrapper::GetCurrentDisplay() const
 {
@@ -608,7 +661,7 @@ CurrencyDisplay* ConsoleWrapper::GetCurrentDisplay() const
     return display;
 }
 //------------------------------------------------------------------------------
-//! Returns true if pagination is in process
+// Returns true if pagination is in process
 //------------------------------------------------------------------------------
 bool ConsoleWrapper::IsPaginating()
 {
@@ -622,8 +675,7 @@ bool ConsoleWrapper::IsPaginating()
     return false;
 }
 //------------------------------------------------------------------------------
-//! Slot for when a new nested display needs to be added
-//! \param[in] display Display to be added
+// Slot for when a new nested display needs to be added
 //------------------------------------------------------------------------------
 void ConsoleWrapper::HandleOnAddDisplay(CurrencyDisplay* display)
 {
@@ -636,20 +688,11 @@ void ConsoleWrapper::HandleOnAddDisplay(CurrencyDisplay* display)
     _displayStack.push(display);
 }
 //------------------------------------------------------------------------------
-//! Slot called when initiating a user defined pause. Any character typed will
-//! break out of the pause
-//! \param[in] msg  User message to display
-//! \param[in] wait True if waiting for a keystroke input from user
+// Slot called when initiating a user defined pause. Any character typed will
+// break out of the pause
 //------------------------------------------------------------------------------
-void ConsoleWrapper::HandleOnPauseStart(const std::string& msg, 
-                                                   bool               wait)
+void ConsoleWrapper::HandleOnPauseStart(const std::string& msg, bool wait)
 {
-    if (!wait)
-    {
-        PrintInfoToOmlWindow(msg);
-        return;
-    }
-
     bool waspaginating = false;
     while (1)
     {
@@ -664,7 +707,9 @@ void ConsoleWrapper::HandleOnPauseStart(const std::string& msg,
     PrintInfoToOmlWindow(msg);
     
     if (!wait)
+    {
         return;
+    }
 
 #ifdef OS_WIN
 	HANDLE consoleInput = GetStdHandle(STD_INPUT_HANDLE); // Console input buffer
@@ -707,15 +752,7 @@ void ConsoleWrapper::HandleOnPauseStart(const std::string& msg,
 #endif
 }
 //------------------------------------------------------------------------------
-//! Prints exit pagination message
-//------------------------------------------------------------------------------
-void ConsoleWrapper::PrintExitPaginationMessage()
-{
-    PrintInfoToOmlWindow("-- End print ");
-}
-//------------------------------------------------------------------------------
-//! Cleans up after pagination like clearing display
-//! \param[in] printMsg True if end of pagination message needs to be printed
+// Cleans up after pagination like clearing display
 //------------------------------------------------------------------------------
 void ConsoleWrapper::EndPagination(bool printMsg)
 {
@@ -730,13 +767,9 @@ void ConsoleWrapper::EndPagination(bool printMsg)
         CurrencyDisplay::DeleteDisplay(display);
         _displayStack.pop();
     }
-
-    if (_displayStack.empty())
-        CurrencyDisplay::ClearLineCount();
 }
 //------------------------------------------------------------------------------
-//! Prints info message (in different color than results) to command window
-//! \param[in] msg  Message to print
+// Prints info message (in different color than results) to command window
 //------------------------------------------------------------------------------
 void ConsoleWrapper::PrintInfoToOmlWindow(const std::string& msg)
 {
@@ -766,8 +799,7 @@ void ConsoleWrapper::PrintInfoToOmlWindow(const std::string& msg)
 #endif
 }
 //------------------------------------------------------------------------------
-//! Prints info message, silent in quiet mode
-//! \param[in] msg Message to print
+// Prints info message, silent in quiet mode
 //------------------------------------------------------------------------------
 void ConsoleWrapper::PrintToStdout(const std::string& msg)
 {
@@ -775,7 +807,7 @@ void ConsoleWrapper::PrintToStdout(const std::string& msg)
         std::cout << msg;
 }
 //------------------------------------------------------------------------------
-//! Prints new prompt, resets append flags
+// Prints new prompt, resets append flags
 //------------------------------------------------------------------------------
 void ConsoleWrapper::PrintNewPrompt()
 {
@@ -791,4 +823,48 @@ void ConsoleWrapper::PrintNewPrompt()
     }
 
     PrintToStdout(">>>");        // New prompt
+}
+//------------------------------------------------------------------------------
+// Gets argv at the given index
+//------------------------------------------------------------------------------
+std::string ConsoleWrapper::GetArgv(int idx) const
+{
+    if (idx < 0 || _argv.empty() || idx >= static_cast<int>(_argv.size()))
+        return "";
+
+    return _argv[idx];
+}
+//------------------------------------------------------------------------------
+// Gets argc
+//------------------------------------------------------------------------------
+int ConsoleWrapper::GetArgc() const
+{
+    return (_argv.empty()) ? 0 : static_cast<int>(_argv.size());
+}
+//------------------------------------------------------------------------------
+// Deletes chained displays, if any
+//------------------------------------------------------------------------------
+void ConsoleWrapper::DeleteChainedDisplays(CurrencyDisplay* display)
+{
+    if (!display || _resultsToPrint.empty())
+    {
+        return;
+    }
+
+    for (std::vector<Currency>::iterator itr = _resultsToPrint.begin();
+         itr != _resultsToPrint.end();)
+    {
+        Currency cur = *itr;
+        CurrencyDisplay* curdisp = cur.GetDisplay();
+        if (display->IsChainedDisplay(curdisp))
+        {
+            CurrencyDisplay::DeleteDisplay(curdisp);
+            cur.SetDisplay(nullptr);
+            itr = _resultsToPrint.erase(itr);
+        }
+        else
+        {
+            ++itr;
+        }
+    }
 }

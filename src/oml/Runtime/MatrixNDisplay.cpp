@@ -239,6 +239,14 @@ void MatrixNDisplay::SetForwardDisplayData()
 
     m_colBegin = 0; 
 
+    // Figure out how many lines have been printed and set it
+    if (!m_parentDisplay ||                // First currency being paginated
+       (m_rowBegin > 0 || m_colBegin > 0)) // Only this currency is being paginated
+    {
+        m_linesPrinted = 0;
+    }
+
+
 	if (IsPaginatingRows())               // Row pagination
 		m_rowBegin = m_rowEnd + 1;
 	
@@ -258,12 +266,6 @@ void MatrixNDisplay::SetForwardDisplayData()
     m_colEnd = -1;
     m_rowEnd = -1;
 
-    // Figure out how many lines have been printed and set it
-    if (!m_parentDisplay ||                // First currency being paginated
-       (m_rowBegin > 0 || m_colBegin > 0)) // Only this currency is being paginated
-    {
-        m_linesPrinted = 0;
-    }
 }
 //------------------------------------------------------------------------------
 // Gets data with forward pagination
@@ -290,7 +292,7 @@ std::string MatrixNDisplay::GetOutputForwardPagination(const OutputFormat* fmt) 
 
     std::vector<Currency>::iterator itr = curs.begin() + m_rowBegin;
 	for (int i = m_rowBegin; 
-         i < numrows && i < numlabels && m_linesPrinted < totalrows && itr != curs.end(); 
+         i < numrows && i < numlabels && m_linesPrinted <= totalrows && itr != curs.end(); 
          ++i, ++itr)
 	{	
         m_rowEnd = i;
@@ -299,8 +301,7 @@ std::string MatrixNDisplay::GetOutputForwardPagination(const OutputFormat* fmt) 
         bool canpaginate = CanPaginate(cur);
 
         os << std::endl << labels[i] << " = " << std::endl;
-        m_linesPrinted += 2;
-
+        m_linesPrinted ++;
         if (canpaginate)
         {
             CurrencyDisplay* disp = cur.GetDisplay();
@@ -340,13 +341,17 @@ std::string MatrixNDisplay::GetOutputForwardPagination(const OutputFormat* fmt) 
         cur.SetDisplay(NULL);
 
         os << std::endl;
-        m_linesPrinted++;
+         m_linesPrinted++;
     }
 
     std::string output (os.str());
     if (!output.empty() && output[output.size()-1] == '\n')
     {
         output.pop_back();
+        if (m_linesPrinted >= 1)
+        {
+            m_linesPrinted--;
+        }
     }
     return output;
 }
@@ -376,7 +381,7 @@ std::string MatrixNDisplay::GetOutputBackPagination(const OutputFormat* fmt) con
     std::vector<Currency>::reverse_iterator ritr = curs.rbegin() + endrow;
     std::vector<Currency>::reverse_iterator end  = curs.rend();
     int numlabels = labels.empty() ? 0 : static_cast<int>(labels.size()); 
-	for (int i = endrow; i >= 0 && m_linesPrinted <= linestofit && ritr != end; 
+	for (int i = endrow; i >= 0 && m_linesPrinted <= m_maxRows && ritr != end; 
          --i, ++ritr)
 	{	
         m_rowBegin = i;
@@ -395,7 +400,6 @@ std::string MatrixNDisplay::GetOutputBackPagination(const OutputFormat* fmt) con
 
         os << std::endl << labels[i] << " = " << std::endl;
         m_linesPrinted += 2;
-
         std::string tmp (cur.GetOutputString(fmt));
         StripEndline(tmp);
         os << tmp;
@@ -421,8 +425,8 @@ std::string MatrixNDisplay::GetOutputBackPagination(const OutputFormat* fmt) con
                 }
             }
         }
-        else
-            m_linesPrinted++;
+        //else
+        //    m_linesPrinted++;
 
         CurrencyDisplay::DeleteDisplay(cur.GetDisplay());
         cur.SetDisplay(NULL);
