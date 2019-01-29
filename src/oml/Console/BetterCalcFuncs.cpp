@@ -26,6 +26,7 @@
 
 #include "BetterCalc.h"
 #include "ConsoleWrapper.h"
+#include "OpenMatrix_Version.h"
 
 #include <cassert>
 
@@ -37,7 +38,6 @@ extern Interpreter*    interp;
 extern ConsoleWrapper* wrapper;
 
 #define OML_PRODUCT "OpenMatrix "
-#define OML_VERSION "1.0"
 // End defines/includes
 
 #if OS_WIN

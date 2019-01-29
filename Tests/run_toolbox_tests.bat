@@ -22,7 +22,7 @@ pwd
 %OML_ROOT%/Tests/regressOMLConsole.pl
 echo Completed %1 toolbox tests
 echo ==================== ====================  ==================== ====================
-if not exist *.log echo ALL TESTS PASS! & echo. & goto :EOF
+if not exist *.log echo ALL %1 toolbox tests PASS! & echo. & goto :EOF
 echo.
 for %%a in ("*.log") do call :run_log_compare %%a
 goto :EOF

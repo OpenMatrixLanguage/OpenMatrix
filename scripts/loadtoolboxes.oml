@@ -19,7 +19,7 @@ loadtoolbox omlDiffEq
 loadtoolbox omlMathUtils
 loadtoolbox omlOptimization
 loadtoolbox omlPolynom
-loadtoolbox omlpythonbridge
+%loadtoolbox omlpythonbridge
 loadtoolbox omlSignals
 loadtoolbox omlStatistics
 loadtoolbox omlMatio
