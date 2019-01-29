@@ -44,6 +44,10 @@ $RECYCLE.BIN/
 dummy
 *.bak
 
+x64/
+src/bin
+src/lib
+
 # =========================
 # Operating System Files
 # =========================
