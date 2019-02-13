@@ -6,6 +6,8 @@ addons:
     - ubuntu-toolchain-r-test
    packages:
     - g++-4.9
+  env:
+   - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
   apt_packages:
     - gfortran
 sudo: required
@@ -15,7 +17,6 @@ before_install:
 - git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Linux.git Linux
 - eval "${MATRIX_EVAL}"
 env:
-  MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
   SH=bash
   OML_ROOT=$PWD
   OML_THIRDPARTY=$PWD/Linux/third_party
