@@ -14,6 +14,7 @@ python:
 before_install:
 - git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Linux.git Linux
 env:
+  MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
   SH=bash
   OML_ROOT=$PWD
   OML_THIRDPARTY=$PWD/Linux/third_party
@@ -31,9 +32,9 @@ env:
   OML_PYTHONHOME=/usr
   OML_PYTHONVERSION=python3
   OML_PYTHON_NUMPYDIR=$OML_PYTHONHOME/lib/$OML_PYTHONVERSION/dist-packages/numpy/core/include/numpy/
-  MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
 before_script:
 script:
+- g++ --version
 - cd $OML_ROOT/src
 - ls -alF
 - make -f makefile.open
@@ -46,4 +47,4 @@ after_success:
 - source run_toolbox_tests.sh
 - cd $OML_ROOT/Tests
 - source evaluate_test_results.sh
-compiler: gcc
+#compiler: gcc
