@@ -37,8 +37,10 @@ before_script:
 script:
 - g++ --version
 - $CXX --version
-- which gfortran
 - gfortran --version
+- which gfortran
+- ls -alF /usr/bin | grep fortran
+- set | grep LD_LIBRARY_PATH
 - cd $OML_ROOT/src
 - ls -alF
 - make -f makefile.open
