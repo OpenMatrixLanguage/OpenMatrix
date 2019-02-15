@@ -26,7 +26,7 @@ env:
   LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/hdf5/hdf5-1.10.1/hdf5/lib
   LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/sundials/sundials-3.1.0-install/lib
   LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_ROOT/src/bin/linux64
-  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/bin:/usr/lib
+  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/bin:/usr/lib:/usr/lib64
   LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu
   LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lib/x86_64-linux-gnu
   PATH=$PATH:$OML_ROOT/src/bin/linux64
@@ -37,9 +37,12 @@ before_script:
 script:
 - g++ --version
 - $CXX --version
+- which $CXX
 - gfortran --version
 - which gfortran
 - ls -alF /usr/bin | grep fortran
+- ls -alF /usr/lib | grep fortran
+- ls -alF /usr/lib64 | grep fortran
 - set | grep LD_LIBRARY_PATH
 - cd $OML_ROOT/src
 - ls -alF
