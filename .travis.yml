@@ -7,6 +7,7 @@ addons:
    packages:
     - gcc-4.9
     - g++-4.9
+    - gfortran-4.9
   apt_packages:
     - gfortran
 sudo: required
@@ -40,6 +41,8 @@ script:
 - which $CXX
 - gfortran --version
 - which gfortran
+- gfortran-4.9 --version
+- which gfortran-4.9
 - ls -alF /usr/bin | grep fortran
 - ls -alF /usr/lib | grep fortran
 - ls -alF /usr/lib64 | grep fortran
