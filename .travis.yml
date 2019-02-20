@@ -43,6 +43,8 @@ script:
 - ls -alF /usr/bin | grep fortran
 - ls -alF /usr/lib | grep fortran
 - ls -alF /usr/lib64 | grep fortran
+- ls -alF /usr/lib/x86_64-linux-gnu | grep fortran
+- ls -alF /lib/x86_64-linux-gnu | grep fortran
 - set | grep LD_LIBRARY_PATH
 - cd $OML_ROOT/src
 - ls -alF
