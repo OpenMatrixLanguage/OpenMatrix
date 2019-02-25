@@ -2,7 +2,7 @@
 * @file MemoryScope.cpp
 * @date August 2013
 * Copyright (C) 2013-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 #include "MemoryScope.h"
@@ -100,10 +100,13 @@ const Currency& MemoryScope::GetValue(const std::string* var_ptr) const
 
 	if (fi && fi->Persistent())
 	{
-		const Currency& temp_cur  = fi->Persistent()->GetValue(var_ptr);
+		if (fi->Persistent()->Contains(var_ptr))
+		{
+			const Currency& temp_cur = fi->Persistent()->GetValue(var_ptr);
 
-		if (!temp_cur.IsNothing())
-			return temp_cur;
+			if (!temp_cur.IsNothing())
+				return temp_cur;
+		}
 	}
 
 	std::map<const std::string*, Currency>::const_iterator temp;
@@ -135,6 +138,13 @@ Currency& MemoryScope::GetMutableValue(const std::string& varname)
 		return globals[varname];
 
 	const std::string* var_ptr = Currency::vm.GetStringPointer(varname);
+
+	if (fi && fi->Persistent())
+	{
+		if (fi->Persistent()->Contains(var_ptr))
+			return fi->Persistent()->GetMutableValue(var_ptr);
+	}
+
 	std::map<const std::string*, Currency>::iterator temp = scope.find(var_ptr);
 
 	if (temp == scope.end())
@@ -168,6 +178,30 @@ Currency& MemoryScope::GetMutableValue(const std::string* var_ptr)
 	}
 
 	return temp->second;
+}
+
+Currency* MemoryScope::GetMutablePointer(const std::string* var_ptr)
+{
+	if (std::find(global_names.begin(), global_names.end(), *var_ptr) != global_names.end())
+		return &(globals[*var_ptr]);
+
+	if (fi && fi->Persistent())
+	{
+		if (fi->Persistent()->Contains(var_ptr))
+			return fi->Persistent()->GetMutablePointer(var_ptr);
+	}
+
+	std::map<const std::string*, Currency>::iterator temp = scope.find(var_ptr);
+
+	if (temp == scope.end())
+	{
+		Currency empty;
+		scope[var_ptr] = empty;
+		temp = scope.find(var_ptr);
+	}
+
+	temp->second.SetOutputName(var_ptr);
+	return &(temp->second);
 }
 
 bool MemoryScope::Contains(const std::string* var_ptr) const
@@ -723,6 +757,11 @@ Currency& MemoryScopeManager::GetMutableValue(const std::string& varname)
 Currency& MemoryScopeManager::GetMutableValue(const std::string* var_ptr)
 {
 	return GetCurrentScope()->GetMutableValue(var_ptr);
+}
+
+Currency* MemoryScopeManager::GetMutablePointer(const std::string* var_ptr)
+{
+	return GetCurrentScope()->GetMutablePointer(var_ptr);
 }
 
 Currency& MemoryScopeManager::GetMutableParentValue(const std::string& varname)

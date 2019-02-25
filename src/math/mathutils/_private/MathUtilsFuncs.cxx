@@ -2,7 +2,7 @@
 * @file MathUtilsFuncs.cxx
 * @date June 2007
 * Copyright (C) 2007-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,10 +10,12 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
-#include <MathUtilsFuncs.h>
+#include "MathUtilsFuncs.h"
+#include "hwMatrix.h"
+#include "GeneralFuncs.h"
 
 #include <vector>
 #include <algorithm>
@@ -2467,4 +2469,63 @@ hwMathStatus Sort(const hwMatrix& unsorted,
     }
 
     return status;
+}
+//------------------------------------------------------------------------------
+// Computes the continued fraction approximation of a value and returns
+// the status
+//------------------------------------------------------------------------------
+hwMathStatus ContFrac(double     value, 
+                      double     tol, 
+                      double&    num,
+                      double&    den,
+                      hwMatrix&  cf)
+{
+    if (fabs(value) < MACHEP2 || fabs(value) * MACHEP2 > 1)
+    {
+        return hwMathStatus(HW_MATH_ERR_BADRANGE, 1);
+    }
+
+    if (tol <= 0.0)
+    {
+        return hwMathStatus(HW_MATH_ERR_NONPOSITIVE, 2);
+    }
+
+    hwMathStatus status = cf.Dimension(1, hwMatrix::REAL);
+
+    int    numTerms = 1;
+    double intgr    = RoundT(value);
+    double frac     = value - intgr;
+    double n_old2   = 1.0;
+    double d_old2   = 0.0;
+
+    num   = intgr;
+    den   = 1;
+    cf(0) = intgr;
+
+    while (fabs(value - num/den) >= tol)
+    {
+        numTerms++;
+        status = cf.Resize(numTerms);
+
+        double recip = 1.0 / frac;
+        intgr = RoundT(recip);
+
+        cf(numTerms-1) = intgr;
+        frac = recip - intgr;
+
+        double n_old1 = num;
+        double d_old1 = den;
+        num = num * cf(numTerms-1) + n_old2;
+        den = den * cf(numTerms-1) + d_old2;
+        n_old2 = n_old1;
+        d_old2 = d_old1;
+    }
+
+    if (den < 0)
+    {
+        num = -num;
+        den = -den;
+    }
+
+    return hwMathStatus();
 }

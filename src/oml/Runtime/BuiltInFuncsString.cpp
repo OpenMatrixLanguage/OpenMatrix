@@ -2,7 +2,7 @@
 * @file BuiltInFuncsString.cpp
 * @date November 2015
 * Copyright (C) 2015-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 // Begin defines/includes
@@ -501,6 +501,8 @@ bool BuiltInFuncsString::Mat2Str(EvaluatorInterface           eval,
 {
     int nargin = inputs.empty() ? 0 : static_cast<int>(inputs.size());
     if (nargin < 1) throw OML_Error(OML_ERR_NUMARGIN);
+	
+	if (nargin > 3) throw OML_Error(OML_ERR_NUMARGIN);
 
     std::string output ("[");
     const Currency& cur = inputs[0];
@@ -676,19 +678,17 @@ bool BuiltInFuncsString::Mat2Str(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Returns true after matching/replacing  substrings
+// Returns true after matching/replacing  substrings [regexprep]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsString::Regexprep(EvaluatorInterface           eval,
                                    const std::vector<Currency>& inputs,
                                    std::vector<Currency>&       outputs)
 {
     size_t nargin = inputs.empty() ? 0 : inputs.size();
-    if (nargin < 3) 
+    if (nargin < 3)
+    {
         throw OML_Error(OML_ERR_NUMARGIN);
-
-    Currency in1 = inputs[0];
-    Currency in2 = inputs[1];
-    Currency in3 = inputs[2];
+    }
 
     BuiltInFuncsString funcs;
     std::vector<std::string> srcvec (funcs.Currency2StringVec(inputs[0], 1));
@@ -696,34 +696,46 @@ bool BuiltInFuncsString::Regexprep(EvaluatorInterface           eval,
     std::vector<std::string> repvec (funcs.Currency2StringVec(inputs[2], 3));
     std::vector<std::string> opts;
 
-    std::regex_constants::match_flag_type replaceflag = 
+    std::regex_constants::match_flag_type replaceflag =
         std::regex_constants::match_default;
-    std::regex_constants::syntax_option_type syntaxflag = std::regex_constants::ECMAScript;
+    std::regex_constants::syntax_option_type syntaxflag =
+        std::regex_constants::ECMAScript;
+
+    // Get other options, if any
     bool emptymatch = false;
     bool ignorecase = false;
-    // Get other options, if any
     for (int i = 3; i < nargin; ++i)
     {
-        Currency tmp = inputs[i];
-        if (!tmp.IsString())
+        if (!inputs[i].IsString())
+        {
             throw OML_Error(OML_ERR_STRING, i + 1, OML_VAR_TYPE);
-
-        std::string val = tmp.StringVal();
-        if (val.empty()) continue;
-
+        }
+        std::string val (inputs[i].StringVal());
+        if (val.empty())
+        {
+            continue;
+        }
+            
         std::transform(val.begin(), val.end(), val.begin(), ::tolower);
         if (val == "once")
+        {
             replaceflag = std::regex_constants::format_first_only;
+        }
         else if (val == "ignorecase")
-            syntaxflag  = std::regex_constants::ECMAScript | std::regex_constants::icase;
+        {
+            syntaxflag = std::regex_constants::ECMAScript | std::regex_constants::icase;
+            ignorecase = true;
+        }
         else if (val == "emptymatch")
+        {
             emptymatch = true;
-            
+        }
     }
 
     if (!emptymatch)
+    {
         replaceflag |= std::regex_constants::match_not_null;
-
+    }
     if (srcvec.empty() || patvec.empty() || repvec.empty())
     {
         outputs.push_back(inputs[0]);
@@ -736,11 +748,12 @@ bool BuiltInFuncsString::Regexprep(EvaluatorInterface           eval,
     size_t repidx = 0;
     size_t numrep = repvec.size();
 
+    
     {
         for (std::vector<std::string>::const_iterator itr1 = srcvec.begin();
              itr1 != srcvec.end(); ++itr1)
         {
-            std::string txt = *itr1;
+            std::string txt (*itr1);
             if (txt.empty())
             {
                 out.push_back("");
@@ -748,31 +761,58 @@ bool BuiltInFuncsString::Regexprep(EvaluatorInterface           eval,
             }
 
             for (std::vector<std::string>::const_iterator itr2 = patvec.begin();
-                 itr2 != patvec.end(); ++itr2)
+                itr2 != patvec.end(); ++itr2)
             {
-                std::string pat = *itr2;
-                if (pat.empty()) continue;
+                std::string pat(*itr2);
+                if (pat.empty())
+                {
+                    continue;
+                }
 
-                std::string rep = repvec[repidx++];
+#ifndef OS_WIN
+                // * in the pattern causes a zero search. So replace
+                // with + which includes the rest of the characters
+                size_t len = pat.size();
+                std::string tmp;
+                for (size_t k = 0; k < len; ++k)
+                {
+                    char ch = pat[k];
+                    if (ch != '*' ||
+                        (ch == '*' && ((k > 0 && pat[k - 1] == '\\') || emptymatch)))
+                    {
+                        continue;
+                    }
+                    pat[k] = '+';  // Substitute just '*' for '+'
+                }
+
+                if (ignorecase)
+                {
+                    // option 'ignorecase' does not seem to work on Linux
+                    len = pat.find_last_of(']');
+                    if (len != std::string::npos)
+                    {
+                        pat.insert(len, "(?-i)");
+                    }
+                }
+#endif
+                std::string rep (repvec[repidx++]);
                 if (repidx >= numrep)
+                {
                     repidx = 0;
-
-                std::regex regexpat(pat, syntaxflag);
-
+                }
                 std::string result;
                 try
                 {
+                    std::regex regexpat(pat, syntaxflag);  
                     result = std::regex_replace(txt, regexpat, rep, replaceflag);
                 }
                 catch (std::regex_error& err)
                 {
-                    std::string msg = "Error: " + std::string(err.what());
-                    msg += ", code " + std::to_string(static_cast<long long>(err.code()));
-                    throw OML_Error(msg);
+                    ThrowRegexError(err.code());
                 }
                 catch (...)
                 {
-                    throw OML_Error("Error: cannot parse regular expression; unknown error");
+                    throw OML_Error("Error: cannot parse regular expression in argument 2");
                 }
                 txt = result;
             }
@@ -927,7 +967,7 @@ bool BuiltInFuncsString::Num2Str(EvaluatorInterface           eval,
 
     if (inputs.size() > 1)
     {
-        Currency tmp = inputs[1];
+        const Currency& tmp = inputs[1];
         if (!tmp.IsInteger() && !tmp.IsString())
         {
             throw OML_Error(OML_ERR_STRING_NATURALNUM, 2, OML_VAR_TYPE);
@@ -1085,7 +1125,6 @@ std::string BuiltInFuncsString::Dbl2Str(const Currency&     cur,
         os << std::setprecision(static_cast<std::streamsize>(totaldigits));
         os << val;
         std::string strval (os.str());
-#ifdef OS_UNIX
         if (!strval.empty())
         {
             size_t pos = strval.find(".");
@@ -1098,7 +1137,6 @@ std::string BuiltInFuncsString::Dbl2Str(const Currency&     cur,
                 }
             }
         }
-#endif
         return strval;
     }
 

@@ -2,7 +2,7 @@
 * @file OML_Error.cpp
 * @date November 2015
 * Copyright (C) 2015-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 #include "OML_Error.h"
@@ -98,17 +98,36 @@ std::string OML_Error::GetErrorMessage() const
             std::string message = GetComposeErrMsg(m_errCode);
             size_t pos = message.find(';');
             size_t len = message.length();
-            char argChar[8];
-            _itoa_s(m_arg1, argChar, 8, 10);
 
+            std::string argChar = std::to_string(static_cast<long long>(m_arg1));
+
+            msgStr = (pos == std::string::npos) ? message : 
+                                                  message.substr(0, pos);
+                     
             // get message up to semicolon, insert argument number
-            msgStr = message.substr(0, pos) + " in argument " + (std::string(argChar) + "; ");
+            msgStr += " in argument " + argChar;
 
             // insert variable name if exists, append rest of message
             if (m_varCode != OML_VAR_NONE)
-                msgStr += GetComposeVarStr(m_varCode) + message.substr(pos+1, len-pos);
-            else
-                msgStr += message.substr(pos+2, len-pos);
+            {
+                if (pos != std::string::npos && pos < len - 1)
+                {
+                    msgStr += "; ";
+                }
+                else 
+                {
+                    msgStr += " ";
+                }
+                msgStr += GetComposeVarStr(m_varCode);
+                if (pos != std::string::npos)
+                {
+                    msgStr += message.substr(pos+1, len-pos);
+                }
+            }
+            else if (pos != std::string::npos && pos < len - 1)
+            {
+                msgStr += "; " + message.substr(pos+2, len-pos);
+            }
         }
         else if (m_arg1 != -1 && m_arg2 != -1)  // two arguments
         {
@@ -175,6 +194,9 @@ std::string GetComposeErrMsg(omlMathErrCode errCode)
     case OML_ERR_CELLARRAY:                     msgStr = OML_MSG_CELLARRAY;                     break;
     case OML_ERR_STRUCT:                        msgStr = OML_MSG_STRUCT;                        break;
     case OML_ERR_STRING:                        msgStr = OML_MSG_STRING;                        break;
+    case OML_ERR_INTSTRING:                     msgStr = OML_MSG_INTSTRING;                     break;
+    case OML_ERR_SCALARSTRING:                  msgStr = OML_MSG_SCALARSTRING;                  break;
+    case OML_ERR_BAD_STRING:                    msgStr = OML_MSG_BAD_STRING;                    break;
     case OML_ERR_NUMERIC:                       msgStr = OML_MSG_NUMERIC;                       break;
     case OML_ERR_SCALAR:                        msgStr = OML_MSG_SCALAR;                        break;
     case OML_ERR_VECTOR:                        msgStr = OML_MSG_VECTOR;                        break;
@@ -193,6 +215,7 @@ std::string GetComposeErrMsg(omlMathErrCode errCode)
     case OML_ERR_HANDLE:                        msgStr = OML_MSG_HANDLE;                        break;
     case OML_ERR_HANDLE_EMPTY:                  msgStr = OML_MSG_HANDLE_EMPTY;                  break;
     case OML_ERR_FUNCNAME:                      msgStr = OML_MSG_FUNCNAME;                      break;
+    case OML_ERR_ACCUMFUNC:                     msgStr = OML_MSG_ACCUMFUNC;                     break;
     case OML_ERR_REAL:                          msgStr = OML_MSG_REAL;                          break;
     case OML_ERR_INTEGER:                       msgStr = OML_MSG_INTEGER;                       break;
     case OML_ERR_NATURALNUM:                    msgStr = OML_MSG_NATURALNUM;                    break;
@@ -214,6 +237,7 @@ std::string GetComposeErrMsg(omlMathErrCode errCode)
     case OML_ERR_FLAG_01:                       msgStr = OML_MSG_FLAG_01;                       break;
     case OML_ERR_FORMAT:                        msgStr = OML_MSG_FORMAT;                        break;
     case OML_ERR_PNORM:                         msgStr = OML_MSG_PNORM;                         break;
+    case OML_ERR_NORM_STRING3:                  msgStr = OML_MSG_NORM_STRING3;                  break;
     case OML_ERR_NOCOMPLEX:                     msgStr = OML_MSG_NOCOMPLEX;                     break;
     case OML_ERR_NATURALNUM_MATRIX_CELLARRAY:   msgStr = OML_MSG_NATURALNUM_MATRIX_CELLARRAY;   break;
     case OML_ERR_STRING_MATRIX_CELLARRAY:       msgStr = OML_MSG_STRING_MATRIX_CELLARRAY;       break;    
@@ -249,6 +273,7 @@ std::string GetComposeErrMsg(omlMathErrCode errCode)
     case OML_ERR_INTEGER_INTMTX:                msgStr = OML_MSG_INTEGER_INTMTX; break;
     case OML_ERR_LOGICAL:                       msgStr = OML_MSG_LOGICAL; break;
     case OML_ERR_INVALID_VERSION:               msgStr = OML_MSG_INVALID_VERSION; break;
+    case OML_ERR_FILE_FILESTREAM:               msgStr = OML_MSG_FILE_FILESTREAM; break;
 
     // plot error messages:
     case OML_ERR_PLOT_OUT_OF_RANGE:             msgStr = OML_MSG_PLOT_OUT_OF_RANGE;             break;
@@ -296,6 +321,7 @@ std::string GetComposeVarStr(omlMathVarCode varCode)
     case OML_VAR_MATRIX:       varStr = OML_STR_MATRIX;       break;
     case OML_VAR_VECTOR:       varStr = OML_STR_VECTOR;       break;
     case OML_VAR_STRUCT:       varStr = OML_STR_STRUCT;       break;
+    case OML_VAR_CELL:         varStr = OML_STR_CELL;         break;
     case OML_VAR_STRING:       varStr = OML_STR_STRING;       break;
     case OML_VAR_INDEX:        varStr = OML_STR_INDEX;        break;
     case OML_VAR_ORDER:        varStr = OML_STR_ORDER;        break;
@@ -305,6 +331,7 @@ std::string GetComposeVarStr(omlMathVarCode varCode)
     case OML_VAR_VALUE:        varStr = OML_STR_VALUE;        break;
     case OML_VAR_VARIABLE:     varStr = OML_STR_VARIABLE;     break;
     case OML_VAR_DATA:         varStr = OML_STR_DATA;         break;
+    case OML_VAR_FUNC:         varStr = OML_STR_FUNC;         break;
     case OML_VAR_INPUT:        varStr = OML_STR_INPUT;        break;
     case OML_VAR_PARAMETER:    varStr = OML_STR_PARAMETER;    break;
     case OML_VAR_CONTEXT:      varStr = OML_STR_CONTEXT;      break;
@@ -326,6 +353,7 @@ std::string GetComposeVarStr(omlMathVarCode varCode)
     case OML_VAR_FILEID:       varStr = OML_STR_FILEID;       break;
     case OML_VAR_OFFSET:       varStr = OML_STR_OFFSET;       break;
     case OML_VAR_LENGTH:       varStr = OML_STR_LENGTH;       break;
+    case OML_VAR_OPTION:       varStr = OML_STR_OPTION;       break;
     default: break;
     }
 

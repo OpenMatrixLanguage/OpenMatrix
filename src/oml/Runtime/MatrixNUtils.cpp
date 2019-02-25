@@ -2,7 +2,7 @@
 * @file MatrixNUtils.cpp
 * @date January 2018
 * Copyright (C) 2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 // Begin defines/includes
@@ -20,15 +20,12 @@
 #include "OML_Error.h"
 #include "Evaluator.h"
 #include "MatrixNUtils.h"
-#include <memory>  // For std::unique_ptr
+#include <memory>
 
-// Apply a function to each element of an ND matrix. The syntax is oml_func(ND).
+// Apply a function to each element of an ND matrix. The syntax is oml_func(ND, ...).
 bool oml_MatrixNUtil1(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs,
                       const OML_func1 oml_func)
 {
-    if (inputs.size() != 1)
-        throw OML_Error(OML_ERR_NUMARGIN);
-
     if (!inputs[0].IsNDMatrix())
     {
         // throw OML_Error(OML_ERR_NDMATRIX, 1, OML_STR_VARIABLE);
@@ -50,6 +47,12 @@ bool oml_MatrixNUtil1(EvaluatorInterface eval, const std::vector<Currency>& inpu
     std::vector<Currency> outputs2;
 
     inputs2.push_back(slice2D);
+
+    for (int i = 1; i < inputs.size(); ++i)
+    {
+        inputs2.push_back(inputs[i]);
+    }
+
     oml_func(eval, inputs2, outputs2);
 
     // check type of outputs2; not used for assert(ND)
@@ -530,6 +533,97 @@ bool oml_MatrixNUtil4(EvaluatorInterface eval, const std::vector<Currency>& inpu
 
     if (nargout == 2)
         outputs.push_back(outMatrix2);
+
+    return true;
+}
+
+// Apply a function to an argument list that contains vectors stored as ND matrices. The
+// syntax is oml_func(..., ND, ...). Output vectors will be in the same dimension as the first
+// argument if it is a vector.
+// Examples: not yet in use
+bool oml_MatrixNVecs(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs,
+                     const OML_func1 oml_func)
+{
+    size_t nargin = inputs.size();
+    std::vector<Currency> inputs2;
+    std::vector<Currency> outputs2;
+    size_t dim = -1;
+
+    for (size_t i = 0; i < nargin; ++i)
+    {
+        if (inputs[i].IsNDMatrix())
+        {
+            const hwMatrixN* matrixN = inputs[i].MatrixN();
+
+            if (matrixN->IsVector())
+            {
+                if (i == 0)
+                {
+                    const std::vector<int>& dims = matrixN->Dimensions();
+
+                    for (size_t j = dims.size()-1; j > 0; --j)
+                    {
+                        if (dims[j] != 1)
+                        {
+                            dim = j;
+                            break;
+                        }
+                    }
+                }
+
+                std::vector<hwSliceArg> sliceArgs;
+                sliceArgs.push_back(hwSliceArg());
+                hwMatrixN slice;
+                matrixN->SliceRHS(sliceArgs, slice);
+                hwMatrix* vec = new hwMatrix;
+                slice.ConvertNDto2D(*vec);
+                inputs2.push_back(vec);
+            }
+            else
+            {
+                inputs2.push_back(inputs[i]);
+            }
+        }
+        else
+        {
+            inputs2.push_back(inputs[i]);
+        }
+    }
+
+    oml_func(eval, inputs2, outputs2);
+
+    size_t nargout = outputs2.size();
+
+    for (size_t i = 0; i < nargin; ++i)
+    {
+        if (outputs2[i].IsMatrix())
+        {
+            hwMatrix* matrix = outputs2[i].GetWritableMatrix();
+
+            if (matrix->IsVector())
+            {
+                std::vector<int> dims(dim+1);
+
+                for (int j = 0; j < dim; ++j)
+                    dims[j] = 1;
+
+                dims[dim] = matrix->Size();
+
+                hwMatrixN* vec = new hwMatrixN;
+                vec->Convert2DtoND(*matrix);
+                vec->Reshape(dims);
+                outputs.push_back(vec);
+            }
+            else
+            {
+                outputs.push_back(outputs2[i]);
+            }
+        }
+        else
+        {
+            outputs.push_back(outputs2[i]);
+        }
+    }
 
     return true;
 }

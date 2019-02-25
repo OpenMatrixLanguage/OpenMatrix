@@ -2,7 +2,7 @@
 * @file StructData.cpp
 * @date September 2013
 * Copyright (C) 2013-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 #include "StructData.h"
@@ -30,7 +30,13 @@ StructData::StructData(const StructData& in)
 	next_key     = in.next_key;
 }
 
-const Currency& StructData::GetValue(int index_1, int index_2, std::string field) const
+const Currency& StructData::GetValue(int index_1, int index_2, const std::string& field) const
+{
+	const std::string* field_ptr = Currency::vm.GetStringPointer(field);
+	return GetValue(index_1, index_2, field_ptr);
+}
+
+const Currency& StructData::GetValue(int index_1, int index_2, const std::string* field) const
 {
 	static Currency _not_used = new hwMatrix();
 
@@ -42,9 +48,15 @@ const Currency& StructData::GetValue(int index_1, int index_2, std::string field
 	return *ret;
 }
 
-const Currency* StructData::GetPointer(int index_1, int index_2, std::string field) const
+const Currency* StructData::GetPointer(int index_1, int index_2, const std::string& field) const
 {
-	std::map<std::string, int>::const_iterator temp;
+	const std::string* field_ptr = Currency::vm.GetStringPointer(field);
+	return GetPointer(index_1, index_2, field_ptr);
+}
+
+const Currency* StructData::GetPointer(int index_1, int index_2, const std::string* field) const
+{
+	std::map<const std::string*, int>::const_iterator temp;
 	temp = field_names.find(field);
 
 	if (temp == field_names.end())
@@ -79,17 +91,28 @@ const Currency* StructData::GetPointer(int index_1, int index_2, std::string fie
 	else
 		field_vals = &((*field_values)(index_1));
 
+	// if field_vals is empty, initialize the field values before you search
+
 	std::map<int, Currency>::const_iterator temp2;
 	temp2 = field_vals->find(field_key);
 
 	if (temp2 == field_vals->end())
-		return NULL;
+	{
+		(*field_vals)[field_key] = Currency();
+		temp2 = field_vals->find(field_key);
+	}
 
 	const Currency* ret_val = &(temp2->second);
 	return ret_val;
 }
 
-void StructData::SetValue(int index_1, int index_2, std::string field, Currency value)
+void StructData::SetValue(int index_1, int index_2, const std::string& field, Currency value)
+{
+	const std::string* field_ptr = Currency::vm.GetStringPointer(field);
+	return SetValue(index_1, index_2, field_ptr, value);
+}
+
+void StructData::SetValue(int index_1, int index_2, const std::string* field, Currency value)
 {
 	value.ClearOutputName();
 
@@ -241,7 +264,13 @@ void StructData::SetElement(int index_1, int index_2, StructData* sd)
 	}
 }
 
-void StructData::addField(std::string& field)
+void StructData::addField(const std::string& field)
+{
+	const std::string* field_ptr = Currency::vm.GetStringPointer(field);
+	addField(field_ptr);
+}
+
+void StructData::addField(const std::string* field)
 {
 	if (field_names.find(field) == field_names.end())
 		field_names[field] = next_key++;
@@ -249,7 +278,13 @@ void StructData::addField(std::string& field)
 
 bool StructData::Contains(const std::string& field) const
 {
-	std::map<std::string, int>::const_iterator temp; temp = field_names.find(field);
+	const std::string* field_ptr = Currency::vm.GetStringPointer(field);
+	return Contains(field_ptr);
+}
+
+bool StructData::Contains(const std::string* field) const
+{
+	std::map<const std::string*, int>::const_iterator temp; temp = field_names.find(field);
 
 	if (temp == field_names.end())
 		return false;
@@ -257,7 +292,13 @@ bool StructData::Contains(const std::string& field) const
 	return true;
 }
 
-void StructData::removeField(const std::string& fieldname)
+void StructData::removeField(const std::string& field)
+{
+	const std::string* field_ptr = Currency::vm.GetStringPointer(field);
+	removeField(field_ptr);
+}
+
+void StructData::removeField(const std::string* fieldname)
 {
 	if (Contains(fieldname))
 	{
@@ -303,4 +344,19 @@ int StructData::GetRefCount() const
 		return field_values->GetRefCount();
 	else
 		return 1;
+}
+
+const std::map<std::string, int> StructData::GetFieldNames() const
+{
+	std::map<std::string, int> ret;
+
+	std::map<const std::string*, int>::const_iterator iter;
+
+	for (iter = field_names.begin(); iter != field_names.end(); ++iter)
+	{
+		std::string key = *iter->first;
+		ret[key] = iter->second;
+	}
+
+	return ret;
 }

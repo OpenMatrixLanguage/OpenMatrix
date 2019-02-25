@@ -2,7 +2,7 @@
 * @file BuiltInFuncsUtils.cpp
 * @date November 2015
 * Copyright (C) 2015-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 // Begin defines/includes
@@ -21,7 +21,7 @@
 #include <cctype>  // For std::isdigit
 #include <climits>
 #include <iomanip>
-#include <cmath>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -31,6 +31,10 @@
 #ifdef OS_WIN
 #    include <io.h>
 #    include <Windows.h>
+// Undefine these as Microsoft defines them elsewhere in windows headers
+#    undef FormatMessage
+#   include <wchar.h>
+#   include <sys/stat.h>  
 #else
 #    include <dirent.h>
 #    include <dlfcn.h>
@@ -49,10 +53,6 @@
 
 #include <hwMatrix.h>
 
-#ifdef OS_WIN
-// Undefine these as Microsoft defines them elsewhere in windows headers
-#    undef FormatMessage
-#endif
 // End defines/includes
 
 //------------------------------------------------------------------------------
@@ -983,11 +983,11 @@ int BuiltInFuncsUtils::GetFileId(EvaluatorInterface eval,
 {
     if (cur.IsString())
     {
-        std::string nameInput = cur.StringVal();
+        std::string nameInput (cur.StringVal());
         int         numfiles  = eval.GetNumFiles();
-        for (int i = 0; i < numfiles; i++)
+        for (int i = 0; i < numfiles; ++i)
         {
-            std::string fname = eval.GetFileName(i);
+            std::string fname (eval.GetFileName(i));
             if (!fname.empty() && fname == nameInput)
             {
                 return i;
@@ -1005,11 +1005,10 @@ int BuiltInFuncsUtils::GetFileId(EvaluatorInterface eval,
 //------------------------------------------------------------------------------
 // Returns true after parsing input and gets formats
 //------------------------------------------------------------------------------
-bool BuiltInFuncsUtils::GetFormats(EvaluatorInterface        eval,
-                                   const std::string&        in,
+bool BuiltInFuncsUtils::GetFormats(const std::string&        in,
                                    std::vector<std::string>& basefmts,
                                    std::vector<std::string>& rawfmts,
-                                   bool                      checkSpec)
+                                   std::string&              err)
 {
     if (in.empty())
     {
@@ -1019,13 +1018,11 @@ bool BuiltInFuncsUtils::GetFormats(EvaluatorInterface        eval,
     }
 
     char* tok = strtok((char *)in.c_str(), "%");
+
     while (tok)
     {
         std::string tmp (tok);
-        if (tmp.empty())
-        {
-            continue;
-        }
+
         std::string basefmt;
         std::string rawfmt;
 
@@ -1033,6 +1030,7 @@ bool BuiltInFuncsUtils::GetFormats(EvaluatorInterface        eval,
         bool hasOnlyDigits = true;
 
         size_t len = tmp.size();
+
         for (size_t i = 0; i < len; ++i)
         {
             char ch = tmp[i];
@@ -1047,19 +1045,21 @@ bool BuiltInFuncsUtils::GetFormats(EvaluatorInterface        eval,
                 basefmt += ch;
                 if (ch == 'f' || ch == 'g')
                 {
-                    if (checkSpec &&  (!hasOnlyDigits || numDecimalPts > 1))
+                    if (!hasOnlyDigits || numDecimalPts > 1)
                     {
                         rawfmt  = "";
-                        SetWarning(eval, "Warning: ignoring incorrect format specifier");
+                        err = "Error: invalid format %" + tmp;
+                        break;
                     }
                     rawfmt += "lf";
                 }
                 else if (ch == 'c' || ch == 'd' || ch == 'n')
                 {
-                    if (checkSpec &&  (!hasOnlyDigits || numDecimalPts > 0))
+                    if (!hasOnlyDigits || numDecimalPts > 0)
                     {
                         rawfmt  = "";
-                        SetWarning(eval, "Warning: ignoring incorrect format specifier");
+                        err = "Error: invalid format %" + tmp;
+                        break;
                     }
                     if (ch == 'n')
                     {
@@ -1075,16 +1075,13 @@ bool BuiltInFuncsUtils::GetFormats(EvaluatorInterface        eval,
             }
             rawfmt += ch;
 
-            if (checkSpec)
+            if (ch == '.')
             {
-                if (ch == '.')
-                {
-                    numDecimalPts++;
-                }
-                else if (!std::isdigit(static_cast<unsigned char>(ch)))
-                {
-                    hasOnlyDigits = false;
-                }
+                numDecimalPts++;
+            }
+            else if (!std::isdigit(static_cast<unsigned char>(ch)))
+            {
+                hasOnlyDigits = false;
             }
         }
 
@@ -1187,3 +1184,287 @@ bool BuiltInFuncsUtils::IsPaginationEnvEnabled()
     }
     return true;
 }
+//------------------------------------------------------------------------------
+// Returns true after parsing input and gets formats
+//------------------------------------------------------------------------------
+bool BuiltInFuncsUtils::GetFormats(const std::string&        in,
+                                   std::vector<std::string>& basefmts,
+                                   std::vector<std::string>& rawfmts,
+                                   std::vector<bool>&        usefmts,
+                                   std::string&              err)
+{
+    if (in.empty())
+    {
+        basefmts.push_back("%f");
+        rawfmts.push_back("%lf");  // Default option
+        usefmts.push_back(true);
+        return true;
+    }
+
+    char* tok = strtok((char *)in.c_str(), "%");
+
+    while (tok)
+    {
+        std::string tmp (tok);
+
+        std::string basefmt;
+        std::string rawfmt;
+        bool        use    = true;
+        int  numDecimalPts = 0;
+        bool hasOnlyDigits = true;
+
+        size_t len = tmp.size();
+
+        if (tmp[0] == '[' && tmp[len - 1] == ']')
+        {
+            basefmts.push_back("custom");
+            rawfmts.push_back(tok);
+            usefmts.push_back(true);
+            tok = strtok(NULL, "%");
+            continue;
+        }
+        for (size_t i = 0; i < len; ++i)
+        {
+            char ch = tmp[i];
+            if (i == 0 && ch == '*')
+            {
+                use = false;
+                continue;
+            }
+            else if (!use)
+            {
+                if (ch == '[')
+                {
+                    basefmt = "custom";
+                    rawfmt += ch;
+                    continue;
+                }
+            }
+            if (!basefmt.empty())
+            {
+                rawfmt += ch; // Add any characters after the specifier are ok
+                continue;
+            }
+            else if (ch == 'c' || ch == 'd' || ch == 'e' || ch == 'f' || 
+                     ch == 'g' || ch == 'i' || ch == 's' || ch == 'n')
+            {
+                basefmt += ch;
+                if (ch == 'f' || ch == 'g')
+                {
+                    if (!hasOnlyDigits || numDecimalPts > 1)
+                    {
+                        rawfmt  = "";
+                        err = "Error: invalid format %" + tmp;
+                        break;
+                    }
+                    rawfmt += "lf";
+                }
+                else if (ch == 'c' || ch == 'd' || ch == 'n')
+                {
+                    if (!hasOnlyDigits || numDecimalPts > 0)
+                    {
+                        rawfmt  = "";
+                        err = "Error: invalid format %" + tmp;
+                        break;
+                    }
+                    if (ch == 'n')
+                    {
+                        ch = 'd';
+                    }
+                    rawfmt += ch;
+                }
+                else
+                {
+                    rawfmt += ch;
+                }
+                continue;
+            }
+            rawfmt += ch;
+
+            if (ch == '.')
+            {
+                numDecimalPts++;
+            }
+            else if (!std::isdigit(static_cast<unsigned char>(ch)))
+            {
+                hasOnlyDigits = false;
+            }
+        }
+
+        if (basefmt.empty() || rawfmt.empty())
+        {
+            return false;
+        }
+
+        basefmts.push_back("%" + basefmt);
+        rawfmts.push_back("%"  + rawfmt);
+        usefmts.push_back(use);
+        
+        tok = strtok(NULL, "%");
+    }
+
+    // Check if there are tabs in the format
+    size_t i = 0;
+    for (std::vector<std::string>::iterator itr = rawfmts.begin();
+         itr != rawfmts.end(); ++itr, ++i)
+    {
+        std::string fmt (*itr);
+        size_t      pos     = fmt.find("\\t");
+        bool        replace = false;
+        if (pos != std::string::npos)
+        {
+            fmt.replace(pos, 2, "\t");
+            rawfmts[i] = fmt;
+        }
+    }
+    return true;
+}
+#ifdef OS_WIN
+//------------------------------------------------------------------------------
+// Gets absolute path, supports Unicode
+//------------------------------------------------------------------------------
+std::wstring BuiltInFuncsUtils::GetAbsolutePathW(const std::wstring& path)
+{
+    if (path.empty())
+    {
+        return std::wstring();
+    }
+
+    if (path.length() == 2 && iswalpha(path[0]) && path[1] == ':')
+    {
+        return path;
+    }
+    wchar_t fullpath[MAX_PATH];
+    if (!_wfullpath(fullpath, path.c_str(), MAX_PATH))
+    {
+        return std::wstring();
+    }
+
+    std::wstring out(fullpath);
+    return out;
+}
+//------------------------------------------------------------------------------
+// Converts std::string to std::wstring
+//------------------------------------------------------------------------------
+std::wstring BuiltInFuncsUtils::StdString2WString(const std::string& input)
+{
+    if (input.empty())
+    {
+        return std::wstring();
+    }
+
+    int len = MultiByteToWideChar(CP_UTF8, 0, input.c_str(), -1, NULL, 0);
+    assert(len != 0);
+
+    wchar_t* widestr = new wchar_t[len];
+    assert(widestr);
+
+    len = MultiByteToWideChar(CP_UTF8, 0, input.c_str(), -1, widestr, len);
+    assert(len != 0);
+
+    std::wstring out(widestr);
+
+    delete[] widestr;
+    widestr = nullptr;
+
+    return out;
+}
+//------------------------------------------------------------------------------
+// Returns normalized path for the operating system, supports Unicode
+//------------------------------------------------------------------------------
+std::wstring BuiltInFuncsUtils::GetNormpathW(const std::wstring& path)
+{
+    if (path.empty())
+    {
+        return path;
+    }
+
+    std::wstring normpath(path);
+
+    std::replace(normpath.begin(), normpath.end(), '/', '\\');
+    return normpath;
+}
+//------------------------------------------------------------------------------
+// Gets current working directory, supports Unicode
+//------------------------------------------------------------------------------
+std::wstring BuiltInFuncsUtils::GetCurrentWorkingDirW()
+{
+    wchar_t buf[MAX_PATH];
+    DWORD result = GetCurrentDirectoryW(MAX_PATH, buf);
+    if (result == 0)
+    {
+        throw OML_Error(HW_ERROR_NOTFINDCURWORKDIR);
+    }
+
+    std::wstring workingdir = buf;
+    return workingdir;
+}
+//------------------------------------------------------------------------------
+// Converts std::wstring to std::string, supports Unicode
+//------------------------------------------------------------------------------
+std::string BuiltInFuncsUtils::WString2StdString(const std::wstring& in)
+{
+    if (in.empty())
+    {
+        return "";
+    }
+
+    int wlen = static_cast<int>(in.size());
+    int len = WideCharToMultiByte(CP_UTF8, 0, &in[0], wlen, NULL, 0, NULL, NULL);
+    std::string out(len, 0);
+    WideCharToMultiByte(CP_UTF8, 0, &in[0], wlen, &out[0], len, NULL, NULL);
+
+    return out;
+}
+////------------------------------------------------------------------------------
+//// Converts std::string to std::wstring
+////------------------------------------------------------------------------------
+//std::wstring BuiltInFuncsUtils::StdString2WString(const std::string& input)
+//{
+//    if (input.empty())
+//    {
+//        return std::wstring();
+//    }
+//
+//    int len = MultiByteToWideChar(CP_UTF8, 0, input.c_str(), -1, NULL, 0);
+//    assert(len != 0);
+//
+//    wchar_t* widestr = new wchar_t[len];
+//    assert(widestr);
+//
+//    len = MultiByteToWideChar(CP_UTF8, 0, input.c_str(), -1, widestr, len);
+//    assert(len != 0);
+//
+//    std::wstring out(widestr);
+//
+//    delete[] widestr;
+//    widestr = nullptr;
+//
+//    return out;
+//}
+//------------------------------------------------------------------------------
+// Strips trailing slash for wide strings
+//------------------------------------------------------------------------------
+std::wstring BuiltInFuncsUtils::StripTrailingSlashW(const std::wstring& in)
+{
+    if (in.empty())
+    {
+        return std::wstring();
+    }
+
+    std::wstring tmp = GetNormpathW(in);
+
+    // Strip trailing slash
+    while (!tmp.empty())
+    {
+        wchar_t last = tmp.back();
+        if (last == '/' || last == '\\')
+            tmp.erase(tmp.end() - 1);
+        else
+            break;  // Reached the end
+    }
+    return tmp;
+}
+
+
+#endif

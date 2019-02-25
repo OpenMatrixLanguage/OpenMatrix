@@ -2,7 +2,7 @@
 * @file GeneralFuncs.cxx
 * @date June 2007
 * Copyright (C) 2007-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 //:---------------------------------------------------------------------------
@@ -153,40 +153,6 @@ bool quadraticRoots(double a, double b, double c,
 	
 	return true;
 }
-
-//*******************************************************************
-//                     Transcendental functions
-//*******************************************************************
-#ifdef OS_WIN
-  #if _MSC_VER < 1900
-    namespace hmath_OS_WIN
-    {
-        //! Real inverse hyperbolic sine
-        double asinh(double x)
-        {
-            return log(x + sqrt(x * x + 1.0));
-        }
-
-        //! Real inverse hyperbolic cosine
-        double acosh(double x)
-        {
-            return log(x + sqrt(x - 1.0) * sqrt(x + 1.0));
-        }
-
-        //! Real inverse hyperbolic tangent
-        double atanh(double x)
-        {
-            return 0.5 * log((1.0 + x) / (1.0 - x));
-        }
-
-        //! Real logarithm (base 2) producing real output
-        double log2(double x)
-        {
-            return log(x) / log(2.0);
-        }
-    }   // end namespace hmath_OS_WIN
-  #endif
-#endif
 
 //*******************************************************************
 //                    General utility functions

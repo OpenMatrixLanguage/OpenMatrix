@@ -2,7 +2,7 @@
 * @file SignalsTboxFuncs.h
 * @date January 2015
 * Copyright (C) 2015-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 #ifndef __SIGNALSTBOXFUNCS_OML_H__
@@ -130,6 +130,24 @@ bool OmlCpsd(EvaluatorInterface           eval,
              const std::vector<Currency>& inputs, 
              std::vector<Currency>&       outputs);
 //!
+//! Computes estimated transfer function [tfestimate command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlTFestimate(EvaluatorInterface           eval, 
+				   const std::vector<Currency>& inputs, 
+				   std::vector<Currency>&       outputs);
+//!
+//! Computes estimated mean square coherence [mscohere command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlMScohere(EvaluatorInterface           eval, 
+				 const std::vector<Currency>& inputs, 
+				 std::vector<Currency>&       outputs);
+//!
 //! Computes digital filter frequency response values [freqz command]
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
@@ -153,7 +171,7 @@ bool OmlFreqs(EvaluatorInterface           eval,
 //! \param inputs  Vector of inputs
 //! \param outputs Vector of outputs
 //!
-bool OmlInvfreqz(EvaluatorInterface           eval, 
+bool OmlInvFreqz(EvaluatorInterface           eval, 
                  const std::vector<Currency>& inputs, 
                  std::vector<Currency>&       outputs);
 //!
@@ -162,7 +180,7 @@ bool OmlInvfreqz(EvaluatorInterface           eval,
 //! \param inputs  Vector of inputs
 //! \param outputs Vector of outputs
 //!
-bool OmlInvfreqs(EvaluatorInterface           eval, 
+bool OmlInvFreqs(EvaluatorInterface           eval, 
                  const std::vector<Currency>& inputs, 
                  std::vector<Currency>&       outputs);
 //!

@@ -19,9 +19,9 @@
 // Constructor
 //------------------------------------------------------------------------------
 hwAdaptiveQuadrature::hwAdaptiveQuadrature(int numPnts)
-    : m_kernel1(numPnts)
-    , m_kernel2(numPnts+1)
-    , n(numPnts)
+    : m_kernel1(numPnts),
+      m_kernel2(numPnts+1),
+      n(numPnts)
 {
 }
 //------------------------------------------------------------------------------
@@ -33,15 +33,15 @@ hwAdaptiveQuadrature::~hwAdaptiveQuadrature()
 //------------------------------------------------------------------------------
 // Returns status and gets area after integrating from a to b
 //------------------------------------------------------------------------------
-hwMathStatus hwAdaptiveQuadrature::Compute(const UnivarFunc pFunc, 
-                                           double           a, 
-                                           double           b,
-                                           double&          area, 
-                                           int&             count,
-                                           double           reltol, 
-                                           double           abstol)
+hwMathStatus hwAdaptiveQuadrature::Compute(const QuadFunc1 pFunc, 
+                                           double          a, 
+                                           double          b,
+                                           double&         area, 
+                                           int&            count,
+                                           double          reltol, 
+                                           double          abstol)
 {
-    if (pFunc == NULL)
+    if (!pFunc)
     {
         return hwMathStatus(HW_MATH_ERR_NULLPOINTER, 1);
     }
@@ -166,21 +166,20 @@ hwMathStatus hwAdaptiveQuadrature::Compute(const UnivarFunc pFunc,
     }
     else
     {
-        double y1, y2;
+        hwMatrix limits(2, hwMatrix::REAL);
+        hwMatrix y;
 
-        status = pFunc(a, y1);
+        limits(0) = a;
+        limits(1) = b;
 
-        if (!status.IsOk())
-        {
-            return status;
-        }
-        status = pFunc(b, y2);
+        status = pFunc(limits, y);
 
         if (!status.IsOk())
         {
             return status;
         }
-        if (fabs(y1) == std::numeric_limits<double>::infinity())
+
+        if (fabs(y(0)) == std::numeric_limits<double>::infinity())
         {
             if (a <= b)
             {
@@ -199,7 +198,7 @@ hwMathStatus hwAdaptiveQuadrature::Compute(const UnivarFunc pFunc,
             return status;
         }
 
-        if (fabs(y2) == std::numeric_limits<double>::infinity())
+        if (fabs(y(1)) == std::numeric_limits<double>::infinity())
         {
             if (a <= b)
             {
@@ -262,13 +261,13 @@ hwMathStatus hwAdaptiveQuadrature::Compute(const UnivarFunc pFunc,
 // is transformed by u=1/x. The function has not been fully tested. It is to be
 // retained should use cases be found that cause other methods to fail.
 //------------------------------------------------------------------------------
-hwMathStatus hwAdaptiveQuadrature::ComputeR(const UnivarFunc pFunc,
-                                            double           a,
-                                            double           b,
-                                            double&          area,
-                                            int&             count,
-                                            double           reltol,
-                                            double           abstol)
+hwMathStatus hwAdaptiveQuadrature::ComputeR(const QuadFunc1 pFunc,
+                                            double          a,
+                                            double          b,
+                                            double&         area,
+                                            int&            count,
+                                            double          reltol,
+                                            double          abstol)
 {
     double area1, area2;
     hwMathStatus status;
@@ -314,19 +313,19 @@ hwMathStatus hwAdaptiveQuadrature::ComputeR(const UnivarFunc pFunc,
 //------------------------------------------------------------------------------
 // Returns status and gets area after integrating from a to b
 //------------------------------------------------------------------------------
-hwMathStatus hwAdaptiveQuadrature::ComputeRLog(const UnivarFunc pFunc,
-                                               double           a,
-                                               double           b,
-                                               double&          area,
-                                               int&             count,
-                                               double           reltol,
-                                               double           abstol)
+hwMathStatus hwAdaptiveQuadrature::ComputeRLog(const QuadFunc1 pFunc,
+                                               double          a,
+                                               double          b,
+                                               double&         area,
+                                               int&            count,
+                                               double          reltol,
+                                               double          abstol)
 {
-    bool rightSize;
+    bool rightSide;
 
     if (a > 0.0 && b > 0.0)
     {
-        rightSize = true;
+        rightSide = true;
 
         if (fabs(1.0/log(b+1.0) - 1.0/log(a+1.0)) < 1.0e-12)
         {
@@ -337,7 +336,7 @@ hwMathStatus hwAdaptiveQuadrature::ComputeRLog(const UnivarFunc pFunc,
     }
     else if (a < 0.0 && b < 0.0)
     {
-        rightSize = false;
+        rightSide = false;
 
         if (fabs(1.0/log(-b+1.0) - 1.0/log(-a+1.0)) < 1.0e-12)
         {
@@ -373,7 +372,7 @@ hwMathStatus hwAdaptiveQuadrature::ComputeRLog(const UnivarFunc pFunc,
     if (fabs(area - area1) > reltol * fabs(area) && fabs(area - area1) > abstol)
     {
         double mid;
-        if (rightSize)
+        if (rightSide)
         {
             mid = exp(2.0 / (1.0/log(a+1.0) + 1.0/log(b+1.0)))-1.0;     // pre-transformed midpoint
         }
@@ -403,13 +402,13 @@ hwMathStatus hwAdaptiveQuadrature::ComputeRLog(const UnivarFunc pFunc,
 //------------------------------------------------------------------------------
 // Returns status and gets area after integrating from a to b
 //------------------------------------------------------------------------------
-hwMathStatus hwAdaptiveQuadrature::ComputeSqrt1(const UnivarFunc pFunc, 
-                                                double           a,
-                                                double           b,
-                                                double&          area, 
-                                                int&             count,
-                                                double           reltol, 
-                                                double           abstol)
+hwMathStatus hwAdaptiveQuadrature::ComputeSqrt1(const QuadFunc1 pFunc, 
+                                                double          a,
+                                                double          b,
+                                                double&         area, 
+                                                int&            count,
+                                                double          reltol, 
+                                                double          abstol)
 {
     if (fabs(sqrt(b-a)) < 1.0e-12)
     {
@@ -461,13 +460,13 @@ hwMathStatus hwAdaptiveQuadrature::ComputeSqrt1(const UnivarFunc pFunc,
 //------------------------------------------------------------------------------
 // Returns status and gets area after integrating from a to b
 //------------------------------------------------------------------------------
-hwMathStatus hwAdaptiveQuadrature::ComputeSqrt2(const UnivarFunc pFunc, 
-                                                double           a, 
-                                                double           b,
-                                                double&          area, 
-                                                int&             count, 
-                                                double           reltol, 
-                                                double           abstol)
+hwMathStatus hwAdaptiveQuadrature::ComputeSqrt2(const QuadFunc1 pFunc, 
+                                                double          a, 
+                                                double          b,
+                                                double&         area, 
+                                                int&            count, 
+                                                double          reltol, 
+                                                double          abstol)
 {
     if (fabs(sqrt(b-a)) < 1.0e-12)
     {

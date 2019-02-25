@@ -2,7 +2,7 @@
 * @file MathUtilsFuncs.h
 * @date June 2007
 * Copyright (C) 2007-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,14 +10,21 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 #ifndef _MathUtils_Funcs_h
 #define _MathUtils_Funcs_h
 
-#include "hwMatrix.h"
 #include "MathUtilsExports.h"
+
+// forward declarations
+class hwMathStatus;
+template <typename T> class hwTComplex;
+template <typename T1, typename T2> class hwTMatrix;
+typedef hwTComplex<double> hwComplex;
+typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
+typedef hwTMatrix<int, hwTComplex<int> > hwMatrixI;
 
 //------------------------------------------------------------------------------
 //!
@@ -33,7 +40,7 @@
 //!
 MATHUTILS_DECLS hwMathStatus Min(const hwMatrix& A, 
                                  double*         value, 
-                                 int*            index = NULL);
+                                 int*            index = nullptr);
 //!
 //! Returns the status and the minimum value in a complex matrix
 //! \param A     Input matrix
@@ -42,7 +49,7 @@ MATHUTILS_DECLS hwMathStatus Min(const hwMatrix& A,
 //!
 MATHUTILS_DECLS hwMathStatus Min(const hwMatrix& A, 
                                  hwComplex*      value, 
-                                 int*            index = NULL);
+                                 int*            index = nullptr);
 //!
 //! Returns the status and the minimum value of each column of a matrix
 //! \param A   Input matrix
@@ -51,7 +58,7 @@ MATHUTILS_DECLS hwMathStatus Min(const hwMatrix& A,
 //!
 MATHUTILS_DECLS hwMathStatus Min(const hwMatrix& A, 
                                  hwMatrix*       mag, 
-                                 hwMatrixI*      row = NULL);
+                                 hwMatrixI*      row = nullptr);
 //!
 //! Returns the status and the minimum value from each vector of a matrix along 
 //! a specified dimension
@@ -63,7 +70,7 @@ MATHUTILS_DECLS hwMathStatus Min(const hwMatrix& A,
 MATHUTILS_DECLS hwMathStatus Min(const hwMatrix& A, 
                                  int             dim, 
                                  hwMatrix*       mag, 
-                                 hwMatrixI*      index = NULL);
+                                 hwMatrixI*      index = nullptr);
 //!
 //! Return the status and a matrix whose values are the minima of the arguments
 //! \param A   Input matrix
@@ -99,7 +106,7 @@ MATHUTILS_DECLS hwMathStatus Min(const hwMatrix& A,
 //!
 MATHUTILS_DECLS hwMathStatus Max(const hwMatrix& A, 
                                  double*         value, 
-                                 int*            index = NULL);
+                                 int*            index = nullptr);
 //!
 //! Returns the status and maximum value of a complex matrix
 //! \param A     Input matrix
@@ -108,7 +115,7 @@ MATHUTILS_DECLS hwMathStatus Max(const hwMatrix& A,
 //!
 MATHUTILS_DECLS hwMathStatus Max(const hwMatrix& A, 
                                  hwComplex*      value, 
-                                 int*            index = NULL);
+                                 int*            index = nullptr);
 //!
 //! Returns the status and the maximum value of each column of a matrix
 //! \param A   Input matrix
@@ -117,7 +124,7 @@ MATHUTILS_DECLS hwMathStatus Max(const hwMatrix& A,
 //!
 MATHUTILS_DECLS hwMathStatus Max(const hwMatrix& A, 
                                  hwMatrix*       mag, 
-                                 hwMatrixI*      row = NULL);
+                                 hwMatrixI*      row = nullptr);
 //!
 //! Returns the status and the maximum value from each vector of a matrix along 
 //! the specified dimension
@@ -129,7 +136,7 @@ MATHUTILS_DECLS hwMathStatus Max(const hwMatrix& A,
 MATHUTILS_DECLS hwMathStatus Max(const hwMatrix& A, 
                                  int             dim, 
                                  hwMatrix*       mag, 
-                                 hwMatrixI*      index = NULL);
+                                 hwMatrixI*      index = nullptr);
 //!
 //! Returns the status and a matrix whose values are the maxima of the arguments
 //! \param A   Input matrix
@@ -165,7 +172,7 @@ MATHUTILS_DECLS hwMathStatus Max(const hwMatrix& A,
 //!
 MATHUTILS_DECLS hwMathStatus AbsMin(const hwMatrix& A, 
                                     double*         value, 
-                                    int*            index = NULL);
+                                    int*            index = nullptr);
 //!
 //! Returns the status and the minimum value of each column of a matrix in 
 //! absolute value
@@ -175,7 +182,7 @@ MATHUTILS_DECLS hwMathStatus AbsMin(const hwMatrix& A,
 //!
 MATHUTILS_DECLS hwMathStatus AbsMin(const hwMatrix& A,
                                     hwMatrix*       mag, 
-                                    hwMatrixI*      row = NULL);
+                                    hwMatrixI*      row = nullptr);
 //!
 //! Returns the status and the maximum value of a vector in absolute value
 //! \param A     Input matrix
@@ -184,7 +191,7 @@ MATHUTILS_DECLS hwMathStatus AbsMin(const hwMatrix& A,
 //!
 MATHUTILS_DECLS hwMathStatus AbsMax(const hwMatrix& A,
                                     double*         value,
-                                    int*            index = NULL);
+                                    int*            index = nullptr);
 //!
 //! Returns the status and the maximum value of each column of a matrix in
 //! absolute value
@@ -194,7 +201,7 @@ MATHUTILS_DECLS hwMathStatus AbsMax(const hwMatrix& A,
 //!
 MATHUTILS_DECLS hwMathStatus AbsMax(const hwMatrix& A, 
                                     hwMatrix*       mag, 
-                                    hwMatrixI*      row = NULL);
+                                    hwMatrixI*      row = nullptr);
 //!
 //! Returns the status and peaks from a vector
 //! \param A      Input matrix
@@ -204,7 +211,7 @@ MATHUTILS_DECLS hwMathStatus AbsMax(const hwMatrix& A,
 //!
 MATHUTILS_DECLS hwMathStatus Peaks(const hwMatrix& A, 
                                    hwMatrix*       mag, 
-                                   hwMatrixI*      index = NULL, 
+                                   hwMatrixI*      index = nullptr, 
                                    int             option = 0);
 //!
 //! Returns the status and the first index where A(index) = value
@@ -257,6 +264,20 @@ MATHUTILS_DECLS hwMathStatus Bins(const hwMatrix& data,
 //!
 MATHUTILS_DECLS hwMathStatus Sort(const hwMatrix& unsorted, 
                                   hwMatrix&       sorted, 
-                                  hwMatrixI*      index = NULL,
+                                  hwMatrixI*      index = nullptr,
                                   bool            ascend = true);
+//!
+//! Computes the continued fraction approximation of a value and returns the status
+//! \param double The value for which to evaluate the continued fraction
+//! \param double The tolerance
+//! \param num    The rational fraction numnerator
+//! \param den    The rational fraction denominator
+//! \param cf     The continued fraction terms
+//!
+MATHUTILS_DECLS hwMathStatus ContFrac(double     value, 
+                                      double     tol, 
+                                      double&    num,
+                                      double&    den,
+                                      hwMatrix&  cf);
+
 #endif // _MathUtils_Funcs_h

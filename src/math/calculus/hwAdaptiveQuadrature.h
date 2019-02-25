@@ -21,7 +21,7 @@
 //!
 //! \typedef hwMathStatus
 //!
-typedef hwMathStatus (*UnivarFunc)(double x, double& y);
+typedef hwMathStatus (*QuadFunc1)(const hwMatrix& x, hwMatrix& y);
 
 //------------------------------------------------------------------------------
 //! 
@@ -53,13 +53,13 @@ public:
     //! \param reltol Optional relative tolerance
     //! \param abs    Optional absolute tolerance
     //!
-    hwMathStatus Compute(const UnivarFunc pFunc, 
-                         double           a, 
-                         double           b,
-                         double&          area, 
-                         int&             count,
-                         double           reltol = 1.0e-6, 
-                         double           abstol = 1.0e-6);
+    hwMathStatus Compute(const QuadFunc1 pFunc, 
+                         double          a, 
+                         double          b,
+                         double&         area, 
+                         int&            count,
+                         double          reltol = 1.0e-6, 
+                         double          abstol = 1.0e-6);
 private:
     int n;                      // the order of the first approximation
     hwGaussLegendre m_kernel1;  // the order n integration object 
@@ -77,13 +77,13 @@ private:
     //! \param reltol Relative tolerance
     //! \param abs    Absolute tolerance
     //!
-    hwMathStatus ComputeRLog(const UnivarFunc pFunc, 
-                             double           a, 
-                             double           b,
-                             double&          area, 
-                             int&             count, 
-                             double           reltol, 
-                             double           abstol);
+    hwMathStatus ComputeRLog(const QuadFunc1 pFunc, 
+                             double          a, 
+                             double          b,
+                             double&         area, 
+                             int&            count, 
+                             double          reltol, 
+                             double          abstol);
     //!
     //! Returns status and gets area after integrating from a to b. This method
     //! is used with improper integrals with an integrand that has a vertical
@@ -96,13 +96,13 @@ private:
     //! \param reltol Relative tolerance
     //! \param abs    Absolute tolerance
     //!
-    hwMathStatus ComputeSqrt1(const UnivarFunc pFunc, 
-                              double           a, 
-                              double           b,
-                              double&          area, 
-                              int&             count, 
-                              double           reltol, 
-                              double           abstol);
+    hwMathStatus ComputeSqrt1(const QuadFunc1 pFunc, 
+                              double          a, 
+                              double          b,
+                              double&         area, 
+                              int&            count, 
+                              double          reltol, 
+                              double          abstol);
     //!
     //! Returns status and gets area after integrating from a to b. This method 
     //! is used with improper integrals with an integrand that has a vertical
@@ -115,13 +115,13 @@ private:
     //! \param reltol Relative tolerance
     //! \param abs    Absolute tolerance
     //!
-    hwMathStatus ComputeSqrt2(const UnivarFunc pFunc, 
-                              double           a, 
-                              double           b,
-                              double&          area, 
-                              int&             count, 
-                              double           reltol, 
-                              double           abstol);
+    hwMathStatus ComputeSqrt2(const QuadFunc1 pFunc, 
+                              double          a, 
+                              double          b,
+                              double&         area, 
+                              int&            count, 
+                              double          reltol, 
+                              double          abstol);
 };
 
 #endif // _Calculus_AdaptiveQuadrature_h

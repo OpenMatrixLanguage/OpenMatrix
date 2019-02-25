@@ -2,7 +2,7 @@
 * @file Evaluator.h
 * @date August 2013
 * Copyright (C) 2013-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 #ifndef __ExprTreeEvaluator_h
@@ -172,14 +172,14 @@ public:
 	std::vector<DebugStateInfo> GetCallStack() const { return msm->GetCallStack(); }
  	void                        GetStackInfo(int level, std::string& filename, int& line_number);
 
-    std::vector<Currency> DoMultiReturnFunctionCall(FunctionInfo* fi, std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars = nullptr);
-    std::vector<Currency> DoMultiReturnFunctionCall(FUNCPTR fptr, const std::string& func_name, std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars);
+    std::vector<Currency> DoMultiReturnFunctionCall(FunctionInfo* fi, const std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars = nullptr);
+    std::vector<Currency> DoMultiReturnFunctionCall(FUNCPTR fptr, const std::string& func_name, const std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars);
 
-	void DoMultiReturnFunctionCall(FUNCPTR fptr,     const std::string& func_name, std::vector<Currency>& param_values, int num_ins, bool suppress_output, OMLTree* out_tree);
-	void DoMultiReturnFunctionCall(ALT_FUNCPTR fptr,     const std::string& func_name, std::vector<Currency>& param_values, int num_ins, bool suppress_output, OMLTree* out_tree);
-	void DoMultiReturnFunctionCall(FunctionInfo* fi, std::vector<Currency>& param_values, int num_ins, bool suppress_output, OMLTree* out_tree);
+	void DoMultiReturnFunctionCall(FUNCPTR fptr,     const std::string& func_name, const std::vector<Currency>& param_values, int num_ins, bool suppress_output, OMLTree* out_tree);
+	void DoMultiReturnFunctionCall(ALT_FUNCPTR fptr,     const std::string& func_name, const std::vector<Currency>& param_values, int num_ins, bool suppress_output, OMLTree* out_tree);
+	void DoMultiReturnFunctionCall(FunctionInfo* fi, const std::vector<Currency>& param_values, int num_ins, bool suppress_output, OMLTree* out_tree);
 
-	std::vector<Currency> DoAnonymousMultiReturnFunctionCall(FunctionInfo* fi, std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars = nullptr);
+	std::vector<Currency> DoAnonymousMultiReturnFunctionCall(FunctionInfo* fi, const std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars = nullptr);
 
     bool     FindFunctionByName(const std::string&, FunctionInfo**, FUNCPTR*);
 
@@ -189,6 +189,7 @@ public:
     Currency CallBuiltinFunction(FUNCPTR, const std::string&, const std::vector<Currency>&);
     Currency CallBuiltinFunction(ALT_FUNCPTR, const std::string&, const std::vector<Currency>&);
 	Currency CallInternalFunction(FunctionInfo*, const std::vector<Currency>&);
+	Currency CallInternalFunction(FunctionInfo*, const std::vector<Currency>&, const std::string&, const Currency&);
 
     HML_CELLARRAY* CreateVararginCell(const std::vector<Currency>& params, int start_index);
 
@@ -196,6 +197,8 @@ public:
     inline bool IsStdFunction(const std::string& func_name)  { return std_functions->find(func_name) != std_functions->end(); }
     FUNCPTR GetStdFunction(const std::string& func_name) const;
 	std::string GetHelpModule(const std::string& func_name);
+
+	FunctionInfo* GetBaseClassFunctionInfo(const std::string* func_name, std::string* base_name, Currency* base_val);
 
 	bool IsKeyword(const std::string& func_name) const;
 	bool IsOperator(const std::string& func_name) const;
@@ -321,9 +324,9 @@ public:
 	Currency  VariableIndex(const Currency&, const std::vector<Currency>&);
     Currency  CellValueHelper(const Currency&, const std::vector<Currency>&);
 
-	void AssignHelper(Currency& target, const std::vector<Currency>& indices, const Currency& value);
+	void AssignHelper(Currency& target, const std::vector<Currency>& indices, const Currency& value, int refcnt_target=1);
     void CellAssignmentHelper(Currency& target, const std::vector<Currency>& params, const Currency& value);
-    void NDAssignmetHelper(Currency& target, const std::vector<Currency>& params, const Currency& value);
+    void NDAssignmetHelper(Currency& target, const std::vector<Currency>& params, const Currency& value, int refcnt_target=1);
 
     //! Utility to convert 2D matrix to ND matrix
     //! \param[in] mtx_in Given input matrix
@@ -468,7 +471,6 @@ private:
 	Currency AnonymousFunctionDefinition(OMLTree* tree);
 	Currency CellArrayCreation(OMLTree* tree);
 	Currency CellValue(OMLTree* tree);
-	Currency CellAssignment(OMLTree* tree);
 	void     CellAssignmentHelper(Currency& target, OMLTree* indices, const Currency& value);
 	Currency InlineIndex(OMLTree* tree);
 	Currency InlineIndexCell(OMLTree* tree);
@@ -484,8 +486,8 @@ private:
 	Currency InPlaceExpansion(OMLTree* tree);
 	Currency ClassDefinition(OMLTree* tree);
 
-	hwMatrix* SubmatrixSingleIndexHelper(Currency& target, const Currency& indices, const Currency& value);
-	hwMatrix* SubmatrixDoubleIndexHelper(Currency& target, const Currency& index1, const Currency& index2, const Currency& value);
+	hwMatrix* SubmatrixSingleIndexHelper(Currency& target, const Currency& indices, const Currency& value, int target_refcnt=1);
+	hwMatrix* SubmatrixDoubleIndexHelper(Currency& target, const Currency& index1, const Currency& index2, const Currency& value, int target_refcnt=1);
 	void      ReplaceMatrixElementHelper(hwMatrix*& target, const int index1, const int index2, const double value);
 	void      ReplaceMatrixElementHelper(hwMatrix*& target, int index1, int index2, const hwComplex& value);
 	void      ReplaceMatrixElementHelper(hwMatrix*& target, int index1, double value);
@@ -526,9 +528,9 @@ private:
 
 	FunctionInfo* FunctionInfoFromTree(OMLTree* tree);
 
-	std::vector<Currency> DoMultiReturnFunctionCall(FunctionInfo* fi, std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<const std::string*>* out_vars = nullptr);
-	std::vector<Currency> DoMultiReturnFunctionCall(FUNCPTR fp, const std::string& func_name, std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<const std::string*>* out_vars = nullptr);
-	std::vector<Currency> DoAnonymousMultiReturnFunctionCall(FunctionInfo* fi, std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<const std::string*>* out_vars = nullptr);
+	std::vector<Currency> DoMultiReturnFunctionCall(FunctionInfo* fi, const std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<const std::string*>* out_vars = nullptr);
+	std::vector<Currency> DoMultiReturnFunctionCall(FUNCPTR fp, const std::string& func_name, const std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<const std::string*>* out_vars = nullptr);
+	std::vector<Currency> DoAnonymousMultiReturnFunctionCall(FunctionInfo* fi, const std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<const std::string*>* out_vars = nullptr);
 
 	bool FindFunctionByName(const std::string*, FunctionInfo**, FUNCPTR*);
 

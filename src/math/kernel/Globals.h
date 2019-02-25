@@ -2,7 +2,7 @@
 * @file Globals.h
 * @date June 2007
 * Copyright (C) 2007-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 #ifndef _MathCore_Globals_h
 #define _MathCore_Globals_h
@@ -80,6 +80,8 @@ static const double MAXGAM  = 171.624376956302725;
 // statistics warnings
 #define HW_MATH_MSG_STATTESTALPHA_W "Warning: invalid alpha; should be in the interval (0.0, 0.5)" 
 #define HW_MATH_MSG_SMALLVARIANCE   "Warning: data has minor variation; reported correlation may not be meaningful"
+// Qhull warnings
+#define HW_MATH_MSG_QHULL_LEAK      "Error: Qhull did not release all memory"
 
 //////////////////////////////////////////////////////////////////////
 // Information messages
@@ -112,7 +114,7 @@ static const double MAXGAM  = 171.624376956302725;
 #define HW_MATH_MSG_NONNONNEGINT    "Error: invalid value; must be nonnegative integer(s)"
 #define HW_MATH_MSG_NONINCREASE     "Error: invalid data; must be strictly increasing"
 #define HW_MATH_MSG_MINMAXVALUES    "Error: invalid values; maximum must be >= minimum"
-#define HW_MATH_MSG_BADRANGE        "Error: invalid data; is out of range"
+#define HW_MATH_MSG_BADRANGE        "Error: invalid data; value is out of range"
 #define HW_MATH_MSG_ZERORANGE       "Error: invalid data; has a range of zero"
 #define HW_MATH_MSG_BADFILE         "Error: file missing or could not be read;"
 // user function errors
@@ -216,6 +218,12 @@ static const double MAXGAM  = 171.624376956302725;
 #define HW_MATH_MSG_IDA_ACCURACY    "Error: DAE solver error; accuracy requirements too high"
 #define HW_MATH_MSG_IDA_ERR         "Error: DAE solver error; internal errors, possibly step size related"
 #define HW_MATH_MSG_IDA_CONV        "Error: DAE solver error; convergence errors, possibly step size related"
+// Qhull errors
+#define HW_MATH_MSG_QHULL           "Error: Qhull function error"
+#define HW_MATH_MSG_QHULL_PNTS      "Error: Qhull requires at least 3 input points"
+#define HW_MATH_MSG_QHULL_DIMS      "Error: Qhull requires at least 2 dimensions"
+#define HW_MATH_MSG_QHULL_DIMS23    "Error: invalid matrix; must have either 2 or 3 columns"
+#define HW_MATH_MSG_QHULL_NS_FACET  "Error: Qhull returned non-simplicial facet; try other options"
 // unknown error
 #define HW_MATH_MSG_UNKNOWN         "Error: contact Altair customer support"
 
@@ -256,6 +264,8 @@ enum hwMathMsgCode
     // statistics warnings
     HW_MATH_WARN_STATTESTALPHA,
     HW_MATH_WARN_SMALLVARIANCE,
+    // Qhull warnings
+    HW_MATH_WARN_QHULL_LEAK,
     // end of warning list
     HW_MATH_WARN_EOL,
 
@@ -393,6 +403,12 @@ enum hwMathMsgCode
     HW_MATH_ERR_IDA_ACCURACY,
     HW_MATH_ERR_IDA_ERR,
     HW_MATH_ERR_IDA_CONV,
+    // Qhull errors
+    HW_MATH_ERR_QHULL,
+    HW_MATH_ERR_QHULL_PNTS,
+    HW_MATH_ERR_QHULL_DIMS,
+    HW_MATH_ERR_QHULL_DIMS23,
+    HW_MATH_ERR_QHULL_NS_FACET,
     // unknown
     HW_MATH_ERR_UNKNOWN
 };

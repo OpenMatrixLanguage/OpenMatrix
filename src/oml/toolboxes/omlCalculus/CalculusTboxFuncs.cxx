@@ -52,7 +52,42 @@ int InitDll(EvaluatorInterface eval)
 //------------------------------------------------------------------------------
 // Helper method for performing integrations
 //------------------------------------------------------------------------------
-static hwMathStatus quad_file_func(double x, double& y)
+static hwMathStatus quad_file_func(const hwMatrix& x, hwMatrix& y)
+{
+    std::vector<Currency> inputs;
+    inputs.push_back(EvaluatorInterface::allocateMatrix(&x));
+    Currency result;
+
+    FunctionInfo*       quad_oml_sys_func  = quad_oml_sys_func_stack.back();
+    std::string         quad_oml_sys_name  = quad_oml_sys_name_stack.back();
+    FUNCPTR             quad_oml_sys_pntr  = quad_oml_sys_pntr_stack.back();
+    EvaluatorInterface* quad_eval_ptr      = quad_eval_ptr_stack.back();
+
+    if (quad_oml_sys_func)
+        result = quad_eval_ptr->CallInternalFunction(quad_oml_sys_func, inputs);
+    else if (quad_oml_sys_pntr)
+        result = quad_eval_ptr->CallFunction(quad_oml_sys_name, inputs);
+    else
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
+
+    if (result.IsMatrix())
+    {
+        y = *(result.GetWritableMatrix());
+
+        if (x.M() != y.M() || x.N() != y.N())
+            return hwMathStatus(HW_MATH_ERR_USERFUNCSIZE, 111);
+    }
+    else
+    {
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
+    }
+
+    return hwMathStatus();
+}
+//------------------------------------------------------------------------------
+// Helper method for performing integrations
+//------------------------------------------------------------------------------
+static hwMathStatus quadv_file_func(double x, double& y)
 {
     std::vector<Currency> inputs;
     inputs.push_back(x);
@@ -445,7 +480,7 @@ bool OmlQuadv(EvaluatorInterface           eval,
         double area;
         int count = 0;
 
-        status = QuadV(quad_file_func, a, b, area, count, abstol);
+        status = QuadV(quadv_file_func, a, b, area, count, abstol);
 
         if (!status.IsOk())
         {
@@ -495,7 +530,7 @@ bool OmlQuadv(EvaluatorInterface           eval,
         for (i = 0; i < B->Size(); ++i)
         {
             cnt = 0;
-            status = QuadV(quad_file_func, a, (*B)(i), (*area)(i), cnt, abstol);
+            status = QuadV(quadv_file_func, a, (*B)(i), (*area)(i), cnt, abstol);
             (*count)(i) = (double) cnt;
 
             if (!status.IsOk())
@@ -547,7 +582,7 @@ bool OmlQuadv(EvaluatorInterface           eval,
         for (i = 0; i < A->Size(); ++i)
         {
             cnt = 0;
-            status = QuadV(quad_file_func, (*A)(i), b, (*area)(i), cnt, abstol);
+            status = QuadV(quadv_file_func, (*A)(i), b, (*area)(i), cnt, abstol);
             (*count)(i) = (double) cnt;
 
             if (!status.IsOk())
@@ -606,7 +641,7 @@ bool OmlQuadv(EvaluatorInterface           eval,
         for (i = 0; i < A->Size(); ++i)
         {
             cnt = 0;
-            status = QuadV(quad_file_func, (*A)(i), (*B)(i), (*area)(i), cnt, abstol);
+            status = QuadV(quadv_file_func, (*A)(i), (*B)(i), (*area)(i), cnt, abstol);
             (*count)(i) = (double) cnt;
 
             if (!status.IsOk())

@@ -2,7 +2,7 @@
 * @file BuiltInFuncsUtils.h
 * @date November 2015
 * Copyright (C) 2015-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 #ifndef __BUILTINFUNCSUTILS__
@@ -272,21 +272,67 @@ public:
 
     //!
     //! Returns true after parsing input and gets formats
-    //! \param eval      Evaluator interface
     //! \param in        Input string
     //! \param basefmts  Base format for the specific formats
     //! \param rawfmts   Raw format specified
-    //! \param checkSpec True if specifier needs to be checked for numerical formats
+    //! \param customFmt True if custom formats are allowed
+    //! \param err       Error string
     //!
-    static bool GetFormats(EvaluatorInterface        eval,
-                           const std::string&        in,
-                           std::vector<std::string>& basefmts,
-                           std::vector<std::string>& rawfmts,
-                           bool                      checkSpec);
+    bool GetFormats(const std::string&        in,
+                    std::vector<std::string>& basefmts,
+                    std::vector<std::string>& rawfmts,
+                    std::string&              err);
+    //!
+    //! Returns true after parsing input and gets formats
+    //! \param in        Input string
+    //! \param basefmts  Base format for the specific formats
+    //! \param rawfmts   Raw format specified
+    //! \param usefmts   True if this format is used in output
+    //! \param err       Error string
+    //!
+    bool GetFormats(const std::string&        in,
+                    std::vector<std::string>& basefmts,
+                    std::vector<std::string>& rawfmts,
+                    std::vector<bool>&        usefmts,
+                    std::string&              err);
     //!
     //! True if pagination environment is enabled
     //!
     static bool IsPaginationEnvEnabled();
+
+    // utf8 support utilities
+#ifdef OS_WIN
+    //!
+    //! Gets absolute path, supports unicode on Windows
+    //! Returns absolute path
+    //! \param input Input string
+    //!
+    std::wstring GetAbsolutePathW(const std::wstring& input);
+    //!
+    //! Gets current working directory on windows
+    //!
+    std::wstring GetCurrentWorkingDirW();
+    //! 
+    //! Returns normalized path for operating system, supports Unicode
+    //! \param path Given path
+    //!
+    std::wstring GetNormpathW(const std::wstring& path);
+    //!
+    //! Strips trailing slash for wide strings
+    //! \param in Input string
+    //!
+    std::wstring StripTrailingSlashW(const std::wstring& in);
+    //!
+    //! Converts std::string to std::wstring
+    //! \param in Input string
+    //!
+    std::wstring StdString2WString(const std::string& in);
+    //!
+    //! Converts std::wstring to std::string, supports Unicode
+    //! \param in Wide string input
+    //!
+    std::string WString2StdString(const std::wstring& in);
+#endif
 
 private: 
     //!
