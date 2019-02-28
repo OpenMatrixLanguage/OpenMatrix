@@ -18,7 +18,7 @@ init:
 
 environment:
   OML_ROOT: c:\oss
-  OML_THIRDPARTY: c:\oss\third_party
+  OML_THIRDPARTY: c:\oss\third_party\third_party
   OML_APPVEYOR: TRUE
   OML_PYTHON: c:\python36-x64
   
@@ -28,7 +28,7 @@ before_build:
     
     dir
     
-    git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Windows/third_party.git c:\oss\third_party
+    git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Windows.git c:\oss\third_party
     
     dir c:\oss
     
