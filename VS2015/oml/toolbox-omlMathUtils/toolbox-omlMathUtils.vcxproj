@@ -112,7 +112,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_LIBDIR)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>hwmathutils.lib; mathcore.lib; oml.lib</AdditionalDependencies>
+      <AdditionalDependencies>hwmathutils.lib; mathcore.lib; oml.lib; libblas.lib; liblapack.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
