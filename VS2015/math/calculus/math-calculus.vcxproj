@@ -113,8 +113,8 @@
       <PreprocessorDefinitions>WIN32;OS_WIN;_WIN64;CALCULUS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>mathcore.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mathcore.lib;libblas.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OML_LIBDIR);$(SolutionDir)/x64/$(Configuration)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

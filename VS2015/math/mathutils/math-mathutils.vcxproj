@@ -121,8 +121,8 @@
       <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\kernel</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mathcore.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OML_LIBDIR);$(SolutionDir)/x64/$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mathcore.lib;libblas.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
