@@ -1,0 +1,3 @@
+﻿max(3,NaN)
+max(NaN,3)
+max(NaN,NaN)

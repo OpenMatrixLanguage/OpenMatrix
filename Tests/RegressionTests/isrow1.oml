@@ -1,0 +1,2 @@
+isrow('test')
+isrow(['test';'test1'])

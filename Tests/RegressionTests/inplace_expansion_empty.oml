@@ -1,0 +1,7 @@
+﻿a = zeros(0,1);
+b = zeros(0,2);
+a=[a b] 
+c = zeros(1, 0);
+d = zeros(2, 0);
+c = [c d]
+

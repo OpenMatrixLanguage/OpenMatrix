@@ -1,0 +1,3 @@
+﻿idp=zeros(1,0)
+DEPU=zeros(2,0)
+DEPU(1,:)=idp

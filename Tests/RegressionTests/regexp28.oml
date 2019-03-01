@@ -1,0 +1,4 @@
+strIn = 'there are ten boys and ten girls.';
+index1 = regexp(strIn,'ten','start');
+index2 = regexp(strIn,'ten','end');
+strOut = strcat(strIn(1:index1(1)-1),' five',strIn(index2(1)+1:length(strIn)))

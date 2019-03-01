@@ -1,0 +1,14 @@
+function y = func(x)
+	y = sum(x);
+end
+
+handle1 = @(x) sum(x);
+handle2 = @(x) func(x);
+
+ind = [2, 4; 1, 3; 1, 3; 2, 4; 2, 4; 1, 3; 1, 3; 2, 4; 2, 2; 1, 3];
+A = accumarray(ind,11:20,[],@func)
+A = accumarray(ind,11:20,[],@sum)
+A = accumarray(ind,11:20,[],handle1)
+A = accumarray(ind,11:20,[],handle2)
+A = accumarray(ind,11:20,[],@(x) sum(x))
+A = accumarray(ind,11:20)

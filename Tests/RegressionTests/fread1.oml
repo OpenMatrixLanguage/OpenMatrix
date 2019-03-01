@@ -1,0 +1,8 @@
+fname = 'FileManipulation/fread1_tmp.txt';
+fid = fopen(fname, 'w');
+fwrite(fid, 'test string', 'char');
+fclose(fid);
+fid = fopen(fname,'r');
+fread(fid, 'uint8=>char')
+fclose(fid);
+delete(fname);

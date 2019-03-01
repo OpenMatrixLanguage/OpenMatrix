@@ -5,12 +5,12 @@ b: [Matrix] 1 x 3
 a = struct [
 b: [Matrix] 1 x 3
 0  0  5
-c: w
+c: 119
 ]
 a = struct [
 b: [Matrix] 1 x 3
 0  0  5
-c: w
+c: 119
 d: [Matrix] 2 x 2
 0   0
 0  99

@@ -1,0 +1,20 @@
+﻿a = 3;
+
+ret = 0;
+switch a
+
+case 1
+
+ret = 2;
+
+case 2
+
+ret = 3;
+
+otherwise
+
+%
+
+end
+
+disp('success')

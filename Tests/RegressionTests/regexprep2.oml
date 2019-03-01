@@ -1,0 +1,3 @@
+src = '<!start key><keyword keyref="inputs"/><!end key>';
+data = regexprep (src, '<[!?][^>]*>', '')
+%data = <keyword keyref="inputs"/>

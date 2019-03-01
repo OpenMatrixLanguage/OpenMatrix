@@ -1,0 +1,2 @@
+name = 'FileManipulation/fscanf_data1.txt';
+dlmread(name)

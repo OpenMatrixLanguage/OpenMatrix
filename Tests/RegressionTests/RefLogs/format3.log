@@ -1,2 +1,2 @@
 x = 1.9876556
-Error: invalid format specifier in argument 1; typeError: invalid format specifier in call to function format at line number 2 in file format3.oml
+Error: invalid format specifier in argument 1 type in call to function format at line number 2 in file format3.oml

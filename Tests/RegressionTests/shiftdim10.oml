@@ -1,0 +1,1 @@
+x = shiftdim(reshape([1:24],[1,6,4]))

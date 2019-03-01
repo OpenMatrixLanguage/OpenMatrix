@@ -1,0 +1,18 @@
+﻿classdef Test
+   properties
+      Number
+      Filepath
+   end
+   properties (Access = private)
+      Time
+   end
+   methods
+      function obj = Test(number,filepath)
+         obj.Number = number;
+         obj.Filepath = filepath;
+         obj.Time = 0;
+      end
+   end
+end
+
+A = Test(1000,'C:/')

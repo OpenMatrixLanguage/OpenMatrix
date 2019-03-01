@@ -1,0 +1,10 @@
+﻿function y=wrong(x)
+   y = x(2);
+end
+
+try
+	wrong(5);
+catch
+	[x, y] = size(ones(2,2))
+	disp('done')
+end

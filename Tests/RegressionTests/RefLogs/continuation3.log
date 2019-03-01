@@ -1,0 +1,6 @@
+motor = struct [
+mass: 5
+speed_noload: 3.85
+torque_noload: 0
+torque_stall: 165
+]

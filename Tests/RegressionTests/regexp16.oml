@@ -1,0 +1,1 @@
+[s,e,te,m,t,nm,sp]=regexp({'test','..';'test','.....';'....','...'},{'test'})

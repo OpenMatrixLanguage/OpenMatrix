@@ -1,0 +1,2 @@
+ans = [Matrix] 0 x 1
+Error: index out of range at line number 3 in file empty_index4.oml

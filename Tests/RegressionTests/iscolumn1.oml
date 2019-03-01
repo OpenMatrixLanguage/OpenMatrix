@@ -1,0 +1,4 @@
+iscolumn(['t';'e';'s';'t'])
+iscolumn('test')
+iscolumn(eye(4))
+iscolumn(24)

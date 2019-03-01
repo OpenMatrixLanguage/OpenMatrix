@@ -72,19 +72,13 @@ nm =
   SECOND: 
   ]
   [1,2] struct [
-  FIRST: 
-  {
-    [1,1] AA
-  }
+  FIRST: AA
   OUTER: 
   {
     [1,1] AA
     [1,2] BB
   }
-  SECOND: 
-  {
-    [1,1] BB
-  }
+  SECOND: BB
   ]
 }
 sp = 

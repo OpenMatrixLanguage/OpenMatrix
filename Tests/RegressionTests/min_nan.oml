@@ -1,0 +1,3 @@
+﻿min(3,NaN)
+min(NaN,3)
+min(NaN,NaN)

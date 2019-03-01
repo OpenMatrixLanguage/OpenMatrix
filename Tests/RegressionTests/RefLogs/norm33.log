@@ -1,1 +1,1 @@
-Error: invalid string value; must be 'inf', '-inf', or 'fro' in call to function norm at line number 1 in file norm33.oml
+Error: invalid string in argument 2; see help for options in call to function norm at line number 1 in file norm33.oml

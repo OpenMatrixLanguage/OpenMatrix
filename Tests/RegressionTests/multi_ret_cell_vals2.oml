@@ -1,0 +1,10 @@
+﻿function [x,y,z] = goo(a,b,c)
+   x=a;
+   y=b;
+   z=c;
+end
+
+a = {};
+
+[a{1} a{2} a{3}] = goo(1,2,3);
+a

@@ -1,0 +1,21 @@
+﻿classdef Test < handle
+ properties
+   name
+ end
+ methods
+   function this = Test()
+     this.name = '';
+   end
+   function [x, y] = GetAddress(this, subcase, ddd)
+     disp('Hi') 
+     x = 1; y = 2;
+   end
+   function dtIdx = GetDataType(this, subcase, datatype)
+     [subIdx, dtIdx] = this.GetAddress(subcase, datatype);
+     disp('here');
+   end
+ end
+end
+
+t = Test();
+dt = t.GetDataType(1,2)
