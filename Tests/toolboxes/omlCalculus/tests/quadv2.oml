@@ -1,7 +1,7 @@
 addtoolbox omlCalculus
 
 function y = Integrand(x)
-    y = 13 * (x - x.^2) .* exp(-3*x/2);
+    y = 13 * (x - x^2) * exp(-3*x/2);
 end
 
 [area,count] = quadv(@Integrand, 0, 4, 1.0e-5)

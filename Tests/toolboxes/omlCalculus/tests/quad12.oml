@@ -1,6 +1,6 @@
 addtoolbox omlCalculus
 
 tol = [1.0e-7,1.0e-9];
-a1 = quad(@(x) exp(-x ^ 2),-Inf,-2,tol);
-a2 = quad(@(x) exp(-x ^ 2),-2,0,tol);
+a1 = quad(@(x) exp(-x .^ 2),-Inf,-2,tol);
+a2 = quad(@(x) exp(-x .^ 2),-2,0,tol);
 area = (a1+a2) / (sqrt(pi)/2)
