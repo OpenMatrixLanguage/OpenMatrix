@@ -24,7 +24,7 @@ for f in $1;
     cat $f; 
     echo "--------------------"; 
     echo " "; 
-    echo "Display reflogs/$f file.."; 
+    echo "Display RefLogs/$f file.."; 
     echo "--------------------"; 
     cat reflogs/$f; 
     echo "--------------------"; 
