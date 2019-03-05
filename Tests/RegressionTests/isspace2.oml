@@ -1,5 +1,0 @@
-for v=-512:512
-if (isspace(v))
-disp(v)
-end
-end

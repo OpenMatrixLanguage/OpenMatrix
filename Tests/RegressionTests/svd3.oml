@@ -1,4 +1,0 @@
-[a,b,c]=svd(2-8i)
-disp(a)
-disp(b)
-disp(c)
