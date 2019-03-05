@@ -56,8 +56,8 @@ after_success:
 #- chmod 777 $OML_ROOT/src/bin/linux64/omlconsole
 - ls -alF $OML_ROOT/src/bin/linux64
 - ldd $OML_ROOT/src/bin/linux64/omlconsole
-- cd $OML_ROOT/Tests/RegressionTests && pwd
-- perl ../regressOMLConsole.pl -travis
+- cd $OML_ROOT/Tests && pwd
+- source run_tests.sh
 - cd $OML_ROOT/Tests && pwd
 - source run_toolbox_tests.sh
 - cd $OML_ROOT/Tests
