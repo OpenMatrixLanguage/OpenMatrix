@@ -1,0 +1,7 @@
+addtoolbox omlPolynom
+
+q = 0;
+r = [0 0 1];
+d = [1 2 3];
+n = conv(q, d) + r;
+[Q, R] = deconv(n, d)
