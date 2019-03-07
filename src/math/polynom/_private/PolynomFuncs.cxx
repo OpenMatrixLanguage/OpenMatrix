@@ -2,7 +2,7 @@
 * @file PolynomFuncs.cxx
 * @date June 2007
 * Copyright (C) 2007-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 #include "PolynomFuncs.h"
 
@@ -326,77 +326,120 @@ hwMathStatus PolyDivide(const hwMatrix& A,
 	                    hwMatrix&       Q,
                         hwMatrix&       R)
 {
-	// see deconv
-	// return Q and R such that A = ConvLin(Q,B) + R
-	hwMathStatus status;
+    // see deconv
+    // return Q and R such that A = ConvLin(Q,B) + R
+    hwMathStatus status;
 
     if (!A.IsVector())
         return status(HW_MATH_ERR_VECTOR, 1);
 
-	if (!A.IsReal())
-		return status(HW_MATH_ERR_COMPLEXSUPPORT, 1);
-
     if (!B.IsVector())
         return status(HW_MATH_ERR_VECTOR, 2);
 
-	if (!B.IsReal())
-		return status(HW_MATH_ERR_COMPLEXSUPPORT, 2);
+    int asize = A.Size();
+    int bsize = B.Size();
 
-	int i, j;
-	int an = A.Size();
-	int bn = B.Size();
-	int numLeadZeros = 0;
+    // check B for leading zeros
+    int numLeadZeros = 0;
 
-	// check B for leading zeros
-	for (i = 0; i < bn; i++)
-	{
-		if (B(i) == 0.0)
-			++numLeadZeros;
-		else
-			break;
-	}
+    if (B.IsReal())
+    {
+        for (int i = 0; i < bsize; i++)
+        {
+            if (B(i) == 0.0)
+                ++numLeadZeros;
+            else
+                break;
+        }
+    }
+    else
+    {
+        for (int i = 0; i < bsize; i++)
+        {
+            if (B.z(i) == 0.0)
+                ++numLeadZeros;
+            else
+                break;
+        }
+    }
 
-	if (numLeadZeros == bn)
-		return status(HW_MATH_ERR_DIVIDEZERO, 2);
+    if (numLeadZeros == bsize)
+        return status(HW_MATH_ERR_DIVIDEZERO, 2);
 
-	bn -= numLeadZeros;
+    bsize -= numLeadZeros;
 
-	// generate Q
-	hwMatrix D(bn, hwMatrix::REAL);     // partial remainder difference
+    // generate Q and R
+    R = A;  // initialize remainder to use as working memory
 
-	status = Q.Dimension(1, an-bn+1, hwMatrix::REAL);
+    if (bsize > asize)
+    {
+        status = Q.Dimension(1, hwMatrix::REAL);
+        Q(0) = 0.0;
+        return status;
+    }
 
-	if (!status.IsOk())
-	{
-		status.SetArg1(3);
-		return status;
-	}
+    int qn = asize-bsize+1;
 
-	for (j = 0; j < bn-1; ++j)
-		D(j) = A(j);
+    if (A.IsReal() && B.IsReal())
+    {
+        if (A.M() == 1)
+            status = Q.Dimension(1, qn, hwMatrix::REAL);
+        else
+            status = Q.Dimension(qn, 1, hwMatrix::REAL);
 
-	for (i = 0; i < an-bn+1; ++i)
-	{
-		D(bn-1) = A(bn-1+i);
-		Q(i) = D(0) / B(numLeadZeros);
+        if (!status.IsOk())
+        {
+            status.SetArg1(3);
+            return status;
+        }
 
-		for (j = 0; j < bn-1; ++j)
-			D(j) = D(j+1) - Q(i) * B(j+1+numLeadZeros);
-	}
+        for (int i = 0; i < qn; ++i)
+        {
+            Q(i) = R(i) / B(numLeadZeros);
+            R(i) = 0.0;
 
-	// generate R
-	status = R.Dimension(1, bn-1, hwMatrix::REAL);
+            for (int j = 1; j < bsize; ++j)
+                R(i+j) -= Q(i) * B(numLeadZeros+j);
+        }
+    }
+    else if (!A.IsReal() && !B.IsReal())
+    {
+        if (A.M() == 1)
+            status = Q.Dimension(1, qn, hwMatrix::COMPLEX);
+        else
+            status = Q.Dimension(qn, 1, hwMatrix::COMPLEX);
 
-	if (!status.IsOk())
-	{
-		status.SetArg1(4);
-		return status;
-	}
+        if (!status.IsOk())
+        {
+            status.SetArg1(3);
+            return status;
+        }
 
-	for (j = 0; j < bn-1; ++j)
-		R(j) = D(j);
+        for (int i = 0; i < qn; ++i)
+        {
+            Q.z(i) = R.z(i) / B.z(numLeadZeros);
+            R.z(i) = 0.0;
 
-	return status;
+            for (int j = 1; j < bsize; ++j)
+                R.z(i+j) -= Q.z(i) * B.z(numLeadZeros+j);
+        }
+    }
+    else if (A.IsReal() && !B.IsReal())
+    {
+        hwMatrix temp;
+        temp.PackComplex(A, nullptr);
+
+        return PolyDivide(temp, B, Q, R);
+    }
+    else if (!A.IsReal() && B.IsReal())
+    {
+        hwMatrix temp;
+        temp.PackComplex(B, nullptr);
+
+        return PolyDivide(A, temp, Q, R);
+    }
+
+    return status;
 }
 //------------------------------------------------------------------------------
 // Computes the derivative of a polynomial and returns status

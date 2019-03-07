@@ -1,0 +1,5 @@
+fname = 'FileManipulation/textscandata.txt';
+fid = fopen(fname, 'rb');
+f = textscan(fid,'%f %*s %f %f %f %*[^\n]\n %*s %f %f %f %*[^\n]\n %*s %f %f %f %*[^\n]\n %*s %f %f %f %*[^\n]\n');
+fclose(fid);
+f(1)

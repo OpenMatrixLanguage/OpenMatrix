@@ -1,0 +1,6 @@
+﻿motor = struct( ...
+'torque_stall', 165, ... % [Nm]
+'torque_noload', 0,... % [Nm]
+'speed_noload', 3.85,... % [rad/s]
+'mass', 5.0 ... % [kg]
+)

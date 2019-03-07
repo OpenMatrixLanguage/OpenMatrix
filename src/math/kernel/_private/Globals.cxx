@@ -2,7 +2,7 @@
 * @file Globals.cxx
 * @date June 2007
 * Copyright (C) 2007-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 //:---------------------------------------------------------------------------
@@ -62,6 +62,8 @@ std::string GetHMathErrMsg(hwMathMsgCode code)
             // statistics warnings
             case HW_MATH_WARN_STATTESTALPHA:    retStr = HW_MATH_MSG_STATTESTALPHA_W;   break;
             case HW_MATH_WARN_SMALLVARIANCE:    retStr = HW_MATH_MSG_SMALLVARIANCE;     break;
+            // Qhull warnings
+            case HW_MATH_WARN_QHULL_LEAK:       retStr = HW_MATH_MSG_QHULL_LEAK;        break;
             // unknown error
             default:                            retStr = HW_MATH_MSG_UNKNOWN;
         }
@@ -207,6 +209,12 @@ std::string GetHMathErrMsg(hwMathMsgCode code)
             case HW_MATH_ERR_IDA_ACCURACY:          retStr = HW_MATH_MSG_IDA_ACCURACY;      break;
             case HW_MATH_ERR_IDA_ERR:               retStr = HW_MATH_MSG_IDA_ERR;           break;
             case HW_MATH_ERR_IDA_CONV:              retStr = HW_MATH_MSG_IDA_CONV;          break;
+            // Qhull errors
+            case HW_MATH_ERR_QHULL:                 retStr = HW_MATH_MSG_QHULL;             break;
+            case HW_MATH_ERR_QHULL_PNTS:            retStr = HW_MATH_MSG_QHULL_PNTS;        break;
+            case HW_MATH_ERR_QHULL_DIMS:            retStr = HW_MATH_MSG_QHULL_DIMS;        break;
+            case HW_MATH_ERR_QHULL_DIMS23:          retStr = HW_MATH_MSG_QHULL_DIMS23;      break;
+            case HW_MATH_ERR_QHULL_NS_FACET:        retStr = HW_MATH_MSG_QHULL_NS_FACET;    break;
             // unknown error
             default:                                retStr = HW_MATH_MSG_UNKNOWN;
         }

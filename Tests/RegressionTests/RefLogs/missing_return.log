@@ -1,1 +1,1 @@
-Error: missing return values in function toeven at line number 10 in file missing_return.oml
+Error: unable to assign empty right hand side in function toeven at line number 10 in file missing_return.oml

@@ -1,0 +1,1 @@
+[s,e,te,m,t,nm,sp]=regexp({'test.'},{'test1','test';'test2','bad';['t';'e';'s';'t';'1'],['test2';'test3']})

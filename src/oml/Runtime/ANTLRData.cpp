@@ -1,8 +1,8 @@
 /**
 * @file ANTLRData.cpp
 * @date April 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* Copyright (C) 2015-2019 Altair Engineering, Inc.  
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 #include "ANTLRData.h"
@@ -127,6 +127,21 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 		if (token_type == PERCENT && !in_string)
 			in_comment = true;
 
+		if (token_type == CONT && !in_string)
+		{
+			for (int k = j; k < num_tokens; ++k)
+			{
+				pANTLR3_COMMON_TOKEN next_tok = (pANTLR3_COMMON_TOKEN)vec->get(vec, k);
+				next_tok->setChannel(next_tok, HIDDEN);
+
+				if (next_tok->getType(next_tok) == NEWLINE)
+				{
+					j = k;
+					break;
+				}
+			}
+		}
+
 		if (token_type == PCTLCURLY && !in_string)
 		{
 			for (int k=j; k<num_tokens; ++k)
@@ -158,7 +173,7 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 
 		if (token_type == CONT)
 		{
-			if (in_comment)
+			if (in_comment && !in_string)
 			{
 				tok->setChannel(tok, 0);
 				tok->setType(tok, NEWLINE);
@@ -167,7 +182,7 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 
 		int exit_type = RBRACKET;
 
-		if (((token_type == LBRACKET) || (token_type == LCURLY)) && !in_string)
+		if (((token_type == LBRACKET) || (token_type == LCURLY)) && !in_string && !in_comment)
 		{
 			if (token_type == LCURLY)
 				exit_type = RCURLY;
@@ -274,7 +289,7 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 					if ((prev_type != COMMA) && (prev_type != COLON) && (prev_type != SEMIC) && (prev_type != NEWLINE) && (prev_type != TIMES) && (prev_type != DIV) && (prev_type != ASSIGN) && (prev_type != EQUAL))
 						prev_token_flag = true;
 
-					if ((next_type == MINUS) || (next_type == PLUS)  || (next_type == QUOTE) || (next_type == LPAREN) || (next_type == LCURLY))
+					if ((next_type == MINUS) || (next_type == PLUS)  || (next_type == QUOTE) || (next_type == LPAREN) || (next_type == LCURLY) || (next_type == CONT))
 						next_token_flag = true;
 
 					if ((next_type == LPAREN) && ((prev_type == PLUS) || (prev_type == MINUS)))
@@ -309,26 +324,32 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 
 					if (prev_token_flag && next_token_flag)
 					{
-						pANTLR3_COMMON_TOKEN tok3 = (pANTLR3_COMMON_TOKEN)vec->get(vec, k+2);
-						int tok3_type = tok3->getType(tok3);
+                        if (k + 2 < vec->count)
+                        {
+                            pANTLR3_COMMON_TOKEN tok3 = (pANTLR3_COMMON_TOKEN)vec->get(vec, k + 2);
+                            int tok3_type = tok3->getType(tok3);
 
-						// the special case is for strings that start with a space
-						if ((tok3_type != WS) || ((tok3_type == WS) && (tok2_type == QUOTE)))
-						{
-							tok->setChannel(tok, 0);
-							tok->setType(tok, COMMA);
-						}
+                            // the special case is for strings that start with a space
+                            if ((tok3_type != WS) || ((tok3_type == WS) && (tok2_type == QUOTE)))
+                            {
+                                tok->setChannel(tok, 0);
+                                tok->setType(tok, COMMA);
+                            }
+                        }
 					}
 				}
 				else if (tok->getType(tok) == CONT)
 				{
+					tok->setChannel(tok, HIDDEN);
+
 					pANTLR3_COMMON_TOKEN tok2 = NULL;
 
 					for (int q = k+1; q<num_tokens; q++)
 					{
 						tok2 = (pANTLR3_COMMON_TOKEN)vec->get(vec, q);
+						tok2->setChannel(tok2, HIDDEN);
 
-						if (tok2->getType(tok2) != WS)
+						if (tok2->getType(tok2) == NEWLINE)
 							break;
 					}
 

@@ -2,7 +2,7 @@
 * @file MathUtilsTboxFuncs.cxx
 * @date January 2015
 * Copyright (C) 2015-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 #include "MathUtilsTboxFuncs.h"
@@ -23,7 +23,14 @@
 #include "OML_Error.h"
 #include "MathUtilsFuncs.h"
 #include "SpecialFuncs.h"
+#include "hwMatrix.h"
+#include "MatrixNUtils.h"
 
+#if defined(_DARWIN) || defined(LINUX)
+  #include <stdlib.h>   // for _fcvt in omlRat
+#endif
+
+#define ELEM   "ElementaryMath"
 #define STATAN "StatisticalAnalysis"
 #define TBOXVERSION 2019.0
 
@@ -38,6 +45,8 @@ int InitDll(EvaluatorInterface eval)
                                  FunctionMetaData(1, 1, STATAN));
     eval.RegisterBuiltInFunction("bins", OmlBins, 
                                  FunctionMetaData(2, 1, STATAN));
+    eval.RegisterBuiltInFunction("rat", OmlRat, 
+                                 FunctionMetaData(-2, -2, ELEM));
     return 1;
 }
 //------------------------------------------------------------------------------
@@ -131,6 +140,288 @@ bool OmlBins(EvaluatorInterface           eval,
     BuiltInFuncsUtils::CheckMathStatus(eval, Bins(*data, *result));
 
     outputs.push_back(result.release());
+    return true;
+}
+//------------------------------------------------------------------------------
+// Returns rational fraction approximation
+//------------------------------------------------------------------------------
+bool OmlRat(EvaluatorInterface           eval, 
+            const std::vector<Currency>& inputs, 
+            std::vector<Currency>&       outputs)
+{
+    int nargin  = static_cast<int> (inputs.size());
+    int nargout = eval.GetNargoutValue();
+
+    if (nargin != 1 && nargin != 2)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    if (nargout > 2)
+        throw OML_Error(OML_ERR_NUMARGOUT);
+
+    double       tol = 1.0e-6;
+    hwMathStatus status;
+
+    if (nargin == 2)
+    {
+        if (!inputs[1].IsScalar())
+            throw OML_Error(OML_ERR_POSITIVE_SCALAR, 2, OML_VAR_VALUE);
+
+        tol = inputs[1].Scalar();
+    }
+
+    if (inputs[0].IsScalar())
+    {
+        double   value = inputs[0].Scalar();
+        double   num;
+        double   den;
+        hwMatrix cfTerms;
+
+        if (nargin == 1)
+        {
+            tol = fabs(value) * tol;
+        }
+
+        BuiltInFuncsUtils::CheckMathStatus(eval, ContFrac(value, tol, num, den, cfTerms));
+
+        if (nargout < 2)
+        {
+            int  cfsize = cfTerms.Size();
+            int  decimal;
+            int  sign;
+            std::string str;
+
+            #if defined(_DARWIN) || defined(LINUX)
+              char* argChar;
+            #else
+              char argChar[25];
+            #endif
+
+            if (cfTerms(0) != 0.0)
+            {
+                #if defined(_DARWIN) || defined(LINUX)
+                  argChar = fcvt(cfTerms(0), 0, &decimal, &sign);
+                #else
+                  _fcvt_s(argChar, 25, cfTerms(0), 0, &decimal, &sign);
+                #endif
+
+                if (!sign)
+                    str = std::string(argChar);
+                else
+                    str = "-" + std::string(argChar);
+            }
+            else
+            {
+                str = "0";
+            }
+
+            for (int i = 1; i < cfsize-1; ++i)
+            {
+                #if defined(_DARWIN) || defined(LINUX)
+                  argChar = fcvt(cfTerms(i), 0, &decimal, &sign);
+                #else
+                  _fcvt_s(argChar, 25, cfTerms(i), 0, &decimal, &sign);
+                #endif
+
+                if (!sign)
+                    str += " + 1/(" + std::string(argChar);
+                else
+                    str += " + 1/(-" + std::string(argChar);
+            }
+
+            if (cfsize > 1)
+            {
+                #if defined(_DARWIN) || defined(LINUX)
+                  argChar = fcvt(cfTerms(cfsize - 1), 0, &decimal, &sign);
+                #else
+                  _fcvt_s(argChar, 25, cfTerms(cfsize - 1), 0, &decimal, &sign);
+                #endif
+
+                if (!sign)
+                    str += " + 1/" + std::string(argChar);
+                else
+                    str += " + 1/(-" + std::string(argChar) + ")";
+
+                for (int i = 1; i < cfsize - 1; ++i)
+                    str += ")";
+            }
+
+            outputs.push_back(str);
+        }
+        else
+        {
+            outputs.push_back(num);
+            outputs.push_back(den);
+        }
+    }
+    else if (inputs[0].IsMatrix())
+    {
+        const hwMatrix* data = inputs[0].ConvertToMatrix();
+        int             size = data->Size();
+        hwMatrix        cfTerms;
+
+        if (nargin == 1)
+        {
+            double norm;
+            BuiltInFuncsUtils::CheckMathStatus(eval, data->Norm(norm, 1));
+            tol = norm * tol;
+        }
+
+        if (nargout < 2)
+        {
+            double num;
+            double den;
+            std::unique_ptr<hwMatrix> result(EvaluatorInterface::allocateMatrix());
+
+            for (int i = 0; i < size; ++i)
+            {
+                BuiltInFuncsUtils::CheckMathStatus(eval, ContFrac((*data)(i), tol, num, den, cfTerms));
+
+                int  cfsize = cfTerms.Size();
+                int  decimal;
+                int  sign;
+                std::string str;
+
+                #if defined(_DARWIN) || defined(LINUX)
+                  char* argChar;
+                #else
+                  char argChar[25];
+                #endif
+
+                if (cfTerms(0) != 0.0)
+                {
+                    #if defined(_DARWIN) || defined(LINUX)
+                      argChar = fcvt(cfTerms(0), 0, &decimal, &sign);
+                    #else
+                      _fcvt_s(argChar, 25, cfTerms(0), 0, &decimal, &sign);
+                    #endif
+
+                    if (!sign)
+                        str = std::string(argChar);
+                    else
+                        str = "-" + std::string(argChar);
+                }
+                else
+                {
+                    str = "0";
+                }
+
+                for (int j = 1; j < cfsize-1; ++j)
+                {
+                    #if defined(_DARWIN) || defined(LINUX)
+                      argChar = fcvt(cfTerms(j), 0, &decimal, &sign);
+                    #else
+                      _fcvt_s(argChar, 25, cfTerms(j), 0, &decimal, &sign);
+                    #endif
+
+                    if (!sign)
+                        str += " + 1/(" + std::string(argChar);
+                    else
+                        str += " + 1/(-" + std::string(argChar);
+                }
+
+                if (cfsize > 1)
+                {
+                    #if defined(_DARWIN) || defined(LINUX)
+                      argChar = fcvt(cfTerms(cfsize-1), 0, &decimal, &sign);
+                    #else
+                      _fcvt_s(argChar, 25, cfTerms(cfsize-1), 0, &decimal, &sign);
+                    #endif
+
+                    if (!sign)
+                        str += " + 1/" + std::string(argChar);
+                    else
+                        str += " + 1/(-" + std::string(argChar) + ")";
+
+                    for (int j = 1; j < cfsize - 1; ++j)
+                        str += ")";
+                }
+
+                int strlen = static_cast<int> (str.size());
+                int n      = result->N();
+
+                if (i == 0)
+                {
+                    Currency strC(str);
+                    (*result) = *(strC.Matrix());
+                }
+                else
+                {
+                    if (n > strlen)
+                    {
+                        std::string spaces(n-strlen, ' ');
+                        str = str + spaces;
+                    }
+                    else if (n < strlen)
+                    {
+                        hwMatrix filler(i, strlen-n, hwMatrix::REAL);
+                        filler.SetElements(32.0);   // ASCII space
+                        hwMatrix copy(*result);
+                        status = result->InsertColumns(copy, n, filler);
+                        n = strlen;
+                    }
+
+                    hwMatrix copy(*result);
+                    Currency strC(str);
+                    status = result->InsertRows(copy, i, *(strC.Matrix()));
+                }
+            }
+
+            Currency out(result.release());
+            out.SetMask(Currency::MASK_STRING);
+
+            outputs.push_back(out);
+        }
+        else
+        {
+            double    numI;
+            double    denI;
+            int       m    = data->M();
+            int       n    = data->N();
+            hwMatrix* num  = EvaluatorInterface::allocateMatrix(m, n, 0.0);
+            hwMatrix* den  = EvaluatorInterface::allocateMatrix(m, n, 0.0);
+
+            for (int i = 0; i < size; ++i)
+            {
+                BuiltInFuncsUtils::CheckMathStatus(eval,
+                    ContFrac((*data)(i), tol, numI, denI, cfTerms));
+
+                (*num)(i) = static_cast<double>(numI);
+                (*den)(i) = static_cast<double>(denI);
+            }
+
+            outputs.push_back(num);
+            outputs.push_back(den);
+        }
+    }
+    else if (inputs[0].IsNDMatrix())
+    {
+        if (nargout < 2)
+        {
+            // convert from ND to vector
+            const hwMatrixN*      matrix  = inputs[0].MatrixN();
+            const double*         data    = matrix->GetRealData();
+            hwMatrix*             slice2D = new hwMatrix(matrix->Size(), (void*) data, hwMatrix::REAL);
+            std::vector<Currency> inputs2;
+
+            inputs2.push_back(slice2D);
+
+            for (int i = 1; i < inputs.size(); ++i)
+            {
+                inputs2.push_back(inputs[i]);
+            }
+
+            return OmlRat(eval, inputs2, outputs);
+        }
+        else
+        {
+            return oml_MatrixNUtil1(eval, inputs, outputs, OmlRat);
+        }
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_REAL, 1, OML_VAR_TYPE);
+    }
+
     return true;
 }
 //------------------------------------------------------------------------------

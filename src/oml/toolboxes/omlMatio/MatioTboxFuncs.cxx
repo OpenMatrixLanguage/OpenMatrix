@@ -2,7 +2,7 @@
 * @file MatioTboxFuncs.cxx
 * @date November 2015
 * Copyright (C) 2015-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,19 +10,21 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 #include "MatioTboxFuncs.h"
 
 #include <cassert>
 #include <fstream>
+#include <memory>
 
 #include "BuiltInFuncsUtils.h"
 #include "EvaluatorInt.h" 
 #include "OML_Error.h"
 #include "StructData.h" 
+
 #include "matio.h"
 
 #define TBOXVERSION 2019.0
@@ -35,6 +37,25 @@ bool ReadASCIIFile(EvaluatorInterface           eval,
 bool SaveAsciiFile(EvaluatorInterface              eval, 
                    const std::string&              filename,
                    const std::vector<std::string>& vars);
+// Converts currency to matvar
+matvar_t* CurrencyToMatVar(const char*     name, 
+                           const Currency& cur,
+                           mat_ft          version,
+                           std::string&    warn);
+// Prints matio version for debugging
+void PrintMatioVersion();
+// Prints mat file version to stdout for debugging
+void PrintMatioFileVersion(mat_t* m);
+// Sets error from the matio library
+void SetMatioMessage(int   level,
+                     char* msg);
+
+//# define OMLMATIO_DBG 1  // Uncomment to print debug info
+#ifdef OMLMATIO_DBG
+#    define OMLMATIO_PRINT(str, m) { std::cout << str << m << std::endl; }
+#else
+#    define OMLMATIO_PRINT(str, m) 0
+#endif
 
 //------------------------------------------------------------------------------
 // Entry point which registers load/save functions with oml
@@ -47,30 +68,43 @@ int InitDll(EvaluatorInterface eval)
                                  "FileIO"));
     return 1;
 }
-
-void log_helper(int level, char* message)
-{
-	throw OML_Error(message);
-}
-
+//------------------------------------------------------------------------------
+// Converts matvar_t to currency
+//------------------------------------------------------------------------------
 Currency MatVarToCurrency(matvar_t* var)
 {
-	if (var->class_type == MAT_C_DOUBLE)
+    assert(var);
+    if (!var)
+    {
+        return Currency(-1.0, Currency::TYPE_NOTHING);
+    }
+
+    matio_classes classtype = var->class_type;
+
+	if (classtype == MAT_C_DOUBLE)
 	{
-		if (var->rank == 1) // not sure about this
+        if (var->rank == 1) // Cannot process rank of 1
+        {
+            return Currency(-1.0, Currency::TYPE_NOTHING);
+        }
+        else if (var->rank == 2) // matrix or vector or scalar
 		{
-		}
-		else if (var->rank == 2) // matrix or vector or scalar
-		{
-			if ((var->dims[0] == 1) & (var->dims[1] == 1))
+            if (var->dims[0] == 1 && var->dims[1] == 1)
 			{
 				if (var->isComplex) // complex
 				{
-					mat_complex_split_t *complex_data = (mat_complex_split_t*)var->data;
-					double *rp = (double*)complex_data->Re;
-					double *ip = (double*)complex_data->Im;
-					return hwComplex(*rp, *ip);
-				}
+                    mat_complex_split_t* cdata = (mat_complex_split_t*)var->data;
+                    if (cdata)
+                    {
+                        double *rp = (double*)cdata->Re;
+                        double *ip = (double*)cdata->Im;
+                        return hwComplex(*rp, *ip);
+                    }
+                    else
+                    {
+                        return Currency(-1.0, Currency::TYPE_NOTHING);
+                    }
+                }
 				else // scalar
 				{
 					double* my_val = (double*)var->data;
@@ -79,40 +113,41 @@ Currency MatVarToCurrency(matvar_t* var)
 			}
 			else // matrix
 			{ 
+                int num_rows = static_cast<int>(var->dims[0]);
+                int num_cols = static_cast<int>(var->dims[1]);
+
 				if (var->isComplex) // complex matrix
 				{
-					int num_rows = static_cast<int>(var->dims[0]);
-					int num_cols = static_cast<int>(var->dims[1]);
-
-					hwMatrix* mat = EvaluatorInterface::allocateMatrix(num_rows, num_cols, hwMatrix::COMPLEX);
+					hwMatrix* mat = EvaluatorInterface::allocateMatrix(
+                                    num_rows, num_cols, hwMatrix::COMPLEX);
 							                    
-					mat_complex_split_t *complex_data = (mat_complex_split_t*)var->data;
-					double *rp = (double*)complex_data->Re;
-					double *ip = (double*)complex_data->Im;
+                    mat_complex_split_t* cdata = (mat_complex_split_t*)var->data;
+                    if (cdata)
+                    {
+                        double *rp = (double*)cdata->Re;
+                        double *ip = (double*)cdata->Im;
 
-					for (int j=0; j<num_cols; j++)
-					{
-						for (int k=0; k<num_rows; k++)
-						{
-							int     idx  = num_rows*j + k;
-							mat->z(k, j) = hwComplex(*(rp+idx), *(ip+idx));
-						}
-					}
-
-					return mat;
-				}
+                        for (int j = 0; j < num_cols; ++j)
+                        {
+                            for (int k = 0; k < num_rows; ++k)
+                            {
+                                int     idx = num_rows * j + k;
+                                mat->z(k, j) = hwComplex(*(rp + idx), *(ip + idx));
+                            }
+                        }
+                    }
+                    return mat;
+                }
 				else
 				{
-					int num_rows = static_cast<int>(var->dims[0]);
-					int num_cols = static_cast<int>(var->dims[1]);
-
-					hwMatrix* mat = EvaluatorInterface::allocateMatrix(num_rows, num_cols, hwMatrix::REAL);
+					hwMatrix* mat = EvaluatorInterface::allocateMatrix(
+                                    num_rows, num_cols, hwMatrix::REAL);
 
 					for (int j=0; j<num_cols; j++)
 					{
 						for (int k=0; k<num_rows; k++)
 						{
-							int     idx  = num_rows*j + k;
+							int     idx  = num_rows * j + k;
 							double* next = (double*)var->data + idx;
 							(*mat)(k, j) = *next;
 						}
@@ -137,47 +172,56 @@ Currency MatVarToCurrency(matvar_t* var)
 				size *= val;
 			}
 
-			hwMatrixN* mat_n = NULL;
+			hwMatrixN* mat_n = nullptr;
 
 			if (var->isComplex)
 			{
 				mat_n = new hwMatrixN(dims, hwMatrixN::COMPLEX);
 
-				mat_complex_split_t *complex_data = (mat_complex_split_t*)var->data;
-				double *rp = (double*)complex_data->Re;
-				double *ip = (double*)complex_data->Im;
+                mat_complex_split_t* cdata = (mat_complex_split_t*)var->data;
+                if (cdata)
+                {
+                    double *rp = (double*)cdata->Re;
+                    double *ip = (double*)cdata->Im;
 
-				for (int k=0; k<size; k++)
-					mat_n->z(k) = hwComplex(rp[k], ip[k]);
-			}
+                    for (int k = 0; k < size; ++k)
+                    {
+                        mat_n->z(k) = hwComplex(rp[k], ip[k]);
+                    }
+                }
+            }
 			else
 			{
 				mat_n = new hwMatrixN(dims, hwMatrixN::REAL);
 
 				double* data = (double*)var->data;
 
-				for (int k=0; k<size; k++)
-					(*mat_n)(k) = data[k];
-			}
+                for (int k = 0; k < size; ++k)
+                {
+                    (*mat_n)(k) = data[k];
+                }
+            }
 
 			return mat_n;
 		}
 	}
 	else if (var->class_type == MAT_C_UINT8)
 	{
-		if (var->rank == 1) // not sure about this
+        if (var->rank == 1) // Cannot process rank of 1
+        {
+            return Currency(-1.0, Currency::TYPE_NOTHING);
+        }
+        else if (var->rank == 2) // matrix or vector or scalar
 		{
-		}
-		else if (var->rank == 2) // matrix or vector or scalar
-		{
-			if ((var->dims[0] == 1) & (var->dims[1] == 1))
+            if (var->dims[0] == 1 && var->dims[1] == 1)
 			{
 				unsigned char* my_val = (unsigned char*)var->data;
 				Currency ret((double)*my_val);
 
-				if (var->isLogical)
-					ret.SetMask(Currency::MASK_LOGICAL);
-
+                if (var->isLogical)
+                {
+                    ret.SetMask(Currency::MASK_LOGICAL);
+                }
 				return ret;				
 			}
 			else // matrix
@@ -185,13 +229,14 @@ Currency MatVarToCurrency(matvar_t* var)
 				int num_rows = static_cast<int>(var->dims[0]);
 				int num_cols = static_cast<int>(var->dims[1]);
 
-				hwMatrix* mat = EvaluatorInterface::allocateMatrix(num_rows, num_cols, hwMatrix::REAL);
+				hwMatrix* mat = EvaluatorInterface::allocateMatrix(
+                                num_rows, num_cols, hwMatrix::REAL);
 
-				for (int j=0; j<num_cols; j++)
+                for (int j = 0; j < num_cols; ++j)
 				{
-					for (int k=0; k<num_rows; k++)
+                    for (int k = 0; k < num_rows; ++k)
 					{
-						int     idx  = num_rows*j + k;
+                        int     idx = num_rows * j + k;
 						char* next = (char*)var->data + idx;
 						(*mat)(k, j) = (double)*next;
 					}
@@ -200,14 +245,14 @@ Currency MatVarToCurrency(matvar_t* var)
 				Currency ret(mat);
 
 				if (var->isLogical)
-					ret.SetMask(Currency::MASK_LOGICAL);
-
+                {
+                    ret.SetMask(Currency::MASK_LOGICAL);
+                }
 				return ret;
 			}
 		}
 		else
 		{
-            Mat_VarFree(var);
 			throw OML_Error(OML_ERR_UNSUPPORTDIM);
 		}
 	}
@@ -218,16 +263,49 @@ Currency MatVarToCurrency(matvar_t* var)
 			int num_rows = static_cast<int>(var->dims[0]);
 			int num_cols = static_cast<int>(var->dims[1]);
 
-			if ((num_rows == 1) && (num_cols != 0))
-			{
-				char* text = (char*)var->data;
-				return text;
-			}
-			else
-			{
-				return "";
-			}
-		}
+            if (num_rows != 1 || num_cols <= 0)
+            {
+                return "";
+            }
+
+            if (var->data_type == MAT_T_UINT16)
+            {
+                std::string str;
+                char tmp[256];
+                int i = 0;
+                const mat_uint16_t *data = (const mat_uint16_t*)var->data;
+
+                for (int j = 0; j < num_cols; j++)
+                {
+                    const mat_uint16_t c = data[j*var->dims[0] + i];
+                    memset(tmp, 0, sizeof(tmp));
+                    if (c <= 0x7f)
+                    {
+                        sprintf(tmp, "%c", c);
+                    }
+                    else if (c <= 0x7FF)
+                    {
+                        sprintf(tmp, "%c%c", 0xC0 | (c >> 6), 0x80 | (c & 0x3F));
+                    }
+                    else
+                    {
+                        sprintf(tmp, "%c%c%c", 0xE0 | (c >> 12), 0x80 | ((c >> 6) & 0x3F), 0x80 | (c & 0x3F));
+                    }
+                    str += tmp;
+                }
+                return str.c_str();
+            }
+            else
+            {
+                char* text = (char*)var->data;
+                std::string strdata;
+                for (int j = 0; j < num_cols; j++)
+                {
+                    strdata += text[j];
+                }
+                return strdata.c_str();
+            }
+        }
 	}
 	else if (var->class_type == MAT_C_CELL)
 	{
@@ -237,9 +315,10 @@ Currency MatVarToCurrency(matvar_t* var)
                 static_cast<int>(var->dims[0]), static_cast<int>(var->dims[1]));
 			matvar_t**     vals  = (matvar_t**)var->data;
 
-			for (int j=0; j<cells->Size(); j++)
-				(*cells)(j) = MatVarToCurrency(vals[j]);
-
+            for (int j = 0; j < cells->Size(); j++)
+            {
+                (*cells)(j) = MatVarToCurrency(vals[j]);
+            }				
 			return cells;
 		}
 	}
@@ -254,25 +333,30 @@ Currency MatVarToCurrency(matvar_t* var)
 			char* const* fields = Mat_VarGetStructFieldnames(var);
 			int num_fields = Mat_VarGetNumberOfFields(var);
 
-			for (int j=0; j<num_fields; j++)
-			{
-				std::string field = fields[j];
-				sd->addField(field);
+            for (int j = 0; j < num_fields; ++j)
+            {
+                std::string field(fields[j]);
+                sd->addField(field);
 
-				for (int k=0; k<var->dims[0]; k++)
-				{
-					for (int m=0; m<var->dims[1]; m++)
-					{
-						int index = k* static_cast<int>(var->dims[1]) + m;
-						matvar_t* temp = Mat_VarGetStructFieldByName(var, field.c_str(), index);
-						Currency cur = MatVarToCurrency(temp);
-						sd->SetValue(k, m, field, cur);
-					}
-				}
-			}
+                for (int k = 0; k < var->dims[0]; ++k)
+                {
+                    for (int m = 0; m <var->dims[1]; ++m)
+                    {
+                        int index = k* static_cast<int>(var->dims[1]) + m;
+                        matvar_t* temp = Mat_VarGetStructFieldByName(
+                            var, field.c_str(), index);
+                        if (!temp)
+                        {
+                            continue;
+                        }
+                        Currency cur = MatVarToCurrency(temp);
+                        sd->SetValue(k, m, field, cur);
+                    }
+                }
+            }
 
-			return sd;
-		}
+            return sd;
+        }
 	}
 
 	return Currency(-1.0, Currency::TYPE_NOTHING);
@@ -285,29 +369,39 @@ bool OmlLoad(EvaluatorInterface           eval,
              std::vector<Currency>&       outputs)
 {
     int nargin = (!inputs.empty()) ? static_cast<int>(inputs.size()) : 0;
-    if (nargin < 1) 
+    if (nargin < 1)
+    {
         throw OML_Error(OML_ERR_NUMARGIN);
+    }
 
 	std::vector<std::string> target_variables;
     target_variables.reserve(nargin);
 
 	if (nargin > 1)
 	{
-		Currency lastcur = inputs[nargin-1];
-        if (!lastcur.IsString())
+        if (!inputs[nargin - 1].IsString())
+        {
             throw OML_Error(OML_ERR_STRING, nargin, OML_VAR_TYPE);
+        }
 
-    	std::string last_input = inputs[nargin-1].StringVal();
-    	if ((last_input == "-ascii") || (last_input == "-ASCII"))
-			return ReadASCIIFile(eval, inputs, outputs);
+    	std::string lastinput (inputs[nargin-1].StringVal());
+        if (!lastinput.empty())
+        {
+            std::string lower(lastinput);
+            std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+            if (lower == "-ascii")
+            {
+                return ReadASCIIFile(eval, inputs, outputs);
+            }
+        }
 
-		for (int j=1; j<nargin; ++j)
+		for (int j = 1; j < nargin; ++j)
 		{
-            Currency cur = inputs[j];
-            if (!cur.IsString())
+            if (!inputs[j].IsString())
+            {
                 throw OML_Error(OML_ERR_STRING, j + 1, OML_VAR_TYPE);
-
-    		target_variables.push_back(cur.StringVal());
+            }
+    		target_variables.push_back(inputs[j].StringVal());
 		}
 	}
 
@@ -315,14 +409,16 @@ bool OmlLoad(EvaluatorInterface           eval,
 		throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
 
 	int nargout        = eval.GetNargoutValue();
-	StructData* out_sd = NULL;
+    std::unique_ptr<StructData> out_sd = nullptr;
 
-	if (nargout)
-		out_sd = new StructData;
+    if (nargout)
+    {
+        out_sd.reset(EvaluatorInterface::allocateStruct());
+    }
 
-	Mat_LogInitFunc("OML", log_helper);
+    Mat_LogInitFunc("OML", SetMatioMessage);
 
-	std::string filename = inputs[0].StringVal();
+	std::string filename (inputs[0].StringVal());
 
 	mat_t* m = Mat_Open(filename.c_str(), MAT_ACC_RDONLY);
     if (!m)
@@ -331,249 +427,301 @@ bool OmlLoad(EvaluatorInterface           eval,
             + BuiltInFuncsUtils::Normpath(filename) + "]");
 	}
 
-	if (m)
-	{
-		while (1)
-		{
-			matvar_t* var = Mat_VarReadNext(m);
+    PrintMatioFileVersion(m);  // Prints file version to stdout for debugging
 
-			if (!var)
-				break;
+    bool checktargets = (target_variables.empty()) ? false : true;
+    while (1)
+    {
+        matvar_t* var = Mat_VarReadNext(m);
+        if (!var)
+        {
+            break;
+        }
+        if (!var->name)
+        {
+            Mat_VarFree(var);
+            continue;
+        }
 
-			if (target_variables.size())
-			{
-				std::vector<std::string>::iterator iter = std::find(target_variables.begin(), target_variables.end(), std::string(var->name));
+        std::string name(var->name);
 
-				if (iter == target_variables.end())
-                {
-                    Mat_VarFree(var);
-					continue;
-                }
-			}
+        if (checktargets)
+        {
+            std::vector<std::string>::iterator iter = std::find(
+                target_variables.begin(), target_variables.end(), name);
+            if (iter == target_variables.end())
+            {
+                Mat_VarFree(var);
+                continue;
+            }
+        }
 
-			if (nargout == 0)
-			{
-				eval.SetValue(var->name, MatVarToCurrency(var));
-			}
-			else
-			{
-				std::string field = var->name;
-				out_sd->addField(field);
-				out_sd->SetValue(0, 0, var->name, MatVarToCurrency(var));
-			}
-
-			Mat_VarFree(var);
-		}
-	}
+        try
+        {
+            if (!out_sd)
+            {
+                eval.SetValue(name, MatVarToCurrency(var));
+            }
+            else
+            {
+                out_sd->addField(name);
+                out_sd->SetValue(0, 0, name, MatVarToCurrency(var));
+            }
+        }
+        catch (const OML_Error& e)
+        {
+            Mat_VarFree(var);
+            Mat_Close(m);
+            throw e;
+        }
+        Mat_VarFree(var);
+    }
 
 	Mat_Close(m);
 
-	if (nargout == 1)
-		outputs.push_back(out_sd);
+    if (out_sd)
+    {
+        outputs.push_back(out_sd.release());
+    }
 
 	return true;
 }
 //------------------------------------------------------------------------------
 // Converts currency to matvar
 //------------------------------------------------------------------------------
-matvar_t* CurrencyToMatVar(const char* name, const Currency& cur)
+matvar_t* CurrencyToMatVar(const char*     name,
+                           const Currency& cur,
+                           mat_ft          version,
+                           std::string&    warn)
 {
-	matvar_t* var = nullptr;
-	size_t    dims[2];
+    size_t    dims[2] = { 1, 1 };
+    int       flags = (cur.IsLogical()) ? MAT_F_LOGICAL : 0;
+    matvar_t* var = nullptr;
 
-	int flags = 0;
-	if (cur.IsLogical())
+    if (cur.IsScalar())
     {
-		flags = MAT_F_LOGICAL;
-    }
-
-	if (cur.IsScalar())
-	{
-		dims[0]    = 1;
-		dims[1]    = 1;
         double val = cur.Scalar();
-		matvar_t* mvar = Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, 2, 
-                                       dims, &val, flags);
-        return mvar;
-	}
-	else if (cur.IsMatrix())
-	{
-		const hwMatrix* mtx = cur.Matrix();
-		if (!mtx)
+        var = Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, 2,
+            dims, &val, flags);
+        return var;
+    }
+    else if (cur.IsMatrix())
+    {
+        const hwMatrix* mtx = cur.Matrix();
+        if (!mtx)
         {
-			mtx = EvaluatorInterface::allocateMatrix();
+            mtx = EvaluatorInterface::allocateMatrix();
         }
-		dims[0] = mtx->M();
-		dims[1] = mtx->N();
+        dims[0] = mtx->M();
+        dims[1] = mtx->N();
 
-		if (mtx->IsReal())
-		{
-			var = Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, (void*) mtx->GetRealData(), flags);
-		}
-		else
-		{
-			mat_complex_split_t t;
-			double* temp_real = new double [mtx->Size()];
-			double*	temp_imag = new double [mtx->Size()];
+        if (mtx->IsReal())
+        {
+            var = Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims,
+                (void*)mtx->GetRealData(), flags);
+        }
+        else
+        {
+            mat_complex_split_t t;
+            double* temp_real = new double[mtx->Size()];
+            double*	temp_imag = new double[mtx->Size()];
 
-			for (int j=0; j<mtx->Size(); j++)
-			{
-				hwComplex cplx = mtx->z(j);
-				temp_real[j] = cplx.Real();
-				temp_imag[j] = cplx.Imag();
-			}
-
-			t.Re = temp_real;
-			t.Im = temp_imag;
-
-			var = Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &t, MAT_F_COMPLEX);
-
-			delete [] temp_real;
-			delete [] temp_imag;
-		}
-	}
-	else if (cur.IsNDMatrix())
-	{
-		const hwMatrixN* mtxn = cur.MatrixN();
-
-		if (!mtxn)
-			mtxn = EvaluatorInterface::allocateMatrixN();
-
-		std::vector<int> my_dims = mtxn->Dimensions();
-
-		size_t* dims = new size_t [my_dims.size()];
-
-		for (int j=0; j<my_dims.size(); j++)
-			dims[j] = my_dims[j];
-
-		if (mtxn->IsReal())
-		{
-            int     matsize   = mtxn->Size();
-			double* temp_real = new double [matsize];
-
-			for (int j = 0; j < matsize; ++j)
+            for (int j = 0; j < mtx->Size(); ++j)
             {
-				temp_real[j] = (*mtxn)(j);
+                hwComplex cplx = mtx->z(j);
+                temp_real[j] = cplx.Real();
+                temp_imag[j] = cplx.Imag();
+            }
+
+            t.Re = temp_real;
+            t.Im = temp_imag;
+
+            var = Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &t,
+                MAT_F_COMPLEX);
+
+            delete[] temp_real;
+            delete[] temp_imag;
+
+            temp_real = nullptr;
+            temp_imag = nullptr;
+        }
+        return var;
+    }
+    else if (cur.IsNDMatrix())
+    {
+        const hwMatrixN* mtxn = cur.MatrixN();
+        if (!mtxn)
+        {
+            mtxn = EvaluatorInterface::allocateMatrixN();
+        }
+        std::vector<int> my_dims = mtxn->Dimensions();
+
+        size_t* dims = new size_t[my_dims.size()];
+
+        for (int j = 0; j<my_dims.size(); j++)
+            dims[j] = my_dims[j];
+
+        if (mtxn->IsReal())
+        {
+            int     matsize = mtxn->Size();
+            double* temp_real = new double[matsize];
+
+            for (int j = 0; j < matsize; ++j)
+            {
+                temp_real[j] = (*mtxn)(j);
             }
 
             int nsize = (my_dims.empty()) ? 0 : static_cast<int>(my_dims.size());
 
-			var = Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, nsize, dims, 
-                                temp_real, flags);
+            var = Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, nsize, dims,
+                temp_real, flags);
 
-			delete [] temp_real;
+            delete[] temp_real;
             temp_real = nullptr;
-		}
-		else
-		{
-			mat_complex_split_t t;
-			double* temp_real = new double [mtxn->Size()];
-			double*	temp_imag = new double [mtxn->Size()];
+        }
+        else
+        {
+            mat_complex_split_t t;
+            double* temp_real = new double[mtxn->Size()];
+            double*	temp_imag = new double[mtxn->Size()];
 
-			for (int j=0; j<mtxn->Size(); j++)
-			{
-				hwComplex cplx = mtxn->z(j);
-				temp_real[j] = cplx.Real();
-				temp_imag[j] = cplx.Imag();
-			}
+            for (int j = 0; j<mtxn->Size(); j++)
+            {
+                hwComplex cplx = mtxn->z(j);
+                temp_real[j] = cplx.Real();
+                temp_imag[j] = cplx.Imag();
+            }
 
-			t.Re = temp_real;
-			t.Im = temp_imag;
+            t.Re = temp_real;
+            t.Im = temp_imag;
 
-			var = Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, 
-                  static_cast<int>(my_dims.size()), dims, &t, MAT_F_COMPLEX);
+            var = Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE,
+                static_cast<int>(my_dims.size()), dims, &t, MAT_F_COMPLEX);
 
-			delete [] temp_real;
-			delete [] temp_imag;
-		}
-	}
-	else if (cur.IsString())
-	{
-		std::string str = cur.StringVal();
-		const char* ptr = str.c_str();
-		dims[0] = 1;
-		dims[1] = str.length()+1; // for the NULL terminator
+            delete[] temp_real;
+            delete[] temp_imag;
+        }
+    }
+    else if (cur.IsString())
+    {
+        std::string data(cur.StringVal());
+        dims[0] = 1;
+        dims[1] = data.length();
+        if (version == MAT_FT_MAT5)
+        {
+            var = Mat_VarCreate(name, MAT_C_CHAR, MAT_T_UTF8, 2, dims,
+                (void*)(data.c_str()), flags);
+        }
+        else
+        {
+            var = Mat_VarCreate(name, MAT_C_CHAR, MAT_T_UINT8, 2, dims,
+                (void*)(data.c_str()), flags);
+        }
+        return var;
+    }
+    else if (cur.IsComplex())
+    {
+        hwComplex cplx = cur.Complex();
+        double real = cplx.Real();
+        double imag = cplx.Imag();
 
-		var = Mat_VarCreate(name, MAT_C_CHAR, MAT_T_UINT8, 2, dims, (void*)ptr, flags);
-	}
-	else if (cur.IsComplex())
-	{
-		hwComplex cplx = cur.Complex();
-		double real = cplx.Real();
-		double imag = cplx.Imag();
+        mat_complex_split_t t;
+        t.Re = &real;
+        t.Im = &imag;
 
-		dims[0] = 1;
-		dims[1] = 1;
-
-		mat_complex_split_t t;
-		t.Re = &real;
-		t.Im = &imag;
-
-		var = Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, (void*)&t, MAT_F_COMPLEX);
-	}
-	else if (cur.IsCellArray())
-	{
-		HML_CELLARRAY* cells = cur.CellArray();
+        var = Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, (void*)&t, MAT_F_COMPLEX);
+    }
+    else if (cur.IsCellArray())
+    {
+        HML_CELLARRAY* cells = cur.CellArray();
         assert(cells);
-		matvar_t** matvar = (matvar_t**)malloc((cells->Size()+1)*sizeof(matvar_t*));
+        matvar_t** matvar = (matvar_t**)malloc((cells->Size() + 1) * sizeof(matvar_t*));
 
-		for (int j=0; j<cells->Size(); j++)
-			matvar[j] = CurrencyToMatVar("cell", (*cells)(j));
+        for (int j = 0; j<cells->Size(); j++)
+            matvar[j] = CurrencyToMatVar("cell", (*cells)(j), version, warn);
 
-		matvar[cells->Size()] = NULL;
+        matvar[cells->Size()] = NULL;
 
-		dims[0] = cells->M();
-		dims[1] = cells->N();
+        dims[0] = cells->M();
+        dims[1] = cells->N();
 
-		var = Mat_VarCreate(name, MAT_C_CELL, MAT_T_CELL, 2, dims, (void*)matvar, flags);
+        var = Mat_VarCreate(name, MAT_C_CELL, MAT_T_CELL, 2, dims, (void*)matvar, flags);
 
-		free(matvar);
-	}
-	else if (cur.IsStruct())
-	{
-		StructData* sd = cur.Struct();
+        free(matvar);
+        matvar = nullptr;
+    }
+    else if (cur.IsStruct())
+    {
+        StructData* sd = cur.Struct();
+        assert(sd);
+        if (!sd)
+        {
+            return nullptr;
+        }
+        std::map<std::string, int> field_names(sd->GetFieldNames());
+        int    num_fields = static_cast<int>(field_names.size());
+        if (num_fields > 4091 && version == MAT_FT_MAT73)  // Limit in matio 1.5.12
+        {
+            std::string msg("Invalid number of fields; number of fields must");
+            msg += " be lesser than 4092 in version 7.3;";
+            msg += " save file with version 'v5'";
+            throw OML_Error(msg);
+        }
 
-		std::map<std::string, int>           field_names = sd->GetFieldNames();
-		std::map<std::string, int>::iterator iter;
+        const char** temp_fields = new const char*[num_fields];
 
-		int    num_fields = static_cast<int>(field_names.size());
-		const char** temp_fields = new const char* [num_fields];
+        std::map<std::string, int>::const_iterator iter = field_names.begin();
+        for (int count = 0; iter != field_names.end(); ++iter, ++count)
+        {
+            temp_fields[count] = iter->first.c_str();
+        }
 
-		int count = 0;
+        dims[0] = sd->M();
+        dims[1] = sd->N();
 
-		for (iter = field_names.begin(); iter != field_names.end(); iter++)
-		{
-			std::string field = iter->first;
-			temp_fields[count] = strdup(field.c_str());
-			count++;
-		}
+        var = Mat_VarCreateStruct(name, 2, dims, temp_fields, num_fields);
 
-		size_t     dims[2];
-		dims[0] = sd->M();
-		dims[1] = sd->N();
+        for (int j = 0; j<sd->M(); j++)
+        {
+            for (int k = 0; k<sd->N(); k++)
+            {
+                for (iter = field_names.begin(); iter != field_names.end(); iter++)
+                {
+                    std::string field (iter->first);
+                    matvar_t* temp_var = CurrencyToMatVar(field.c_str(),
+                        sd->GetValue(j, k, field), version, warn);
+                    if (!temp_var)
+                    {
+                        if (!warn.empty())
+                        {
+                            warn += "\n";
+                        }
+                        warn += "Invalid data in field [" + field + "], struct ["
+                            + std::string(name) + "]";
 
-		var = Mat_VarCreateStruct(name, 2, dims, temp_fields, num_fields);
+                        size_t doubledims[2] = { 1, 1 };
+                        double dummyval = std::numeric_limits<double>::quiet_NaN();
+                        temp_var = Mat_VarCreate(field.c_str(), MAT_C_DOUBLE,
+                            MAT_T_DOUBLE, 2, doubledims, &dummyval, 0);
+                    }
+                    if (temp_var)
+                    {
+                        int index = k + j * sd->N();
+                        Mat_VarSetStructFieldByName(var, field.c_str(), index, temp_var);
+                    }
+                }
+            }
+        }
 
-		for (int j=0; j<sd->M(); j++)
-		{
-			for (int k=0; k<sd->N(); k++)
-			{
-				for (iter = field_names.begin(); iter != field_names.end(); iter++)
-				{
-					std::string field = iter->first;
-					matvar_t* temp_var = CurrencyToMatVar(field.c_str(), sd->GetValue(j, k, field));
-					int index = k+j*sd->N();
-					Mat_VarSetStructFieldByName(var, field.c_str(), index, temp_var);
-				}
-			}
-		}
+        //for (int j = 0; j<num_fields; j++)
+        //{
+        //    free((void*)temp_fields[j]);
+        //}
 
-		for (int j=0; j<num_fields; j++)
-			free((void*)temp_fields[j]);
-		delete [] temp_fields;
-	}
-
-	return var;
+        delete[] temp_fields;
+        temp_fields = nullptr;
+    }
+    return var;
 }
 //------------------------------------------------------------------------------
 // Returns true after saving the given file using MATIO library [save command]
@@ -668,8 +816,8 @@ bool OmlSave(EvaluatorInterface           eval,
         compression = MAT_COMPRESSION_ZLIB;
     }
 
-    // Initializes logging functions
-	Mat_LogInitFunc("OML", nullptr);
+    PrintMatioVersion();                     // Prints version - for debugging
+    Mat_LogInitFunc("OML", SetMatioMessage); // Initializes logging functions
 
     // Creates the file to save
 	mat_t* m = Mat_CreateVer(filename.c_str(), nullptr, version);
@@ -680,9 +828,10 @@ bool OmlSave(EvaluatorInterface           eval,
     }
 
     bool hastargets   = (!target_variables.empty());
-	bool handle_check = eval.HasBuiltin("ishandle");
+    bool handle_check = eval.HasBuiltin("ishandle");
     std::vector<std::string> varnames (eval.GetVariableNames());
 
+    std::string warn;
 	for (std::vector<std::string>::const_iterator iter = varnames.begin(); 
          iter != varnames.end(); ++iter)
 	{
@@ -698,47 +847,75 @@ bool OmlSave(EvaluatorInterface           eval,
 		}
 
 		Currency cur = eval.GetValue(name);
+        if (cur.IsFunctionHandle())
+        {
+            BuiltInFuncsUtils::SetWarning(eval, "Warning: ignoring [" + name + "]; saving function handles is not supported");
+            continue;
+        }
+        if (handle_check)
+        {
+            std::vector<Currency> temp;
+            temp.push_back(cur);
 
-		if (handle_check)
-		{
-			std::vector<Currency> temp;
-			temp.push_back(cur);
+            Currency is_handle = eval.CallFunction("ishandle", temp);
 
-			Currency is_handle = eval.CallFunction("ishandle", temp);
-
-			if (cur.IsScalar())
-			{
-				if (cur.IsPositiveInteger() || cur.Scalar() == 0.0)
-                {
-					is_handle = Currency(false);
-                }
-			}
-			if (is_handle.IsLogical() && is_handle.Scalar() == 1.0)
+            if (cur.IsScalar())
             {
-				continue;
+                if (cur.IsPositiveInteger() || cur.Scalar() == 0.0)
+                {
+                    is_handle = Currency(false);
+                }
             }
-		}
+            if (is_handle.IsLogical() && is_handle.Scalar() == 1.0)
+            {
+                continue;
+            }
+        }
 
-		matvar_t* var = CurrencyToMatVar(cur.GetOutputName().c_str(), cur);
-		if (var)
-		{
-			Mat_VarWrite(m, var, compression);
-			Mat_VarFree(var);
-		}
-	}
+        matvar_t* var = nullptr;
+        try
+        {
+            var = CurrencyToMatVar(cur.GetOutputName().c_str(), cur, version, warn);
+            if (var)
+            {
+                Mat_VarWrite(m, var, compression);
+                Mat_VarFree(var);
+            }
+        }
+        catch (const OML_Error& e)
+        {
+            if (var)
+            {
+                Mat_VarFree(var);
+            }
+            Mat_Close(m);
+            throw(e);
+        }
+    }
 
 	Mat_Close(m);
+
+    if (!warn.empty())
+    {
+        BuiltInFuncsUtils::SetWarning(eval, "Warning: " + warn);
+    }
 	return true;
 }
-
-bool ReadASCIIFile(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+//-----------------------------------------------------------------------------
+// Returns true after reading an ascii file
+//-----------------------------------------------------------------------------
+bool ReadASCIIFile(EvaluatorInterface           eval, 
+                   const std::vector<Currency>& inputs, 
+                   std::vector<Currency>&       outputs)
 {
-	std::string file;
+    assert(!inputs.empty());
 	
-	if (inputs[0].IsString())
-		file = inputs[0].StringVal();
-	else
-		throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
+    if (!inputs[0].IsString())
+    {
+        throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
+    }
+		
+    std::string file (inputs[0].StringVal());	
 
 	std::ifstream ifs;
 	ifs.open(file, std::ifstream::in);
@@ -748,32 +925,17 @@ bool ReadASCIIFile(EvaluatorInterface eval, const std::vector<Currency>& inputs,
         throw OML_Error("Error: invalid value in argument 1; cannot read file ["
             + BuiltInFuncsUtils::Normpath(file) + "]");
     }
-	char buffer[1024];
-
 	std::vector<std::vector<double>> elements;
 
-	while (1)
+	while (!ifs.eof())
 	{
-        memset(buffer, 0, sizeof(buffer));
-		ifs.getline(buffer, sizeof(buffer));
+        std::string s;
+        std::getline(ifs, s);
 
-		int len = static_cast<int>(strlen(buffer));
-		if (!len)
+        if (s.empty() || s[0] == '%')
         {
-			break;
+            continue;
         }
-
-		std::string s = buffer;
-
-		std::vector<double> row_elements;
-
-		double val;
-
-		if (s.length() == 0)
-			continue;
-
-		if (s[0] == '%')
-			continue;
 
 #ifndef OS_WIN
         if (s[s.size() - 1] == '\r')
@@ -783,11 +945,13 @@ bool ReadASCIIFile(EvaluatorInterface eval, const std::vector<Currency>& inputs,
                 continue;
         }
 #endif
+        std::vector<double> row_elements;
+        double val = 0.0;
 
 		std::size_t prev = 0;
-		std::size_t pos;
+		std::size_t pos  = 0;
 
-		while ((pos = s.find_first_of(" ,%", prev)) != std::string::npos)
+		while ((pos = s.find_first_of(" ,%\t", prev)) != std::string::npos)
 		{
 			if (s[pos] == '%')
 			{
@@ -979,4 +1143,70 @@ bool SaveAsciiFile(EvaluatorInterface              eval,
 double GetToolboxVersion(EvaluatorInterface eval)
 {
     return TBOXVERSION;
+}
+//------------------------------------------------------------------------------
+// Prints matio version for debugging
+//------------------------------------------------------------------------------
+void PrintMatioVersion()
+{
+#ifdef OMLMATIO_DBG
+    int matversion[3];
+    Mat_GetLibraryVersion(matversion, matversion + 1, matversion + 2);
+    OMLMATIO_PRINT("Matio major version: ", matversion[0]);
+    OMLMATIO_PRINT("Matio minor version: ", matversion[1]);
+    OMLMATIO_PRINT("Matio release level: ", matversion[2]);
+#endif
+}
+//------------------------------------------------------------------------------
+// Prints mat file version to stdout for debugging
+//------------------------------------------------------------------------------
+void PrintMatioFileVersion(mat_t* m)
+{
+#ifdef OMLMATIO_DBG
+    assert(m);
+    if (!m)
+    {
+        return;
+    }
+    mat_ft ver = Mat_GetVersion(m);
+    switch (ver)
+    {
+    case MAT_FT_MAT73: OMLMATIO_PRINT("Matio file v", 7.3); break;
+    case MAT_FT_MAT5:  OMLMATIO_PRINT("Matio file v", 5);   break;
+    case MAT_FT_MAT4:  OMLMATIO_PRINT("Matio file v", 4);   break;
+    default:           OMLMATIO_PRINT("Matio file version undefined ", ver); break;
+    }
+#endif
+}
+//------------------------------------------------------------------------------
+// Prints messages from matio library
+//------------------------------------------------------------------------------
+void SetMatioMessage(int level, char* msg)
+{
+    if (!msg)
+    {
+        return;
+    }
+
+    std::string strmsg(msg);
+    if (level & MATIO_LOG_LEVEL_CRITICAL)
+    {
+        throw OML_Error("Matio critical error; " + strmsg);
+    }
+    else if (level & MATIO_LOG_LEVEL_ERROR)
+    {
+        throw OML_Error("Matio error; " + strmsg);
+    }
+    else if (level & MATIO_LOG_LEVEL_WARNING)
+    {
+        OMLMATIO_PRINT("Matio warning; " + strmsg, 0);
+    }
+    else if (level & MATIO_LOG_LEVEL_DEBUG)
+    {
+        OMLMATIO_PRINT("Matio debug; " + strmsg, 0);
+    }
+    else if (level & MATIO_LOG_LEVEL_MESSAGE)
+    {
+        OMLMATIO_PRINT("Matio debug; " + strmsg, 0);
+    }
 }

@@ -2,7 +2,7 @@
 * @file * @file FilterFuncs.cxx
 * @date June 2007
 * Copyright (C) 2007-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 #include "FilterFuncs.h"
@@ -1247,9 +1247,9 @@ hwMathStatus FilterID(const hwMatrix& response,
     hwMathStatus status;
     int m = response.Size();
 
-    if (freq.Size() != m)
+    if (!response.IsVector())
     {
-        return status(HW_MATH_ERR_ARRAYSIZE, 1, 2);
+        return status(HW_MATH_ERR_VECTOR, 1);
     }
 
     if (!freq.IsReal())
@@ -1257,19 +1257,14 @@ hwMathStatus FilterID(const hwMatrix& response,
         return status(HW_MATH_ERR_COMPLEX, 2);
     }
 
+    if (!freq.IsVector())
+    {
+        return status(HW_MATH_ERR_VECTOR, 2);
+    }
+
     if (freq.Size() != m)
     {
         return status(HW_MATH_ERR_ARRAYSIZE, 1, 2);
-    }
-
-    if (!numerCoef.IsReal())
-    {
-        return status(HW_MATH_ERR_COMPLEX, 3);
-    }
-
-    if (!denomCoef.IsReal())
-    {
-        return status(HW_MATH_ERR_COMPLEX, 4);
     }
 
     if (weight)

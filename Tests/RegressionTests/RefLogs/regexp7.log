@@ -10,7 +10,9 @@ t =
 {
 }
 nm = struct [
-
+FIRST: 
+OUTER: 
+SECOND: 
 ]
 sp = 
 {

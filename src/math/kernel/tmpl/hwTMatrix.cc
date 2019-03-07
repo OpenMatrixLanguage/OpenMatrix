@@ -2,7 +2,7 @@
 * @file hwTMatrix.cc
 * @date March 2012
 * Copyright (C) 2012-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 //:---------------------------------------------------------------------------
@@ -901,8 +901,12 @@ hwMathStatus hwTMatrix<T1, T2>::SetElements(T2 value)
 template<typename T1, typename T2>
 hwMathStatus hwTMatrix<T1, T2>::MakeComplex()
 {
-    if (!IsReal())
-        return hwMathStatus(HW_MATH_ERR_ARRAYTYPE);
+    if (m_complex || !m_real)      // already complex, or empty
+        return hwMathStatus();
+
+    // Note: an empty matrix is real by convention, but there is
+    // no reason to trigger an error. The client will still have
+    // to dimension the matrix somewhere.
 
     try
     {
@@ -4425,82 +4429,92 @@ hwMathStatus hwTMatrix<T1, T2>::ConvLin(const hwTMatrix<T1, T2>& X, const hwTMat
     // X is reversed and passed over Y
     hwMathStatus status;
 
-    if (X.m_complex)
-        return status(HW_MATH_ERR_COMPLEXSUPPORT, 1);
-
     if (!X.IsVector())
         return status(HW_MATH_ERR_VECTOR, 1);
-
-    if (Y.m_complex)
-        return status(HW_MATH_ERR_COMPLEXSUPPORT, 2);
 
     if (!Y.IsVector())
         return status(HW_MATH_ERR_VECTOR, 2);
 
     int xn = X.Size();
     int yn = Y.Size();
-
-    int cn = xn + yn - 1;       // size of conv
-
-    if (X.m_nRows == 1)
-        status = Dimension(1, cn, REAL);
-    else
-        status = Dimension(cn, 1, REAL);
-
-    if (!status.IsOk())
-    {
-        if (status.GetArg1() != 0)
-            status.ResetArgs();
-
-        return status;
-    }
-
+    int cn = xn + yn - 1;			// size of conv
     int partial = _min(xn, yn) - 1; // size of partial overlaps
     int count;
-    T1 value;
-    T1* x_start = X.m_real;
-    T1* y_start = Y.m_real;
-    T1* x;
-    T1* y;
-    T1* c = m_real;
 
-    // leading partial overlap
-    for (int i = 0; i < partial; ++i)
+    if (X.IsReal() && Y.IsReal())
     {
-        x = x_start + i;
-        y = y_start;
-        count = i + 1;
-        value = (T1) 0;
+        if (X.m_nRows == 1)
+            status = Dimension(1, cn, REAL);
+        else
+            status = Dimension(cn, 1, REAL);
 
-        while (count--)
-            value += (*x--) * (*y++);
-
-        c[i] = value;
-    }
-
-    // complete overlap
-    if (xn < yn)
-    {
-        for (int i = partial; i < yn; ++i)
+        if (!status.IsOk())
         {
-            x = x_start + partial;
-            y = y_start - partial + i;
-            count = xn;
-            value = (T1) 0;
+            if (status.GetArg1() != 0)
+                status.ResetArgs();
 
-            while (count--)
-                value += (*x--) * (*y++);
-
-            c[i] = value;
+            return status;
         }
-    }
-    else
-    {
-        for (int i = partial; i < xn; ++i)
+
+        T1 value;
+        T1* x_start = X.m_real;
+        T1* y_start = Y.m_real;
+        T1* x;
+        T1* y;
+        T1* c = m_real;
+
+        // leading partial overlap
+        for (int i = 0; i < partial; ++i)
         {
             x = x_start + i;
             y = y_start;
-            count = yn;
+            count = i + 1;
+            value = (T1) 0;
+
+            while (count--)
+                value += (*x--) * (*y++);
+
+            c[i] = value;
+        }
+
+        // complete overlap
+        if (xn < yn)
+        {
+            for (int i = partial; i < yn; ++i)
+            {
+                x = x_start + partial;
+                y = y_start - partial + i;
+                count = xn;
+                value = (T1) 0;
+
+                while (count--)
+                    value += (*x--) * (*y++);
+
+                c[i] = value;
+            }
+        }
+        else
+        {
+            for (int i = partial; i < xn; ++i)
+            {
+                x = x_start + i;
+                y = y_start;
+                count = yn;
+                value = (T1) 0;
+
+                while (count--)
+                    value += (*x--) * (*y++);
+
+                c[i] = value;
+            }
+        }
+
+        // trailing partial overlap
+        for (int i = cn - partial; i < cn; ++i)
+        {
+            x = x_start + xn - 1;
+            y = y_start - xn + 1 + i;
+            count = cn - i;
             value = (T1) 0;
 
             while (count--)
@@ -4509,19 +4523,101 @@ hwMathStatus hwTMatrix<T1, T2>::ConvLin(const hwTMatrix<T1, T2>& X, const hwTMat
             c[i] = value;
         }
     }
-
-    // trailing partial overlap
-    for (int i = cn - partial; i < cn; ++i)
+    else if (X.m_complex && Y.m_complex)
     {
-        x = x_start + xn - 1;
-        y = y_start - xn + 1 + i;
-        count = cn - i;
-        value = (T1) 0;
+        if (X.m_nRows == 1)
+            status = Dimension(1, cn, COMPLEX);
+        else
+            status = Dimension(cn, 1, COMPLEX);
 
-        while (count--)
-            value += (*x--) * (*y++);
+        if (!status.IsOk())
+        {
+            if (status.GetArg1() != 0)
+                status.ResetArgs();
 
-        c[i] = value;
+            return status;
+        }
+
+        T2 value;
+        T2* x_start = X.m_complex;
+        T2* y_start = Y.m_complex;
+        T2* x;
+        T2* y;
+        T2* c = m_complex;
+
+        // leading partial overlap
+        for (int i = 0; i < partial; ++i)
+        {
+            x = x_start + i;
+            y = y_start;
+            count = i + 1;
+            value = hwTComplex<T1>(0.0, 0.0);
+
+            while (count--)
+                value += (*x--) * (*y++);
+
+            c[i] = value;
+        }
+
+        // complete overlap
+        if (xn < yn)
+        {
+            for (int i = partial; i < yn; ++i)
+            {
+                x = x_start + partial;
+                y = y_start - partial + i;
+                count = xn;
+                value = hwTComplex<T1>(0.0, 0.0);
+
+                while (count--)
+                    value += (*x--) * (*y++);
+
+                c[i] = value;
+            }
+        }
+        else
+        {
+            for (int i = partial; i < xn; ++i)
+            {
+                x = x_start + i;
+                y = y_start;
+                count = yn;
+                value = hwTComplex<T1>(0.0, 0.0);
+
+                while (count--)
+                    value += (*x--) * (*y++);
+
+                c[i] = value;
+            }
+        }
+
+        // trailing partial overlap
+        for (int i = cn - partial; i < cn; ++i)
+        {
+            x = x_start + xn - 1;
+            y = y_start - xn + 1 + i;
+            count = cn - i;
+            value = hwTComplex<T1>(0.0, 0.0);
+
+            while (count--)
+                value += (*x--) * (*y++);
+
+            c[i] = value;
+        }
+    }
+    else if (X.m_real)
+    {
+        hwTMatrix<T1, T2> temp;
+        temp.PackComplex(X, nullptr);
+
+        return ConvLin(temp, Y);
+    }
+    else if (Y.m_real)
+    {
+        hwTMatrix<T1, T2> temp;
+        temp.PackComplex(Y, nullptr);
+
+        return ConvLin(X, temp);
     }
 
     return status;

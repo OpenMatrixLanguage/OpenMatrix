@@ -2,7 +2,7 @@
 * @file Currency.h
 * @date August 2013
 * Copyright (C) 2013-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 #include "Currency.h"
@@ -41,53 +41,46 @@ StringManager Currency::vm;
 StringManager Currency::pm;
 bool Currency::_experimental = false;
 
-Currency::Currency(double val): type(TYPE_SCALAR),  mask(MASK_DOUBLE), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(double val): type(TYPE_SCALAR),  mask(MASK_DOUBLE), out_name(NULL), 
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	data.value = val;
 }
 
-Currency::Currency(int val): type(TYPE_SCALAR), mask(MASK_DOUBLE), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(int val): type(TYPE_SCALAR), mask(MASK_DOUBLE), out_name(NULL), _display(0), 
+    _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	data.value = val;
 }
 
-Currency::Currency(size_t val): type(TYPE_SCALAR), mask(MASK_DOUBLE), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(size_t val): type(TYPE_SCALAR), mask(MASK_DOUBLE), out_name(NULL), _display(0), 
+    _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	data.value = (double)val;
 }
 
-Currency::Currency(double val, int in_type): type(CurrencyType(in_type)), mask(MASK_DOUBLE), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(double val, int in_type): type(CurrencyType(in_type)), mask(MASK_DOUBLE), out_name(NULL),
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	data.value = val;
 }
 
-Currency::Currency(double val, std::string info): type(TYPE_ERROR), mask(MASK_NONE), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(double val, std::string info): type(TYPE_ERROR), mask(MASK_NONE), out_name(NULL), _display(0), 
+    _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	message = new std::string;
 	*message = info;
 	data.value = val;
 }
 
-Currency::Currency(bool logical_val) : type(TYPE_SCALAR), mask(MASK_LOGICAL), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(bool logical_val) : type(TYPE_SCALAR), mask(MASK_LOGICAL), out_name(NULL), _display(0), 
+    _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	data.value = logical_val ? 1 : 0;
 }
 
-Currency::Currency(const char* in_str): type(TYPE_MATRIX), mask(MASK_STRING), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(const char* in_str): type(TYPE_MATRIX), mask(MASK_STRING), out_name(NULL),
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	std::string str = in_str;
     data.mtx = ExprTreeEvaluator::allocateMatrix(str.length() ? 1 : 0, (int)str.length(), hwMatrix::REAL);
@@ -95,34 +88,30 @@ Currency::Currency(const char* in_str): type(TYPE_MATRIX), mask(MASK_STRING), ou
 		(*data.mtx)(i) = (unsigned char) str[i];
 }
 
-Currency::Currency(const std::string& str): type(TYPE_MATRIX), mask(MASK_STRING), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(const std::string& str): type(TYPE_MATRIX), mask(MASK_STRING), out_name(NULL),
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
     data.mtx = ExprTreeEvaluator::allocateMatrix(str.length() ? 1 : 0, (int)str.length(), hwMatrix::REAL);
 	for (unsigned int i = 0; i < str.length(); i++) 
 		(*data.mtx)(i) = (unsigned char) str[i];
 }
 
-Currency::Currency(const std::vector<double>& in_data): type(TYPE_MATRIX), mask(MASK_DOUBLE), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(const std::vector<double>& in_data): type(TYPE_MATRIX), mask(MASK_DOUBLE), out_name(NULL),
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 { 
 	data.mtx = ExprTreeEvaluator::allocateMatrix(1, (int)in_data.size(), hwMatrix::REAL);
 	for (unsigned int i = 0; i < in_data.size(); i++) 
 		(*data.mtx)(i) = in_data[i];
 }
 
-Currency::Currency(hwMatrix* in_data): type (TYPE_MATRIX), mask(MASK_DOUBLE), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(hwMatrix* in_data): type (TYPE_MATRIX), mask(MASK_DOUBLE), out_name(NULL),
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	data.mtx = in_data;
 }
 
-Currency::Currency(hwMatrixN* in_data): type (TYPE_ND_MATRIX), mask(MASK_DOUBLE), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(hwMatrixN* in_data): type (TYPE_ND_MATRIX), mask(MASK_DOUBLE), out_name(NULL),
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	data.mtxn = in_data;
 
@@ -136,52 +125,45 @@ Currency::Currency(hwMatrixN* in_data): type (TYPE_ND_MATRIX), mask(MASK_DOUBLE)
 	}
 }
 
-Currency::Currency(const hwComplex& cplx): type (TYPE_COMPLEX), mask(MASK_DOUBLE), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(const hwComplex& cplx): type (TYPE_COMPLEX), mask(MASK_DOUBLE), out_name(NULL),
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	data.complex = new hwComplex(cplx);
 }
 
-Currency::Currency(): type(TYPE_MATRIX), mask(MASK_DOUBLE), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(): type(TYPE_MATRIX), mask(MASK_DOUBLE), out_name(NULL),
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	data.mtx = NULL; 
 }
 
-Currency::Currency(HML_CELLARRAY* cell_array): type(TYPE_CELLARRAY), mask(MASK_NONE), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(HML_CELLARRAY* cell_array): type(TYPE_CELLARRAY), mask(MASK_NONE), out_name(NULL),
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	data.cells = cell_array;
 }
 
-Currency::Currency(FunctionInfo* fi): type(TYPE_FUNCHANDLE), mask(MASK_NONE), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(FunctionInfo* fi): type(TYPE_FUNCHANDLE), mask(MASK_NONE), out_name(NULL),
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	data.func = fi;
 	data.func->IsNested(false);
 }
 
-Currency::Currency(StructData* in_data): type(TYPE_STRUCT), mask(MASK_NONE), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(StructData* in_data): type(TYPE_STRUCT), mask(MASK_NONE), out_name(NULL),
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	data.sd = in_data;
 }
 
-Currency::Currency(OutputFormat* fmt) : type(TYPE_FORMAT), mask(MASK_NONE), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(OutputFormat* fmt) : type(TYPE_FORMAT), mask(MASK_NONE), out_name(NULL),
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	data.format = fmt;
 }
 
-Currency::Currency(Currency* ptr) : type(TYPE_POINTER), out_name(NULL)
-    , _display (0)
-    , _outputType (OUTPUT_TYPE_DEFAULT)
+Currency::Currency(Currency* ptr) : type(TYPE_POINTER), out_name(NULL), mask(MASK_NONE),
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	data.cur_ptr = ptr;
 }
@@ -303,21 +285,24 @@ void Currency::Copy(const Currency& cur)
         data.boundobj = cur.data.boundobj; //\todo: Add ref counting
         classname     = cur.classname;
     }
-
-	if (was_scalar)
-		;
-	else if (old_matrix && (type != TYPE_POINTER))
-		DeleteMatrix(old_matrix);
-	else if (old_matrix_n && (type != TYPE_POINTER))
-		DeleteMatrixN(old_matrix_n);
-	else if (old_cells && (type != TYPE_POINTER))
-		DeleteCells(old_cells);
-	else if (old_sd && (type != TYPE_POINTER))
-		DeleteStruct(old_sd);
-	else if (old_complex && (type != TYPE_POINTER))
-		delete old_complex;
-	else if (old_fi && (type != TYPE_POINTER))
-		delete old_fi;
+	
+	if (type != TYPE_POINTER)
+	{
+		if (was_scalar)
+			;
+		else if (old_matrix)
+			DeleteMatrix(old_matrix);
+		else if (old_matrix_n)
+			DeleteMatrixN(old_matrix_n);
+		else if (old_cells)
+			DeleteCells(old_cells);
+		else if (old_sd)
+			DeleteStruct(old_sd);
+		else if (old_complex)
+			delete old_complex;
+		else if (old_fi)
+			delete old_fi;
+	}
 }
 
 void Currency::DeleteMatrix(hwMatrix* matrix)
@@ -401,6 +386,34 @@ Currency::Currency(const Currency& cur)
 Currency& Currency::operator=(const Currency& in)
 {
 	Copy(in);
+	return *this;
+}
+
+#include <algorithm>
+
+void Currency::Swap(Currency& cur)
+{
+	std::swap(type, cur.type);
+	std::swap(data, cur.data);
+	std::swap(mask, cur.mask);
+	std::swap(out_name, cur.out_name);
+	std::swap(_outputType, cur._outputType);
+	std::swap(_display, cur._display);
+	std::swap(classname, cur.classname);
+	std::swap(message, cur.message);
+}
+
+Currency::Currency(Currency&& cur): type(TYPE_MATRIX), mask(MASK_DOUBLE), out_name(NULL)
+    , _display(0)
+    , _outputType (OUTPUT_TYPE_DEFAULT)
+{
+	data.mtx = NULL; 
+	Swap(cur);
+}
+
+Currency& Currency::operator=(Currency&& in)
+{
+	Swap(in);
 	return *this;
 }
 
@@ -702,7 +715,7 @@ bool Currency::IsInteger() const
 	{
 		double temp = Scalar();
 
-    	if (abs(temp - (int(temp+1.0e-15)) < 1.0e-15))
+    	if (abs(temp - ((long long)(temp+1.0e-15)) < 1.0e-15))
 			return true;
 	}
 
@@ -917,6 +930,8 @@ const hwMatrix* Currency::ConvertToMatrix() const
 	}
 	else if (type == TYPE_MATRIX)
 	{
+		if (!data.mtx)
+			data.mtx = ExprTreeEvaluator::allocateMatrix(0, 0, hwMatrix::REAL);
 	}
 	else if (IsCellList())
 	{
@@ -1095,6 +1110,14 @@ std::string Currency::GetOutputName() const
 		return *out_name;
 	else
 		return "";
+}
+
+const std::string* Currency::GetOutputNamePtr() const
+{
+	if (out_name)
+		return out_name;
+	else
+		return vm.GetStringPointer("");
 }
 
 hwMatrix* ConvertNDto2D(const hwMatrixN* mtxn)

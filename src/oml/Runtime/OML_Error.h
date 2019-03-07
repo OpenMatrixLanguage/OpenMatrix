@@ -2,7 +2,7 @@
 * @file OML_Error.h
 * @date November 2015
 * Copyright (C) 2015-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 #ifndef _OML_Math_Error_h
@@ -32,6 +32,9 @@
 #define OML_MSG_CELLARRAY     "Error: invalid input; must be cell array"
 #define OML_MSG_STRUCT        "Error: invalid input; must be struct"
 #define OML_MSG_STRING        "Error: invalid input; must be string"
+#define OML_MSG_INTSTRING     "Error: invalid input; must be integer or string"
+#define OML_MSG_SCALARSTRING  "Error: invalid input; must be scalar or string"
+#define OML_MSG_BAD_STRING    "Error: invalid string; see help for options"
 #define OML_MSG_NUMERIC       "Error: invalid input; must be numeric"
 #define OML_MSG_SCALAR        "Error: invalid input; must be a scalar"
 #define OML_MSG_VECTOR        "Error: invalid input; must be a vector"
@@ -50,6 +53,7 @@
 #define OML_MSG_HANDLE        "Error: invalid input; must be function handle"
 #define OML_MSG_HANDLE_EMPTY  "Error: invalid input; must be function handle or []"
 #define OML_MSG_FUNCNAME      "Error: invalid input; function not found"
+#define OML_MSG_ACCUMFUNC     "Error: invalid accumulator; must have vector input and return scalar or complex"
 #define OML_MSG_REAL          "Error: invalid input; must be real"
 #define OML_MSG_INTEGER       "Error: invalid input; must be integer"
 #define OML_MSG_NATURALNUM    "Error: invalid input; must be nonnegative integer"
@@ -71,6 +75,7 @@
 #define OML_MSG_FLAG_01       "Error: invalid input; must be 0 or 1"
 #define OML_MSG_FORMAT        "Error: invalid format specifier"
 #define OML_MSG_PNORM         "Error: invalid input; p must be positive"
+#define OML_MSG_NORM_STRING3  "Error: invalid string; options are 'rows', 'cols', or 'columns'"
 #define OML_MSG_NOCOMPLEX     "Error: invalid input; cannot be a complex number"
 #define OML_MSG_NATURALNUM_MATRIX_CELLARRAY "Error: invalid input; must be a nonnegative integer, matrix or cell array"
 #define OML_MSG_STRING_MATRIX_CELLARRAY     "Error: invalid input; must be a string, matrix or cell array"
@@ -108,7 +113,9 @@
 #define OML_MSG_INTEGER_INTMTX              "Error: invalid input; must be an integer or a matrix of integers"
 #define OML_MSG_LOGICAL                     "Error: invalid input; must be true or false"
 #define OML_MSG_INVALID_DLL                 "Error: invalid dynamic library"
-#define OML_MSG_INVALID_VERSION        "Error: invalid version"
+#define OML_MSG_INVALID_VERSION             "Error: invalid version"
+#define OML_MSG_FILE_FILESTREAM             "Error: invalid input; must be a file name or a valid file stream"
+
 
 // plot messages
 #define OML_MSG_PLOT_OUT_OF_RANGE				"Error: index out of range; check input"
@@ -141,7 +148,6 @@
 #define OML_MSG_PLOT_CANNOT_OPEN_IMAGE          "Error: cannot load image file. Check file path"
 #define OML_MSG_PLOT_NEED_NORM_DATA             "Error: the range of normalized value is [0 1]"
 #define OML_MSG_PLOT_NEED_PIXEL_DATA            "Error: pixel value should larger than 1"
-#define OML_MSG_PLOT_GNUPLOT_NOT_FOUND          "Error: gnuplot not found"
 
 enum omlMathErrCode
 {
@@ -153,6 +159,9 @@ enum omlMathErrCode
     OML_ERR_CELLARRAY,
     OML_ERR_STRUCT,
     OML_ERR_STRING,
+    OML_ERR_INTSTRING,
+    OML_ERR_SCALARSTRING,
+    OML_ERR_BAD_STRING,
     OML_ERR_NUMERIC,
     OML_ERR_SCALAR,
     OML_ERR_VECTOR,
@@ -171,6 +180,7 @@ enum omlMathErrCode
     OML_ERR_HANDLE,
     OML_ERR_HANDLE_EMPTY,
     OML_ERR_FUNCNAME,
+    OML_ERR_ACCUMFUNC,
     OML_ERR_REAL,
     OML_ERR_INTEGER,
     OML_ERR_NATURALNUM,
@@ -192,6 +202,7 @@ enum omlMathErrCode
     OML_ERR_FLAG_01,
 	OML_ERR_FORMAT,
     OML_ERR_PNORM,
+    OML_ERR_NORM_STRING3,
     OML_ERR_NOCOMPLEX,
     OML_ERR_NATURALNUM_MATRIX_CELLARRAY,
     OML_ERR_STRING_MATRIX_CELLARRAY,
@@ -227,6 +238,7 @@ enum omlMathErrCode
     OML_ERR_INTEGER_INTMTX,
     OML_ERR_LOGICAL,
     OML_ERR_INVALID_VERSION,
+    OML_ERR_FILE_FILESTREAM,
 
     // plot codes
     OML_ERR_PLOT_OUT_OF_RANGE,
@@ -259,7 +271,6 @@ enum omlMathErrCode
     OML_ERR_PLOT_CANNOT_OPEN_IMAGE,
     OML_ERR_PLOT_NEED_NORM_DATA,
     OML_ERR_PLOT_NEED_PIXEL_DATA,
-    OML_ERR_PLOT_GNUPLOT_NOT_FOUND,
 
     OML_ERR_END
 };
@@ -267,6 +278,7 @@ enum omlMathErrCode
 #define OML_STR_MATRIX          "matrix"
 #define OML_STR_VECTOR          "vector"
 #define OML_STR_STRUCT          "struct"
+#define OML_STR_CELL            "cell"
 #define OML_STR_STRING          "string"
 #define OML_STR_INDEX           "index"
 #define OML_STR_ORDER           "order"
@@ -276,6 +288,7 @@ enum omlMathErrCode
 #define OML_STR_VALUE           "value"
 #define OML_STR_VARIABLE        "variable"
 #define OML_STR_DATA            "data"
+#define OML_STR_FUNC            "function"
 #define OML_STR_INPUT           "input"
 #define OML_STR_PARAMETER       "parameter"
 #define OML_STR_CONTEXT         "context"
@@ -297,6 +310,7 @@ enum omlMathErrCode
 #define OML_STR_FILEID          "file ID"
 #define OML_STR_OFFSET          "offset"
 #define OML_STR_LENGTH          "length"
+#define OML_STR_OPTION          "option"
 
 enum omlMathVarCode
 {
@@ -304,6 +318,7 @@ enum omlMathVarCode
     OML_VAR_MATRIX,
     OML_VAR_VECTOR,
     OML_VAR_STRUCT,
+    OML_VAR_CELL,
     OML_VAR_STRING,
     OML_VAR_INDEX,
     OML_VAR_ORDER,
@@ -313,6 +328,7 @@ enum omlMathVarCode
     OML_VAR_VALUE,
     OML_VAR_VARIABLE,
     OML_VAR_DATA,
+    OML_VAR_FUNC,
     OML_VAR_INPUT,
     OML_VAR_PARAMETER,
     OML_VAR_CONTEXT,
@@ -334,6 +350,7 @@ enum omlMathVarCode
     OML_VAR_FILEID,
     OML_VAR_OFFSET,
     OML_VAR_LENGTH,
+    OML_VAR_OPTION,
     OML_VAR_END
 };
 
@@ -489,7 +506,7 @@ std::string GetComposeVarStr(omlMathVarCode varCode);
 #define HW_ERROR_INVINPVAL "Error: invalid input value"
 #define HW_ERROR_INVINPTYPE "Error: invalid input type"
 #define HW_ERROR_INVINP5THARG "Error: invalid input type for 5th argument"
-#define HW_ERROR_INVSTRVALINFNEGINFFRO "Error: invalid string value; must be 'inf', '-inf', or 'fro'"
+
 #define HW_ERROR_INPSQUAREMATVEC "Error: input must be square matrix or vector"
 #define HW_ERROR_3RDINPMUSTEMPMATSPMATUNSUPP "Error: third input must be an empty matrix; sparse matrices are not yet supported"
 
@@ -506,7 +523,6 @@ std::string GetComposeVarStr(omlMathVarCode varCode);
 #define HW_ERROR_NOTFTELLONSTDINOUTERR "Error: cannot call ftell on stdin, stdout, or stderr"
 #define HW_ERROR_NOTFSEEKONSTDINOUTERR "Error: cannot call fseek on stdin, stdout, or stderr"
 #define HW_ERROR_FRSTINPSTRORFILESTR "Error: first input should be a string of a file name"
-#define HW_ERROR_INVINPTYPESIZEINP "Error: invalid input type for size input"
 #define HW_ERROR_NOTSKIPBUILTINFUNC "Error: cannot use skip on built-in function streams"
 #define HW_ERROR_INVPRECTYPE "Error: invalid precision type"
 #define HW_ERROR_PRECBLOCKPOSINT "Error: precision block size must be a positive integer"
@@ -514,10 +530,8 @@ std::string GetComposeVarStr(omlMathVarCode varCode);
 #define HW_ERROR_INP1DINPMAT3ELE "Error: input at least one dimension of input matrices must have 3 elements"
 #define HW_ERROR_BADFUNCHANDLE "Error: bad function handle; was the function cleared or created in a different scope?"
 #define HW_ERROR_FUNCNAMENOTSPACE "Error: function name cannot have spaces"
-#define HW_ERROR_MISOUTPUTTEMPLATE "Error: missing output template"
 
 #define HW_ERROR_INVOPTMUSTROW "Error: invalid option; must be 'rows'"
-#define HW_ERROR_INVOPTMUSTROWORCOL "Error: invalid input string; must be 'rows' or 'cols'"
 #define HW_ERROR_INPSMUSTCELLORSTR "Error: inputs must be cell arrays or strings"
 #define HW_ERROR_VALNOTSTRUCT "Error: value is not a struct"
 #define HW_ERROR_INPVECSORTROW "Error: input must be a vector if not checking sort by rows"
@@ -650,7 +664,6 @@ std::string GetComposeVarStr(omlMathVarCode varCode);
 
 #define HW_ERROR_INPUTALLCELL "Error: all inputs must be cell arrays"
 #define HW_ERROR_INPUTREALSTR "Error: input must be a scalar, real matrix, or string"
-#define HW_ERROR_INPSCSTR "Error: input must be a scalar or string"
 #define HW_ERROR_INPUTSTRINGFUNC "Error: function name must be a string or function handle"
 #define HW_ERROR_CELLELEMSTR "Error: cell array elements must be strings"
 #define HW_ERROR_INPUTISLOGICAL "Error: input cannot be logical"

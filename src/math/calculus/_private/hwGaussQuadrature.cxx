@@ -32,38 +32,33 @@ hwGaussQuadrature::~hwGaussQuadrature()
 //------------------------------------------------------------------------------
 // Returns status and gets area after integrating pFunc(z) from a to b
 //------------------------------------------------------------------------------
-hwMathStatus hwGaussQuadrature::Compute(const UnivarFunc pFunc,
-                                        double           a,
-                                        double           b, 
-                                        double&          area)
+hwMathStatus hwGaussQuadrature::Compute(const QuadFunc1 pFunc,
+                                        double          a,
+                                        double          b, 
+                                        double&         area)
 {
-    if (pFunc == NULL)
+    if (!pFunc)
     {
         return hwMathStatus(HW_MATH_ERR_NULLPOINTER, 1);
     }
 
     double c = 0.5 * (b + a);
     double d = 0.5 * (b - a);
-    double fz;
-    double z;
-    hwMathStatus status;
+    hwMatrix z = X * d + c;
+    hwMatrix fz;
+
+    hwMathStatus status = pFunc(z, fz);
+
+    if (!status.IsOk())
+    {
+        return status;
+    }
 
     area = 0.0;
 
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < n; ++i)
     {
-        // The X(i) locations are normalized to the interval [-1,1] and are
-        // transformed to z locations on [a,b] locations using c and d.
-        z = c + d * X(i);
-
-        status = pFunc(z, fz);
-
-        if (!status.IsOk())
-        {
-            return status;
-        }
-
-        area += W(i) * fz;
+        area += W(i) * fz(i);
     }
 
     area *= d;
@@ -73,28 +68,23 @@ hwMathStatus hwGaussQuadrature::Compute(const UnivarFunc pFunc,
 //------------------------------------------------------------------------------
 // Returns status and gets area after integrating from a to b
 //------------------------------------------------------------------------------
-hwMathStatus hwGaussQuadrature::ComputeRLog(const UnivarFunc pFunc, 
-                                            double           a,
-                                            double           b, 
-                                            double&          area)
+hwMathStatus hwGaussQuadrature::ComputeRLog(const QuadFunc1 pFunc, 
+                                            double          a,
+                                            double          b, 
+                                            double&         area)
 {
-    if (pFunc == NULL)
-    {
-        return hwMathStatus(HW_MATH_ERR_NULLPOINTER, 1);
-    }
-
     // apply transform
-    bool rightSize;
+    bool rightSide;
 
     if (a > 0.0 && b > 0.0)
     {
-        rightSize = true;
+        rightSide = true;
         a = 1.0 / log(a+1);
         b = 1.0 / log(b+1);
     }
     else if (a < 0.0 && b < 0.0)
     {
-        rightSize = false;
+        rightSide = false;
         a = 1.0 / log(-a+1);
         b = 1.0 / log(-b+1);
     }
@@ -105,44 +95,34 @@ hwMathStatus hwGaussQuadrature::ComputeRLog(const UnivarFunc pFunc,
 
     double c = 0.5 * (b + a);
     double d = 0.5 * (b - a);
-    double fz;
-    double z;
+    hwMatrix z = X * d + c;
+    hwMatrix u(X.M(), X.N(), hwMatrix::REAL);
+    hwMatrix fz;
     hwMathStatus status;
+
+    for (int i = 0; i < n; ++i)
+        u(i) = exp(1.0 / z(i));
+
+    if (rightSide)
+        status = pFunc(u - 1.0, fz);
+    else
+        status = pFunc(1.0 - u, fz);
+
+    if (!status.IsOk())
+        return status;
 
     area = 0.0;
 
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < n; ++i)
     {
-        // The X(i) locations are normalized to the interval [-1,1] and are
-        // transformed to z locations on [a,b] locations using c and d.
-        z = c + d * X(i);
-
-        if (rightSize)
+        if (fz(i))
         {
-            status = pFunc(exp(1.0/z)-1.0, fz);
-            if (!status.IsOk())
-            {
-                return status;
-            }
-
-            if (fz)     // avoid exp(1.0/z) overflow
-            {
-                area -= W(i) * fz * exp(1.0/z) * 1.0/(z*z);
-            }
-        }
-        else
-        {
-            status = pFunc(1.0-exp(1.0/z), fz);
-            if (!status.IsOk())
-            {
-                return status;
-            }
-            if (fz)     // avoid exp(1.0/z) overflow
-            {
-                area += W(i) * fz * exp(1.0/z) * 1.0/(z*z);
-            }
+            area += W(i) * fz(i) * u(i) * 1.0/(z(i)*z(i));
         }
     }
+
+    if (rightSide)
+        area = -area;
 
     area *= d;
 
@@ -151,41 +131,31 @@ hwMathStatus hwGaussQuadrature::ComputeRLog(const UnivarFunc pFunc,
 //------------------------------------------------------------------------------
 // Returns status and gets area after integrating from a to b
 //------------------------------------------------------------------------------
-hwMathStatus hwGaussQuadrature::ComputeSqrt1(const UnivarFunc pFunc, 
-                                             double           a,
-                                             double           b, 
-                                             double&          area)
+hwMathStatus hwGaussQuadrature::ComputeSqrt1(const QuadFunc1 pFunc, 
+                                             double          a,
+                                             double          b, 
+                                             double&         area)
 {
-    if (pFunc == NULL)
-    {
-        return hwMathStatus(HW_MATH_ERR_NULLPOINTER, 1);
-    }
-
     // apply transform
     double aa = 0.0;
     double bb = sqrt(b-a);
-
     double c = 0.5 * (bb + aa);
     double d = 0.5 * (bb - aa);
-    double fz;
-    double z;
+    hwMatrix z = X * d + c;
+    hwMatrix u;
+    hwMatrix fz;
     hwMathStatus status;
+
+    status = u.MultByElems(z, z);
+    status = pFunc(u + a, fz);
+
+    if (!status.IsOk())
+        return status;
 
     area = 0.0;
 
-    for (int i = 0; i < n; i++)
-    {
-        // The X(i) locations are normalized to the interval [-1,1] and are
-        // transformed to z locations on [a,b] locations using c and d.
-        z = c + d * X(i);
-
-        status = pFunc(z*z + a, fz);
-        if (!status.IsOk())
-        {
-            return status;
-        }
-        area += W(i) * fz * (2.0*z);
-    }
+    for (int i = 0; i < n; ++i)
+        area += W(i) * fz(i) * (2.0*z(i));
 
     area *= d;
 
@@ -194,42 +164,31 @@ hwMathStatus hwGaussQuadrature::ComputeSqrt1(const UnivarFunc pFunc,
 //------------------------------------------------------------------------------
 //! Returns status and gets area after integrating from a to b
 //------------------------------------------------------------------------------
-hwMathStatus hwGaussQuadrature::ComputeSqrt2(const UnivarFunc pFunc, 
-                                             double           a,
-                                             double           b, 
-                                             double&          area)
+hwMathStatus hwGaussQuadrature::ComputeSqrt2(const QuadFunc1 pFunc, 
+                                             double          a,
+                                             double          b, 
+                                             double&         area)
 {
-    if (pFunc == NULL)
-    {
-        return hwMathStatus(HW_MATH_ERR_NULLPOINTER, 1);
-    }
-
     // apply transform
     double aa = sqrt(b-a);
     double bb = 0.0;
-
     double c = 0.5 * (bb + aa);
     double d = 0.5 * (bb - aa);
-    double fz;
-    double z;
+    hwMatrix z = X * d + c;
+    hwMatrix u;
+    hwMatrix fz;
     hwMathStatus status;
+
+    status = u.MultByElems(z, z);
+    status = pFunc(b - u, fz);
+
+    if (!status.IsOk())
+        return status;
 
     area = 0.0;
 
-    for (int i = 0; i < n; i++)
-    {
-        // The X(i) locations are normalized to the interval [-1,1] and are
-        // transformed to z locations on [a,b] locations using c and d.
-        z = c + d * X(i);
-
-        status = pFunc(b - z*z, fz);
-        if (!status.IsOk())
-        {
-            return status;
-        }
-
-        area -= W(i) * fz * (2.0*z);
-    }
+    for (int i = 0; i < n; ++i)
+        area -= W(i) * fz(i) * (2.0*z(i));
 
     area *= d;
 

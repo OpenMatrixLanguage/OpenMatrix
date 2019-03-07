@@ -19,6 +19,8 @@
 #include "CalculusExports.h"
 #include "hwGaussQuadrature.h"
 
+typedef hwMathStatus (*QuadFunc2)(double x, double& y);
+
 //------------------------------------------------------------------------------
 //!
 //! \brief Calculus toolbox functions 
@@ -53,32 +55,6 @@ CALCULUS_DECLS hwMathStatus CumTrapZ(const hwMatrix& x,
                                      const hwMatrix& y, 
                                      hwMatrix&       integral);
 //!
-//! Returns hwMathStatus and gets integral using Gauss-Legendre quadrature
-//! \param pFunc    
-//! \param a  
-//! \param b 
-//! \param numPnts Number of points 
-//! \param area    Output 
-//! 
-CALCULUS_DECLS hwMathStatus GaussLegendre(const UnivarFunc pFunc, 
-                                          double           a, 
-                                          double           b,
-                                          int              numPnts, 
-                                          double&          area);
-//!
-//! Returns hwMathStatus and gets integral using Gauss-Lobatto quadrature
-//! \param pFunc    
-//! \param a  
-//! \param b 
-//! \param numPnts Number of points 
-//! \param area    Output 
-//! 
-CALCULUS_DECLS hwMathStatus GaussLobatto(const UnivarFunc pFunc, 
-                                         double           a, 
-                                         double           b,
-                                         int              numPnts, 
-                                         double&          area);
-//!
 //! Returns hwMathStatus and gets integral using adaptive quadrature
 //! \param pFunc    
 //! \param a  
@@ -88,13 +64,13 @@ CALCULUS_DECLS hwMathStatus GaussLobatto(const UnivarFunc pFunc,
 //! \param reltol Optional relative tolerance
 //! \param abs    Optional absolute tolerance
 //!
-CALCULUS_DECLS hwMathStatus Quad(const UnivarFunc pFunc, 
-                                 double           a, 
-                                 double           b, 
-                                 double&          area,
-                                 int&             count, 
-                                 double           reltol = 1.0e-3, 
-                                 double           abstol = 1.0e-6);
+CALCULUS_DECLS hwMathStatus Quad(const QuadFunc1 pFunc, 
+                                 double          a, 
+                                 double          b, 
+                                 double&         area,
+                                 int&            count, 
+                                 double          reltol = 1.0e-3, 
+                                 double          abstol = 1.0e-6);
 //!
 //! Returns hwMathStatus and gets integral using adaptive Simpson's rule
 //! \param pFunc    
@@ -104,11 +80,11 @@ CALCULUS_DECLS hwMathStatus Quad(const UnivarFunc pFunc,
 //! \param count
 //! \param tol   Optional tolerance
 //!
-CALCULUS_DECLS hwMathStatus QuadV(const UnivarFunc pFunc, 
-                                  double           a, 
-                                  double           b, 
-                                  double&          area,
-                                  int&             count, 
-                                  double           tol = 1.0e-6);
+CALCULUS_DECLS hwMathStatus QuadV(const QuadFunc2 pFunc, 
+                                  double          a, 
+                                  double          b, 
+                                  double&         area,
+                                  int&            count, 
+                                  double          tol = 1.0e-6);
 
 #endif // _Calculus_WrapperFuncs_h

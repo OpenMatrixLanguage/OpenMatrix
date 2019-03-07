@@ -1,0 +1,2 @@
+regexprep ('ab', 'A*', 'z', 'ignorecase')
+regexprep ('ab', 'A*', 'z', 'ignorecase', 'emptymatch')

@@ -1,8 +1,8 @@
 /**
 * @file BuiltInFuncsSystem.cpp
 * @date October 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* Copyright (C) 2016-2019 Altair Engineering, Inc.  
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,13 +10,14 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 // Begin defines/includes
 #include "BuiltInFuncsSystem.h"
 
+#include <algorithm>
 #include <limits.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -311,23 +312,42 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
     {
         throw OML_Error(OML_ERR_NUMARGIN);
     }
-    Currency cur = inputs[0];
-    if (!cur.IsString())
+
+    if (!inputs[0].IsString())
     {
         throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
     }
-
     int  nargout    = eval.GetNargoutValue();
     bool saveoutput = (nargout >= 2);
     bool echo       = (nargout == 0);
     
-    std::string command = "\"" + cur.StringVal() + "\" 2>&1";
-    FILE*       pipe    = nullptr;
+    FILE* pipe = nullptr;
+
 #ifdef OS_WIN
+    std::string command = "\"" + inputs[0].StringVal() + "\" 2>&1";
 	pipe = _popen(command.c_str(), "r");
 #else
+    std::string in(inputs[0].StringVal());
+
+    // Strip leading spaces
+    if (!in.empty())
+    {
+        size_t pos = in.find_first_not_of(" \t");
+        if (pos != std::string::npos && pos != 0)
+        {
+            in = in.substr(pos);
+        }
+    }
+    
+    // Extra quotes needed on linux with spaces
+    if (!in.empty() && in[0] != '\"' && in.find(" ") != std::string::npos)
+    {
+        in = "\"" + in + "\"";  
+    }
+    std::string command = "\"" + in + "\" 2>&1";
     pipe = popen(command.c_str(), "r");
 #endif
+
     if (!pipe)
     {
         throw OML_Error(HW_ERROR_PROBOPENPIPE);
@@ -651,4 +671,230 @@ bool BuiltInFuncsSystem::CloneEnv(EvaluatorInterface           eval,
     eval.ImportEnv(env1, newenv);
     outputs.push_back(newenv);
 	return true;
+}
+//------------------------------------------------------------------------------
+// Returns true after changing current directory [cd]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsSystem::Cd(EvaluatorInterface           eval,
+                            const std::vector<Currency>& inputs,
+                            std::vector<Currency>&       outputs)
+{
+    size_t nargin = (!inputs.empty()) ? inputs.size() : 0;
+    if (nargin > 1)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+    
+    BuiltInFuncsUtils utils;
+    if (nargin == 1)
+    {
+        if (!inputs[0].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
+        }
+        std::string val(inputs[0].StringVal());
+        std::string dir;
+
+#ifdef OS_WIN
+        std::wstring wstr    = utils.StdString2WString(val);
+        std::wstring abspath = utils.GetAbsolutePathW(wstr);
+        abspath = utils.StripTrailingSlashW(abspath);
+
+        BuiltInFuncsSystem funcs;
+        if (!funcs.IsDir(abspath))
+        {
+            throw OML_Error("Error: invalid directory name in argument 1");
+        }
+
+        // Root directories need a trailing slash
+        if (abspath.length() == 2 && iswalpha(abspath[0]) && abspath[1] == ':')
+        {
+            abspath += L"\\";
+        }
+        if (!SetCurrentDirectoryW(abspath.c_str()))
+        {
+            throw OML_Error("Error: cannot set current working directory in argument 1");
+        }
+        std::wstring cwd = utils.GetCurrentWorkingDirW();
+        dir = utils.WString2StdString(cwd);
+#else
+        dir = utils.GetAbsolutePath(val);
+        utils.StripTrailingSlash(dir);
+        if (!utils.IsDir(dir))
+        {
+            throw OML_Error("Error: invalid directory name in argument 1");
+        }
+        if (chdir(dir.c_str()))
+        {
+            throw OML_Error("Error: cannot set current working directory in argument 1");
+        }
+#endif
+        eval.ResetFuncSearchCache();
+        eval.OnChangeDir(dir);       // broadcast change in current dir
+    }
+        
+        
+    if (nargin == 0 || eval.GetNargoutValue() > 0)
+    {
+#ifdef OS_WIN
+        std::wstring cwd = utils.GetCurrentWorkingDirW();
+        outputs.push_back(utils.WString2StdString(cwd));
+#else
+        outputs.push_back(utils.GetCurrentWorkingDir());
+#endif
+    }
+
+    return true;
+}
+#ifdef OS_WIN
+//------------------------------------------------------------------------------
+// Returns true if given path is a directory, supports unicode on Windows
+//------------------------------------------------------------------------------
+bool BuiltInFuncsSystem::IsDir(std::wstring& path)
+{
+    if (path.empty())
+    {
+        return false;
+    }
+
+    // Root directories need a trailing slash
+    std::wstring tmppath = path;
+    if (tmppath.length() == 2 && iswalpha(tmppath[0]) && tmppath[1] == ':')
+    {
+        tmppath += L"\\";
+    }
+    struct _stat64i32 filestat;
+    if (_wstat(tmppath.c_str(), &filestat) == -1)
+    {
+        return false;
+    }
+
+    int returncode = (filestat.st_mode & _S_IFDIR);
+    if (returncode == 0)
+    {
+        return false;
+    }
+    return true;
+}
+#endif
+//------------------------------------------------------------------------------
+// Returns true after deleing given directory [rmdir]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsSystem::Rmdir(EvaluatorInterface           eval,
+                               const std::vector<Currency>& inputs,
+                               std::vector<Currency>&       outputs)
+{
+    if (inputs.size() < 1)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsString())
+    {
+        throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
+    }
+
+    bool removeSubdir = false;
+    if (inputs.size() > 1)
+    {
+        if (!inputs[1].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, 2, OML_VAR_TYPE);
+        }
+        std::string val(inputs[1].StringVal());
+        if (val != "s" && val != "S")
+        {
+            throw OML_Error("Error: invalid option; must be 's' in argument 2");
+        }
+        removeSubdir = true;
+    }
+
+    BuiltInFuncsUtils utils;
+    std::string dir(inputs[0].StringVal());
+    dir = utils.GetAbsolutePath(dir);
+
+    std::string error;
+    std::string msgid;
+    bool        result = true;
+
+    // Just removes an empty directory
+    if (!removeSubdir)
+    {
+#ifdef OS_WIN
+        BOOL returncode = RemoveDirectory((LPCSTR)dir.c_str());
+        if (!returncode)
+        {
+            result = false;
+            msgid  = "rmdir";
+            DWORD errid = GetLastError();
+            if (errid == 0)
+            {
+                error = "Error removing directory";
+            }
+            else
+            {
+                LPSTR buff = nullptr;
+                size_t len = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                    FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                    NULL, errid, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                    (LPSTR)&buff, 0, NULL);
+                error = std::string(buff, len);
+                utils.StripTrailingNewline(error);
+            }
+        }
+#else
+        int returncode = rmdir(dir.c_str());
+        if (returncode)
+        {
+            result = false;
+            msgid = "rmdir";
+            error = std::string(strerror(errno));
+        }
+#endif
+        outputs.push_back(Currency(result));
+        outputs.push_back(error);
+        outputs.push_back(msgid);
+        return true;
+    }
+
+    // With deleting sub folders
+    // Use the system command to delete recursively.
+    // System command will not return info about missing files unless
+    // the output is sent to a pipe, which is not done here
+#ifdef OS_WIN
+    std::wstring wstr = utils.StdString2WString(dir);
+    std::wstring cmd  = L"rmdir \"" + wstr + L"\" /S /Q";
+    if (_wsystem(cmd.c_str()) != 0)
+    {
+        result = false;
+        msgid = "rmdir";
+        std::string err = strerror(errno);
+        error = "Error deleting [" + utils.WString2StdString(wstr) +
+            +"]";
+        if (!err.empty() && err != "No error")
+        {
+            error += "; " + err;
+        }
+    }
+#else
+    std::string cmd;
+    cmd = "rm -rf " + dir + " > /dev/null";
+    if (system(cmd.c_str()) != 0)
+    {
+        result = false;
+        msgid = "rmdir";
+        std::string err = strerror(errno);
+        error = "Error deleting [" + dir + "]";
+        if (!err.empty())
+        {
+            error += "; " + err;
+        }
+    }
+#endif
+
+    outputs.push_back(Currency(result));
+    outputs.push_back(error);
+    outputs.push_back(msgid);
+
+    return true;
 }

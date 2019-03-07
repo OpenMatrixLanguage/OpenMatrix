@@ -1,17 +1,17 @@
 /**
 * @file PolynomialTboxFuncs.cxx
 * @date January 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* Copyright (C) 2015-2018 Altair Engineering, Inc.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
 * You should have received a copy of the GNU Affero General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
-* 
-* Commercial License Information: 
+*
+* Commercial License Information:
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 #include "PolynomialTboxFuncs.h"
@@ -33,26 +33,28 @@
 //------------------------------------------------------------------------------
 int InitDll(EvaluatorInterface eval)
 {
-    eval.RegisterBuiltInFunction("roots",  &OmlRoots,
-                                 FunctionMetaData(1, 1, POLY));
+    eval.RegisterBuiltInFunction("roots", &OmlRoots,
+        FunctionMetaData(1, 1, POLY));
     eval.RegisterBuiltInFunction("spline", &OmlSpline,
-                                 FunctionMetaData(4, 1, POLY));
+        FunctionMetaData(4, 1, POLY));
     eval.RegisterBuiltInFunction("interp1", &OmlInterp1,
-                                 FunctionMetaData(-4, 1, POLY));
+        FunctionMetaData(-4, 1, POLY));
     eval.RegisterBuiltInFunction("interp2", &OmlInterp2,
-                                  FunctionMetaData(-6, 1, POLY));
-    eval.RegisterBuiltInFunction("polyder", &OmlPolyder, 
-                                 FunctionMetaData(-1, 1, POLY));
-    eval.RegisterBuiltInFunction("polyint", &OmlPolyint, 
-                                 FunctionMetaData(-1, 1, POLY));
+        FunctionMetaData(-6, 1, POLY));
+    eval.RegisterBuiltInFunction("deconv", &OmlDeconv,
+        FunctionMetaData(2, 2, POLY));
+    eval.RegisterBuiltInFunction("polyder", &OmlPolyder,
+        FunctionMetaData(-2, -2, POLY));
+    eval.RegisterBuiltInFunction("polyint", &OmlPolyint,
+        FunctionMetaData(-2, 1, POLY));
     return 1;
 }
 //------------------------------------------------------------------------------
 // Computes the roots of a polynomial and returns true
 //------------------------------------------------------------------------------
-bool OmlRoots(EvaluatorInterface           eval, 
-              const std::vector<Currency>& inputs, 
-              std::vector<Currency>&       outputs)
+bool OmlRoots(EvaluatorInterface           eval,
+    const std::vector<Currency>& inputs,
+    std::vector<Currency>&       outputs)
 {
     if (inputs.size() != 1)
         throw OML_Error(OML_ERR_NUMARGIN);
@@ -71,16 +73,16 @@ bool OmlRoots(EvaluatorInterface           eval,
 //------------------------------------------------------------------------------
 // Interpolates (x,y) data with a cubic spline and returns true
 //------------------------------------------------------------------------------
-bool OmlSpline(EvaluatorInterface           eval, 
-               const std::vector<Currency>& inputs, 
-               std::vector<Currency>&       outputs)
+bool OmlSpline(EvaluatorInterface           eval,
+    const std::vector<Currency>& inputs,
+    std::vector<Currency>&       outputs)
 {
     static bool unsorted = true;
     size_t nargin = inputs.size();
 
     if (nargin != 3)
         throw OML_Error(OML_ERR_NUMARGIN);
-    
+
     if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
         throw OML_Error(OML_ERR_REALVECTOR, 1, OML_VAR_TYPE);
 
@@ -115,6 +117,59 @@ bool OmlSpline(EvaluatorInterface           eval,
             inputs2.clear();
             inputs2.push_back(outputs[0]);      // push_back(sorted_x)
             outputs.erase(outputs.begin());     // remove sorted_x, leaving indices
+
+            // handle clamped spline case
+            bool            clamped = false;
+            int             numPnts = x_old->Size();
+
+            if (inputs[1].IsMatrix())
+            {
+                const hwMatrix* y_old = inputs[1].ConvertToMatrix();
+
+                if (y_old->M() == 1)
+                {
+                    if (y_old->N() == numPnts + 2)
+                        clamped = true;
+                }
+                else if (y_old->M() == numPnts + 2)
+                {
+                    clamped = true;
+                }
+            }
+            else if (inputs[1].IsNDMatrix())
+            {
+                if (inputs[1].MatrixN()->Dimensions()[0] == numPnts + 2)
+                {
+                    clamped = true;
+                }
+            }
+
+            if (clamped)
+            {
+                hwMatrix*    index = outputs[0].GetWritableMatrix();
+                int          m = index->M();
+                int          n = index->N();
+                hwMathStatus status;
+
+                if (m == numPnts)
+                {
+                    status = index->Resize(m + 2, n);
+                }
+                else
+                {
+                    status = index->Resize(m, n + 2);
+                }
+
+                BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+                for (int i = numPnts - 1; i > -1; --i)
+                {
+                    (*index)(i + 1) = (*index)(i) + 1;
+                }
+
+                (*index)(0) = 1;
+                (*index)(numPnts + 1) = numPnts + 2;
+            }
 
             // reorder y (by row for spline)
             if (inputs[1].IsMatrix())
@@ -153,9 +208,9 @@ bool OmlSpline(EvaluatorInterface           eval,
             {
                 unsorted = true;    // reset
                 throw;
-            }	
+            }
         }
-        
+
         outputs.clear();
     }
     else
@@ -199,7 +254,7 @@ bool OmlSpline(EvaluatorInterface           eval,
                 const double* y_vec = y_old->GetRealData();
                 hwMatrix y_temp(n, (void*) ++y_vec, hwMatrix::REAL);
 
-                BuiltInFuncsUtils::CheckMathStatus(eval, Spline(*x_old, y_temp, (*y_old)(0), (*y_old)(n+1), *x_new, *y_new, true));
+                BuiltInFuncsUtils::CheckMathStatus(eval, Spline(*x_old, y_temp, (*y_old)(0), (*y_old)(n + 1), *x_new, *y_new, true));
             }
             else // (y_old->Size() == n)
             {
@@ -231,7 +286,7 @@ bool OmlSpline(EvaluatorInterface           eval,
                         const double* y_vec = yoldrow->GetRealData();
                         hwMatrix y_temp(n, (void*) ++y_vec, hwMatrix::REAL);
 
-                        status = Spline(*x_old, y_temp, (*y_old)(0), (*y_old)(n+1), *x_new, *y_new, true);
+                        status = Spline(*x_old, y_temp, (*y_old)(0), (*y_old)(n + 1), *x_new, *y_new, true);
                     }
                     else
                     {
@@ -271,9 +326,9 @@ bool OmlSpline(EvaluatorInterface           eval,
 //------------------------------------------------------------------------------
 // Interpolates in one dimension and returns true
 //------------------------------------------------------------------------------
-bool OmlInterp1(EvaluatorInterface           eval, 
-                const std::vector<Currency>& inputs, 
-                std::vector<Currency>&       outputs)
+bool OmlInterp1(EvaluatorInterface           eval,
+    const std::vector<Currency>& inputs,
+    std::vector<Currency>&       outputs)
 {
     static bool unsorted = true;
     size_t nargin = inputs.size();
@@ -361,9 +416,9 @@ bool OmlInterp1(EvaluatorInterface           eval,
             {
                 unsorted = true;    // reset
                 throw;
-            }	
+            }
         }
-        
+
         outputs.clear();
     }
     else
@@ -517,12 +572,12 @@ bool OmlInterp1(EvaluatorInterface           eval,
 //------------------------------------------------------------------------------
 // Helper method for interp1 command
 //------------------------------------------------------------------------------
-void interpOptionsHelper(EvaluatorInterface& eval, 
-                         const Currency&     input, 
-                         bool&               extrap, 
-                         std::string&        method, 
-                         bool&               setExtrap, 
-                         bool&               setMethod)
+void interpOptionsHelper(EvaluatorInterface& eval,
+    const Currency&     input,
+    bool&               extrap,
+    std::string&        method,
+    bool&               setExtrap,
+    bool&               setMethod)
 {
     // only used for interp1, could be used for intper2 also
     if (input.IsString())
@@ -580,15 +635,15 @@ void interpOptionsHelper(EvaluatorInterface& eval,
 //------------------------------------------------------------------------------
 // Interpolates in two-dimensions and returns true
 //------------------------------------------------------------------------------
-bool OmlInterp2(EvaluatorInterface           eval, 
-                const std::vector<Currency>& inputs, 
-                std::vector<Currency>&       outputs)
+bool OmlInterp2(EvaluatorInterface           eval,
+    const std::vector<Currency>& inputs,
+    std::vector<Currency>&       outputs)
 {
     size_t nargin = inputs.size();
 
     if (nargin < 5 || nargin > 7)
         throw OML_Error(OML_ERR_NUMARGIN);
-    
+
     if (!inputs[0].IsMatrix())
         throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
 
@@ -647,11 +702,44 @@ bool OmlInterp2(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
+// Computes polynomial division, or deconvolution
+//------------------------------------------------------------------------------
+bool OmlDeconv(EvaluatorInterface           eval,
+    const std::vector<Currency>& inputs,
+    std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 2)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar() && !inputs[0].IsComplex())
+    {
+        throw OML_Error(OML_ERR_VECTOR, 1, OML_VAR_DATA);
+    }
+
+    if (!inputs[1].IsMatrix() && !inputs[1].IsScalar() && !inputs[1].IsComplex())
+    {
+        throw OML_Error(OML_ERR_VECTOR, 2, OML_VAR_DATA);
+    }
+
+    const hwMatrix* num = inputs[0].ConvertToMatrix();
+    const hwMatrix* den = inputs[1].ConvertToMatrix();
+
+    std::unique_ptr<hwMatrix> Q(EvaluatorInterface::allocateMatrix());
+    std::unique_ptr<hwMatrix> R(EvaluatorInterface::allocateMatrix());
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, PolyDivide(*num, *den, *Q, *R));
+
+    outputs.push_back(Q.release());
+    outputs.push_back(R.release());
+
+    return true;
+}
+//------------------------------------------------------------------------------
 // Computes the derivative of a polynomial and returns true
 //------------------------------------------------------------------------------
-bool OmlPolyder(EvaluatorInterface           eval, 
-                const std::vector<Currency>& inputs,
-                std::vector<Currency>&       outputs)
+bool OmlPolyder(EvaluatorInterface           eval,
+    const std::vector<Currency>& inputs,
+    std::vector<Currency>&       outputs)
 {
     size_t nargin = inputs.size();
     size_t nargout = eval.GetNargoutValue();
@@ -663,7 +751,7 @@ bool OmlPolyder(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_SCALARVECTOR, 1, OML_VAR_DATA);
 
     const hwMatrix* A = inputs[0].ConvertToMatrix();
-    
+
     if (nargin == 1)
     {
         if (nargout > 1)
@@ -709,9 +797,9 @@ bool OmlPolyder(EvaluatorInterface           eval,
 //------------------------------------------------------------------------------
 // Computes the integral of a polynomial and returns true
 //------------------------------------------------------------------------------
-bool OmlPolyint(EvaluatorInterface           eval, 
-                const std::vector<Currency>& inputs, 
-                std::vector<Currency>&       outputs)
+bool OmlPolyint(EvaluatorInterface           eval,
+    const std::vector<Currency>& inputs,
+    std::vector<Currency>&       outputs)
 {
     size_t nargin = inputs.size();
     size_t nargout = eval.GetNargoutValue();

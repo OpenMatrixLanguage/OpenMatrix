@@ -1,2 +1,1 @@
-ans = [Matrix] 1 x 11
--0.43837  -0.19081  -0.42262  -0.43837  0.84805  -0.42262  -0.43837  -0.40674  -0.25882  -0.34202  -0.22495
+Error: invalid input type; must be scalar, complex, or a matrix in call to function cosd at line number 1 in file cosd11.oml

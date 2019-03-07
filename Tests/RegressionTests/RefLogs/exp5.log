@@ -1,1 +1,1 @@
-ans = 1.338334719e+42
+Error: invalid input type; must be scalar, complex, or a matrix in call to function exp at line number 1 in file exp5.oml

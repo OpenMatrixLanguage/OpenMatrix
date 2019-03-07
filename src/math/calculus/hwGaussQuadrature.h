@@ -21,7 +21,7 @@
 //!
 //! \typedef hwMathStatus
 //!
-typedef hwMathStatus (*UnivarFunc)(double x, double& y);
+typedef hwMathStatus (*QuadFunc1)(const hwMatrix& x, hwMatrix& y);
 
 //------------------------------------------------------------------------------
 //! 
@@ -57,10 +57,10 @@ public:
     //! \param b     Input b
     //! \param area  Output
     //!
-    hwMathStatus Compute(const UnivarFunc pFunc,
-                         double           a,
-                         double           b, 
-                         double&          area);
+    hwMathStatus Compute(const QuadFunc1 pFunc,
+                         double          a,
+                         double          b, 
+                         double&         area);
     //!
     //! Returns status and gets area after integrating from a to b. This method
     //! is used with improper integrals with either a=-Inf or b=Inf. a and b 
@@ -71,10 +71,10 @@ public:
     //! \param b     Input b
     //! \param area  Output
     //!
-    hwMathStatus ComputeRLog(const UnivarFunc pFunc,
-                             double           a,
-                             double           b, 
-                             double&          area);
+    hwMathStatus ComputeRLog(const QuadFunc1 pFunc,
+                             double          a,
+                             double          b, 
+                             double&         area);
     //!
     //! Returns status and gets area after integrating from a to b. This method
     //! is used with improper integrals with an integrand that has a vertical
@@ -85,10 +85,10 @@ public:
     //! \param b     Input b
     //! \param area  Output
     //!
-    hwMathStatus ComputeSqrt1(const UnivarFunc pFunc,
-                              double           a,
-                              double           b, 
-                              double&          area);
+    hwMathStatus ComputeSqrt1(const QuadFunc1 pFunc,
+                              double          a,
+                              double          b, 
+                              double&         area);
     //!
     //! Returns status and gets area after integrating from a to b. This method
     //! is used with improper integrals with an integrand that has a vertical
@@ -99,10 +99,10 @@ public:
     //! \param b     Input b
     //! \param area  Output
     //!
-    hwMathStatus ComputeSqrt2(const UnivarFunc pFunc,
-                              double           a,
-                              double           b, 
-                              double&          area);
+    hwMathStatus ComputeSqrt2(const QuadFunc1 pFunc,
+                              double          a,
+                              double          b, 
+                              double&         area);
 protected:
     hwMathStatus m_status;           //!< status 
     int n;                           //!< number of points

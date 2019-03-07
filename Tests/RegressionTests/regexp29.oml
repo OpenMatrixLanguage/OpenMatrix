@@ -1,0 +1,5 @@
+str = '01/11/2000  20-02-2020  03/30/2000  16-04-2020';
+expression = ['(?<month>\d+)/(?<day>\d+)/(?<year>\d+)|'...
+              '(?<day>\d+)-(?<month>\d+)-(?<year>\d+)'];
+M = regexp(str,expression,'names');
+M.day 

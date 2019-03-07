@@ -1,0 +1,8 @@
+matres{1,4}= '114';
+matres{1,5}= '118';
+matres{2,1}= '4116';
+matres{2,2}= '3113';
+matres{2,3}= '4112';
+matres{2,4}= '3114';
+matres{2,5}= '4118';
+sprintf('%s %s \n', matres{:})  % Prints cells with empty matrices in correct order

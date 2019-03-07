@@ -2,7 +2,7 @@
 * @file SignalsTboxFuncs.cxx
 * @date January 2015
 * Copyright (C) 2015-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 #include "SignalsTboxFuncs.h"
@@ -45,10 +45,12 @@ int InitDll(EvaluatorInterface eval)
     eval.RegisterBuiltInFunction("unwrap",     OmlUnwrap,     FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("pwelch",     OmlPwelch,     FunctionMetaData(-2, 2, SIGN));
     eval.RegisterBuiltInFunction("cpsd",       OmlCpsd,       FunctionMetaData(-3, 2, SIGN));
+    eval.RegisterBuiltInFunction("tfestimate", OmlTFestimate, FunctionMetaData(-3, 2, SIGN));
+    eval.RegisterBuiltInFunction("mscohere",   OmlMScohere,   FunctionMetaData(-3, 2, SIGN));
     eval.RegisterBuiltInFunction("freqz",      OmlFreqz,      FunctionMetaData(4, 2, SIGN));
     eval.RegisterBuiltInFunction("freqs",      OmlFreqs,      FunctionMetaData(3, 2, SIGN));
-    eval.RegisterBuiltInFunction("invfreqz",   OmlInvfreqz,   FunctionMetaData(-5, 2, SIGN));
-    eval.RegisterBuiltInFunction("invfreqs",   OmlInvfreqs,   FunctionMetaData(-5, 2, SIGN));
+    eval.RegisterBuiltInFunction("invfreqz",   OmlInvFreqz,   FunctionMetaData(-5, 2, SIGN));
+    eval.RegisterBuiltInFunction("invfreqs",   OmlInvFreqs,   FunctionMetaData(-5, 2, SIGN));
     eval.RegisterBuiltInFunction("impz",       OmlImpz,       FunctionMetaData(-3, 2, SIGN));
     eval.RegisterBuiltInFunction("fir1",       OmlFir1,       FunctionMetaData(-3, 1, SIGN));
     eval.RegisterBuiltInFunction("besself",    OmlBesself,    FunctionMetaData(-3, 2, SIGN));
@@ -881,11 +883,42 @@ bool OmlPwelch(EvaluatorInterface           eval,
     // calculate psd
     std::unique_ptr<hwMatrix> density(EvaluatorInterface::allocateMatrix());
 
-    hwMathStatus stat = (window) ?
+    hwMathStatus status = (window) ?
         BlockPSD(*signal, *window, numOverlapPts, sampFreq, *density, fftSize) :
         BlockPSD(*signal, *windowTemp, numOverlapPts, sampFreq, *density, fftSize);
 
-    BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+	// output
+	int nargout = eval.GetNargoutValue();
+
+    if (nargout == 0)
+    {
+        std::vector<Currency> plotInput;
+		std::unique_ptr<hwMatrix> freqresult(EvaluatorInterface::allocateMatrix());
+		status = Freq(fftSize, sampFreq, *freqresult);
+		BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+	    if (onesided)
+		{
+			status = freqresult->Resize(fftSize/2+1, 1);
+			BuiltInFuncsUtils::CheckMathStatus(eval, status);
+			plotInput.push_back(freqresult.release());
+
+	        std::unique_ptr<hwMatrix> one_sided(EvaluatorInterface::allocateMatrix());
+	        status = Fold(*density, *one_sided);
+		    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+			plotInput.push_back(one_sided.release());
+		}
+		else
+		{
+			plotInput.push_back(freqresult.release());
+			plotInput.push_back(density.release());
+		}
+
+        FUNCPTR plotPtr = eval.GetStdFunction("plot");
+		return plotPtr(eval, plotInput, outputs);
+	}
 
 #if 0 // Commented code
 /*
@@ -925,8 +958,8 @@ bool OmlPwelch(EvaluatorInterface           eval,
     if (onesided)
     {
         std::unique_ptr<hwMatrix> one_sided(EvaluatorInterface::allocateMatrix());
-        hwMathStatus stat = Fold(*density, *one_sided);
-        BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+        status = Fold(*density, *one_sided);
+        BuiltInFuncsUtils::CheckMathStatus(eval, status);
         outputs.push_back(one_sided.release());
 
 #if 0
@@ -949,22 +982,22 @@ bool OmlPwelch(EvaluatorInterface           eval,
     }
 
     // process frequency output
-    if (eval.GetNargoutValue() > 1)
+    if (nargout > 1)
     {
         std::unique_ptr<hwMatrix> freqresult(EvaluatorInterface::allocateMatrix());
-        hwMathStatus stat = Freq(fftSize, sampFreq, *freqresult);
-        BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+        status = Freq(fftSize, sampFreq, *freqresult);
+	    BuiltInFuncsUtils::CheckMathStatus(eval, status);
 
         if (onesided)
         {
-            stat = freqresult->Resize(fftSize/2+1, 1);
-            BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+	        status =  freqresult->Resize(fftSize/2+1, 1);
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
         }
 
         if (freqresult->M() == 1)
         {
-            stat = freqresult->Transpose();
-            BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+            status = freqresult->Transpose();
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
         }
         outputs.push_back(freqresult.release());
     }
@@ -1155,18 +1188,49 @@ bool OmlCpsd(EvaluatorInterface           eval,
     // calculate cpsd
     std::unique_ptr<hwMatrix> density(EvaluatorInterface::allocateMatrix());
 
-    hwMathStatus stat = (window) ?
+    hwMathStatus status = (window) ?
         BlockCPSD(*signal1, *signal2, *window, numOverlapPts, sampFreq, *density, fftSize):
         BlockCPSD(*signal1, *signal2, *windowTemp, numOverlapPts, sampFreq, *density, fftSize);
     
-    BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+	// output
+	int nargout = eval.GetNargoutValue();
+
+    if (nargout == 0)
+    {
+        std::vector<Currency> plotInput;
+		std::unique_ptr<hwMatrix> freqresult(EvaluatorInterface::allocateMatrix());
+		status = Freq(fftSize, sampFreq, *freqresult);
+		BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+	    if (onesided)
+		{
+			status = freqresult->Resize(fftSize/2+1, 1);
+			BuiltInFuncsUtils::CheckMathStatus(eval, status);
+			plotInput.push_back(freqresult.release());
+
+	        std::unique_ptr<hwMatrix> one_sided(EvaluatorInterface::allocateMatrix());
+	        status = Fold(*density, *one_sided);
+		    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+			plotInput.push_back(one_sided.release());
+		}
+		else
+		{
+			plotInput.push_back(freqresult.release());
+			plotInput.push_back(density.release());
+		}
+
+        FUNCPTR plotPtr = eval.GetStdFunction("plot");
+		return plotPtr(eval, plotInput, outputs);
+	}
 
     // process spectral output
     if (onesided)
     {
         std::unique_ptr<hwMatrix> one_sided(EvaluatorInterface::allocateMatrix());
-        stat = Fold(*density, *one_sided);
-        BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+        status = Fold(*density, *one_sided);
+        BuiltInFuncsUtils::CheckMathStatus(eval, status);
         outputs.push_back(one_sided.release());
     }
     else
@@ -1175,28 +1239,149 @@ bool OmlCpsd(EvaluatorInterface           eval,
     }
 
     // process frequency output
-    if (eval.GetNargoutValue() > 1)
+    if (nargout > 1)
     {
         std::unique_ptr<hwMatrix> freqresult(EvaluatorInterface::allocateMatrix());
-        stat = Freq(fftSize, sampFreq, *freqresult);
-        BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+        hwMathStatus status = Freq(fftSize, sampFreq, *freqresult);
+	    BuiltInFuncsUtils::CheckMathStatus(eval, status);
 
         if (onesided)
         {
-            stat = freqresult->Resize(fftSize/2+1, 1);
-            BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+	        hwMathStatus status = freqresult->Resize(fftSize/2+1, 1);
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
         }
 
         if (freqresult->M() == 1)
         {
-            stat = freqresult->Transpose();
-            BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+            status = freqresult->Transpose();
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
         }
-
         outputs.push_back(freqresult.release());
     }
 
     return true;
+}
+//------------------------------------------------------------------------------
+// Computes estimated transfer function [tfestimate command]
+//------------------------------------------------------------------------------
+bool OmlTFestimate(EvaluatorInterface           eval, 
+				   const std::vector<Currency>& inputs, 
+				   std::vector<Currency>&       outputs)
+{
+	// cpsd(x,y)
+	int nargout = eval.GetNargoutValue();
+	std::vector<Currency> inputs1 = inputs;
+	std::vector<Currency> outputs1;
+
+	if (nargout)
+		outputs1 = eval.DoMultiReturnFunctionCall(OmlCpsd, inputs1, static_cast<int>(inputs1.size()), nargout, true);
+	else
+		outputs1 = eval.DoMultiReturnFunctionCall(OmlCpsd, inputs1, static_cast<int>(inputs1.size()), 2, true);
+
+	hwMatrix* cpsd = outputs1[0].GetWritableMatrix();
+
+	// psd(x)
+	std::vector<Currency> inputs2 = inputs;
+	inputs2.erase(inputs2.begin() + 1);
+	std::vector<Currency> outputs2;
+	OmlPwelch(eval, inputs2, outputs2);
+    outputs2 = eval.DoMultiReturnFunctionCall(OmlPwelch, inputs2, static_cast<int>(inputs2.size()), 1, true);
+	hwMatrix* psd  = outputs2[0].GetWritableMatrix();
+
+	// tfestimate
+	hwMatrix* tf = new hwMatrix;
+	BuiltInFuncsUtils::CheckMathStatus(eval, tf->DivideByElems(*cpsd, *psd));
+
+	if (nargout == 0)
+    {
+		std::vector<Currency> inputs2;
+		std::vector<Currency> outputs2;
+        inputs2.push_back(tf);
+		oml_abs(eval, inputs2, outputs2);
+
+        std::vector<Currency> plotInput;
+        plotInput.push_back(outputs1[1]);
+        plotInput.push_back(outputs2[0]);
+        FUNCPTR plotPtr = eval.GetStdFunction("plot");
+        return plotPtr(eval, plotInput, outputs);
+    }
+
+	outputs.push_back(tf);
+
+	if (nargout > 1)
+	    outputs.push_back(outputs1[1]);
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Computes estimated mean square coherence [mscohere command]
+//------------------------------------------------------------------------------
+bool OmlMScohere(EvaluatorInterface           eval, 
+				 const std::vector<Currency>& inputs, 
+				 std::vector<Currency>&       outputs)
+{
+	// cpsd(x,y)
+	int nargout = eval.GetNargoutValue();
+	std::vector<Currency> inputs1 = inputs;
+	std::vector<Currency> outputs1;
+
+	if (nargout)
+		outputs1 = eval.DoMultiReturnFunctionCall(OmlCpsd, inputs1, static_cast<int>(inputs1.size()), nargout, true);
+	else
+		outputs1 = eval.DoMultiReturnFunctionCall(OmlCpsd, inputs1, static_cast<int>(inputs1.size()), 2, true);
+
+	hwMatrix* cpsd  = outputs1[0].GetWritableMatrix();
+
+	// psd(x)
+	std::vector<Currency> inputs2 = inputs;
+	inputs2.erase(inputs2.begin() + 1);
+	std::vector<Currency> outputs2;
+	OmlPwelch(eval, inputs2, outputs2);
+    outputs2 = eval.DoMultiReturnFunctionCall(OmlPwelch, inputs2, static_cast<int>(inputs2.size()), 1, true);
+	hwMatrix* psdx  = outputs2[0].GetWritableMatrix();
+
+	// psd(y)
+	std::vector<Currency> inputs3 = inputs;
+	inputs3.erase(inputs3.begin());
+	std::vector<Currency> outputs3;
+	OmlPwelch(eval, inputs3, outputs3);
+    outputs3 = eval.DoMultiReturnFunctionCall(OmlPwelch, inputs3, static_cast<int>(inputs3.size()), 1, true);
+	hwMatrix* psdy  = outputs3[0].GetWritableMatrix();
+
+	// cpsd(x,y) conjugate
+	std::vector<Currency> inputs4;
+	std::vector<Currency> outputs4;
+	inputs4.push_back(outputs1[0]);
+	oml_conj(eval, inputs4, outputs4);
+	hwMatrix* cpsdC = outputs4[0].GetWritableMatrix();
+
+	// cpsd(x,y) squared magnitude
+	hwMatrix temp;
+	hwMatrix cpsdSq;
+	BuiltInFuncsUtils::CheckMathStatus(eval, temp.MultByElems(*cpsd, *cpsdC));
+	BuiltInFuncsUtils::CheckMathStatus(eval, temp.UnpackComplex(&cpsdSq, nullptr));
+
+	// mscohere
+	temp.Dimension(0, 0, hwMatrix::REAL);
+	hwMatrix* msc = new hwMatrix;
+	BuiltInFuncsUtils::CheckMathStatus(eval, temp.DivideByElems(cpsdSq, *psdx));
+	BuiltInFuncsUtils::CheckMathStatus(eval, msc->DivideByElems(temp, *psdy));
+	
+	if (nargout == 0)
+    {
+        std::vector<Currency> plotInput;
+        plotInput.push_back(outputs1[1]);
+        plotInput.push_back(msc);
+        FUNCPTR plotPtr = eval.GetStdFunction("plot");
+        return plotPtr(eval, plotInput, outputs);
+    }
+	
+	outputs.push_back(msc);
+
+	if (nargout > 1)
+	    outputs.push_back(outputs1[1]);
+
+	return true;
 }
 //------------------------------------------------------------------------------
 // Computes cross power spectral density [cpsd command]
@@ -1482,7 +1667,7 @@ bool OmlFreqs(EvaluatorInterface           eval,
 //------------------------------------------------------------------------------
 // Computes digital filter coefficients from frequency response values [invfreqz]
 //------------------------------------------------------------------------------
-bool OmlInvfreqz(EvaluatorInterface           eval, 
+bool OmlInvFreqz(EvaluatorInterface           eval, 
                  const std::vector<Currency>& inputs, 
                  std::vector<Currency>&       outputs)
 {
@@ -1552,9 +1737,9 @@ bool OmlInvfreqz(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computes analog filter coefficients from frequency response values [infreqs]
+// Computes analog filter coefficients from frequency response values [invfreqs]
 //------------------------------------------------------------------------------
-bool OmlInvfreqs(EvaluatorInterface           eval, 
+bool OmlInvFreqs(EvaluatorInterface           eval, 
                  const std::vector<Currency>& inputs, 
                  std::vector<Currency>&       outputs)
 {

@@ -1,0 +1,4 @@
+isrow(24)
+isrow([24, 2])
+isrow([24; 2])
+isrow('c')

@@ -1,0 +1,2 @@
+r = de2bi([12, 23456, 45, 6777], 4, 3, 'left-msb');
+R = bi2de(r, 3, 'left-msb')

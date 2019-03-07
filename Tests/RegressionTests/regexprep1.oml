@@ -1,0 +1,2 @@
+regexprep ('First Second', '(\w+) (\w+)', '$2, $1')
+%ans = Second, First

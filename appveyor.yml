@@ -63,9 +63,9 @@ test_script:
     
     dir
     
-    cd %OML_ROOT%\Tests\RegressionTests
+    cd %OML_ROOT%\Tests
     
-    perl %OML_ROOT%\Tests\regressOMLConsole.pl
+    run_tests.bat
     
     cd %OML_ROOT%\Tests
     

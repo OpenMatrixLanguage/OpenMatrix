@@ -121,8 +121,8 @@
       <PreprocessorDefinitions>WIN32;OS_WIN;_WIN64;CALCULUSOMLTBOX_EXPORT</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mathcore.lib; hwcalculus.lib; oml.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OML_LIBDIR);$(SolutionDir)/x64/$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mathcore.lib; hwcalculus.lib; oml.lib; libblas.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

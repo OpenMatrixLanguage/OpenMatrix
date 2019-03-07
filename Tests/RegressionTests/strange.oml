@@ -6,7 +6,7 @@ end
 goo(1,2,3);
 
 try 
-	mystruct.field2{2} = 'hml'
+	mystruct.field2{2} = 'hml';
 catch
 
 end

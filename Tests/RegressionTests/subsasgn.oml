@@ -1,6 +1,0 @@
-﻿val = {1,[1:10];'a',true};
-idx.type = '{}';
-idx.subs = {1,1};
-r = 1;
-M = subsasgn(val,idx,r);
-M{1,1}

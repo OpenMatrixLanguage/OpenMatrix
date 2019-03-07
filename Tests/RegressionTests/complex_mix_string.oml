@@ -1,0 +1,11 @@
+my_matrix_fail = [ 1, 2, 'test' ]
+try
+	my_matrix_fail = [ 1, 2+i, 'test' ]
+catch
+	disp('Case 1 passed')
+end
+try
+	my_matrix_fail = [ 'test', 2+i, 1 ]
+catch
+	disp('Case 2 passed')
+end

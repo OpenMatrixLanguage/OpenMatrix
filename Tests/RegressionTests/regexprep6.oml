@@ -1,0 +1,2 @@
+regexprep ('www123.com', '(1)', '.$1')
+%ans = www.123.com

@@ -2,7 +2,7 @@
 * @file BuiltInFuncsCore.cpp
 * @date February 2016
 * Copyright (C) 2016-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 #include "BuiltInFuncsCore.h"
@@ -207,8 +207,10 @@ bool BuiltInFuncsCore::Format(EvaluatorInterface           eval,
     if (nargin < 2) throw OML_Error(OML_ERR_NUMARGIN);
         
     const Currency& in2 = inputs[1];
-    if (!in2.IsPositiveInteger() && in2.Scalar() < 0) throw OML_MSG_NATURALNUM;
-
+    if (!in2.IsPositiveInteger() && in2.Scalar() < 0) 
+    {
+        throw OML_Error(OML_ERR_NATURALNUM, 2, OML_VAR_TYPE);
+    }
     format->SetCustomFormat(static_cast<int>(in1.Scalar()), static_cast<int>(in2.Scalar()));
 
     outputs.push_back(format);
@@ -601,6 +603,17 @@ void* BuiltInFuncsCore::DyGetFunction(void* handle, const std::string& name)
 #else  
     return dlsym(handle, name.c_str());
 #endif
+}
+//------------------------------------------------------------------------------
+// Release dynamically loaded library
+//------------------------------------------------------------------------------
+void BuiltInFuncsCore::DyFreeLibrary(void* handle)
+{
+#ifdef OS_WIN
+    FreeLibrary((HINSTANCE)handle);
+#else  // OS_UNIX
+    dlclose(handle);
+#endif  // OS_UNIX
 }
 
 

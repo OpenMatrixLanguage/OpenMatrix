@@ -1,0 +1,12 @@
+﻿size = 3;
+Z = zeros(size, size);
+A{1} = Z;
+
+for i=1:size
+    for j=1:size
+        A{1}(i, j) = i+j;
+	end
+end
+
+A
+Z

@@ -2,7 +2,7 @@
 * @file Interpreter.cpp
 * @date February 2015
 * Copyright (C) 2015-2018 Altair Engineering, Inc.  
-* This file is part of the OpenMatrix Language (“OpenMatrix”) software.
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 * OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
@@ -10,8 +10,8 @@
 * 
 * Commercial License Information: 
 * For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
-* Altair’s dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
-* Use of Altair’s trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
 // Begin defines/includes
@@ -554,14 +554,20 @@ bool InterpreterImpl::IsPartialExpression(const std::string& expr)
             }
             else
             {
-                int                  num_tokens    = vec->size(vec);
-                pANTLR3_COMMON_TOKEN last_tok      = (pANTLR3_COMMON_TOKEN)vec->get(vec, num_tokens-1);
-                int                  last_tok_type = last_tok->getType(last_tok);
+                int num_tokens = vec->size(vec);
 
-                if (last_tok_type == CONT)
-                {
-                    is_partial = true;
-                }
+				if (num_tokens >= 2)
+				{
+					pANTLR3_COMMON_TOKEN last_tok = (pANTLR3_COMMON_TOKEN)vec->get(vec, num_tokens - 1);
+					int                  last_tok_type = last_tok->getType(last_tok);
+					pANTLR3_COMMON_TOKEN last_tok_2 = (pANTLR3_COMMON_TOKEN)vec->get(vec, num_tokens - 2);
+					int                  last_tok_type_2 = last_tok->getType(last_tok_2);
+
+					if ((last_tok_type == NEWLINE) && (last_tok_type_2 == CONT))
+					{
+						is_partial = true;
+					}
+				}
 
                 // This code is unpretty, but it's the best I could come up with to detect
                 // matrices broken across lines (i.e. the CR is the row end token)

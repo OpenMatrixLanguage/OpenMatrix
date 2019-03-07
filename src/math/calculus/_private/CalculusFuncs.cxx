@@ -181,63 +181,15 @@ hwMathStatus CumTrapZ(const hwMatrix& x,
     return status;
 }
 //------------------------------------------------------------------------------
-// Computes integral using Gauss-Legendre quadrature and returns status
-//------------------------------------------------------------------------------
-hwMathStatus GaussLegendre(const UnivarFunc pFunc, 
-                           double           a,
-                           double           b, 
-                           int              numPnts, 
-                           double&          area)
-{
-    hwGaussLegendre quadObj(numPnts);
-    hwMathStatus status = quadObj.GetStatus();
-
-    if (!status.IsOk())
-    {
-        if (status.GetArg1() == 1)
-        {
-            status.SetArg1(4);
-        }
-        return status;
-    }
-
-    status = quadObj.Compute(pFunc, a, b, area);
-    return status;
-}
-//------------------------------------------------------------------------------
-// Computes integral using Gauss-Lobatto quadrature and returns status
-//------------------------------------------------------------------------------
-hwMathStatus GaussLobatto(const UnivarFunc pFunc, 
-                          double           a, 
-                          double           b,
-                          int              numPnts, 
-                          double&          area)
-{
-    hwGaussLobatto quadObj(numPnts);
-    hwMathStatus status = quadObj.GetStatus();
-
-    if (!status.IsOk())
-    {
-        if (status.GetArg1() == 1)
-        {
-            status.SetArg1(4);
-        }
-        return status;
-    }
-
-    status = quadObj.Compute(pFunc, a, b, area);
-    return status;
-}
-//------------------------------------------------------------------------------
 // Computes integral using adaptive quadrature and returns status
 //------------------------------------------------------------------------------
-hwMathStatus Quad(const UnivarFunc pFunc, 
-                  double           a, 
-                  double           b, 
-                  double&          area,
-                  int&             count, 
-                  double           reltol, 
-                  double           abstol)
+hwMathStatus Quad(const QuadFunc1 pFunc, 
+                  double          a, 
+                  double          b, 
+                  double&         area,
+                  int&            count, 
+                  double          reltol, 
+                  double          abstol)
 {
     hwAdaptiveQuadrature quadObj(4);
     count = 0;
@@ -248,16 +200,16 @@ hwMathStatus Quad(const UnivarFunc pFunc,
 //------------------------------------------------------------------------------
 // Helper for adaptive Simpson's rule
 //------------------------------------------------------------------------------
-static hwMathStatus AdaptiveSimpsonsRule(const UnivarFunc pFunc, 
-                                         double           a, 
-                                         double           b, 
-                                         double           c,
-                                         double           fa, 
-                                         double           fb, 
-                                         double           fc, 
-                                         double&          area,
-                                         int&             count, 
-                                         double           tol)
+static hwMathStatus AdaptiveSimpsonsRule(const QuadFunc2 pFunc, 
+                                         double          a, 
+                                         double          b, 
+                                         double          c,
+                                         double          fa, 
+                                         double          fb, 
+                                         double          fc, 
+                                         double&         area,
+                                         int&            count, 
+                                         double          tol)
 {    
     double h = b - a;
     if (h == 0.0)
@@ -317,12 +269,12 @@ static hwMathStatus AdaptiveSimpsonsRule(const UnivarFunc pFunc,
 //------------------------------------------------------------------------------
 // Computes integral using adaptive Simpson's rule and returns status
 //------------------------------------------------------------------------------
-hwMathStatus QuadV(const UnivarFunc pFunc, 
-                   double           a, 
-                   double           b, 
-                   double&          area,
-                   int&             count, 
-                   double           tol)
+hwMathStatus QuadV(const QuadFunc2 pFunc, 
+                   double          a, 
+                   double          b, 
+                   double&         area,
+                   int&            count, 
+                   double          tol)
 {
     hwMathStatus status;
 

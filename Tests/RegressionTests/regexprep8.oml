@@ -1,0 +1,2 @@
+regexprep ('one two\nthree', '(\\n)', ',')
+%ans = one two,three

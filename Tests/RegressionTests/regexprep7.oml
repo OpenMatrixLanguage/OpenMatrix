@@ -1,0 +1,2 @@
+regexprep ('noreplacement', '(a)', '$1')
+%ans = noreplacement

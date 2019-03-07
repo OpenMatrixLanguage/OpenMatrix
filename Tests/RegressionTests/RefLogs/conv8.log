@@ -1,1 +1,4 @@
-Error: unsupported operation for complex data in argument 2; must be real in call to function conv at line number 1 in file conv8.oml
+ans = [Matrix] 3 x 1
+ 3 + 1i
+24 + 8i
+ 6 + 2i
