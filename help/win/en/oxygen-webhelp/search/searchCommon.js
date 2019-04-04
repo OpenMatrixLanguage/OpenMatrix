@@ -64,7 +64,7 @@ function preprocessSearchResult(searchResult, whDistribution) {
             ttScore_first = allPages[0].scoring;
         }
 
-        var currentSimilarPage;
+        var currentSimilarPage={};
         for (var page = 0; page < allPages.length; page++) {
             /*debug("Page number: " + page);*/
 
@@ -306,22 +306,13 @@ function computeSearchItemHTML(searchItem, whDistribution, hasSimilarPages, simi
     var finalArray = searchItem.words;
     var arrayStringAux = [];
     var arrayString = '';
-    if (wh_Classic || wh_mobile) {
-        for (var x in finalArray) {
-            if (finalArray[x].length >= 2 || useCJKTokenizing || (indexerLanguage == "ja" && finalArray[x].length >= 1)) {
-                arrayStringAux.push(finalArray[x]);
-            }
-        }
-        arrayString = arrayStringAux.toString();
 
-    } else {
-        for (var x in finalArray) {
-            if (finalArray[x].length >= 2 || useCJKTokenizing || (indexerLanguage == "ja" && finalArray[x].length >= 1)) {
-                arrayStringAux.push(finalArray[x]);
-            }
+    for (var x in finalArray) {
+        if (finalArray[x].length >= 2 || useCJKTokenizing || (indexerLanguage == "ja" && finalArray[x].length >= 1)) {
+            arrayStringAux.push(finalArray[x]);
         }
-        arrayString = arrayStringAux.toString();
     }
+    arrayString = arrayStringAux.toString();
 
     // Add highlight param
     if (!wh_Classic && !wh_mobile) {
@@ -351,7 +342,7 @@ function computeSearchItemHTML(searchItem, whDistribution, hasSimilarPages, simi
             id: idLink,
             href: tempPath,
             class: 'foundResult'
-        }).text(tempTitle);
+        }).html(tempTitle);
         if (wh_Classic) {
             $a.attr('onclick', link);
         }
@@ -368,7 +359,7 @@ function computeSearchItemHTML(searchItem, whDistribution, hasSimilarPages, simi
             id: idLink,
             href: tempPath,
             class: 'foundResult'
-        }).text(tempTitle);
+        }).html(tempTitle);
         if (wh_Classic) {
             $a.attr('onclick', link);
         }
@@ -380,7 +371,7 @@ function computeSearchItemHTML(searchItem, whDistribution, hasSimilarPages, simi
     if ((tempShortDesc != "null" && tempShortDesc != '...')) {
         var $shortDescriptionDIV = $('<div/>', {
             class: 'shortdesclink'
-        }).text(tempShortDesc);
+        }).html(tempShortDesc);
 
         // Highlight the search words in short description
         for (var si = 0; si < allSearchWords.length; si++) {
@@ -399,7 +390,7 @@ function computeSearchItemHTML(searchItem, whDistribution, hasSimilarPages, simi
     // Relative Path
     $a = $('<a/>', {
         href: tempPath
-    }).text(searchItem.relativePath);
+    }).html(searchItem.relativePath);
     if (wh_Classic) {
         $a.attr('onclick', link);
     }
@@ -422,13 +413,13 @@ function computeSearchItemHTML(searchItem, whDistribution, hasSimilarPages, simi
         var missingHTML = $('<div/>', {
             class: 'wh_missing_words'
         });
-        missingHTML.text(getLocalization('missing') + ' : ');
+        missingHTML.html(getLocalization('missing') + ' : ');
 
 
         for (var widx = 0; widx < missingWords.length; widx++) {
             var $span = $('<span/>', {
                 class: 'wh_missing_word'
-            }).text(missingWords[widx]);
+            }).html(missingWords[widx]);
             missingHTML.append($span).append(' ');
         }
 
@@ -439,7 +430,7 @@ function computeSearchItemHTML(searchItem, whDistribution, hasSimilarPages, simi
         var $similarHTML = $('<a/>', {
             class: 'showSimilarPages',
             onclick: 'showSimilarResults(this)'
-        }).text(getLocalization('Similar results') +  '...');
+        }).html(getLocalization('Similar results') +  '...');
 
         searchItemInfo.append($similarHTML);
     }

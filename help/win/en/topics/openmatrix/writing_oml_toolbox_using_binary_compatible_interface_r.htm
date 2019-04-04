@@ -1,29 +1,26 @@
 
 <!DOCTYPE html
-  SYSTEM "about:legacy-compat">
+  PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2018" /><meta name="DC.rights.owner" content="(C) Copyright 2018" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Writing an Toolbox Using the Binary-compatible Interface" /><meta name="abstract" content="Objects in this interface are size-invariant, which is a benefit to using this interface." /><meta name="description" content="Objects in this interface are size-invariant, which is a benefit to using this interface." /><meta name="DC.Relation" scheme="URI" content="../../topics/openmatrix/creating_toolboxes_openmatrix_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="writing_oml_toolbox_using_binary_compatible_interface_r" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2017092911"><!----></link><title>Writing an Toolbox Using the Binary-compatible Interface</title><!--  Generated with Oxygen version 19.1, build number 2017092911.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2017092911"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2017092911" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2019" /><meta name="DC.rights.owner" content="(C) Copyright 2019" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Writing an OML Toolbox Using the Binary-compatible Interface" /><meta name="abstract" content="" /><meta name="description" content="Any toolbox using this interface consists of two parts: An initialization function that is called by OpenMatrix . This is how your toolbox functions get registered with OpenMatrix . The functions ..." /><meta name="indexterms" content="writing an" /><meta name="DC.subject" content="writing an, OML" /><meta name="keywords" content="writing an, OML" /><meta name="DC.Relation" scheme="URI" content="../../topics/openmatrix/creating_toolboxes_openmatrix_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="writing_oml_toolbox_using_binary_compatible_interface_r" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Writing an OML Toolbox Using the Binary-compatible Interface</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../index.htm";
           
-          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2017092911"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2017092911"><!----></script></head>
+          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
 <body onload="highlightSearchTerm()" class="frmBody" id="writing_oml_toolbox_using_binary_compatible_interface_r">
 <header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/openmatrix/../../topics/openmatrix/openmatrix_users_guide_c.htm" title="User's Guide">User's Guide</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/openmatrix/creating_toolboxes_openmatrix_r.htm" title="Additional toolboxes can be written in the C/C++ language and interfaced with OML.">Creating Toolboxes for OpenMatrix</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
 <span class="navparent"><a class="link" href="../../topics/openmatrix/creating_toolboxes_openmatrix_r.htm" title="Additional toolboxes can be written in the C/C++ language and interfaced with OML."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Creating Toolboxes for OpenMatrix</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
-  <h1 class="title topictitle1" id="ariaid-title1">Writing an  Toolbox Using the
-    Binary-compatible Interface</h1>
+  <h1 class="title topictitle1" id="ariaid-title1">Writing an <span class="keyword">OML</span> Toolbox Using the Binary-compatible Interface</h1>
 
   
-  <div class="body refbody"><p class="shortdesc">Objects in this interface are size-invariant, which is a benefit to using this
-    interface.</p>
+  
+  <div class="body refbody"><p class="shortdesc"></p>
 
     <section class="section" id="writing_oml_toolbox_using_binary_compatible_interface_r__section_ezv_5fr_mbb">
-      <p class="p">It also allows for compilation with different tools other than what the <span class="keyword">OpenMatrix</span> executable uses.</p>
-
       <div class="p">Any toolbox using this interface consists of two parts:<ul class="ul" id="writing_oml_toolbox_using_binary_compatible_interface_r__ul_l5l_1gr_mbb">
           <li class="li">An initialization function that is called by <span class="keyword">OpenMatrix</span>. This is how
-            your toolbox’s functions get registered with <span class="keyword">OpenMatrix</span>. </li>
+            your toolbox functions get registered with <span class="keyword">OpenMatrix</span>. </li>
 
           <li class="li">The functions themselves.</li>
 
@@ -36,7 +33,7 @@
       <p class="p">This function must be declared as extern “C” so that the name is not mangled by the
         compiler. It must also be exported from the DLL.</p>
 
-      <p class="p">The methods of the OMLInterface class are documented in the next section.</p>
+      <p class="p">The methods of the OMLInterface class are documented in the <a class="xref" href="methods_for_oml_toolboxes.htm#methods_for_oml_toolboxes" title="This section describes the methods exposed in OML to interface new toolboxes.">Methods for OML Toolboxes</a> section.</p>
 
       <div class="p">The body of this function should be of this
         form:<pre class="pre codeblock"><code>int InitToolbox(OMLInterface* eval)
@@ -54,12 +51,15 @@
       <p class="p">Since <span class="keyword">OML</span> is an untyped language, it is up to the writer to determine
         the proper C++ type for each input and handle it accordingly.</p>
 
-      <p class="p">The OMLCurrencyList class and all of its subordinate classes are also documented later. </p>
+      <p class="p">The OMLCurrencyList class and its subordinate classes are also documented in <a class="xref" href="methods_for_oml_toolboxes.htm#methods_for_oml_toolboxes" title="This section describes the methods exposed in OML to interface new toolboxes.">Methods for OML Toolboxes</a> section.</p>
+
+      <p class="p">Objects in this interface are size-invariant, which is a benefit to using this interface.
+        It also allows for compilation with different tools other than what the <span class="keyword">OpenMatrix</span> executable uses.</p>
 
       <div class="p">The following is a simple example that adds two scalars. If improper inputs are sent to the
-        function (for example, the wrong number or wrong types), it will throw an error and the
-        execution will be
-        stopped.<pre class="pre codeblock"><code>bool myfunc(OMLInterface* eval, const OMLCurrencyList* inputs, OMLCurrencyList* outputs)
+        function (for example, the wrong number or wrong types), an error is displayed and the
+        execution
+        stops.<pre class="pre codeblock"><code>bool myfunc(OMLInterface* eval, const OMLCurrencyList* inputs, OMLCurrencyList* outputs)
 {
 	// check proper number of inputs
 if (inputs-&gt;Size() != 2)
@@ -89,7 +89,7 @@ eval-&gt;ThrowError(“Invalid input type”);
 <span class="navparent"><a class="link" href="../../topics/openmatrix/creating_toolboxes_openmatrix_r.htm" title="Additional toolboxes can be written in the C/C++ language and interfaced with OML."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Creating Toolboxes for OpenMatrix</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         
         <div>
-            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2018)</p>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2019)</p>
                
         </div>
     </div></footer></body>
