@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    
+Oxygen WebHelp Plugin
+Copyright (c) 1998-2018 Syncro Soft SRL, Romania.  All rights reserved.
+
+-->
+<div id="wh_feedback" xmlns="http://www.w3.org/1999/xhtml">
+    <div id="cmts"><!----></div>
+    
+    <script type="text/javascript" src="${oxygen-webhelp-assets-dir}/feedback/config/config.js"><!----></script>
+    <script type="text/javascript" src="${oxygen-webhelp-assets-dir}/feedback/resources/js/init.js"><!----></script>
+    <script type="text/javascript">
+        function showCommentsFor(page) {
+           console.log('showCommentsFor(' + page + ')');
+           init(page, $('#cmts'));
+           
+           return false;
+        }
+        
+        var pageLocation = window.location.href;
+        try {
+            var p = parseUri(pageLocation);
+            console.log(p);
+            showCommentsFor(p.path);
+        } catch (e) {
+            debug(e);
+        }
+    </script>
+</div>

@@ -1,7 +1,7 @@
 /*
 
 Oxygen WebHelp Plugin
-Copyright (c) 1998-2017 Syncro Soft SRL, Romania.  All rights reserved.
+Copyright (c) 1998-2018 Syncro Soft SRL, Romania.  All rights reserved.
 
 */
 /**
@@ -96,7 +96,7 @@ $(document).ready(function () {
  */
 function loadSearchResources() {
     if (typeof window.indexerLanguage == 'undefined') {
-        var scripts = ["oxygen-webhelp/search/htmlFileInfoList.js?uniqueId=20180830111158", "oxygen-webhelp/search/index-1.js?uniqueId=20180830111158", "oxygen-webhelp/search/index-2.js?uniqueId=20180830111158", "oxygen-webhelp/search/index-3.js?uniqueId=20180830111158"];
+        var scripts = ["oxygen-webhelp/search/htmlFileInfoList.js?uniqueId=20190328041632", "oxygen-webhelp/search/index-1.js?uniqueId=20190328041632", "oxygen-webhelp/search/index-2.js?uniqueId=20190328041632", "oxygen-webhelp/search/index-3.js?uniqueId=20190328041632"];
         for (var entry in scripts) {
             var scriptTag = document.createElement("script");
             scriptTag.type = "text/javascript";
@@ -128,8 +128,7 @@ if (location.search.indexOf("q=") != -1) {
         pos = location.search.lastIndexOf(wh.directory.substring(1));
         newLink = newLink + "#" + location.search.substring(pos + wh.directory.length -1);
     } else {
-        pos = location.search.lastIndexOf(wh.directory);
-        newLink = newLink + "#" + location.search.substring(pos + wh.directory.length);
+    	newLink = newLink + "#" + location.search.replace("?q=" + wh.directory, "");
     }
     debug('redirect to ' + newLink);
     redirect(newLink);
@@ -323,14 +322,7 @@ function loadIframe(dynamicURL) {
                 } else {
                     $('#frm').contents().find("table.nav").find("tr:first-child").hide();
                 }
-                /**
-                 * Nu mai ascundem toc-ul - ii scadem relevanta din indexer
-                 * EXM-25565
-                 */
-                //$('#frm').contents().find('.toc').hide();
-                if (navigator.appVersion.indexOf("MSIE 7.") == -1) {
-                 $('#breadcrumbLinks').html($('#frm').contents().find('span.topic_breadcrumb_links'));
-                }
+
                 // normalize links
                 $('#breadcrumbLinks a, #navigationLinks a').each(function () {
                     var oldLink = $(this).attr('href');
@@ -354,11 +346,6 @@ function loadIframe(dynamicURL) {
         $('#frm').show();
         $('div.tooltip').remove();
         
-        /* Recompute the breadcrumb by looking at the selection in the TOC... */
-        recomputeBreadcrumb(-1);
-        
-        $('#breadcrumbLinks').find('a').after('<span></span>');
-        $('#breadcrumbLinks').find('span').last().html('&nbsp;&nbsp;');
         $('.navparent a').click(function () {
             if ($.cookie("wh_pn") != "" && $.cookie("wh_pn") !== undefined && $.cookie("wh_pn") !== null) {
                 currentTOCSelection = parseInt($.cookie("wh_pn"));
@@ -397,7 +384,6 @@ function loadIframe(dynamicURL) {
 	        $(this).find('a').trigger(ev);
 	    });
 
-
         scrollToVisibleItem();
     });
 }
@@ -411,20 +397,23 @@ function recomputeBreadcrumb(breadcrumbLevels) {
     if (breadcrumbLevels==undefined) {
         breadcrumbLevels = -1;
     }
+    var selectedTocItem = parseInt($.cookie("wh_pn"));
+    var $breadcrumbLinks = $('#breadcrumbLinks');
+
     /*Most of the times we'll try to compute the link starting from the TOC selection...*/
-    if (currentTOCSelection != null && currentTOCSelection != 'none') {
-        var selectedLi = $('#contentBlock li:eq(' + currentTOCSelection + ')');
+    if (selectedTocItem != null && selectedTocItem != 'none') {
+        var selectedLi = $('#contentBlock li:eq(' + selectedTocItem + ')');
         var parentLis = selectedLi.parents("#contentBlock li");
         if (parentLis.length > 0) {
             // Keep title attributes from old breadcrumbs
-            var oldBreadcrumbs = $('#breadcrumbLinks').clone();
+            var oldBreadcrumbs = $breadcrumbLinks.clone();
             var titles = [];
             $.each(oldBreadcrumbs.find('.topic_breadcrumb_link > .navheader_parent_path'), function(){
                 titles[$(this).attr('href')] = $(this).attr('title');
             });
 
             // Remove all children
-            $('#breadcrumbLinks').empty();
+            $breadcrumbLinks.empty();
 
             // Decide how many breadcrumbs to show
             var i = parentLis.length - 1;
@@ -438,25 +427,26 @@ function recomputeBreadcrumb(breadcrumbLevels) {
                 if (currentSpan.length != 0) {
                     /*We need to translate the TOC span to a breadcrumb span...*/
                     var span = currentSpan.clone();
-                    span.removeAttr('class');
-                    span.addClass('topic_breadcrumb_link');
+                    span.removeAttr('class').addClass('topic_breadcrumb_link');
 
                     var aHref = span.children("a");
                     if (aHref.length > 0) {
                         /*We need to translate the TOC a href to a breadcrumb a href...*/
                         var firstAHref = $(aHref[0]);
-                        firstAHref.removeAttr("data-id");
-                        firstAHref.removeAttr('class');
-                        firstAHref.addClass('navheader_parent_path');
+                        firstAHref.removeAttr("data-id").removeAttr('class').addClass('navheader_parent_path');
+                        
                         // Add title attribute if we found an equivalent one from old breadrumbs
                         var cleanHref = firstAHref.attr('href').substr(1);
                         if (titles[cleanHref]!==undefined) {
                             firstAHref.attr('title', titles[cleanHref]);
                         }
                     }
-                    $('#breadcrumbLinks').append(span);
+                    $breadcrumbLinks.append(span);
                 }
             }
+        } else {
+            // Remove all children
+            $breadcrumbLinks.empty();
         }
     }
 }
@@ -546,6 +536,12 @@ function markSelectItem(hrl, startWithMatch) {
     debug('markSelectItem(...) =' + toReturn);
     $('#contentBlock .menuItemSelected').parent('li').first().css('background-color', $('#contentBlock .menuItemSelected').css('background-color'));
 
+    /* Recompute the breadcrumb by looking at the selection in the TOC... */
+    recomputeBreadcrumb(-1);
+
+    $('#breadcrumbLinks').find('a').after('<span></span>');
+    $('#breadcrumbLinks').find('span').last().html('&nbsp;&nbsp;');
+
     return toReturn;
 }
 
@@ -622,11 +618,11 @@ function load(link) {
 
         // Scroll to make selectedItem visible
         if($(".menuItemSelected").length>0) {
-            if(parseInt($(".menuItemSelected").offset().top+$(".menuItemSelected").height()) > eval($("#leftPane").offset().top+$("#leftPane").height())) {
-                var sTo = $(".menuItemSelected").offset().top - eval($("#leftPane").offset().top+$("#leftPane").height()) + $("#leftPane").scrollTop();
-                $("#leftPane").scrollTop(eval(sTo + 2*$(".menuItemSelected").height()));
+            if(parseInt($(".menuItemSelected").offset().top+$(".menuItemSelected").height()) > parseInt($("#leftPane").offset().top + $("#leftPane").height())) {
+                var sTo = $(".menuItemSelected").offset().top - parseInt($("#leftPane").offset().top+$("#leftPane").height()) + $("#leftPane").scrollTop();
+                $("#leftPane").scrollTop(parseInt(sTo + 2*$(".menuItemSelected").height()));
             } else if( $(".menuItemSelected").offset().top < $("#leftPane").offset().top ){
-                var sTo = $(".menuItemSelected").offset().top<0?eval($("#leftPane").scrollTop() - Math.abs($(".menuItemSelected").offset().top) - $("#leftPane").offset().top):eval($("#leftPane").scrollTop() - ($("#leftPane").offset().top - $(".menuItemSelected").offset().top));
+                var sTo = $(".menuItemSelected").offset().top<0?parseInt($("#leftPane").scrollTop() - Math.abs($(".menuItemSelected").offset().top) - $("#leftPane").offset().top):parseInt($("#leftPane").scrollTop() - ($("#leftPane").offset().top - $(".menuItemSelected").offset().top));
                 $("#leftPane").scrollTop(sTo);
             }
         }

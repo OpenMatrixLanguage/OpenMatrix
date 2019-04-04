@@ -1,7 +1,7 @@
 /*
 
 Oxygen Webhelp Plugin
-Copyright (c) 1998-2017 Syncro Soft SRL, Romania.  All rights reserved.
+Copyright (c) 1998-2018 Syncro Soft SRL, Romania.  All rights reserved.
 
 */
 
@@ -142,6 +142,12 @@ function openTopic(anchor) {
         redirect($(anchor).attr('href'));
     } else {
         window.open($(anchor).attr('href'), $(anchor).attr('target'));
+    }
+
+    try {
+        recomputeBreadcrumb(-1);
+    } catch (e) {
+        debug(e);
     }
 }
 
@@ -417,24 +423,30 @@ function redirect(link) {
 function initTabs() {
     if (! tabsInitialized) {
         // Get the tabs internationalization text
-        var contentLinkText = getLocalization("webhelp.content");
+        var searchLinkText;
         if ( !withFrames ) {
-        var searchLinkText = getLocalization("SearchResults");
+            searchLinkText = getLocalization("SearchResults");
         } else {
-            var searchLinkText = getLocalization("webhelp.search");
+            searchLinkText = getLocalization("webhelp.search");
         }
-        var indexLinkText = getLocalization("webhelp.index");
+
+        var linkText = {
+            "content": getLocalization("webhelp.content"),
+            "search": searchLinkText,
+            "index": getLocalization("webhelp.index")
+        };
         var IndexPlaceholderText = getLocalization("IndexFilterPlaceholder");
         var SearchPlaceholderText = getLocalization("webhelp.search");
 
-        var tabs = new Array("content", "search", "index");
+        var tabs = ["content", "search", "index"];
         for (var i = 0; i < tabs.length; i++) {
             var currentTabId = tabs[i];
             // Generates menu tabs
-            if ($("#"+currentTabId).length > 0) {
+            var $currentTabElement = $("#"+currentTabId);
+            if ($currentTabElement.length > 0) {
                 debug('Init tab with name: ' + currentTabId);
-                $("#"+currentTabId).html(eval(currentTabId + "LinkText"));
-                $("#"+currentTabId).attr("title", eval(currentTabId + "LinkText"));
+                $currentTabElement.html(linkText[currentTabId]);
+                $currentTabElement.attr("title",linkText[currentTabId]);
             } else {
                 info('init no tab found with name: ' + currentTabId);
             }
@@ -962,22 +974,11 @@ function getUrlWithoutAnchor(url){
 function normalizeLink(originalHref) {
     var relLink = originalHref;
     var logStr = '';
-    if (! $.support.hrefNormalized) {
-        var relp = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
-        //ie7
-        logStr = ' IE7 ';
-        var srv = window.location.protocol + '//' + window.location.hostname;
-        var localHref = parseUri(originalHref);
         
-        if (window.location.protocol.toLowerCase() != 'file:' && localHref.protocol.toLowerCase() != '') {
-            debug('ie7 file://');
-            relLink = originalHref.substring(whUrl.length);
-        }
-    } else {
-        if (startsWith(relLink, whUrl)) {
-            relLink = relLink.substr(whUrl.length);
-        }
+    if (startsWith(relLink, whUrl)) {
+        relLink = relLink.substr(whUrl.length);
     }
+
     var toReturn = stripUri(relLink);
     info(logStr + 'normalizeLink(' + originalHref + ')=' + toReturn);
     return toReturn;

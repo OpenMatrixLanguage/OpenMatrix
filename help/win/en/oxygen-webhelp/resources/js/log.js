@@ -1,7 +1,7 @@
 /*
 
 Oxygen WebHelp Plugin
-Copyright (c) 1998-2017 Syncro Soft SRL, Romania.  All rights reserved.
+Copyright (c) 1998-2018 Syncro Soft SRL, Romania.  All rights reserved.
 
 */
 
@@ -29,6 +29,10 @@ var log= new Log(Level.NONE);
 function Log(level) {
   this.level = level;
 }
+
+Log.prototype.setLevel = function(level) {
+  this.level = level;
+};
 
 Log.prototype.debug = function(msg, obj) {
   if (this.level == Level.NONE || this.level > Level.DEBUG)
