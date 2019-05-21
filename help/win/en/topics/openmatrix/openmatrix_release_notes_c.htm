@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2019" /><meta name="DC.rights.owner" content="(C) Copyright 2019" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Welcome to OpenMatrix" /><meta name="abstract" content="" /><meta name="description" content="OpenMatrix is an open source project. To learn more about the OpenMatrix project, please visit https://www.openmatrix.org/ . This User's Guide describes the first release of the OpenMatrix Language, ..." /><meta name="indexterms" content="release notes" /><meta name="DC.subject" content="release notes, OpenMatrix" /><meta name="keywords" content="release notes, OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_qw4_vch_fw" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Welcome to OpenMatrix</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2019" /><meta name="DC.rights.owner" content="(C) Copyright 2019" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Welcome to OpenMatrix" /><meta name="abstract" content="" /><meta name="description" content="OpenMatrix is an open source project. To learn more about the OpenMatrix project, please visit https://www.openmatrix.org/ . OpenMatrix 1.0.1 includes the following new features and enhancements. ..." /><meta name="indexterms" content="release notes" /><meta name="DC.subject" content="release notes, OpenMatrix" /><meta name="keywords" content="release notes, OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_qw4_vch_fw" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Welcome to OpenMatrix</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../index.htm";
           
@@ -18,13 +18,200 @@
   <div class="body refbody"><p class="shortdesc"></p>
 
     <section class="section">
-      
-      <p class="p"><span class="keyword">OpenMatrix</span> is an open source project. To learn more about the
-          <span class="keyword">OpenMatrix</span> project, please visit <a class="xref" href="https://www.openmatrix.org/" target="_blank">https://www.openmatrix.org/</a>.</p>
+      <p class="p"><span class="keyword">OpenMatrix</span> is an open source project. To learn
+        more about the <span class="keyword">OpenMatrix</span> project, please visit
+          <a class="xref" href="https://www.openmatrix.org/" target="_blank">https://www.openmatrix.org/</a>.</p>
 
-      <p class="p">This User's Guide describes the first release of the <span class="keyword">OpenMatrix</span>
-        Language, <span class="keyword">OpenMatrix</span>
-        <span class="keyword">1.0.1</span>. It includes a language guide and a reference guide.</p>
+      <p class="p"><span class="keyword">OpenMatrix</span>
+        <span class="keyword">1.0.1</span> includes the following new features and enhancements.</p>
+
+    </section>
+
+    <section class="section" id="reference_qw4_vch_fw__section_wpq_y32_thb"><h2 class="title sectiontitle">Highlights</h2>
+      
+      <div class="p">
+        <ul class="ul" id="reference_qw4_vch_fw__ul_e41_z32_thb">
+          <li class="li"><span class="keyword">OML</span> performance improvements.</li>
+
+          <li class="li">Improved class support.</li>
+
+          <li class="li">New <span class="keyword">OML</span> functions.</li>
+
+          <li class="li">Improvements to MAT files handling.</li>
+
+        </ul>
+
+      </div>
+
+    </section>
+
+    <section class="section" id="reference_qw4_vch_fw__section_byr_nj2_thb"><h2 class="title sectiontitle">Math and Scripting</h2>
+      
+      <div class="p">
+        <dl class="dl">
+          
+            <dt class="dt dlterm">Class Support</dt>
+
+            <dd class="dd">Class support is extended and exposed in <span class="keyword">OML</span>.</dd>
+
+          
+          
+            <dt class="dt dlterm"><span class="keyword">OML</span> Language</dt>
+
+            <dd class="dd"><span class="keyword">OML</span> language performance enhancements when executing large
+              scripts (parsing).</dd>
+
+            <dd class="dd ddexpand">The following functions have been added to <span class="keyword">OpenMatrix</span>
+              <span class="keyword">1.0.1</span>:<ul class="ul" id="reference_qw4_vch_fw__ul_tzh_nm2_thb">
+                <li class="li"><span class="keyword cmdname">rat</span></li>
+
+                <li class="li"><span class="keyword cmdname">mscohere</span></li>
+
+                <li class="li"><span class="keyword cmdname">tfestimate</span></li>
+
+                <li class="li"><span class="keyword cmdname">bi2de</span>, <span class="keyword cmdname">de2bi</span></li>
+
+                <li class="li"><span class="keyword cmdname">isrow</span>, <span class="keyword cmdname">iscolumn</span></li>
+
+                <li class="li"><span class="keyword cmdname">vec2mat</span></li>
+
+                <li class="li"><span class="keyword cmdname">dlmread</span></li>
+
+                <li class="li"><span class="keyword cmdname">accumarray</span></li>
+
+                <li class="li"><span class="keyword cmdname">deconv</span></li>
+
+                <li class="li"><span class="keyword cmdname">shiftdim</span></li>
+
+              </ul>
+</dd>
+
+            <dd class="dd ddexpand">The following functions have been improved or extended in <span class="keyword">OpenMatrix</span>
+              <span class="keyword">1.0.1</span>:<ul class="ul" id="reference_qw4_vch_fw__ul_v4t_kzk_thb">
+                <li class="li"><strong class="ph b"><span class="keyword cmdname">textread</span></strong></li>
+
+                <li class="li"><strong class="ph b"><span class="keyword cmdname">textscan</span></strong></li>
+
+                <li class="li"><strong class="ph b"><span class="keyword cmdname">fprintf</span></strong></li>
+
+                <li class="li"><strong class="ph b"><span class="keyword cmdname">rmdir</span></strong></li>
+
+              </ul>
+</dd>
+
+            <dd class="dd ddexpand">Support for <strong class="ph b"><span class="keyword cmdname">regexp</span></strong> on <span class="keyword">Linux</span> is
+              improved.</dd>
+
+          
+          
+            <dt class="dt dlterm">File Handling</dt>
+
+            <dd class="dd">Use of a new MATIO library to better read and write MAT files.</dd>
+
+          
+        </dl>
+
+      </div>
+
+    </section>
+
+    <section class="section" id="reference_qw4_vch_fw__section_bqk_1n2_thb"><h2 class="title sectiontitle">Resolved Issues</h2>
+      
+      <div class="p">
+        <ul class="ul" id="reference_qw4_vch_fw__ul_hht_1n2_thb">
+          <li class="li">Matrix extraction limitation</li>
+
+          <li class="li">Unable to modify matrix inside of cell</li>
+
+          <li class="li"><strong class="ph b"><span class="keyword cmdname">save</span></strong> and <strong class="ph b"><span class="keyword cmdname">load</span></strong> issues</li>
+
+          <li class="li">Indexing orientation bug</li>
+
+          <li class="li">Issue when indexing a string literal value</li>
+
+          <li class="li"><strong class="ph b"><span class="keyword cmdname">cpsd</span></strong> bug</li>
+
+          <li class="li">Syntax error when indexing a cell element in a struct</li>
+
+          <li class="li">Struct assignment issue</li>
+
+          <li class="li"><strong class="ph b"><span class="keyword cmdname">textread</span></strong> output incorrect with float delimiter and
+            newline</li>
+
+          <li class="li">Issue when executing <strong class="ph b"><span class="keyword cmdname">pwelch</span></strong></li>
+
+          <li class="li">Get plotting properties crashes <span class="keyword">OpenMatrix</span></li>
+
+          <li class="li">Writing two columns with cell arrays in a file</li>
+
+          <li class="li">Issue while trying to create cell array with the same string n-times</li>
+
+          <li class="li">Issue in updating/deleting mat files</li>
+
+          <li class="li">Empty matrix assignment should not change matrix dimension</li>
+
+          <li class="li">Matrix extraction limitation</li>
+
+          <li class="li">Unable to modify matrix inside of cell</li>
+
+          <li class="li"><strong class="ph b"><span class="keyword cmdname">regexp</span></strong> function does not work properly on <span class="keyword">Linux</span> platforms</li>
+
+          <li class="li"><strong class="ph b"><span class="keyword cmdname">sscanf</span></strong> does not corrrectly parse 'N%d'</li>
+
+          <li class="li">Clamped spline issue</li>
+
+          <li class="li"><strong class="ph b"><span class="keyword cmdname">rat</span></strong> (<var class="keyword varname">realmin</var>) freezes <span class="keyword">OpenMatrix</span></li>
+
+          <li class="li">Crash when using <strong class="ph b"><span class="keyword cmdname">switch</span></strong> with empty
+                <strong class="ph b"><span class="keyword cmdname">otherwise</span></strong></li>
+
+          <li class="li">Performance on assigning matrix elements</li>
+
+          <li class="li"><strong class="ph b"><span class="keyword cmdname">flipud</span></strong> issue</li>
+
+          <li class="li"><strong class="ph b"><span class="keyword cmdname">accumarray</span></strong>(<var class="keyword varname">1</var>,<var class="keyword varname">1</var>)
+            crashes <span class="keyword">OpenMatrix</span></li>
+
+          <li class="li">Issue with multiple return values</li>
+
+          <li class="li">Indexing orientation bug</li>
+
+          <li class="li"><strong class="ph b"><span class="keyword cmdname">max</span></strong> function crash</li>
+
+          <li class="li">Issue when index a string literal value</li>
+
+          <li class="li">Issue when initialize a string matrix</li>
+
+          <li class="li">Performance issue on <strong class="ph b"><span class="keyword cmdname">textread</span></strong></li>
+
+          <li class="li">Bug with <strong class="ph b"><span class="keyword cmdname">mat2str</span></strong></li>
+
+          <li class="li">Correct threshold of near-singular square matrix division</li>
+
+          <li class="li"><strong class="ph b"><span class="keyword cmdname">concat</span></strong> struct array does not work</li>
+
+          <li class="li"><strong class="ph b"><span class="keyword cmdname">save</span></strong> does not work when saving a function handle</li>
+
+          <li class="li">Issue in <strong class="ph b"><span class="keyword cmdname">accumarray</span></strong> when specifying the size of output
+            matrix</li>
+
+          <li class="li"><strong class="ph b"><span class="keyword cmdname">textread</span></strong> with '\n' delimiter on <span class="keyword">Linux</span></li>
+
+          <li class="li"><strong class="ph b"><span class="keyword cmdname">zlabel</span></strong> issue</li>
+
+          <li class="li"><strong class="ph b"><span class="keyword cmdname">fliplr</span></strong> does not work with ND matrices</li>
+
+          <li class="li"><strong class="ph b"><span class="keyword cmdname">accumarray</span></strong> should return an error when index matrix contains
+            float numbers</li>
+
+          <li class="li"><strong class="ph b"><span class="keyword cmdname">textscan</span></strong> output incorrect with float delimiter and
+            newline</li>
+
+          <li class="li">Error message is not constructed properly in some cases</li>
+
+        </ul>
+
+      </div>
 
     </section>
 
