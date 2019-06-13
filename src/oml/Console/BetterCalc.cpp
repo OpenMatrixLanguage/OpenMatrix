@@ -415,7 +415,7 @@ void PrintBanner()
 
     std::cout << line << std::endl;
 	std::cout << GetVersion(interp->GetApplicationDir()) << std::endl;
-	std::cout << "(c) Altair Engineering, Inc. and Contributors. (2007-2018)"  << std::endl;
+	std::cout << "(c) Altair Engineering, Inc. and Contributors. (2007-2019)"  << std::endl;
 	std::cout << line << std::endl;
 #endif
 }
