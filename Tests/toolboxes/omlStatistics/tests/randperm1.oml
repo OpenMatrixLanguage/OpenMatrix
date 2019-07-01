@@ -1,4 +1,4 @@
-addToolbox omlstatistics
+addToolbox omlStatistics
 rand('seed', 2019);
 randperm(10)
 randperm(10)
