@@ -1,0 +1,5 @@
+day('9-Apr-2019')
+day('09-Apr-2019 18:05:56', 'dd-mmm-yyyy HH:MM:SS')
+day('09-Apr-2019', 'dd-mmm-yyyy')
+
+day('04/09/19', 'mm/dd/yy')

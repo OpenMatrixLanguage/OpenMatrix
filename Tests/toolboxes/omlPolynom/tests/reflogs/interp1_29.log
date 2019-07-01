@@ -1,1 +1,1 @@
-Error: incompatible array sizes in arguments 1,2; dimensions must match in call to function interp1 at line number 3 in file interp1_29.oml
+Error: incompatible matrices in arguments 1,2; dimensions must be consistent in call to function interp1 at line number 3 in file interp1_29.oml

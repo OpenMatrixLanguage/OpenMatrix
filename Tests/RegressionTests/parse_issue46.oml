@@ -1,0 +1,2 @@
+﻿global A; for A=1:100;end;
+disp('success')

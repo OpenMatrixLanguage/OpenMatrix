@@ -1,7 +1,7 @@
 /**
 * @file CurrencyDisplay.cpp
 * @date January 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -314,12 +314,12 @@ std::string CurrencyDisplay::ScalarToString(const OutputFormat* fmt,
             size_t len = intpart + decpart + 4; // decimal, e, buffer
             bool isScientific = false;
             if (aval > minfloat)
-            {
-                sprintf(formatString, "%s-%d.%d%s", "%", intpart, decpart, "f");
+			{
+				sprintf(formatString, "%%-%d.%df", intpart, decpart);
             }
             else
             {
-                sprintf(formatString, "%s-%d.%d%s", "%", intpart, decpart, "e");
+                sprintf(formatString, "%%-%d.%de", intpart, decpart);
                 isScientific = true;
             }
 

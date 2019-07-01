@@ -1,0 +1,4 @@
+minute('10-Apr-2019')
+minute('10-Apr-2019 5:30:45','dd-mmm-yyyy HH:MM:SS')
+minute('5:30:45', 'HH:MM:SS')
+minute('5:30:45 AM', 'HH:MM:SS PM')

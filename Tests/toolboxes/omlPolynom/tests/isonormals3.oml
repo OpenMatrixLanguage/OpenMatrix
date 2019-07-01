@@ -1,0 +1,10 @@
+addToolbox omlPolynom
+
+x = [2:3:9];
+y = [4:5:22];
+z = [3:7:20];
+[xx,yy,zz] = meshgrid(x,y,z);
+val = 5*xx + 7*yy + 3*zz;
+v = [11.4, 5.7, 9.9;
+     6.1, 9.3, 16.6];
+vn = isonormals(val,v,'negate')

@@ -17,7 +17,9 @@
 #include "Currency.h"
 
 #include "FunctionInfo.h"
+#include "OMLTree.h"
 #include "CellDisplay.h"
+#include "CellNDisplay.h"
 #include "CurrencyDisplay.h"
 #include "MatrixDisplay.h"
 #include "MatrixNDisplay.h"
@@ -110,18 +112,22 @@ Currency::Currency(hwMatrix* in_data): type (TYPE_MATRIX), mask(MASK_DOUBLE), ou
 	data.mtx = in_data;
 }
 
-Currency::Currency(hwMatrixN* in_data): type (TYPE_ND_MATRIX), mask(MASK_DOUBLE), out_name(NULL),
-    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+Currency::Currency(hwMatrixN* in_data) : type(TYPE_ND_MATRIX), mask(MASK_DOUBLE), out_name(NULL),
+_display(0), _outputType(OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	data.mtxn = in_data;
 
-	hwMatrix* temp = ConvertNDto2D(data.mtxn);
-	
-	if (temp)
+	if (data.mtxn)
 	{
-		DeleteMatrixN(data.mtxn);
-		data.mtx = temp;
-		type = TYPE_MATRIX;
+		if (data.mtxn->Dimensions().size() <= 2)
+		{
+			hwMatrix* temp = EvaluatorInterface::allocateMatrix();
+			data.mtxn->ConvertNDto2D(*temp);
+
+			DeleteMatrixN(data.mtxn);
+			data.mtx = temp;
+			type = TYPE_MATRIX;
+		}
 	}
 }
 
@@ -141,6 +147,25 @@ Currency::Currency(HML_CELLARRAY* cell_array): type(TYPE_CELLARRAY), mask(MASK_N
     _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
 	data.cells = cell_array;
+}
+
+Currency::Currency(HML_ND_CELLARRAY* cell_array) : type(TYPE_ND_CELLARRAY), mask(MASK_NONE), out_name(NULL),
+_display(0), _outputType(OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+{
+	data.cells_nd = cell_array;
+
+	if (data.cells_nd)
+	{
+		if (data.cells_nd->Dimensions().size() <= 2)
+		{
+			HML_CELLARRAY* temp = EvaluatorInterface::allocateCellArray();
+			data.cells_nd->ConvertNDto2D(*temp);
+
+			DeleteCellsN(data.cells_nd);
+			data.cells = temp;
+			type = TYPE_CELLARRAY;
+		}
+	}
 }
 
 Currency::Currency(FunctionInfo* fi): type(TYPE_FUNCHANDLE), mask(MASK_NONE), out_name(NULL),
@@ -189,13 +214,14 @@ Currency::Currency(void* obj, const std::string& name)
 //------------------------------------------------------------------------------
 void Currency::Copy(const Currency& cur)
 {
-	hwMatrix*      old_matrix   = NULL;
-	hwMatrixN*     old_matrix_n = NULL;
-	HML_CELLARRAY* old_cells    = NULL;
-	StructData*    old_sd       = NULL;
-	hwComplex*     old_complex  = NULL;
-	bool           was_scalar   = false;
-	FunctionInfo*  old_fi       = NULL;
+	hwMatrix*         old_matrix   = NULL;
+	hwMatrixN*        old_matrix_n = NULL;
+	HML_CELLARRAY*    old_cells    = NULL;
+	HML_ND_CELLARRAY* old_cells_n = NULL;
+	StructData*       old_sd       = NULL;
+	hwComplex*        old_complex  = NULL;
+	bool              was_scalar   = false;
+	FunctionInfo*     old_fi       = NULL;
 
 	if (type == TYPE_SCALAR)
 		was_scalar = true;
@@ -205,6 +231,8 @@ void Currency::Copy(const Currency& cur)
 			old_matrix_n = data.mtxn;
 	else if (type == TYPE_CELLARRAY)
 		old_cells = data.cells;
+	else if (type == TYPE_ND_CELLARRAY)
+		old_cells_n = data.cells_nd;
 	else if ((type == TYPE_STRUCT) || (type == TYPE_OBJECT))
 		old_sd = data.sd;
 	else if (type == TYPE_COMPLEX)
@@ -247,6 +275,13 @@ void Currency::Copy(const Currency& cur)
 		if (data.cells)
 			data.cells->IncrRefCount();
 	}
+	else if (type == TYPE_ND_CELLARRAY)
+	{
+		data.cells_nd = cur.data.cells_nd;
+
+		if (data.cells_nd)
+			data.cells_nd->IncrRefCount();
+	}
 	else if (type == TYPE_STRUCT)
 	{
 		data.sd = cur.data.sd;
@@ -273,7 +308,10 @@ void Currency::Copy(const Currency& cur)
 	}
 	else if (type == TYPE_FUNCHANDLE)
 	{
-		data.func	= new FunctionInfo(*cur.data.func);
+		data.func	= cur.data.func;
+
+		if (data.func)
+			data.func->IncrRefCount();
 	}
 	else if (type == TYPE_ERROR)
 	{
@@ -296,12 +334,14 @@ void Currency::Copy(const Currency& cur)
 			DeleteMatrixN(old_matrix_n);
 		else if (old_cells)
 			DeleteCells(old_cells);
+		else if (old_cells_n)
+			DeleteCellsN(old_cells_n);
 		else if (old_sd)
 			DeleteStruct(old_sd);
 		else if (old_complex)
 			delete old_complex;
 		else if (old_fi)
-			delete old_fi;
+			DeleteFunctionInfo(old_fi);
 	}
 }
 
@@ -359,6 +399,24 @@ void Currency::DeleteCells(HML_CELLARRAY* cells)
 	}
 }
 
+void Currency::DeleteCellsN(HML_ND_CELLARRAY* cells)
+{
+	if (cells)
+	{
+		if (!cells->IsMatrixShared())
+		{
+			delete cells;
+
+			if (cells == data.cells_nd)
+				data.cells_nd = NULL;
+		}
+		else
+		{
+			cells->DecrRefCount();
+		}
+	}
+}
+
 void Currency::DeleteStruct(StructData* sd)
 {
 	if (sd)
@@ -373,6 +431,22 @@ void Currency::DeleteStruct(StructData* sd)
 		else
 		{
 			sd->DecrRefCount();
+		}
+	}
+}
+
+void Currency::DeleteFunctionInfo(FunctionInfo* fi)
+{
+	if (fi)
+	{
+		fi->DecrRefCount();
+
+		if (fi->GetRefCount() == 0)
+		{
+			delete fi;
+
+			if (fi == data.func)
+				data.func = NULL;
 		}
 	}
 }
@@ -433,10 +507,12 @@ Currency::~Currency()
         delete data.format;
 	else if (type == TYPE_CELLARRAY)
 		DeleteCells(data.cells);
+	else if (type == TYPE_ND_CELLARRAY)
+		DeleteCellsN(data.cells_nd);
 	else if (type == TYPE_ERROR)
 		delete message;
 	else if (type == TYPE_FUNCHANDLE)
-		delete data.func;
+		DeleteFunctionInfo(data.func);
 }
 
 void Currency::ReplaceComplex(hwComplex new_value)
@@ -497,12 +573,42 @@ std::string Currency::GetTypeString() const
 		sprintf_s(buffer, "cell array [%d x %d]", mtx->M(), mtx->N());
 		output = buffer;
 	}
+	else if (IsNDCellArray())
+	{
+		output = "cell array [";
+
+		HML_ND_CELLARRAY* cells = CellArrayND();
+
+		if (cells)
+		{
+			std::vector<int> dims = cells->Dimensions();
+
+			size_t num_dims = dims.size();
+
+			for (size_t j = 0; j < num_dims; j++)
+			{
+				output += dims[j];
+
+				if (j != num_dims - 1)
+					output += " x ";
+			}
+		}
+
+		output += "]";
+	}
 	else if (IsStruct())
 	{
 		StructData* mtx = Struct();
-		char buffer[1024];
-		sprintf_s(buffer, "struct [%d x %d]", mtx->M(), mtx->N());
-		output = buffer;
+        if (!mtx)
+        {
+            output = "struct [ ]";
+        }
+        else
+        {
+            char buffer[1024];
+            sprintf_s(buffer, "struct [%d x %d]", mtx->M(), mtx->N());
+            output = buffer;
+        }
 	}
     else if (IsNDMatrix()) 
     {
@@ -534,17 +640,19 @@ bool Currency::IsString()    const
 {
 	return (mask == MASK_STRING && data.mtx);
 }
-
+//------------------------------------------------------------------------------
+// Returns false if this is a multi line string
+//------------------------------------------------------------------------------
 bool Currency::IsMultilineString() const
 {
 	bool ret_val = IsString();
-
 	if (ret_val)
 	{
 		hwMatrix* mtx = data.mtx;
-
-		if (mtx->M() == 1)
-			ret_val = false;
+        if (mtx->Size() == 0 || mtx->M() == 1)  // Columns can be 0 sometimes
+        {
+            ret_val = false;
+        }
 	}
 	return ret_val;
 }
@@ -571,6 +679,10 @@ std::string Currency::StringVal() const
             {
 				st += static_cast<unsigned char>((*data.mtx)(i,j));
             }
+			else
+			{
+				st += " ";
+			}
 		}
 
 		if (i+1 < rows)
@@ -1014,6 +1126,33 @@ const hwMatrix* Currency::ConvertToMatrix() const
 	return data.mtx;
 }
 
+const hwMatrix* Currency::ExpandMatrix(const hwMatrix* target) const
+{
+	hwMatrix* result = NULL;
+
+	if (type == TYPE_MATRIX)
+	{
+		result = data.mtx;
+
+		if (data.mtx->M() == 1)
+		{
+			result = EvaluatorInterface::allocateMatrix(target->M(), data.mtx->N(), data.mtx->Type());
+
+			for (int j = 0; j < target->M(); ++j)
+				result->WriteRow(j, *data.mtx);
+		}
+		else if (data.mtx->N() == 1)
+		{
+			result = EvaluatorInterface::allocateMatrix(data.mtx->M(), target->N(), data.mtx->Type());
+
+			for (int j = 0; j < target->N(); ++j)
+				result->WriteColumn(j, *data.mtx);
+		}
+	}
+
+	return result;
+}
+
 HML_CELLARRAY* Currency::ConvertToCellArray()
 {
 	bool ret_val = true;
@@ -1120,40 +1259,6 @@ const std::string* Currency::GetOutputNamePtr() const
 		return vm.GetStringPointer("");
 }
 
-hwMatrix* ConvertNDto2D(const hwMatrixN* mtxn)
-{
-	// Dimensions will omit any trailing dimensions of size 1
-	std::vector<int> dims = mtxn->Dimensions();
-	size_t num_dims = dims.size();
-	
-	if (num_dims > 2)
-		return NULL;
-
-	int dim_1 = dims[0];
-	int dim_2 = 1;
-
-	if (num_dims == 2)
-		dim_2 = dims[1];
-
-	hwMatrix* result = NULL;
-
-	if (mtxn->IsReal())
-	{
-		result = EvaluatorInterface::allocateMatrix(dim_1, dim_2, hwMatrix::REAL);
-
-		for (int j=0; j<dim_1*dim_2; j++)
-			(*result)(j) = (*mtxn)(j);
-	}
-	else
-	{
-		result = EvaluatorInterface::allocateMatrix(dim_1, dim_2, hwMatrix::COMPLEX);
-
-		for (int j=0; j<dim_1*dim_2; j++)
-			result->z(j) = mtxn->z(j);
-	}
-
-	return result;
-}
 //------------------------------------------------------------------------------
 // Gets output for printing
 //------------------------------------------------------------------------------
@@ -1187,7 +1292,7 @@ std::string Currency::GetOutputString(const OutputFormat* fmt) const
         }
 	}
 	else if (IsMatrix() || IsCellArray() || IsStruct() || IsNDMatrix() ||
-             IsObject())
+             IsObject() || IsNDCellArray())
 	{
         return (GetDisplay()->GetOutput(fmt, os));
 	}
@@ -1195,7 +1300,28 @@ std::string Currency::GetOutputString(const OutputFormat* fmt) const
 	{
 		// This should never happen, but there's some weird UI cases that actually do trigger it
 		if (data.func)
-			os << "@" << data.func->FunctionName();
+		{
+			if (data.func->IsAnonymous())
+			{
+				std::vector<const std::string*> params = data.func->Parameters();
+
+				os << "@(";
+
+				for (int j = 0; j < params.size(); ++j)
+				{
+					os << *params[j];
+
+					if (j != params.size() - 1)
+						os << ", ";
+				}
+
+				os << ") " << data.func->Statements()->GetStringRepresentation();
+			}
+			else
+			{
+				os << "@" << data.func->FunctionName();
+			}
+		}
 	}
 	else if (IsError())
 	{
@@ -1252,6 +1378,9 @@ CurrencyDisplay* Currency::GetDisplay() const
             _display = new StringDisplay(*this);
         }
     }
+	else if (IsNDCellArray())
+		_display = new CellNDisplay(*this);
+
 
     return _display;
 }

@@ -1,7 +1,7 @@
 /**
 * @file OML_Error.h
 * @date November 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -17,300 +17,163 @@
 #ifndef _OML_Math_Error_h
 #define _OML_Math_Error_h
 
-// Note: each OML_MSG_ITEM is paired with OML_ERR_ITEM in omlMathErrCode below. Likewise,
-// each  OML_STR_QUANTITY is paired with OML_VAR_QUANTITY in omlMathVarCode. Here
-// are some options for how to throw an error.
-// 1. throw OML_Error(OML_ERR_ITEM);
-// 2. throw OML_Error(OML_ERR_ITEM, arg_num);
-// 3. throw OML_Error(OML_ERR_ITEM, arg_num, OML_VAR_QUANTITY);
-// See the OML_Error constructors for all options. When an argument number is to be included
-// in the message, OML_MSG_ITEM should be written in the form "Error: problem; solution"
-#define OML_MSG_NUMARGIN      "Error: invalid function call; incorrect number of input arguments"
-#define OML_MSG_NUMARGOUT     "Error: invalid function call; incorrect number of output arguments"
-#define OML_MSG_NUMARGINOUT   "Error: invalid function call; incorrect combination of input/output arguments"
-#define OML_MSG_CELL          "Error: invalid input; must be cell"
-#define OML_MSG_CELLARRAY     "Error: invalid input; must be cell array"
-#define OML_MSG_STRUCT        "Error: invalid input; must be struct"
-#define OML_MSG_STRING        "Error: invalid input; must be string"
-#define OML_MSG_INTSTRING     "Error: invalid input; must be integer or string"
-#define OML_MSG_SCALARSTRING  "Error: invalid input; must be scalar or string"
-#define OML_MSG_BAD_STRING    "Error: invalid string; see help for options"
-#define OML_MSG_NUMERIC       "Error: invalid input; must be numeric"
-#define OML_MSG_SCALAR        "Error: invalid input; must be a scalar"
-#define OML_MSG_VECTOR        "Error: invalid input; must be a vector"
-#define OML_MSG_VECTOR2       "Error: invalid input; must be 2 element vector"
-#define OML_MSG_SCALARVECTOR  "Error: invalid input; must be a scalar or vector"
-#define OML_MSG_SCALARMATRIX  "Error: invalid input; must be a scalar or matrix"
-#define OML_MSG_SCALARCOMPLEXMTX "Error: invalid input; must be a scalar, complex or matrix"
-#define OML_MSG_STRINGVECTOR  "Error: invalid input; must be a string or vector"
-#define OML_MSG_INTVECSTR     "Error: invalid input; must be an integer, vector, or string"
-#define OML_MSG_REALVECTOR    "Error: invalid input; must be a real vector"
-#define OML_MSG_NNINTVECTOR   "Error: invalid input; must be nonnegative integer vector"
-#define OML_MSG_POSINTVECTOR  "Error: invalid input; must be positive integer vector"
-#define OML_MSG_MATRIX        "Error: invalid input; must be a matrix"
-#define OML_MSG_REALMATRIX    "Error: invalid input; must be a real matrix"
-#define OML_MSG_EMPTYMATRIX   "Error: invalid input; must be empty matrix"
-#define OML_MSG_HANDLE        "Error: invalid input; must be function handle"
-#define OML_MSG_HANDLE_EMPTY  "Error: invalid input; must be function handle or []"
-#define OML_MSG_FUNCNAME      "Error: invalid input; function not found"
-#define OML_MSG_ACCUMFUNC     "Error: invalid accumulator; must have vector input and return scalar or complex"
-#define OML_MSG_REAL          "Error: invalid input; must be real"
-#define OML_MSG_INTEGER       "Error: invalid input; must be integer"
-#define OML_MSG_NATURALNUM    "Error: invalid input; must be nonnegative integer"
-#define OML_MSG_POSINTEGER    "Error: invalid input; must be positive integer"
-#define OML_MSG_FINITE        "Error: invalid value; must be finite"
-#define OML_MSG_VECLENDIM     "Error: invalid vector length in specified dimension"
-#define OML_MSG_ARRAYSIZE     "Error: incompatible array sizes; must match"
-#define OML_MSG_ARRAYCATDIM   "Error: incompatible array sizes; non-concatenated dimensions must match"
-#define OML_MSG_CELLSIZE      "Error: incompatible cell sizes; must match"
-#define OML_MSG_OPTION        "Error: invalid option argument"
-#define OML_MSG_OPTIONVAL     "Error: invalid option; is incorrectly specified"
-#define OML_MSG_FUNCSWITCH    "Error: invalid option; must be either 'on' or 'off'"
-#define OML_MSG_NOBUILTIN     "Error: built in function not supported in this context"
-#define OML_MSG_CONSTRARG2    "Error: invalid constraint function; argument 2 must be []"
-#define OML_MSG_CONSTRRET2    "Error: invalid constraint function; can have at most 2 returns"
-#define OML_MSG_CONSTRRET4    "Error: invalid constraint function; can have at most 4 returns"
-#define OML_MSG_ANALYTICGRADS "Error: invalid options; GradObj and GradConstr be set the same"
-#define OML_MSG_UNSUPPORTDIM  "Error: unsupported dimension; matrices with more than 2 dimensions are not currently allowed"
-#define OML_MSG_FLAG_01       "Error: invalid input; must be 0 or 1"
-#define OML_MSG_FORMAT        "Error: invalid format specifier"
-#define OML_MSG_PNORM         "Error: invalid input; p must be positive"
-#define OML_MSG_NORM_STRING3  "Error: invalid string; options are 'rows', 'cols', or 'columns'"
-#define OML_MSG_NOCOMPLEX     "Error: invalid input; cannot be a complex number"
-#define OML_MSG_NATURALNUM_MATRIX_CELLARRAY "Error: invalid input; must be a nonnegative integer, matrix or cell array"
-#define OML_MSG_STRING_MATRIX_CELLARRAY     "Error: invalid input; must be a string, matrix or cell array"
-#define OML_MSG_STRING_ONEDIMENSION         "Error: invalid input; string input must be one-dimensional"
-#define OML_MSG_STRSCALARCOMPLEXMTX         "Error: invalid input; must be a string, scalar, complex or matrix"
-#define OML_MSG_FINITE_NATURALNUM           "Error: invalid input; must be a finite, nonnegative integer"
-#define OML_MSG_STRING_NATURALNUM           "Error: invalid input; must be a string or a nonnegative integer"
-#define OML_MSG_POSITIVE_SCALAR             "Error: invalid input; must be a finite, positive scalar"
-#define OML_MSG_STRING_FILESTREAM           "Error: invalid input; must be a string or a valid file stream"
-#define OML_MSG_SCALAR_COMPLEX              "Error: invalid input; must be a scalar or a complex number"
-#define OML_MSG_STRING_STRINGCELL           "Error: invalid input; must be a string or a cell array of strings"
-#define OML_MSG_INVALID_INDEX               "Error: invalid index; must be a positive integer"
-#define OML_MSG_INVALID_RANGE               "Error: invalid input; must be in valid range"
-#define OML_MSG_INVALID_DLL                 "Error: invalid dynamic library"
-#define OML_MSG_INVALID_INITDLL             "Error: invalid initialization function in dynamic library"
-#define OML_MSG_GUI_CMDEXEC_FAIL            "Error: command execution failed in GUI";
-#define OML_MSG_POS_INTEGER_VEC_MTX         "Error: invalid index; must be a positive integer, vector or matrix of positive integers";
-#define OML_MSG_STRING_INTEGER              "Error: invalid input; must be a string or an integer";
-#define OML_MSG_SCALAR_VECTOR_STRING        "Error: invalid input; must be a scalar, vector or string";
-#define OML_MSG_POS_INTEGER_MTX_INF         "Error: invalid input; must be a positive integer, matrix of positive integers or infinity"
-#define OML_MSG_POS_INTEGER_MTX_SIZE2       "Error: invalid input; matrix of positive integers must have at least two elements"
-#define OML_MSG_CELLMTXSTRUCT               "Error: invalid input; must be a cell array, matrix or struct"
-#define OML_MSG_CELLSTRING                  "Error: invalid input; must be a cell array or string"
-#define OML_MSG_SCALAROUTOFRANGE            "Error: invalid input; scalar is out of character range for strings"
-#define OML_MSG_INVALIDSTRUCTINDEX          "Error: invalid input; struct cannot be indexed"
-#define OML_MSG_INVALIDINDEX                "Error: invalid index; must be within allowable bounds of input"
-#define OML_MSG_TRIANGMATTYPE               "Error: invalid input; must be 'lower' or 'upper'"
-#define OML_MSG_INVALID_TIME_RANGE          "Error: time index out of range; check input"
-#define OML_MSG_INVALID_TIME_STEP           "Error: invalid time step; check input"
-#define OML_MSG_MTXSTRING                   "Error: invalid input; must be a matrix or string"
-#define OML_MSG_POSINTEGER_VEC              "Error: invalid input; must be a positive integer or vector"
-#define OML_MSG_NONEMPTY_STR                "Error: invalid input; must be a non-empty string"
-#define OML_MSG_ONEROW_STRING               "Error: invalid input; must be a string with one row"
-#define OML_MSG_SCALAR_REALMTX              "Error: invalid input; must be a scalar or real matrix"
-#define OML_MSG_INTEGER_INTMTX              "Error: invalid input; must be an integer or a matrix of integers"
-#define OML_MSG_LOGICAL                     "Error: invalid input; must be true or false"
-#define OML_MSG_INVALID_DLL                 "Error: invalid dynamic library"
-#define OML_MSG_INVALID_VERSION             "Error: invalid version"
-#define OML_MSG_FILE_FILESTREAM             "Error: invalid input; must be a file name or a valid file stream"
+#include "Hml2Dll.h"
+
+#include <string>
+
+#include "hwMathStatus.h"
 
 
-// plot messages
-#define OML_MSG_PLOT_OUT_OF_RANGE				"Error: index out of range; check input"
-#define OML_MSG_PLOT_DIM_NOT_MATCH              "Error: data dimension do not match; check input"
-#define OML_MSG_PLOT_MISSING_VALUE				"Error: invalid input; property must be followd by a value"
-#define OML_MSG_PLOT_UNMATCHED_AXES_TYPE		"Error: axes type not matched; turn hold off"
-#define OML_MSG_PLOT_INVALID_PROPERTY			"Error: invalid property; check input"
-#define OML_MSG_PLOT_INVALID_OBJECT_HANDLE		"Error: invalid object handle; check input"
-#define OML_MSG_PLOT_INVALID_FIGURE_HANDLE		"Error: invalid figure handle; check input"
-#define OML_MSG_PLOT_INVALID_AXES_HANDLE		"Error: invalid axes handle; check input"
-#define OML_MSG_PLOT_INVALID_CURVE_HANDLE		"Error: invalid curve handle; check input"
-#define OML_MSG_PLOT_INVALID_COLOR       		"Error: invalid color option; check input"
-#define OML_MSG_PLOT_NOT_SUPPORTED				"Error: command not supported"
-#define OML_MSG_PLOT_NOT_SUPPORTED_FOR_2D       "Error: command supported for 3d plot only"
-#define OML_MSG_PLOT_NOT_SUPPORTED_OPTION		"Error: invalid argument; option not supported"
-#define OML_MSG_PLOT_UNKNOWN_ERROR				"Error: unknown error"
-#define OML_MSG_PLOT_ZERORANGE                  "Error: invalid data; has a range of zero"
-#define OML_MSG_PLOT_ZIN2D                      "Error: no z axis in 2D plot"
-#define OML_MSG_PLOT_LIMDATA                    "Error: invalid vector; must have 2 elements"
-#define OML_MSG_PLOT_UNSUPPORTED_FORMAT         "Error: unsupported file format"
-#define OML_MSG_PLOT_AMBIGUOUS_PROPERTY         "Error: ambiguous property"
-#define OML_MSG_PLOT_MATXY_NOT_MATCH            "Error: size of x and y must match"
-#define OML_MSG_PLOT_MATXZ_NOT_MATCH            "Error: size of x and z must match"
-#define OML_MSG_PLOT_MATYZ_NOT_MATCH            "Error: size of y and z must match"
-#define OML_MSG_PLOT_X_Z2_NOT_MATCH             "Error: length of x must match the number of columns of z"
-#define OML_MSG_PLOT_Y_Z1_NOT_MATCH             "Error: length of y must match the number of rows of z"
-#define OML_MSG_PLOT_XZ_NOT_MATCH               "Error: length of x and z must match"
-#define OML_MSG_PLOT_YZ_NOT_MATCH               "Error: length of y and z must match"
-#define OML_MSG_PLOT_CONST_PROPERTY             "Error: property is read only; cannot be changed"
-#define OML_MSG_PLOT_CANNOT_OPEN_IMAGE          "Error: cannot load image file. Check file path"
-#define OML_MSG_PLOT_NEED_NORM_DATA             "Error: the range of normalized value is [0 1]"
-#define OML_MSG_PLOT_NEED_PIXEL_DATA            "Error: pixel value should larger than 1"
-
+//!
+//! \enum omlMathErrCode
+//! \brief Error codes used to construct error messages in oml
+//!
 enum omlMathErrCode
 {
     OML_ERR_NONE = 0,
-    OML_ERR_NUMARGIN,
-    OML_ERR_NUMARGOUT,
-    OML_ERR_NUMARGINOUT,
-    OML_ERR_CELL,
-    OML_ERR_CELLARRAY,
-    OML_ERR_STRUCT,
-    OML_ERR_STRING,
-    OML_ERR_INTSTRING,
-    OML_ERR_SCALARSTRING,
-    OML_ERR_BAD_STRING,
-    OML_ERR_NUMERIC,
-    OML_ERR_SCALAR,
-    OML_ERR_VECTOR,
-    OML_ERR_VECTOR2,
-    OML_ERR_SCALARVECTOR,
-    OML_ERR_SCALARMATRIX,
-    OML_ERR_SCALARCOMPLEXMTX,
-    OML_ERR_STRINGVECTOR,
-    OML_ERR_INTVECSTR,
-    OML_ERR_REALVECTOR,
-    OML_ERR_NNINTVECTOR,
-    OML_ERR_POSINTVECTOR,
-    OML_ERR_MATRIX,
-    OML_ERR_REALMATRIX,
-    OML_ERR_EMPTYMATRIX,
-    OML_ERR_HANDLE,
-    OML_ERR_HANDLE_EMPTY,
-    OML_ERR_FUNCNAME,
-    OML_ERR_ACCUMFUNC,
-    OML_ERR_REAL,
-    OML_ERR_INTEGER,
-    OML_ERR_NATURALNUM,
-    OML_ERR_POSINTEGER,
-    OML_ERR_FINITE,
-    OML_ERR_VECLENDIM,
-    OML_ERR_ARRAYSIZE,
-    OML_ERR_ARRAYCATDIM,
-    OML_ERR_CELLSIZE,
-    OML_ERR_OPTION,
-    OML_ERR_OPTIONVAL,
-    OML_ERR_FUNCSWITCH,
-    OML_ERR_NOBUILTIN,
-    OML_ERR_CONSTRARG2,
-    OML_ERR_CONSTRRET2,
-    OML_ERR_CONSTRRET4,
-    OML_ERR_ANALYTICGRADS,
-    OML_ERR_UNSUPPORTDIM,
-    OML_ERR_FLAG_01,
-	OML_ERR_FORMAT,
-    OML_ERR_PNORM,
-    OML_ERR_NORM_STRING3,
-    OML_ERR_NOCOMPLEX,
-    OML_ERR_NATURALNUM_MATRIX_CELLARRAY,
-    OML_ERR_STRING_MATRIX_CELLARRAY,
-    OML_ERR_STRING_ONEDIMENSION,
-    OML_ERR_STRSCALARCOMPLEXMTX,
-    OML_ERR_FINITE_NATURALNUM,
-    OML_ERR_STRING_NATURALNUM,
-    OML_ERR_POSITIVE_SCALAR,
-    OML_ERR_POS_INTEGER_MTX_INF,
-    OML_ERR_POS_INTEGER_MTX_SIZE2,
-    OML_ERR_STRING_FILESTREAM,
-    OML_ERR_SCALAR_COMPLEX,
-    OML_ERR_STRING_STRINGCELL,
-    OML_ERR_INVALID_INDEX,
-    OML_ERR_INVALID_RANGE,
-    OML_ERR_INVALID_DLL,
-    OML_ERR_INVALID_INITDLL,
-    OML_ERR_GUI_CMDEXEC_FAIL,
-    OML_ERR_POS_INTEGER_VEC_MTX,
-    OML_ERR_STRING_INTEGER,
-    OML_ERR_SCALAR_VECTOR_STRING,
-    OML_ERR_CELLMTXSTRUCT,
-    OML_ERR_CELLSTRING,
-    OML_ERR_SCALAROUTOFRANGE,
-    OML_ERR_INVALIDSTRUCTINDEX,
-    OML_ERR_INVALIDINDEX,
-    OML_ERR_TRIANGMATTYPE,
-    OML_ERR_MTXSTRING,
-    OML_ERR_POSINTEGER_VEC,
-    OML_ERR_NONEMPTY_STR,
-    OML_ERR_ONEROW_STRING,
-    OML_ERR_SCALAR_REALMTX,
-    OML_ERR_INTEGER_INTMTX,
-    OML_ERR_LOGICAL,
-    OML_ERR_INVALID_VERSION,
-    OML_ERR_FILE_FILESTREAM,
+    OML_ERR_NUMARGIN,                        // invalid function call; incorrect number of input arguments
+    OML_ERR_NUMARGOUT,                       // incorrect number of output arguments
+    OML_ERR_NUMARGINOUT,                     // incorrect combination of input / output arguments
+    OML_ERR_CELL,                            // must be cell
+    OML_ERR_CELLARRAY,                       // must be cell array
+    OML_ERR_STRUCT,                          // must be struct
+    OML_ERR_STRING,                          // must be string
+    OML_ERR_INTSTRING,                       // must be integer or string
+    OML_ERR_SCALARSTRING,                    // must be scalar or string
+    OML_ERR_BAD_STRING,                      // invalid string; see help for options
+    OML_ERR_NUMERIC,                         // must be numeric
+    OML_ERR_SCALAR,                          // must be a scalar
+    OML_ERR_VECTOR,                          // must be a vector
+    OML_ERR_VECTOR2,                         // must be 2 element vector
+    OML_ERR_SCALARVECTOR,                    // must be a scalar or vector
+    OML_ERR_SCALARMATRIX,                    // must be a scalar or matrix
+    OML_ERR_SCALARCOMPLEXMTX,                // must be a scalar, complex or matrix
+    OML_ERR_STRINGVECTOR,                    // must be a scalar or vector
+    OML_ERR_INTVECSTR,                       // must be an integer, vector, or string
+    OML_ERR_REALVECTOR,                      // must be a real vector
+    OML_ERR_NNINTVECTOR,                     // must be nonnegative integer vector
+    OML_ERR_POSINTVECTOR,                    // must be positive integer vector
+    OML_ERR_MATRIX,                          // must be a matrix
+    OML_ERR_REALMATRIX,                      // must be a real matrix
+    OML_ERR_EMPTYMATRIX,                     // must be empty [] matrix
+    OML_ERR_HANDLE,                          // must be function handle
+    OML_ERR_HANDLE_EMPTY,                    // must be function handle or []
+    OML_ERR_FUNCNAME,                        // function not found
+    OML_ERR_ACCUMFUNC,                       // invalid accumulator; must have vector input and return scalar or complex
+    OML_ERR_REAL,                            // must be real
+    OML_ERR_INTEGER,                         // must be integer
+    OML_ERR_NATURALNUM,                      // must be nonnegative integer
+    OML_ERR_POSINTEGER,                      // must be positive integer
+    OML_ERR_FINITE,                          // invalid value; must be finite
+    OML_ERR_VECLENDIM,                       // invalid vector length in specified dimension
+    OML_ERR_ARRAYSIZE,                       // incompatible matrices; dimensions must be consistent
+    OML_ERR_ARRAYCATDIM,                     // incompatible array sizes; non-concatenated dimensions must match
+    OML_ERR_CELLSIZE,                        // incompatible cell sizes; must match
+    OML_ERR_OPTION,                          // invalid option argument
+    OML_ERR_OPTIONVAL,                       // invalid option; is incorrectly specified
+    OML_ERR_FUNCSWITCH,                      // invalid option; must be either 'on' or 'off'
+    OML_ERR_NOBUILTIN,                       // built in function not supported in this context
+    OML_ERR_CONSTRARG2,                      // invalid constraint function; argument 2 must be []
+    OML_ERR_CONSTRRET2,                      // invalid constraint function; can have at most 2 returns
+    OML_ERR_CONSTRRET4,                      // invalid constraint function; can have at most 4 returns
+    OML_ERR_ANALYTICGRADS,                   // invalid options; GradObj and GradConstr be set the same
+    OML_ERR_UNSUPPORTDIM,                    // unsupported dimension; matrices with more than 2 dimensions are not currently allowed
+    OML_ERR_FLAG_01,                         // must be 0 or 1
+	OML_ERR_FORMAT,                          // format(s) cannot be applied
+    OML_ERR_PNORM,                           // p must be positive
+    OML_ERR_NORM_STRING3,                    // invalid string; options are 'rows', 'cols', or 'columns'"
+    OML_ERR_NOCOMPLEX,                       // cannot be a complex number
+    OML_ERR_NATURALNUM_MATRIX_CELLARRAY,     // must be a nonnegative integer, matrix or cell array
+    OML_ERR_STRING_MATRIX_CELLARRAY,         // must be a string, matrix or cell array
+    OML_ERR_STRING_ONEDIMENSION,             // string input must be one-dimensional
+    OML_ERR_STRSCALARCOMPLEXMTX,             // must be a string, scalar, complex or matrix
+    OML_ERR_FINITE_NATURALNUM,               // must be a finite, nonnegative integer
+    OML_ERR_STRING_NATURALNUM,               // must be a string or a nonnegative integer
+    OML_ERR_POSITIVE_SCALAR,                 // must be a finite, positive scalar
+    OML_ERR_SCALAR_COMPLEX,                  // must be a scalar or a complex number
+    OML_ERR_STRING_STRINGCELL,               // must be a string or a cell array of strings
+    OML_ERR_INVALID_INDEX,                   // must be a positive integer
+    OML_ERR_INVALID_RANGE,                   // must be in valid range
+    OML_ERR_INVALID_BASE,                    // must be an integer >= 2
+    OML_ERR_INVALID_DLL,                     // invalid dynamic library
+    OML_ERR_INVALID_INITDLL,                 // invalid initialization function in dynamic library
+    OML_ERR_GUI_CMDEXEC_FAIL,                // command execution failed in GUI
+    OML_ERR_POS_INTEGER_VEC_MTX,             // must be a positive integer, vector or matrix of positive integers
+    OML_ERR_STRING_INTEGER,                  // must be a string or an integer
+    OML_ERR_SCALAR_VECTOR_STRING,            // must be a scalar, vector or string
+    OML_ERR_POS_INTEGER_MTX_INF,             // must be a positive integer, matrix of positive integers or infinity
+    OML_ERR_POS_INTEGER_MTX_SIZE2,           // matrix of positive integers must have at least two elements
+    OML_ERR_CELLMTXSTRUCT,                   // must be a cell array, matrix or struct
+    OML_ERR_CELLSTRING,                      // must be a cell array or string
+    OML_ERR_SCALAROUTOFRANGE,                // scalar is out of character range for strings
+    OML_ERR_INVALIDSTRUCTINDEX,              // struct cannot be indexed
+    OML_ERR_INVALIDINDEX,                    // must be within allowable bounds of input
+    OML_ERR_TRIANGMATTYPE,                   // must be 'lower' or 'upper'
+    OML_ERR_MTXSTRING,                       // must be a matrix or string
+    OML_ERR_POSINTEGER_VEC,                  // must be a positive integer or vector
+    OML_ERR_NONEMPTY_STR,                    // must be a non-empty string
+    OML_ERR_ONEROW_STRING,                   // must be a string with one row
+    OML_ERR_SCALAR_REALMTX,                  // must be a scalar or real matrix
+    OML_ERR_INTEGER_INTMTX,                  // must be an integer or a matrix of integers
+    OML_ERR_LOGICAL,                         // must be true or false
+    OML_ERR_INVALID_VERSION,                 // invalid version
+    OML_ERR_STRING_FILESTREAM,               // must be a string or a valid file stream
+    OML_ERR_FILE_FILESTREAM,                 // must be a file name or a valid file stream
+	OML_ERR_FILE_NOTFOUND,                   // cannot find file
+	OML_ERR_FILE_CANNOTOPEN,                 // cannot open file
+	OML_ERR_OPT_UNSUPPORTED,                 // option is not supported
+	OML_ERR_INVALIDTIMERANGE,                // time index out of range
+	OML_ERR_INVALIDTIMESTEP,                 // time step is not valid
+    OML_ERR_NONNEGATIVE_SCALAR,              // must be a non-negative scalar
+    OML_ERR_FILE_CANNOTREAD,                 // cannot read file
+    OML_ERR_STRINGSTRUCT,                    // must be a string or struct
+    OML_ERR_SCAL_COMP_MTX_STR_CELL,          // must be a scalar, complex, matrix, string or cell
+    OML_ERR_INVALID_DATE_FMT,                // invalid format; check help for valid date formats
+    OML_ERR_CANNOTAPPLY_DATE_FMT,            // cannot apply format; check help for valid date formats
+	OML_ERR_INPUT_EMPTY,                     // cannot be empty
+    OML_ERR_MULTILINE_STRING,                // cannot be a multiline string
+    OML_ERR_INVALID_FILE_MODE,               // invalid file mode; check help for valid file modes
 
-    // plot codes
-    OML_ERR_PLOT_OUT_OF_RANGE,
-    OML_ERR_PLOT_DIM_NOT_MATCH,
-    OML_ERR_PLOT_MISSING_VALUE,
-    OML_ERR_PLOT_UNMATCHED_AXES_TYPE,
-    OML_ERR_PLOT_INVALID_PROPERTY,
-    OML_ERR_PLOT_INVALID_OBJECT_HANDLE,
-    OML_ERR_PLOT_INVALID_FIGURE_HANDLE,
-    OML_ERR_PLOT_INVALID_AXES_HANDLE,
-    OML_ERR_PLOT_INVALID_CURVE_HANDLE,
-    OML_ERR_PLOT_INVALID_COLOR,
-    OML_ERR_PLOT_NOT_SUPPORTED,
-    OML_ERR_PLOT_NOT_SUPPORTED_FOR_2D,
-    OML_ERR_PLOT_NOT_SUPPORTED_OPTION,
-    OML_ERR_PLOT_UNKNOWN_ERROR,
-    OML_ERR_PLOT_ZERORANGE,
-    OML_ERR_PLOT_ZIN2D,
-    OML_ERR_PLOT_LIMDATA,
-    OML_ERR_PLOT_UNSUPPORTED_FORMAT,
-    OML_ERR_PLOT_AMBIGUOUS_PROPERTY,
-    OML_ERR_PLOT_MATXY_NOT_MATCH,
-    OML_ERR_PLOT_MATXZ_NOT_MATCH,
-    OML_ERR_PLOT_MATYZ_NOT_MATCH,
-    OML_ERR_PLOT_XZ_NOT_MATCH,
-    OML_ERR_PLOT_YZ_NOT_MATCH,
-    OML_ERR_PLOT_X_Z2_NOT_MATCH,
-    OML_ERR_PLOT_Y_Z1_NOT_MATCH,
-	OML_ERR_PLOT_CONST_PROPERTY,
-    OML_ERR_PLOT_CANNOT_OPEN_IMAGE,
-    OML_ERR_PLOT_NEED_NORM_DATA,
-    OML_ERR_PLOT_NEED_PIXEL_DATA,
+	// plot codes
+    OML_ERR_PLOT_DIM_NOT_MATCH,              // invalid inputs; data dimensions do not match
+    OML_ERR_PLOT_MISSING_VALUE,              // missing value for property
+    OML_ERR_PLOT_UNMATCHED_AXES_TYPE,        // axes type are mismatched; turn hold off
+    OML_ERR_PLOT_INVALID_PROPERTY,           // cannot find property
+    OML_ERR_PLOT_INVALID_OBJECT_HANDLE,      // cannot find object handle
+    OML_ERR_PLOT_INVALID_FIGURE_HANDLE,      // cannot find figure handle
+    OML_ERR_PLOT_INVALID_AXES_HANDLE,        // cannot find axes handle
+    OML_ERR_PLOT_INVALID_CURVE_HANDLE,       // cannot find curve handle
+    OML_ERR_PLOT_INVALID_COLOR,              // invalid color option
+    OML_ERR_PLOT_NOT_SUPPORTED,              // command not supported
+    OML_ERR_PLOT_NOT_SUPPORTED_FOR_2D,       // command supported only for 3D plots
+    OML_ERR_PLOT_UNKNOWN_ERROR,              // unknown error
+    OML_ERR_PLOT_ZERORANGE,                  // invalid data; has a range of zero
+    OML_ERR_PLOT_ZIN2D,                      // z axis is not applicable for 2D plots
+    OML_ERR_PLOT_UNSUPPORTED_FORMAT,         // unsupported file format
+    OML_ERR_PLOT_EMPTY_PROPERTY,             // invalid operation; property name cannot be empty
+    OML_ERR_PLOT_MATXY_NOT_MATCH,            // size of x and y must match
+    OML_ERR_PLOT_MATXZ_NOT_MATCH,            // size of x and z must match
+    OML_ERR_PLOT_MATYZ_NOT_MATCH,            // size of y and z must match
+    OML_ERR_PLOT_XZ_NOT_MATCH,               // length of x must match the number of columns of z
+    OML_ERR_PLOT_YZ_NOT_MATCH,               // length of y must match the number of rows of z
+    OML_ERR_PLOT_X_Z2_NOT_MATCH,             // length of x and z must match
+    OML_ERR_PLOT_Y_Z1_NOT_MATCH,             // length of y and z must match
+	OML_ERR_PLOT_CONST_PROPERTY,             // property is read only; cannot be updated
+    OML_ERR_PLOT_CANNOT_OPEN_IMAGE,          // invalid path; cannot load image
+    OML_ERR_PLOT_NEED_NORM_DATA,             // invalid operation; range of normalized value is [0 1]
+    OML_ERR_PLOT_NEED_PIXEL_DATA,            // invalid operation; pixel value should be larger than 1
+    OML_ERR_PLOT_AMBIGUOUS_PROPERTY,         // ambiguous property \todo: used only in open matrix
+
+	// ABF Codes
+	OML_ERR_ABF_CREATE_FAILED,
+	OML_ERR_ABF_WRITE_FAILED,
+	OML_ERR_ABF_SUBCASE_EMPTY,
+	OML_ERR_ABF_EXPORT_DONE,
+	OML_ERR_ABF_WRITE_IN_PROGRESS,
 
     OML_ERR_END
 };
 
-#define OML_STR_MATRIX          "matrix"
-#define OML_STR_VECTOR          "vector"
-#define OML_STR_STRUCT          "struct"
-#define OML_STR_CELL            "cell"
-#define OML_STR_STRING          "string"
-#define OML_STR_INDEX           "index"
-#define OML_STR_ORDER           "order"
-#define OML_STR_DIM             "dimension"
-#define OML_STR_DIMS            "dimensions"
-#define OML_STR_TYPE            "type"
-#define OML_STR_VALUE           "value"
-#define OML_STR_VARIABLE        "variable"
-#define OML_STR_DATA            "data"
-#define OML_STR_FUNC            "function"
-#define OML_STR_INPUT           "input"
-#define OML_STR_PARAMETER       "parameter"
-#define OML_STR_CONTEXT         "context"
-#define OML_STR_TEMPLATE        "template"
-#define OML_STR_JACOBIAN        "Jacobian"
-#define OML_STR_GRADOBJ         "GradObj"
-#define OML_STR_GRADCONSTR      "GradConstr"
-#define OML_STR_ABSTOL          "AbsTol"
-#define OML_STR_RELTOL          "RelTol"
-#define OML_STR_TOLX            "TolX"
-#define OML_STR_TOLFUN          "TolFun"
-#define OML_STR_TOLCON          "TolCon"
-#define OML_STR_TOLKKT          "TolKKT"
-#define OML_STR_MAXFUNEVALS     "MaxFunEvals"
-#define OML_STR_MAXITER         "MaxIter"
-#define OML_STR_DISPLAY         "Display"
-#define OML_STR_SKIPVAL         "skip value"
-#define OML_STR_ORIGIN          "orgin"
-#define OML_STR_FILEID          "file ID"
-#define OML_STR_OFFSET          "offset"
-#define OML_STR_LENGTH          "length"
-#define OML_STR_OPTION          "option"
 
 enum omlMathVarCode
 {
@@ -354,21 +217,58 @@ enum omlMathVarCode
     OML_VAR_END
 };
 
-#include <string>
-#include "Hml2Dll.h"
-#include "hwMathStatus.h"
-
-using std::string;
-
+//------------------------------------------------------------------------------
+//!
+//! \class OML_Error
+//! \brief Class for constructing error messages. Options for throwing errors are:
+//! 1. throw OML_Error(OML_ERR_ITEM);
+//! 2. throw OML_Error(OML_ERR_ITEM, arg_num);
+//! 3. throw OML_Error(OML_ERR_ITEM, arg_num, omlMathVarCode);
+//! See the OML_Error constructors for all options
+//!
+//------------------------------------------------------------------------------
 class HML2DLL_DECLS OML_Error
 {
 public:
-	OML_Error(omlMathErrCode errCode, int arg1 = -1, int arg2 = -1);
-	OML_Error(omlMathErrCode errCode, int arg1, omlMathVarCode varCode);
-	OML_Error(omlMathErrCode errCode, int arg1, int arg2, omlMathVarCode varCode);
-	explicit OML_Error(const std::string& message);   // non-standard format, please use sparingly
+	//!
+	//! Constructor
+	//! \param errCode Error code
+	//! \param arg1    First argument index (optional)
+	//! \param arg2    Second argument index (optional)
+	//!
+	OML_Error(omlMathErrCode errCode, 
+		      int            arg1 = -1, 
+		      int            arg2 = -1);
+	//!
+	//! Constructor
+	//! \param errCode Error code
+	//! \param arg1    Argument index
+	//! \param varCode Variable type (optional)
+	//!
+	OML_Error(omlMathErrCode errCode,
+		      int            arg1, 
+		      omlMathVarCode varCode);
+	//!
+	//! Constructor
+	//! \param errCode Error code
+	//! \param arg1    First argument index 
+	//! \param arg2    Second argument index 
+	//! \param varCode Variable type
+	//!
+	OML_Error(omlMathErrCode errCode,
+		      int            arg1, 
+		      int            arg2, 
+		      omlMathVarCode varCode);
+	//!
+	//! Constructor
+	//! \param status Math status
+	//!
 	explicit OML_Error(const hwMathStatus& status);
-
+	//!
+	//! Constructor - non-standard, please use sparingly
+	//! \param message   Message to display
+	//!
+	explicit OML_Error(const std::string& message);
     //!
     //! Constructor - non-standard, please use sparingly
     //! \param message   Message to display
@@ -376,38 +276,66 @@ public:
     //!
 	OML_Error(const std::string& message,
               bool               formatMsg);   
+	//!
+	//! Destructor
+	//! 
+	~OML_Error() {}
 
+	//!
+	//! Gets error message
+	//!
 	std::string GetErrorMessage() const;
+	//!
+	//! Gets error code
+	//!
     omlMathErrCode ErrCode() const { return m_errCode; }
+	//!
+	//! Gets arg1
+	//!
     int Arg1() const { return m_arg1; }
+	//!
+	//! Sets arg1
+	//! \param arg Value to set
+	//!
     void Arg1(int arg) { m_arg1 = arg; }
+	//!
+	//! Gets arg2
+	//!
     int Arg2() const { return m_arg2; }
+	//!
+	//! Sets arg2
+	//! \param arg Value to set
+	//!
     void Arg2(int arg) { m_arg2 = arg; }
-
     //!
     //! Returns true if error needs to be formatted with line/file info
     //!
     bool GetFormatMessage() const { return m_formatMsg; }
+
 private:
-    omlMathErrCode m_errCode;
-    int m_arg1;
-    int m_arg2;
-    omlMathVarCode m_varCode;
-    std::string m_message;
-    mutable hwMathStatus m_status;
-    bool m_formatMsg;          //!< True if format (line info) needs to be added
+    omlMathErrCode       m_errCode;   //!< Error code
+    int                  m_arg1;      //!< Arg1
+    int                  m_arg2;      //!< Arg2
+    omlMathVarCode       m_varCode;   //!< Variable type
+    std::string          m_message;   //!< Error description
+    mutable hwMathStatus m_status;    //!< Math error code
+    bool                 m_formatMsg; //!< True if format (line info) needs to be added
+
+	//!
+	//! Returns error message for given error code
+	//! \param errCode Error code
+	//!
+	std::string GetOmlErrorMessage(omlMathErrCode errCode) const;
+	//!
+	//! Returns variable type string for given code
+	//! \param varCode Variable type
+	//!
+	std::string GetOmlVarStr(omlMathVarCode varCode) const;
 };
 
-std::string GetComposeErrMsg(omlMathErrCode errCode);
-std::string GetComposeVarStr(omlMathVarCode varCode);
-
 // NOTICE: DEPRECATED #define list. PLEASE DO NOT ADD TO IT.
-
-// The #defines in this list should be consolidated with the
-// #define OML_MSG_XXXXXX list above, and eventually with those
-// in /hwcommon/math/core/Globals.h as well.
-
-#define HW_ERROR_NOTACCEPTINPAFTERSEEDSTATE "Error: Cannot accept inputs after seed/state"
+// The following messages are used directly. These should be paired with
+// an error code and moved to OML_Error.cpp
 #define HW_ERROR_ALLINPMATCHSPECSIZE "Error: all inputs must match the specified size"
 #define HW_ERROR_ALREADYSETDIM "Error: already set dimension"
 #define HW_ERROR_ALREADYSETALPHA "Error: already set alpha value"
@@ -459,17 +387,13 @@ std::string GetComposeVarStr(omlMathVarCode varCode);
 #define HW_ERROR_VARIABLENAMETOOLONG "Error: variable name too long"
 
 #define HW_ERROR_MAXFUNCDEPTH "Error: maximum function depth reached"
-#define HW_ERROR_INVPERSISKEY "Error: invalid use of persistent keyword"
 #define HW_ERROR_STRSAMENUMOFCOLWCOMPROW "Error: strings must have same number of columns when comparing rows"
 #define HW_ERROR_SAMENUMOFCOLWCOMPROW "Error: must have same number of columns when comparing rows"
 #define HW_ERROR_NOTUSECELLSEARCHFORROW "Error: cannot use cell arrays when searching for rows"
-#define HW_ERROR_READPIPEENDFAIL "Error: failed to read the pipe to the end"
 #define HW_ERROR_PROBOPENPIPE "Error: problem opening pipe"
 #define HW_ERROR_INVTOL "Error: invalid tolerance"
-#define HW_ERROR_CONVABSPATH "Error: problem converting to absolute path"
 #define HW_ERROR_INPSTRMUSTFILEDIR "Error: input must be a string name referring to a file or directory"
 #define HW_ERROR_NOTFINDCURWORKDIR "Error: could not find current working directory"
-#define HW_ERROR_NOTLOCALLSUBEXP "Error: problem locating all sub-expressions"
 #define HW_ERROR_NOTEMPSUBEXPNAME "Error: cannot have an empty sub-expression name"
 #define HW_ERROR_SUBEXPNAMNOCLOSINGGR "Error: sub-expression name in regular expression pattern did not have a closing '>'"
 #define HW_ERROR_NOTCONVINPTODOUBLE "Error: cannot convert input to double"
@@ -668,7 +592,6 @@ std::string GetComposeVarStr(omlMathVarCode varCode);
 #define HW_ERROR_CELLELEMSTR "Error: cell array elements must be strings"
 #define HW_ERROR_INPUTISLOGICAL "Error: input cannot be logical"
 
-#define HW_ERROR_OPTIONSTRING "Error: option must be a string"
 #define HW_ERROR_CELLINPSAMESASIZE "Error: all cell array inputs must be the same size"
 #define HW_ERROR_CELLARRAYSSAMESIZE "Error: cell arrays must be the same size"
 #define HW_ERROR_INDEXSTRUCTFIELDS "Error: cannot index list of struct fields"
@@ -676,7 +599,7 @@ std::string GetComposeVarStr(omlMathVarCode varCode);
 #define HW_ERROR_REQCOMPSTARTINDEXLESS "Error: Comp and Req start index must be less than their respective end indexes"
 #define HW_ERROR_INPUTONOROFF "Error: Input must be 'on', 'off', or a text file name"
 #define HW_ERROR_ILLEGALCHARFORFILE "Error: file name input contains an illegal character"
-#define HW_ERROR_DYNFIELD "Error: dynamic field must be a string"
+
 // End deprecated #define list
 
 #endif // _OML_Math_Error_h

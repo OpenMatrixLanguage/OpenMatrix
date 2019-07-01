@@ -76,6 +76,15 @@ bool OmlFft2(EvaluatorInterface           eval,
              const std::vector<Currency>& inputs, 
              std::vector<Currency>&       outputs);
 //!
+//! Shift FFT related data to center DC component
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlFftShift(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs);
+//!
 //! Generates a vector of frequency locations
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
@@ -202,6 +211,15 @@ bool OmlFir1(EvaluatorInterface           eval,
              const std::vector<Currency>& inputs, 
              std::vector<Currency>&       outputs);
 //!
+//! Creates a digital FIR filter [firls command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlFirls(EvaluatorInterface           eval,
+              const std::vector<Currency>& inputs,
+              std::vector<Currency>&       outputs);
+//!
 //! Creates a Bessel filter [besself command]
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
@@ -301,13 +319,22 @@ bool OmlBlackman(EvaluatorInterface           eval,
                  const std::vector<Currency>& inputs, 
                  std::vector<Currency>&       outputs);
 //!
+//! Returns Bartlett-Hann window coefficients [barthann command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlBartHann(EvaluatorInterface           eval, 
+                 const std::vector<Currency>& inputs, 
+                 std::vector<Currency>&       outputs);
+//!
 //! Returns Hann window coefficients [hann command]
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
 //! \param outputs Vector of outputs
 //!
-bool OmlHann(EvaluatorInterface           eval, 
-             const std::vector<Currency>& inputs, 
+bool OmlHann(EvaluatorInterface           eval,
+             const std::vector<Currency>& inputs,
              std::vector<Currency>&       outputs);
 //!
 //! Returns Hamming window coefficients [hamming command]

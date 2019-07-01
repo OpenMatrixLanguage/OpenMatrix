@@ -1,4 +1,1 @@
-num = [Matrix] 2 x 2
-1  2
-3  4
-status = 1
+ans = 2

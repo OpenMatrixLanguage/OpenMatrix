@@ -1737,6 +1737,8 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
     }
 }
 
+
+
 //! Write to a matrix slice of the calling object, as if the calling object is being
 //! sliced on the left hand side of an equals sign
 //! matrix(slice args) = rhs_matrix
@@ -2135,6 +2137,8 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
         }
     }
 }
+
+
 
 //! Write to a matrix slice of the calling object, as if the calling object is being
 //! sliced on the left hand side of an equals sign
@@ -3195,6 +3199,8 @@ void hwTMatrixN<T1, T2>::CopyBlockRHS(int& pos, int sliceArg, hwTMatrixN<T1, T2>
     pos += numVals;
 }
 
+
+
 //! Write a contiguous block to the calling object, as if the calling
 //! object is being sliced on the left hand side of an equals sign
 template<typename T1, typename T2>
@@ -3310,6 +3316,8 @@ void hwTMatrixN<T1, T2>::CopyMatrixLHS(const hwTMatrixN<T1, T2>& rhsMatrix)
         }
     }
 }
+
+
 
 //! Transfer contents from another object
 template<typename T1, typename T2>

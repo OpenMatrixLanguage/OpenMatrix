@@ -1,0 +1,7 @@
+﻿size({'test','cell'})
+isrow({'test','cell'})
+a = struct();
+a(1,1).a = 'test';
+a(1,2).a = 'struct';
+size(a)
+isrow(a)

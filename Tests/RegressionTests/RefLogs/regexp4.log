@@ -1,1 +1,1 @@
-Error: invalid option in argument 3 in call to function regexp at line number 1 in file regexp4.oml
+Error: invalid input in argument 3; option is not supported in call to function regexp at line number 1 in file regexp4.oml

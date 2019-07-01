@@ -1,0 +1,7 @@
+﻿function foo
+   disp('foo');
+end
+
+foo
+clear -f
+foo

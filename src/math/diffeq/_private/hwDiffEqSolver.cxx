@@ -211,11 +211,6 @@ hwMathStatus hwDiffEqSolver::FillMatrix(const hwMatrix& time,
     if (OneStepMode)
     {
         (*timeSolution)(0, 0) = time(0);
-        flag = -1;  // RK45 specific
-    }
-    else
-    {
-        flag = 1;   // RK45 specific
     }
 
     for (int j = 0; j < numEqns; j++)

@@ -1,0 +1,5 @@
+hour('5:45', 'HH:MM')
+hour('5:45 PM', 'HH:MM PM')
+hour('may.5,2019 5:45:30', 'mmm.dd,yyyy HH:MM:SS')
+hour('20190405T050608', 'yyyymmddTHHMMSS')
+hour('2019-02-03 5:45:50', 'yyyy-mm-dd HH:MM:SS')

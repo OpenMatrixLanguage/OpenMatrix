@@ -33,10 +33,10 @@ static EvaluatorInterface* ODE45_eval_ptr;
 //------------------------------------------------------------------------------
 // Wrapper for ODE system function in oml scripts and is called by ode algorithm
 //------------------------------------------------------------------------------
-static hwMathStatus ODE45_file_func(double          t, 
-                                    const double*   y,
-                                    double*         yp, 
-                                    const hwMatrix* userData)
+static int ODE45_file_func(double  t, 
+                           double* y,
+                           double* yp, 
+                           void*   userData)
 {
     std::vector<Currency> inputs;
     inputs.push_back(t);
@@ -66,24 +66,16 @@ static hwMathStatus ODE45_file_func(double          t,
     }
     else
     {
-        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
+        return -1;
     }
     if (result.IsMatrix())
     {
         const hwMatrix* ypMatrix = result.Matrix();
+        if (!ypMatrix || !ypMatrix->IsReal() || ypMatrix->Size() != ODE45_sys_size)
+        {
+            return -1;
+        }
 
-        if (!ypMatrix)
-        {
-            return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
-        }
-        if (!ypMatrix->IsReal())
-        {
-            return hwMathStatus(HW_MATH_ERR_USERFUNCMATRIX, 111);
-        }
-        if (ypMatrix->Size() != ODE45_sys_size)
-        {
-            return hwMathStatus(HW_MATH_ERR_USERFUNCSIZE, 111);
-        }
         for (int i = 0; i < ODE45_sys_size; ++i)
         {
             yp[i] = (*ypMatrix)(i);
@@ -93,16 +85,16 @@ static hwMathStatus ODE45_file_func(double          t,
     {
         if (ODE45_sys_size != 1)
         {
-            return hwMathStatus(HW_MATH_ERR_USERFUNCSIZE, 111);
+            return -1;
         }
         yp[0] = result.Scalar();
     }
     else
     {
-        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
+        return -1;
     }
 
-    return hwMathStatus();
+    return 0;
 }
 //------------------------------------------------------------------------------
 // Solves a system of non-stiff differential equations [ode45]
@@ -220,25 +212,29 @@ bool OmlOde45(EvaluatorInterface           eval,
     ODE45_eval_ptr     = &eval;
 
     // call algorithm
-    hwMatrix*    timeSolution = nullptr;
-    hwMatrix*    ySolution    = new hwMatrix;
-    hwMatrix*    userData     = nullptr;
+    hwMatrix*            timeSolution = nullptr;
+    hwMatrix*            ySolution    = new hwMatrix;
+    hwMatrix*            userData     = nullptr;
+    ARKRootFn_client     rootFunc     = nullptr;
+    ARKDenseJacFn_client jacDFunc     = nullptr;
     hwMathStatus status;
 
     if (time->Size() == 2)
     {
         // one step mode
         timeSolution = new hwMatrix;
-        status = RK45(ODE45_file_func, *time, *y, timeSolution, *ySolution, 
-                      reltol, abstol, userData);
+
+        status = RK45(ODE45_file_func, rootFunc, jacDFunc, *time, *y, timeSolution,
+            *ySolution, reltol, abstol, userData);
     }
     else
     {
         // interval mode
         timeSolution = (hwMatrix*) time;
         timeSolution->IncrRefCount();
-        status = RK45(ODE45_file_func, *time, *y, NULL, *ySolution, reltol, 
-                      abstol, userData);
+
+        status = RK45(ODE45_file_func, rootFunc, jacDFunc, *time, *y, nullptr,
+            *ySolution, reltol, abstol, userData);
     }
 
     if (deleteAbsTol && abstol)

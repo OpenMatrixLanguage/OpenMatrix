@@ -1,0 +1,13 @@
+﻿function myfun
+    try
+      f;
+    catch
+    end
+end
+function f()
+  disp(1);
+  continue
+  disp(2);
+end
+
+myfun;

@@ -1,0 +1,3 @@
+addToolbox omlMathUtils
+
+[n,d] = rat(reshape([266/115, 111/47; 314/86, 524/178], [1,2,2]), 1.0e-6)

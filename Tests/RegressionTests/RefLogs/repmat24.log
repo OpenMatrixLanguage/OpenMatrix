@@ -1,15 +1,1 @@
-ans = 
-slice(:, :, 1) = 
-[Matrix] 4 x 0
-
-slice(:, :, 2) = 
-[Matrix] 4 x 0
-
-slice(:, :, 3) = 
-[Matrix] 4 x 0
-
-slice(:, :, 4) = 
-[Matrix] 4 x 0
-
-slice(:, :, 5) = 
-[Matrix] 4 x 0
+ans = [Matrix] 4 x 0 x 5

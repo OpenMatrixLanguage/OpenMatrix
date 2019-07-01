@@ -1,0 +1,3 @@
+﻿pets = {'dog', 'cat', 'bird'}
+pets(logical([0 1 0]))
+pets(logical([1 0 1])) = []

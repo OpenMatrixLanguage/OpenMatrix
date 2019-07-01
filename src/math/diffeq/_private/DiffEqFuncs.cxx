@@ -16,23 +16,25 @@
 
 #include "DiffEqFuncs.h"
 
-#include "hwCvodeWrap.h"
-#include "hwIdaWrap.h"
+//#include "hwCvodeWrap.h"
+//#include "hwIdaWrap.h"
 
 //------------------------------------------------------------------------------
 // Differential equation solver
 //------------------------------------------------------------------------------
-hwMathStatus RK45(RKF45Fn_client  sysfunc, 
-                  double          tStart, 
-                  double          tStop,
-                  int             numTimes, 
-                  const hwMatrix& y, 
-                  hwMatrix&       ySolution,
-                  double          relerr, 
-                  const hwMatrix* abserr, 
-                  const hwMatrix* userData)
+hwMathStatus RK45(ARKRhsFn_client      sysfunc,
+                  ARKRootFn_client     rootfunc,
+                  ARKDenseJacFn_client jacDfunc,
+                  double               tStart,
+                  double               tStop,
+                  int                  numTimes, 
+                  const hwMatrix&      y, 
+                  hwMatrix&            ySolution,
+                  double               relerr, 
+                  const hwMatrix*      abserr, 
+                  const hwMatrix*      userData)
 {
-    hwRungeKutta rkf45(sysfunc, y, relerr, abserr, userData);
+    hwArkWrap rkf45(sysfunc, rootfunc, jacDfunc, tStart, y, relerr, abserr, userData);
 
     hwMathStatus status = rkf45.GetStatus();
 
@@ -96,16 +98,29 @@ hwMathStatus RK45(RKF45Fn_client  sysfunc,
 //------------------------------------------------------------------------------
 // Differential equation solver
 //------------------------------------------------------------------------------
-hwMathStatus RK45(RKF45Fn_client  sysfunc, 
-                  const hwMatrix& time, 
-                  const hwMatrix& y,
-                  hwMatrix*       timeSolution, 
-                  hwMatrix&       ySolution, 
-                  double          relerr,
-                  const hwMatrix* abserr, 
-                  const hwMatrix* userData)
+hwMathStatus RK45(ARKRhsFn_client      sysfunc,
+                  ARKRootFn_client     rootfunc,
+                  ARKDenseJacFn_client jacDfunc,
+                  const hwMatrix&      time,
+                  const hwMatrix&      y,
+                  hwMatrix*            timeSolution, 
+                  hwMatrix&            ySolution, 
+                  double               relerr,
+                  const hwMatrix*      abserr, 
+                  const hwMatrix*      userData)
 {
-    hwRungeKutta rkf45(sysfunc, y, relerr, abserr, userData);
+    if (!time.IsReal())
+    {
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 4);
+    }
+
+    if (time.IsEmpty())
+    {
+        ySolution.Dimension(0, 0, hwMatrix::REAL);
+        return hwMathStatus();
+    }
+
+    hwArkWrap rkf45(sysfunc, rootfunc, jacDfunc, time(0), y, relerr, abserr, userData);
 
     hwMathStatus status = rkf45.GetStatus();
 

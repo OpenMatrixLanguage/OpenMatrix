@@ -2,15 +2,15 @@ function z=goo
 	if j==1
 	   hi
 	   a = 5+3
-	   antlr('sucks')
+	   disp('yay')
 	elseif j==2
 	   hi
 	   a = 5+3
-	   antlr('sucks')
+	   disp('yay')
 	else
 	   hi
 	   a = 5+
-	   antlr('sucks')
+	   disp('boo')
 	end
 end
 

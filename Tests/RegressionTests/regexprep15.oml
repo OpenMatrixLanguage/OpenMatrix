@@ -1,0 +1,1 @@
+regexprep('{$1}', '(?<!\\)\$1','999') %negative lookbehind pattern '(?<!\\ does not work and should be ignored

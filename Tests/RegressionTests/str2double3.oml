@@ -1,1 +1,1 @@
-[num, status]=str2double('')
+str2double('')

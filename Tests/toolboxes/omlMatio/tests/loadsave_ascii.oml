@@ -1,0 +1,18 @@
+% Save and load in default (v7) version
+
+clear all
+filepath = fileparts(omlfilename('fullpath'));
+cd(filepath);
+
+delete('*.mat');  % Delete old files
+
+% Set up the data
+Mat = eye(10);
+
+% save, load and compare variables
+
+addtoolbox omlMatio
+save([filepath '/matrix_ascii.mat'], 'Mat', '-ascii');
+R = load('matrix_ascii.mat', '-ascii');
+assert(isequal(R, Mat));
+disp(strcat('test [', omlfilename,'] finished'))

@@ -1,0 +1,7 @@
+addtoolbox('omlMatio')
+a = true;
+b = false;
+save('logical1_v5.mat', '-v5', '-nozip')
+clear all
+R = load('logical1_v5.mat')
+delete('logical1_v5.mat')

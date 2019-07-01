@@ -15,6 +15,7 @@
 */
 
 // Begin defines/includes
+#include "CellND.cc"
 #include "BoundClassInfo.h"
 #include "BuiltInFuncsUtils.h"
 #include "MemoryScope.h"
@@ -43,7 +44,16 @@
 std::string ExprTreeEvaluator::lasterrormsg;
 std::string ExprTreeEvaluator::lastwarning;
 
-UserFunc::~UserFunc()  { if (fi) delete fi; }
+UserFunc::~UserFunc()  
+{ 
+	if (fi)
+	{
+		fi->DecrRefCount();
+		
+		if (fi->GetRefCount() == 0)
+			delete fi;
+	}
+}
 
 #define RUN(tree) (this->*(tree->func_ptr))(tree)
 
@@ -75,6 +85,7 @@ ExprTreeEvaluator::ExprTreeEvaluator() : nested_function_marker(0), assignment_n
     , _suspendFunclistUpdate (false)
     , _pauseRequestPending (false)
     , _paused (false)
+	, _break_on_continue(false)
 {
 	msm                     = new MemoryScopeManager;
 	userFileStreams         = new std::vector<UserFile>;
@@ -167,6 +178,7 @@ ExprTreeEvaluator::ExprTreeEvaluator(const ExprTreeEvaluator* source) : format(s
     , _appdir (source->_appdir)
     , _pauseRequestPending (false)   // Source values are not copied for pause
     , _paused              (false)   // Source values are not copied for pause
+	, _break_on_continue(false)
 {
 	ImportUserFileList(source);
 	ImportMemoryScope(source);
@@ -433,6 +445,24 @@ Currency ExprTreeEvaluator::CallFunction(const std::string* func_name, const std
 		{
 			ALT_FUNCPTR alt_fptr = (*std_functions)[*func_name].alt_fptr;
 			return CallBuiltinFunction(alt_fptr, *func_name, params);
+		}
+	}
+	else if (params.size() && params[0].IsObject())
+	{
+		std::string class_name = params[0].GetClassname();
+		ClassInfo* ci = (*class_info_map)[class_name];
+
+		FunctionInfo* fi = ci->GetFunctionInfo(*func_name);
+
+		if (fi)
+		{
+			return CallInternalFunction(fi, params);
+		}
+		else
+		{
+			char buffer[2048];
+			sprintf(buffer, "Unknown class method: %s", func_name->c_str());
+			throw OML_Error(buffer);
 		}
 	}
 	else
@@ -720,9 +750,21 @@ Currency ExprTreeEvaluator::VariableIndex(const Currency& target, const std::vec
 				int new_cols = 1;
 
 				if ((data->M() != 1) && (data->N() == 1))
+				{
 					new_rows = (int)ret.size();
-				else
+				}
+				else if ((data->M() == 1) && (data->N() != 1))
+				{
 					new_cols = (int)ret.size();
+				}
+				else if (mtx->M() == 1)
+				{
+					new_cols = (int)ret.size();
+				}
+				else
+				{
+					new_rows = (int)ret.size();
+				}
 
 				hwMatrix* ret_mat = allocateMatrix(new_rows, new_cols, hwMatrix::REAL);
 
@@ -780,7 +822,12 @@ Currency ExprTreeEvaluator::VariableIndex(const Currency& target, const std::vec
 							temp_vec.push_back((*data)(j));
 					}
 
-					return temp_vec;
+					hwMatrix* temp = allocateMatrix((int)temp_vec.size(), 1, hwMatrix::REAL);
+
+					for (int j = 0; j < temp_vec.size(); j++)
+						(*temp)(j) = temp_vec[j];
+
+					return temp;
 				}
 				else
 				{
@@ -1161,7 +1208,10 @@ Currency ExprTreeEvaluator::VariableIndex(const Currency& target, const std::vec
 				slices.push_back(hwSliceArg());
 				hwMatrixN* temp_slice = allocateMatrixN();
 				mat_n->SliceRHS(slices, *temp_slice);
-                Currency ret = ConvertNDto2D(temp_slice);
+
+				hwMatrix* ret_mtx = allocateMatrix();
+				temp_slice->ConvertNDto2D(*ret_mtx);
+				Currency ret(ret_mtx);
                 ret.SetMask(target.GetMask());
                 return ret;
 			}
@@ -1264,7 +1314,9 @@ Currency ExprTreeEvaluator::VariableIndex(const Currency& target, const std::vec
 			else if (target.IsMatrix())
 			{
 				const hwMatrix* mat = target.Matrix();
-				mat_n = Convert2DtoND(mat);
+				hwMatrixN* temp = allocateMatrixN();
+				temp->Convert2DtoND(*mat); 
+				mat_n = temp;
 				delete_mat_n = true;
 			}
 
@@ -1320,7 +1372,8 @@ Currency ExprTreeEvaluator::VariableIndex(const Currency& target, const std::vec
 
 				if (dims.size() == 2)
 				{
-					hwMatrix* degenerate = ConvertNDto2D(temp_slice);
+					hwMatrix* degenerate = allocateMatrix();
+					temp_slice->ConvertNDto2D(*degenerate);
 					delete temp_slice;
                     Currency ret(degenerate);
                     ret.SetMask(target.GetMask());
@@ -1379,6 +1432,28 @@ Currency ExprTreeEvaluator::VariableIndex(const Currency& target, const std::vec
 				}
 			}
 		}
+		else if (mtx->Size() == 1)
+		{
+			if (params[0].IsMatrix() && !params[0].IsLogical())
+			{
+				const hwMatrix* indices = params[0].Matrix();
+
+				for (int j = 0; j<indices->Size(); j++)
+				{
+					if ((*indices)(j) != 1.0)
+						throw OML_Error(HW_ERROR_INDEXRANGE);
+				}
+
+				hwMatrix* new_mtx = allocateMatrix(indices->M(), indices->N(), (*mtx)(0));
+				Currency ret(new_mtx);
+				ret.SetMask(Currency::MASK_STRING);
+				return ret;
+			}
+			else
+			{
+				throw OML_Error(HW_ERROR_UNSUPINDOP);
+			}
+		}
 		else if (params[0].IsScalar() || (params[0].IsMatrix() && !params[0].IsEmpty()))
 		{
 			// i.e.  it's got a negative
@@ -1389,7 +1464,8 @@ Currency ExprTreeEvaluator::VariableIndex(const Currency& target, const std::vec
 	}
 	else if (target.IsFunctionHandle())
 	{
-		FunctionInfo* safe_temp = new FunctionInfo(*target.FunctionHandle());
+		FunctionInfo* safe_temp = target.FunctionHandle();
+		safe_temp->IncrRefCount();
 
 		std::vector<Currency> expanded_params;
 
@@ -1414,7 +1490,7 @@ Currency ExprTreeEvaluator::VariableIndex(const Currency& target, const std::vec
 		}
 
 		Currency ret = CallInternalFunction(safe_temp, expanded_params);
-		delete safe_temp;
+		safe_temp->DecrRefCount();
 		return ret;
 	}
 	else if (target.IsScalar())
@@ -1528,6 +1604,60 @@ Currency ExprTreeEvaluator::VariableIndex(const Currency& target, const std::vec
 				}
 
 				return allocateMatrix(rows, cols, 0.0);
+			}
+			else if (params[1].IsMatrix() && params[0].IsScalar())
+			{
+				const hwMatrix* mtx = params[1].Matrix();
+
+				if (!mtx->IsReal())
+					throw OML_Error(HW_ERROR_INDEXPOSINT);
+
+				if (!params[1].IsLogical())
+				{
+					for (int j = 0; j<mtx->Size(); j++)
+					{
+						if ((*mtx)(j) != 1.0)
+							throw OML_Error(HW_ERROR_INDEXRANGE);
+					}
+
+					if (params[0].Scalar() != 1.0)
+						throw OML_Error(HW_ERROR_INDEXRANGE);
+
+					// Always want a column
+					hwMatrix* new_mtx = allocateMatrix(mtx->Size(), 1, target.Scalar());
+					return new_mtx;
+				}
+				else
+				{
+					throw OML_Error(HW_ERROR_UNSUPINDOP);
+				}
+			}
+			else if (params[0].IsMatrix() && params[1].IsScalar())
+			{
+				const hwMatrix* mtx = params[0].Matrix();
+
+				if (!mtx->IsReal())
+					throw OML_Error(HW_ERROR_INDEXPOSINT);
+
+				if (!params[0].IsLogical())
+				{
+					for (int j = 0; j<mtx->Size(); j++)
+					{
+						if ((*mtx)(j) != 1.0)
+							throw OML_Error(HW_ERROR_INDEXRANGE);
+					}
+
+					if (params[1].Scalar() != 1.0)
+						throw OML_Error(HW_ERROR_INDEXRANGE);
+
+					// Always want a column
+					hwMatrix* new_mtx = allocateMatrix(mtx->Size(), 1, target.Scalar());
+					return new_mtx;
+				}
+				else
+				{
+					throw OML_Error(HW_ERROR_UNSUPINDOP);
+				}
 			}
 
 			throw OML_Error(HW_ERROR_INDEXRANGE);
@@ -1667,7 +1797,7 @@ Currency ExprTreeEvaluator::VariableIndex(const Currency& target, const std::vec
 			}
 			else
 			{
-				throw OML_Error(OML_MSG_INVALID_INDEX);
+				throw OML_Error(OML_ERR_INVALID_INDEX);
 			}
 		}
 		else if (params.size() == 0)
@@ -1959,6 +2089,65 @@ Currency ExprTreeEvaluator::VariableIndex(const Currency& target, const std::vec
 			}
 		}
 	}
+	else if (target.IsNDCellArray())
+	{
+		if (params.size() == 0)
+		{
+			return target;
+		}
+
+		if (target.IsCellList())
+			throw OML_Error(HW_ERROR_INVCELLIND);
+
+		std::vector<hwSliceArg> args;				
+		slices.clear();
+
+		for (int j = 0; j<params.size(); j++)
+		{
+			const Currency& temp = params[j];
+
+			if (temp.IsColon())
+			{
+				slices.push_back(hwSliceArg());
+			}
+			else if (temp.IsScalar())
+			{
+				slices.push_back((int)temp.Scalar() - 1);
+			}
+			else if (temp.IsPositiveVector())
+			{
+				std::vector<double> temp_vec = params[j].Vector();
+				std::vector<int>    temp_int;
+
+				for (int k = 0; k<temp_vec.size(); k++)
+					temp_int.push_back((int)(temp_vec[k] - 1));
+				slices.push_back(hwSliceArg(temp_int));
+			}
+			else
+			{
+				throw OML_Error(OML_ERR_INVALID_INDEX);
+			}
+		}
+
+		HML_ND_CELLARRAY* RHS = target.CellArrayND();
+
+		HML_ND_CELLARRAY* temp_slice = allocateNDCellArray();
+		RHS->SliceRHS(slices, *temp_slice);
+
+		std::vector<int> dims = temp_slice->Dimensions();
+
+		if (dims.size() == 2)
+		{
+			HML_CELLARRAY* degenerate = allocateCellArray();
+			temp_slice->ConvertNDto2D(*degenerate);
+			delete temp_slice;
+			return degenerate;
+		}
+		else
+		{
+			return temp_slice;
+		}
+	}
 	else
 	{
 		throw OML_Error(HW_ERROR_INVINDOP);
@@ -2028,11 +2217,11 @@ Currency ExprTreeEvaluator::CallInternalFunction(FunctionInfo*fi, const std::vec
 		
 		int args_used = 0;
 
-		std::vector<const std::string*> parameters = fi->Parameters();
+		const std::vector<const std::string*>* parameters = fi->ParametersPtr();
 
-		for (int j=0; j<parameters.size(); j++)
+		for (int j=0; j<parameters->size(); j++)
 		{
-			if (*parameters[j] == "varargin")
+			if (*(*parameters)[j] == "varargin")
 			{
                 HML_CELLARRAY *param_cells = CreateVararginCell(param_values, j);
                 args_used += param_cells->Size();
@@ -2043,7 +2232,7 @@ Currency ExprTreeEvaluator::CallInternalFunction(FunctionInfo*fi, const std::vec
 			{
 				if (j < param_values.size())
 				{
-					memory->SetValue(parameters[j], param_values[j]);
+					memory->SetValue((*parameters)[j], param_values[j]);
 					args_used++;
 				}
 			}
@@ -2052,12 +2241,12 @@ Currency ExprTreeEvaluator::CallInternalFunction(FunctionInfo*fi, const std::vec
 		if (GetExperimental())
 		{
 			// handle default parameters if necessary
-			for (int j=0; j<parameters.size(); j++)
+			for (int j=0; j<parameters->size(); j++)
 			{
-				if (!memory->Contains(parameters[j]))
+				if (!memory->Contains((*parameters)[j]))
 				{
-					if (fi->HasDefaultValue(parameters[j]))
-						memory->SetValue(parameters[j], fi->GetDefaultValue(parameters[j]));
+					if (fi->HasDefaultValue((*parameters)[j]))
+						memory->SetValue((*parameters)[j], fi->GetDefaultValue((*parameters)[j]));
 				}
 			}
 		}
@@ -2104,9 +2293,12 @@ Currency ExprTreeEvaluator::CallInternalFunction(FunctionInfo*fi, const std::vec
 						
 			int old_assignment_nargout = assignment_nargout;
 			assignment_nargout = 0;
+			bool old_boc = _break_on_continue;
+			_break_on_continue = false;
 			// now we can run the statements.  Yes we're duplicating the nested function registration, but there could be cross-dependency
 			r = RUN(statements);
 			assignment_nargout = old_assignment_nargout;
+			_break_on_continue = old_boc;
 		}
 
         user_func_calls.pop_back();
@@ -2402,9 +2594,21 @@ Currency ExprTreeEvaluator::AddOperator(const Currency& op1,const Currency& op2)
 		stat = ret->Add(*m1,*m2);
 
 		if (stat.IsOk())
+		{
 			return ret;
+		}
 		else
-			throw OML_Error(HW_ERROR_INCOMPDIM);
+		{
+			const hwMatrix* e1 = op1.ExpandMatrix(m2);
+			const hwMatrix* e2 = op2.ExpandMatrix(m1);
+
+			stat = ret->Add(*e1, *e2);
+
+			if (stat.IsOk())
+				return ret;
+			else
+				throw OML_Error(HW_ERROR_INCOMPDIM);
+		}
 	}
 	else if (op1.IsNDMatrix() || op2.IsNDMatrix())
 	{
@@ -2469,9 +2673,21 @@ Currency ExprTreeEvaluator::SubtractOperator(const Currency& op1, const Currency
 		stat = ret->Subtr(*m1,*m2);
 
 		if (stat.IsOk())
+		{
 			return ret;
+		}
 		else
-			throw OML_Error(HW_ERROR_INCOMPDIM);
+		{
+			const hwMatrix* e1 = op1.ExpandMatrix(m2);
+			const hwMatrix* e2 = op2.ExpandMatrix(m1);
+
+			stat = ret->Subtr(*e1, *e2);
+
+			if (stat.IsOk())
+				return ret;
+			else
+				throw OML_Error(HW_ERROR_INCOMPDIM);
+		}
 	}
 	else if (op1.IsScalar() && op2.IsComplex())
 	{
@@ -2664,8 +2880,22 @@ Currency ExprTreeEvaluator::EntrywiseMultiplyOperator(const Currency& op1, const
 			ret->MultByElems(*m1,*m2);
 			return ret;
 		}
-		
-		throw OML_Error(HW_ERROR_INCOMPDIM);
+		else
+		{
+			hwMathStatus stat;
+
+			const hwMatrix* e1 = op1.ExpandMatrix(m2);
+			const hwMatrix* e2 = op2.ExpandMatrix(m1);
+
+			hwMatrix* ret = allocateMatrix();
+
+			stat = ret->MultByElems(*e1, *e2);
+
+			if (stat.IsOk())
+				return ret;
+			else
+				throw OML_Error(HW_ERROR_INCOMPDIM);
+		}
 	}
 	else if (op1.IsNDMatrix() || op2.IsNDMatrix())
 	{
@@ -2859,9 +3089,21 @@ Currency ExprTreeEvaluator::EntrywiseDivideOperator(const Currency& op1, const C
 		stat = result->DivideByElems(*m1, *m2);
 
 		if (stat.IsOk())
+		{
 			return result;
+		}
 		else
-			throw OML_Error(HW_ERROR_INCOMPDIM);
+		{
+			const hwMatrix* e1 = op1.ExpandMatrix(m2);
+			const hwMatrix* e2 = op2.ExpandMatrix(m1);
+
+			stat = result->DivideByElems(*e1, *e2);
+
+			if (stat.IsOk())
+				return result;
+			else
+				throw OML_Error(HW_ERROR_INCOMPDIM);
+		}
 	}
 	else if (op1.IsNDMatrix() || op2.IsNDMatrix())
 	{
@@ -3206,35 +3448,48 @@ Currency ExprTreeEvaluator::EqualityOperatorEx(const Currency& op1, const Curren
 
 		if ((m1->M() == m2->M()) && (m1->N() == m2->N()))
 		{
-			hwMatrix* result = allocateMatrix(m1->M(), m1->N(), hwMatrix::REAL);
-
-			if (m1->IsReal() && m2->IsReal())
-			{
-				for (int j=0; j<m1->Size(); j++)
-					(*result)(j) = ((*m1)(j) == (*m2)(j));
-			}
-			else if (m1->IsReal() && !m2->IsReal())
-			{
-				for (int j=0; j<m1->Size(); j++)			
-					(*result)(j) = EqualityHelper((*m1)(j), m2->z(j));
-			}
-			else if (!m1->IsReal() && m2->IsReal())
-			{
-				for (int j=0; j<m1->Size(); j++)			
-					(*result)(j) = EqualityHelper((*m2)(j), m1->z(j));
-			}
-			else if (!m1->IsReal() && !m2->IsReal())
-			{
-				for (int j=0; j<m1->Size(); j++)			
-					(*result)(j) = EqualityHelper(m1->z(j), m2->z(j));
-			}
-
-			return result;
+			// nothing to do
 		}
 		else
 		{
-			throw OML_Error(HW_ERROR_INCOMPDIM);
+			const hwMatrix* e1 = op1.ExpandMatrix(m2);
+			const hwMatrix* e2 = op2.ExpandMatrix(m1);
+			m1 = e1;
+			m2 = e2;
+
+			if ((m1->M() == m2->M()) && (m1->N() == m2->N()))
+			{
+			}
+			else
+			{
+				throw OML_Error(HW_ERROR_INCOMPDIM);
+			}
 		}
+
+		hwMatrix* result = allocateMatrix(m1->M(), m1->N(), hwMatrix::REAL);
+
+		if (m1->IsReal() && m2->IsReal())
+		{
+			for (int j=0; j<m1->Size(); j++)
+				(*result)(j) = ((*m1)(j) == (*m2)(j));
+		}
+		else if (m1->IsReal() && !m2->IsReal())
+		{
+			for (int j=0; j<m1->Size(); j++)			
+				(*result)(j) = EqualityHelper((*m1)(j), m2->z(j));
+		}
+		else if (!m1->IsReal() && m2->IsReal())
+		{
+			for (int j=0; j<m1->Size(); j++)			
+				(*result)(j) = EqualityHelper((*m2)(j), m1->z(j));
+		}
+		else if (!m1->IsReal() && !m2->IsReal())
+		{
+			for (int j=0; j<m1->Size(); j++)			
+				(*result)(j) = EqualityHelper(m1->z(j), m2->z(j));
+		}
+
+		return result;
 	}
 	else if (op1.IsComplex() && op2.IsComplex())
 	{
@@ -3466,41 +3721,54 @@ Currency ExprTreeEvaluator::LessThanOperator(const Currency& op1, const Currency
 
 		if ((m1->M() == m2->M()) && (m1->N() == m2->N()))
 		{
-			hwMatrix* result = allocateMatrix(m1->M(), m1->N(), hwMatrix::REAL);
+			// nothing to do
+		}
+		else
+		{
+			const hwMatrix* e1 = op1.ExpandMatrix(m2);
+			const hwMatrix* e2 = op2.ExpandMatrix(m1);
+			m1 = e1;
+			m2 = e2;
+		}
 
-			if (m1->IsReal())
-			{
-				if (m2->IsReal())
-				{
-					for (int j=0; j<m1->Size(); j++)
-						(*result)(j) = (*m1)(j) < (*m2)(j);
-				}
-				else
-				{
-					for (int j=0; j<m1->Size(); j++)
-						(*result)(j) = (*m1)(j) < m2->z(j).Mag();
-				}
-			}
-			else
-			{
-				if (m2->IsReal())
-				{
-					for (int j=0; j<m1->Size(); j++)
-						(*result)(j) = m1->z(j).Mag() < (*m2)(j);
-				}
-				else
-				{
-					for (int j=0; j<m1->Size(); j++)
-						(*result)(j) = m1->z(j).Mag() < m2->z(j).Mag();
-				}
-			}
-
-			return result;
+		if ((m1->M() == m2->M()) && (m1->N() == m2->N()))
+		{
 		}
 		else
 		{
 			throw OML_Error(HW_ERROR_INCOMPDIM);
 		}
+
+		hwMatrix* result = allocateMatrix(m1->M(), m1->N(), hwMatrix::REAL);
+
+		if (m1->IsReal())
+		{
+			if (m2->IsReal())
+			{
+				for (int j=0; j<m1->Size(); j++)
+					(*result)(j) = (*m1)(j) < (*m2)(j);
+			}
+			else
+			{
+				for (int j=0; j<m1->Size(); j++)
+					(*result)(j) = (*m1)(j) < m2->z(j).Mag();
+			}
+		}
+		else
+		{
+			if (m2->IsReal())
+			{
+				for (int j=0; j<m1->Size(); j++)
+					(*result)(j) = m1->z(j).Mag() < (*m2)(j);
+			}
+			else
+			{
+				for (int j=0; j<m1->Size(); j++)
+					(*result)(j) = m1->z(j).Mag() < m2->z(j).Mag();
+			}
+		}
+
+		return result;
 	}
 	else if (op1.IsComplex() && op2.IsComplex())
 	{
@@ -3680,41 +3948,54 @@ Currency ExprTreeEvaluator::GreaterThanOperator(const Currency& op1, const Curre
 
 		if ((m1->M() == m2->M()) && (m1->N() == m2->N()))
 		{
-			hwMatrix* result = allocateMatrix(m1->M(), m1->N(), hwMatrix::REAL);
+			// nothing to do
+		}
+		else
+		{
+			const hwMatrix* e1 = op1.ExpandMatrix(m2);
+			const hwMatrix* e2 = op2.ExpandMatrix(m1);
+			m1 = e1;
+			m2 = e2;
+		}
 
-			if (m1->IsReal())
-			{
-				if (m2->IsReal())
-				{
-					for (int j=0; j<m1->Size(); j++)
-						(*result)(j) = (*m1)(j) > (*m2)(j);
-				}
-				else
-				{
-					for (int j=0; j<m1->Size(); j++)
-						(*result)(j) = (*m1)(j) > m2->z(j).Mag();
-				}
-			}
-			else
-			{
-				if (m2->IsReal())
-				{
-					for (int j=0; j<m1->Size(); j++)
-						(*result)(j) = m1->z(j).Mag() > (*m2)(j);
-				}
-				else
-				{
-					for (int j=0; j<m1->Size(); j++)
-						(*result)(j) = m1->z(j).Mag() > m2->z(j).Mag();
-				}
-			}
-
-			return result;
+		if ((m1->M() == m2->M()) && (m1->N() == m2->N()))
+		{
 		}
 		else
 		{
 			throw OML_Error(HW_ERROR_INCOMPDIM);
 		}
+
+		hwMatrix* result = allocateMatrix(m1->M(), m1->N(), hwMatrix::REAL);
+
+		if (m1->IsReal())
+		{
+			if (m2->IsReal())
+			{
+				for (int j=0; j<m1->Size(); j++)
+					(*result)(j) = (*m1)(j) > (*m2)(j);
+			}
+			else
+			{
+				for (int j=0; j<m1->Size(); j++)
+					(*result)(j) = (*m1)(j) > m2->z(j).Mag();
+			}
+		}
+		else
+		{
+			if (m2->IsReal())
+			{
+				for (int j=0; j<m1->Size(); j++)
+					(*result)(j) = m1->z(j).Mag() > (*m2)(j);
+			}
+			else
+			{
+				for (int j=0; j<m1->Size(); j++)
+					(*result)(j) = m1->z(j).Mag() > m2->z(j).Mag();
+			}
+		}
+
+		return result;
 	}
 	else if (op1.IsComplex() && op2.IsComplex())
 	{
@@ -4314,6 +4595,10 @@ Currency ExprTreeEvaluator::LogicalOperatorEx(const Currency& lhs, const Currenc
 
 				return result;
 			}
+			else if (m1->IsEmpty() || m2->IsEmpty())
+			{
+				return EvaluatorInterface::allocateMatrix();
+			}
 		}
 		else
 		{
@@ -4854,9 +5139,11 @@ Currency ExprTreeEvaluator::FunctionCall(OMLTree* tree)
 						}
 					}
 					
-					FunctionInfo* fi = new FunctionInfo(*val.FunctionHandle());
+					FunctionInfo* fi = val.FunctionHandle();
+					fi->IncrRefCount();
 					Currency ret = CallInternalFunction(fi, param_vals);
-					delete fi;
+					fi->DecrRefCount();
+
 					return ret;
 				}
 				else
@@ -4898,26 +5185,69 @@ Currency ExprTreeEvaluator::FunctionCall(OMLTree* tree)
                 int oldAssignmentArgs = assignment_nargout;
                 assignment_nargout = 1;
 
-				for (int j=0; j<num_params; j++)
+				int first_skipped_param = -1;
+
+				try
 				{
-					OMLTree* child_j = func_args->GetChild(j);
-					Currency param = RUN(child_j);
-
-					if (param.IsCellList())
+					for (int j = 0; j < num_params; j++)
 					{
-						HML_CELLARRAY* cells = param.CellArray();
+						OMLTree* child_j = func_args->GetChild(j);
+						Currency param = RUN(child_j);
 
-						for (int k=0; k<cells->Size(); k++)
-							param_vals.push_back((*cells)(k));
+						if (param.IsCellList())
+						{
+							HML_CELLARRAY* cells = param.CellArray();
+
+							for (int k = 0; k < cells->Size(); k++)
+								param_vals.push_back((*cells)(k));
+						}
+						else if (param.IsObject())
+						{
+							ClassInfo* ci = NULL;
+
+							ci = (*class_info_map)[param.GetClassname()];
+
+							if (ci->IsSubclassOf("handle"))
+							{
+								bool old_lhs_eval = _lhs_eval;
+								_lhs_eval = true;
+								param = RUN(child_j);
+								_lhs_eval = old_lhs_eval;
+							}
+
+							param_vals.push_back(param);
+						}
+						else
+						{
+							param_vals.push_back(param);
+
+							if (param_vals.back().IsNothing())
+							{
+								first_skipped_param = j;
+								param_vals.pop_back();
+							}
+							else
+							{
+								if (first_skipped_param != -1)
+									throw OML_Error(OML_ERR_INPUT_EMPTY, first_skipped_param + 1);
+							}
+						}
+					}
+				}
+				catch (OML_Error& e) // handle errors in parameter evaluation, typically end
+				{
+					if (e.GetErrorMessage() == "Error: no available context for end function")
+					{
+						char buffer[2048];
+						sprintf(buffer, "Unknown function: %s", var_ptr->c_str());
+						throw OML_Error(buffer);
 					}
 					else
 					{
-						param_vals.push_back(param);
-
-						if (param_vals.back().IsNothing())
-							param_vals.pop_back();
+						throw e;
 					}
 				}
+
                 // Restore assignment_nargout value
                 assignment_nargout = oldAssignmentArgs;
 
@@ -5251,90 +5581,16 @@ void ExprTreeEvaluator::DoMultiReturnFunctionCall(FUNCPTR fptr, const std::strin
 		bool skip_output = false;
 
 		Currency loop_cur = ret[j];
-
-		std::string* output_name = NULL;
+		loop_cur.ClearOutputName();
 
 		OMLTree*    out_var  = out_tree->GetChild(j);
 		int         out_type = out_var->GetType();
 
-		if ((out_type == CELL_VAL) || (out_type == FUNC))
-		{
-			OMLTree* indexed_var = out_var->GetChild(0);
-			OMLTree* indices     = out_var->GetChild(1);
-		
-			if (!indexed_var->u)
-				indexed_var->u = (void*)Currency::vm.GetStringPointer(indexed_var->GetText());
+		OMLTree* child_n = out_tree->GetChild(j);
 
-			output_name = (std::string*)indexed_var->u;
+		if (child_n->GetType() != NEGATE) // don't run ~
+			PushResult(AssignmentUtility(child_n, loop_cur), !suppress_output);
 
-			Currency& target  = msm->GetMutableValue(*output_name);
-
-			std::vector<Currency> output_indices;
-
-			int num_indices = indices->ChildCount();
-
-			for (int k=0; k<num_indices; k++)
-			{
-				OMLTree* child_k = indices->GetChild(k);
-				Currency index = RUN(child_k);
-				output_indices.push_back(index);
-			}
-
-			AssignHelper(target, output_indices, loop_cur);
-		}
-		else if (out_type == STRUCT)
-		{
-			OMLTree* ident_tree = out_var->GetChild(0);
-			OMLTree* index_tree = NULL;
-			OMLTree* field_tree = NULL;
-
-			if (!ident_tree->u)
-				ident_tree->u = (void*)Currency::vm.GetStringPointer(ident_tree->GetText());
-
-			output_name = (std::string*)ident_tree->u;
-				
-			int num_children = out_var->ChildCount();
-
-			if (num_children == 2)
-			{
-				field_tree = out_var->GetChild(1);
-			}
-			else if (num_children == 3)
-			{
-				index_tree = out_var->GetChild(1);					
-				field_tree = out_var->GetChild(2);
-			}
-
-			Currency& target  = msm->GetMutableValue(*output_name);
-			target.MakeStruct();
-
-			StructAssignmentHelper(&target, index_tree, field_tree, loop_cur);
-			msm->SetValue(output_name, target);
-		}
-		else if (out_type == IDENT)
-		{
-			if (!out_var->u)
-				out_var->u = (void*)Currency::vm.GetStringPointer(out_var->GetText());
-
-			output_name = (std::string*)out_var->u;
-
-			msm->SetValue(output_name, loop_cur);
-		}
-		else if (out_type == NEGATE)
-		{
-			skip_output = true;
-		}
-		else
-		{
-			throw OML_Error("Unknown output type");
-		}
-
-		// this is a special case since we can't ordinarily push multiple outputs from a single statement
-		if (!suppress_output && !skip_output)
-		{
-			ret[j].SetOutputName(output_name);
-			PushResult(ret[j]); 
-		}
 	}
 
 	PopNargValues();
@@ -5387,85 +5643,12 @@ void ExprTreeEvaluator::DoMultiReturnFunctionCall(ALT_FUNCPTR alt_fptr, const st
 		const OMLCurrencyImpl* loop_cur_ptr = (const OMLCurrencyImpl*)out_list.Get(j);
 		Currency loop_cur = loop_cur_ptr->GetCurrency();
 
-		std::string* output_name = NULL;
+		loop_cur.ClearOutputName();
 
 		OMLTree*    out_var  = out_tree->GetChild(j);
-		int         out_type = out_var->GetType();
 
-		if ((out_type == CELL_VAL) || (out_type == FUNC))
-		{
-			OMLTree* indexed_var = out_var->GetChild(0);
-			OMLTree* indices     = out_var->GetChild(1);
-		
-			if (!indexed_var->u)
-				indexed_var->u = (void*)Currency::vm.GetStringPointer(indexed_var->GetText());
-
-			output_name = (std::string*)indexed_var->u;
-
-			Currency& target  = msm->GetMutableValue(*output_name);
-
-			std::vector<Currency> output_indices;
-
-			int num_indices = indices->ChildCount();
-
-			for (int k=0; k<num_indices; k++)
-			{
-				OMLTree* child_k = indices->GetChild(k);
-				Currency index = RUN(child_k);
-				output_indices.push_back(index);
-			}
-
-			AssignHelper(target, output_indices, loop_cur);
-		}
-		else if (out_type == STRUCT)
-		{
-			OMLTree* ident_tree = out_var->GetChild(0);
-			OMLTree* index_tree = NULL;
-			OMLTree* field_tree = NULL;
-
-			if (!ident_tree->u)
-				ident_tree->u = (void*)Currency::vm.GetStringPointer(ident_tree->GetText());
-
-			output_name = (std::string*)ident_tree->u;
-				
-			int num_children = out_var->ChildCount();
-
-			if (num_children == 2)
-			{
-				field_tree = out_var->GetChild(1);
-			}
-			else if (num_children == 3)
-			{
-				index_tree = out_var->GetChild(1);					
-				field_tree = out_var->GetChild(2);
-			}
-
-			Currency& target  = msm->GetMutableValue(*output_name);
-			target.MakeStruct();
-
-			StructAssignmentHelper(&target, index_tree, field_tree, loop_cur);
-			msm->SetValue(output_name, target);
-		}
-		else if (out_type == IDENT)
-		{
-			if (!out_var->u)
-				out_var->u = (void*)Currency::vm.GetStringPointer(out_var->GetText());
-
-			output_name = (std::string*)out_var->u;
-
-			msm->SetValue(output_name, loop_cur);
-		}
-		else
-		{
-			throw OML_Error("Unknown output type");
-		}
-
-		// this is a special case since we can't ordinarily push multiple outputs from a single statement
-		if (!suppress_output)
-		{
-			loop_cur.SetOutputName(output_name);
-			PushResult(loop_cur); 
-		}
+		if (out_var->GetType() != NEGATE) // don't run ~
+			PushResult(AssignmentUtility(out_var, loop_cur), !suppress_output);
 	}
 
 	OMLCurrencyImpl::GarbageCollect();
@@ -5649,107 +5832,17 @@ void ExprTreeEvaluator::DoMultiReturnFunctionCall(FunctionInfo* fi, const std::v
 
 			if (cells)
 				loop_cur = (*cells)(k);
-				
-			ret.push_back(loop_cur);
+
+			loop_cur.ClearOutputName();
 
 				// it's possible that not enough output variables were assigned
 			if ((j+k) >= num_rets)
 					break;
 
-			OMLTree*    out_var  = out_tree->GetChild(j+k);
-			int         out_type = out_var->GetType();
+			OMLTree* child_n = out_tree->GetChild(j + k);
 
-			if (out_type == FUNC)
-			{
-				OMLTree* indexed_var = out_var->GetChild(0);
-				OMLTree* indices     = out_var->GetChild(1);
-
-				if (!indexed_var->u)
-					indexed_var->u = (void*)Currency::vm.GetStringPointer(indexed_var->GetText());
-
-				output_name = (std::string*)indexed_var->u;
-
-				Currency& target  = msm->GetMutableValue(*output_name);
-
-				std::vector<Currency> output_indices;
-
-				int num_indices = indices->ChildCount();
-				
-				// the indices have to be run before we call OpenScope
-				for (int k=0; k<num_indices; k++)
-				{
-					OMLTree* child_k = indices->GetChild(k);
-					Currency index = RUN(child_k);
-					output_indices.push_back(index);
-				}
-
-				AssignHelper(target, output_indices, loop_cur);
-			}
-			else if (out_type == CELL_VAL)
-			{
-				_lhs_eval = true;
-				Currency cur = RUN(out_var);
-				_lhs_eval = false;
-
-				*cur.Pointer() = loop_cur;
-				cur.Pointer()->ClearOutputName();
-
-				output_name = (std::string*)out_var->GetLeadingIdent();
-			}
-			else if (out_type == STRUCT)
-			{
-				OMLTree* ident_tree = out_var->GetChild(0);
-				OMLTree* index_tree = NULL;
-				OMLTree* field_tree = NULL;
-
-				if (!ident_tree->u)
-					ident_tree->u = (void*)Currency::vm.GetStringPointer(ident_tree->GetText());
-
-				output_name = (std::string*)ident_tree->u;
-				
-				int num_children = out_var->ChildCount();
-
-				if (num_children == 2)
-				{
-					field_tree = out_var->GetChild(1);
-				}
-				else if (num_children == 3)
-				{
-					index_tree = out_var->GetChild(1);					
-					field_tree = out_var->GetChild(2);
-				}
-
-				Currency& target  = msm->GetMutableValue(*output_name);
-				target.MakeStruct();
-
-				StructAssignmentHelper(&target, index_tree, field_tree, loop_cur);
-				msm->SetValue(output_name, target);
-			}
-			else if (out_type == IDENT)
-			{
-				if (!out_var->u)
-					out_var->u = (void*)Currency::vm.GetStringPointer(out_var->GetText());
-
-				output_name = (std::string*)out_var->u;
-
-				msm->SetValue(output_name, loop_cur);
-			}
-			else if (out_type == NEGATE)
-			{
-				msm->SetValue("~", loop_cur);
-				skip_var = true;
-			}
-			else
-			{
-				throw OML_Error("Unknown output type");
-			}
-
-			// this is a special case since we can't ordinarily push multiple outputs from a single statement
-			if (!suppress_output && !skip_var)
-			{
-				Currency ret_cur = msm->GetValue(output_name);
-				PushResult(ret_cur);
-			}
+			if (child_n->GetType() != NEGATE) // don't run ~
+				PushResult(AssignmentUtility(child_n, loop_cur), !suppress_output);
 		}
 	}
 
@@ -5796,6 +5889,9 @@ Currency ExprTreeEvaluator::MultiReturnFunctionCall(OMLTree* tree)
 
 	const std::string* my_func = (const std::string*)func->u;
 
+	if (!my_func)
+		throw OML_Error(HW_ERROR_ILLASSIGN);
+
 	FunctionInfo*   fi   = NULL;
 	FUNCPTR         fptr = NULL;
 
@@ -5837,7 +5933,7 @@ Currency ExprTreeEvaluator::MultiReturnFunctionCall(OMLTree* tree)
 		}
 	}
 
-	if (!fi && my_func)
+	if (!fi)
 		FindFunctionByName(my_func, &fi, &fptr);
 
 	if (!fi)
@@ -5881,6 +5977,8 @@ Currency ExprTreeEvaluator::MultiReturnFunctionCall(OMLTree* tree)
 	if (fi)
 		parameters = fi->Parameters();
 
+	int extra_args = 0;
+
 	for (int j=0; j<num_params; j++)
 	{
 		if (j < parameters.size() && (*parameters[j] == "varargin"))
@@ -5898,6 +5996,8 @@ Currency ExprTreeEvaluator::MultiReturnFunctionCall(OMLTree* tree)
 
 					for (int k=0; k<cells->Size(); k++)
 						vararg_params.push_back((*cells)(k));
+
+					extra_args = cells->Size() - 1;
 				}
 				else
 				{
@@ -5921,11 +6021,11 @@ Currency ExprTreeEvaluator::MultiReturnFunctionCall(OMLTree* tree)
 
 	if (fi)
 	{
-		DoMultiReturnFunctionCall(fi, param_values, num_params, suppress_output, ret_args);
+		DoMultiReturnFunctionCall(fi, param_values, num_params+extra_args, suppress_output, ret_args);
 	}
 	else if (fptr)
 	{
-		DoMultiReturnFunctionCall(fptr, *my_func, param_values, num_params, suppress_output, ret_args);
+		DoMultiReturnFunctionCall(fptr, *my_func, param_values, num_params+extra_args, suppress_output, ret_args);
 	}
 	else if (std_functions->find(*my_func) != std_functions->end())
 	{
@@ -6194,8 +6294,11 @@ Currency ExprTreeEvaluator::SwitchCase(OMLTree* tree)
 					{
 						if (switch_val.Scalar() == cell_val.Scalar())
 						{
-							OMLTree* case_1 = case_tree->GetChild(1);
-							ret = RUN(case_1);
+							if (case_tree->ChildCount() == 2)
+							{
+								OMLTree* case_1 = case_tree->GetChild(1);
+								ret = RUN(case_1);
+							}
 							found = true;
 							break;
 						}
@@ -6204,8 +6307,11 @@ Currency ExprTreeEvaluator::SwitchCase(OMLTree* tree)
 					{
 						if (switch_val.StringVal() == cell_val.StringVal())
 						{
-							OMLTree* case_1 = case_tree->GetChild(1);
-							ret = RUN(case_1);
+							if (case_tree->ChildCount() == 2)
+							{
+								OMLTree* case_1 = case_tree->GetChild(1);
+								ret = RUN(case_1);
+							}
 							found = true;
 							break;
 						}
@@ -6240,8 +6346,10 @@ Currency ExprTreeEvaluator::WhileLoop(OMLTree* tree)
 	OMLTree* condition  = tree->GetChild(0);
 	OMLTree* statements = tree->GetChild(1);
 
-	bool old_val      = _store_suppressed;
-	_store_suppressed = false;
+	bool old_val       = _store_suppressed;
+	_store_suppressed  = false;
+	bool old_boc       = _break_on_continue;
+	_break_on_continue = true;
 
 	while (1)
 	{
@@ -6255,7 +6363,11 @@ Currency ExprTreeEvaluator::WhileLoop(OMLTree* tree)
 			break;
 
 		if (ret.IsReturn())
+		{
+			_break_on_continue = old_boc;
+			_store_suppressed  = old_val;
 			return ret;
+		}
 
 		if (ret.IsBreak())
 			break;
@@ -6264,7 +6376,8 @@ Currency ExprTreeEvaluator::WhileLoop(OMLTree* tree)
 			continue;
 	}
 
-	_store_suppressed = old_val;
+	_store_suppressed  = old_val;
+	_break_on_continue = old_boc;
 
 	return Currency(-1, Currency::TYPE_NOTHING);
 }
@@ -6446,8 +6559,10 @@ Currency ExprTreeEvaluator::ForLoop(OMLTree* tree)
 
 	LoopHelper lh;
 
-	bool old_val      = _store_suppressed;
-	_store_suppressed = false;
+	bool old_val       = _store_suppressed;
+	_store_suppressed  = false;
+	bool old_boc       = _break_on_continue;
+	_break_on_continue = true;
 
 	if (test->GetType() == COLON)
 	{
@@ -6542,6 +6657,8 @@ Currency ExprTreeEvaluator::ForLoop(OMLTree* tree)
 				}
 				else if (ret.IsReturn())
 				{
+					_break_on_continue = old_boc;
+					_store_suppressed  = old_val;
 					return ret;
 				}
 				else if (ret.IsContinue())
@@ -6574,6 +6691,8 @@ Currency ExprTreeEvaluator::ForLoop(OMLTree* tree)
 				}
 				else if (ret.IsReturn())
 				{
+					_break_on_continue = old_boc;
+					_store_suppressed  = old_val;
 					return ret;
 				}
 				else if (ret.IsContinue())
@@ -6613,6 +6732,8 @@ Currency ExprTreeEvaluator::ForLoop(OMLTree* tree)
 			}
 			else if (ret.IsReturn())
 			{
+				_break_on_continue = old_boc;
+				_store_suppressed  = old_val;
 				return ret;
 			}
 			else if (ret.IsContinue())
@@ -6649,6 +6770,8 @@ Currency ExprTreeEvaluator::ForLoop(OMLTree* tree)
 			}
 			else if (ret.IsReturn())
 			{
+				_break_on_continue = old_boc;
+				_store_suppressed  = old_val;
 				return ret;
 			}
 			else if (ret.IsContinue())
@@ -6663,6 +6786,7 @@ Currency ExprTreeEvaluator::ForLoop(OMLTree* tree)
 	}
 
 	_store_suppressed = old_val;
+	_break_on_continue = old_boc;
 
 	return Currency(-1, Currency::TYPE_NOTHING);
 }
@@ -6852,7 +6976,7 @@ Currency ExprTreeEvaluator::AnonymousFunctionDefinition(OMLTree* tree)
 			if (fptr)
 				fi = new FunctionInfo(func_name, fptr);
 			else if (fi)
-				fi = new FunctionInfo(*fi);
+				fi->IncrRefCount();
 			else
 				throw OML_Error(func_name + " is not a function handle");
 		}
@@ -6866,9 +6990,14 @@ Currency ExprTreeEvaluator::AnonymousFunctionDefinition(OMLTree* tree)
 				uf = (*functions)[func_name];
 
 			if (uf)
-				fi = new FunctionInfo(*uf->fi);
+			{
+				fi = uf->fi;
+				fi->IncrRefCount();
+			}
 			else
+			{
 				throw OML_Error("Error: unknown function: " + func_name);
+			}
 		}
 		else
 		{
@@ -7090,13 +7219,20 @@ Currency ExprTreeEvaluator::MatrixCreation(OMLTree* tree)
 
 	std::vector<std::vector<Currency>> currencies;
 
+	std::vector<Currency> temp;
+
 	unsigned int num_tree_rows = tree->ChildCount();
+
+	currencies.reserve(num_tree_rows);
+
 	for (unsigned int j=0; j<num_tree_rows; j++)
 	{
-		std::vector<Currency> temp;
+		temp.clear();
 
 		OMLTree* row_tree = tree->GetChild(j);
 		unsigned int num_row_cols = row_tree->ChildCount();
+
+		temp.reserve(num_row_cols);
 
 		for (unsigned int k=0; k<num_row_cols; k++)
 		{
@@ -7444,7 +7580,12 @@ Currency ExprTreeEvaluator::StatementList(OMLTree* tree)
 
 		r = RUN(stmt);
 
-		if (r.IsBreak() || r.IsReturn() || r.IsError() || r.IsContinue())
+		// need a special case for continue
+
+		if (r.IsBreak() || r.IsReturn() || r.IsError())
+			break;
+
+		if (_break_on_continue && r.IsContinue())
 			break;
 	}
 
@@ -7497,7 +7638,10 @@ Currency ExprTreeEvaluator::Statement(OMLTree* tree)
 
 		suppress_multi_ret_output = false; 
 
-		if (r.IsBreak() || r.IsReturn() || r.IsError() || r.IsContinue())
+		if (r.IsBreak() || r.IsReturn() || r.IsError())
+			return r;
+
+		if (_break_on_continue && r.IsContinue())
 			return r;
 
 		PushResult(r, !suppress);
@@ -7533,14 +7677,73 @@ Currency ExprTreeEvaluator::AssignOperator(OMLTree* tree)
 
 	assignment_nargout = old_assignment_nargs;
 
+	return AssignmentUtility(lhs, value);
+}
+
+Currency ExprTreeEvaluator::AssignmentUtility(OMLTree* lhs, const Currency& new_value)
+{
 	const std::string* old_name = lhs->GetLeadingIdent();
-	bool  implicitly_created    = false;
+	bool  implicitly_created = false;
 
 	if (!msm->Contains(old_name))
 		implicitly_created = true;
 
 	if (lhs->GetType() != FUNC)
 	{
+		if (lhs->GetType() == CELL_VAL)
+		{
+			OMLTree* index_tree = lhs->GetChild(1);
+
+			if (index_tree->ChildCount() > 2)
+			{
+				OMLTree* indices = NULL;
+
+				if (lhs->ChildCount() == 2)
+				{
+					_lhs_eval = true;
+					Currency lhs_cur = RUN(lhs->GetChild(0));
+					_lhs_eval = false;
+
+					std::vector<Currency> index_vec;
+					OMLTree* indices = lhs->GetChild(1);
+
+					end_context_currency = lhs_cur.Pointer();
+					end_context_index = -1;
+
+					int num_indices = indices->ChildCount();
+
+					index_vec.reserve(num_indices);
+					for (int j = 0; j < num_indices; j++)
+					{
+						if (num_indices > 1)
+							end_context_index = j;
+
+						index_vec.push_back(RUN(indices->GetChild(j)));
+					}
+
+					end_context_currency = NULL;
+
+					try
+					{
+						NDCellAssignmetHelper(*lhs_cur.Pointer(), index_vec, new_value);
+					}
+					catch (OML_Error& e)
+					{
+						// can't do this as a blanket rule
+						// only if evaluating the LHS created the variable
+						if (implicitly_created)
+							msm->GetCurrentScope()->Remove(*old_name);
+						throw(e);
+					}
+
+					Currency& ret_cur = msm->GetMutableValue(old_name);
+					ret_cur.SetOutputName(old_name);
+
+					return ret_cur;
+				}
+			}	
+		}
+
 		_lhs_eval = true;
 		Currency lhs_cur = RUN(lhs);
 		_lhs_eval = false;
@@ -7562,16 +7765,20 @@ Currency ExprTreeEvaluator::AssignOperator(OMLTree* tree)
 					std::string field = tree->GetText();
 					dummy_input.push_back(field);
 
-					dummy_input.push_back(value);
+					dummy_input.push_back(new_value);
 
 					return CallFunction("set", dummy_input);
 				}
 			}
 		}
-
-		if (value.IsCellList())
+		else if (!lhs_cur.IsPointer())
 		{
-			HML_CELLARRAY* cells = value.CellArray();
+			throw OML_Error("Unknown error");
+		}
+
+		if (new_value.IsCellList())
+		{
+			HML_CELLARRAY* cells = new_value.CellArray();
 			(*lhs_cur.Pointer()) = (*cells)(0); // just take the first one
 		}
 		else
@@ -7580,15 +7787,15 @@ Currency ExprTreeEvaluator::AssignOperator(OMLTree* tree)
 			{
 				std::vector<Currency> index_vec;
 				OMLTree* indices = NULL;
-				
+
 				if (lhs->ChildCount() > 1)
 				{
 					indices = lhs->GetChild(1);
 
 					end_context_currency = lhs_cur.Pointer();
-					end_context_index    = -1;
+					end_context_index = -1;
 
-					for (int j=0; j<indices->ChildCount(); j++)
+					for (int j = 0; j<indices->ChildCount(); j++)
 					{
 						if (indices->ChildCount() > 1)
 							end_context_index = j;
@@ -7606,18 +7813,18 @@ Currency ExprTreeEvaluator::AssignOperator(OMLTree* tree)
 					{
 						HML_CELLARRAY* cells = lhs_cur.Pointer()->CellArray();
 
-						for (int j=0; j<cells->Size(); j++)
-							(*cells)(j) = value;
+						for (int j = 0; j<cells->Size(); j++)
+							(*cells)(j) = new_value;
 					}
 				}
 			}
 			else
 			{
-				*(lhs_cur.Pointer()) = value;
+				*(lhs_cur.Pointer()) = new_value;
 			}
 		}
 
-		const std::string* old_name = lhs->GetLeadingIdent(); 
+		const std::string* old_name = lhs->GetLeadingIdent();
 		Currency& ret_cur = msm->GetMutableValue(old_name);
 		ret_cur.SetOutputName(old_name);
 
@@ -7630,17 +7837,17 @@ Currency ExprTreeEvaluator::AssignOperator(OMLTree* tree)
 			_lhs_eval = true;
 			Currency lhs_cur = RUN(lhs->GetChild(0));
 			_lhs_eval = false;
-			
+
 			std::vector<Currency> index_vec;
 			OMLTree* indices = lhs->GetChild(1);
 
 			end_context_currency = lhs_cur.Pointer();
-			end_context_index    = -1;
-			
+			end_context_index = -1;
+
 			int num_indices = indices->ChildCount();
 
 			index_vec.reserve(num_indices);
-			for (int j=0; j<num_indices; j++)
+			for (int j = 0; j<num_indices; j++)
 			{
 				if (num_indices > 1)
 					end_context_index = j;
@@ -7652,7 +7859,7 @@ Currency ExprTreeEvaluator::AssignOperator(OMLTree* tree)
 
 			try
 			{
-				AssignHelper(*lhs_cur.Pointer(), index_vec, value); 
+				AssignHelper(*lhs_cur.Pointer(), index_vec, new_value);
 			}
 			catch (OML_Error& e)
 			{
@@ -7674,126 +7881,7 @@ Currency ExprTreeEvaluator::AssignOperator(OMLTree* tree)
 		}
 	}
 
-	return value;
-
-#if 0
-	OMLTree* lhs = tree->GetChild(0);
-
-	if (!lhs->u)
-	{
-		lhs->u = (void*)Currency::vm.GetStringPointer(lhs->GetText());
-
-		std::string* pString = (std::string*)lhs->u;
-
-		if ((*pString == "spmd") || (*pString == "break") || (*pString == "continue"))
-			throw OML_Error(HW_ERROR_NOTUSEKEY);
-	}
-
-	std::string* pString = (std::string*)lhs->u;
-
-	if (lhs->GetType() == STRUCT)
-	{
-		Currency ret = StructAssignment(tree);
-
-		if (ret.GetOutputName().size() == 0)
-		{
-			OMLTree* child = lhs->GetChild(0);
-			std::string output_name;
-
-			if (child->GetType() == CELL_VAL)
-				output_name = child->GetChild(0)->GetText();
-			ret.SetOutputName(output_name);
-		}
-		return ret;
-	}
-
-	int num_children = tree->ChildCount();
-	
-	int old_assignment_nargs = assignment_nargout;
-	assignment_nargout = 1;
-
-	OMLTree* child_1 = tree->GetChild(1);
-	Currency value = RUN(child_1);
-
-	if (value.IsNothing())
-		throw OML_Error(HW_ERROR_UNASSIGNEMPTRIGHT);
-
-	assignment_nargout = old_assignment_nargs;
-
-	if (num_children == 3) // assignment with indices
-	{
-		std::vector<Currency> indices;
-		
-		OMLTree* index_tree = tree->GetChild(2);
-		int num_indices = index_tree->ChildCount();
-
-		indices.reserve(num_indices);
-
-		end_context_varname = (std::string*)pString;
-
-		for (int j=0; j<num_indices; j++)
-		{
-			if (num_indices == 1)
-				end_context_index = -1;
-			else
-				end_context_index = j;
-
-			OMLTree* child_j = index_tree->GetChild(j);
-			const Currency& idx = RUN(child_j);
-			indices.push_back(idx);
-		}
-
-		end_context_varname = NULL;
-
-		if (lhs->GetType() == CELL_VAL)
-		{
-			_lhs_eval = true;
-			Currency lhs_cur = RUN(lhs);
-			_lhs_eval = false;
-
-			AssignHelper(lhs_cur, indices, value);
-			std::string parent_name = lhs->GetChild(0)->GetText();
-			return msm->GetValue(parent_name);
-		}
-
-		bool      check  = msm->Contains(pString);
-		Currency& temp   = msm->GetMutableValue(pString);
-
-		try
-		{
-            if (value.IsNDMatrix())
-			    NDAssignmetHelper(temp, indices, value);
-            else
-			    AssignHelper(temp, indices, value);
-
-			temp.SetOutputName(pString);
-			return temp;
-		}
-		catch (OML_Error& e)
-		{
-			if (!check)
-				msm->Remove(*pString);
-			throw e;
-		}
-	}
-	else // assignment without indices
-	{
-		if (value.IsCellList()) // special case for cell lists
-		{
-			HML_CELLARRAY* cells = value.CellArray();
-
-			if (cells->Size())
-				value = (*cells)(0);
-			else
-				value = allocateCellArray();
-		}
-
-		msm->SetValue(pString, value);
-
-		return value;
-	}
-	return 0.0;
-#endif
+	return new_value;
 }
 
 hwMatrix* AdjustMatrixSize(hwMatrix* temp_mtx, int index1)
@@ -7959,7 +8047,7 @@ void ExprTreeEvaluator::AssignHelper(Currency& target, const std::vector<Currenc
 
 			if (idx1.IsColon() || idx2.IsColon())
 			{
-				if (value.IsMatrix())
+				if (value.IsMatrixOrString())
 				{
 					const hwMatrix* rhs_mtx = value.Matrix();
 
@@ -8017,8 +8105,12 @@ void ExprTreeEvaluator::AssignHelper(Currency& target, const std::vector<Currenc
 							new_mtx = SubmatrixDoubleIndexHelper(target, idx1, idx2, value, refcnt_target);
 						else if (num_indices == 1)
 							new_mtx = SubmatrixSingleIndexHelper(target, idx1, value, refcnt_target);
-
+						
 						target.ReplaceMatrix(new_mtx);
+
+						if (value.IsString())
+							target.SetMask(Currency::MASK_STRING);
+
 						return;
 					}
 				}
@@ -8219,6 +8311,9 @@ void ExprTreeEvaluator::AssignHelper(Currency& target, const std::vector<Currenc
 							{
 								int row_index = static_cast<int>(indices[0].Scalar()-1);
 
+								if (row_index < 0)
+									throw OML_Error(OML_ERR_INVALID_INDEX, 1);
+
 								if (row_index >= dest_cells->M())
 								{
 									if (dest_cells->IsEmpty())
@@ -8349,6 +8444,45 @@ void ExprTreeEvaluator::AssignHelper(Currency& target, const std::vector<Currenc
 
 						target.ReplaceCellArray(new_matrix);
 						return;
+					}
+					else if (idx1.IsLogical())
+					{
+						if (idx1.IsVector())
+						{
+							std::vector<double> indices = idx1.Vector();
+
+							HML_CELLARRAY* temp_mtx   = target.CellArray();
+							HML_CELLARRAY* new_matrix = temp_mtx;
+
+							if (temp_mtx->Size() != indices.size())
+								throw OML_Error(HW_ERROR_INVIND);
+
+							for (int j = (int)indices.size(); j > 0; --j)
+							{
+								if (indices[j - 1] == 1.0)
+								{
+									new_matrix = allocateCellArray();
+
+									if (temp_mtx->M() == 1)
+									{
+										hwMathStatus stat = new_matrix->DeleteColumns(*temp_mtx, j - 1, 1);
+										temp_mtx = new_matrix;
+									}
+									else if(temp_mtx->N() == 1)
+									{
+										hwMathStatus stat = new_matrix->DeleteRows(*temp_mtx, j - 1, 1);
+										temp_mtx = new_matrix;
+									}
+								}
+							}
+
+							target.ReplaceCellArray(new_matrix);
+							return;
+						}
+						else
+						{
+							throw OML_Error(HW_ERROR_INVIND);
+						}
 					}
 					else
 					{
@@ -8737,45 +8871,6 @@ void ExprTreeEvaluator::AssignHelper(Currency& target, const std::vector<Currenc
 
 	return;
 }
-//------------------------------------------------------------------------------
-//! Utility to convert 2D matrix to ND matrix
-//! \param[in] mtx_in Given input matrix
-//------------------------------------------------------------------------------
-hwMatrixN* ExprTreeEvaluator::Convert2DtoND(const hwMatrix* mtx_in)
-{
-	if (mtx_in)
-	{
-		std::vector<int> dims;
-
-		dims.push_back(mtx_in->M());
-		dims.push_back(mtx_in->N());
-
-		int size = mtx_in->Size();
-
-		if (mtx_in->IsReal())
-		{
-			hwMatrixN* real =  ExprTreeEvaluator::allocateMatrixN(dims, hwMatrixN::REAL);
-
-			for (int j=0; j<size; j++)
-				(*real)(j) = (*mtx_in)(j);
-
-			return real;
-		}
-		else
-		{
-			hwMatrixN* imag =  ExprTreeEvaluator::allocateMatrixN(dims, hwMatrixN::COMPLEX);
-
-			for (int j=0; j<size; j++)
-				imag->z(j) = mtx_in->z(j);
-
-			return imag;
-		}
-	}
-	else
-	{
-		return ExprTreeEvaluator::allocateMatrixN();
-	}
-}
 
 void ExprTreeEvaluator::NDAssignmetHelper(Currency& target, const std::vector<Currency>& params, const Currency& value, int refcnt_target)
 {
@@ -8788,7 +8883,8 @@ void ExprTreeEvaluator::NDAssignmetHelper(Currency& target, const std::vector<Cu
 
 	if (target.IsMatrix())
 	{
-		LHS = Convert2DtoND(target.Matrix());
+		LHS = allocateMatrixN();
+		LHS->Convert2DtoND(*target.Matrix());
 		need_assign = true;
 	}
 	else if (target.IsNDMatrix())
@@ -8810,7 +8906,7 @@ void ExprTreeEvaluator::NDAssignmetHelper(Currency& target, const std::vector<Cu
 	}
 	else
 	{
-		throw OML_Error(OML_MSG_ARRAYSIZE);
+		throw OML_Error(OML_ERR_ARRAYSIZE);
 	}
 
     if (num_indices == 1)
@@ -9022,7 +9118,7 @@ void ExprTreeEvaluator::NDAssignmetHelper(Currency& target, const std::vector<Cu
 		}
 		else
 		{
-			throw OML_Error(OML_MSG_INVALID_INDEX);
+			throw OML_Error(OML_ERR_INVALID_INDEX);
 		}
 	}
 
@@ -9040,7 +9136,11 @@ void ExprTreeEvaluator::NDAssignmetHelper(Currency& target, const std::vector<Cu
 		std::vector<int> dims = LHS->Dimensions();
 
 		if (dims.size() < 3)
-			target = Currency(ConvertNDto2D(LHS));
+		{
+			hwMatrix* result = allocateMatrix();
+			LHS->ConvertNDto2D(*result);
+			target = Currency(result);
+		}
 	}
 	else if (value.IsComplex())
 	{
@@ -9055,7 +9155,8 @@ void ExprTreeEvaluator::NDAssignmetHelper(Currency& target, const std::vector<Cu
 	}
 	else if (value.IsMatrix())
 	{
-		hwMatrixN* RHS = Convert2DtoND(value.Matrix());
+		hwMatrixN* RHS = allocateMatrixN();
+		RHS->Convert2DtoND(*value.Matrix());
 
 		try
 		{
@@ -9084,6 +9185,117 @@ void ExprTreeEvaluator::NDAssignmetHelper(Currency& target, const std::vector<Cu
 	else
 	{
 		throw OML_Error("Invalid RHS");
+	}
+
+	if (need_assign)
+	{
+		int old_mask = target.GetMask();
+		const std::string* old_name = target.GetOutputNamePtr();
+		target = Currency(LHS);
+		target.SetMask(old_mask);
+		target.SetOutputName(old_name);
+	}
+}
+
+void ExprTreeEvaluator::NDCellAssignmetHelper(Currency& target, const std::vector<Currency>& params, const Currency& value, int refcnt_target)
+{
+	int num_indices = (int)params.size();
+	int num_colons = 0;
+
+	HML_ND_CELLARRAY* LHS = NULL;
+
+	bool       need_assign = false;
+
+	if (target.IsCellArray())
+	{
+		LHS = allocateNDCellArray();
+		LHS->Convert2DtoND(*target.CellArray());
+		need_assign = true;
+	}
+	else if (target.IsNDCellArray())
+	{
+		LHS = target.CellArrayND();
+		if (LHS->GetRefCount() != refcnt_target)
+		{
+			// change to allocateNDCellArray later -- JDS
+			LHS = allocateNDCellArray(LHS);
+			need_assign = true;
+		}
+	}
+	else if (target.IsScalar())
+	{
+		std::vector<int> dims;
+		dims.push_back(1);
+		// change to allocateNDCellArray later -- JDS
+		LHS = allocateNDCellArray(dims);
+		(*LHS)(0) = target.Scalar();
+		need_assign = true;
+	}
+	else if (target.IsMatrix() && target.IsEmpty())
+	{
+		LHS = allocateNDCellArray();
+		need_assign = true;
+	}
+	else
+	{
+		throw OML_Error(OML_ERR_ARRAYSIZE);
+	}
+
+	std::vector<hwSliceArg> slices;
+
+	for (int j = 0; j<num_indices; j++)
+	{
+		const Currency& temp = params[j];
+
+		if (temp.IsColon())
+		{
+			slices.push_back(hwSliceArg());
+			num_colons++;
+		}
+		else if (temp.IsScalar())
+		{
+			slices.push_back((int)temp.Scalar() - 1);
+		}
+		else if (temp.IsPositiveVector())
+		{
+			std::vector<double> temp_vec = params[j].Vector();
+			std::vector<int>    temp_int;
+
+			for (int k = 0; k<temp_vec.size(); k++)
+				temp_int.push_back((int)(temp_vec[k] - 1));
+			slices.push_back(hwSliceArg(temp_int));
+		}
+		else
+		{
+			throw OML_Error(OML_ERR_INVALID_INDEX);
+		}
+	}
+
+	try
+	{
+		if (value.IsCellArray())
+		{
+			HML_ND_CELLARRAY* temp = allocateNDCellArray();
+			temp->Convert2DtoND(*value.CellArray());
+			LHS->SliceLHS(slices, *temp);
+		}
+		else
+		{
+			LHS->SliceLHS(slices, value);
+		}
+	}
+	catch (hwMathException& hme)
+	{
+		throw OML_Error(hme.what());
+	}
+
+	std::vector<int> dims = LHS->Dimensions();
+
+	if (dims.size() < 3)
+	{
+		HML_CELLARRAY* temp = EvaluatorInterface::allocateCellArray();
+		LHS->ConvertNDto2D(*temp);
+		target = Currency(temp);
 	}
 
 	if (need_assign)
@@ -9449,13 +9661,13 @@ Currency ExprTreeEvaluator::CellValue(OMLTree* tree)
 
 	Currency target = RUN(source);
 
-	if (!target.IsCellArray())
+	OMLTree* index_token = tree->GetChild(1);
+
+	if (!target.IsCellArray() && !target.IsNDCellArray())
 	{
 		if (!_lhs_eval)
 			throw OML_Error(HW_ERROR_NOTCELLINDNONCELL);
 	}
-
-	OMLTree* index_token = tree->GetChild(1);
 		
 	std::string* old_end_context_varname  = end_context_varname;
 	Currency*    old_end_context_currency = end_context_currency;
@@ -9471,9 +9683,6 @@ Currency ExprTreeEvaluator::CellValue(OMLTree* tree)
 
 	bool old_lhs_eval = _lhs_eval;
 	_lhs_eval = false;
-
-	if (num_indices > 2)
-		throw OML_Error(HW_ERROR_UNSUPP2DIM);
 
 	for (int j=0; j<num_indices; j++)
 	{
@@ -9493,6 +9702,10 @@ Currency ExprTreeEvaluator::CellValue(OMLTree* tree)
 	if (target.IsCellArray())
 	{
 		temp = target.CellArray();
+	}
+	else if (target.IsNDCellArray())
+	{
+		return NDCellValueHelper(target, indices);
 	}
 	else if (target.IsPointer())
 	{
@@ -9675,9 +9888,87 @@ Currency ExprTreeEvaluator::CellValue(OMLTree* tree)
 			cur.SetMask(Currency::MASK_CELL_LIST);
 			return cur;
 		}
+		else if (indices[0].IsScalar() && indices[1].IsPositiveVector())
+		{
+			double              index_1 = indices[0].Scalar();
+			std::vector<double> index_2_vec = indices[1].Vector();
+
+			HML_CELLARRAY* ret = allocateCellArray();
+			ret->Dimension(1, (int)index_2_vec.size(), HML_CELLARRAY::REAL);
+
+			int i1 = (int)index_1 - 1;
+			int i2;
+
+			if ((i1 >= temp->M()) || (i1 < 0))
+				throw OML_Error(HW_ERROR_CELLINDEXRANGE);
+
+			for (int j = 0; j < index_2_vec.size(); ++j)
+			{
+				i2 = (int)index_2_vec[j] - 1;
+				(*ret)(j) = (*temp)(i1, i2);
+			}
+
+			Currency cur(ret);
+			cur.SetMask(Currency::MASK_CELL_LIST);
+			return cur;
+		}
+		else if (indices[1].IsScalar() && indices[0].IsPositiveVector())
+		{
+			double              index_2 = indices[1].Scalar();
+			std::vector<double> index_1_vec = indices[0].Vector();
+
+			HML_CELLARRAY* ret = allocateCellArray();
+			ret->Dimension(1, (int)index_1_vec.size(), HML_CELLARRAY::REAL);
+
+			int i2 = (int)index_2 - 1;
+			int i1;
+
+			if ((i2 >= temp->N()) || (i2 < 0))
+				throw OML_Error(HW_ERROR_CELLINDEXRANGE);
+
+			for (int j = 0; j < index_1_vec.size(); ++j)
+			{
+				i1 = (int)index_1_vec[j] - 1;
+				(*ret)(j) = (*temp)(i1, i2);
+			}
+
+			Currency cur(ret);
+			cur.SetMask(Currency::MASK_CELL_LIST);
+			return cur;
+		}
 		else
 		{
 			throw OML_Error(HW_ERROR_INVCELLIND);
+		}
+	}
+	else if (indices.size() > 2)
+	{
+		// this section is not finished
+		std::vector<hwSliceArg> slices;
+
+		for (int j = 0; j < indices.size(); j++)
+		{
+			if (indices[j].IsScalar())
+			{
+				slices.push_back((int)indices[j].Scalar() - 1);
+			}
+			else if (indices[j].IsColon())
+			{
+				slices.push_back(hwSliceArg());
+			}
+			else if (indices[j].IsPositiveVector())
+			{
+				std::vector<double> temp = indices[j].Vector();
+				std::vector<int>    temp_int;
+
+				for (int k = 0; k<temp.size(); k++)
+					temp_int.push_back((int)(temp[k] - 1));
+				slices.push_back(hwSliceArg(temp_int));
+			}
+			else
+			{
+				throw OML_Error("Unsupported slice type");
+			}
 		}
 	}
 
@@ -9686,66 +9977,6 @@ Currency ExprTreeEvaluator::CellValue(OMLTree* tree)
 
 	return ret_val;
 }
-
-/*
-Currency ExprTreeEvaluator::CellValue(OMLTree* tree)
-{
-	std::string var_name(tree->GetChild(0)->GetText());
-	int num_index_groups = tree->ChildCount() - 1;
-
-	Currency outer_target;
-
-	std::string* old_end_context_varname = end_context_varname;
-
-	for (int k=0; k<num_index_groups; k++)
-	{	
-		OMLTree* index_token = tree->GetChild(k+1);
-		int num_indices = index_token->ChildCount();
-
-		if (k == 0)
-		{
-			const Currency& target = msm->GetValue(var_name);
-
-			if (_lhs_eval)
-			{
-				const Currency* temp = &target;
-				outer_target = Currency((Currency*)temp);
-			}
-			else
-			{
-				outer_target = target;
-			}
-		}
-
-		if (outer_target.IsNothing())
-			throw OML_Error(HW_ERROR_UNKNOWNVAR);
-
-		std::vector<Currency> indices;
-		
-		end_context_varname = (std::string*)Currency::vm.GetStringPointer(var_name);
-
-		for (int j=0; j<num_indices; j++)
-		{
-			if (num_indices == 1)
-				end_context_index = -1;
-			else
-				end_context_index = j;
-	
-			OMLTree* child_j = index_token->GetChild(j);
-			indices.push_back(RUN(child_j));
-		}
-	
-		if (outer_target.IsPointer())
-			outer_target = CellValueHelper(*outer_target.Pointer(), indices);
-		else
-			outer_target = CellValueHelper(outer_target, indices);
-	}
-
-	end_context_varname = old_end_context_varname;
-
-	return outer_target;
-}
-*/
 
 Currency  ExprTreeEvaluator::CellValueHelper(const Currency& target, const std::vector<Currency>& indices)
 {
@@ -9884,6 +10115,114 @@ Currency  ExprTreeEvaluator::CellValueHelper(const Currency& target, const std::
 
 	if (ret_val.IsMatrix())
 		hwMatrix* junk = ret_val.GetWritableMatrix(); // force this to allocate something, otherwise we'll have to check for NULL matrices in a million places
+
+	return ret_val;
+}
+
+Currency ExprTreeEvaluator::NDCellValueHelper(const Currency& target, const std::vector<Currency>& params)
+{
+	Currency ret_val;
+
+	bool all_scalars = true;
+
+	std::vector<int> indices;
+
+	for (int j = 0; j<params.size(); j++)
+	{
+		if (params[j].IsPositiveInteger())
+		{
+			int index = (int)params[j].Scalar() - 1;
+			indices.push_back(index);
+		}
+		else
+		{
+			all_scalars = false;
+			break;
+		}
+	}
+
+	bool  delete_mat_n = false;
+	const HML_ND_CELLARRAY* mat_n = NULL;
+
+	if (target.IsNDCellArray())
+	{
+		mat_n = target.CellArrayND();
+	}
+	else if (target.IsCellArray())
+	{
+		HML_CELLARRAY* mat = target.CellArray();
+		HML_ND_CELLARRAY* temp = allocateNDCellArray();
+		temp->Convert2DtoND(*mat);
+		mat_n = temp;
+		delete_mat_n = true;
+	}
+
+	if (all_scalars)
+	{
+		try
+		{
+			mat_n->BoundsCheckRHS(indices);
+		}
+		catch (hwMathException&)
+		{
+			throw OML_Error(HW_ERROR_INDEXRANGE);
+		}
+
+		return (*mat_n)(indices);
+	}
+	else
+	{
+		slices.clear();
+
+		for (int j = 0; j<params.size(); j++)
+		{
+			if (params[j].IsScalar())
+			{
+				slices.push_back((int)params[j].Scalar() - 1);
+			}
+			else if (params[j].IsColon())
+			{
+				slices.push_back(hwSliceArg());
+			}
+			else if (params[j].IsPositiveVector())
+			{
+				std::vector<double> temp = params[j].Vector();
+				std::vector<int>    temp_int;
+
+				for (int k = 0; k<temp.size(); k++)
+					temp_int.push_back((int)(temp[k] - 1));
+				slices.push_back(hwSliceArg(temp_int));
+			}
+			else
+			{
+				throw OML_Error("Unsupported slice type");
+			}
+		}
+
+		HML_ND_CELLARRAY* temp_slice = allocateNDCellArray();
+		mat_n->SliceRHS(slices, *temp_slice);
+
+		if (delete_mat_n)
+			delete mat_n;
+
+		std::vector<int> dims = temp_slice->Dimensions();
+
+		if (dims.size() == 2)
+		{
+			HML_CELLARRAY* degenerate = allocateCellArray();
+			temp_slice->ConvertNDto2D(*degenerate);
+			delete temp_slice;
+			Currency ret(degenerate);
+			ret.SetMask(Currency::MASK_CELL_LIST);
+			return ret;
+		}
+		else
+		{
+			Currency ret(temp_slice);
+			ret.SetMask(Currency::MASK_CELL_LIST);
+			return ret;
+		}
+	}
 
 	return ret_val;
 }
@@ -10365,7 +10704,18 @@ Currency ExprTreeEvaluator::StructValue(OMLTree* tree)
 		if (ci)
 		{
 			if (!ci->HasProperty(*field_name))
-				throw OML_Error("Cannot add fields to class at run time");
+			{
+				if (_lhs_eval)
+				{
+					throw OML_Error("Cannot add fields to class at run time");
+				}
+				else
+				{
+					std::string err_str = "Unknown property ";
+					err_str += *field_name;
+					throw OML_Error(err_str);
+				}
+			}
 
 			if (ci->IsPropertyPrivate(*field_name))
 			{
@@ -10952,135 +11302,6 @@ Currency ExprTreeEvaluator::StructValueHelper(const Currency* parent, OMLTree* i
 	return Currency();
 }
 
-Currency ExprTreeEvaluator::StructAssignment(OMLTree* tree)
-{
-	// tree is of type '='
-	int num_children = tree->ChildCount();
-
-	// lhs is of type struct
-	OMLTree* lhs = tree->GetChild(0);
-	OMLTree* rhs = tree->GetChild(1);
-
-	int num_lhs_children = lhs->ChildCount();
-
-	OMLTree* lhs_child = lhs->GetChild(0);
-
-	Currency* alt_target = NULL;
-
-	if (lhs_child->GetType() == CELL_VAL)
-	{
-		_lhs_eval = true;
-		Currency lhs_cur = RUN(lhs_child);
-		_lhs_eval = false;
-		
-		if (lhs_cur.IsPointer())
-		{
-			alt_target = lhs_cur.Pointer();
-
-			if (alt_target->IsCellArray() || alt_target->IsEmpty())
-				alt_target->ConvertToStruct(); // converting an empty cell into an empty struct
-		}
-		else
-		{
-			throw OML_Error("Unsupported operation");
-		}
-	}
-
-	std::string struct_name = lhs_child->GetText();
-
-	const Currency& temp_cur = msm->GetValue(struct_name);
-
-	if (temp_cur.IsNothing())
-	{
-		StructData* sd = new StructData;
-		msm->SetValue(struct_name, sd);
-	}
-
-	Currency target  = msm->GetValue(struct_name);
-
-	bool is_handle = false;
-
-	if (target.IsScalar() && HasBuiltin("ishandle")) // special case for plots and such
-	{
-		std::vector<Currency> dummy_input;
-		dummy_input.push_back(target);
-		Currency curhandle = CallFunction("ishandle", dummy_input);
-
-		if (curhandle.IsScalar() && (curhandle.Scalar() == 1.0))
-			is_handle = true;
-	}
-
-	if (target.IsMatrix() && target.IsEmpty())
-	{
-		target.MakeStruct();
-	}
-	else if (target.IsCellArray())
-	{
-		HML_CELLARRAY* cells = target.CellArray();
-		
-		if (cells->Size() == 0)
-			target.MakeStruct();
-	}
-
-	if (!(target.IsStruct() || target.IsObject() || target.IsPointer()))
-	{
-		if (!is_handle)
-			throw OML_Error("Invalid struct assignment");
-	}
-
-	OMLTree* indices = NULL;
-	OMLTree* field   = NULL;
-
-	for (int j=1; j<num_lhs_children; j++)
-	{
-		OMLTree* temp   = lhs->GetChild(j);
-
-		if (temp->GetType() == PARAM_LIST)
-			indices = temp;
-		else if (temp->GetType() == FIELD)
-			field = temp;
-		else if (temp->GetType() == DYN_FIELD)
-			field = temp;
-	}
-
-	Currency value = RUN(rhs);
-	value.SetOutputName("");
-
-	// do this after calling run on the rhs
-	end_context_varname = (std::string*)Currency::vm.GetStringPointer(struct_name);
-	end_context_index   = -1; // for now
-
-    if (temp_cur.IsBoundObject())  // Swig bound class
-    {
-        return BoundClassAssign(&temp_cur, field, value);
-    }
-
-	if (alt_target)
-	{
-		StructAssignmentHelper(alt_target, indices, field, value);
-		end_context_varname = NULL;
-		return *alt_target;
-	}
-	else
-	{
-		if (target.IsStruct() || target.IsObject())
-		{
-			StructData* sd = target.Struct();
-
-			if (sd->GetRefCount() != 2) // one stored in the memory scope and one in target
-			{
-				StructData* new_sd = new StructData(*sd);
-				target.ReplaceStruct(new_sd);
-			}
-		}
-
-		StructAssignmentHelper(&target, indices, field, value);
-		msm->SetValue(struct_name, target);
-	}
-
-	end_context_varname = NULL;
-	return target;
-}
 //------------------------------------------------------------------------------
 //! Gets result after calling a method in a bound class
 //! \param[in] in    Input currencty
@@ -11147,390 +11368,6 @@ Currency ExprTreeEvaluator::BoundClassAssign(const Currency*   in,
     inputs.push_back(value);      
 
     return CallBuiltinFunction(fptr, propname, inputs);
-}
-
-void ExprTreeEvaluator::StructAssignmentHelper(Currency* parent, OMLTree* indices, OMLTree* field_tree, const Currency& rhs)
-{
-	StructData* sd = NULL;
-
-	if (parent->IsStruct() || parent->IsObject())
-	{
-		sd = parent->Struct();
-	}
-	else if (parent->IsPointer() && parent->Pointer()->IsObject())
-	{
-		sd = parent->Pointer()->Struct();
-	}
-	else if (parent->IsPointer() && parent->Pointer()->IsStruct())
-	{
-		sd = parent->Pointer()->Struct();
-	}
-	else if (parent->IsCellArray())
-	{
-		HML_CELLARRAY* cells = parent->CellArray();
-
-		if (cells->IsEmpty())
-		{
-			cells->Dimension(1, 1, HML_CELLARRAY::REAL);
-			(*cells)(0) = new StructData;
-			sd = (*cells)(0).Struct();
-		}
-	}
-
-	std::string field_name         = "";
-	int         num_field_children = 0;
-
-	if (field_tree)
-	{
-		if (field_tree->GetType() == FIELD)
-		{
-			field_name = field_tree->GetChild(0)->GetText();
-		}
-		else
-		{
-			OMLTree* child_0 = field_tree->GetChild(0);
-			Currency field_cur = RUN(child_0);
-
-			if (field_cur.IsString())
-				field_name = field_cur.StringVal();
-			else
-				throw OML_Error(HW_ERROR_DYNFIELD);
-		}
-
- 		num_field_children = field_tree->ChildCount();
-	}
-
-	if (parent->IsObject() || (parent->IsPointer() && parent->Pointer()->IsObject()))
-	{
-		if (!sd->Contains(field_name))
-			throw OML_Error("Cannot add fields to class at run time");
-
-		if (parent->IsObject())
-		{
-			ClassInfo* ci = (*class_info_map)[parent->GetClassname()];
-
-			if (ci->IsPropertyPrivate(field_name))
-			{
-				FunctionInfo* fi = msm->GetCurrentScope()->GetFunctionInfo();
-
-				bool in_class_method = ci->IsClassMethod(fi);
-
-				if (!in_class_method)
-					throw OML_Error("Unable to access private property");
-			}
-		}
-	}
-
-	int num_indices = 0;
-
-	if (indices)
-		num_indices = indices->ChildCount();
-
-	int index_1 = 0;
-	int index_2 = -1;
-	
-	if (num_indices == 2)
-	{
-		end_context_index = 0;
-		OMLTree* child_0 = indices->GetChild(0);
-		Currency idx1 = RUN(child_0);
-		end_context_index = 1;
-		OMLTree* child_1 = indices->GetChild(1);
-		Currency idx2 = RUN(child_1);
-
-		index_1 = (int)(idx1.Scalar()-1);
-		index_2 = (int)(idx2.Scalar()-1);
-	}
-	else if (num_indices == 1)
-	{
-		OMLTree* child_0 = indices->GetChild(0);
-		Currency idx1 = RUN(child_0);
-
-		index_1 = (int)(idx1.Scalar()-1);
-	}
-	else if (num_indices == 0)
-	{
-        if (parent->IsStruct())
-        {
-		    if ((parent->Struct()->M() > 1) || (parent->Struct()->N() > 1))
-			    throw OML_Error(HW_ERROR_UNSUPOP);
-        }
-	}
-
-	if (num_field_children == 1) // just the name
-	{
-		if (parent->IsScalar() && HasBuiltin("ishandle")) // special case for plots and such
-		{
-			// We probably don't need this call since it's already been done once to get here,
-			// but for now I'm playing it safe
-			std::vector<Currency> dummy_input;
-			dummy_input.push_back(*parent);
-			Currency is_handle = CallFunction("ishandle", dummy_input);
-
-			if (is_handle.IsScalar() && (is_handle.Scalar() == 1.0))
-			{
-				std::vector<Currency> dummy_inputs;
-				dummy_inputs.push_back(*parent);
-				dummy_inputs.push_back(field_name);
-				dummy_inputs.push_back(rhs);
-				CallFunction("set", dummy_inputs);
-				return;
-			}
-		}
-
-		if (sd)
-		{ 
-			if (sd->GetRefCount() != 2)
-			{
-				StructData* new_sd  = new StructData(*sd);
-				parent->ReplaceStruct(new_sd);
-				sd = new_sd;
-			}
-			
-			sd->SetValue(index_1, index_2, field_name, rhs);
-		}
-	}
-	else
-	{
-		if (index_2 == -1)
-		{
-			if (index_1 >= sd->Size())
-				sd->DimensionNew(index_1+1);
-		}
-
-		Currency new_parent = sd->GetValue(index_1, index_2, field_name);
-
-		if (new_parent.IsScalar() && HasBuiltin("ishandle")) // special case for plots and such
-		{
-			std::vector<Currency> dummy_input;
-			dummy_input.push_back(new_parent);
-			Currency is_handle = CallFunction("ishandle", dummy_input);
-
-			if (is_handle.IsScalar() && (is_handle.Scalar() == 1.0))
-			{
-				int field_children = field_tree->ChildCount();
-
-				if (field_children == 2)
-				{
-					OMLTree* temp = field_tree->GetChild(1);
-					OMLTree* temp2 = temp->GetChild(0);
-					field_name = temp2->GetText();
-
-					std::vector<Currency> dummy_inputs;
-					dummy_inputs.push_back(new_parent);
-					dummy_inputs.push_back(field_name);
-					dummy_inputs.push_back(rhs);
-					CallFunction("set", dummy_inputs);
-					return;
-				}
-			}
-		}
-
-		if (new_parent.IsEmpty())
-		{
-			StructData* new_data = new StructData;
-			sd->SetValue(index_1, index_2, field_name, new_data);
-			new_parent = sd->GetValue(index_1, index_2, field_name);
-		}
-		else if (!new_parent.IsStruct())
-		{
-			std::vector<Currency> indices;
-			int num_field_indices = field_tree->ChildCount();
-
-			OMLTree* sub_index_tree = NULL;
-			OMLTree* sub_field_tree = NULL;
-
-			int cell_index_type = 0;
-
-			for (int j=0; j<num_field_indices; j++)
-			{
-				OMLTree* temp = field_tree->GetChild(j);
-
-				int index_type = temp->GetType();
-
-				if ((index_type == PARAM_LIST) || (index_type == CELL_PARAM_LIST))
-				{
-					cell_index_type = index_type;
-					sub_index_tree = temp;
-
-					int num_target_indices = temp->ChildCount();
-
-					end_context_varname = NULL;
-					end_context_currency = &new_parent;
-
-					for (int k=0; k<num_target_indices; k++)
-					{
-						end_context_index = k;
-						OMLTree* idx = temp->GetChild(k);
-						indices.push_back(RUN(idx));
-					}
-
-					end_context_currency = NULL;
-				}
-				else if ((index_type == FIELD)  || (index_type == DYN_FIELD))
-				{
-					if (cell_index_type == PARAM_LIST)
-						throw OML_Error("Invalid field access");
-
-					if (new_parent.IsCellArray())
-					{					
-						sub_field_tree = temp;
-
-						HML_CELLARRAY* cells  = new_parent.CellArray();
-						StructData*    loc_sd = NULL;
-
-						if (indices.size() == 2)
-						{
-							int cell_index1 = (int)indices[0].Scalar()-1;
-							int cell_index2 = (int)indices[1].Scalar()-1;
-
-							if ((cell_index1 < 0) || (cell_index2 < 0))
-								throw OML_Error("Invalid index");
-
-							if ((cell_index1 < cells->M()) && (cell_index2 < cells->N()))
-							{
-								Currency cell_val = (*cells)(cell_index1, cell_index2);
-
-								if (cell_val.IsStruct())
-									loc_sd = cell_val.Struct();
-								else
-									throw OML_Error("Invalid assignment");
-							}
-							else
-							{
-								// we're growing the cell so make a new one
-								loc_sd = new StructData;
-							}
-						}
-						else if (indices.size() == 1)
-						{
-							int cell_index1 = (int)indices[0].Scalar()-1;
-
-							if (cell_index1 < 0)
-								throw OML_Error("Invalid index");
-
-							if (cell_index1 < cells->Size())
-							{
-								Currency& cell_val = (*cells)(cell_index1);
-
-								if (cell_val.IsStruct())
-								{
-									loc_sd = cell_val.Struct();
-								}
-								else if (cell_val.IsCellArray())
-								{
-									HML_CELLARRAY* cells = cell_val.CellArray();
-
-									if (cells->Size() == 0)
-									{
-										cell_val.MakeStruct();
-										loc_sd = cell_val.Struct();
-									}
-									else
-									{
-										throw OML_Error("Invalid assignment");
-									}
-								}
-								else
-								{
-									throw OML_Error("Invalid assignment");
-								}
-							}
-							else
-							{
-								// we're growing the cell so make a new one
-								loc_sd = new StructData;
-							}
-						}
-						else
-						{
-							throw OML_Error("Invalid assignment");
-						}
-
-						loc_sd->IncrRefCount();
-						Currency temp_cur(loc_sd);
-						StructAssignmentHelper(&temp_cur, NULL, sub_field_tree, rhs);
-						AssignHelper(new_parent, indices, temp_cur);
-						sd->SetValue(index_1, index_2, field_name, new_parent);
-						return;
-					}
-				}
-			}
-			// Having new_parent hold anything that is reference-counted bumps the count by 1 temporarily.
-			// That tricks AssignHelper into making a copy of that object because it's looking for a value of 1
-			// and new_parent makes it at least 2.
-			AssignHelper(new_parent, indices, rhs, 2);
-			sd->SetValue(index_1, index_2, field_name, new_parent);
-			return;
-		}
-
-		OMLTree* indices2 = NULL;
-		OMLTree* field    = NULL;
-
-		for (int j=1; j<num_field_children; j++)
-		{
-			OMLTree* temp   = field_tree->GetChild(j);
-
-			if (temp->GetType() == PARAM_LIST)
-				indices2 = temp;
-			else if (temp->GetType() == FIELD)
-				field = temp;
-			else if (temp->GetType() == DYN_FIELD)
-				field = temp;
-		}
-
-		if (indices2 && !field)
-		{
-			std::vector<Currency> indices_vec;
-			int num_field_indices = indices2->ChildCount();
-
-			for (int j=0; j<num_field_indices; j++)
-			{
-				OMLTree* temp = indices2->GetChild(j);
-				indices_vec.push_back(RUN(temp));
-			}
-
-			if (rhs.IsStruct())
-			{
-				if (!indices_vec[0].IsScalar())
-					throw OML_Error(HW_ERROR_INV1STIND);
-
-				int loc_index1 = (int)indices_vec[0].Scalar();
-				int loc_index2 = -1;
-
-				if (indices_vec.size() == 2)
-				{
-					if (!indices_vec[1].IsScalar())
-						throw OML_Error(HW_ERROR_INV2NDIND);
-
-					loc_index2 = (int)indices_vec[1].Scalar();
-				}
-
-				const Currency& loc_cur = sd->GetValue(index_1, index_2, field_name);
-				StructData*     loc_sd  = loc_cur.Struct();
-
-				if (loc_index2 == -1)
-					loc_sd->DimensionNew(loc_index1);
-				else
-					loc_sd->DimensionNew(loc_index1, loc_index2);
-
-				loc_sd->SetElement(loc_index1, loc_index2, rhs.Struct());
-			}
-			else
-			{
-				hwMatrix* loc_mtx = new hwMatrix(0, 0, hwMatrix::REAL);
-				Currency  loc_temp(loc_mtx);
-				AssignHelper(loc_temp, indices_vec, rhs);
-				loc_temp.SetMask(rhs.GetMask());
-				sd->SetValue(index_1, index_2, field_name, loc_temp);
-			}
-		}
-		else
-		{
-			StructAssignmentHelper(&new_parent, indices2, field, rhs);
-			parent->Struct()->SetValue(index_1, index_2, field_name, new_parent);
-		}
-	}
 }
 
 Currency ExprTreeEvaluator::ObjectMethodCall(Currency* parent, OMLTree* indices, OMLTree* field_tree)
@@ -12227,10 +12064,8 @@ Currency ExprTreeEvaluator::CellExtraction(OMLTree* tree)
 	{
 		std::string varname = lhs->GetChild(j)->GetText();
 
-		msm->SetValue(varname, (*cells)(j));
-
 		if (varname != "~")
-			PushResult(msm->GetValue(varname), !suppress_output);
+			PushResult(AssignmentUtility(lhs->GetChild(j), (*cells)(j)), !suppress_output);
 	}
 
 	return Currency(-1, Currency::TYPE_NOTHING);
@@ -12599,50 +12434,71 @@ bool ExprTreeEvaluator::ParseAndRunFile(const std::string& file_name, bool allow
 	pANTLR3_COMMON_TOKEN_STREAM tokens = ad.GetTokens();
 	ANTLRData::PreprocessTokenStream(tokens);
 
-	ad.CreateParser(tokens);
-	pExprCppTreeParser parser = ad.GetParser();
+	pANTLR3_VECTOR vec = tokens->getTokens(tokens);
 
-	ExprCppTreeParser_prog_return r = parser->prog(parser);
-		
+	bool keep_going = true;
+
+	if (vec->size(vec) == 0)
+		keep_going = false;
+
 	int temp = nested_function_marker;
 
-	if (parser->pParser->rec->getNumberOfSyntaxErrors(parser->pParser->rec) == 0)
+	OMLTree* oml_tree = NULL;
+	OMLTree* root_tree = new OMLTree(STATEMENT_LIST, "", NULL, 0, 0);
+
+	while (keep_going)
 	{
-		pANTLR3_BASE_TREE tree = r.tree;
-		PreprocessAST(tree, tokens);
-		OMLTree* oml_tree = OMLTree::ConvertTree(tree);
+		pExprCppTreeParser parser = ExprCppTreeParserNew(tokens);
 
-		nested_function_marker = 0;
+		pANTLR3_COMMON_TOKEN tok = (pANTLR3_COMMON_TOKEN)vec->get(vec, tokens->p);
 
-		if (!ValidateFunction(oml_tree))
+		ExprCppTreeParser_stmt_return r = parser->stmt(parser);
+
+		if (parser->pParser->rec->getNumberOfSyntaxErrors(parser->pParser->rec) == 0)
 		{
-			if (!allow_script)
-			{
-				char buffer[1024];
-				sprintf(buffer, "OML function file %s cannot have executable statements", file_name.c_str());
-				throw OML_Error(buffer);
-			}
-			else
-			{
-				RunTree(oml_tree);
-				delete oml_tree;
-			}
+			pANTLR3_BASE_TREE tree = r.tree;
+			PreprocessAST(tree, tokens);
+			oml_tree = OMLTree::ConvertTree(tree);
 
-			nested_function_marker = temp;
-			return false;
+			root_tree->AddChild(oml_tree);
+
+			if (tokens->p == vec->size(vec))
+				keep_going = false;
+		}
+		else
+		{
+			char buffer[2048];
+			sprintf(buffer, "Syntax error in included file %s at line number %d", file_name.c_str(), parser->pParser->rec->state->exception->line);
+			throw OML_Error(buffer);
 		}
 
-		RunTree(oml_tree);
-		delete oml_tree;
+		parser->free(parser);
 	}
-	else
+
+	nested_function_marker = 0;
+
+	if (!ValidateFunction(root_tree))
 	{
-		char buffer[2048];
-		sprintf(buffer, "Syntax error in included file %s at line number %d", file_name.c_str(), parser->pParser->rec->state->exception->line);
-		throw OML_Error(buffer);
+		if (!allow_script)
+		{
+			char buffer[1024];
+			sprintf(buffer, "OML function file %s cannot have executable statements", file_name.c_str());
+			throw OML_Error(buffer);
+		}
+		else
+		{
+			RunTree(root_tree);
+			delete root_tree;
+		}
+
+		nested_function_marker = temp;
+		return false;
 	}
-	
-	nested_function_marker = temp;	
+
+	RunTree(root_tree);
+	delete root_tree;
+
+	nested_function_marker = temp;
 
 	return true;
 }
@@ -13220,26 +13076,63 @@ hwMatrix* ExprTreeEvaluator::SubmatrixSingleIndexHelper(Currency& target, const 
 			{
 				std::vector<int> valid_indices;
 
-				for (int j=0; j<index->Size(); j++)
+				for (int j = 0; j < new_matrix->Size(); j++)
 				{
-					if ((*index)(j) != 1.0)
+					if (j < index->Size())
+					{
+						if ((*index)(j) != 1.0)
+							valid_indices.push_back(j);
+					}
+					else
+					{
 						valid_indices.push_back(j);
+					}
+				}
+
+				int num_rows;
+				int num_cols;
+
+				if (new_matrix->Size() == valid_indices.size())
+				{
+					num_rows = new_matrix->M();
+					num_cols = new_matrix->N();
+				}
+				else if (valid_indices.size())
+				{
+					if (new_matrix->M() == 1)
+					{
+						num_rows = 1;						
+						num_cols = (int)valid_indices.size();
+					}
+					else
+					{
+						num_rows = (int)valid_indices.size();
+						num_cols = 1;
+					}
+				}
+				else
+				{
+					num_rows = 0;
+					num_cols = 0;
 				}
 
 				if (new_matrix->IsReal())
 				{
-					hwMatrix* result = allocateMatrix((int)valid_indices.size(), 1, hwMatrix::REAL);
+					if (new_matrix->Size())
+					{
+						hwMatrix* result = allocateMatrix(num_rows, num_cols, hwMatrix::REAL);
 
-					for (int j=0; j<valid_indices.size(); j++)
-						(*result)(j) = (*new_matrix)(valid_indices[j]);
+						for (int j = 0; j < result->Size(); j++)
+							(*result)(j) = (*new_matrix)(valid_indices[j]);
 
-					new_matrix = result;
+						new_matrix = result;
+					}
 				}
 				else
 				{
-					hwMatrix* result = allocateMatrix((int)valid_indices.size(), 1, hwMatrix::COMPLEX);
+					hwMatrix* result = allocateMatrix(num_rows, num_cols, hwMatrix::COMPLEX);
 
-					for (int j=0; j<valid_indices.size(); j++)
+					for (int j=0; j<num_rows; j++)
 						result->z(j) = new_matrix->z(valid_indices[j]);
 
 					new_matrix = result;
@@ -13447,7 +13340,7 @@ hwMatrix* ExprTreeEvaluator::SubmatrixDoubleIndexHelper(Currency& target, const 
 		{
 			int index_1 = (int)index1.Scalar()-1;
 
-			if (value.IsMatrix())
+			if (value.IsMatrixOrString())
 			{
 				const hwMatrix* rhs_mtx = value.Matrix();
 				if ((new_matrix->N() != 0) && ((rhs_mtx->N() != new_matrix->N()) || (rhs_mtx->M() != 1)))
@@ -13899,6 +13792,7 @@ Currency ExprTreeEvaluator::GetLastResult() const
 void ExprTreeEvaluator::PushResult(const Currency& cur, bool to_output)
 {
 	if (cur.IsNothing()) return;
+	if (cur.IsContinue()) return;
 
 	MemoryScope* scope = msm->GetCurrentScope();
 	if (scope && scope->IsAnonymous() && !cur.IsError()) 
@@ -14284,6 +14178,51 @@ std::string ExprTreeEvaluator::FormatErrorMessage(const std::string& base_messag
 			}
 		}
 	}
+
+	if (GetExperimental())
+	{
+		if (msm->GetStackDepth() > 1)
+		{
+			error_str += "\n";
+
+			int stack_depth = msm->GetStackDepth();
+
+			for (int j = 0; j < stack_depth - 1; j++)
+			{
+				MemoryScope* ms_1 = msm->GetScope(j);
+				MemoryScope* ms_2 = msm->GetScope(j + 1);
+
+				std::string addition;
+
+				for (int k = 0; k < 2 * (j + 1); ++k)
+					addition += "  ";
+
+				addition += ms_1->GetFunctionInfo()->FunctionName();
+				addition += " is called at line ";
+				char buffer[256];
+				sprintf(buffer, "%i", ms_2->GetLineNumber());
+				addition += buffer;
+
+				FunctionInfo* fi = ms_2->GetFunctionInfo();
+
+				if (fi)
+				{
+					addition += " of function ";
+					addition += fi->FunctionName();
+				}
+				else
+				{
+					addition += " of script ";
+					addition += ms_2->GetFilename();
+				}
+
+				addition += ".\n";
+
+				error_str += addition;
+			}
+		}
+	}
+
 	return error_str;
 }
 
@@ -14463,6 +14402,23 @@ HML_CELLARRAY* ExprTreeEvaluator::allocateCellArray(const HML_CELLARRAY* cell)
 {
 	HML_CELLARRAY* newcell = new HML_CELLARRAY(*cell);
     CheckSize(cell, cell->Size());
+	return newcell;
+}
+
+HML_ND_CELLARRAY* ExprTreeEvaluator::allocateNDCellArray()
+{
+	return new HML_ND_CELLARRAY;
+}
+
+HML_ND_CELLARRAY* ExprTreeEvaluator::allocateNDCellArray(std::vector<int> dims)
+{
+	HML_ND_CELLARRAY* cell = new HML_ND_CELLARRAY(dims, HML_ND_CELLARRAY::REAL);
+	return cell;
+}
+
+HML_ND_CELLARRAY* ExprTreeEvaluator::allocateNDCellArray(const HML_ND_CELLARRAY* cell)
+{
+	HML_ND_CELLARRAY* newcell = new HML_ND_CELLARRAY(*cell);
 	return newcell;
 }
 
@@ -15083,6 +15039,7 @@ TREE_FPTR ExprTreeEvaluator::GetFuncPointerFromType(int type)
 		case IF: 
 		case ELSE:
 		case DUMMY: 
+		case PARSE_DUMMY:
 			return &ExprTreeEvaluator::Nothing;
 		case VECTOR:
 			return &ExprTreeEvaluator::Nothing;
@@ -15398,4 +15355,19 @@ Currency ExprTreeEvaluator::GetMetadata(const std::string& infile)
 	return ans_cell;
 
 	return 0.0;
+}
+
+bool ExprTreeEvaluator::IsA(const Currency& target, const std::string& classname) const
+{
+	bool ret = false;
+
+	if (target.IsObject())
+	{
+		std::string class_name = target.GetClassname();
+		ClassInfo* ci = (*class_info_map)[class_name];
+
+		return ci->IsSubclassOf(classname);
+	}
+
+	return ret;
 }

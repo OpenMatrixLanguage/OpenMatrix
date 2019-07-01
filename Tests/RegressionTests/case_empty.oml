@@ -1,0 +1,8 @@
+﻿m=3  % works fine
+m=1  % crash
+
+switch m
+  case {1, 2},  
+  otherwise,
+    error('in the otherwise')
+end

@@ -1,0 +1,5 @@
+disp('do something');
+AAA=1;
+assert(false);
+disp('do something after the error');
+BBB=0;

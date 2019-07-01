@@ -21,6 +21,8 @@
 
 #include "OMLTree.h"
 
+#include <cassert>
+
 FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*> ret_vals, std::vector<const std::string*> params, 
 	                       std::map<const std::string*, Currency> default_vals, OMLTree* stmt_list, std::string file_name, std::string help_str)
 {
@@ -29,10 +31,11 @@ FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*
 	_return_values    = ret_vals;
 	_parameters       = params;
 	_default_values   = default_vals;
-	_stmts            = new FunctionStatements(stmt_list);
+	_statements       = stmt_list;
 	_builtin          = NULL;
 	_anon_scope       = NULL;
 	_help_string      = help_str;
+	_refcnt           = 1;
 
 	// the persistent scope doesn't have a FunctionInfo* (and therefore its own persistent), otherwise
 	// you'll be in an infinite loop looking for persistents forever
@@ -49,9 +52,10 @@ FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*
 	_file_name        = Currency::pm.GetStringPointer(file_name);
 	_return_values    = ret_vals;
 	_parameters       = params;
-	_stmts            = new FunctionStatements(stmt_list);
+	_statements       = new OMLTree(*stmt_list);
 	_builtin          = NULL;
 	_anon_scope       = NULL;
+	_refcnt           = 1;
 
 	// the persistent scope doesn't have a FunctionInfo* (and therefore its own persistent), otherwise
 	// you'll be in an infinite loop looking for persistents forever
@@ -67,45 +71,50 @@ FunctionInfo::FunctionInfo(std::string func_name, FUNCPTR builtin_func)
 	_function_name    = Currency::vm.GetStringPointer(func_name);
 	_file_name        = Currency::pm.GetStringPointer("");
 	_builtin          = builtin_func;
-	_stmts            = NULL;
+	_statements       = NULL;
 	_anon_scope       = NULL;
 	_persistent_scope = NULL;
 	_is_nested        = false;
 	_is_constructor   = false; 
 	local_functions   = NULL;
+	_refcnt           = 1;
 }
 
 FunctionInfo::FunctionInfo()
 {
 	_function_name    = Currency::vm.GetStringPointer("");
 	_file_name        = Currency::pm.GetStringPointer("");
-	_stmts            = NULL;
+	_statements       = NULL;
 	_anon_scope       = NULL;
 	_persistent_scope = NULL;
 	_builtin          = NULL;
 	_is_nested        = false;
 	_is_constructor   = false;
 	local_functions   = NULL;
+	_refcnt = 1;
 }
 
 FunctionInfo::~FunctionInfo()
 {
-	if (_anon_scope)
+	if (GetRefCount() == 0)
+	{
+		delete _statements;
+		delete _persistent_scope;
 		delete _anon_scope;
 
-	if (_stmts)
-	{
-		_stmts->DecrRefCnt();
+		std::map<const std::string*, FunctionInfo*>::const_iterator iter;
 
-		if (_stmts->GetRefCnt() == 0)
+		if (local_functions)
 		{
-			delete _stmts;
-			delete _persistent_scope;
+			for (iter = local_functions->begin(); iter != local_functions->end(); iter++)
+			{
+				FunctionInfo* fi = iter->second;
 
-			std::map<const std::string*, FunctionInfo*>::const_iterator iter;
+				fi->DecrRefCount();
 
-			for (iter=local_functions->begin(); iter != local_functions->end(); iter++)
-				delete iter->second;
+				if (fi->GetRefCount() == 0)
+					delete fi;
+			}
 
 			delete local_functions;
 		}
@@ -114,30 +123,36 @@ FunctionInfo::~FunctionInfo()
 
 FunctionInfo::FunctionInfo(const FunctionInfo& in)
 {
-	_function_name    = in._function_name;
-	_file_name        = in._file_name;
-	_builtin          = in._builtin;
-	_return_values    = in._return_values;
-	_parameters       = in._parameters;
-	_stmts            = in._stmts;
-	_persistent_scope = in._persistent_scope;
+	_function_name = in._function_name;
+	_file_name = in._file_name;
+	_builtin = in._builtin;
+	_return_values = in._return_values;
+	_parameters = in._parameters;
+	_refcnt = 1;
 
-	if (_stmts)
-		_stmts->IncrRefCnt();
+	_statements = new OMLTree(*in._statements);
+
+	if (in._persistent_scope)
+		_persistent_scope = new MemoryScope(*in._persistent_scope);
+	else
+		_persistent_scope = NULL;
 
 	if (in._anon_scope)
 		_anon_scope = new MemoryScope(*in._anon_scope);
 	else
 		_anon_scope = NULL;
 
-	_is_constructor   = in._is_constructor;
-	_is_nested        = in._is_nested;
+	_is_constructor = in._is_constructor;
+	_is_nested = in._is_nested;
 
-	_help_string      = in._help_string;
+	_help_string = in._help_string;
 
-	std::map<const std::string*, FunctionInfo*>::const_iterator iter;
+	local_functions = new std::map<const std::string*, FunctionInfo*>;
 
-	local_functions = in.local_functions;
+	std::map<const std::string*, FunctionInfo*>::iterator iter;
+
+	for (iter = in.local_functions->begin(); iter != in.local_functions->end(); ++iter)
+		(*local_functions)[iter->first] = new FunctionInfo(*iter->second);
 }
 
 bool FunctionInfo::IsReturnValue(const std::string* varname) const
@@ -200,7 +215,7 @@ bool CheckForReference(const std::string* varname, OMLTree* tree)
 
 bool FunctionInfo::IsReferenced(const std::string* varname) const
 {
-	return CheckForReference(varname, _stmts->Statements());
+	return CheckForReference(varname, _statements);
 }
 
 int FunctionInfo::Nargin() const
@@ -236,7 +251,7 @@ bool FunctionInfo::IsLocalFunction(std::string script_name) const
 
 std::string FunctionInfo::RedirectedFunction() const
 {
-	OMLTree*  statements = _stmts->Statements();
+	OMLTree*  statements = _statements;
 	int num_children = statements->ChildCount();
 
 	if (num_children == 1)
@@ -255,7 +270,7 @@ std::string FunctionInfo::RedirectedFunction() const
 
 int FunctionInfo::NumRedirectedInputs() const
 {
-	OMLTree*  statements = _stmts->Statements();
+	OMLTree*  statements = _statements;
 	int num_children = statements->ChildCount();
 
 	if (num_children == 1)
@@ -290,7 +305,7 @@ int FunctionInfo::MinimumInputs() const
 
 OMLTree* FunctionInfo::RedirectedInput(int index) const
 {
-	OMLTree*  statements = _stmts->Statements();
+	OMLTree*  statements = _statements;
 	int num_children = statements->ChildCount();
 
 	if (num_children == 1)
@@ -405,8 +420,8 @@ std::string FunctionInfo::GetAST() const
 
 	result += ") ";
 
-	if (_stmts)
-		result += LocalGetAST(_stmts->Statements());
+	if (_statements)
+		result += LocalGetAST(_statements);
 
 	result += ")";
 	
@@ -415,17 +430,14 @@ std::string FunctionInfo::GetAST() const
 
 OMLTree* FunctionInfo::Statements() const 
 { 
-	if (_stmts)
-		return _stmts->Statements(); 
-
-	return NULL;
+	return _statements;
 }
 
 void FunctionInfo::SetAnonymous(MemoryScope* dummy)
 { 
 	std::vector<std::string> idents;
 
-	_stmts->Statements()->GetListOfIdents(idents);
+	_statements->GetListOfIdents(idents);
 
 	_anon_scope = new MemoryScope(NULL);
 
@@ -457,19 +469,4 @@ Currency FunctionInfo::GetDefaultValue(const std::string* param_name) const
 		return temp->second;
 	else
 		return _not_found;
-}
-
-FunctionStatements::FunctionStatements(OMLTree* stmts)
-{
-	_statements = stmts;
-	_refcnt = 1;
-}
-
-FunctionStatements::~FunctionStatements()
-{
-	if (_statements)
-	{
-		delete _statements;
-		_statements = NULL;
-	}
 }

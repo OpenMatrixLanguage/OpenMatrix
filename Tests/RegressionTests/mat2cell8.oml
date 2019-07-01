@@ -1,0 +1,2 @@
+﻿nin=1;
+mat2cell(3*ones(nin,1),ones(nin,1))

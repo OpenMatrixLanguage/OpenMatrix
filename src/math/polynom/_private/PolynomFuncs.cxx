@@ -17,6 +17,8 @@
 
 #include "MathUtilsFuncs.h"
 #include "hwMatrix.h"
+#include "hwMatrixN.h"
+//#include "hwMathStatus.h"
 
 //------------------------------------------------------------------------------
 // Computes polynomial roots and returns status
@@ -802,14 +804,14 @@ hwMathStatus PchipInterp(const hwMatrix& x_old,
 
     if (d(0) * delta(0) < 0.0)
         d(0) = 0.0;
-	else if (delta(0) * delta(1) < 0.0 && abs(d(0)) > abs(3.0*delta(0)))
+    else if (delta(0) * delta(1) < 0.0 && fabs(d(0)) > fabs(3.0*delta(0)))
         d(0) = 3.0 * delta(0);
 
     d(n-1) = ((2.0*h(n-2)+h(n-3))*delta(n-2) - h(n-2)*delta(n-3)) / (h(n-2)+h(n-3));
 
     if (d(n-1) * delta(n-2) < 0.0)
         d(n-1) = 0.0;
-	else if (delta(n-2) * delta(n-3) < 0.0 && abs(d(n-1)) > abs(3.0*delta(n-2)))
+    else if (delta(n-2) * delta(n-3) < 0.0 && fabs(d(n-1)) > fabs(3.0*delta(n-2)))
         d(n-1) = 3.0 * delta(n-2);
 
     // interpolate
@@ -1410,7 +1412,7 @@ hwMathStatus Spline(const hwMatrix& x_old,
     return hwMathStatus();
 }
 //------------------------------------------------------------------------------
-// Performs bilinear interpolation on a patch and returns status
+// Performs bilinear interpolation on a patch
 // https://en.wikipedia.org/wiki/Bilinear_interpolation
 //------------------------------------------------------------------------------
 static double BilinearPatch(const hwMatrix& x_old, 
@@ -1422,6 +1424,7 @@ static double BilinearPatch(const hwMatrix& x_old,
                             double          y_new)
 
 {    
+    // scale coordinates to unit cube
     double x = (x_new - x_old(idxc)) / (x_old(idxc+1) - x_old(idxc));
     double y = (y_new - y_old(idxr)) / (y_old(idxr+1) - y_old(idxr));
     double a00 = z_old(idxr, idxc);
@@ -1434,13 +1437,13 @@ static double BilinearPatch(const hwMatrix& x_old,
 //------------------------------------------------------------------------------
 // Performs bilinear interpolation and returns status
 //------------------------------------------------------------------------------
-POLYNOM_DECLS hwMathStatus BilinearInterp(const hwMatrix& x_old,
-                                          const hwMatrix& y_old,
-                                          const hwMatrix& z_old,
-                                          const hwMatrix& x_new,
-                                          const hwMatrix& y_new,
-                                          hwMatrix&       z_new,
-                                          bool            extrap)
+hwMathStatus BilinearInterp(const hwMatrix& x_old,
+                            const hwMatrix& y_old,
+                            const hwMatrix& z_old,
+                            const hwMatrix& x_new,
+                            const hwMatrix& y_new,
+                            hwMatrix&       z_new,
+                            bool            extrap)
 {
     hwMathStatus status;
 
@@ -1679,7 +1682,7 @@ POLYNOM_DECLS hwMathStatus BilinearInterp(const hwMatrix& x_old,
     return status;
 }
 //------------------------------------------------------------------------------
-// Performs bicubic interpolation on patch and returns status
+// Performs bicubic interpolation on patch
 // https://en.wikipedia.org/wiki/Bicubic_interpolation
 //------------------------------------------------------------------------------
 static
@@ -1695,6 +1698,7 @@ double BicubicPatch(const hwMatrix& x_old,
                     const hwMatrix& d2zdxdy)
 
 {
+    // scale coordinates and derivatives to unit cube
     double deltaX = x_old(idxc+1) - x_old(idxc);
     double deltaY = y_old(idxr+1) - y_old(idxr);
     double deltaXY = deltaX * deltaY;
@@ -2079,4 +2083,313 @@ hwMathStatus Spline2D(const hwMatrix& x_old,
     }
     
     return status;
+}
+//------------------------------------------------------------------------------
+// Computes trilinear interpolation
+// https://en.wikipedia.org/wiki/Trilinear_interpolation
+//------------------------------------------------------------------------------
+static void TrilinearInterp(const hwMatrix&  x_old,
+                            const hwMatrix&  y_old,
+                            const hwMatrix&  z_old,
+                            const hwMatrixN& val_old,
+                            const hwMatrix&  p_new,
+                            hwMatrix&        val_new)
+{
+    int numPts = p_new.M();
+    hwMatrix v000(numPts, hwMatrix::REAL);
+    hwMatrix v100(numPts, hwMatrix::REAL);
+    hwMatrix v010(numPts, hwMatrix::REAL);
+    hwMatrix v001(numPts, hwMatrix::REAL);
+    hwMatrix v011(numPts, hwMatrix::REAL);
+    hwMatrix v101(numPts, hwMatrix::REAL);
+    hwMatrix v110(numPts, hwMatrix::REAL);
+    hwMatrix v111(numPts, hwMatrix::REAL);
+    hwMatrix frac_x(numPts, hwMatrix::REAL);
+    hwMatrix frac_y(numPts, hwMatrix::REAL);
+    hwMatrix frac_z(numPts, hwMatrix::REAL);
+
+    int    nx = x_old.Size();
+    int    ny = y_old.Size();
+    int    nz = z_old.Size();
+    int    jx, jy, jz;
+    double dx, dy, dz;
+    std::vector<int> indx_old(3);
+    const double* x_start = x_old.GetRealData();
+    const double* y_start = y_old.GetRealData();
+    const double* z_start = z_old.GetRealData();
+
+    // compute interval sizes and fractions for unit cube scaling
+    for (int i = 0; i < numPts; ++i)
+    {
+        jx = _max(BinarySearch(x_start, nx, p_new(i, 0)), 0);
+        jy = _max(BinarySearch(y_start, ny, p_new(i, 1)), 0);
+        jz = _max(BinarySearch(z_start, nz, p_new(i, 2)), 0);
+        jx = _min(jx + 1, nx - 1);
+        jy = _min(jy + 1, ny - 1);
+        jz = _min(jz + 1, nz - 1);
+
+        indx_old[1] = jx - 1;
+        indx_old[0] = jy - 1;
+        indx_old[2] = jz - 1;
+        v000(i) = val_old(indx_old);
+        indx_old[1] = jx;
+        v100(i) = val_old(indx_old);
+        indx_old[1] = jx - 1;
+        indx_old[0] = jy;
+        v010(i) = val_old(indx_old);
+        indx_old[1] = jx;
+        v110(i) = val_old(indx_old);
+        indx_old[1] = jx - 1;
+        indx_old[0] = jy - 1;
+        indx_old[2] = jz;
+        v001(i) = val_old(indx_old);
+        indx_old[1] = jx;
+        v101(i) = val_old(indx_old);
+        indx_old[1] = jx - 1;
+        indx_old[0] = jy;
+        v011(i) = val_old(indx_old);
+        indx_old[1] = jx;
+        v111(i) = val_old(indx_old);
+
+        dx = x_old(jx) - x_old(jx - 1);
+        dy = y_old(jy) - y_old(jy - 1);
+        dz = z_old(jz) - z_old(jz - 1);
+
+        frac_x(i) = (p_new(i, 0) - x_old(jx - 1)) / dx;
+        frac_y(i) = (p_new(i, 1) - y_old(jy - 1)) / dy;
+        frac_z(i) = (p_new(i, 2) - z_old(jz - 1)) / dz;
+    }
+
+    // interpolation on unit cube
+    // Vxyz = V000 (1 - x) (1 - y) (1 - z) +
+    //        V100    x    (1 - y) (1 - z) +
+    //        V010 (1 - x)    y    (1 - z) +
+    //        V001 (1 - x) (1 - y)    z    +
+    //        V101    x    (1 - y)    z    +
+    //        V011 (1 - x)    y       z    +
+    //        V110    x       y    (1 - z) +
+    //        V111    x       y       z
+    hwMathStatus status;
+    hwMatrix temp1;
+    hwMatrix temp2;
+    hwMatrix temp3;
+    hwMatrix temp4;
+    hwMatrix frac_xc(1.0 - frac_x);
+    hwMatrix frac_yc(1.0 - frac_y);
+    hwMatrix frac_zc(1.0 - frac_z);
+
+    status   = temp1.MultByElems(frac_yc, frac_zc);
+    status   = temp2.MultByElems(v000, frac_xc);
+    status   = temp3.MultByElems(v100, frac_x);
+    status   = temp4.MultByElems(temp2 + temp3, temp1);
+    val_new  = temp4;
+    status   = temp1.MultByElems(frac_y, frac_zc);
+    status   = temp2.MultByElems(v010, frac_xc);
+    status   = temp3.MultByElems(v110, frac_x);
+    status   = temp4.MultByElems(temp2 + temp3, temp1);
+    val_new += temp4;
+    status   = temp1.MultByElems(frac_yc, frac_z);
+    status   = temp2.MultByElems(v001, frac_xc);
+    status   = temp3.MultByElems(v101, frac_x);
+    status   = temp4.MultByElems(temp2 + temp3, temp1);
+    val_new += temp4;
+    status   = temp1.MultByElems(frac_y, frac_z);
+    status   = temp2.MultByElems(v011, frac_xc);
+    status   = temp3.MultByElems(v111, frac_x);
+    status   = temp4.MultByElems(temp2 + temp3, temp1);
+    val_new += temp4;
+}
+//------------------------------------------------------------------------------
+// Computes gradient of trilinear interpolation and returns status
+// https://en.wikipedia.org/wiki/Trilinear_interpolation
+//------------------------------------------------------------------------------
+hwMathStatus TrilinearInterpGrad(const hwMatrix&  x_old,
+                                 const hwMatrix&  y_old,
+                                 const hwMatrix&  z_old,
+                                 const hwMatrixN& val_old,
+                                 const hwMatrix&  v_new,
+                                 hwMatrix&        grad)
+{
+    // check inputs
+    if (!x_old.IsReal())
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 1);
+
+    if (!x_old.IsVector())
+        return hwMathStatus(HW_MATH_ERR_VECTOR, 1);
+
+    if (!y_old.IsReal())
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 2);
+
+    if (!y_old.IsVector())
+        return hwMathStatus(HW_MATH_ERR_VECTOR, 2);
+
+    if (!z_old.IsReal())
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 3);
+
+    if (!z_old.IsVector())
+        return hwMathStatus(HW_MATH_ERR_VECTOR, 3);
+
+    if (!val_old.IsReal())
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 4);
+
+    int nx = x_old.Size();
+    int ny = y_old.Size();
+    int nz = z_old.Size();
+    const std::vector<int> &dims_old = val_old.Dimensions();
+
+    if (dims_old.size() != 3)
+        return hwMathStatus(HW_MATH_ERR_ARRAYSIZE, 4);
+
+    if (dims_old[1] != nx)
+        return hwMathStatus(HW_MATH_ERR_ARRAYSIZE, 1, 4);
+
+    if (dims_old[0] != ny)
+        return hwMathStatus(HW_MATH_ERR_ARRAYSIZE, 2, 4);
+
+    if (dims_old[2] != nz)
+        return hwMathStatus(HW_MATH_ERR_ARRAYSIZE, 3, 4);
+
+    if (!v_new.IsReal())
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 5);
+
+    if (v_new.N() != 3)
+        return hwMathStatus(HW_MATH_ERR_ARRAYCOL3, 5);
+
+    int numPts = v_new.M();
+
+    // collect cube information
+    // We could simply compute the gradient at each v_new(i,:) based on the 
+    // grid element that contains it. However, this would be the equivalent
+    // of a 3D forward difference.
+    // To obtain a central difference, we construct a new grid element around
+    // each v_new(i,:) of dimensions dx X dy X dz. The function value at each
+    // vertex of the new grid element is interpolated. This new grid element
+    // overlaps nodes of the original grid, and so captures second order
+    // information for the central difference.
+    // The gradient at each v_new(i,:) is computed on the new grid element.
+    hwMatrix p000(numPts, 3, hwMatrix::REAL);
+    hwMatrix p100(numPts, 3, hwMatrix::REAL);
+    hwMatrix p010(numPts, 3, hwMatrix::REAL);
+    hwMatrix p001(numPts, 3, hwMatrix::REAL);
+    hwMatrix p011(numPts, 3, hwMatrix::REAL);
+    hwMatrix p101(numPts, 3, hwMatrix::REAL);
+    hwMatrix p110(numPts, 3, hwMatrix::REAL);
+    hwMatrix p111(numPts, 3, hwMatrix::REAL);
+    hwMatrix frac_x(numPts, hwMatrix::REAL);
+    hwMatrix frac_y(numPts, hwMatrix::REAL);
+    hwMatrix frac_z(numPts, hwMatrix::REAL);
+    hwMatrix dx(numPts, hwMatrix::REAL);
+    hwMatrix dy(numPts, hwMatrix::REAL);
+    hwMatrix dz(numPts, hwMatrix::REAL);
+
+    int jx, jy, jz;
+    const double* x_start = x_old.GetRealData();
+    const double* y_start = y_old.GetRealData();
+    const double* z_start = z_old.GetRealData();
+
+    for (int i = 0; i < numPts; ++i)
+    {
+        jx = _max(BinarySearch(x_start, nx, v_new(i, 0)), 0);
+        jy = _max(BinarySearch(y_start, ny, v_new(i, 1)), 0);
+        jz = _max(BinarySearch(z_start, nz, v_new(i, 2)), 0);
+        jx = _min(jx + 1, nx - 1);
+        jy = _min(jy + 1, ny - 1);
+        jz = _min(jz + 1, nz - 1);
+
+        dx(i) = (x_old(jx) - x_old(jx - 1)) / 2.0;
+        dy(i) = (y_old(jy) - y_old(jy - 1)) / 2.0;
+        dz(i) = (z_old(jz) - z_old(jz - 1)) / 2.0;
+
+        p000(i, 0) = v_new(i, 0) - dx(i);
+        p000(i, 1) = v_new(i, 1) - dy(i);
+        p000(i, 2) = v_new(i, 2) - dz(i);
+
+        p100(i, 0) = v_new(i, 0) + dx(i);
+        p100(i, 1) = v_new(i, 1) - dy(i);
+        p100(i, 2) = v_new(i, 2) - dz(i);
+
+        p010(i, 0) = v_new(i, 0) - dx(i);
+        p010(i, 1) = v_new(i, 1) + dy(i);
+        p010(i, 2) = v_new(i, 2) - dz(i);
+
+        p110(i, 0) = v_new(i, 0) + dx(i);
+        p110(i, 1) = v_new(i, 1) + dy(i);
+        p110(i, 2) = v_new(i, 2) - dz(i);
+
+        p001(i, 0) = v_new(i, 0) - dx(i);
+        p001(i, 1) = v_new(i, 1) - dy(i);
+        p001(i, 2) = v_new(i, 2) + dz(i);
+
+        p101(i, 0) = v_new(i, 0) + dx(i);
+        p101(i, 1) = v_new(i, 1) - dy(i);
+        p101(i, 2) = v_new(i, 2) + dz(i);
+
+        p011(i, 0) = v_new(i, 0) - dx(i);
+        p011(i, 1) = v_new(i, 1) + dy(i);
+        p011(i, 2) = v_new(i, 2) + dz(i);
+
+        p111(i, 0) = v_new(i, 0) + dx(i);
+        p111(i, 1) = v_new(i, 1) + dy(i);
+        p111(i, 2) = v_new(i, 2) + dz(i);
+    }
+
+    hwMatrix v000(numPts, hwMatrix::REAL);
+    hwMatrix v100(numPts, hwMatrix::REAL);
+    hwMatrix v010(numPts, hwMatrix::REAL);
+    hwMatrix v001(numPts, hwMatrix::REAL);
+    hwMatrix v011(numPts, hwMatrix::REAL);
+    hwMatrix v101(numPts, hwMatrix::REAL);
+    hwMatrix v110(numPts, hwMatrix::REAL);
+    hwMatrix v111(numPts, hwMatrix::REAL);
+
+    TrilinearInterp(x_old, y_old, z_old, val_old, p000, v000);
+    TrilinearInterp(x_old, y_old, z_old, val_old, p100, v100);
+    TrilinearInterp(x_old, y_old, z_old, val_old, p010, v010);
+    TrilinearInterp(x_old, y_old, z_old, val_old, p110, v110);
+    TrilinearInterp(x_old, y_old, z_old, val_old, p001, v001);
+    TrilinearInterp(x_old, y_old, z_old, val_old, p101, v101);
+    TrilinearInterp(x_old, y_old, z_old, val_old, p011, v011);
+    TrilinearInterp(x_old, y_old, z_old, val_old, p111, v111);
+
+    hwMathStatus status;
+    hwMatrix temp1;
+
+    // compute dVdx
+    // note: the factors of 8 below are because dx,dy,dz were divided by 2
+    // above, and having each v_new(i,:) at the center of its new grid element
+    // introduces two factors of 2 into each term of the gradient of Vxyz.
+    hwMatrix dVdx;
+    dVdx  = v100 - v000;
+    dVdx += v110 - v010;
+    dVdx += v101 - v001;
+    dVdx += v111 - v011;
+    temp1 = dVdx;
+    status = dVdx.DivideByElems(temp1, 8.0 * dx);
+
+    // compute dVdy
+    hwMatrix dVdy;
+    dVdy  = v010 - v000;
+    dVdy += v110 - v100;
+    dVdy += v011 - v001;
+    dVdy += v111 - v101;
+    temp1 = dVdy;
+    status = dVdy.DivideByElems(temp1, 8.0 * dy);
+
+    // compute dVdz
+    hwMatrix dVdz;
+    dVdz  = v001 - v000;
+    dVdz += v101 - v100;
+    dVdz += v011 - v010;
+    dVdz += v111 - v110;
+    temp1 = dVdz;
+    status = dVdz.DivideByElems(temp1, 8.0 * dz);
+
+    // prepare output
+    status = grad.Dimension(numPts, 3, hwMatrix::REAL);
+
+    status = grad.WriteColumn(0, dVdx);
+    status = grad.WriteColumn(1, dVdy);
+    status = grad.WriteColumn(2, dVdz);
+
+    return hwMathStatus();
 }

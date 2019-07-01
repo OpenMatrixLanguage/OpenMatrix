@@ -1,0 +1,3 @@
+s = 'FILE021.prn, FILE022.prn';
+regexp(s, '.prn', 'once')
+regexp(s, '.PRN', 'once', 'ignorecase')

@@ -1,0 +1,6 @@
+[n,m] = month('19/4/5', 'yyyy/mm/dd')
+
+[n,m] = month('2019-1-3', 'yyyy-mm-dd')
+[n,m] = month('20190304T040506', 'yyyymmddTHHMMSS')
+
+month('2019-4-5 10:11:12', 'yyyy-mm-dd HH:MM:SS')

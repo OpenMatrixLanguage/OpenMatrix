@@ -1,4 +1,4 @@
 fname = FileManipulation/EmptyFile.txt
 fid = 3
 ans = 0
-Error: invalid file stream id: 3 in call to function fopen at line number 4 in file filetest17.oml
+Error: invalid file stream id [3] specified in argument 1 in call to function fopen at line number 4 in file filetest17.oml

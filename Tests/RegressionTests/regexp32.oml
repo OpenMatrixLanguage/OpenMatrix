@@ -1,0 +1,3 @@
+t={'FILE021.prn', 'FILE022.prn'};
+regexp(t,'.PRN','matchcase')
+regexp(t,'.prn','matchcase')

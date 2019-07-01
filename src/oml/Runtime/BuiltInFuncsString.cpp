@@ -698,7 +698,7 @@ bool BuiltInFuncsString::Regexprep(EvaluatorInterface           eval,
 
     std::regex_constants::match_flag_type replaceflag =
         std::regex_constants::match_default;
-    std::regex_constants::syntax_option_type syntaxflag =
+    std::regex_constants::syntax_option_type syntaxflag = 
         std::regex_constants::ECMAScript;
 
     // Get other options, if any
@@ -806,9 +806,54 @@ bool BuiltInFuncsString::Regexprep(EvaluatorInterface           eval,
                     std::regex regexpat(pat, syntaxflag);  
                     result = std::regex_replace(txt, regexpat, rep, replaceflag);
                 }
-                catch (std::regex_error& err)
+                catch (std::regex_error&)
                 {
-                    ThrowRegexError(err.code());
+                    
+                    // Try with basic flag
+                    std::regex_constants::syntax_option_type flag = (ignorecase) ?
+                        std::regex_constants::basic :
+                        std::regex_constants::basic | std::regex_constants::icase;
+                    try
+                    {
+                        // Negative look behind is like an assertion and is not
+                        // supported
+                        std::string neglookbehind("(?<!");
+                        size_t pos1 = pat.find(neglookbehind);
+                        if (pos1 != std::string::npos)
+                        {
+                            int numopenbracket = 0;
+                            size_t startpos = pos1 + neglookbehind.length();
+                            std::string newpat(pat.substr(0, pos1));
+                            for (size_t k = startpos; k < pat.length(); ++k)
+                            {
+                                char ch = pat[k];
+                                if (ch == '(')
+                                {
+                                    numopenbracket++;
+                                }
+                                else if (ch == ')')
+                                {
+                                    if (numopenbracket > 0)
+                                    {
+                                        numopenbracket--;
+                                        continue;
+                                    }
+                                    newpat += pat.substr(k + 1);
+                                    break;
+                                }
+                            }
+                            if (!newpat.empty())
+                            {
+                                pat = newpat;
+                            }
+                        }
+                        std::regex regexpat(pat, flag);
+                        result = std::regex_replace(txt, regexpat, rep, replaceflag);
+                    }
+                    catch (std::regex_error& err)
+                    {
+                        ThrowRegexError(err.code());
+                    }
                 }
                 catch (...)
                 {
@@ -1310,4 +1355,235 @@ bool BuiltInFuncsString::Str2mat(EvaluatorInterface           eval,
     outputs.push_back(c);
 
     return true;
+}
+//------------------------------------------------------------------------------
+// Returns true and converts string to double without eval [str2double]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsString::Str2Double(EvaluatorInterface           eval,
+                                    const std::vector<Currency>& inputs,
+                                    std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 1)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    bool isString = inputs[0].IsString();
+    if (!isString && !inputs[0].IsCellArray())
+    {
+        outputs.push_back(std::numeric_limits<double>::quiet_NaN());
+        return true;  // No error is thrown, instead NaN is returned
+    }
+
+    BuiltInFuncsString funcs;
+    BuiltInFuncsUtils  utils;
+
+    bool iscomplex = false;
+    bool isscalar  = true;
+    
+    double rval = 0;
+    double ival = 0;
+
+    if (isString)
+    {
+        const hwMatrix* mtx = inputs[0].Matrix();
+        if (!mtx || mtx->Size() == 0)
+        {
+            outputs.push_back(std::numeric_limits<double>::quiet_NaN());
+            return true;
+        }
+        int m = mtx->M();
+        if (m == 1)
+        {
+            funcs.Str2Num(inputs[0].StringVal(), rval, ival, isscalar);
+            if (isscalar)
+            {
+                outputs.push_back(rval);
+            }
+            else
+            {
+                outputs.push_back(hwComplex(rval, ival));
+            }
+            return true;
+        }
+
+        // Multiline string
+        std::unique_ptr<hwMatrix> out(EvaluatorInterface::allocateMatrix(
+            m, 1, std::numeric_limits<double>::quiet_NaN()));
+        
+        for (int i = 0; i < m; ++i)
+        {
+            std::unique_ptr<hwMatrix> row(EvaluatorInterface::allocateMatrix());
+            utils.CheckMathStatus(eval, mtx->ReadRow(i, *row));
+
+            Currency rowcur(row.release());
+            rowcur.SetMask(Currency::MASK_STRING);
+
+            funcs.Str2Num(rowcur.StringVal(), rval, ival, isscalar);
+            if (!iscomplex && !isscalar)
+            {
+                utils.CheckMathStatus(eval, out->MakeComplex());
+                iscomplex = true;
+            }
+            if (!iscomplex)
+            {
+                (*out)(i) = rval;
+            }
+            else
+            {
+                out->z(i) = hwComplex(rval, ival);
+            }
+        }
+        outputs.push_back(out.release());
+        return true;
+    }
+
+    HML_CELLARRAY* cell = inputs[0].CellArray();
+    if (!cell || cell->Size() == 0)
+    {
+        outputs.push_back(std::numeric_limits<double>::quiet_NaN());
+        return true;
+    }
+
+    int m = cell->M();
+    int n = cell->N();
+
+    std::unique_ptr<hwMatrix> mtx(EvaluatorInterface::allocateMatrix(m, n,
+        std::numeric_limits<double>::quiet_NaN()));
+
+    for (int i = 0; i < m; ++i)
+    {
+        for (int j = 0; j < n; ++j)
+        {
+            if (!(*cell)(i, j).IsString())
+            {
+                continue;
+            }
+            funcs.Str2Num((*cell)(i, j).StringVal(), rval, ival, isscalar);
+            if (!iscomplex && !isscalar)
+            {
+                utils.CheckMathStatus(eval, mtx->MakeComplex());
+                iscomplex = true;
+            }
+
+            if (!iscomplex)
+            {
+                (*mtx)(i, j) = rval;
+            }
+            else
+            {
+                mtx->z(i, j) = hwComplex(rval, ival);
+            }
+        }
+    }
+    outputs.push_back(mtx.release());
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Returns true successful in converting string to scalar/complex
+//------------------------------------------------------------------------------
+bool BuiltInFuncsString::Str2Num(const std::string& in,
+                                 double&            rval,
+                                 double&            ival,
+                                 bool&              isscalar)
+{
+    rval = std::numeric_limits<double>::quiet_NaN();
+    ival = std::numeric_limits<double>::quiet_NaN();
+    if (in.empty())
+    {
+        return false;
+    }
+    else if (in == "i" || in == "j")  // Special case
+    {
+        rval = 0;
+        ival = 1;
+        isscalar = false;
+        return true;
+    }
+    std::string tmp(in);
+
+    // Linux and VS2015 will not process numbers with double scientific 
+    // notation which use 'D' instead of 'E'
+    std::replace(tmp.begin(), tmp.end(), 'D', 'E');
+    std::replace(tmp.begin(), tmp.end(), 'd', 'e');
+    
+    char*  cptr   = nullptr;
+    double result = strtod(tmp.c_str(), &cptr);
+    std::string imagstr = (cptr) ? cptr : nullptr;
+    if (!IsValidStrtodResult(tmp, imagstr, result))
+    {
+        return false;
+    }
+
+    // Remove spaces
+    if (!imagstr.empty()) 
+    {
+        std::string::iterator itr = std::remove(imagstr.begin(), imagstr.end(), ' ');
+        imagstr.erase(itr, imagstr.end());
+    }
+
+    if (imagstr.empty())
+    {
+        rval = result;
+        return true;   // Conversion succeeded
+    }
+    char lastch = imagstr[imagstr.length() - 1];
+    if (lastch == 'i' || lastch == 'j')
+    {
+        imagstr.pop_back();
+        for (size_t i = 0; i < imagstr.length(); ++i)
+        {
+            char ch = imagstr[i];
+            if (ch == '.' || isdigit(ch) || (i == 0 && (ch == '+' || ch == '-')))
+            {
+                continue;
+            }
+            return false; // Conversion failed
+        }
+        isscalar = false;
+        if (imagstr.empty())  // Only a complex number
+        {
+            ival = result;
+            rval = 0;
+        }
+        else
+        {
+            char* endptr = nullptr;
+            ival = strtod(imagstr.c_str(), &endptr);
+            tmp = (endptr) ? endptr : "";
+            if (!IsValidStrtodResult(imagstr, tmp, ival))
+            {
+                ival     = std::numeric_limits<double>::quiet_NaN();
+                isscalar = true;
+                return false;
+            }
+            rval = result;
+        }
+        return true;
+    }
+    return false;
+}
+//------------------------------------------------------------------------------
+// Returns true if strtod conversion is successful
+//------------------------------------------------------------------------------
+bool BuiltInFuncsString::IsValidStrtodResult(const std::string& in,
+                                             const std::string& end,
+                                             double             val)
+{
+    if (in.empty() || errno == ERANGE)
+    {
+        return false;
+    }
+    else if (!IsZero(val) || in != end)
+    {
+        return true;
+    }
+
+    if (in.find_first_of("0") != std::string::npos)
+    {
+        return true;
+    }
+    
+    return (end.find_first_of("ij") != std::string::npos);
 }

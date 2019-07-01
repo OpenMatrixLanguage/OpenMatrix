@@ -1,7 +1,7 @@
 /**
 * @file MatrixNDisplay.cpp
 * @date July 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -71,9 +71,12 @@ std::string MatrixNDisplay::GetOutput(const OutputFormat* fmt,
 
     if (numrows == 0 || numcols == 0)
     {
-        if (m_currency.IsDispOutput()) 
-            return "";
-        return std::string(os.str());
+        std::string data = GetOutputEmpty();
+        if (m_currency.IsDispOutput())
+        {
+            return data;
+        }
+        return (os.str() + data);
     }
 
 	bool paginate = IsValidDisplaySize();
@@ -95,10 +98,11 @@ std::string MatrixNDisplay::GetOutput(const OutputFormat* fmt,
     else
     {
         const_cast<MatrixNDisplay*>(this)->Initialize(fmt, NULL, NULL); 
-        //m_linesPrinted ++;       // Matrix header will be printed
 
         if (m_mode == DISPLAYMODE_FORWARD || m_mode == DISPLAYMODE_DOWN)
+        {
             output = GetOutputForwardPagination(fmt);
+        }
 
         else if (m_mode == DISPLAYMODE_BACK || m_mode == DISPLAYMODE_UP)
             output = GetOutputBackPagination(fmt);
@@ -117,7 +121,12 @@ std::string MatrixNDisplay::GetOutputNoPagination(const OutputFormat* fmt) const
     std::vector<std::string> labels;
     std::vector<Currency>    curs;
     GetSlices(mtx, curs, labels);
-    
+
+    if (HasOnlyEmptySlices(curs))
+    {
+        return GetOutputEmpty();
+    }
+
     std::ostringstream os;
 
 	if (mtx->Size() == 1)
@@ -186,7 +195,9 @@ void MatrixNDisplay::GetSlicesHelper(const hwMatrixN*          mtx,
         label += ")";
 
         labels.push_back(label);                       // Slice label for matrix
-        curs.push_back(Currency(ConvertNDto2D(mtx)));  // Matrix type currency
+		hwMatrix* temp = EvaluatorInterface::allocateMatrix();
+		mtx->ConvertNDto2D(*temp);
+        curs.push_back(Currency(temp));  // Matrix type currency
 
         return;
     }
@@ -274,6 +285,15 @@ std::string MatrixNDisplay::GetOutputForwardPagination(const OutputFormat* fmt) 
 {
     const hwMatrixN* mtx = m_currency.MatrixN();
     assert(mtx);
+
+    std::vector<std::string> labels;
+    std::vector<Currency>    curs;
+    GetSlices(mtx, curs, labels);
+
+    if (HasOnlyEmptySlices(curs))
+    {
+        return GetOutputEmpty();
+    }
     
     int numrows = 0;
     int numcols = 1;
@@ -283,14 +303,11 @@ std::string MatrixNDisplay::GetOutputForwardPagination(const OutputFormat* fmt) 
     int totalrows  = m_linesPrinted + linestofit;
     m_colEnd = 0;
 
-    std::vector<std::string> labels;
-    std::vector<Currency>    curs;
-    GetSlices(mtx, curs, labels);
 
     std::ostringstream os;
-    int                numlabels = labels.empty() ? 0 : static_cast<int>(labels.size());  
-
     std::vector<Currency>::iterator itr = curs.begin() + m_rowBegin;
+    int numlabels = labels.empty() ? 0 : static_cast<int>(labels.size());
+
 	for (int i = m_rowBegin; 
          i < numrows && i < numlabels && m_linesPrinted <= totalrows && itr != curs.end(); 
          ++i, ++itr)
@@ -362,7 +379,16 @@ std::string MatrixNDisplay::GetOutputBackPagination(const OutputFormat* fmt) con
 {
     const hwMatrixN* mtx = m_currency.MatrixN();
     assert(mtx);
-    
+
+    std::vector<std::string> labels;
+    std::vector<Currency>    curs;
+    GetSlices(mtx, curs, labels);
+
+    if (HasOnlyEmptySlices(curs))
+    {
+        return GetOutputEmpty();
+    }
+
     int numrows = 0;
     int numcols = 1;
     MatrixNDisplay::GetCurrencySize(numrows, numcols);
@@ -374,10 +400,6 @@ std::string MatrixNDisplay::GetOutputBackPagination(const OutputFormat* fmt) con
     std::string output;
     m_colBegin = 0;
     
-    std::vector<Currency>    curs;
-    std::vector<std::string> labels;
-    GetSlices(mtx, curs, labels);
-
     std::vector<Currency>::reverse_iterator ritr = curs.rbegin() + endrow;
     std::vector<Currency>::reverse_iterator end  = curs.rend();
     int numlabels = labels.empty() ? 0 : static_cast<int>(labels.size()); 
@@ -506,4 +528,59 @@ std::string MatrixNDisplay::GetValues(const OutputFormat* fmt) const
 
 	return os.str();
 }
+//------------------------------------------------------------------------------
+// True if this ND matrix has only empty slices
+//------------------------------------------------------------------------------
+bool MatrixNDisplay::HasOnlyEmptySlices(const std::vector<Currency>& slices) const
+{
+    if (slices.empty())
+    {
+        return false;
+    }
+
+    for (std::vector<Currency>::const_iterator itr = slices.begin();
+        itr != slices.end(); ++itr)
+    {
+        if (!(*itr).IsMatrix())
+        {
+            return false;
+        }
+
+        const hwMatrix* mtx = (*itr).Matrix();
+        if (!mtx || mtx->Size() > 0 || !mtx->IsEmpty())
+        {
+            return false;
+        }
+    }
+    return true;
+}
+//------------------------------------------------------------------------------
+// Gets display string if matrix ND has only empty slices
+//------------------------------------------------------------------------------
+std::string MatrixNDisplay::GetOutputEmpty() const
+{
+    std::string out("[Matrix] ");
+
+    const hwMatrixN* mtxn = m_currency.MatrixN();
+    assert(mtxn);
+    std::vector<int> dims(mtxn->Dimensions());
+
+    size_t ndims = dims.size();
+
+    std::vector<int>::const_iterator itr = dims.begin();
+    for (size_t i = 0; itr != dims.end(); ++itr, ++i)
+    {
+        out += std::to_string(static_cast<long long>(*itr));
+        if (i != ndims - 1)
+        {
+            out += " x ";
+        }
+    }
+    m_linesPrinted++;
+
+    m_rowBegin = -1;
+    m_rowEnd = -1;
+    return out;
+}
+
 // End of file:

@@ -1,0 +1,16 @@
+n = 
+slice(:, :, 1) = 
+[Matrix] 1 x 2
+266  157
+
+slice(:, :, 2) = 
+[Matrix] 1 x 2
+111  262
+d = 
+slice(:, :, 1) = 
+[Matrix] 1 x 2
+115  43
+
+slice(:, :, 2) = 
+[Matrix] 1 x 2
+47  89

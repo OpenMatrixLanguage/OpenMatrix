@@ -1,0 +1,46 @@
+# ====================================================================
+# OpenMatrix math/geometry makefile
+# ====================================================================
+PROJ := hwgeometry
+
+UNAME := $(shell uname)
+ifneq (,$(findstring NT,$(UNAME)))
+   TARGET = $(BINDIR)/$(PROJ).dll
+else
+   TARGET = $(BINDIR)/lib$(PROJ).so
+endif
+
+include $(OML_ROOT)/src/makebase.cfg
+
+
+# ====================================================================
+SOURCES += $(wildcard *.cxx)
+OBJECTS = $(foreach file,$(SOURCES),$(addprefix $(PLATFORM)/,$(addsuffix .o,$(basename $(notdir $(file))))))
+vpath %.cxx .
+
+CXX_DEFINES += -DGEOMETRY_EXPORT
+
+CXX_INCLUDES += -I. $(HWMATHKERNEL_INC) 
+CXX_INCLUDES += -I$(QHULL_INC)
+
+LIBS += $(MATHKERNEL_LIBS)
+
+LIBS += $(LAPACK_LIBS) $(BLAS_LIBS)
+
+LIBS += $(QHULL_LIBS)
+
+
+# ====================================================================
+
+$(PLATFORM)/%.o : %.cxx $(objdir)
+	$(compile-cxx)
+
+$(TARGET) : $(OBJECTS)
+	$(build-shared-lib)
+
+clean::
+	-$(RM) -rf $(TARGET)
+	-$(RM) -rf $(PLATFORM)
+	-$(RM) -rf $(BINDIR)/$(PROJ).*
+	-$(RM) -rf $(LIBDIR)/$(PROJ).*
+

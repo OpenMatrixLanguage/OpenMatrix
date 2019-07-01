@@ -1,3 +1,3 @@
 fname = FileManipulation/EmptyFile.txt
 fid = 3
-Error: invalid input in argument 1; file ID must be integer in call to function fopen at line number 3 in file filetest20.oml
+Error: invalid input in argument 1; must be a string or a valid file stream in call to function fopen at line number 3 in file filetest20.oml

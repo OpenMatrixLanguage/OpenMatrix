@@ -156,10 +156,23 @@ SIGNALS_DECLS hwMathStatus Fir(int             order,
 //!
 SIGNALS_DECLS hwMathStatus Fir(int             order,
                                const hwMatrix& cutoffFreq,
-                               const hwMatrix* window, 
+                               const hwMatrix* window,
                                hwMatrix&       numerCoef,
                                const char*     type = "DC-0",
                                bool            normalize = true);
+//!
+//! Computes FIR filter transfer function coefficients for multiband filters
+//! \param order      Filter order
+//! \param cutoffFreq 
+//! \param numerCoef
+//! \param type       Optional argument 
+//! \param normalize  Optional argument
+//!
+SIGNALS_DECLS hwMathStatus FirLS(int             order,
+                                 const hwMatrix& freq,
+                                 const hwMatrix& mag,
+                                 const hwMatrix* weight,
+                                 hwMatrix&       filterCoef);
 
 // Filter order calculation
 
@@ -497,6 +510,13 @@ SIGNALS_DECLS hwMathStatus HammWin(hwMatrix&   weight,
 //!
 SIGNALS_DECLS hwMathStatus HannWin(hwMatrix&   weight, 
                                    const char* type = "symmetric");
+//!
+//! Compute Bartlett-Hann window weights and return status
+//! \param weight
+//! \param type   Optional argument
+//!
+SIGNALS_DECLS hwMathStatus BartHannWin(hwMatrix&   weight,
+                                       const char* type = "symmetric");
 //!
 //! Compute Blackman window weights and return status
 //! \param weight

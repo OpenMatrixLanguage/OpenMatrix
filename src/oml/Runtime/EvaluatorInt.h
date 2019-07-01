@@ -74,6 +74,8 @@ public:
     bool Contains(const std::string& varname) const;
     std::vector<std::string> GetVariableNames() const;
 
+	bool IsA(const Currency& target, const std::string& classname) const;
+
     Currency CallFunction(const std::string& func_name, const std::vector<Currency>& params);
     Currency CallInternalFunction(FunctionInfo* fi, const std::vector<Currency>& param_values);
     std::vector<Currency> DoMultiReturnFunctionCall(FUNCPTR fptr, std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars = nullptr);

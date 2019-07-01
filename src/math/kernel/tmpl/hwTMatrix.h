@@ -117,8 +117,8 @@ public:
     int Size() const { return m_nCols * m_nRows; }
     //! Determine if the matrix is empty
     bool IsEmpty() const { return ((m_real || m_complex) ? false : true); }
-	//! Determine if the matrix is 0x0
-	bool Is0x0() const { return ((m_nCols == 0) && (m_nRows == 0)); }
+    //! Determine if the matrix is 0x0
+    bool Is0x0() const { return ((m_nCols == 0) && (m_nRows == 0)); }
     //! Determine if the matrix is a vector
     bool IsVector() const { return ((m_real||m_complex)&&(m_nCols==1||m_nRows==1) ? true : false); }
     //! Determine if the matrix is empty or a vector
@@ -265,10 +265,10 @@ public:
     //                   Submatrix Operations
     // ****************************************************
 
-    //! Write a matrix to the calling object, starting at the specified location
+    //! Read a submatrix of a source, starting at the specified location, writing to the calling object
+    hwMathStatus ReadSubmatrix(int startRow, int startCol, int numRows, int numCols, const hwTMatrix<T1, T2>& source);
+    //! Write a submatrix of a source to the calling object, starting at the specified location
     hwMathStatus WriteSubmatrix(int startRow, int startCol, const hwTMatrix<T1, T2>& source);
-    //! Write a vector to the calling object, starting at the specified location
-    hwMathStatus WriteSubmatrix(int startElem, const hwTMatrix<T1, T2>& source);
 
     // ****************************************************
     //           Misc Linear Algebra Operations
@@ -537,9 +537,11 @@ public:
     //! Linear correlation of matrix columns in the time domain
     hwMathStatus CorrLin(const hwTMatrix<T1, T2>& X);
     //! 2D convolution of two matrices
-    hwMathStatus Conv2D(const hwTMatrix<T1, T2>& X, const hwTMatrix<T1, T2>& Y);
+    hwMathStatus Conv2D(const hwTMatrix<T1, T2>& X, const hwTMatrix<T1, T2>& Y,
+                        int row1 = 0, int col1 = 0, int row2 = -1, int col2 = -1);
     //! 2D convolution of a matrix with a column vector and a row vector
-    hwMathStatus Conv2D(const hwTMatrix<T1, T2>& col, const hwTMatrix<T1, T2>& row, const hwTMatrix<T1, T2>& X);
+    hwMathStatus Conv2D(const hwTMatrix<T1, T2>& col, const hwTMatrix<T1, T2>& row, const hwTMatrix<T1, T2>& X,
+                        int row1 = 0, int col1 = 0, int row2 = -1, int col2 = -1);
 
     // ****************************************************
     //           Magnitude / Phase Operations
@@ -572,6 +574,14 @@ public:
     hwMathStatus SetBandMatrixElem(int i, int j, double value, int kl, int ku);
     //! Set a symmetric band matrix element
     hwMathStatus SetSymBandMatrixElem(int i, int j, double value, int kd);
+
+    // ****************************************************
+    //              Special Matrix Support
+    // ****************************************************
+    //! Generate Hankel Matrix
+    hwMathStatus Hankel(const hwTMatrix<T1, T2>& C, const hwTMatrix<T1, T2>* R = nullptr);
+    //! Generate Toeplitz Matrix
+    hwMathStatus Toeplitz(const hwTMatrix<T1, T2>& C, const hwTMatrix<T1, T2>* R = nullptr);
 
     // ****************************************************
     //                   COW Support

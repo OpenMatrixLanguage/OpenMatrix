@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsString.h
 * @date November 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -127,7 +127,7 @@ public:
                          const std::vector<Currency>& inputs,
                          std::vector<Currency>&       outputs);
     //!
-    //! Returns true and creates single matrix from string inputs [str2mat
+    //! Returns true and creates single matrix from string inputs [str2mat]
     //! \param eval    Evaluator interface
     //! \param inputs  Vector of inputs
     //! \param outputs Vector of outputs
@@ -135,6 +135,15 @@ public:
     static bool Str2mat(EvaluatorInterface           eval,
                         const std::vector<Currency>& inputs,
                         std::vector<Currency>&       outputs);
+    //!
+    //! Returns true and converts string to double without eval [str2double]
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //!
+    static bool Str2Double(EvaluatorInterface           eval,
+                           const std::vector<Currency>& inputs,
+                           std::vector<Currency>&       outputs);
 
 private:
     //!
@@ -224,6 +233,26 @@ private:
                              const std::string&  fmtstr,
                              const OutputFormat* fmt,
                              int                 totaldigits) const;
+    //!
+    //! Returns true successful in converting string to scalar/complex
+    //! \param in       Input string
+    //! \param rval     Real part
+    //! \param ival     Imaginary part, if it exists
+    //! \param isscalar True if value is scalar
+    //!
+    bool Str2Num(const std::string& in,
+                 double&            rval,
+                 double&            ival,
+                 bool&              isscalar);
+    //!
+    //! Returns true if strtod conversion is successful
+    //! \param in  Input string
+    //! \param end End string
+    //! \param val Value converted by strtod
+    //!
+    bool IsValidStrtodResult(const std::string& in,
+                             const std::string& end,
+                             double             val);
 };
 #endif
 

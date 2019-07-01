@@ -1,9 +1,1 @@
-ans = 
-slice(:, :, 1) = 
-[Matrix] 2 x 0
-
-slice(:, :, 2) = 
-[Matrix] 2 x 0
-
-slice(:, :, 3) = 
-[Matrix] 2 x 0
+ans = [Matrix] 2 x 0 x 3

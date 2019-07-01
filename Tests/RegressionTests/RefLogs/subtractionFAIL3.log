@@ -1,1 +1,4 @@
-Error: incompatible dimensions at line number 1 in file subtractionFAIL3.oml
+ans = [Matrix] 3 x 3
+0  -1  -2
+1   0  -1
+2   1   0

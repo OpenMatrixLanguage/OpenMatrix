@@ -1,0 +1,2 @@
+addtoolbox omlSignals
+f = freq(5, 90, 'onesided')

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export PATH=$PWD/src/bin/linux64:$PATH
-export OML_THIRDPARTY=~/oss/third_party
+export OML_THIRDPARTY=~/oss/third_party_os66
 export OML_ROOT=$PWD
 export OML_HELP=$PWD/help/win/en/topics/reference/oml_language/
 export OML_PYTHONHOME=/usr
@@ -24,10 +24,13 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/lapack/lapack-3.7.1
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/ANTLR/libantlr3c-3.4/.libs
 
 #add Matio 1.5.11
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/matio/matio-1.5.11/src/.libs
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/matio/matio-1.5.12/src/.libs
 
 #add Sundials 3.1.0
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/sundials/sundials-3.1.0-install/lib
+
+#add qhull 2015.2
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/qhull/qhull-2015.2/lib
 
 echo Display OML environment variables:
 set | grep OML

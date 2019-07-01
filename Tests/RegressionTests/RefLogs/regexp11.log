@@ -14,9 +14,7 @@ t =
   {
   }
 }
-nm = struct [
-
-]
+nm = struct [ ]
 sp = 
 {
   [1,1] 

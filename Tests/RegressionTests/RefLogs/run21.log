@@ -1,0 +1,2 @@
+do something
+Error: assert failed in call to function assert at line number 3 in file run22.oml in call to function run at line number 3 in file run22.oml

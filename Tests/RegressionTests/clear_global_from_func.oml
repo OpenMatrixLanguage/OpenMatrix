@@ -1,0 +1,11 @@
+﻿global foo
+foo = 4;
+ 
+function goo
+global foo
+clear global
+end
+ 
+foo
+goo
+foo

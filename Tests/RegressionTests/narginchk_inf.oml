@@ -1,0 +1,8 @@
+﻿function myfunc(a,b,varargin)
+    narginchk(2,Inf)
+	disp('ok')
+end
+
+myfunc(1,2)
+myfunc(1,2,3)
+myfunc(1)

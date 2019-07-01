@@ -122,6 +122,9 @@ public:
     //! Grow a matrix
     void GrowLHSMatrix(const std::vector<hwSliceArg>& sliceArg, int& numSlices,
                        const hwTMatrixN<T1, T2>* rhsMatrix = NULL, bool rule2 = false);
+	//! Grow a matrix
+	void GrowLHSMatrix2(const std::vector<hwSliceArg>& sliceArg, int& numSlices,
+		const hwTMatrixN<T1, T2>* rhsMatrix = NULL, bool rule2 = false);
 
     // ****************************************************
     //               Indexing Functions

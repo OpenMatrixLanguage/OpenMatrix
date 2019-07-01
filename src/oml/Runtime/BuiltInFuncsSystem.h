@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsSystem.h
 * @date October 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -20,7 +20,7 @@
 #include "EvaluatorInt.h"
 //------------------------------------------------------------------------------
 //!
-//! \brief Class for built-in functions implementing system commands
+//! \brief Class for built-in functions implementing system/time commands
 //!
 //------------------------------------------------------------------------------
 class HML2DLL_DECLS BuiltInFuncsSystem
@@ -180,6 +180,51 @@ public:
     static bool Rmdir(EvaluatorInterface           eval,
                       const std::vector<Currency>& inputs,
                       std::vector<Currency>&       outputs);
+    //!
+    //! Gives the current time in seconds since Jan 1, 1970 [time]
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //!
+    static bool Time(EvaluatorInterface           eval,
+                     const std::vector<Currency>& inputs,
+                     std::vector<Currency>&       outputs);
+    //!
+    //! Gives the current time as a string [ctime]
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //!
+    static bool CTime(EvaluatorInterface           eval,
+                      const std::vector<Currency>& inputs,
+                      std::vector<Currency>&       outputs);
+    //!
+    //! Gets a path constructed from the given dir/sub-directories [genpath]
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //!
+    static bool Genpath(EvaluatorInterface           eval,
+                        const std::vector<Currency>& inputs,
+                        std::vector<Currency>&       outputs);
+    //!
+    //! Gets process id [getpid]
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //!
+    static bool GetPid(EvaluatorInterface           eval,
+                       const std::vector<Currency>& inputs,
+                       std::vector<Currency>&       outputs);
+    //!
+    //! Creates an absolute path name [make_absolute_filename]
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //!
+    static bool MakeAbsFilename(EvaluatorInterface           eval,
+                                const std::vector<Currency>& inputs,
+                                std::vector<Currency>&       outputs);
 private:
     //!
     //! Constructor
@@ -206,6 +251,26 @@ private:
     //! \param path Given path
     //!
     bool IsDir(std::wstring& path);
+    //!
+    //! Lists directories, recursively; helper for genpath. Supports unicode
+    //! \param parent     Parent dir
+    //! \param exclude    Dirs to ignore, normalized and in lower case
+    //! \param paths      String with all the valid paths, separated by ';'
+    //!
+    void ListDirW(const std::wstring&                                 parent,
+                  const std::vector< std::pair<std::wstring, bool> >& exclude,
+                  std::wstring&                                       paths);
+#else
+    //!
+    //! Lists directories, recursively; helper for genpath.
+    //! \param parent     Parent dir
+    //! \param ignorepath Dirs to ignore, normalized and in lower case
+    //! \param paths      String with all the valid paths, separated by ':'
+    //!
+    void ListDir(const std::string&                                 parent,
+                 const std::vector< std::pair<std::string, bool> >& exclude,
+                 std::string&                                       paths);
+
 #endif
 };
 #endif // __BUILTINFUNCSSYSTEM__

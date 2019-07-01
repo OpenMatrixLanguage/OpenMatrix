@@ -1,0 +1,6 @@
+% Applies format only as much as the repeat parameter
+fi_d = fopen('FileManipulation/datafile.csv');
+sz = 4;
+header = textscan(fi_d,'%s',sz,'delimiter',','){1}
+fclose(fi_d);
+

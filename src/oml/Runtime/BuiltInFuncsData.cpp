@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsData.cpp
 * @date June 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -16,9 +16,10 @@
 
 // Begin defines/includes
 #include "BuiltInFuncsData.h"
-
+#include "CellND.cc"
 #include <cassert>
 #include <climits>
+#include <memory>
 
 #include "BuiltInFuncsUtils.h"
 #include "Evaluator.h"
@@ -30,8 +31,52 @@
 #include "hwMatrix.h"
 
 typedef hwTMatrix< double,  hwTComplex<double> > hwMatrix;
-// End defines/includes
 
+//------------------------------------------------------------------------------
+// Returns true if the first complex number is less than the second
+//------------------------------------------------------------------------------
+bool IsGreaterThan(const std::pair<double, int>& p1,
+                   const std::pair<double, int>& p2)
+{
+    return (p1.first > p2.first);
+}
+//------------------------------------------------------------------------------
+// Returns true if the first complex number is less than the second
+//------------------------------------------------------------------------------
+bool IsLessThan(const std::pair<double, int>& p1,
+                const std::pair<double, int>& p2)
+{
+    return (p1.first < p2.first);
+}
+//------------------------------------------------------------------------------
+// Returns true if the first complex number is less than the second
+//------------------------------------------------------------------------------
+bool IsLessThanComplex(const std::pair<hwComplex, int>& p1, 
+                       const std::pair<hwComplex, int>& p2)
+{
+    double x = p1.first.Real();
+    double y = p2.first.Real();
+    if (x < y || x > y)
+    {
+        return (x < y);
+    }
+
+    return (p1.first.Imag() < p2.first.Imag());
+}
+//------------------------------------------------------------------------------
+// Returns true if the first complex number is less than the second
+//------------------------------------------------------------------------------
+bool IsGreaterThanComplex(const std::pair<hwComplex, int>& p1,
+                          const std::pair<hwComplex, int>& p2)
+{
+    double x = p1.first.Real();
+    double y = p2.first.Real();
+    if (x < y || x > y)
+    {
+        return (x > y);
+    }
+    return (p1.first.Imag() > p2.first.Imag());
+}
 //------------------------------------------------------------------------------
 // Sets fields recursively. First currency is the input, last currency is value
 //------------------------------------------------------------------------------
@@ -452,10 +497,10 @@ bool BuiltInFuncsData::Mat2Cell(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN);
 
     Currency cur = inputs[0];
-    if (!cur.IsMatrixOrString())
+    if (!cur.IsMatrixOrString() && !cur.IsScalar())
         throw OML_Error(OML_ERR_MTXSTRING, 1, OML_VAR_TYPE);
 
-    const hwMatrix* data = cur.Matrix();
+    const hwMatrix* data = cur.ConvertToMatrix();
     assert(data);
     if (!data)
     {
@@ -618,6 +663,20 @@ bool BuiltInFuncsData::IsRow(EvaluatorInterface           eval,
     {
         isrow = true;
     }
+	else if (cur.IsStruct())
+	{
+		StructData* sd = cur.Struct();
+
+		if (sd && sd->M() == 1 && sd->N() >= 0)
+			isrow = true;
+	}
+	else if (cur.IsCellArray())
+	{
+		HML_CELLARRAY* cells = cur.CellArray();
+
+		if (cells && cells->M() == 1 && cells->N() >= 0)
+			isrow = true;
+	}
 
     outputs.push_back(isrow);
     return true;
@@ -649,7 +708,432 @@ bool BuiltInFuncsData::IsColumn(EvaluatorInterface           eval,
             iscol = true;
         }
     }
+	else if (cur.IsStruct())
+	{
+		StructData* sd = cur.Struct();
+
+		if (sd && sd->N() == 1 && sd->M() >= 0)
+			iscol = true;
+	}
+	else if (cur.IsCellArray())
+	{
+		HML_CELLARRAY* cells = cur.CellArray();
+
+		if (cells && cells->N() == 1 && cells->M() >= 0)
+			iscol = true;
+	}
 
     outputs.push_back(iscol);
+    return true;
+}
+
+bool Num2CellNDHelper(const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (!inputs.size())
+		throw OML_Error(OML_ERR_NUMARGIN);
+
+	int dim = -1;
+
+	if (inputs.size() == 2)
+	{
+		if (!inputs[1].IsPositiveInteger())
+		{
+			throw OML_Error(OML_ERR_POSINTEGER, 2);
+		}
+
+		dim = static_cast<int>(inputs[1].Scalar());
+	}
+
+	const hwMatrixN* mat  = inputs[0].MatrixN();  
+	std::vector<int> dims = mat->Dimensions();
+
+	if (dim == -1)
+	{
+		HML_ND_CELLARRAY* cells = new HML_ND_CELLARRAY(dims, HML_ND_CELLARRAY::REAL);
+
+		for (int j = 0; j < mat->Size(); j++)
+		{
+			if (mat->IsReal())
+				(*cells)(j) = (*mat)(j);
+			else
+				(*cells)(j) = mat->z(j);
+		}
+
+		outputs.push_back(cells);
+	}
+	else
+	{
+		std::vector<int> new_dims;
+		int              interior_size;
+
+		for (int j = 0; j < dims.size(); ++j)
+		{
+			if (dim == (j + 1))
+			{
+				new_dims.push_back(1);
+				interior_size = dims[j];
+			}
+			else
+			{
+				new_dims.push_back(dims[j]);
+			}
+		}
+
+		HML_ND_CELLARRAY* cells = new HML_ND_CELLARRAY(new_dims, HML_ND_CELLARRAY::REAL);
+
+		for (int j = 0; j < cells->Size(); ++j)
+		{
+			std::vector<int> lhs_dims = cells->IndexVector(j);
+			std::vector<hwSliceArg> lhs_slices;
+			std::vector<hwSliceArg> rhs_slices;
+
+			for (int k = 0; k < lhs_dims.size(); ++k)
+			{
+				if (dim == (k + 1))
+				{
+					rhs_slices.push_back(hwSliceArg());
+					lhs_slices.push_back(0);
+				}
+				else
+				{
+					rhs_slices.push_back(lhs_dims[k]);
+					lhs_slices.push_back(lhs_dims[k]);
+				}
+			}
+
+			hwMatrixN* temp_slice = EvaluatorInterface::allocateMatrixN();
+			mat->SliceRHS(rhs_slices, *temp_slice);		
+			cells->SliceLHS(lhs_slices, Currency(temp_slice));
+		}
+
+		outputs.push_back(cells);
+	}
+
+	return true;
+}
+//------------------------------------------------------------------------------
+// Returns true after converting number/matrix to cell array [num2cell command]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsData::Num2Cell(EvaluatorInterface           eval,
+	                            const std::vector<Currency>& inputs,
+	                            std::vector<Currency>&       outputs)
+{
+	size_t nargin = (!inputs.empty()) ? inputs.size() : 0;
+	if (nargin < 1)
+	{
+		throw OML_Error(OML_ERR_NUMARGIN);
+	}
+
+    if (inputs[0].IsCellArray())
+    {
+        outputs.push_back(inputs[0]);
+        return true;
+    }
+
+	if (inputs[0].IsScalar())
+	{
+		Currency temp = inputs[0];
+		temp.ConvertToCellArray();
+		outputs.push_back(temp);
+		return true;
+	}
+
+	if (inputs[0].IsNDMatrix())
+		return Num2CellNDHelper(inputs, outputs);
+
+	if (!inputs[0].IsMatrixOrString())
+	{
+		throw OML_Error(OML_ERR_STRSCALARCOMPLEXMTX, 1);
+	}
+    const hwMatrix* mtx = inputs[0].Matrix();
+    if (!mtx || mtx->Size() == 0)
+    {
+        outputs.push_back(EvaluatorInterface::allocateCellArray());
+        return true;
+    }
+
+
+	int dim = -1;
+	if (nargin > 1)
+	{
+		if (!inputs[1].IsPositiveInteger())
+		{
+			throw OML_Error(OML_ERR_POSINTEGER, 2);
+		}
+		dim = static_cast<int>(inputs[1].Scalar());
+		if (dim > 2)
+		{
+			dim = -1;  // Ignore dimensions greater than 2
+		}
+	}
+
+    bool isReal = mtx->IsReal();
+    bool setStringMask = (inputs[0].IsString());
+
+    int rows  = mtx->M();
+    int cols  = mtx->N();
+    int cellm = (dim == 1) ? 1 : rows;
+    int celln = (dim == 2) ? 1 : cols;
+
+    std::unique_ptr<HML_CELLARRAY> cell(
+        EvaluatorInterface::allocateCellArray(cellm, celln));
+
+	if (dim < 1)  // No restrictions on dimensions
+	{
+		for (int i = 0; i < rows; ++i)
+		{
+			for (int j = 0; j < cols; ++j)
+			{
+				if (isReal)
+				{
+					if (!setStringMask)
+					{
+						(*cell)(i, j) = (*mtx)(i, j);
+					}
+					else
+					{
+						std::string strval;
+						strval += char((*mtx)(i, j));
+						(*cell)(i, j) = strval;  // Setting mask does not work
+					}
+				}
+				else
+				{
+					(*cell)(i, j) = mtx->z(i, j);
+				}
+			}
+		}
+
+		outputs.push_back(cell.release());
+		return true;
+	}
+
+	// Restricted dimensions
+    int m = (dim == 1) ? rows : 1;
+    int n = (dim == 1) ? 1 : cols;
+
+    hwMatrix::DataType type = (isReal) ? hwMatrix::REAL : hwMatrix::COMPLEX;
+
+    for (int i = 0; i < rows; ++i)
+    {
+        for (int j = 0; j < cols; ++j)
+        {
+            std::unique_ptr<hwMatrix> val = nullptr;
+
+            int valindex  = (dim == 1) ? i : j;
+            int cellindex = (dim == 1) ? j : i;
+
+            if (valindex == 0)    // Create all the sub matrices
+            {
+                val.reset(EvaluatorInterface::allocateMatrix(m, n, type));
+            }
+            else
+            {
+                val.reset(EvaluatorInterface::allocateMatrix(
+                    (*cell)(cellindex).Matrix()));
+            }
+            assert(val);
+            if (isReal)
+            {
+                (*val)(valindex) = (*mtx)(i, j);
+            }
+            else
+            {
+                val->z(valindex) = mtx->z(i, j);
+            }
+
+            (*cell)(cellindex) = val.release();
+            if (setStringMask)
+            {
+                Currency element = (*cell)(cellindex);
+                element.SetMask(Currency::MASK_STRING);
+                (*cell)(cellindex) = element;
+            }
+
+        }
+    }
+    outputs.push_back(cell.release());
+    return true;
+}
+//------------------------------------------------------------------------------
+// Returns true after sorting rows in the matrix [sortrows]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsData::Sortrows(EvaluatorInterface           eval,
+                                const std::vector<Currency>& inputs,
+                                std::vector<Currency>&       outputs)
+{
+    if (inputs.empty())
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrixOrString())
+    {
+        throw OML_Error(OML_ERR_MTXSTRING, 1);
+    }
+
+    int nargout = eval.GetNargoutValue();
+
+    const hwMatrix* data = inputs[0].Matrix();
+    if (!data || data->Size() == 0 || data->IsEmpty())
+    {
+        outputs.push_back(EvaluatorInterface::allocateMatrix());
+        if (nargout > 1)
+        {
+            outputs.push_back(EvaluatorInterface::allocateMatrix());
+        }
+        return true;
+    }
+
+    int m = data->M();
+    int n = data->N();
+
+    std::unique_ptr<hwMatrix> dims(EvaluatorInterface::allocateMatrix(1, 1,
+                                   hwMatrix::REAL));
+    (*dims)(0) = 1;  // Defaults to first column, 1-based index
+
+    if (inputs.size() > 1)
+    {
+        if (inputs[1].IsInteger())
+        {
+            (*dims)(0) = static_cast<int>(inputs[1].Scalar());
+        }
+        else if (inputs[1].IsVector())
+        {
+            dims.reset(EvaluatorInterface::allocateMatrix(inputs[1].Matrix()));
+            if (!dims->IsReal())
+            {
+                throw OML_Error(OML_ERR_REALVECTOR, 2);
+            }
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_SCALARVECTOR, 2);
+        }
+    }
+
+    const hwMatrix* m1 = inputs[0].Matrix();
+
+    // Go through the dims and sort on the columns mentioned
+    std::unique_ptr<hwMatrix> mtx(EvaluatorInterface::allocateMatrix(m1));
+    std::unique_ptr<hwMatrix> idx = nullptr;
+    if (nargout > 1)
+    {
+        idx.reset(EvaluatorInterface::allocateMatrix(m, 1, hwMatrix::REAL));
+    }
+
+    BuiltInFuncsUtils utils;
+    bool isreal = mtx->IsReal();
+    int dimssize = dims->Size();
+
+    for (int i = dimssize - 1; i >= 0; --i)
+    {
+        double val = (*dims)(i);
+        if (IsNaN_T(val) || IsNegInf_T(val) || IsInf_T(val))
+        {
+            throw OML_Error(OML_ERR_FINITE, 2);
+        }
+
+        int col = static_cast<int>(val);
+        if (col == 0 || col > n)
+        {
+            throw OML_Error(OML_ERR_INVALIDINDEX, 2);
+        }
+
+        bool descend = (col < 0);
+        col = abs(col) - 1;
+
+        std::unique_ptr<hwMatrix> out(EvaluatorInterface::allocateMatrix(m, n,
+                                      mtx->Type()));
+        if (isreal)
+        {
+            std::vector< std::pair<double, int> > tmp;
+            tmp.reserve(m);
+            for (int j = 0; j < m; ++j)
+            {
+                tmp.push_back(std::pair<double, int>((*mtx)(j, col), j));
+            }
+            if (!descend)
+            {
+                std::sort(tmp.begin(), tmp.end(), &IsLessThan);
+            }
+            else
+            {
+                std::sort(tmp.begin(), tmp.end(), &IsGreaterThan);
+            }
+            for (int j = 0; j < m; ++j)
+            {
+                int sortedidx = tmp[j].second;
+
+                std::unique_ptr<hwMatrix> row (
+                    EvaluatorInterface::allocateMatrix(1, n, mtx->Type()));
+                utils.CheckMathStatus(eval, mtx->ReadRow(sortedidx, *row));
+                utils.CheckMathStatus(eval, out->WriteRow(j, *row));
+                if (idx && i == 0)
+                {
+                    for (int k = 0; k < m; ++k)
+                    {
+                        std::unique_ptr<hwMatrix> r1(
+                            EvaluatorInterface::allocateMatrix(1, n, hwMatrix::REAL));
+                        utils.CheckMathStatus(eval, m1->ReadRow(k, *r1));
+                        if (row->IsEqual(*r1))
+                        {
+                            (*idx)(j) = k + 1;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            std::vector< std::pair< hwComplex, int> > tmp;
+            tmp.reserve(m);
+            for (int j = 0; j < m; ++j)
+            {
+                tmp.push_back(std::pair< hwComplex, int>(mtx->z(j, col), j));
+            }
+            if (!descend)
+            {
+                std::sort(tmp.begin(), tmp.end(), &IsLessThanComplex);
+            }
+            else
+            {
+                std::sort(tmp.begin(), tmp.end(), &IsGreaterThanComplex);
+            }
+            for (int j = 0; j < m; ++j)
+            {
+                int sortedidx = tmp[j].second;
+
+                std::unique_ptr<hwMatrix> row(
+                    EvaluatorInterface::allocateMatrix(1, n, mtx->Type()));
+                utils.CheckMathStatus(eval, mtx->ReadRow(sortedidx, *row));
+                utils.CheckMathStatus(eval, out->WriteRow(j, *row));
+
+                if (idx && i == 0)
+                {
+                    for (int k = 0; k < m; ++k)
+                    {
+                        std::unique_ptr<hwMatrix> r1(
+                            EvaluatorInterface::allocateMatrix(1, n, m1->Type()));
+                        utils.CheckMathStatus(eval, m1->ReadRow(k, *r1));
+                        if (row->IsEqual(*r1))
+                        {
+                            (*idx)(j) = k + 1;
+                        }
+                    }
+                }
+            }
+        }
+        mtx.reset(out.release());
+    }
+
+    Currency cur = mtx.release();
+    cur.SetMask(inputs[0].GetMask());
+    outputs.push_back(cur);
+
+    if (nargout > 1)
+    {
+        outputs.push_back(idx.release());
+    }
     return true;
 }

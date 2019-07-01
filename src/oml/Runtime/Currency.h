@@ -38,6 +38,8 @@ class FunctionInfo;
 class StructData;
 
 typedef hwTMatrix<Currency, void*> HML_CELLARRAY;
+typedef hwTMatrixN<Currency, void*> HML_ND_CELLARRAY;
+
 typedef Currency (*EXTPTR) (const std::string&);
 
 
@@ -83,6 +85,7 @@ public:
 	Currency(); // Microsoft STL forces this 
 	Currency(const Currency& cur);
 	Currency(HML_CELLARRAY* cells);
+	Currency(HML_ND_CELLARRAY* cells);
 	Currency(FunctionInfo* fi);
 	Currency(StructData* sd);
     Currency(OutputFormat* fmt);
@@ -123,7 +126,8 @@ public:
 	bool  IsReturn()      const    { return type == TYPE_RETURN; }
 	bool  IsError()     const      { return type == TYPE_ERROR; }
 	bool  IsSyntaxError() const;
-	bool  IsCellArray() const      { return type == TYPE_CELLARRAY; }	
+	bool  IsCellArray() const      { return type == TYPE_CELLARRAY; }
+	bool  IsNDCellArray() const    { return type == TYPE_ND_CELLARRAY; }
 	bool  IsFunctionHandle() const { return type == TYPE_FUNCHANDLE; }
 	bool  IsStruct() const         { return type == TYPE_STRUCT; }
 	bool  IsObject() const         { return type == TYPE_OBJECT; }
@@ -159,6 +163,7 @@ public:
 	double              Real() const           { return data.complex->Real(); }
 	double              Imag() const           { return data.complex->Imag(); }
 	HML_CELLARRAY*      CellArray() const      { return data.cells; }
+	HML_ND_CELLARRAY*   CellArrayND() const    { return data.cells_nd; }
 	FunctionInfo*       FunctionHandle() const { return data.func; }
 	StructData*         Struct() const         { return data.sd; }
     OutputFormat*       Format() const         { return data.format; }
@@ -180,11 +185,12 @@ public:
 	void                ReplaceComplex(hwComplex new_value);
 
 	const hwMatrix*     ConvertToMatrix() const;
+	const hwMatrix*     ExpandMatrix(const hwMatrix*) const;
 	HML_CELLARRAY*      ConvertToCellArray();
 
 	void                ConvertToStruct();
 
-	enum CurrencyType { TYPE_SCALAR, TYPE_STRING, TYPE_MATRIX, TYPE_COLON, TYPE_COMPLEX, TYPE_CELLARRAY, TYPE_ERROR, TYPE_BREAK, TYPE_RETURN, TYPE_FUNCHANDLE, TYPE_STRUCT, TYPE_NOTHING, TYPE_FORMAT, TYPE_BREAKPOINT, TYPE_POINTER, TYPE_CONTINUE, TYPE_ND_MATRIX, TYPE_OBJECT, TYPE_BOUNDOBJECT };
+	enum CurrencyType { TYPE_SCALAR, TYPE_STRING, TYPE_MATRIX, TYPE_COLON, TYPE_COMPLEX, TYPE_CELLARRAY, TYPE_ERROR, TYPE_BREAK, TYPE_RETURN, TYPE_FUNCHANDLE, TYPE_STRUCT, TYPE_NOTHING, TYPE_FORMAT, TYPE_BREAKPOINT, TYPE_POINTER, TYPE_CONTINUE, TYPE_ND_MATRIX, TYPE_OBJECT, TYPE_BOUNDOBJECT, TYPE_ND_CELLARRAY };
 	enum MaskType { MASK_NONE, MASK_DOUBLE, MASK_STRING, MASK_LOGICAL, MASK_CELL_LIST, MASK_EXPLICIT_COMPLEX };
 
 	static StringManager vm;
@@ -234,7 +240,9 @@ private:
 	void  DeleteMatrix(hwMatrix*);
 	void  DeleteMatrixN(hwMatrixN*);
 	void  DeleteCells(HML_CELLARRAY*);
+	void  DeleteCellsN(HML_ND_CELLARRAY*);
 	void  DeleteStruct(StructData*);
+	void  DeleteFunctionInfo(FunctionInfo*);
 
 	mutable CurrencyType type;
 	MaskType mask;
@@ -246,6 +254,7 @@ private:
 		hwMatrix*            mtx;
 		hwMatrixN*           mtxn;
 		HML_CELLARRAY*       cells;
+		HML_ND_CELLARRAY*    cells_nd;
 		FunctionInfo*        func;
 		StructData*          sd;
 		OutputFormat*        format;
@@ -268,6 +277,5 @@ private:
     
     static bool _experimental;                  //! True if experimental mode is active
 };
-hwMatrix* ConvertNDto2D(const hwMatrixN* mtxn);
 
 #endif

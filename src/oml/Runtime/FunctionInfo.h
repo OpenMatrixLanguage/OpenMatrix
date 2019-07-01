@@ -23,23 +23,6 @@
 
 class MemoryScope;
 
-class FunctionStatements
-{
-public:
-	FunctionStatements(OMLTree* stmts);
-	~FunctionStatements();
-
-	void IncrRefCnt() { _refcnt++; }
-	void DecrRefCnt() { _refcnt--; }
-	int  GetRefCnt() const { return _refcnt; }
-
-	OMLTree* Statements() const { return _statements; }
-
-private:
-	OMLTree* _statements;
-	int      _refcnt;              
-};
-
 class HML2DLL_DECLS FunctionInfo 
 {
 public:
@@ -47,8 +30,8 @@ public:
 	FunctionInfo(std::string, std::vector<const std::string*>, std::vector<const std::string*>, OMLTree*, std::string);
 	FunctionInfo(std::string, FUNCPTR);
 	FunctionInfo();
-	FunctionInfo(const FunctionInfo&);
 	~FunctionInfo();
+	FunctionInfo(const FunctionInfo&);
 
 	void SetAnonymous(MemoryScope* dummy);
 	bool IsAnonymous() const { return _anon_scope != 0; }
@@ -62,16 +45,22 @@ public:
 	int  Nargin()  const;
 	int  Nargout() const;
 
-	std::string                     FunctionName() const { return *_function_name; }
-	const std::string*              FunctionNamePtr() const { return _function_name; }
-	std::string                     FileName() const { return *_file_name; }
-	const std::string*              FileNamePtr() const { return _file_name; }
-	std::string                     HelpString() const { return _help_string; }
-	std::vector<const std::string*> Parameters() const { return _parameters; }
-	std::vector<const std::string*> ReturnValues() const { return _return_values; }
-	OMLTree*                        Statements() const;
-	FUNCPTR                         Builtin() const { return _builtin; }
-	MemoryScope*                    AnonScope() const { return _anon_scope; }
+	void IncrRefCount() { _refcnt++; }
+	void DecrRefCount() { _refcnt--; }
+	int  GetRefCount() const { return _refcnt; }
+
+	std::string                      FunctionName() const { return *_function_name; }
+	const std::string*               FunctionNamePtr() const { return _function_name; }
+	std::string                      FileName() const { return *_file_name; }
+	const std::string*               FileNamePtr() const { return _file_name; }
+	std::string                      HelpString() const { return _help_string; }
+	std::vector<const std::string*>  Parameters() const { return _parameters; }
+	std::vector<const std::string*>  ReturnValues() const { return _return_values; }
+	OMLTree*                         Statements() const;
+	FUNCPTR                          Builtin() const { return _builtin; }
+	MemoryScope*                     AnonScope() const { return _anon_scope; }
+
+	const std::vector<const std::string*>* ParametersPtr() const { return &(_parameters); }
 
 	std::string GetAST() const;
 
@@ -92,7 +81,6 @@ public:
 	std::map<const std::string*, FunctionInfo*>* local_functions;
 
 private:
-
 	const std::string*              _function_name;
 	const std::string*              _file_name;
 	std::string					    _help_string;
@@ -101,12 +89,13 @@ private:
 	std::vector<const std::string*>        _parameters;
 	std::map<const std::string*, Currency> _default_values;
 
-	FunctionStatements*             _stmts;
-	FUNCPTR                         _builtin;
-	MemoryScope*                    _anon_scope;
-	MemoryScope*                    _persistent_scope;
-	bool                            _is_nested;
-	bool                            _is_constructor;
+	OMLTree*     _statements;
+	int          _refcnt;
+	FUNCPTR      _builtin;
+	MemoryScope* _anon_scope;
+	MemoryScope* _persistent_scope;
+	bool         _is_nested;
+	bool         _is_constructor;
 }; 
 
 #endif

@@ -442,8 +442,6 @@ int hwIdaWrap::Check_flag(void* flagvalue, const char* funcname, int opt)
     *            NULL pointer 
     */
 
-    int *errflag;
-
     if (opt == 0 && !flagvalue) // Sundials allocated memory
     {
         return 1;

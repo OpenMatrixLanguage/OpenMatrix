@@ -652,7 +652,7 @@ bool oml_MatrixN_VecProd(EvaluatorInterface eval, const std::vector<Currency>& i
 
     if (dims1 != dims2)
     {
-        throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+        throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
     }
 
     if (nargin == 2)

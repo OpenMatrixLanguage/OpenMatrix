@@ -1,1 +1,1 @@
-[num, status]=str2double('1+2 3 4')
+str2double('1+2 3 4')

@@ -1,0 +1,2 @@
+str2double('0i')
+str2double('i')

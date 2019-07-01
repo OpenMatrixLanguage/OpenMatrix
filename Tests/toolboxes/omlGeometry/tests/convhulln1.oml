@@ -1,0 +1,13 @@
+addToolbox omlGeometry
+
+n = 3;
+theta = [1:1:n]/n*(2*pi);
+theta = repmat(theta,n,1);
+phi = [1:1:n]'/n*(2*pi);
+phi = repmat(phi,1,n);
+
+xx = 10*(1 + 0.4*cos(8*theta).*cos(8*phi)).*(cos(theta).*cos(phi));
+yy = 8*(1 + 0.4*cos(8*theta).*cos(8*phi)).*(cos(theta).*sin(phi));
+zz = 6*(1 + 0.4*cos(8*theta).*cos(8*phi)).*sin(theta);
+P = [xx(:), yy(:), zz(:)];
+[h, v] = convhulln(P)

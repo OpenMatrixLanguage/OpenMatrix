@@ -1,1 +1,1 @@
-Error: invalid input for mode; should be a string in call to function fopen at line number 1 in file filetest4.oml
+ans = -1

@@ -145,9 +145,10 @@ hwMathStatus SampleFreq(const hwMatrix& time,
 //------------------------------------------------------------------------------
 // Create a frequency vector from a sampling frequency
 //------------------------------------------------------------------------------
-hwMathStatus Freq(int       numPnts,
-                  double    sampFreq,
-                  hwMatrix& freq)
+hwMathStatus Freq(int         numPnts,
+                  double      sampFreq,
+                  hwMatrix&   freq,
+                  const char* option)
 {
     if (numPnts < 1)
     {
@@ -158,6 +159,7 @@ hwMathStatus Freq(int       numPnts,
     {
         return hwMathStatus(HW_MATH_ERR_NONPOSITIVE, 2);
     }
+
     hwMathStatus status = freq.Dimension(numPnts, hwMatrix::REAL);
 
     if (!status.IsOk())
@@ -169,20 +171,50 @@ hwMathStatus Freq(int       numPnts,
         return status;
     }
 
-    double delta_f = sampFreq / numPnts;
-    freq(0) = 0.0;
-
-    for (int i = 1; i < numPnts; ++i)
+    if (!strcmp(option, "onesided"))
     {
-        freq(i) = freq(i-1) + delta_f;
+        int n = 2 * (numPnts - 1) + numPnts % 2;
+        double delta_f = sampFreq / n;
+        freq(0) = 0.0;
+
+        for (int i = 1; i < numPnts; ++i)
+        {
+            freq(i) = freq(i - 1) + delta_f;
+        }
     }
+    else if (!strcmp(option, "twosided"))
+    {
+        double delta_f = sampFreq / numPnts;
+        freq(0) = 0.0;
+
+        for (int i = 1; i < numPnts; ++i)
+        {
+            freq(i) = freq(i - 1) + delta_f;
+        }
+    }
+    else if (!strcmp(option, "shift"))
+    {
+        double delta_f = sampFreq / numPnts;
+        freq(0) = -(numPnts / 2) * delta_f;
+
+        for (int i = 1; i < numPnts; ++i)
+        {
+            freq(i) = freq(i - 1) + delta_f;
+        }
+    }
+    else
+    {
+        status(HW_MATH_ERR_INVALIDINPUT, 4);
+    }
+
     return status;
 }
 //------------------------------------------------------------------------------
 // Create a frequency vector from a time vector
 //------------------------------------------------------------------------------
 hwMathStatus Freq(const hwMatrix& time,
-                  hwMatrix&       freq)
+                  hwMatrix&       freq,
+                  const char*     option)
 {
     double sampFreq;
     hwMathStatus status_sf = SampleFreq(time, sampFreq);
@@ -195,7 +227,7 @@ hwMathStatus Freq(const hwMatrix& time,
         }
     }
 
-    hwMathStatus status = Freq(time.Size(), sampFreq, freq);
+    hwMathStatus status = Freq(time.Size(), sampFreq, freq, option);
 
     if (!status.IsOk())
     {

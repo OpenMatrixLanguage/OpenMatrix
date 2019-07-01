@@ -4427,6 +4427,81 @@ hwMathStatus PoissonRnd(const hwMatrix&         Lambda,
     return status;
 }
 //------------------------------------------------------------------------------
+// Generate a random permutation vector on [min:max]
+//------------------------------------------------------------------------------
+hwMathStatus RandPerm(int                     min,
+                      int                     max,
+                      int                     numPts,
+                      hwMersenneTwisterState* pMTState,
+                      hwMatrixI&              permVec)
+{
+    // check inputs
+    if (numPts < 0)
+    {
+        return hwMathStatus(HW_MATH_ERR_NONNONNEGINT, 3);
+    }
+
+    int rng = max - min + 1;
+
+    if (rng < 0)
+    {
+        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 1, 2);
+    }
+
+    if (numPts > rng)
+    {
+        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 3);
+    }
+
+    if (!pMTState || !pMTState->Initialized())
+    {
+        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 4);
+    }
+
+    // Fisher-Yates shuffle
+    hwUniform uniDist(pMTState);
+    hwMathStatus status = permVec.Dimension(1, numPts, hwMatrixI::REAL);
+
+    if (!status.IsOk())
+    {
+        status.ResetArgs();
+        return status;
+    }
+
+    if (numPts == rng)
+    {
+        for (int i = min; i <= max; ++i)
+            permVec(i - min) = i;
+
+        for (int i = 0; i < numPts - 1; ++i)
+        {
+            // get random integer on [i, numPts-1] and reorder
+            int indx      = static_cast<int> (floor(uniDist.GetDeviate() * (numPts - i))) + i;
+            int temp      = permVec(indx);
+            permVec(indx) = permVec(i);
+            permVec(i)    = temp;
+        }
+    }
+    else
+    {
+        hwMatrixI index(rng, hwMatrixI::REAL);
+
+        for (int i = min; i <= max; ++i)
+            index(i - min) = i;
+
+        for (int i = 0; i < numPts; ++i)
+        {
+            // get random integer on [i, rng-1] and reorder
+            int indx    = static_cast<int> (floor(uniDist.GetDeviate() * (rng - i))) + i;
+            int temp    = index(indx);
+            index(indx) = index(i);
+            permVec(i)  = temp;
+        }
+    }
+
+    return status;
+}
+//------------------------------------------------------------------------------
 // D'Agostino-Pearson omnibus normality test
 //------------------------------------------------------------------------------
 hwMathStatus NormalityTestDP(const hwMatrix& data, double sigLevel, bool& reject)

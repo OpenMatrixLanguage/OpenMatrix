@@ -79,6 +79,15 @@ bool OmlInterp2(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs, 
                 std::vector<Currency>&       outputs);
 //!
+//! Returns true after executing two-dimensional interpolation
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlIsoNormals(EvaluatorInterface           eval,
+                   const std::vector<Currency>& inputs,
+                   std::vector<Currency>&       outputs);
+//!
 //! Returns true and the derivative of the polynomial
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs

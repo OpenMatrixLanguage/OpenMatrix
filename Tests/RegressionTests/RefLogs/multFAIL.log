@@ -1,1 +1,4 @@
-Error: incompatible dimensions at line number 1 in file multFAIL.oml
+ans = [Matrix] 3 x 3
+7  21  42
+2   6  12
+8  24  48

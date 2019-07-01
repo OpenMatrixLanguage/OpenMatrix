@@ -114,7 +114,7 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 					pANTLR3_COMMON_TOKEN prev_tok      = (pANTLR3_COMMON_TOKEN)vec->get(vec, j-1);
 					int                  prev_tok_type = prev_tok->getType(prev_tok);          
 
-					if ((prev_tok_type != RBRACKET) && (prev_tok_type != RPAREN) && (prev_tok_type != IDENT))
+					if ((prev_tok_type != RBRACKET) && (prev_tok_type != RPAREN) && (prev_tok_type != IDENT) && (prev_tok_type != DOT))
 						in_string = true;
 				}
 				else
@@ -289,7 +289,7 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 					if ((prev_type != COMMA) && (prev_type != COLON) && (prev_type != SEMIC) && (prev_type != NEWLINE) && (prev_type != TIMES) && (prev_type != DIV) && (prev_type != ASSIGN) && (prev_type != EQUAL))
 						prev_token_flag = true;
 
-					if ((next_type == MINUS) || (next_type == PLUS)  || (next_type == QUOTE) || (next_type == LPAREN) || (next_type == LCURLY) || (next_type == CONT))
+					if ((next_type == MINUS) || (next_type == PLUS)  || (next_type == QUOTE) || (next_type == EQUOTE) || (next_type == LPAREN) || (next_type == LCURLY) || (next_type == CONT))
 						next_token_flag = true;
 
 					if ((next_type == LPAREN) && ((prev_type == PLUS) || (prev_type == MINUS)))
@@ -324,7 +324,7 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 
 					if (prev_token_flag && next_token_flag)
 					{
-                        if (k + 2 < vec->count)
+                        if (k + 2 < (int)vec->count)
                         {
                             pANTLR3_COMMON_TOKEN tok3 = (pANTLR3_COMMON_TOKEN)vec->get(vec, k + 2);
                             int tok3_type = tok3->getType(tok3);
@@ -500,7 +500,8 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 				}
 				else if (tok2_type == NEWLINE)
 				{
-					break;
+					if (tok2->getChannel(tok2) != HIDDEN)
+						break;
 				}
 				else if (tok2_type == QUOTE)
 				{
@@ -608,46 +609,20 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 					if (!in_string)
 					{
 						tok->setType(tok, QUOTE);
+						pANTLR3_STRING str = tok->getText(tok);
+						str->set(str, "'");
+						tok->setText(tok, str);
+
 						tok2->setType(tok2, EQUOTE);
+						str = tok2->getText(tok2);
+						str->set(str, "''");
+						tok2->setText(tok2, str);
 
 						in_string = true;
 					}
 				}
 				else if (tok2->getType(tok2) != EQUOTE)
 				{
-					break;
-				}
-			}
-		}
-
-		if (tok->getType(tok) == IF)
-		{
-			int q;
-			int paren_count = 0;
-			int brace_count = 0;
-
-			for (q=j+1; q<num_tokens; ++q)
-			{
-				pANTLR3_COMMON_TOKEN loc_tok = (pANTLR3_COMMON_TOKEN)vec->get(vec, q);
-
-				if (loc_tok->getType(loc_tok) == NEWLINE)
-					break;
-
-				if (loc_tok->getType(loc_tok) == LPAREN)
-					paren_count++;
-
-				if (loc_tok->getType(loc_tok) == RPAREN)
-					paren_count--;
-
-				if (loc_tok->getType(loc_tok) == LCURLY)
-					brace_count++;
-
-				if (loc_tok->getType(loc_tok) == RCURLY)
-					brace_count--;
-
-				if (!paren_count && !brace_count && (loc_tok->getType(loc_tok) == END))
-				{
-					tok->setType(tok, IF2);
 					break;
 				}
 			}

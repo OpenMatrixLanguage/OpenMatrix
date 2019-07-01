@@ -1,0 +1,4 @@
+f = fopen('FileManipulation\precip2.txt');
+fscanf(f, '%d %f %f', [3 10])
+frewind(f);
+fscanf(f, '%d %f %f', [10 3])

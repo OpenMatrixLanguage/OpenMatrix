@@ -108,7 +108,7 @@ my $errorcompare = 0;
 print "Run Compose regression test using $omlprogram at path:\n";
 system("which ".$omlprogram);
 print "\n";
-my $omlargs = '-notoolbox -x '; # experimental for release
+my $omlargs = '-notoolbox ';
 
 foreach my $omlfile (@files) {
     print "Running $omlfile ... :: ";

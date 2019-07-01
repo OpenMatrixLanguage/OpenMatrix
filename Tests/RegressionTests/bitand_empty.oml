@@ -1,0 +1,4 @@
+﻿zeros(0,0) & zeros(0,1)
+zeros(0,1) & zeros(0,0)
+zeros(0,1) & zeros(0,1)
+zeros(1,0) & zeros(0,1)

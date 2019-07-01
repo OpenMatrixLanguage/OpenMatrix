@@ -1,0 +1,7 @@
+[n, m] = month('09-Apr-2019')
+month('09-Apr-2019 18:05:56', 'dd-mmm-yyyy HH:MM:SS')
+month('9-Apr-2019', 'dd-mmm-yyyy')
+
+[n, m] = month('04/09/19', 'mm/dd/yy')
+[n, m] = month('9', 'mm')
+month('Aug', 'mmm')

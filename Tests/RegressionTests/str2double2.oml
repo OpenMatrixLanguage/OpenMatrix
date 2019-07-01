@@ -1,1 +1,1 @@
-[num, status]=str2double({'2'})
+str2double({'2'})

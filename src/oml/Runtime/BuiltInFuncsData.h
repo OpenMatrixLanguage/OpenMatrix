@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsData.h
 * @date June 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -45,6 +45,15 @@ public:
     static bool Mat2Cell( EvaluatorInterface           eval,
                           const std::vector<Currency>& inputs,
                           std::vector<Currency>&       outputs);
+	//!
+	//! Returns true after converting number/matrix to cell array [num2cell]
+	//! \param eval    Evaluator interface
+	//! \param inputs  Vector of inputs
+	//! \param outputs Vector of outputs
+	//!
+	static bool Num2Cell(EvaluatorInterface           eval,
+		                 const std::vector<Currency>& inputs,
+		                 std::vector<Currency>&       outputs);
     //!
     //! Sets fields recursively. First currency is the input, last currency is value
     //! \param eval    Evaluator interface
@@ -70,6 +79,15 @@ public:
     //! \param outputs Vector of outputs
     //!
     static bool IsColumn(EvaluatorInterface           eval,
+                         const std::vector<Currency>& inputs,
+                         std::vector<Currency>&       outputs);
+    //!
+    //! Returns true after sorting rows in the matrix [sortrows]
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //!
+    static bool Sortrows(EvaluatorInterface           eval,
                          const std::vector<Currency>& inputs,
                          std::vector<Currency>&       outputs);
 

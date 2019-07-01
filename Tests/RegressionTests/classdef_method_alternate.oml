@@ -1,0 +1,18 @@
+﻿classdef myclass
+    properties
+		a
+	end
+	methods
+		function z=myclass(a)
+		  z.a = a;
+		end
+
+		function printa(self)
+		   disp(self.a)
+		end
+	end
+end
+
+m = myclass(4);
+m.printa()
+printa(m)

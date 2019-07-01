@@ -29,6 +29,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -43,10 +44,12 @@
 #include "BuiltInFuncsFile.h"
 #include "BuiltInFuncsString.h"
 #include "BuiltInFuncsSystem.h"
+#include "BuiltInFuncsTime.h"
 #include "BuiltInFuncsUtils.h"
 #include "MemoryScope.h"
 #include "Interpreter.h"
 #include "FunctionInfo.h"
+#include "OMLTree.h"
 #include "ErrorInfo.h"
 #include "OML_Error.h"
 #include "hwComplex.h"
@@ -148,19 +151,22 @@ enum OMLREGEXP
     OMLREGEXP_SPLIT        // Remainder of unmatched token
 };
 // Returns regular expression string matching results
-std::vector<Currency> DoRegExp(EvaluatorInterface&           eval,
-                               const std::string&            search,
-                               const std::string&            pattern,
-                               const std::vector<OMLREGEXP>& options);
+std::vector<Currency> DoRegExp(EvaluatorInterface&             eval,
+                               const std::string&              search,
+                               const std::string&              pattern,
+                               const std::vector<OMLREGEXP>&   options,
+	                           const std::vector<std::string>& flags);
 // Gets ordered vector of output options to display for regexp
 std::vector<OMLREGEXP> GetRegexOptions(const std::vector<Currency>& inputs,
-                                       int                          nargout);
+                                       int                          nargout,
+	                                   std::vector<std::string>&    flags);
 // Returns true if successful in regular expression string matching
-void GetRegExpOutput(EvaluatorInterface            eval,
-                     const Currency&               searchCur,
-                     const Currency&               patternCur,
-                     const std::vector<OMLREGEXP>& options,
-                     std::vector<Currency>&        outputs);
+void GetRegExpOutput(EvaluatorInterface              eval,
+                     const Currency&                 searchCur,
+                     const Currency&                 patternCur,
+                     const std::vector<OMLREGEXP>&   options,
+	                 const std::vector<std::string>& flags,
+                     std::vector<Currency>&          outputs);
 
 #ifdef OS_WIN
 static char pathsep = ';';
@@ -299,7 +305,6 @@ void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions)
     (*std_functions)["printf"]             = BuiltinFunc(oml_printf, FunctionMetaData(-2, 1, FILEIO));
     (*std_functions)["fprintf"]            = BuiltinFunc(oml_fprintf, FunctionMetaData(-3, 1, FILEIO));
     (*std_functions)["str2num"]            = BuiltinFunc(oml_str2num, FunctionMetaData(1, 2, STNG));
-    (*std_functions)["str2double"]         = BuiltinFunc(oml_str2double, FunctionMetaData(1, 2, STNG));
     (*std_functions)["fieldnames"]         = BuiltinFunc(oml_fieldnames, FunctionMetaData(1, 1, DATA));
     (*std_functions)["sprintf"]            = BuiltinFunc(oml_sprintf, FunctionMetaData(-2, 2, STNG));
     (*std_functions)["feval"]              = BuiltinFunc(oml_feval, FunctionMetaData(-2, -1, CORE));
@@ -343,7 +348,6 @@ void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions)
     (*std_functions)["ftell"]              = BuiltinFunc(oml_ftell, FunctionMetaData(1, 1, FILEIO));
     (*std_functions)["fgets"]              = BuiltinFunc(oml_fgets, FunctionMetaData(2, 1, FILEIO));
     (*std_functions)["fclose"]             = BuiltinFunc(oml_fclose, FunctionMetaData(1, 1, FILEIO));
-    (*std_functions)["fopen"]              = BuiltinFunc(oml_fopen, FunctionMetaData(3, 2, FILEIO));
     (*std_functions)["char"]               = BuiltinFunc(oml_char, FunctionMetaData(-1, 1, STNG));
     (*std_functions)["strsplit"]           = BuiltinFunc(oml_strsplit, FunctionMetaData(-3, 2, STNG));
     (*std_functions)["strjoin"]            = BuiltinFunc(oml_strjoin, FunctionMetaData(2, 1, STNG));
@@ -539,9 +543,11 @@ void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions)
     // Data structures
     (*std_functions)["cat"]       = BuiltinFunc(oml_cat, FunctionMetaData(-2, 1, DATA));
     (*std_functions)["setfield"]  = BuiltinFunc(BuiltInFuncsData::Setfield, FunctionMetaData(-3, 1, DATA));
-    (*std_functions)["mat2cell"]  = BuiltinFunc(BuiltInFuncsData::Mat2Cell, FunctionMetaData(-2, 1, DATA));
-    (*std_functions)["isrow"]     = BuiltinFunc(BuiltInFuncsData::IsRow, FunctionMetaData(1, 1, DATA));
+	(*std_functions)["mat2cell"]  = BuiltinFunc(BuiltInFuncsData::Mat2Cell, FunctionMetaData(-2, 1, DATA));
+	(*std_functions)["num2cell"]  = BuiltinFunc(BuiltInFuncsData::Num2Cell, FunctionMetaData(-2, 1, DATA));
+	(*std_functions)["isrow"]     = BuiltinFunc(BuiltInFuncsData::IsRow, FunctionMetaData(1, 1, DATA));
     (*std_functions)["iscolumn"]  = BuiltinFunc(BuiltInFuncsData::IsColumn, FunctionMetaData(1, 1, DATA));
+    (*std_functions)["sortrows"] = BuiltinFunc(BuiltInFuncsData::Sortrows, FunctionMetaData(-2, -2, DATA));
 
     // File I/O
 	(*std_functions)["textread"]  = BuiltinFunc(BuiltInFuncsFile::Textread, FunctionMetaData(1, 1, FILEIO));
@@ -553,6 +559,7 @@ void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions)
     (*std_functions)["rename"]     = BuiltinFunc(BuiltInFuncsFile::Rename, FunctionMetaData(2, 2, FILEIO));
     (*std_functions)["dlmread"]    = BuiltinFunc(BuiltInFuncsFile::Dlmread, FunctionMetaData(1, -6, FILEIO));
     (*std_functions)["pwd"]        = BuiltinFunc(oml_pwd, FunctionMetaData(0, 1, FILEIO));
+    (*std_functions)["fopen"]      = BuiltinFunc(BuiltInFuncsFile::Fopen, FunctionMetaData(-3, -2, FILEIO));
 
     // String functions
     (*std_functions)["blanks"]   = BuiltinFunc(BuiltInFuncsString::hml_blanks, 
@@ -573,10 +580,11 @@ void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions)
     (*std_functions)["ast"]         = BuiltinFunc(oml_ast, FunctionMetaData(1, 1, CORE));
     (*std_functions)["num2str"]     = BuiltinFunc(BuiltInFuncsString::Num2Str, FunctionMetaData(2, 1, STNG));
     (*std_functions)["str2mat"]     = BuiltinFunc(BuiltInFuncsString::Str2mat, FunctionMetaData(1, -1, STNG));
+    (*std_functions)["str2double"]  = BuiltinFunc(BuiltInFuncsString::Str2Double, FunctionMetaData(1, 1, STNG));
 
     // System functions
     (*std_functions)["dir"]      = BuiltinFunc(BuiltInFuncsSystem::Dir, FunctionMetaData(1, 1, SYSTEM));
-    (*std_functions)["ls"]       = BuiltinFunc(BuiltInFuncsSystem::Ls, FunctionMetaData(-1,-1, SYSTEM));
+    (*std_functions)["ls"]       = BuiltinFunc(BuiltInFuncsSystem::Ls, FunctionMetaData(-2, -1, SYSTEM));
     (*std_functions)["system"]   = BuiltinFunc(BuiltInFuncsSystem::System, FunctionMetaData(-2, -2, SYSTEM));
     (*std_functions)["dos"]      = BuiltinFunc(BuiltInFuncsSystem::System, FunctionMetaData(-2, -2, SYSTEM));
     (*std_functions)["unix"]     = BuiltinFunc(BuiltInFuncsSystem::Unix,   FunctionMetaData(2, 2, SYSTEM));
@@ -584,6 +592,21 @@ void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions)
     (*std_functions)["chdir"]   = BuiltinFunc(BuiltInFuncsSystem::Cd,     FunctionMetaData(-1, 1, SYSTEM));
     (*std_functions)["cd"]      = BuiltinFunc(BuiltInFuncsSystem::Cd,     FunctionMetaData(-1, 1, SYSTEM));
     (*std_functions)["rmdir"]   = BuiltinFunc(BuiltInFuncsSystem::Rmdir,  FunctionMetaData(-2, 3, SYSTEM));
+    (*std_functions)["genpath"] = BuiltinFunc(BuiltInFuncsSystem::Genpath, FunctionMetaData(-2, 1, SYSTEM));
+    (*std_functions)["getpid"]  = BuiltinFunc(BuiltInFuncsSystem::GetPid, FunctionMetaData(0, 1, SYSTEM));
+    (*std_functions)["make_absolute_filename"] = BuiltinFunc(BuiltInFuncsSystem::MakeAbsFilename, FunctionMetaData(1, 1, SYSTEM));
+
+    // Time functions
+    (*std_functions)["time"]    = BuiltinFunc(BuiltInFuncsSystem::Time, FunctionMetaData(0, 1, TIME));
+    (*std_functions)["ctime"]   = BuiltinFunc(BuiltInFuncsSystem::CTime, FunctionMetaData(1, 1, TIME));
+    (*std_functions)["year"]    = BuiltinFunc(BuiltInFuncsTime::Year, FunctionMetaData(-2, 1, TIME));
+    (*std_functions)["day"]     = BuiltinFunc(BuiltInFuncsTime::Day, FunctionMetaData(-2, 1, TIME));
+    (*std_functions)["month"]   = BuiltinFunc(BuiltInFuncsTime::Month, FunctionMetaData(-2, -2, TIME));
+    (*std_functions)["minute"]  = BuiltinFunc(BuiltInFuncsTime::Minute, FunctionMetaData(-2, 1, TIME));
+    (*std_functions)["hour"]    = BuiltinFunc(BuiltInFuncsTime::Hour, FunctionMetaData(-2, 1, TIME));
+    (*std_functions)["second"]  = BuiltinFunc(BuiltInFuncsTime::Second, FunctionMetaData(-2, 1, TIME));
+    (*std_functions)["now"]     = BuiltinFunc(oml_now, FunctionMetaData(0, 1, TIME));
+    (*std_functions)["quarter"] = BuiltinFunc(BuiltInFuncsTime::Quarter, FunctionMetaData(-2, 1, TIME));
 
     // Client specific environment related functions
     (*std_functions)["getbaseenv"]    = BuiltinFunc(BuiltInFuncsSystem::GetBaseEnv, 
@@ -610,6 +633,11 @@ void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions)
 	(*std_functions)["analyze"]     = BuiltinFunc(oml_analyze, FunctionMetaData(1, 0, CORE));
 	(*std_functions)["getmetadata"] = BuiltinFunc(oml_getmetadata, FunctionMetaData(1, 0, CORE));
 	(*std_functions)["rehash"]      = BuiltinFunc(oml_rehash, FunctionMetaData(0, 0, CORE));
+
+    // Function place holders have been added for the following. 
+    // The implementation is on the client side
+    (*std_functions)["getargc"] = BuiltinFunc(oml_getargc, FunctionMetaData(0, 1, CORE));
+    (*std_functions)["getargv"] = BuiltinFunc(oml_getargv, FunctionMetaData(1, 1, CORE));
 
 	bool experimental = true;
 
@@ -796,7 +824,7 @@ bool oml_subsasgn(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
         const Currency& type = sd->GetValue(i, -1, std::string("type"));
         const Currency& subs = sd->GetValue(i, -1, std::string("subs"));
         if (!type.IsString() || type.Matrix()->M() != 1)
-            throw OML_Error(HW_ERROR_TYPE1DSTR);
+            throw OML_Error(OML_ERR_MULTILINE_STRING, i + 1);
 
         std::string str_type = type.StringVal();
         if (str_type == ".")
@@ -886,7 +914,7 @@ bool oml_subsref(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
         const Currency& type = sd->GetValue(i, -1, std::string("type"));
         const Currency& subs = sd->GetValue(i, -1, std::string("subs"));
         if (!type.IsString() || type.Matrix()->M() != 1)
-            throw OML_Error(HW_ERROR_TYPE1DSTR);
+            throw OML_Error(OML_ERR_MULTILINE_STRING, i + 1);
 
         std::string str_type = type.StringVal();
         if (str_type == ".")
@@ -953,16 +981,24 @@ bool oml_subsref(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
 //------------------------------------------------------------------------------
 // Gets directory, name and extension components given file name [fileparts]
 //------------------------------------------------------------------------------
-bool oml_fileparts(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+bool oml_fileparts(EvaluatorInterface eval, 
+                   const std::vector<Currency>& inputs, 
+                   std::vector<Currency>& outputs)
 {
     if (inputs.size() != 1)
+    {
         throw OML_Error(OML_ERR_NUMARGIN);
+    }
 
     if (!inputs[0].IsString())
-        throw OML_Error(HW_ERROR_INPUTSTRING);
+    {
+        throw OML_Error(OML_ERR_STRING, 1);
+    }
 
-    if (inputs[0].Matrix()->M() > 1)
-        throw OML_Error(HW_ERROR_TYPE1DSTR);
+    if (inputs[0].IsMultilineString())
+    {
+        throw OML_Error(OML_ERR_MULTILINE_STRING, 1);
+    }
 
     std::string filename = inputs[0].StringVal();
 
@@ -979,7 +1015,14 @@ bool oml_fileparts(EvaluatorInterface eval, const std::vector<Currency>& inputs,
     }
     else
     {
-        outputs.push_back(filename.substr(0, lastslash));
+        if (lastslash == 0)
+        {
+            outputs.push_back(filename.substr(0, 1));
+        }
+        else
+        {
+            outputs.push_back(filename.substr(0, lastslash));
+        }
         ++lastslash;
     }
 
@@ -1008,17 +1051,31 @@ bool oml_narginchk(EvaluatorInterface eval, const std::vector<Currency>& inputs,
     if (!inputs[0].IsInteger())
         throw OML_Error(OML_ERR_NATURALNUM, 1, OML_VAR_VALUE);
 
-    if (inputs[0].Scalar() == 0.0)
-        throw OML_Error(OML_ERR_NATURALNUM, 1, OML_VAR_VALUE);
+	int min = (int)inputs[0].Scalar();
+	int max;
 
-    if (!inputs[1].IsInteger())
-        throw OML_Error(OML_ERR_NATURALNUM, 2, OML_VAR_VALUE);
+	if (inputs[1].IsScalar())
+	{
+		if (!inputs[1].IsInteger())
+		{
+			double val = inputs[1].Scalar();
 
-    if (inputs[1].Scalar() == 0.0)
-        throw OML_Error(OML_ERR_NATURALNUM, 2, OML_VAR_VALUE);
+			if (IsInf_T(val))
+				max = INT_MAX;
+			else
+				throw OML_Error(OML_ERR_NATURALNUM, 2, OML_VAR_VALUE);
+		}
+		else
+		{
+			max = (int)inputs[1].Scalar();
+		}
 
-    int min = (int) inputs[0].Scalar();
-    int max = (int) inputs[1].Scalar();
+		if (max == 0.0)
+			throw OML_Error(OML_ERR_NATURALNUM, 2, OML_VAR_VALUE);
+	}
+
+	if (IsInf_T(inputs[1].Scalar()))
+		max = INT_MAX;
 
     EvaluatorInterface caller(eval, false);
     int actual = caller.GetNarginValue();
@@ -1210,7 +1267,7 @@ bool oml_atan2(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
             const hwMatrix* x = inputs[1].Matrix();
 
             if (!sameSize(y,x))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(y->M(), y->N(), hwMatrix::REAL);
 
@@ -1239,35 +1296,129 @@ bool oml_fullfile(EvaluatorInterface           eval,
                   const std::vector<Currency>& inputs, 
                   std::vector<Currency>&       outputs)
 {
-    size_t nargin = inputs.empty() ? 0 : inputs.size();
+    if (inputs.empty())
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+    int nargin = static_cast<int>(inputs.size());
 
-    if (nargin < 1) throw OML_Error(OML_ERR_NUMARGIN);
+    // Check the last element as this determines output type
+    if (!inputs[nargin - 1].IsString() && !inputs[nargin - 1].IsCellArray())
+    {
+        throw OML_Error(OML_ERR_STRING_STRINGCELL, nargin);
+    }
 
-    bool hasslash = false;
-    std::stringstream ss;
-    for (size_t i = 0; i < nargin; ++i)
+    HML_CELLARRAY* cell = nullptr;
+    std::unique_ptr<HML_CELLARRAY> out(nullptr);
+    if (inputs[nargin - 1].IsCellArray())
+    {
+        cell = inputs[nargin - 1].CellArray();
+        if (!cell || cell->IsEmpty())
+        {
+            out.reset(EvaluatorInterface::allocateCellArray());
+            outputs.push_back(out.release());
+            return true;
+        }
+        out.reset(EvaluatorInterface::allocateCellArray(1, cell->Size()));
+    }
+
+    std::string       path;
+    BuiltInFuncsUtils utils;
+    for (int i = 0; i < nargin; ++i)
     {
         const Currency& cur = inputs[i];
 
-        if (!cur.IsString()) 
-            throw OML_Error(OML_ERR_STRING, static_cast<int>(i)+1, OML_VAR_TYPE);
-        
-        if (cur.Matrix()->IsEmpty()) continue;
-        
-        if (cur.Matrix()->M() != 1)  throw OML_Error(HW_ERROR_INPROWVECT);
-
-        std::string s = cur.StringVal();
-        if (s.length())
+        // Everything preceding last input must be a string. Checks have already
+        // been made for last input
+        if (i < nargin - 1)
         {
-            if (i && !hasslash)
-                ss << DIRECTORY_DELIM;
+            if (!cur.IsString())
+            {
+                throw OML_Error(OML_ERR_STRING, i + 1, OML_VAR_TYPE);
+            }
+        }
 
-            ss << s;
-            hasslash = s.back() == DIRECTORY_DELIM;
+        std::string val;
+        if (cur.IsString())
+        {
+            if (!cur.IsMultilineString())
+            {
+                val = cur.StringVal();
+            }
+            else
+            {
+                Currency tmp = utils.ReadRow(eval, cur, 0);
+                if (!tmp.IsString())
+                {
+                    throw OML_Error(OML_ERR_STRING, i + 1, OML_VAR_TYPE);
+                }
+                val = tmp.StringVal();
+            }
+            val = utils.RTrim(val);
+            val = utils.LTrim(val);
+
+            if (val.empty())
+            {
+                continue;
+            }
+            if (!path.empty())
+            {
+                path += "/";
+            }
+            path += val;
+        }
+        else if (cell)
+        {
+            int cellsize = cell->Size();
+            for (int j = 0; j < cellsize; ++j)
+            {
+                const Currency& element = (*cell)(j);
+                if (!element.IsString())
+                {
+                    throw OML_Error(OML_ERR_STRING_STRINGCELL, nargin);
+                }
+
+                std::string val;
+                if (!element.IsMultilineString())
+                {
+                    val = element.StringVal();
+                }
+                else
+                {
+                    Currency tmp = utils.ReadRow(eval, element, 0);
+                    if (!tmp.IsString())
+                    {
+                        throw OML_Error(OML_ERR_STRING, i + 1, OML_VAR_TYPE);
+                    }
+                    val = tmp.StringVal();
+                }
+                val = utils.RTrim(val);
+                val = utils.LTrim(val);
+                if (val.empty())
+                {
+                    continue;
+                }
+                std::string newpath = path;
+                if (!path.empty())
+                {
+                    newpath += "/";
+                }
+                newpath += val;
+                newpath = utils.StripMultipleSlashesAndNormalize(newpath);
+                (*out)(j) = newpath;
+            }
         }
     }
 
-    outputs.push_back(ss.str());
+    if (out)
+    {
+        outputs.push_back(out.release());
+    }
+    else
+    {
+        outputs.push_back(utils.StripMultipleSlashesAndNormalize(path));
+    }
+
     return true;
 }
 //------------------------------------------------------------------------------
@@ -2630,7 +2781,7 @@ bool oml_normalize(EvaluatorInterface eval, const std::vector<Currency>& inputs,
             }
         }
         else
-            throw OML_Error(HW_MATH_MSG_COMPLEX);
+            throw OML_Error(OML_ERR_REAL);
     }
     else
         throw OML_Error(OML_ERR_VECTOR, 1, OML_VAR_DATA);
@@ -2669,45 +2820,86 @@ bool oml_mkdir(EvaluatorInterface           eval,
                const std::vector<Currency>& inputs, 
                std::vector<Currency>&       outputs)
 {
-    size_t nargin = inputs.empty() ? 0: inputs.size();
-    if (nargin < 1)
+    if (inputs.empty())
     {
         throw OML_Error(OML_ERR_NUMARGIN);
     }
-
-    Currency cur1 = inputs[0];
-    if (!cur1.IsString())
+    if (!inputs[0].IsString())
     {
         throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
     }
 
-    std::string parentdir;
-    std::string newdir;
+    size_t nargin = inputs.size();
 
-    if (nargin == 1)
+    std::string val1(inputs[0].StringVal());
+    std::string parentdir = (nargin > 1)  ? val1 : "";
+    std::string newdir    = (nargin == 1) ? val1 : "";
+
+    if (nargin > 1)
     {
-        newdir = cur1.StringVal();
-    }
-    else 
-    {
-        Currency cur2 = inputs[1];
-        if (!cur2.IsString())
+        if (!inputs[1].IsString())
         {
-            throw OML_Error(OML_ERR_STRING, 2, OML_VAR_TYPE);
+            throw OML_Error(OML_ERR_STRING, 2);
         }
-        newdir    = cur2.StringVal();
-        parentdir = cur1.StringVal();
+        newdir = inputs[1].StringVal();
     }
 
 #ifdef OS_WIN
     std::string fullpath (newdir);
+    BuiltInFuncsUtils utils;
 	if (!parentdir.empty())
 	{
-		BuiltInFuncsUtils::StripTrailingSlash(parentdir);
+		utils.StripTrailingSlash(parentdir);
         fullpath = parentdir + "/" + newdir;
 	}
-    fullpath = BuiltInFuncsUtils::Normpath(fullpath);
+    else
+    {
+        bool isabsolutepath = utils.IsAbsolutePath(newdir);
+        if (!isabsolutepath)
+        {
+            fullpath = utils.GetCurrentWorkingDir();
+            utils.StripTrailingSlash(fullpath);
+            fullpath += "/" + newdir;
+        }
+    }
+    fullpath = utils.Normpath(fullpath);
+    if (fullpath.empty())
+    {
+        throw OML_Error(OML_ERR_NONEMPTY_STR, static_cast<int>(nargin));
+    }
 
+    // Check to see all parent directories exist
+    size_t pos = fullpath.find_last_of('\\');
+    if (pos != std::string::npos)
+    {
+        parentdir = fullpath.substr(0, pos);
+        if (!utils.DoesPathExist(parentdir))
+        {
+            utils.StripTrailingSlash(parentdir);
+            pos = parentdir.find_first_not_of(":\\", 1);
+            if (pos != std::string::npos)
+            {
+                std::string dir = parentdir.substr(0, pos);
+                std::string path = parentdir.substr(pos);
+                char* tok = strtok((char*)path.c_str(), "\\");
+                while (tok)
+                {
+                    utils.StripTrailingSlash(dir);
+                    dir += "\\" + std::string(tok);
+
+                    if (!utils.DoesPathExist(dir))
+                    {
+                        BOOL result = CreateDirectory((LPCSTR)dir.c_str(), nullptr);
+                        if (!result)
+                        {
+                            break;
+                        }
+                    }
+                    tok = strtok(nullptr, "\\");
+                }
+            }
+        }
+    }
     BOOL result = CreateDirectory((LPCSTR) fullpath.c_str(), nullptr);
     if (!result)
     {
@@ -3639,10 +3831,11 @@ bool oml_regexp(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
     }
 
     // Get output options, in user specified order if applicable
+	std::vector<std::string> flags;
     std::vector<OMLREGEXP> options (GetRegexOptions(
-        inputs, eval.GetNargoutValue()));
+        inputs, eval.GetNargoutValue(), flags));
 
-    GetRegExpOutput(eval, inputs[0], inputs[1], options, outputs);
+    GetRegExpOutput(eval, inputs[0], inputs[1], options, flags, outputs);
     return true;
 }
 //------------------------------------------------------------------------------
@@ -4032,8 +4225,6 @@ bool oml_isprime(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
 //------------------------------------------------------------------------------
 bool oml_conv2(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
 {
-    // note -- this produces different results than in hml
-
     size_t nargin = inputs.size();
 
     if (nargin < 2 || nargin > 4)
@@ -4045,13 +4236,11 @@ bool oml_conv2(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
     if (!inputs[1].IsMatrix() && !inputs[1].IsScalar() && !inputs[1].IsComplex())
         throw OML_Error(OML_ERR_MATRIX, 2, OML_VAR_DATA);
 
-    hwMatrix a(*inputs[0].ConvertToMatrix());
-    hwMatrix b(*inputs[1].ConvertToMatrix());
-    std::unique_ptr<hwMatrix> mtx;
-
+    const hwMatrix* a = inputs[0].ConvertToMatrix();
+    const hwMatrix* b = inputs[1].ConvertToMatrix();
+    const hwMatrix* mtx = nullptr;
     hwMatrix *result = EvaluatorInterface::allocateMatrix();
 
-    Currency rcur(result);
     std::string shape("full");
 
     enum
@@ -4070,16 +4259,21 @@ bool oml_conv2(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
         }
         else
         {
-            mtx.reset(safeMatrixCopyFromInput(in3, false));
+            mtx = in3.ConvertToMatrix();
         }
     }
     else if (nargin == 4)
     {
-        mtx.reset(matrixCopyFromInput(inputs[2], false));
+        const Currency &in3 = inputs[2];
+
+        if (in3.IsString())
+            throw OML_Error(OML_ERR_MATRIX, 3, OML_VAR_DATA);
+
+        mtx = in3.ConvertToMatrix();
         shape = readOption(eval, inputs[3]);
     }
 
-    if (mtx.get() && !(a.IsVector() && b.IsVector()))
+    if (mtx && !(a->IsVector() && b->IsVector()))
         throw OML_Error(HW_ERROR_IFCONVMATINPMUSTVEC);
 
     if (shape == "full")
@@ -4091,7 +4285,7 @@ bool oml_conv2(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
     else
         throw OML_Error(HW_ERROR_INVSHAPEFULLSAMEVALID);
 
-    if (!(b.Size() && a.Size()))
+    if (!(b->Size() && a->Size()))
     {
         outputs.push_back(EvaluatorInterface::allocateMatrix());
         return true;
@@ -4099,91 +4293,70 @@ bool oml_conv2(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
 
     int top, left, m, n;
 
-    if (mtx.get())
+    if (mtx)
     {
-        int bs = b.Size();
-        int as = a.Size();
-        int mm = mtx->M();
-        int nn = mtx->N();
+        int am = mtx->M();
+        int an = mtx->N();
+        int bm = a->Size();
+        int bn = b->Size();
 
-        if (mm * nn == 0)
+        if (bm * bn == 0)
         {
             outputs.push_back(EvaluatorInterface::allocateMatrix());
             return true;
         }
 
-        m = max(as, mm);
-        n = max(bs, nn);
-        if (a.N() != 1)
-            safeResizeMatrix(eval, 1, m, a, true);
-        else
-            safeResizeMatrix(eval, m, 1, a, true);
-
-        if (b.M() != 1)
-            safeResizeMatrix(eval, n, 1, b, true);
-        else
-            safeResizeMatrix(eval, 1, n, b, true);
-
-        safeResizeMatrix(eval, m, n, *mtx, true);
-        BuiltInFuncsUtils::CheckMathStatus(eval, result->Conv2D(a, b, *mtx));
-
         if (shapeCode == Same)
         {
-            top = as / 2;
-            left = bs / 2;
-            m = mm;
-            n = nn;
+            top = bm / 2;
+            left = bn / 2;
+            m = am;
+            n = an;
+            BuiltInFuncsUtils::CheckMathStatus(eval, result->Conv2D(*a, *b, *mtx, top, left, top + m - 1, left + n - 1));
         }
         else if (shapeCode == Valid)
         {
-            top = m / 2 - 1;
-            left = n / 2 - 1;
-            m = mm - as + 1;
-            n = nn - bs + 1;
+            top = bm - 1;
+            left = bn - 1;
+            m = max(am - bm + 1, 0);
+            n = max(an - bn + 1, 0);
+            BuiltInFuncsUtils::CheckMathStatus(eval, result->Conv2D(*a, *b, *mtx, top, left, top + m - 1, left + n - 1));
         }
         else
         {
-            top = left = 0;
-            m = mm + as - 1;
-            n = nn + bs - 1;
+            BuiltInFuncsUtils::CheckMathStatus(eval, result->Conv2D(*a, *b, *mtx));
         }
     }
     else
     {
-        int am = a.M();
-        int an = a.N();
-        int bm = b.M();
-        int bn = b.N();
-        m = max(am, bm);
-        n = max(an, bn);
-        safeResizeMatrix(eval, m, n, a, true);
-        safeResizeMatrix(eval, m, n, b, true);
-        BuiltInFuncsUtils::CheckMathStatus(eval, result->Conv2D(a, b));
+        int am = a->M();
+        int an = a->N();
+        int bm = b->M();
+        int bn = b->N();
 
-        top = bm / 2;
-        left = bn / 2;
         if (shapeCode == Same)
         {
+            top = bm / 2;
+            left = bn / 2;
             m = am;
             n = an;
+            BuiltInFuncsUtils::CheckMathStatus(eval, result->Conv2D(*a, *b, top, left, top + m - 1, left + n - 1));
         }
         else if (shapeCode == Valid)
         {
-            m = am - bm + 1;
-            n = an - bn + 1;
+            top = bm - 1;
+            left = bn - 1;
+            m = max(am - bm + 1, 0);
+            n = max(an - bn + 1, 0);
+            BuiltInFuncsUtils::CheckMathStatus(eval, result->Conv2D(*a, *b, top, left, top + m - 1, left + n - 1));
         }
-        else
+        else    // shapeCode == Full
         {
-            top = left = 0;
-            m = am + bm - 1;
-            n = an + bn - 1;
+            BuiltInFuncsUtils::CheckMathStatus(eval, result->Conv2D(*a, *b));
         }
     }
 
-    hwMatrix *temp = getInnerMatrix(result, top, top + m, left, left + n);
-    result = temp;
-    rcur = Currency(result);
-    outputs.push_back(rcur);
+    outputs.push_back(result);
     return true;
 }
 //------------------------------------------------------------------------------
@@ -4601,7 +4774,7 @@ bool oml_gcd(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
                     n = mtx->N();
                 }
                 else if (m != mtx->M() || n != mtx->N())
-                    throw OML_Error(OML_ERR_ARRAYSIZE);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
             }
         }
         else if (cur.IsComplex())
@@ -4767,7 +4940,14 @@ bool oml_func2str(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
 
     if (inputs[0].IsFunctionHandle())
     {
-        outputs.push_back(inputs[0].FunctionHandle()->FunctionName());
+		FunctionInfo* fi   = inputs[0].FunctionHandle();
+		OMLTree*      tree = fi->Statements();
+
+		if (fi->IsAnonymous())
+			outputs.push_back(tree->GetStringRepresentation());
+		else
+			outputs.push_back(fi->FunctionName());
+
         return true;
     }
     else
@@ -4792,7 +4972,7 @@ bool oml_str2func(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
 		if (fptr)
 			fi = new FunctionInfo(funcName, fptr);
 		else
-			fi = new FunctionInfo(*fi);
+			fi->IncrRefCount();
 
         outputs.push_back(fi);
         return true;
@@ -4838,7 +5018,96 @@ bool oml_rehash(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
 //------------------------------------------------------------------------------
 // Evaluates the given function func on elements of given cell array [cellfun]
 //------------------------------------------------------------------------------
-bool oml_cellfun(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+bool oml_cellfun_nd_helper(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	size_t nargin = inputs.size();
+
+	if (nargin < 2)
+		throw OML_Error(OML_ERR_NUMARGIN);
+
+	const Currency& input1 = inputs[0];
+
+	std::string func;
+
+	if (!input1.IsString() && !input1.IsFunctionHandle())
+		throw OML_Error(HW_ERROR_FUNCNAMESTR);
+
+	std::vector<Currency> newinputs;
+	std::vector<Currency> newoutputs;
+
+	newinputs.push_back(input1);
+
+	int num_inputs         = (int)inputs.size();
+	int size_of_each_input = 0;
+	
+	std::vector<int> dims;
+
+	Currency first_function_input = inputs[1];
+
+	if (first_function_input.IsNDCellArray())
+	{
+		HML_ND_CELLARRAY* cells = first_function_input.CellArrayND();
+		size_of_each_input = cells->Size();
+		dims = cells->Dimensions();
+	}
+
+	hwMatrixN* result = EvaluatorInterface::allocateMatrixN();
+	result->Dimension(dims, hwMatrixN::REAL);
+
+	for (int k = 0; k < size_of_each_input; k++)
+	{
+		newinputs.clear();
+		newoutputs.clear();
+
+		newinputs.push_back(inputs[0]);
+
+		for (size_t j = 1; j < num_inputs; j++)
+		{
+			Currency function_input = inputs[j];
+
+			if (function_input.IsNDCellArray())
+			{
+				HML_ND_CELLARRAY* cells = function_input.CellArrayND();
+
+				if (cells->Dimensions() != dims)
+					throw OML_Error(HW_ERROR_CELLINPSAMESASIZE);
+
+				newinputs.push_back((*cells)(k));
+			}
+			else if (function_input.IsCellArray())
+			{
+				HML_CELLARRAY* cells = function_input.CellArray();
+
+				if (cells->Size() == 1)
+					newinputs.push_back((*cells)(0));
+				else
+					throw OML_Error(HW_ERROR_INPUTALLCELL);
+			}
+			else
+			{
+				throw OML_Error(HW_ERROR_INPUTALLCELL);
+			}
+		}
+
+		// call the function
+		oml_feval(eval, newinputs, newoutputs);
+
+		if ((newoutputs.size() == 1) && (newoutputs[0].IsScalar()))
+			(*result)(k) = newoutputs[0].Scalar();
+		else
+			throw OML_Error(HW_ERROR_OUTNOTUNI);
+	}
+
+	outputs.push_back(result);
+
+	return true;
+}
+//------------------------------------------------------------------------------
+// Evaluates given function on a cell array [cellfun]
+//------------------------------------------------------------------------------
+bool oml_cellfun(EvaluatorInterface           eval, 
+                 const std::vector<Currency>& inputs, 
+                 std::vector<Currency>&       outputs)
 {
     size_t nargin = inputs.size();
 
@@ -4864,6 +5133,11 @@ bool oml_cellfun(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
         if (cur.IsCellArray())
         {
             HML_CELLARRAY *incell = cur.CellArray();
+            if (i == 1 && incell->IsEmpty())
+            {
+                outputs.push_back(EvaluatorInterface::allocateCellArray());
+                return true;
+            }
             if (incell->Size() != 1)
             {
                 cellm = incell->M();
@@ -4871,6 +5145,12 @@ bool oml_cellfun(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
                 break;
             }
         }
+		else if (cur.IsNDCellArray())
+		{
+			// This isn't what I wanted to do, but the logic below is already quite complicated
+			// and including this functionality inline would have made it so much worse.
+			return oml_cellfun_nd_helper(eval, inputs, outputs);
+		}
     }
 
     if (cellm == -1)
@@ -5207,7 +5487,7 @@ bool oml_issorted(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
             }
         }
         else
-            throw OML_Error(HW_MATH_MSG_EMPTYMATRIX);
+            throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_EMPTYMATRIX));
     }
     else if (input1.IsCellArray())
     {
@@ -5255,7 +5535,7 @@ bool oml_issorted(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
             }
         }
         else
-            throw OML_Error(HW_MATH_MSG_EMPTYMATRIX);
+			throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_EMPTYMATRIX));
     }
     else
         throw OML_Error(OML_ERR_VECTOR, 1, OML_VAR_DATA);
@@ -5324,12 +5604,12 @@ bool oml_getfield(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
                 {
                     if (!(tempIndex.first == 0 && tempIndex.second < 1))
                     {
-                        throw OML_Error(HW_MATH_MSG_INVALIDINDEX);
+						throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INVALIDINDEX));
                     }
                 }
                 else
                 {
-                    throw OML_Error(HW_MATH_MSG_INVALIDINDEX);
+					throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INVALIDINDEX));
                 }
             }
             else
@@ -5437,7 +5717,7 @@ bool oml_ismember(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
         }
         else
         {
-            throw OML_Error(HW_ERROR_OPTIONSTRING);
+            throw OML_Error(OML_ERR_STRING, 3);
         }
     }
 
@@ -6210,7 +6490,7 @@ bool oml_linspace(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
             hwMatrix *m2 = EvaluatorInterface::allocateMatrix(in2.Matrix());
 
             if (m1->Size() != m2->Size())
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             complex = checkMakeComplex(eval, m1, m2);
             hwMatrix *result = EvaluatorInterface::allocateMatrix(m1->Size(), numElems, m1->Type());
@@ -6418,135 +6698,6 @@ bool oml_printf(EvaluatorInterface           eval,
         outputs.push_back(result.length());
     }
     return true;
-}
-//------------------------------------------------------------------------------
-//! Returns true after returning string to double [str2double]
-//------------------------------------------------------------------------------
-bool oml_str2double(EvaluatorInterface           eval, 
-                    const std::vector<Currency>& inputs, 
-                    std::vector<Currency>&       outputs)
-{
-    if (inputs.size() != 1)
-        throw OML_Error(OML_ERR_NUMARGIN);
-
-    Currency input    = inputs[0];
-    bool     isString = input.IsString();
-    if (!isString && !input.IsCellArray())
-        throw OML_Error(OML_ERR_STRING_STRINGCELL, 1, OML_VAR_TYPE);
-
-    std::vector<Currency> loc_inputs;
-    int m = 0;
-    int n = 0;
-    if (isString)
-        loc_inputs = inputs;
-    else
-    {
-        HML_CELLARRAY* cells = input.CellArray();
-        assert(cells);
-
-        m = cells->M();
-        n = cells->N();
-
-	    for (int i = 0; i < m; ++i)
-	    {	
-		    for (int j = 0; j < n; ++j)
-		    {
-                Currency cur = (*cells)(i,j);
-                if (!cur.IsString())
-                    throw OML_Error(OML_ERR_STRING_STRINGCELL, 1, OML_VAR_TYPE);
-                loc_inputs.push_back(cur);
-            }
-        }
-    }
-
-    bool status  = true;
-	std::vector<Currency> loc_outputs;
-
-    for (std::vector<Currency>::const_iterator itr = loc_inputs.begin();
-         itr != loc_inputs.end(); ++itr)
-    {
-        std::vector<Currency> in;
-        std::vector<Currency> out;
-        in.push_back(*itr);
-	    oml_str2num(eval, in, out);
-        if (out.empty()) 
-            continue;
-        
-        loc_outputs.push_back(out[0]);
-        if (out.size() > 1)
-        {
-            Currency tmp = out[1];
-            if (tmp.IsLogical())
-            {
-                int val = static_cast<int>(tmp.Scalar());
-                if (val <= 0)
-                    status = false;
-            }
-        }
-    }
-    if (isString)
-    {
-	    for (std::vector<Currency>::const_iterator itr = loc_outputs.begin();
-             itr != loc_outputs.end(); ++itr)
-	    {
-		    Currency cur = *itr;
-
-		    if (cur.IsEmpty())
-		    {
-			    outputs.push_back(Currency(std::numeric_limits<double>::quiet_NaN()));
-                continue;
-		    }
-		    else if (cur.IsCellArray())
-		    {
-			    HML_CELLARRAY* cells = cur.CellArray();
-			    if (!cells || cells->Size() == 0)
-				    outputs.push_back(Currency(std::numeric_limits<double>::quiet_NaN()));
-			    else 
-				    outputs.push_back(cur);
-                continue;
-		    }
-
-            outputs.push_back(cur);
-	    }
-    }
-    else
-    {
-        HML_CELLARRAY* out = EvaluatorInterface::allocateCellArray(m, n);
-        int numout = loc_outputs.empty() ? 0 : static_cast<int>(loc_outputs.size());
-        for (int j = 0, idx = 0; j < n && idx < numout; ++j)
-        {
-            for (int i = 0; i < m && idx < numout; ++i)
-	        {
-		        Currency cur = loc_outputs[idx++];
-
-		        if (cur.IsEmpty())
-                {
-                    (*out)(i, j) = std::numeric_limits<double>::quiet_NaN();
-                    continue;
-                }
-		        else if (cur.IsCellArray())
-		        {
-			        HML_CELLARRAY* cells = cur.CellArray();
-			        if (!cells || cells->Size() == 0)
-                    {
-				        (*out)(i, j) = std::numeric_limits<double>::quiet_NaN();
-                        continue;
-                    }
-                }
-		        (*out)(i, j) = cur;
-            }
-	    }
-
-        outputs.push_back(out);
-    }
-
-    if (eval.GetNargoutValue() > 1)
-    {
-        Currency tmp(status);
-        tmp.SetMask(Currency::MASK_LOGICAL);
-        outputs.push_back(tmp);
-    }
-	return true;
 }
 //------------------------------------------------------------------------------
 // Converts string to number, by evaluating it if needed [str2num]
@@ -7946,11 +8097,11 @@ bool oml_cross(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
                 return true;
             }
             else
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
         }
 
         if (!sameSize(x, y))
-            throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+            throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
         if (dim)
         {
@@ -8011,7 +8162,7 @@ bool oml_cross(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
     }
     else
     {
-        throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+        throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
     }
 
     return true;
@@ -8065,10 +8216,17 @@ bool oml_cell2mat(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
-    const Currency &input = inputs[0];
-    if (!input.IsCellArray())
+    if (!inputs[0].IsCellArray())
     {
-        throw OML_Error(HW_ERROR_INPUTCELLARRAY);
+        throw OML_Error(OML_ERR_CELLARRAY, 1);
+    }
+
+    HML_CELLARRAY* cell = inputs[0].CellArray();
+    assert(cell);
+    if (!cell || cell->Size() == 0)
+    {
+        outputs.push_back(EvaluatorInterface::allocateMatrix());
+        return true;
     }
 
     enum
@@ -8079,36 +8237,33 @@ bool oml_cell2mat(EvaluatorInterface           eval,
         Strings
     } inputType;
 
-    HML_CELLARRAY *cell = input.CellArray();
 
     // get input type
-    if (cell->Size())
+    const Currency& elem = (*cell)(0, 0);
+    if (elem.IsScalar() || elem.IsComplex())
     {
-        const Currency &elem = (*cell)(0, 0);
-        if (elem.IsScalar() || elem.IsComplex() || elem.IsMatrix())
+        if (cell->Size() == 1)
         {
-            inputType = Matrices;
+            outputs.push_back(elem);
+            return true;
         }
-        else if (elem.IsString())
-        {
-            inputType = Strings;
-        }
-        else if (elem.IsCellArray())
-        {
-            inputType = Cells;
-        }
-        else if (elem.IsStruct())
-        {
-            // create struct arrays
-            throw OML_Error(HW_ERROR_INPNOTSTRUCT);
-        }
-        else
-            throw OML_Error(HW_MATH_MSG_INVALIDINPUT);
+        inputType = Matrices;
+    }
+    else if (elem.IsMatrix())
+    {
+        inputType = Matrices;
+    }
+    else if (elem.IsString())
+    {
+        inputType = Strings;
+    }
+    else if (elem.IsCellArray())
+    {
+        inputType = Cells;
     }
     else
     {
-        outputs.push_back(EvaluatorInterface::allocateMatrix());
-        return true;
+        throw OML_Error(OML_ERR_SCAL_COMP_MTX_STR_CELL, 1);
     }
 
     // dimensions of output
@@ -8194,7 +8349,7 @@ bool oml_cell2mat(EvaluatorInterface           eval,
                     mlist = nullptr;
                 }
 
-                throw OML_Error(HW_MATH_MSG_INVALIDINPUT);
+				throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INVALIDINPUT));
             }
         }
 
@@ -8419,7 +8574,7 @@ bool oml_cell2mat(EvaluatorInterface           eval,
                     delete [] mlist;
                     mlist = nullptr;
                 }
-                throw OML_Error(HW_MATH_MSG_INTERNALERROR);
+                throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INTERNALERROR));
             }
         }
     }
@@ -8473,7 +8628,9 @@ static bool FileExistsInPath(const EvaluatorInterface& eval, std::string& filena
 //------------------------------------------------------------------------------
 // Executes given file/command [run]
 //------------------------------------------------------------------------------
-bool oml_run(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+bool oml_run(EvaluatorInterface           eval, 
+             const std::vector<Currency>& inputs, 
+             std::vector<Currency>&       outputs)
 {
     if (inputs.size() != 1)
         throw OML_Error(OML_ERR_NUMARGIN);
@@ -8503,7 +8660,6 @@ bool oml_run(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
         cd(pathname, eval);
     }
 
-    Interpreter interp(eval);
     Currency ret;
     std::string errmsg;
     bool        formatmsg = true;
@@ -8525,38 +8681,47 @@ bool oml_run(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
 			return true;
 		}
 	}
-
+    Interpreter interp(eval);
     try
     {
         ret = interp.DoFile(full_file_name);
         if (ret.IsError())
+        {
             errmsg = ret.Message();
+        }
     }
     catch (OML_Error& e)
     {
-        errmsg = e.GetErrorMessage();
+        errmsg    = e.GetErrorMessage();
         formatmsg = e.GetFormatMessage();
     }
 
-    std::vector<Currency> results = interp.GetOutputCurrencyList();
+    if (slash_index != std::string::npos)
+    {
+        cd(cwd, eval);
+    }
 
-	if (slash_index != std::string::npos)
-		cd(cwd, eval);
+    // Push only the results that don't contain errors, in case there has been
+    // any print messages. None of the print statements will be displayed by the 
+    // interpreter since signals are not copied over.
+    std::vector<Currency> results (interp.GetOutputCurrencyList());
+    for (std::vector<Currency>::const_iterator itr = results.begin(); 
+         itr != results.end(); ++itr)
+    {
+        if (itr->IsError())
+        {
+            errmsg = itr->Message(); // To display later
+        }
+        else
+        {
+            eval.PushResult(*itr);
+        }
+    }
 
-     // to output errors from interp.DoFile()
-    if (errmsg.length())
+    // Output errors
+    if (!errmsg.empty())
     {
         throw OML_Error(errmsg, formatmsg);
-    }
-    else
-    {
-        for (std::vector<Currency>::iterator it = results.begin(); it != results.end(); it++)
-        {
-            if (it->IsError())
-                throw OML_Error(it->Message());
-
-            eval.PushResult(*it);
-        }
     }
 
     return true;
@@ -8917,7 +9082,7 @@ bool oml_fwrite(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
             numWritten = doWrite<int64_t>(eval, inputs, blockSize, dataSize);
             break;
         default:
-            throw OML_Error(HW_MATH_MSG_INTERNALERROR);
+            throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INTERNALERROR));
         }
     }
     else
@@ -8952,7 +9117,7 @@ bool oml_fwrite(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
             numWritten = doWrite<uint64_t>(eval, inputs, blockSize, dataSize);
             break;
         default:
-            throw OML_Error(HW_MATH_MSG_INTERNALERROR);
+			throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INTERNALERROR));
         }
     }
     outputs.push_back(numWritten);
@@ -9198,7 +9363,7 @@ bool oml_fread(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
             case Int64:
                 doRead<int64_t>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
                 break;
-            default: throw OML_Error(HW_MATH_MSG_INTERNALERROR); break;
+            default: throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INTERNALERROR)); break;
             }
         }
         else
@@ -9238,7 +9403,7 @@ bool oml_fread(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
                 doRead<uint64_t>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
                 break;
             default:
-                throw OML_Error(HW_MATH_MSG_INTERNALERROR); break;
+				throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INTERNALERROR)); break;
             }
         }
     }
@@ -9503,128 +9668,6 @@ bool oml_fclose(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
     return true;
 }
 //------------------------------------------------------------------------------
-// Opens specified input file [fopen]
-//------------------------------------------------------------------------------
-bool oml_fopen(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
-{
-    size_t nargin = inputs.size();
-
-    if (nargin < 1 || nargin > 2)
-        throw OML_Error(OML_ERR_NUMARGIN);
-
-    Currency input = inputs[0];
-
-    if (nargin > 1 || input.IsString() || input.IsCellArray())
-    {
-        input = unnest(input, "Error: invalid input for mode; should be a string");
-        std::string fname = readString(toCurrencyStr(eval, input, false, false));
-
-        if (nargin == 1 && fname == "all")
-        {
-            std::vector<int> indices = eval.GetFileIndices(FIRST_USER_FILE);
-            hwMatrix *m = containerToMatrix(indices);
-            outputs.push_back(m);
-        }
-        else
-        {
-            std::string mode("rb");
-
-            if (nargin > 1)
-            {
-                Currency modeCur = unnest(inputs[1], "Error: invalid input for mode; should be a string");
-                mode = orderedStringVal(toCurrencyStr(eval, modeCur, false, false));
-
-                size_t len = mode.length();
-
-                // verify mode input
-                do
-                {
-                    if (!len)
-                    {
-                        throw OML_Error(HW_ERROR_INVMODESTR);
-                    }
-                    if (len < 4)
-                    {
-                        char first = mode[0];
-                        if (first == 'r' || first == 'w' || first == 'a')
-                        {
-                            if (len == 2)
-                            {
-                                char second = mode[1];
-                                if (second == '+')
-                                {
-                                    mode += 'b';
-                                    break;
-                                }
-                                else if (second == 'b')
-                                {
-                                    break;
-                                }
-                                else if (second == 't')
-                                {
-                                    mode.erase(1);
-                                    break;
-                                }
-                            }
-                            else if (len == 3)
-                            {
-                                char second = mode[1];
-                                char third = mode[2];
-                                if (second == '+')
-                                {
-                                    if (third == 'b')
-                                        break;
-                                    else if (third == 't')
-                                    {
-                                        mode.erase(2);
-                                        break;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                mode += 'b'; // default mode is binary
-                                break;
-                            }
-                        }
-                    }
-
-                    throw OML_Error(HW_ERROR_INVMODESTR);
-
-                }
-                while (0);
-            }
-
-            std::FILE* f = fopen(fname.c_str(), mode.c_str());
-
-            if (f == nullptr)
-            {
-                outputs.push_back(-1.0);
-                outputs.push_back(std::string(strerror(errno)));
-            }
-            else
-            {
-                outputs.push_back(eval.AddFile(f, fname, mode));
-                outputs.push_back(std::string());
-            }
-        }
-    }
-    else
-    {
-        int fileId = (int) input.Scalar();
-
-        if (!IsInteger(input.Scalar()).IsOk())
-            throw OML_Error(OML_ERR_INTEGER, 1, OML_VAR_FILEID);
-
-        checkFileIndex(eval, (int) fileId, true);
-
-        outputs.push_back(eval.GetFileName(fileId));
-        outputs.push_back(eval.GetFileMode(fileId));
-    }
-
-    return true;
-}
-//------------------------------------------------------------------------------
 // Returns a string matrix with input arguments, vertically concatenated [char]
 //------------------------------------------------------------------------------
 bool oml_char(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
@@ -9688,7 +9731,7 @@ bool oml_strsplit(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
         if (input3.IsString())
             throw OML_Error("Error: option '" + orderedStringVal(inputs[2]) + "' needs a value");
         else if (input3.IsCellArray())
-            throw OML_Error(HW_MATH_MSG_INVALIDINPUT);
+			throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INVALIDINPUT));
     }
 
     if (size > 1)
@@ -9796,7 +9839,7 @@ bool oml_strsplit(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
                 throw OML_Error("Invalid option '" + str + "'");
         }
         else
-            throw OML_Error(HW_ERROR_OPTIONSTRING);
+            throw OML_Error(OML_ERR_STRING, i + 1);
     }
 
     std::vector<std::string> stringPieces;
@@ -10017,7 +10060,7 @@ bool oml_strrep(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
                 throw OML_Error(HW_ERROR_INVALIDOPTION(str));
         }
         else
-            throw OML_Error(HW_ERROR_OPTIONSTRING);
+            throw OML_Error(OML_ERR_STRING, 4);
     }
 
     outputs.push_back(tripleCurrencyFunc(eval, input1, input2, input3, &overlap, &doStrRep));
@@ -10363,7 +10406,30 @@ bool oml_cell(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
 
     if (size > 2)
 	{
-        throw OML_Error(OML_ERR_UNSUPPORTDIM);
+		std::vector<int> dims;
+
+		for (int j = 0; j < size; j++)
+		{
+			Currency input = inputs[j];
+
+			if (input.IsPositiveInteger())
+			{
+				m = (int)input.Scalar();
+
+				if (m < 0)
+					throw OML_Error(OML_ERR_INTEGER, j, OML_VAR_VALUE);
+
+				dims.push_back(m);
+			}
+			else
+			{
+				throw OML_Error(OML_ERR_INTEGER, j, OML_VAR_VALUE);
+			}
+		}
+
+		HML_ND_CELLARRAY* ret = new HML_ND_CELLARRAY(dims, HML_ND_CELLARRAY::REAL);
+		outputs.push_back(ret);
+		return true;
 	}
     else if (size == 1)
     {
@@ -10376,7 +10442,7 @@ bool oml_cell(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
 
             if (!mtx->Size())
 			{
-                throw OML_Error(HW_MATH_MSG_EMPTYMATRIX);
+				throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_EMPTYMATRIX));
 			}
             else if (mtx->Size() == 1)
 			{
@@ -10645,7 +10711,7 @@ bool oml_polyval(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
         throw OML_Error(OML_ERR_VECTOR, 1, OML_VAR_DATA);
 
     if (m2.IsEmpty())
-        throw OML_Error(HW_MATH_MSG_EMPTYMATRIX);
+		throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_EMPTYMATRIX));
 
     if (size == 4)
     {
@@ -10879,7 +10945,7 @@ bool oml_poly(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
         std::unique_ptr<hwMatrix> V(EvaluatorInterface::allocateMatrix());
         e.reset(EvaluatorInterface::allocateMatrix());
 
-        BuiltInFuncsUtils::CheckMathStatus(eval, x->Eigen(false, V.get(), *e));
+        BuiltInFuncsUtils::CheckMathStatus(eval, x->Eigen(true, V.get(), *e));
         // workaround for a bug
         if (!e->IsReal() && e->IsRealData())
         {
@@ -11028,7 +11094,7 @@ bool oml_poly(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
     return true;
 }
 //------------------------------------------------------------------------------
-// Rounds input to 0 [fix]
+// Rounds input toward 0 [fix]
 //------------------------------------------------------------------------------
 bool oml_fix(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
 {
@@ -11038,12 +11104,42 @@ bool oml_fix(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
     const Currency &input = inputs[0];
     if (input.IsScalar())
     {
-        outputs.push_back((int) input.Scalar());
+        double val = input.Scalar();
+
+        if (val < 0.0)
+        {
+            outputs.push_back(ceil(val));
+        }
+        else
+        {
+            outputs.push_back(floor(val));
+        }
     }
     else if (input.IsComplex())
     {
         hwComplex cplx = input.Complex();
-        cplx.Set((int) cplx.Real(), (int) cplx.Imag());
+        double real = cplx.Real();
+        double imag = cplx.Imag();
+
+        if (real < 0.0)
+        {
+            real = ceil(real);
+        }
+        else
+        {
+            real = floor(real);
+        }
+
+        if (imag < 0.0)
+        {
+            imag = ceil(imag);
+        }
+        else
+        {
+            imag = floor(imag);
+        }
+
+        cplx.Set(real, imag);
         outputs.push_back(cplx);
     }
     else if (input.IsMatrix())
@@ -11054,7 +11150,18 @@ bool oml_fix(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
         {
             for (int i = 0; i < result->Size(); i++)
             {
-                (*result)(i) = (int) (*mtx)(i);
+                double real = (*mtx)(i);
+
+                if (real < 0.0)
+                {
+                    real = ceil(real);
+                }
+                else
+                {
+                    real = floor(real);
+                }
+
+                (*result)(i) = real;
             }
         }
         else
@@ -11062,7 +11169,28 @@ bool oml_fix(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
             for (int i = 0; i < result->Size(); i++)
             {
                 hwComplex cplx = mtx->z(i);
-                cplx.Set((int) cplx.Real(), (int) cplx.Imag());
+                double real = cplx.Real();
+                double imag = cplx.Imag();
+
+                if (real < 0.0)
+                {
+                    real = ceil(real);
+                }
+                else
+                {
+                    real = floor(real);
+                }
+
+                if (imag < 0.0)
+                {
+                    imag = ceil(imag);
+                }
+                else
+                {
+                    imag = floor(imag);
+                }
+
+                cplx.Set(real, imag);
                 result->z(i) = cplx;
             }
         }
@@ -11140,7 +11268,7 @@ bool oml_rem(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
                 if (m2->IsRealData())
                 {
                     if (!sameSize(m1, m2))
-                        throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                        throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
                     hwMatrix *result = EvaluatorInterface::allocateMatrix(m1->M(), m1->N(), hwMatrix::REAL);
                     for (int i = 0; i < result->Size(); i++)
@@ -12365,10 +12493,20 @@ bool oml_size(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
             outputs.push_back(1.0);
         }
     }
-	else if (input1.IsNDMatrix())
+	else if (input1.IsNDMatrix() || input1.IsNDCellArray())
 	{
-		const hwMatrixN* mtxn = input1.MatrixN();
-		std::vector<int> dims = mtxn->Dimensions();
+		std::vector<int> dims;
+
+		if (input1.IsNDMatrix())
+		{
+			const hwMatrixN* mtxn = input1.MatrixN();
+			dims = mtxn->Dimensions();
+		}
+		else
+		{
+			HML_ND_CELLARRAY* cells = input1.CellArrayND();
+			dims = cells->Dimensions();
+		}
 
         if (size == 1)
         {
@@ -12573,7 +12711,7 @@ bool oml_pwd(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Returns the current date and time [clock]
+// Returns the current date and time a matrix [clock]
 //------------------------------------------------------------------------------
 bool oml_clock(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
 {
@@ -12629,7 +12767,7 @@ bool oml_balance(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
                 outputs.push_back(input2);
             }
             else if (input2.IsMatrix())
-                throw OML_Error(HW_MATH_MSG_ARRAYSIZE);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
             else if ((!input2.IsString() && size == 2) || (input2.IsString() && size == 3))
                 throw OML_Error(HW_ERROR_INPUTSCALARCOMPLEXMATRIX);
 
@@ -12655,7 +12793,7 @@ bool oml_balance(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
         {
             input2 = inputs[1];
             if (input2.IsScalar() || input2.IsComplex())
-                throw OML_Error(HW_MATH_MSG_ARRAYSIZE);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
             else if (!input2.IsMatrix())
             {
                 std::string str;
@@ -12711,7 +12849,7 @@ bool oml_balance(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
             return true;
         }
 
-        throw OML_Error(HW_MATH_MSG_NOTIMPLEMENT);
+        throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_NOTIMPLEMENT));
 
         /*
         hwMatrix *DDI = EvaluatorInterface::allocateMatrix();
@@ -12827,20 +12965,20 @@ bool oml_lcm(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
 		}
 		else
 		{
-			throw OML_Error(OML_MSG_INTEGER);
+			throw OML_Error(OML_ERR_INTEGER, 1);
 		}
 	}
 
 	for (int j=0; j<inputs.size(); j++)
 	{
-		Currency temp = inputs[j];
+		const Currency& temp = inputs[j];
 
 		if (temp.IsScalar())
 		{
 			double val = temp.Scalar();
 
 			if (val < 0)
-				throw OML_Error(OML_ERR_NATURALNUM);
+				throw OML_Error(OML_ERR_NATURALNUM, j + 1);
 
 			if (val == 0)
 			{
@@ -12849,17 +12987,17 @@ bool oml_lcm(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
 			}
 
 			if (!temp.IsInteger())
-				throw OML_Error(OML_MSG_INTEGER);
+				throw OML_Error(OML_ERR_INTEGER, j + 1);
 
 			if (temp.Scalar() > INT_MAX)
-				throw OML_Error("Value too large");
+				throw OML_Error(OML_ERR_INVALID_RANGE, j + 1);
 
 			if (temp.Scalar() > max_val)
 				max_val = (int)temp.Scalar();
 		}
 		else
 		{
-			throw OML_Error(OML_ERR_SCALAR);
+			throw OML_Error(OML_ERR_SCALAR, j + 1);
 		}
 	}
 
@@ -13067,7 +13205,7 @@ bool oml_hypot(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
             }
         }
         else
-            throw OML_Error(HW_MATH_MSG_ARRAYSIZE);
+            throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
     }
 
     outputs.push_back(result);
@@ -13298,7 +13436,7 @@ bool oml_min(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
         if (!input2.IsMatrix())
             throw OML_Error(OML_ERR_EMPTYMATRIX, 2, OML_VAR_INPUT);
 
-        if (input2.Matrix()->M() || input2.Matrix()->N())
+        if (!input2.Matrix()->Is0x0())
             throw OML_Error(OML_ERR_EMPTYMATRIX, 2, OML_VAR_INPUT);
 
         if (!input3.IsPositiveInteger())
@@ -13423,55 +13561,60 @@ bool oml_min(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
     {
         return oml_MatrixNUtil2(eval, inputs, outputs, oml_min);
     }
-    else if (!((input1.IsMatrix() || input1.IsString()) || (input2.IsMatrix() || input2.IsString())))
+    else if (input1.IsScalar())
     {
-        if (input1.IsScalar())
+        if (input2.IsScalar())
         {
-			if (input2.IsScalar())
-			{
-				if (IsNaN_T(input1.Scalar()))
-					outputs.push_back(input2.Scalar());
-				else
-					outputs.push_back(min(input1.Scalar(), input2.Scalar()));
-			}
-            else if (input2.IsComplex())
-            {
-                double di1 = input1.Scalar();
-                hwComplex i1 = hwComplex(di1, 0.0);
-                hwComplex i2 = input2.Complex();
-                if (complexLessThan(i1, i2))
-                    outputs.push_back(di1);
-                else
-                    outputs.push_back(i2);
-            }
+            if (IsNaN_T(input1.Scalar()))
+                outputs.push_back(input2.Scalar());
             else
-            {
-                throw OML_Error(HW_ERROR_INPUTSCALARCOMPLEXMATRIX);
-            }
+                outputs.push_back(min(input1.Scalar(), input2.Scalar()));
         }
-        else if (input1.IsComplex())
+        else if (input2.IsComplex())
         {
-            if (input2.IsScalar())
+            double di1 = input1.Scalar();
+            hwComplex i1 = hwComplex(di1, 0.0);
+            hwComplex i2 = input2.Complex();
+            if (complexLessThan(i1, i2))
+                outputs.push_back(di1);
+            else
+                outputs.push_back(i2);
+        }
+        else if (input2.IsMatrix() || input2.IsString())
+        {
+            double dbl = input1.Scalar();
+            const hwMatrix* mtx = input2.Matrix();
+
+            if (mtx->Is0x0() && size == 3)
             {
-                hwComplex i1 = input1.Complex();
-                double di2 = input2.Scalar();
-                hwComplex i2 = hwComplex(di2, 0.0);
-                if (complexLessThan(i2, i1))
-                    outputs.push_back(di2);
-                else
-                    outputs.push_back(i1);
-            }
-            else if (input2.IsComplex())
-            {
-                hwComplex i1 = input1.Complex(), i2 = input2.Complex();
-                if (complexLessThan(i1, i2))
-                    outputs.push_back(i1);
-                else
-                    outputs.push_back(i2);
+                outputs.push_back(dbl);
             }
             else
             {
-                throw OML_Error(HW_ERROR_INPUTSCALARCOMPLEXMATRIX);
+                hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), mtx->Type());
+
+                if (mtx->IsReal())
+                {
+                    for (int k = 0; k < mtx->Size(); ++k)
+                    {
+                        result->SetElement(k, min(dbl, (*mtx)(k)));
+                    }
+                }
+                else
+                {
+                    hwComplex val;
+
+                    for (int k = 0; k < mtx->Size(); ++k)
+                    {
+                        val = mtx->z(k);
+                        if (complexLessThan(hwComplex(dbl, 0.0), val))
+                            result->SetElement(k, dbl);
+                        else
+                            result->SetElement(k, val);
+                    }
+                }
+
+                outputs.push_back(result);
             }
         }
         else
@@ -13479,115 +13622,243 @@ bool oml_min(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
             throw OML_Error(HW_ERROR_INPUTSCALARCOMPLEXMATRIX);
         }
     }
-    else if ((input1.IsMatrix() || input1.IsString()) && (input2.IsMatrix() || input2.IsString()))
+    else if (input1.IsComplex())
     {
-        const hwMatrix *i1 = input1.Matrix(), *i2 = input2.Matrix();
-
-        if (i1->M() != i2->M() || i1->N() != i2->N()) // matrices have different dimensions
+        if (input2.IsScalar())
         {
-            if (!i2->M() && !i2->N() && size == 3 && dim < 3)
+            hwComplex i1 = input1.Complex();
+            double di2 = input2.Scalar();
+            hwComplex i2 = hwComplex(di2, 0.0);
+            if (complexLessThan(i2, i1))
+                outputs.push_back(di2);
+            else
+                outputs.push_back(i1);
+        }
+        else if (input2.IsComplex())
+        {
+            hwComplex i1 = input1.Complex(), i2 = input2.Complex();
+            if (complexLessThan(i1, i2))
+                outputs.push_back(i1);
+            else
+                outputs.push_back(i2);
+        }
+        else if (input2.IsMatrix() || input2.IsString())
+        {
+            hwComplex cplx = input1.Complex();
+            const hwMatrix* mtx = input2.Matrix();
+
+            if (mtx->Is0x0() && size == 3)
             {
-                hwMatrix *result;
-                int m = i1->M(), n = i1->N();
-
-                if (dim == 1)
-                {
-                    if (m > 0)
-                        result = EvaluatorInterface::allocateMatrix(1, n, i1->Type());
-                    else
-                        result = EvaluatorInterface::allocateMatrix(0, n, i1->Type());
-                }
-                else
-                {
-                    if (n > 0)
-                        result = EvaluatorInterface::allocateMatrix(m, 1, i1->Type());
-                    else
-                        result = EvaluatorInterface::allocateMatrix(m, 0, i1->Type());
-                }
-
-                hwMatrix* indices = EvaluatorInterface::allocateMatrix(result->M(), result->N(), hwMatrix::REAL);
-
-                if (i1->IsReal())
-                {
-                    double loc_min;
-                    int min_index;
-                    for (int i = 0; i < (dim == 1 ? n : m); ++i)
-                    {
-                        min_index = 0;
-                        if (dim == 1)
-                            loc_min = (*i1)(0, i);
-                        else
-                            loc_min = (*i1)(i, 0);
-
-                        for (int j = 1; j < (dim == 1 ? m : n); ++j)
-                        {
-                            double val = (dim == 1) ? (*i1)(j,i) : (*i1)(i,j);
-                            if (val < loc_min)
-                            {
-                                loc_min = val;
-                                min_index = j;
-                            }
-                        }
-                        result->SetElement(i, loc_min);
-                        (*indices)(i) = min_index + 1.0;
-                    }
-                }
-                else
-                {
-                    hwComplex min;
-                    int min_index;
-                    for (int i = 0; i < (dim == 1 ? n : m); ++i)
-                    {
-                        min_index = 0;
-                        if (dim == 1)
-                            min = i1->z(0, i);
-                        else
-                            min = i1->z(i, 0);
-
-                        for (int j = 1; j < (dim == 1 ? m : n); ++j)
-                        {
-                            if (dim == 1)
-                            {
-                                hwComplex val = i1->z(j, i);
-                                if (complexLessThan(val, min))
-                                {
-                                    min = val;
-                                    min_index = j;
-                                }
-                            }
-                            else
-                            {
-                                hwComplex val = i1->z(i, j);
-                                if (complexLessThan(val, min))
-                                {
-                                    min = val;
-                                    min_index = j;
-                                }
-                            }
-                        }
-                        result->SetElement(i, min);
-                        (*indices)(i) = min_index + 1.0;
-                    }
-                }
-                outputs.push_back(result);
-                outputs.push_back(indices);
-            }
-            else if (!i2->M() && !i2->N() && size == 3 && dim > 2)
-            {
-                outputs.push_back(input1);
+                outputs.push_back(cplx);
             }
             else
             {
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), hwMatrix::COMPLEX);
+
+                if (mtx->IsReal())
+                {
+                    for (int k = 0; k < mtx->Size(); ++k)
+                    {
+                        if (complexLessThan(cplx, hwComplex((*mtx)(k), 0.0)))
+                            result->SetElement(k, cplx);
+                        else
+                            result->SetElement(k, (*mtx)(k));
+                    }
+                }
+                else
+                {
+                    hwComplex val;
+
+                    for (int k = 0; k < mtx->Size(); ++k)
+                    {
+                        val = mtx->z(k);
+                        if (complexLessThan(cplx, val))
+                            result->SetElement(k, cplx);
+                        else
+                            result->SetElement(k, val);
+                    }
+                }
+
+                outputs.push_back(result);
             }
         }
-        else // matrices have same dimensions
+        else
         {
-            if (!i1->Size())
+            throw OML_Error(HW_ERROR_INPUTSCALARCOMPLEXMATRIX);
+        }
+    }
+    else if (input1.IsMatrix() || input1.IsString())
+    {
+        if (input2.IsScalar())
+        {
+            const hwMatrix* mtx = input1.Matrix();
+            double dbl = input2.Scalar();
+
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), mtx->Type());
+
+            if (mtx->IsReal())
             {
-                outputs.push_back(EvaluatorInterface::allocateMatrix(0, 0, hwMatrix::REAL));
+                for (int k = 0; k < mtx->Size(); ++k)
+                {
+                    result->SetElement(k, min((*mtx)(k), dbl));
+                }
             }
             else
+            {
+                hwComplex val;
+
+                for (int k = 0; k < mtx->Size(); ++k)
+                {
+                    val = mtx->z(k);
+                    if (complexLessThan(val, hwComplex(dbl, 0.0)))
+                        result->SetElement(k, val);
+                    else
+                        result->SetElement(k, dbl);
+                }
+            }
+
+            outputs.push_back(result);
+        }
+        else if (input2.IsComplex())
+        {
+            const hwMatrix* mtx = input1.Matrix();
+            hwComplex cplx = input2.Complex();
+
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), hwMatrix::COMPLEX);
+
+            if (mtx->IsReal())
+            {
+                for (int k = 0; k < mtx->Size(); ++k)
+                {
+                    if (complexLessThan(hwComplex((*mtx)(k), 0.0), cplx))
+                        result->SetElement(k, (*mtx)(k));
+                    else
+                        result->SetElement(k, cplx);
+                }
+            }
+            else
+            {
+                hwComplex val;
+
+                for (int k = 0; k < mtx->Size(); ++k)
+                {
+                    val = mtx->z(k);
+                    if (complexLessThan(val, cplx))
+                        result->SetElement(k, val);
+                    else
+                        result->SetElement(k, cplx);
+                }
+            }
+
+            outputs.push_back(result);
+        }
+        else if (input2.IsMatrix() || input2.IsString())
+        {
+            const hwMatrix *i1 = input1.Matrix(), *i2 = input2.Matrix();
+
+            if (i2->Is0x0() && size == 3)
+            {
+                if (dim < 3)
+                {
+                    hwMatrix *result;
+                    int m = i1->M(), n = i1->N();
+                    if (dim == 1)
+                    {
+                        if (m > 0)
+                            result = EvaluatorInterface::allocateMatrix(1, n, i1->Type());
+                        else
+                            result = EvaluatorInterface::allocateMatrix(0, n, i1->Type());
+                    }
+                    else
+                    {
+                        if (n > 0)
+                            result = EvaluatorInterface::allocateMatrix(m, 1, i1->Type());
+                        else
+                            result = EvaluatorInterface::allocateMatrix(m, 0, i1->Type());
+                    }
+
+                    hwMatrix* indices = EvaluatorInterface::allocateMatrix(result->M(), result->N(), hwMatrix::REAL);
+
+                    if (result->IsEmpty())
+                    {
+                        outputs.push_back(result);
+                        outputs.push_back(indices);
+                        return true;
+                    }
+
+                    if (i1->IsReal())
+                    {
+                        double loc_min;
+                        int min_index;
+                        for (int i = 0; i < (dim == 1 ? n : m); ++i)
+                        {
+                            min_index = 0;
+                            if (dim == 1)
+                                loc_min = (*i1)(0, i);
+                            else
+                                loc_min = (*i1)(i, 0);
+
+                            for (int j = 1; j < (dim == 1 ? m : n); ++j)
+                            {
+                                double val = (dim == 1) ? (*i1)(j, i) : (*i1)(i, j);
+                                if (val < loc_min)
+                                {
+                                    loc_min = val;
+                                    min_index = j;
+                                }
+                            }
+                            result->SetElement(i, loc_min);
+                            (*indices)(i) = min_index + 1.0;
+                        }
+                    }
+                    else
+                    {
+                        hwComplex min;
+                        int min_index;
+                        for (int i = 0; i < (dim == 1 ? n : m); ++i)
+                        {
+                            min_index = 0;
+                            if (dim == 1)
+                                min = i1->z(0, i);
+                            else
+                                min = i1->z(i, 0);
+
+                            for (int j = 1; j < (dim == 1 ? m : n); ++j)
+                            {
+                                if (dim == 1)
+                                {
+                                    hwComplex val = i1->z(j, i);
+                                    if (complexLessThan(val, min))
+                                    {
+                                        min = val;
+                                        min_index = j;
+                                    }
+                                }
+                                else
+                                {
+                                    hwComplex val = i1->z(i, j);
+                                    if (complexLessThan(val, min))
+                                    {
+                                        min = val;
+                                        min_index = j;
+                                    }
+                                }
+                            }
+                            result->SetElement(i, min);
+                            (*indices)(i) = min_index + 1.0;
+                        }
+                    }
+
+                    outputs.push_back(result);
+                    outputs.push_back(indices);
+                }
+                else
+                {
+                    // dim >= 3
+                    outputs.push_back(input1);
+                }
+            }
+            else if (i1->M() == i2->M() && i1->N() == i2->N())
             {
                 hwMatrix *result = EvaluatorInterface::allocateMatrix(i1->M(), i1->N(), i1->Type());
 
@@ -13642,100 +13913,18 @@ bool oml_min(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
                         }
                     }
                 }
+
                 outputs.push_back(result);
             }
-        }
-    }
-    else // one input is a matrix, another is either scalar or complex
-    {
-        const hwMatrix* mtx;
-        hwMatrix* result;
-        double dbl;
-        hwComplex cplx;
-        bool scalar = false;
-
-        if (input1.IsMatrix() || input1.IsString())
-        {
-            mtx = input1.Matrix();
-            if (input2.IsScalar())
-            {
-                dbl = input2.Scalar();
-                scalar = true;
-            }
-            else if (input2.IsComplex())
-                cplx = input2.Complex();
             else
             {
-                throw OML_Error(HW_ERROR_INPUTSCALARCOMPLEXMATRIX);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
             }
         }
         else
         {
-            mtx = input2.Matrix();
-            if (input1.IsScalar())
-            {
-                dbl = input1.Scalar();
-                scalar = true;
-            }
-            else if (input1.IsComplex())
-                cplx = input1.Complex();
-            else
-            {
-                throw OML_Error(HW_ERROR_INPUTSCALARCOMPLEXMATRIX);
-            }
+            throw OML_Error(HW_ERROR_INPUTSCALARCOMPLEXMATRIX);
         }
-
-        result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), mtx->Type());
-        if (mtx->IsReal())
-        {
-            double val;
-            if (scalar)
-            {
-                for (int k = 0; k < mtx->Size(); ++k)
-                {
-                    val = (*mtx)(k);
-                    result->SetElement(k, min(dbl, val));
-                }
-            }
-            else
-            {
-                for (int k = 0; k < mtx->Size(); ++k)
-                {
-                    val = (*mtx)(k);
-                    if (complexLessThan(hwComplex(val, 0.0), cplx))
-                        result->SetElement(k, val);
-                    else
-                        result->SetElement(k, cplx);
-                }
-            }
-        }
-        else
-        {
-            hwComplex val;
-            if (scalar)
-            {
-                for (int k = 0; k < mtx->Size(); ++k)
-                {
-                    val = mtx->z(k);
-                    if (complexLessThan(hwComplex(dbl, 0.0), val))
-                        result->SetElement(k, dbl);
-                    else
-                        result->SetElement(k, val);
-                }
-            }
-            else
-            {
-                for (int k = 0; k < mtx->Size(); ++k)
-                {
-                    val = mtx->z(k);
-                    if (complexLessThan(cplx, val))
-                        result->SetElement(k, cplx);
-                    else
-                        result->SetElement(k, val);
-                }
-            }
-        }
-        outputs.push_back(result);
     }
 
     return true;
@@ -13765,7 +13954,7 @@ bool oml_max(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
         if (!input2.IsMatrix())
             throw OML_Error(OML_ERR_EMPTYMATRIX, 2, OML_VAR_INPUT);
 
-        if (input2.Matrix()->M() || input2.Matrix()->N())
+        if (!input2.Matrix()->Is0x0())
             throw OML_Error(OML_ERR_EMPTYMATRIX, 2, OML_VAR_INPUT);
 
         if (!input3.IsPositiveInteger())
@@ -13890,55 +14079,60 @@ bool oml_max(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
     {
         return oml_MatrixNUtil2(eval, inputs, outputs, oml_max);
     }
-    else if (!((input1.IsMatrix() || input1.IsString()) || (input2.IsMatrix() || input2.IsString())))
+    else if (input1.IsScalar())
     {
-        if (input1.IsScalar())
+        if (input2.IsScalar())
         {
-            if (input2.IsScalar())
-            {
-				if (IsNaN_T(input1.Scalar()))
-					outputs.push_back(input2.Scalar());
-				else
-					outputs.push_back(max(input1.Scalar(), input2.Scalar()));
-            }
-            else if (input2.IsComplex())
-            {
-                double di1 = input1.Scalar();
-                hwComplex i1 = hwComplex(di1, 0.0);
-                hwComplex i2 = input2.Complex();
-                if (complexGreaterThan(i1, i2))
-                    outputs.push_back(di1);
-                else
-                    outputs.push_back(i2);
-            }
+            if (IsNaN_T(input1.Scalar()))
+                outputs.push_back(input2.Scalar());
             else
-            {
-                throw OML_Error(HW_ERROR_INPUTSCALARCOMPLEXMATRIX);
-            }
+                outputs.push_back(max(input1.Scalar(), input2.Scalar()));
         }
-        else if (input1.IsComplex())
+        else if (input2.IsComplex())
         {
-            if (input2.IsScalar())
+            double di1 = input1.Scalar();
+            hwComplex i1 = hwComplex(di1, 0.0);
+            hwComplex i2 = input2.Complex();
+            if (complexGreaterThan(i1, i2))
+                outputs.push_back(di1);
+            else
+                outputs.push_back(i2);
+        }
+        else if (input2.IsMatrix() || input2.IsString())
+        {
+            double dbl = input1.Scalar();
+            const hwMatrix* mtx = input2.Matrix();
+
+            if (mtx->Is0x0() && size == 3)
             {
-                hwComplex i1 = input1.Complex();
-                double di2 = input2.Scalar();
-                hwComplex i2 = hwComplex(di2, 0.0);
-                if (complexGreaterThan(i2, i1))
-                    outputs.push_back(di2);
-                else
-                    outputs.push_back(i1);
-            }
-            else if (input2.IsComplex())
-            {
-                hwComplex i1 = input1.Complex(), i2 = input2.Complex();
-                if (complexGreaterThan(i1, i2))
-                    outputs.push_back(i1);
-                else
-                    outputs.push_back(i2);
+                outputs.push_back(dbl);
             }
             else
             {
-                throw OML_Error(HW_ERROR_INPUTSCALARCOMPLEXMATRIX);
+                hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), mtx->Type());
+
+                if (mtx->IsReal())
+                {
+                    for (int k = 0; k < mtx->Size(); ++k)
+                    {
+                        result->SetElement(k, max(dbl, (*mtx)(k)));
+                    }
+                }
+                else
+                {
+                    hwComplex val;
+
+                    for (int k = 0; k < mtx->Size(); ++k)
+                    {
+                        val = mtx->z(k);
+                        if (complexGreaterThan(hwComplex(dbl, 0.0), val))
+                            result->SetElement(k, dbl);
+                        else
+                            result->SetElement(k, val);
+                    }
+                }
+
+                outputs.push_back(result);
             }
         }
         else
@@ -13946,121 +14140,243 @@ bool oml_max(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
             throw OML_Error(HW_ERROR_INPUTSCALARCOMPLEXMATRIX);
         }
     }
-    else if ((input1.IsMatrix() || input1.IsString()) && (input2.IsMatrix() || input2.IsString()))
+    else if (input1.IsComplex())
     {
-        const hwMatrix *i1 = input1.Matrix(), *i2 = input2.Matrix();
-
-        if (i1->M() != i2->M() || i1->N() != i2->N()) // matrices have different dimensions
+        if (input2.IsScalar())
         {
-            if (!i2->M() && !i2->N() && size == 3 && dim < 3)
+            hwComplex i1 = input1.Complex();
+            double di2 = input2.Scalar();
+            hwComplex i2 = hwComplex(di2, 0.0);
+            if (complexGreaterThan(i2, i1))
+                outputs.push_back(di2);
+            else
+                outputs.push_back(i1);
+        }
+        else if (input2.IsComplex())
+        {
+            hwComplex i1 = input1.Complex(), i2 = input2.Complex();
+            if (complexGreaterThan(i1, i2))
+                outputs.push_back(i1);
+            else
+                outputs.push_back(i2);
+        }
+        else if (input2.IsMatrix() || input2.IsString())
+        {
+            hwComplex cplx = input1.Complex();
+            const hwMatrix* mtx = input2.Matrix();
+
+            if (mtx->Is0x0() && size == 3)
             {
-                hwMatrix *result;
-                int m = i1->M(), n = i1->N();
-                if (dim == 1)
-                {
-                    if (m > 0)
-                        result = EvaluatorInterface::allocateMatrix(1, n, i1->Type());
-                    else
-                        result = EvaluatorInterface::allocateMatrix(0, n, i1->Type());
-                }
-                else
-                {
-                    if (n > 0)
-                        result = EvaluatorInterface::allocateMatrix(m, 1, i1->Type());
-                    else
-                        result = EvaluatorInterface::allocateMatrix(m, 0, i1->Type());
-                }
-
-                hwMatrix* indices = EvaluatorInterface::allocateMatrix(result->M(), result->N(), hwMatrix::REAL);
-
-                if (result->IsEmpty())
-                {
-                    outputs.push_back(result);
-                    outputs.push_back(indices);
-                    return true;
-                }
-
-                if (i1->IsReal())
-                {
-                    double loc_max;
-                    int max_index;
-                    for (int i = 0; i < (dim == 1 ? n : m); ++i)
-                    {
-                        max_index = 0;
-                        if (dim == 1)
-                            loc_max = (*i1)(0, i);
-                        else
-                            loc_max = (*i1)(i, 0);
-
-                        for (int j = 1; j < (dim == 1 ? m : n); ++j)
-                        {
-                            double val = (dim == 1) ? (*i1)(j,i) : (*i1)(i,j);
-                            if (val > loc_max)
-                            {
-                                loc_max = val;
-                                max_index = j;
-                            }
-                        }
-                        result->SetElement(i, loc_max);
-                        (*indices)(i) = max_index + 1.0;
-                    }
-                }
-                else
-                {
-                    hwComplex max;
-                    int max_index;
-                    for (int i = 0; i < (dim == 1 ? n : m); ++i)
-                    {
-                        max_index = 0;
-                        if (dim == 1)
-                            max = i1->z(0, i);
-                        else
-                            max = i1->z(i, 0);
-
-                        for (int j = 1; j < (dim == 1 ? m : n); ++j)
-                        {
-                            if (dim == 1)
-                            {
-                                hwComplex val = i1->z(j, i);
-                                if (complexGreaterThan(val, max))
-                                {
-                                    max = val;
-                                    max_index = j;
-                                }
-                            }
-                            else
-                            {
-                                hwComplex val = i1->z(i, j);
-                                if (complexGreaterThan(val, max))
-                                {
-                                    max = val;
-                                    max_index = j;
-                                }
-                            }
-                        }
-                        result->SetElement(i, max);
-                        (*indices)(i) = max_index + 1.0;
-                    }
-                }
-                outputs.push_back(result);
-                outputs.push_back(indices);
-            }
-            else if (!i2->M() && !i2->N() && size == 3 && dim > 2)
-            {
-                outputs.push_back(input1);
+                outputs.push_back(cplx);
             }
             else
             {
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), hwMatrix::COMPLEX);
+
+                if (mtx->IsReal())
+                {
+                    for (int k = 0; k < mtx->Size(); ++k)
+                    {
+                        if (complexGreaterThan(cplx, hwComplex((*mtx)(k), 0.0)))
+                            result->SetElement(k, cplx);
+                        else
+                            result->SetElement(k, (*mtx)(k));
+                    }
+                }
+                else
+                {
+                    hwComplex val;
+
+                    for (int k = 0; k < mtx->Size(); ++k)
+                    {
+                        val = mtx->z(k);
+                        if (complexGreaterThan(cplx, val))
+                            result->SetElement(k, cplx);
+                        else
+                            result->SetElement(k, val);
+                    }
+                }
+
+                outputs.push_back(result);
             }
         }
-        else // matrices have same dimensions
+        else
         {
-            if (!i1->Size())
+            throw OML_Error(HW_ERROR_INPUTSCALARCOMPLEXMATRIX);
+        }
+    }
+    else if (input1.IsMatrix() || input1.IsString())
+    {
+        if (input2.IsScalar())
+        {
+            const hwMatrix* mtx = input1.Matrix();
+            double dbl = input2.Scalar();
+
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), mtx->Type());
+
+            if (mtx->IsReal())
             {
-                outputs.push_back(EvaluatorInterface::allocateMatrix(0, 0, hwMatrix::REAL));
+                for (int k = 0; k < mtx->Size(); ++k)
+                {
+                    result->SetElement(k, max((*mtx)(k), dbl));
+                }
             }
             else
+            {
+                hwComplex val;
+
+                for (int k = 0; k < mtx->Size(); ++k)
+                {
+                    val = mtx->z(k);
+                    if (complexGreaterThan(val, hwComplex(dbl, 0.0)))
+                        result->SetElement(k, val);
+                    else
+                        result->SetElement(k, dbl);
+                }
+            }
+
+            outputs.push_back(result);
+        }
+        else if (input2.IsComplex())
+        {
+            const hwMatrix* mtx = input1.Matrix();
+            hwComplex cplx = input2.Complex();
+
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), hwMatrix::COMPLEX);
+
+            if (mtx->IsReal())
+            {
+                for (int k = 0; k < mtx->Size(); ++k)
+                {
+                    if (complexGreaterThan(hwComplex((*mtx)(k), 0.0), cplx))
+                        result->SetElement(k, (*mtx)(k));
+                    else
+                        result->SetElement(k, cplx);
+                }
+            }
+            else
+            {
+                hwComplex val;
+
+                for (int k = 0; k < mtx->Size(); ++k)
+                {
+                    val = mtx->z(k);
+                    if (complexGreaterThan(val, cplx))
+                        result->SetElement(k, val);
+                    else
+                        result->SetElement(k, cplx);
+                }
+            }
+
+            outputs.push_back(result);
+        }
+        else if (input2.IsMatrix() || input2.IsString())
+        {
+            const hwMatrix *i1 = input1.Matrix(), *i2 = input2.Matrix();
+
+            if (i2->Is0x0() && size == 3)
+            {
+                if (dim < 3)
+                {
+                    hwMatrix *result;
+                    int m = i1->M(), n = i1->N();
+                    if (dim == 1)
+                    {
+                        if (m > 0)
+                            result = EvaluatorInterface::allocateMatrix(1, n, i1->Type());
+                        else
+                            result = EvaluatorInterface::allocateMatrix(0, n, i1->Type());
+                    }
+                    else
+                    {
+                        if (n > 0)
+                            result = EvaluatorInterface::allocateMatrix(m, 1, i1->Type());
+                        else
+                            result = EvaluatorInterface::allocateMatrix(m, 0, i1->Type());
+                    }
+
+                    hwMatrix* indices = EvaluatorInterface::allocateMatrix(result->M(), result->N(), hwMatrix::REAL);
+
+                    if (result->IsEmpty())
+                    {
+                        outputs.push_back(result);
+                        outputs.push_back(indices);
+                        return true;
+                    }
+
+                    if (i1->IsReal())
+                    {
+                        double loc_max;
+                        int max_index;
+                        for (int i = 0; i < (dim == 1 ? n : m); ++i)
+                        {
+                            max_index = 0;
+                            if (dim == 1)
+                                loc_max = (*i1)(0, i);
+                            else
+                                loc_max = (*i1)(i, 0);
+
+                            for (int j = 1; j < (dim == 1 ? m : n); ++j)
+                            {
+                                double val = (dim == 1) ? (*i1)(j, i) : (*i1)(i, j);
+                                if (val > loc_max)
+                                {
+                                    loc_max = val;
+                                    max_index = j;
+                                }
+                            }
+                            result->SetElement(i, loc_max);
+                            (*indices)(i) = max_index + 1.0;
+                        }
+                    }
+                    else
+                    {
+                        hwComplex max;
+                        int max_index;
+                        for (int i = 0; i < (dim == 1 ? n : m); ++i)
+                        {
+                            max_index = 0;
+                            if (dim == 1)
+                                max = i1->z(0, i);
+                            else
+                                max = i1->z(i, 0);
+
+                            for (int j = 1; j < (dim == 1 ? m : n); ++j)
+                            {
+                                if (dim == 1)
+                                {
+                                    hwComplex val = i1->z(j, i);
+                                    if (complexGreaterThan(val, max))
+                                    {
+                                        max = val;
+                                        max_index = j;
+                                    }
+                                }
+                                else
+                                {
+                                    hwComplex val = i1->z(i, j);
+                                    if (complexGreaterThan(val, max))
+                                    {
+                                        max = val;
+                                        max_index = j;
+                                    }
+                                }
+                            }
+                            result->SetElement(i, max);
+                            (*indices)(i) = max_index + 1.0;
+                        }
+                    }
+
+                    outputs.push_back(result);
+                    outputs.push_back(indices);
+                }
+                else
+                {
+                    // dim >= 3
+                    outputs.push_back(input1);
+                }
+            }
+            else if (i1->M() == i2->M() && i1->N() == i2->N())
             {
                 hwMatrix *result = EvaluatorInterface::allocateMatrix(i1->M(), i1->N(), i1->Type());
 
@@ -14115,100 +14431,18 @@ bool oml_max(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
                         }
                     }
                 }
+
                 outputs.push_back(result);
             }
-        }
-    }
-    else // one input is a matrix, another is either scalar or complex
-    {
-        const hwMatrix* mtx;
-        hwMatrix* result;
-        double dbl;
-        hwComplex cplx;
-        bool scalar = false;
-
-        if (input1.IsMatrix() || input1.IsString())
-        {
-            mtx = input1.Matrix();
-            if (input2.IsScalar())
-            {
-                dbl = input2.Scalar();
-                scalar = true;
-            }
-            else if (input2.IsComplex())
-                cplx = input2.Complex();
             else
             {
-                throw OML_Error(HW_ERROR_INPUTSCALARCOMPLEXMATRIX);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
             }
         }
         else
         {
-            mtx = input2.Matrix();
-            if (input1.IsScalar())
-            {
-                dbl = input1.Scalar();
-                scalar = true;
-            }
-            else if (input1.IsComplex())
-                cplx = input1.Complex();
-            else
-            {
-                throw OML_Error(HW_ERROR_INPUTSCALARCOMPLEXMATRIX);
-            }
+            throw OML_Error(HW_ERROR_INPUTSCALARCOMPLEXMATRIX);
         }
-
-        result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), mtx->Type());
-        if (mtx->IsReal())
-        {
-            double val;
-            if (scalar)
-            {
-                for (int k = 0; k < mtx->Size(); ++k)
-                {
-                    val = (*mtx)(k);
-                    result->SetElement(k, max(dbl, val));
-                }
-            }
-            else
-            {
-                for (int k = 0; k < mtx->Size(); ++k)
-                {
-                    val = (*mtx)(k);
-                    if (complexGreaterThan(hwComplex(val, 0.0), cplx))
-                        result->SetElement(k, val);
-                    else
-                        result->SetElement(k, cplx);
-                }
-            }
-        }
-        else
-        {
-            hwComplex val;
-            if (scalar)
-            {
-                for (int k = 0; k < mtx->Size(); ++k)
-                {
-                    val = mtx->z(k);
-                    if (complexGreaterThan(hwComplex(dbl, 0.0), val))
-                        result->SetElement(k, dbl);
-                    else
-                        result->SetElement(k, val);
-                }
-            }
-            else
-            {
-                for (int k = 0; k < mtx->Size(); ++k)
-                {
-                    val = mtx->z(k);
-                    if (complexGreaterThan(cplx, val))
-                        result->SetElement(k, cplx);
-                    else
-                        result->SetElement(k, val);
-                }
-            }
-        }
-        outputs.push_back(result);
     }
 
     return true;
@@ -14554,7 +14788,7 @@ bool oml_rank(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
         }
         else if (input2.IsMatrix())
         {
-            throw OML_Error(HW_MATH_MSG_NOTIMPLEMENT);
+            throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_NOTIMPLEMENT));
         }
         //	hwMatrix *tolerances = input2.Matrix();
         //
@@ -15112,7 +15346,7 @@ bool oml_diff(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
                     --m;
             }
 
-            safeResizeMatrix(eval, max(0,m), max(0,n), *result, false);
+            BuiltInFuncsUtils::CheckMathStatus(eval, result->Resize(max(0, m), max(0, n), false));
             outputs.push_back(resultCur);
         }
         else if (input1.IsNDMatrix())
@@ -15471,7 +15705,7 @@ bool oml_diag(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
         if (ok)
         {
             // adjust size to be i2 x i3 with new elements as 0
-            safeResizeMatrix(eval, i2, i3, *result, true);
+            BuiltInFuncsUtils::CheckMathStatus(eval, result->Resize(i2, i3, true));
         }
     }
 
@@ -15549,7 +15783,7 @@ bool oml_trace(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
 
         if (!mtx->IsSquare())
         {
-            throw OML_Error(HW_MATH_MSG_MTXNOTSQUARE);
+            throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_MTXNOTSQUARE));
         }
 
         if (mtx->IsReal())
@@ -15611,7 +15845,7 @@ bool oml_det(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
 		}
 
         if (!mtx->IsSquare())
-            throw OML_Error(HW_MATH_MSG_MTXNOTSQUARE);
+            throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_MTXNOTSQUARE));
 
         if (mtx->IsReal())
         {
@@ -15666,7 +15900,7 @@ bool oml_rcond(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
 
         if (!mtx->IsSquare())
         {
-            throw OML_Error(HW_MATH_MSG_MTXNOTSQUARE);
+            throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_MTXNOTSQUARE));
         }
 
         double rcond = 1.0;
@@ -15764,7 +15998,7 @@ bool oml_mod(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
                 throw OML_Error(OML_ERR_REAL, 2, OML_VAR_VALUE);
 
             if (!sameSize(mtx1, mtx2))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             for (int k = 0; k < mtx1->Size(); k++)
             {
@@ -16036,7 +16270,7 @@ bool oml_pow2(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
                     const hwMatrix *m1 = coef.Matrix(), *m2 = exp.Matrix();
                     if (!sameSize(m1, m2))
                     {
-                        throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                        throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
                     }
                 }
             }
@@ -16708,7 +16942,7 @@ bool oml_accumarray(EvaluatorInterface eval, const std::vector<Currency>& inputs
     inputs2.push_back(1);
     std::vector<Currency> outputs2;
     outputs2 = eval.DoMultiReturnFunctionCall(oml_max, inputs2, 3, 1, true);
-    hwMatrix dimVec = (*outputs2[0].GetWritableMatrix());
+    hwMatrix dimVec = (*outputs2[0].ConvertToMatrix());
 
     if (nargin > 2)
     {
@@ -16756,7 +16990,7 @@ bool oml_accumarray(EvaluatorInterface eval, const std::vector<Currency>& inputs
         }
         else if (!dimVec3->Is0x0())
         {
-            throw OML_Error(OML_ERR_ARRAYSIZE, 3, OML_VAR_TYPE);
+            throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
         }
     }
 
@@ -16791,7 +17025,7 @@ bool oml_accumarray(EvaluatorInterface eval, const std::vector<Currency>& inputs
         {
             const hwMatrix* empty = cur4.Matrix();
 
-            if (empty->M() != 0 || empty->N() != 0)
+            if (!empty->Is0x0())
                 throw OML_Error(OML_ERR_EMPTYMATRIX, 4, OML_VAR_TYPE);
 
             if (!eval.FindFunctionByName("sum", &funcInfo, &funcPntr))
@@ -16852,7 +17086,7 @@ bool oml_accumarray(EvaluatorInterface eval, const std::vector<Currency>& inputs
         {
             const hwMatrix* empty = inputs[4].Matrix();
 
-            if (empty->M() != 0 || empty->N() != 0)
+            if (!empty->Is0x0())
                 throw OML_Error(OML_ERR_EMPTYMATRIX, 5, OML_VAR_TYPE);
         }
         else if (inputs[4].IsComplex())
@@ -18073,6 +18307,13 @@ bool oml_refcnt(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
 
             count--;
         }
+		else if (inputs[0].IsFunctionHandle())
+		{
+			FunctionInfo* fi = inputs[0].FunctionHandle();
+			count = fi->GetRefCount();
+
+			count--;
+		}
     }
 
     outputs.push_back(count);
@@ -18230,7 +18471,7 @@ bool oml_meshgrid(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
 
         if (nargin == 1)
         {
-            x = inputs[0].Matrix();
+            x = inputs[0].ConvertToMatrix();
             y = x;
 
             if (nargout == 3)
@@ -18238,14 +18479,14 @@ bool oml_meshgrid(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
         }
         else if (nargin == 2)
         {
-            x = inputs[0].Matrix();
-            y = inputs[1].Matrix();
+            x = inputs[0].ConvertToMatrix();
+            y = inputs[1].ConvertToMatrix();
         }
         else
         {
-            x = inputs[0].Matrix();
-            y = inputs[1].Matrix();
-            z = inputs[2].Matrix();
+            x = inputs[0].ConvertToMatrix();
+            y = inputs[1].ConvertToMatrix();
+            z = inputs[2].ConvertToMatrix();
         }
 
         dims[0] = y->Size();
@@ -19051,27 +19292,25 @@ std::string help_format_output(const std::string &word)
 //------------------------------------------------------------------------------
 bool oml_help(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
 {
-	Interpreter intBase(eval);
-	std::stringstream ss;
-	std::string hwRootDir;
-	if(inputs.size() == 0)
-		throw OML_Error(OML_MSG_STRING);
-
+	if (inputs.empty())
+	{
+		throw OML_Error(OML_ERR_NUMARGIN);
+	}
 	if (!inputs[0].IsString())
-		throw OML_Error(OML_MSG_STRING);
-
-	FunctionInfo* fi = NULL;
-	FUNCPTR       fp = NULL;
+	{
+		throw OML_Error(OML_ERR_STRING, 1);
+	}
 
 	if (eval.GetExperimental())
 	{
+		FunctionInfo* fi = nullptr;
+		FUNCPTR       fp = nullptr;
 		eval.FindFunctionByName(inputs[0].StringVal(), &fi, &fp);
 
 		if (fi)
 		{
 			std::string help_str = fi->HelpString();
-
-			if (help_str.size())
+			if (!help_str.empty())
 			{
 				eval.PrintResult(help_str);
 				return true;
@@ -19086,9 +19325,13 @@ bool oml_help(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
 
 	if (c)
 	{
+		Interpreter intBase(eval);
 		std::string base = c;
 		userDocLocation = base + intBase.GetHelpModule(inputs[0].StringVal()) + "/" + inputs[0].StringVal() + ".htm";
 	}
+
+	std::stringstream ss;
+	std::string hwRootDir;
 
 	std::ifstream myLocation;
 	std::string word, wordout;
@@ -21516,7 +21759,7 @@ int getDaysInMonth(int month)
         case 11:
             return 30;
         default:
-            throw OML_Error(HW_MATH_MSG_INTERNALERROR);
+			throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INTERNALERROR));
     }
 }
 //------------------------------------------------------------------------------
@@ -21854,7 +22097,7 @@ Currency tripleCurrencyFunc(EvaluatorInterface& eval, const Currency &cur1, cons
             return output;
         default:
             // shouldn't ever be reached
-            throw OML_Error(HW_MATH_MSG_INTERNALERROR);
+			throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INTERNALERROR));
     }
 }
 //------------------------------------------------------------------------------
@@ -22255,13 +22498,25 @@ bool isempty(const Currency &input)
     {
         return input.CellArray()->IsEmpty();
     }
+	else if (input.IsNDMatrix())
+	{
+		return input.MatrixN()->IsEmpty();
+	}
+	else if (input.IsNDCellArray())
+	{
+		return input.CellArrayND()->IsEmpty();
+	}
     else if (input.IsStruct())
     {
         StructData *sd = input.Struct();
         return !(sd->M() * sd->N());
     }
+	else if (input.IsFunctionHandle())
+	{
+		return false;
+	}
     else
-        throw OML_Error(HW_MATH_MSG_INVALIDINPUT);
+		throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INVALIDINPUT));
 }
 //------------------------------------------------------------------------------
 //
@@ -22445,7 +22700,7 @@ void getMatchingSizes(const hwMatrix* m1, const hwMatrix* m2, int* m, int* n)
     else
     {
         if (m2->Size() != 1 && !sameSize(m1, m2))
-            throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+            throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
         *m = m1->M();
         *n = m1->N();
@@ -23066,7 +23321,7 @@ bool isequal(const Currency &observed, const Currency &expected, const Currency&
         return observed.IsFunctionHandle() && funcsEqual(observed.FunctionHandle(), expected.FunctionHandle());
     }
     else
-        throw OML_Error(HW_MATH_MSG_INVALIDINPUT);
+		throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INVALIDINPUT));
 }
 //------------------------------------------------------------------------------
 //
@@ -23143,14 +23398,14 @@ Currency getAtIndex(const Currency &cur, int i, int j)
     if (cur.IsScalar() || cur.IsComplex())
     {
         if (!(i == 0 && j == 0))
-            throw OML_Error(HW_MATH_MSG_INVALIDINDEX);
+			throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INVALIDINDEX));
         return cur;
     }
     else if (cur.IsMatrix() || cur.IsString())
     {
         const hwMatrix *mtx = cur.Matrix();
         if (i >= mtx->M() || j >= mtx->N())
-            throw OML_Error(HW_MATH_MSG_INVALIDINDEX);
+			throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INVALIDINDEX));
 
         Currency rv;
         if (cur.IsMatrix())
@@ -23173,7 +23428,7 @@ Currency getAtIndex(const Currency &cur, int i, int j)
         HML_CELLARRAY *cell = cur.CellArray();
 
         if (i >= cell->M() || j >= cell->N())
-            throw OML_Error(HW_MATH_MSG_INVALIDINDEX);
+			throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INVALIDINDEX));
         HML_CELLARRAY *newcell = EvaluatorInterface::allocateCellArray(1, 1);
         (*newcell)(0) = (*cell)(i, j);
         return newcell;
@@ -23182,7 +23437,7 @@ Currency getAtIndex(const Currency &cur, int i, int j)
     {
         StructData *sd = cur.Struct();
         if (i >= sd->M() || j >= sd->N())
-            throw OML_Error(HW_MATH_MSG_INVALIDINDEX);
+			throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INVALIDINDEX));
         return sd->GetElement(i + 1, j + 1);
     }
     else
@@ -23199,14 +23454,14 @@ Currency getAtIndex(const Currency &cur, int index)
     if (cur.IsScalar() || cur.IsComplex())
     {
         if (index != 0)
-            throw OML_Error(HW_MATH_MSG_INVALIDINDEX);
+			throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INVALIDINDEX));
         return cur;
     }
     else if (cur.IsMatrix() || cur.IsString())
     {
         const hwMatrix *mtx = cur.Matrix();
         if (index >= mtx->Size())
-            throw OML_Error(HW_MATH_MSG_INVALIDINDEX);
+			throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INVALIDINDEX));
 
         Currency rv;
         if (cur.IsMatrix())
@@ -23228,7 +23483,7 @@ Currency getAtIndex(const Currency &cur, int index)
     {
         HML_CELLARRAY *cell = cur.CellArray();
         if (index >= cell->Size())
-            throw OML_Error(HW_MATH_MSG_INVALIDINDEX);
+			throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INVALIDINDEX));
         HML_CELLARRAY *newcell = EvaluatorInterface::allocateCellArray(1, 1);
         (*newcell)(0) = (*cell)(index);
         return newcell;
@@ -23237,7 +23492,7 @@ Currency getAtIndex(const Currency &cur, int index)
     {
         StructData *sd = cur.Struct();
         if (index >= sd->M() * sd->N())
-            throw OML_Error(HW_MATH_MSG_INVALIDINDEX);
+			throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INVALIDINDEX));
         return sd->GetElement(index + 1, -1);
     }
     else
@@ -24027,35 +24282,6 @@ void checkFileIndex(EvaluatorInterface &eval, int i, bool checkStdStreams)
         str << "Error: invalid file stream id: " << i;
         throw OML_Error(str.str().c_str());
     }
-}
-//------------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
-void safeResizeMatrix(EvaluatorInterface& eval, int m, int n, hwMatrix &A, bool initZero)
-{
-    hwMathStatus stat = hwMathStatus();
-    int oldm = A.M(), oldn = A.N();
-    if (m > oldm)
-    {
-        if (n > oldn)
-            stat = A.Resize(m, n, initZero);
-        else
-            stat = A.Resize(m, oldn, initZero);
-    }
-    else if (n > oldn)
-        stat = A.Resize(oldm, n, initZero);
-
-    if (stat.IsOk())
-    {
-        if (m < oldm)
-            stat = A.DeleteRows(m, oldm - m);
-        if (n < oldn)
-            stat = A.DeleteColumns(n, oldn - n);
-    }
-    BuiltInFuncsUtils::CheckMathStatus(eval, stat);
-
-    if (A.Size() != m*n)
-        throw OML_Error(HW_ERROR_OUTMEM);
 }
 //------------------------------------------------------------------------------
 // helper for oml_factor
@@ -25162,45 +25388,15 @@ double getCPUTime()
 //------------------------------------------------------------------------------
 // Returns regular expression string matching results
 //------------------------------------------------------------------------------
-std::vector<Currency> DoRegExp(EvaluatorInterface&           eval,
-                               const std::string&            search, 
-                               const std::string&            pattern, 
-                               const std::vector<OMLREGEXP>& options)
+std::vector<Currency> DoRegExp(EvaluatorInterface&             eval,
+                               const std::string&              search, 
+                               const std::string&              pattern, 
+                               const std::vector<OMLREGEXP>&   options,
+	                           const std::vector<std::string>& flags)
 {
     std::string str (search);
     std::string pat (pattern);
     std::vector<Currency> outputs;
-
-    // std::regex_search does not work with multiline strings in msvc10. The '.' 
-    // in the pattern ignores carriage returns or new lines. So, modify the 
-    // pattern if the search string is multilined
-    if (!str.empty() && str.find("\n") != std::string::npos && !pattern.empty())
-    {
-        size_t pos = pattern.find(".*");
-        if (pos != std::string::npos)
-        {
-            std::regex  r1(pattern);
-            std::smatch m1;
-
-            bool result = std::regex_search(str, m1, r1);
-            if (!result)
-            {
-                pat = "";
-                std::string::const_iterator itr = pattern.begin();
-                for ( size_t i = 0; itr != pattern.end(); ++itr, ++i)
-                {
-                    char c = *itr;
-                    if (c != '.' ||    
-                       (c == '.' && i > 0 && pattern[i-1] == '\\')) // Literal
-                    {
-                        pat += c;
-                        continue; 
-                    }
-                    pat += "(.|\r|\n)";
-                }
-            }
-        }
-    }
 
     // std::regex_search does not seem to work with '<' in pattern. So, for now remove it
     if (pattern.find("<") != std::string::npos)
@@ -25295,9 +25491,25 @@ std::vector<Currency> DoRegExp(EvaluatorInterface&           eval,
             
     try
     {
-        int index = 0;
+		// Process syntax and match options
 
-        std::regex reg(pat);
+		// Case insensitive 
+		std::regex_constants::syntax_option_type syntaxflag =
+			std::regex_constants::ECMAScript;
+		if (!flags.empty() &&
+			std::find(flags.begin(), flags.end(), "ignorecase") != flags.end())
+		{
+			syntaxflag = std::regex_constants::ECMAScript | std::regex_constants::icase;
+		}
+
+		// First match only - std::regex_constants::format_first_only is ignored
+		// by std::regex_search
+		std::regex_constants::match_flag_type matchflag = std::regex_constants::match_default;
+		bool once = (!flags.empty() &&
+			std::find(flags.begin(), flags.end(), "once") != flags.end());
+
+		int index = 0;
+        std::regex reg(pat, syntaxflag);
         std::smatch mtch;
 
         if (pat.length())
@@ -25305,7 +25517,7 @@ std::vector<Currency> DoRegExp(EvaluatorInterface&           eval,
             // find all matches
             while (1)
             {
-                bool result = std::regex_search(str, mtch, reg, std::regex_constants::match_default);
+                bool result = std::regex_search(str, mtch, reg, matchflag);
                 if (!result)
                 {
                     break;
@@ -25469,6 +25681,10 @@ std::vector<Currency> DoRegExp(EvaluatorInterface&           eval,
                     (*tokcell)(n) = cell.release();
                 }
 
+				if (once && mtch.length() >= 1)
+				{
+					break;
+				}
                 index += (int)(matchpos + matchstr.length());
 
                 std::string updatedSearchStr (mtch.suffix().str());
@@ -25620,11 +25836,12 @@ std::vector<Currency> DoRegExp(EvaluatorInterface&           eval,
 //------------------------------------------------------------------------------
 // Does regular expression string matching
 //------------------------------------------------------------------------------
-void GetRegExpOutput( EvaluatorInterface            eval,
-                      const Currency&               searchCur,
-                      const Currency&               patternCur,
-                      const std::vector<OMLREGEXP>& options,
-                      std::vector<Currency>&        outputs)
+void GetRegExpOutput( EvaluatorInterface              eval,
+                      const Currency&                 searchCur,
+                      const Currency&                 patternCur,
+                      const std::vector<OMLREGEXP>&   options,
+	                  const std::vector<std::string>& flags,
+                      std::vector<Currency>&          outputs)
 {
     HML_CELLARRAY *cell1 = 0;
     HML_CELLARRAY *cell2 = 0;
@@ -25690,7 +25907,7 @@ void GetRegExpOutput( EvaluatorInterface            eval,
 
     if (!cell1 && !cell2) // There are only strings
     {
-        outputs = DoRegExp(eval, str1, str2, options);
+        outputs = DoRegExp(eval, str1, str2, options, flags);
         return;
     }
 
@@ -25709,7 +25926,7 @@ void GetRegExpOutput( EvaluatorInterface            eval,
                 if (!(elem1.IsString() && elem2.IsString()))
                     throw OML_Error(HW_ERROR_INPUTSTRINGCELLARRAY);
 
-                std::vector<Currency> outvec = DoRegExp(eval, readString(elem1), readString(elem2), options);
+                std::vector<Currency> outvec = DoRegExp(eval, readString(elem1), readString(elem2), options, flags);
 
                 if (!i)
                 {
@@ -25731,7 +25948,7 @@ void GetRegExpOutput( EvaluatorInterface            eval,
                 if (!elem1.IsString())
                     throw OML_Error(HW_ERROR_INPUTSTRINGCELLARRAY);
 
-                std::vector<Currency> outvec = DoRegExp(eval, readString(elem1), str2, options);
+                std::vector<Currency> outvec = DoRegExp(eval, readString(elem1), str2, options, flags);
 
                 if (!i)
                 {
@@ -25754,7 +25971,7 @@ void GetRegExpOutput( EvaluatorInterface            eval,
             if (!elem2.IsString())
                 throw OML_Error(HW_ERROR_INPUTSTRINGCELLARRAY);
 
-            std::vector<Currency> outvec = DoRegExp(eval, str1, readString(elem2), options);
+            std::vector<Currency> outvec = DoRegExp(eval, str1, readString(elem2), options, flags);
 
             if (!i)
             {
@@ -26286,7 +26503,8 @@ bool oml_warningmsgonly(EvaluatorInterface           eval,
 // Gets ordered vector of output options to display for regexp
 //------------------------------------------------------------------------------
 std::vector<OMLREGEXP> GetRegexOptions(const std::vector<Currency>& inputs,
-                                       int                          nargout)    
+                                       int                          nargout,
+	                                   std::vector<std::string>&    flags)    
 {
     assert(!inputs.empty());
 
@@ -26310,16 +26528,16 @@ std::vector<OMLREGEXP> GetRegexOptions(const std::vector<Currency>& inputs,
         int i      = 3;
         int outidx = 0;
         for (std::vector<Currency>::const_iterator itr = inputs.begin() + 2;
-            itr != inputs.end() && outidx < nargout; ++itr, ++i, outidx++)
+			itr != inputs.end(); ++itr, ++i)
         {
             if (!(*itr).IsString())
             {
-                throw OML_Error(OML_ERR_STRING, i, OML_VAR_TYPE);
+                throw OML_Error(OML_ERR_STRING, i);
             }
             std::string opt = (*itr).StringVal();
             if (opt.empty())
             {
-                throw OML_Error(OML_ERR_NONEMPTY_STR, i, OML_VAR_TYPE);
+                throw OML_Error(OML_ERR_NONEMPTY_STR, i);
             }
 
             std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
@@ -26327,47 +26545,102 @@ std::vector<OMLREGEXP> GetRegexOptions(const std::vector<Currency>& inputs,
             if (opt == "start")
             {
                 hasstart = true;
-                options.push_back(OMLREGEXP_START);
+				if (outidx < nargout)
+				{
+					options.push_back(OMLREGEXP_START);
+					outidx++;
+				}
                 continue;
             }
             else if (opt == "end")
             {
                 hasend = true;
-                options.push_back(OMLREGEXP_END);
+				if (outidx < nargout)
+				{
+					options.push_back(OMLREGEXP_END);
+					outidx++;
+				}
                 continue;
             }
             else if (opt == "tokenextents")
             {
                 hasext = true;
-                options.push_back(OMLREGEXP_EXT);
+				if (outidx < nargout)
+				{
+					options.push_back(OMLREGEXP_EXT);
+					outidx++;
+				}
                 continue;
             }
             else if (opt == "match")
             {
                 hasmatch = true;
-                options.push_back(OMLREGEXP_MATCH);
+				if (outidx < nargout)
+				{
+					options.push_back(OMLREGEXP_MATCH);
+					outidx++;
+				}
                 continue;
             }
             else if (opt == "tokens")
             {
                 hastok = true;
-                options.push_back(OMLREGEXP_TOK);
+				if (outidx < nargout)
+				{
+					options.push_back(OMLREGEXP_TOK);
+					outidx++;
+				}
                 continue;
             }
             else if (opt == "names")
             {
                 hasnames = true;
-                options.push_back(OMLREGEXP_NAMES);
+				if (outidx < nargout)
+				{
+					options.push_back(OMLREGEXP_NAMES);
+					outidx++;
+				}
                 continue;
             }
             else if (opt == "split")
             {
                 hassplit = true;
-                options.push_back(OMLREGEXP_SPLIT);
+				if (outidx < nargout)
+				{
+					options.push_back(OMLREGEXP_SPLIT);
+					outidx++;
+				}
                 continue;
             }
-            throw OML_Error("Error: invalid option in argument " +
-                std::to_string(static_cast<long long>(i)));
+			else if (opt == "ignorecase")
+			{
+				if (flags.empty() ||
+					std::find(flags.begin(), flags.end(), "ignorecase") == flags.end())
+				{
+					flags.push_back("ignorecase");
+				}
+				continue;
+			}
+			else if (opt == "matchcase")
+			{
+				if (flags.empty())
+				{
+					continue;  // Nothing to change as case sensitive comparison is default
+				}
+				std::vector<std::string>::iterator fitr = std::find(
+					flags.begin(), flags.end(), "ignorecase");
+				if (fitr != flags.end())
+				{
+					flags.erase(fitr);
+				}
+				continue;
+			}
+			else if (opt == "once")
+			{
+				flags.push_back("once");
+				continue;
+			}
+			throw OML_Error(OML_ERR_OPT_UNSUPPORTED, i);
         }
     }
 
@@ -26401,4 +26674,81 @@ std::vector<OMLREGEXP> GetRegexOptions(const std::vector<Currency>& inputs,
         options.push_back(OMLREGEXP_SPLIT);
     }
     return options;
+}
+//------------------------------------------------------------------------------
+// Function placeholder - implementation is on client side
+//------------------------------------------------------------------------------
+bool oml_getargc(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    outputs.push_back(1);
+    return true;
+}
+//------------------------------------------------------------------------------
+// Function placeholder - implementation is on client side
+//------------------------------------------------------------------------------
+bool oml_getargv(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    outputs.push_back("");
+    return true;
+}
+//------------------------------------------------------------------------------
+// Returns true, gets the days, with Jan 1 0000 considered as day 1 [now]
+//------------------------------------------------------------------------------
+bool oml_now(EvaluatorInterface           eval,
+             const std::vector<Currency>& inputs,
+             std::vector<Currency>&       outputs)
+{
+    if (!inputs.empty())
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    time_t rawtime = time(nullptr);
+    struct tm* curtime = localtime(&rawtime);
+
+    double year = curtime->tm_year + 1900;
+    double mon  =  curtime->tm_mon;
+    double day  = curtime->tm_mday;
+
+    year += static_cast<int>(mon/12.0);
+    mon = doubleMod(mon, 12.0);
+
+    // deal with leap years
+    double result = year-- * 365;
+    result += floor(year / 4.0) - floor(year / 100.0) + floor(year / 400.0) + 1;
+
+    //months
+    result += daysInMonths((int)mon, (int)(year + 1.0));
+
+    // days
+    result += day;
+
+    // Integer part of result will give the number of days and the fractional
+    // part of results should give the number of seconds
+    struct tm start;
+    start.tm_year = curtime->tm_year;
+    start.tm_mon = curtime->tm_mon;
+    start.tm_mday = curtime->tm_mday;
+    start.tm_hour = 0;
+    start.tm_min = 0;
+    start.tm_sec = 0;
+    start.tm_isdst = -1;
+
+    std::chrono::system_clock::time_point today =
+        std::chrono::system_clock::from_time_t(std::mktime(&start));
+    std::chrono::system_clock::duration d = std::chrono::system_clock::now() - today;
+
+    std::chrono::seconds s = std::chrono::duration_cast<std::chrono::seconds>(d);
+    long long secs = s.count();
+    int numdigits  = (secs < 1) ? 1 : static_cast<int>(log10(secs) + 1);
+
+    result += secs / pow(10, numdigits);
+    
+    outputs.push_back(result);    
+   
+    return true;
 }

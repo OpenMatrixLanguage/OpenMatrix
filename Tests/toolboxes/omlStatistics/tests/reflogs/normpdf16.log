@@ -1,1 +1,1 @@
-Error: incompatible array sizes in arguments 1,3; dimensions must match in call to function normpdf at line number 2 in file normpdf16.oml
+Error: incompatible matrices in arguments 1,3; dimensions must be consistent in call to function normpdf at line number 2 in file normpdf16.oml

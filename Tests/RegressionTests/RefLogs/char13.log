@@ -1,2 +1,2 @@
 Warning: scalar outside of character range in call to function char at line number 1 in file char13.oml
-ans = AA
+ans = A A

@@ -1,7 +1,7 @@
 /**
 * @file BetterCalc.cpp
 * @date June 2014
-* Copyright (C) 2014-2018 Altair Engineering, Inc.  
+* Copyright (C) 2014-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -159,7 +159,6 @@ int main(int argc, char* argv[])
 	}
 
     // Wrapper for interpreter signals and methods
-    ConsoleWrapper* wrapper = nullptr; 
     if (!isServer)
     {
         wrapper = new ConsoleWrapper (interp);
@@ -216,6 +215,12 @@ int main(int argc, char* argv[])
 			f_argument_flag = true;
 			continue;
 		}
+        else if (lower_str == "-v")
+        {
+            // Added for python, ignore this and the next argument
+            itr++;
+            continue;
+        }
 		else if(f_argument_flag)
 		{
 			// process the argument as a script file
@@ -483,11 +488,13 @@ void RegisterBuiltInFuncs()
     {
 	    interp->RegisterBuiltInFunction("clc", hml_clc,    
             FunctionMetaData(0, 1, "CoreMinimalInterpreter")); 
+
+        // Override getargc/getargv only if there is a wrapper
+        interp->RegisterBuiltInFunction("getargc", OmlGetArgC,
+            FunctionMetaData(1, 0, "CoreMinimalInterpreter"));
+        interp->RegisterBuiltInFunction("getargv", OmlGetArgV,
+            FunctionMetaData(1, 1, "CoreMinimalInterpreter"));
     }
     interp->RegisterBuiltInFunction("version",            OmlVersion, 
         FunctionMetaData(0, 1, "CoreMinimalInterpreter"));
-	interp->RegisterBuiltInFunction("getargc",            OmlGetArgC,
-        FunctionMetaData(1, 0, "CoreMinimalInterpreter"));
-	interp->RegisterBuiltInFunction("getargv",            OmlGetArgV, 
-        FunctionMetaData(1, 1, "CoreMinimalInterpreter"));
 }

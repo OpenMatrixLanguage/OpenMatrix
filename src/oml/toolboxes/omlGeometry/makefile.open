@@ -1,0 +1,52 @@
+# ====================================================================
+# OpenMatrix oml/toolboxes/omlDiffEq makefile
+# ====================================================================
+PROJ := omlgeometry
+
+UNAME := $(shell uname)
+ifneq (,$(findstring NT,$(UNAME)))
+   TARGET = $(BINDIR)/$(PROJ).dll
+else
+   TARGET = $(BINDIR)/lib$(PROJ).so
+endif
+
+include $(OML_ROOT)/src/makebase.cfg
+
+# ====================================================================
+SOURCES += $(wildcard *.cxx)
+OBJECTS = $(foreach file,$(SOURCES),$(addprefix $(PLATFORM)/,$(addsuffix .o,$(basename $(notdir $(file))))))
+vpath %.cxx .
+
+CXX_DEFINES += -DGEOMETRYOMLTBOX_EXPORT 
+
+CXX_INCLUDES += -I. $(HWMATHKERNEL_INC)
+CXX_INCLUDES += -I$(OML_ROOT)/src/oml/Runtime
+CXX_INCLUDES += -I$(OML_ROOT)/src/math/geometry -I$(SUNDIALS_INCLUDE)
+
+ifneq (,$(findstring NT,$(UNAME)))
+   LIBS += hwgeometry.lib
+else
+   LIBS += -lhwgeometry
+endif
+
+LIBS += $(MATHKERNEL_LIBS)
+LIBS += $(OML_LIBS)
+
+LIBS += $(LAPACK_LIBS) $(BLAS_LIBS)
+
+LIBS += $(SUNDIALS_LIB)
+
+# ====================================================================
+
+$(PLATFORM)/%.o : %.cxx $(objdir)
+	$(compile-cxx)
+
+$(TARGET) : $(OBJECTS)
+	$(build-shared-lib)
+
+clean::
+	-$(RM) -rf $(TARGET)
+	-$(RM) -rf $(PLATFORM)
+	-$(RM) -rf $(BINDIR)/$(PROJ).*
+	-$(RM) -rf $(LIBDIR)/$(PROJ).*
+

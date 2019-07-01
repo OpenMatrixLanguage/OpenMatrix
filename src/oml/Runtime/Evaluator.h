@@ -198,6 +198,7 @@ public:
     FUNCPTR GetStdFunction(const std::string& func_name) const;
 	std::string GetHelpModule(const std::string& func_name);
 
+	bool IsA(const Currency& target, const std::string& classname) const;
 	FunctionInfo* GetBaseClassFunctionInfo(const std::string* func_name, std::string* base_name, Currency* base_val);
 
 	bool IsKeyword(const std::string& func_name) const;
@@ -277,6 +278,11 @@ public:
     static HML_CELLARRAY*  allocateCellArray();
     static HML_CELLARRAY*  allocateCellArray(int m, int n);
     static HML_CELLARRAY*  allocateCellArray(const HML_CELLARRAY*);
+
+	static HML_ND_CELLARRAY*  allocateNDCellArray();
+	static HML_ND_CELLARRAY*  allocateNDCellArray(std::vector<int> dims);
+	static HML_ND_CELLARRAY*  allocateNDCellArray(const HML_ND_CELLARRAY*);
+
     static StructData*     allocateStruct(const StructData*);
     static StructData*     allocateStruct();
 
@@ -323,14 +329,12 @@ public:
 
 	Currency  VariableIndex(const Currency&, const std::vector<Currency>&);
     Currency  CellValueHelper(const Currency&, const std::vector<Currency>&);
+	Currency  NDCellValueHelper(const Currency&, const std::vector<Currency>&);
 
 	void AssignHelper(Currency& target, const std::vector<Currency>& indices, const Currency& value, int refcnt_target=1);
     void CellAssignmentHelper(Currency& target, const std::vector<Currency>& params, const Currency& value);
     void NDAssignmetHelper(Currency& target, const std::vector<Currency>& params, const Currency& value, int refcnt_target=1);
-
-    //! Utility to convert 2D matrix to ND matrix
-    //! \param[in] mtx_in Given input matrix
-    static hwMatrixN* Convert2DtoND( const hwMatrix* mtx_in);
+	void NDCellAssignmetHelper(Currency& target, const std::vector<Currency>& params, const Currency& value, int refcnt_target = 1);
 
 	void SetScriptName(std::string script) { _script_name = script; }
 
@@ -475,8 +479,6 @@ private:
 	Currency InlineIndex(OMLTree* tree);
 	Currency InlineIndexCell(OMLTree* tree);
 	Currency StructValue(OMLTree* tree);
-	Currency StructAssignment(OMLTree* tree);
-	void     StructAssignmentHelper(Currency* parent, OMLTree* indices, OMLTree* field, const Currency& rhs);
     Currency StructValueHelper(const Currency* parent, OMLTree* indices, OMLTree* field_tree);
 	Currency ObjectMethodCall(Currency* parent, OMLTree* indices, OMLTree* field_tree);
 	Currency MRObjectMethodCall(OMLTree* tree);
@@ -485,6 +487,8 @@ private:
 	Currency CellExtraction(OMLTree* tree);
 	Currency InPlaceExpansion(OMLTree* tree);
 	Currency ClassDefinition(OMLTree* tree);
+
+	Currency AssignmentUtility(OMLTree* tree, const Currency& value);
 
 	hwMatrix* SubmatrixSingleIndexHelper(Currency& target, const Currency& indices, const Currency& value, int target_refcnt=1);
 	hwMatrix* SubmatrixDoubleIndexHelper(Currency& target, const Currency& index1, const Currency& index2, const Currency& value, int target_refcnt=1);
@@ -615,6 +619,7 @@ private:
 
     bool is_for_evalin;
 	bool _lhs_eval;
+	bool _break_on_continue;
 
 	bool _interrupt;
     bool _quit;                 //! True if evaluator is quitting

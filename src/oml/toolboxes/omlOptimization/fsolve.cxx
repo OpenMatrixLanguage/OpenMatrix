@@ -525,5 +525,10 @@ bool OmlFsolve(EvaluatorInterface           eval,
         }
     }
 
+    FSOLVE_eval_ptr_stack.pop_back();
+    FSOLVE_oml_func_stack.pop_back();
+    FSOLVE_oml_pntr_stack.pop_back();
+    FSOLVE_oml_bool_stack.pop_back();
+
     return true;
 }

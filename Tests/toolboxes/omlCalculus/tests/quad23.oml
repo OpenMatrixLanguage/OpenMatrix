@@ -1,0 +1,17 @@
+addtoolbox omlCalculus
+addtoolbox omlStatistics
+
+% compute d2(5) from statistical process control
+% tabluated result is 2.326
+% calculation normally uses normcdf, but normpdf
+% is used to test nesting
+
+function z = D2Integrand(x, n)
+    handle2 = @(y) normpdf(y, 0, 1);
+    phi = quad(handle2, -6, x);
+    z = 1 - (1-phi).^n - phi.^n;
+end
+
+n = 5;
+handle1 = @(x) D2Integrand(x, n);
+[d2_n, count] = quad(handle1, -6, 6)

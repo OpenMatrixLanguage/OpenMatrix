@@ -1,0 +1,5 @@
+﻿a = ['abc';'abcd'];
+size(a)
+b = [a;'abcde'];
+size(a)
+size(b)

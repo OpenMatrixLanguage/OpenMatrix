@@ -1,0 +1,9 @@
+﻿function f()
+	disp(1);
+	disp(2);
+	continue;
+	disp(3);
+	disp(4);
+end
+
+f

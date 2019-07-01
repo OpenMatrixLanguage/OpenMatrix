@@ -115,6 +115,15 @@ public:
     static bool Dlmread(EvaluatorInterface           eval,
 	                    const std::vector<Currency>& inputs, 
 		                std::vector<Currency>&       outputs);
+    //!
+    //! Returns true and opens a file for read/write [fopen]
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //! 
+    static bool Fopen(EvaluatorInterface           eval,
+                      const std::vector<Currency>& inputs,
+                      std::vector<Currency>&       outputs);
 
 private:
     //!

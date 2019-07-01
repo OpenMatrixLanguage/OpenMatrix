@@ -1,1 +1,1 @@
-[num, status]=str2double('1 2-i 3 +/* i')
+str2double('4.56E4')

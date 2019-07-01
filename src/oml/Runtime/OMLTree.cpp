@@ -132,7 +132,95 @@ OMLTree* OMLTree::ConvertTree(void* antlr_tree)
 	return loc_tree;
 }
 
-std::string OMLTree::DumpAST()
+std::string OMLTree::GetStringRepresentation() const
+{
+	std::string result;
+
+	int tok = GetType();
+
+	if (tok == STATEMENT_LIST)
+	{
+		for (int j = 0; j < ChildCount(); ++j)
+		{
+			result += GetChild(j)->GetStringRepresentation();
+			result += '\n';
+		}
+	}
+	else if (tok == STMT)
+	{
+		for (int j = 0; j < ChildCount(); ++j)
+		{
+			result += GetChild(j)->GetStringRepresentation();
+			result += '\n';
+		}
+	}
+	else if (tok == ASSIGN)
+	{
+		OMLTree* child_1 = GetChild(0);
+		OMLTree* child_2 = GetChild(1);
+		result = child_1->GetStringRepresentation() + " = " + child_2->GetStringRepresentation();
+	}
+	else if (tok == PLUS)
+	{
+		OMLTree* child_1 = GetChild(0);
+		OMLTree* child_2 = GetChild(1);
+		result = child_1->GetStringRepresentation() + " + " + child_2->GetStringRepresentation();
+	}
+	else if (tok == MINUS)
+	{
+		OMLTree* child_1 = GetChild(0);
+		OMLTree* child_2 = GetChild(1);
+		result = child_1->GetStringRepresentation() + " - " + child_2->GetStringRepresentation();
+	}
+	else if (tok == TIMES)
+	{
+		OMLTree* child_1 = GetChild(0);
+		OMLTree* child_2 = GetChild(1);
+		result = child_1->GetStringRepresentation() + " * " + child_2->GetStringRepresentation();
+	}
+	else if (tok == DIV)
+	{
+		OMLTree* child_1 = GetChild(0);
+		OMLTree* child_2 = GetChild(1);
+		result = child_1->GetStringRepresentation() + " / " + child_2->GetStringRepresentation();
+	}
+	else if (tok == POW)
+	{
+		OMLTree* child_1 = GetChild(0);
+		OMLTree* child_2 = GetChild(1);
+		result = child_1->GetStringRepresentation() + " ^ " + child_2->GetStringRepresentation();
+	}
+	else if ((tok == IDENT) || (tok == NUMBER))
+	{
+		result = GetText();
+	}
+	else if (tok == HML_STRING)
+	{
+		result = "'" + GetChild(0)->GetText() + "'";
+	}
+	else if (tok == FUNC)
+	{
+		OMLTree* child_1 = GetChild(0);
+		OMLTree* child_2 = GetChild(1);
+		result = child_1->GetStringRepresentation();
+		result += "(";
+
+		for (int j = 0; j < child_2->ChildCount(); ++j)
+		{
+			result += child_2->GetChild(j)->GetStringRepresentation();
+
+			if (j != (child_2->ChildCount() - 1))
+				result += ", ";
+
+		}
+
+		result += ")";
+	}
+
+	return result;
+}
+
+std::string OMLTree::DumpAST() const
 {
 	int child_count = ChildCount();
 	std::string result;
@@ -234,7 +322,7 @@ void OMLTree::ReadFromBinaryFile(FILE* outfile, const std::string* filename)
 		my_string[num_chars] = '\0';
 		_text = my_string;
 
-		delete my_string;
+		delete [] my_string;
 	}
 
 	// read the line

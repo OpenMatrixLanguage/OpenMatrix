@@ -1742,7 +1742,37 @@ hwMathStatus hwTMatrix<T1, T2>::WriteColumn(int colNum, const hwTMatrix<T1, T2>&
 //                   Submatrix Operations
 // ****************************************************
 
-//! Write a matrix to the calling object, starting at the specified location
+//! Read a submatrix of a source, starting at the specified location, writing to the calling object
+template<typename T1, typename T2>
+hwMathStatus hwTMatrix<T1, T2>::ReadSubmatrix(int startRow, int startCol, int numRows, int numCols, const hwTMatrix<T1, T2>& source)
+{
+    hwMathStatus status;
+
+    int sourceM = source.m_nRows;
+    int sourceN = source.m_nCols;
+
+    if (startRow < 0 || startRow > sourceM - numRows)
+        return status(HW_MATH_ERR_INVALIDINDEX, 1);
+
+    if (startCol < 0 || startCol > sourceN - numCols)
+        return status(HW_MATH_ERR_INVALIDINDEX, 2);
+
+    status = Dimension(numRows, numCols, source.Type());
+
+    if (!status.IsOk())
+        return status;
+
+    if (IsReal())
+        CopyBlock(source.m_real, sourceM, sourceN,
+            startRow, startRow + numRows, startCol, startCol + numCols, 0, 0);
+    else
+        CopyBlock(source.m_complex, sourceM, sourceN,
+            startRow, startRow + numRows, startCol, startCol + numCols, 0, 0);
+
+    return status;
+}
+
+//! Write a submatrix of a source to the calling object, starting at the specified location
 template<typename T1, typename T2>
 hwMathStatus hwTMatrix<T1, T2>::WriteSubmatrix(int startRow, int startCol, const hwTMatrix<T1, T2>& source)
 {
@@ -1793,84 +1823,6 @@ hwMathStatus hwTMatrix<T1, T2>::WriteSubmatrix(int startRow, int startCol, const
 
     if (!status.IsOk())
         return status;
-
-    if (IsReal())
-        CopyBlock(source.m_real, sourceM, sourceN,
-                  0, sourceM-1, 0, sourceN-1, startRow, startCol);
-    else
-        CopyBlock(source.m_complex, sourceM, sourceN,
-                  0, sourceM-1, 0, sourceN-1, startRow, startCol);
-
-    return status;
-}
-
-//! Write a vector to the calling object, starting at the specified location
-template<typename T1, typename T2>
-hwMathStatus hwTMatrix<T1, T2>::WriteSubmatrix(int startElem, const hwTMatrix<T1, T2>& source)
-{
-    // function does not verify that inputs are vectors
-    hwMathStatus status;
-
-    if (startElem < 0)
-        return status(HW_MATH_ERR_INVALIDINDEX, 1);
-
-    if (source.IsReal())
-    {
-        if (!IsReal())
-        {
-            hwTMatrix<T1, T2> temp;
-            temp.PackComplex(source);
-
-            return WriteSubmatrix(startElem, temp);
-        }
-    }
-    else    // source is complex
-    {
-        if (IsReal())
-            MakeComplex();
-    }
-
-    int sourceSize = source.Size();
-    int targetSize = Size();
-
-    if (startElem + sourceSize > targetSize)
-        targetSize = startElem + sourceSize;
-
-    if (IsEmpty())
-    {
-        if (source.m_nRows == 1)
-            status = Dimension(1, targetSize, source.Type());
-        else
-            status = Dimension(targetSize, 1, source.Type());
-
-        SetElements((T1) 0);
-    }
-    else
-    {
-        if (m_nRows == 1)
-            status = Resize(1, targetSize, true);
-        else
-            status = Resize(targetSize, 1, true);
-    }
-
-    if (!status.IsOk())
-        return status;
-
-    int sourceM = source.m_nRows;
-    int sourceN = source.m_nCols;
-    int startRow;
-    int startCol;
-
-    if (m_nRows == 1)
-    {
-        startRow = 0;
-        startCol = startElem;
-    }
-    else
-    {
-        startRow = startElem;
-        startCol = 0;
-    }
 
     if (IsReal())
         CopyBlock(source.m_real, sourceM, sourceN,
@@ -3264,7 +3216,7 @@ hwMathStatus hwTMatrix<T1, T2>::MultByElems(const hwTMatrix<T1, T2>& A, const hw
         T1* b_r = B.m_real;
         T1* c_r = C.m_real;
 
-        // note: This could be implemented with DSBMV if multiprocessor version is available
+        // note: This could be implemented with DSBMV, which may be faster with parallelization
         while (count--)
             *c_r++ = (*a_r++) * (*b_r++);
     }
@@ -3374,7 +3326,6 @@ hwMathStatus hwTMatrix<T1, T2>::DivideByElems(const hwTMatrix<T1, T2>& A, const 
         T1* b_r = B.m_real;
         T1* c_r = C.m_real;
 
-        // note: This could be implemented with DSBMV if multiprocessor version is available
         while (count--)
             *c_r++ = (*a_r++) / (*b_r++);
     }
@@ -4798,7 +4749,9 @@ hwMathStatus hwTMatrix<T1, T2>::CorrLin(const hwTMatrix<T1, T2>& X)
 
 //! 2D convolution of two matrices
 template<typename T1, typename T2>
-hwMathStatus hwTMatrix<T1, T2>::Conv2D(const hwTMatrix<T1, T2>& X, const hwTMatrix<T1, T2>& Y)
+hwMathStatus hwTMatrix<T1, T2>::Conv2D(const hwTMatrix<T1, T2>& X,
+                                       const hwTMatrix<T1, T2>& Y,
+                                       int row1, int col1, int row2, int col2)
 {
     if (this == &X)
         return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
@@ -4809,8 +4762,14 @@ hwMathStatus hwTMatrix<T1, T2>::Conv2D(const hwTMatrix<T1, T2>& X, const hwTMatr
     // X is reversed and passed over Y
     hwMathStatus status;
 
+    if (X.IsEmpty())
+        return Dimension(0, 0, REAL);
+
     if (X.m_complex)
         return status(HW_MATH_ERR_COMPLEXSUPPORT, 1);
+
+    if (Y.IsEmpty())
+        return Dimension(0, 0, REAL);
 
     if (Y.m_complex)
         return status(HW_MATH_ERR_COMPLEXSUPPORT, 2);
@@ -4819,11 +4778,28 @@ hwMathStatus hwTMatrix<T1, T2>::Conv2D(const hwTMatrix<T1, T2>& X, const hwTMatr
     int xn = X.m_nCols;
     int ym = Y.m_nRows;
     int yn = Y.m_nCols;
-
     int cm = xm + ym - 1;       // # rows in conv
     int cn = xn + yn - 1;       // # cols in conv
 
-    status = Dimension(cm, cn, REAL);
+    if (row1 < 0)
+        return status(HW_MATH_ERR_INVALIDINDEX, 3);
+
+    if (row2 > cm - 1)
+        return status(HW_MATH_ERR_INVALIDINDEX, 5);
+
+    if (row2 == -1)
+        row2 = cm - 1;
+
+    if (col1 < 0)
+        return status(HW_MATH_ERR_INVALIDINDEX, 4);
+
+    if (col2 > cn - 1)
+        return status(HW_MATH_ERR_INVALIDINDEX, 6);
+
+    if (col2 == -1)
+        col2 = cn - 1;
+
+    status = Dimension(row2 - row1 + 1, col2 - col1 + 1, REAL);
 
     if (!status.IsOk())
     {
@@ -4837,7 +4813,7 @@ hwMathStatus hwTMatrix<T1, T2>::Conv2D(const hwTMatrix<T1, T2>& X, const hwTMatr
     }
 
     // find each conv(i, j)
-    int start_xi, index_xi;             // X column indexing
+    int start_xi;                       // X column indexing
     int start_xj, index_xj;             // X row indexing
     int start_yi, stop_yi;              // Y column window
     int start_yj, stop_yj;              // Y row window
@@ -4845,84 +4821,84 @@ hwMathStatus hwTMatrix<T1, T2>::Conv2D(const hwTMatrix<T1, T2>& X, const hwTMatr
     int partial_j = _min(xn, yn) - 1;   // size of partial row overlaps
     T1 value;
 
-    for (int i = 0; i < cm; ++i)
+    for (int j = col1; j <= col2; ++j)
     {
-        if (i < partial_i)
+        if (j < partial_j)
         {
-            start_yi = 0;
-            stop_yi = i + 1;
-            start_xi = i;
+            start_yj = 0;
+            stop_yj = j + 1;
+            start_xj = j;
         }
-        else if (i < cm - partial_i)
+        else if (j < cn - partial_j)
         {
-            if (xm < ym)
+            if (xn < yn)
             {
-                start_yi = i - xm + 1;
-                stop_yi = i + 1;
-                start_xi = xm - 1;
+                start_yj = j - xn + 1;
+                stop_yj = j + 1;
+                start_xj = xn - 1;
             }
             else
             {
-                start_yi = 0;
-                stop_yi = ym;
-                start_xi = i;
+                start_yj = 0;
+                stop_yj = yn;
+                start_xj = j;
             }
         }
         else
         {
-            start_yi = i - xm + 1;
-            stop_yi = ym;
-            start_xi = partial_i;
+            start_yj = j - xn + 1;
+            stop_yj = yn;
+            start_xj = xn - 1;
         }
 
-        for (int j = 0; j < cn; ++j)
+        for (int i = row1; i <= row2; ++i)
         {
-            if (j < partial_j)
+            if (i < partial_i)
             {
-                start_yj = 0;
-                stop_yj = j + 1;
-                start_xj = j;
+                start_yi = 0;
+                stop_yi = i + 1;
+                start_xi = i;
             }
-            else if (j < cn - partial_j)
+            else if (i < cm - partial_i)
             {
-                if (xn < yn)
+                if (xm < ym)
                 {
-                    start_yj = j - xn + 1;
-                    stop_yj = j + 1;
-                    start_xj = xn - 1;
+                    start_yi = i - xm + 1;
+                    stop_yi = i + 1;
+                    start_xi = xm - 1;
                 }
                 else
                 {
-                    start_yj = 0;
-                    stop_yj = yn;
-                    start_xj = j;
+                    start_yi = 0;
+                    stop_yi = ym;
+                    start_xi = i;
                 }
             }
             else
             {
-                start_yj = j - xn + 1;
-                stop_yj = yn;
-                start_xj = partial_j;
+                start_yi = i - xm + 1;
+                stop_yi = ym;
+                start_xi = xm - 1;
             }
 
             // multiply the 2D overlap of Y and the reversed, shifted X
             value = (T1) 0;
-            index_xi = start_xi;
+            index_xj = start_xj;
 
-            for (int ii = start_yi; ii < stop_yi; ++ii)
+            for (int jj = start_yj; jj < stop_yj; ++jj)
             {
-                index_xj = start_xj;
+                const T1* xp = &(X(start_xi, index_xj));
+                const T1* yp = &(Y(start_yi, jj));
 
-                for (int jj = start_yj; jj < stop_yj; ++jj)
+                for (int ii = start_yi; ii < stop_yi; ++ii)
                 {
-                    value += X(index_xi, index_xj) * Y(ii, jj);
-                    --index_xj;
+                    value += (*xp--) * (*yp++);
                 }
 
-                --index_xi;
+                --index_xj;
             }
 
-            (*this)(i, j) = value;
+            (*this)(i - row1, j - col1) = value;
         }
     }
 
@@ -4932,7 +4908,8 @@ hwMathStatus hwTMatrix<T1, T2>::Conv2D(const hwTMatrix<T1, T2>& X, const hwTMatr
 //! 2D convolution of a matrix with a column vector and a row vector
 template<typename T1, typename T2>
 hwMathStatus hwTMatrix<T1, T2>::Conv2D(const hwTMatrix<T1, T2>& col, const hwTMatrix<T1, T2>& row,
-                                       const hwTMatrix<T1, T2>& X)
+                                       const hwTMatrix<T1, T2>& X,
+                                       int row1, int col1, int row2, int col2)
 {
     if (this == &col)
         return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
@@ -4962,18 +4939,38 @@ hwMathStatus hwTMatrix<T1, T2>::Conv2D(const hwTMatrix<T1, T2>& col, const hwTMa
     if (row.m_complex)
         return status(HW_MATH_ERR_COMPLEXSUPPORT, 2);
 
+    if (X.IsEmpty())
+        return Dimension(0, 0, REAL);
+
     if (X.m_complex)
         return status(HW_MATH_ERR_COMPLEXSUPPORT, 3);
 
     int xm = X.m_nRows;
     int xn = X.m_nCols;
-
     int colSize = col.Size();
     int rowSize = row.Size();
     int cm = xm + colSize - 1;       // # rows in conv
     int cn = xn + rowSize - 1;       // # cols in conv
 
-    status = Dimension(cm, cn, REAL);
+    if (row1 < 0)
+        return status(HW_MATH_ERR_INVALIDINDEX, 3);
+
+    if (row2 > cm - 1)
+        return status(HW_MATH_ERR_INVALIDINDEX, 5);
+
+    if (row2 == -1)
+        row2 = cm - 1;
+
+    if (col1 < 0)
+        return status(HW_MATH_ERR_INVALIDINDEX, 4);
+
+    if (col2 > cn - 1)
+        return status(HW_MATH_ERR_INVALIDINDEX, 6);
+
+    if (col2 == -1)
+        col2 = cn - 1;
+
+    status = Dimension(row2 - row1 + 1, col2 - col1 + 1, REAL);
 
     if (!status.IsOk())
     {
@@ -4986,100 +4983,103 @@ hwMathStatus hwTMatrix<T1, T2>::Conv2D(const hwTMatrix<T1, T2>& col, const hwTMa
     // find each conv(i, j)
     int start_xi, stop_xi;                      // matrix column window
     int start_xj, stop_xj;                      // matrix row window
-    int start_col, index_col;                   // column vector indexing
+    int start_col;                              // column vector indexing
     int start_row, index_row;                   // row vector indexing
     int partial_col = _min(xm, colSize) - 1;    // size of partial col overlaps
     int partial_row = _min(xn, rowSize) - 1;    // size of partial row overlaps
     T1 value;
-    hwTMatrix<T1, T2> row_temp(1, xn, REAL);
+    hwTMatrix<T1, T2> col_temp(xm, 1, REAL);
 
-    for (int i = 0; i < cm; ++i)
+    for (int j = col1; j <= col2; ++j)
     {
-        if (i < partial_col)
+        if (j < partial_row)
         {
-            start_xi = 0;
-            stop_xi = i + 1;
-            start_col = i;
+            start_xj = 0;
+            stop_xj = j + 1;
+            start_row = j;
         }
-        else if (i < cm - partial_col)
+        else if (j < cn - partial_row)
         {
-            if (xm < colSize)
-            {
-                start_xi = 0;
-                stop_xi = xm;
-                start_col = i;
-            }
-            else
-            {
-                start_xi = i - colSize + 1;
-                stop_xi = i + 1;
-                start_col = colSize - 1;
-            }
-        }
-        else
-        {
-            start_xi = i - colSize + 1;
-            stop_xi = xm;
-            start_col = partial_col;
-        }
-
-        // multiply the overlap of each X column and the reversed, shifted col
-        // put output in a temporary row
-        row_temp.SetElements((T1) 0);
-        index_col = start_col;
-
-        for (int ii = start_xi; ii < stop_xi; ++ii)
-        {
-            value = col(index_col);
-
-            for (int j = 0; j < xn; ++j)
-                row_temp(j) += value * X(ii, j);
-
-            --index_col;
-        }
-
-        // convolve 'row' with the temporary row
-        for (int j = 0; j < cn; ++j)
-        {
-            if (j < partial_row)
+            if (xn < rowSize)
             {
                 start_xj = 0;
-                stop_xj = j + 1;
+                stop_xj = xn;
                 start_row = j;
-            }
-            else if (j < cn - partial_row)
-            {
-                if (xn < rowSize)
-                {
-                    start_xj = 0;
-                    stop_xj = xn;
-                    start_row = j;
-                }
-                else
-                {
-                    start_xj = j - rowSize + 1;
-                    stop_xj = j + 1;
-                    start_row = rowSize - 1;
-                }
             }
             else
             {
                 start_xj = j - rowSize + 1;
-                stop_xj = xn;
-                start_row = partial_row;
+                stop_xj = j + 1;
+                start_row = rowSize - 1;
             }
+        }
+        else
+        {
+            start_xj = j - rowSize + 1;
+            stop_xj = xn;
+            start_row = rowSize - 1;
+        }
 
-            // multiply the overlap of row_temp and the reversed, shifted row
-            value = (T1) 0;
-            index_row = start_row;
+        // multiply the overlap of each X row and the reversed, shifted 'row'
+        // put output in a temporary col
+        col_temp.SetElements((T1) 0);
+        index_row = start_row;
 
-            for (int jj = start_xj; jj < stop_xj; ++jj)
+        for (int jj = start_xj; jj < stop_xj; ++jj)
+        {
+            T1* ct = col_temp.m_real;
+            const T1* xp = &(X(0, jj));
+
+            value = row(index_row);
+
+            for (int i = 0; i < xm; ++i)
+                (*ct++) += value * (*xp++);
+
+            --index_row;
+        }
+
+        // convolve 'col' with the temporary col
+        for (int i = row1; i <= row2; ++i)
+        {
+            if (i < partial_col)
             {
-                value += row(index_row) * row_temp(jj);
-                --index_row;
+                start_xi = 0;
+                stop_xi = i + 1;
+                start_col = i;
+            }
+            else if (i < cm - partial_col)
+            {
+                if (xm < colSize)
+                {
+                    start_xi = 0;
+                    stop_xi = xm;
+                    start_col = i;
+                }
+                else
+                {
+                    start_xi = i - colSize + 1;
+                    stop_xi = i + 1;
+                    start_col = colSize - 1;
+                }
+            }
+            else
+            {
+                start_xi = i - colSize + 1;
+                stop_xi = xm;
+                start_col = colSize - 1;
             }
 
-            (*this)(i, j) = value;
+            // multiply the overlap of col_temp and the reversed, shifted 'col'
+            const T1* cp = &(col(start_col));
+            T1* ct = &(col_temp(start_xi));
+            value = (T1)0;
+
+            for (int ii = start_xi; ii < stop_xi; ++ii)
+            {
+                value += (*cp--) * (*ct++);
+            }
+
+            (*this)(i - row1, j - col1) = value;
         }
     }
 
@@ -5496,6 +5496,211 @@ inline hwMathStatus hwTMatrix<double>::UnwrapVec(const hwTMatrix<double>& phase,
     }
 
     return hwMathStatus();
+}
+
+// ****************************************************
+//              Special Matrix Support
+// ****************************************************
+
+//! Generate Hankel Matrix
+template<typename T1, typename T2>
+hwMathStatus hwTMatrix<T1, T2>::Hankel(const hwTMatrix<T1, T2>& C, const hwTMatrix<T1, T2>* R)
+{
+    if (!C.IsVector())
+        return hwMathStatus(HW_MATH_ERR_VECTOR, 1);
+
+    int m = C.Size();
+    hwTMatrix<T1, T2> MasterCol(m, 1, C.Type());
+    hwMathStatus status;
+    hwMathStatus statusW;
+
+    if (R)
+    {
+        if (!R->IsVector())
+            return status(HW_MATH_ERR_VECTOR, 2);
+
+        int n = R->Size();
+
+        // check R(0) == C(end)
+        if (C.IsReal())
+        {
+            if (R->IsReal())
+            {
+                if ((*R)(0) != C(m - 1))
+                    statusW(HW_MATH_WARN_HANKEL, 1, 2);
+            }
+            else
+            {
+                if (R->z(0) != C(m - 1))
+                    statusW(HW_MATH_WARN_HANKEL, 1, 2);
+            }
+        }
+        else
+        {
+            if (R->IsReal())
+            {
+                if (C.z(m - 1) != (*R)(0))
+                    statusW(HW_MATH_WARN_HANKEL, 1, 2);
+            }
+            else
+            {
+                if (C.z(m - 1) != R->z(0))
+                    statusW(HW_MATH_WARN_HANKEL, 1, 2);
+            }
+        }
+
+        hwTMatrix<T1, T2> R1;
+        R1.DeleteElements(*R, 0, 1);
+        status = MasterCol.InsertElements(C, m, R1);
+
+        if (!status.IsOk())
+            return status;
+
+        status = Dimension(m, n, MasterCol.Type());
+    }
+    else
+    {
+        status = MasterCol.InsertElements(C, m, m - 1);
+
+        if (!status.IsOk())
+            return status;
+
+        status = Dimension(m, m, MasterCol.Type());
+    }
+
+    if (!status.IsOk())
+        return status;
+
+    if (IsReal())
+    {
+        double* start = MasterCol.GetRealData();
+
+        for (int j = 0; j < N(); ++j)
+        {
+            hwTMatrix<T1, T2> Col(m, 1, (void*) start, hwTMatrix<T1, T2>::REAL);
+            WriteColumn(j, Col);
+            start++;
+        }
+    }
+    else
+    {
+        hwTComplex<T1>* start = MasterCol.GetComplexData();
+
+        for (int j = 0; j < N(); ++j)
+        {
+            hwTMatrix<T1, T2> Col(m, 1, (void*) start, hwTMatrix<T1, T2>::COMPLEX);
+            WriteColumn(j, Col);
+            start++;
+        }
+    }
+
+    return statusW;
+}
+
+//! Generate Toeplitz Matrix
+template<typename T1, typename T2>
+hwMathStatus hwTMatrix<T1, T2>::Toeplitz(const hwTMatrix<T1, T2>& C, const hwTMatrix<T1, T2>* R)
+{
+    if (!C.IsVector())
+        return hwMathStatus(HW_MATH_ERR_VECTOR, 1);
+
+    int m = C.Size();
+    hwTMatrix<T1, T2> MasterCol;
+    const hwTMatrix<T1, T2>* RC;
+    int n;
+    hwMathStatus status;
+    hwMathStatus statusW;
+
+    if (R)
+    {
+        if (!R->IsVector())
+            return status(HW_MATH_ERR_VECTOR, 2);
+
+        n = R->Size();
+
+        // check R(0) == C(0)
+        if (C.IsReal())
+        {
+            if (R->IsReal())
+            {
+                if ((*R)(0) != C(0))
+                    statusW(HW_MATH_WARN_TOEPLITZ, 1, 2);
+            }
+            else
+            {
+                if (R->z(0) != C(0))
+                    statusW(HW_MATH_WARN_TOEPLITZ, 1, 2);
+            }
+        }
+        else
+        {
+            if (R->IsReal())
+            {
+                if (C.z(0) != (*R)(0))
+                    statusW(HW_MATH_WARN_TOEPLITZ, 1, 2);
+            }
+            else
+            {
+                if (C.z(0) != R->z(0))
+                    statusW(HW_MATH_WARN_TOEPLITZ, 1, 2);
+            }
+        }
+
+        RC = R;
+    }
+    else
+    {
+        n = m;
+        RC = &C;
+    }
+    
+    hwTMatrix<T1, T2> RV(n - 1, 1, RC->Type());
+
+    if (RC->IsReal())
+    {
+        for (int i = 0; i < n - 1; ++i)
+            RV(i) = (*RC)(n - 1 - i);
+    }
+    else
+    {
+        for (int i = 0; i < n - 1; ++i)
+            RV.z(i) = RC->z(n - 1 - i);
+    }
+
+    status = MasterCol.InsertElements(RV, n - 1, C);
+
+    if (!status.IsOk())
+        return status;
+
+    status = Dimension(m, n, MasterCol.Type());
+
+    if (!status.IsOk())
+        return status;
+
+    if (IsReal())
+    {
+        double* start = MasterCol.GetRealData() + (n - 1);
+
+        for (int j = 0; j < n; ++j)
+        {
+            hwTMatrix<T1, T2> Col(m, 1, (void*)start, hwTMatrix<T1, T2>::REAL);
+            WriteColumn(j, Col);
+            start--;
+        }
+    }
+    else
+    {
+        hwTComplex<T1>* start = MasterCol.GetComplexData() + (n - 1);
+
+        for (int j = 0; j < n; ++j)
+        {
+            hwTMatrix<T1, T2> Col(m, 1, (void*)start, hwTMatrix<T1, T2>::COMPLEX);
+            WriteColumn(j, Col);
+            start--;
+        }
+    }
+
+    return statusW;
 }
 
 // ****************************************************

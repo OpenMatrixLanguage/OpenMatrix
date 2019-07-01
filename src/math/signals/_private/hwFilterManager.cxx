@@ -460,7 +460,12 @@ hwMathStatus hwFilterManager::ApplyZeroPhaseFilter(const hwMatrix& inSignal,
     if (!status.IsOk())
     {
         status.ResetArgs();
-        return status;
+
+        if (!status.IsWarning())
+        {
+            return status;
+        }
+        status = hwMathStatus();    // suppress warning for now
     }
 
     // filter the signal for zero phase

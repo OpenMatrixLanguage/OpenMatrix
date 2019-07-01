@@ -50,7 +50,14 @@ MemoryScope::~MemoryScope()
 	std::unordered_map<const std::string*, FunctionInfo*>::const_iterator iter;
 
 	for (iter = nested_functions.begin(); iter != nested_functions.end(); iter++)
-		delete iter->second;
+	{
+		FunctionInfo* fi = iter->second;
+		
+		fi->DecrRefCount();
+		
+		if (fi->GetRefCount() == 0)
+			delete fi;
+	}
 }
 
 const Currency& MemoryScope::GetValue(const std::string& varname) const
@@ -98,15 +105,17 @@ const Currency& MemoryScope::GetValue(const std::string* var_ptr) const
 			return globals[*var_ptr];
 	}
 
-	if (fi && fi->Persistent())
+	if (fi)
 	{
-		if (fi->Persistent()->Contains(var_ptr))
+		MemoryScope* pers = fi->Persistent();
+
+		if (pers && pers->scope.size())
 		{
 			const Currency& temp_cur = fi->Persistent()->GetValue(var_ptr);
 
 			if (!temp_cur.IsNothing())
 				return temp_cur;
-		}
+		}	
 	}
 
 	std::map<const std::string*, Currency>::const_iterator temp;
@@ -223,15 +232,20 @@ void MemoryScope::SetValue(const std::string& varname, const Currency& new_val)
 		globals[varname] = new_val;
 		return;
 	}
-	
-	if (fi && fi->Persistent())
-	{
-		const Currency& temp_cur = fi->Persistent()->GetValue(varname);
 
-		if (!temp_cur.IsNothing())
+	if (fi)
+	{
+		MemoryScope* pers = fi->Persistent();
+
+		if (pers && pers->scope.size())
 		{
-			fi->Persistent()->SetValue(varname, new_val); 
-			return;
+			const Currency& temp_cur = fi->Persistent()->GetValue(varname);
+
+			if (!temp_cur.IsNothing())
+			{
+				fi->Persistent()->SetValue(varname, new_val);
+				return;
+			}
 		}
 	}
 
@@ -488,7 +502,14 @@ void MemoryScope::RegisterNestedFunction(FunctionInfo* fi)
 
 	std::unordered_map<const std::string*, FunctionInfo*>::iterator iter = nested_functions.find(fi_name);
 	if (iter != nested_functions.end())
-		delete iter->second;
+	{
+		FunctionInfo* fi = iter->second;
+
+		fi->DecrRefCount();
+
+		if (fi->GetRefCount() == 0)
+			delete fi;
+	}
 
 	nested_functions[fi_name] = fi; 
 }
@@ -525,7 +546,7 @@ MemoryScope* MemoryScopeManager::GetParentScope() const
 void MemoryScopeManager::OpenScope(FunctionInfo*fi)
 {
 #if _DEBUG
-	#define MAX_VAL 50
+	#define MAX_VAL 44
 #else
 	#define MAX_VAL 100
 #endif
@@ -552,20 +573,23 @@ void MemoryScopeManager::CloseScope()
 		size_t       stack_size = memory_stack.size();
 		MemoryScope* parent = memory_stack[stack_size-2];
 
-		for (auto iter=temp->scope.begin(); iter != temp->scope.end(); iter++)
+		if (parent->fi != temp->fi) // don't copy variables during recursive function calls
 		{
-			std::string varname = (*iter->first);
+			for (auto iter = temp->scope.begin(); iter != temp->scope.end(); iter++)
+			{
+				std::string varname = (*iter->first);
 
-			const std::string* var_ptr = Currency::vm.GetStringPointer(varname);
+				const std::string* var_ptr = Currency::vm.GetStringPointer(varname);
 
-			if (temp->fi->IsInputParameter(var_ptr))
-				continue;
+				if (temp->fi->IsInputParameter(var_ptr))
+					continue;
+				
+				if (temp->fi->IsReturnValue(var_ptr))
+					continue;
 
-			if (temp->fi->IsReturnValue(var_ptr))
-				continue;
-
-			if (parent->fi->IsReferenced(var_ptr))
-				parent->SetValue(varname, iter->second);
+				if (parent->fi->IsReferenced(var_ptr))
+					parent->SetValue(varname, iter->second);
+			}
 		}
 	}
 
@@ -731,12 +755,14 @@ void MemoryScopeManager::ClearLocals()
 
 void MemoryScopeManager::ClearGlobals()
 {
-    GetCurrentScope()->ClearGlobals();
+	for (int j=0; j<memory_stack.size(); ++j)
+		memory_stack[j]->ClearGlobals();
 }
 
 void MemoryScopeManager::ClearFromGlobals(const std::string& varname)
 {
-    GetCurrentScope()->ClearFromGlobals(varname);
+	for (int j = 0; j<memory_stack.size(); ++j)
+		memory_stack[j]->ClearFromGlobals(varname);
 }
 
 bool MemoryScopeManager::ClearFromGlobals(const std::regex& varname)

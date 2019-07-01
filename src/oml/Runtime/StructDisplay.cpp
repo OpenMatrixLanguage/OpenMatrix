@@ -1,7 +1,7 @@
 /**
 * @file StructDisplay.cpp
 * @date February 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -63,16 +63,25 @@ std::string StructDisplay::GetOutput(const OutputFormat* fmt,
         return ""; // Do nothing
     }
 
-    if (!CanPaginate(m_currency) || !IsValidDisplaySize())
-		return GetOutputNoPagination(fmt, os);
+    StructData* sd = m_currency.Struct();
+//    assert(sd);
+
+    if (!sd || sd->IsEmpty() || !CanPaginate(m_currency) || !IsValidDisplaySize())
+    {
+        return GetOutputNoPagination(fmt, os);
+    }
 
     const_cast<StructDisplay*>(this)->Initialize(fmt, NULL, NULL); 
 
     if (m_mode == DISPLAYMODE_FORWARD || m_mode == DISPLAYMODE_DOWN)
+    {
         return GetOutputForwardPagination(fmt, os);
+    }
 
     if (m_mode == DISPLAYMODE_BACK || m_mode == DISPLAYMODE_UP)
+    {
         return GetOutputBackPagination(fmt);
+    }
 
     return "";
 }
@@ -83,26 +92,44 @@ std::string StructDisplay::GetOutputNoPagination(const OutputFormat* fmt,
                                                  std::ostringstream& os) const
 {
     StructData* sd = m_currency.Struct();
-    assert(sd);
+//    assert(sd);
 
-    std::map<std::string, int> fields (sd->GetFieldNames());
+	std::map<std::string, int> fields;
+	
+	if (sd)
+		fields = sd->GetFieldNames();
 
     std::string myindent   = GetIndentString(m_indent);
     bool        isindented = (!myindent.empty());
 
-	if (m_currency.IsObject())
-		os << "object [\n";
-	else
-		os << "struct [\n";
+    if (m_currency.IsObject())
+    {
+        os << "object [";
+    }
+    else
+    {
+        os << "struct [";
+    }
 
-    int structsize = sd->Size();
+	int structsize = 0;
+	
+	if (sd)
+		structsize = sd->Size();
+
+    if (fields.empty() && structsize == 0)
+    {
+        os << " ]";
+        return std::string(os.str());
+    }
+
     if (structsize != 1 && (!fields.empty() || sd->M() > 0 || sd->N() > 0))
     { 
         // Just print the name of the fields
+        os << std::endl;
         os << myindent << "Struct array of size " << sd->M() << " x " << sd->N();
-		os << " with fields:" << "\n";
+		os << " with fields:";
     }
-
+    os << std::endl;
     for (std::map<std::string, int>::const_iterator itr = fields.begin(); 
          itr != fields.end(); ++itr)
     {

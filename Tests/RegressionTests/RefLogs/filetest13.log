@@ -1,2 +1,2 @@
 fname = FileManipulation/EmptyFile.txt
-Error: invalid mode string in call to function fopen at line number 2 in file filetest13.oml
+Error: invalid file mode in argument 2; check help for valid file modes in call to function fopen at line number 2 in file filetest13.oml

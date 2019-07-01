@@ -1,0 +1,12 @@
+addtoolbox omlSignals
+
+% test 3 - stable with positive real pole
+fs = 2000;
+num = [1, 1];
+den = [1, 0.5];
+[x,t] = impz(num, den, [], fs);
+mask = 2^16;
+mask * x;	% round off low bits affecting sprintf
+x = round(mask * x) / mask
+t
+
