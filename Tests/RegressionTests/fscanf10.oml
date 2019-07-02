@@ -1,4 +1,0 @@
-file = 'FileManipulation\distance.txt';
-fid = fopen(file,'r');
-A = fscanf(fid, '%dkm',[1 2])
-fclose(fid);

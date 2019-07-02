@@ -1,5 +1,0 @@
-fname = 'FileManipulation/FileToRead.txt'
-fid = fopen(fname)
-fgets(fid)
-ftell(fid)
-fclose(fid)
