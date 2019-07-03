@@ -144,8 +144,15 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toolbox-omlMatio", "..\oml\
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toolbox-omlGeometry", "..\oml\toolbox-omlGeometry\toolbox-omlGeometry.vcxproj", "{FF396A4C-BF00-4816-BB13-E3F289A4F469}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DA6FC32A-2069-4AAD-9F56-F60067C03A11} = {DA6FC32A-2069-4AAD-9F56-F60067C03A11}
+		{1BC4FBBC-7F88-49DB-B77F-4EE1B369DAE3} = {1BC4FBBC-7F88-49DB-B77F-4EE1B369DAE3}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "math-geometry", "..\math\geometry\math-geometry.vcxproj", "{1BC4FBBC-7F88-49DB-B77F-4EE1B369DAE3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{96AC9924-F1AE-461F-AEB8-452623BB4C4F} = {96AC9924-F1AE-461F-AEB8-452623BB4C4F}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
