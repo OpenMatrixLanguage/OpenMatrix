@@ -2,8 +2,8 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
-    <OML_ROOT>\oss</OML_ROOT>
-    <OML_THIRDPARTY>\oss\third_party\third_party</OML_THIRDPARTY>
+    <OML_ROOT>C:\oss\togit2019.2</OML_ROOT>
+    <OML_THIRDPARTY>\oss\third_party</OML_THIRDPARTY>
     <OML_MINGW>c:\Program Files\mingw-w64\x86_64-7.1.0-posix-seh-rt_v5-rev2\mingw64\bin</OML_MINGW>
     <OML_PATHS>$(OML_THIRDPARTY)\lapack\lapack-3.7.1-build\bin;$(OML_MINGW);$(OML_PYTHONHOME)</OML_PATHS>
     <OML_LIBDIR>$(OML_THIRDPARTY)\lapack\lapack-3.7.1-build\lib</OML_LIBDIR>
@@ -13,6 +13,7 @@
     <OML_PYTHONVERSION>python36</OML_PYTHONVERSION>
     <OML_MATIODIR>$(OML_THIRDPARTY)\matio\matio-1.5.12</OML_MATIODIR>
     <OML_SUNDIALSDIR>$(OML_THIRDPARTY)/sundials/sundials-3.1.0-install</OML_SUNDIALSDIR>
+    <OML_QHULLDIR>$(OML_THIRDPARTY)\qhull\qhull-2015.2\lib</OML_QHULLDIR>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup>
@@ -58,6 +59,9 @@
     </BuildMacro>
     <BuildMacro Include="OML_SUNDIALSDIR">
       <Value>$(OML_SUNDIALSDIR)</Value>
+    </BuildMacro>
+    <BuildMacro Include="OML_QHULLDIR">
+      <Value>$(OML_QHULLDIR)</Value>
     </BuildMacro>
   </ItemGroup>
 </Project>
