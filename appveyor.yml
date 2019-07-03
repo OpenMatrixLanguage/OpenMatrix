@@ -55,9 +55,11 @@ test_script:
     
     set PATH=%OML_THIRDPARTY%\fftw\fftw-3.2.2\fftw-3.2.2-libs\x64\Release;%PATH%
     
-    set PATH=%OML_THIRDPARTY%\matio\matio-1.5.11\visual_studio\x64\Release;%PATH%
+    set PATH=%OML_THIRDPARTY%\matio\matio-1.5.12\visual_studio\x64\Release;%PATH%
     
     set PATH=%OML_THIRDPARTY%\sundials\sundials-3.1.0-install\lib;%PATH%
+    
+    set PATH=%OML_THIRDPARTY%\qhull\qhull-2015.2\bin;%PATH%
     
     cd %OML_ROOT%\Tests
     

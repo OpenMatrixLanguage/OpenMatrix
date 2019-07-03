@@ -165,6 +165,9 @@
     <ClCompile Include="$(OML_ROOT)\src\oml\runtime\StructDisplay.cpp" />
     <ClCompile Include="$(OML_ROOT)\src\oml\Runtime\OMLTree.cpp" />
     <ClCompile Include="$(OML_ROOT)\src\oml\Runtime\StringDisplay.cpp" />
+    <ClCompile Include="$(OML_ROOT)\src\oml\Runtime\BuiltInFuncsTime.cpp" />
+    <ClCompile Include="$(OML_ROOT)\src\oml\Runtime\CellND.cc" />
+    <ClCompile Include="$(OML_ROOT)\src\oml\Runtime\CellNDisplay.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(OML_ROOT)\src\oml\runtime\ANTLRData.h" />
@@ -206,6 +209,8 @@
     <ClInclude Include="$(OML_ROOT)\src\oml\runtime\targetver.h" />
     <ClInclude Include="$(OML_ROOT)\src\oml\Runtime\OMLTree.h" />
     <ClInclude Include="$(OML_ROOT)\src\oml\Runtime\StringDisplay.h" />
+    <ClInclude Include="$(OML_ROOT)\src\oml\Runtime\BuiltInFuncsTime.h" />
+    <ClInclude Include="$(OML_ROOT)\src\oml\Runtime\CellNDisplay.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
