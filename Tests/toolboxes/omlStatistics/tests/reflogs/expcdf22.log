@@ -1,1 +1,1 @@
-Error: incompatible array sizes in arguments 1,2; dimensions must match in call to function expcdf at line number 2 in file expcdf22.oml
+Error: incompatible matrices in arguments 1,2; dimensions must be consistent in call to function expcdf at line number 2 in file expcdf22.oml

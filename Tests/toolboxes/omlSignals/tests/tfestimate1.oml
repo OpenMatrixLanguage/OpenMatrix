@@ -1,0 +1,21 @@
+addtoolbox omlStatistics
+addtoolbox omlSignals
+
+%define filter
+fc = 100;
+fs = 1024;
+[b, a] = butter(4, fc/(fs/2));
+f = [0:1:fs/2];
+[h, w] = freqz(b, a, f, fs);
+
+% define test signals
+n = 4096;			% number of points
+rand('seed', 2019)
+signal1 = randn(1, n);
+signal2 = filter(b, a, signal1);
+overlap = 512;
+window = hann(1024, 'periodic');
+[tf_est,f] = tfestimate(signal1, signal2, window, overlap, 1024, fs, 'onesided');
+f([1:50:451])'
+angle(h(1:50:451)*(180/pi))
+angle(tf_est(1:50:451).'*(180/pi))

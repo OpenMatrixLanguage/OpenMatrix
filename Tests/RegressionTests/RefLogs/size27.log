@@ -1,0 +1,20 @@
+
+slice(:, :, 1) = 
+{
+  [1,1] [Matrix] 0 x 0
+  [1,2] [Matrix] 0 x 0
+}
+
+slice(:, :, 2) = 
+{
+  [1,1] [Matrix] 0 x 0
+  [1,2] [Matrix] 0 x 0
+}
+
+slice(:, :, 3) = 
+{
+  [1,1] [Matrix] 0 x 0
+  [1,2] 1
+}
+ans = [Matrix] 1 x 3
+1  2  3

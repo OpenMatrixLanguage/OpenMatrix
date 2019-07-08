@@ -1,1 +1,1 @@
-Error: incompatible array sizes in arguments 1,2; dimensions must match in call to function exppdf at line number 2 in file exppdf28.oml
+Error: incompatible matrices in arguments 1,2; dimensions must be consistent in call to function exppdf at line number 2 in file exppdf28.oml

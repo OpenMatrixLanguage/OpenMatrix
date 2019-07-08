@@ -1,0 +1,12 @@
+addtoolbox omlSignals
+wc = (2*pi)*200;
+order = 4;
+[num,den] = butter(order, wc, 's')
+w = [1:1:14] * 0.1 * wc;
+h = freqs(num,den,w);
+weight = 1./(w.*w);
+[b,a] = invfreqs(h,w,order,order,weight);
+mask = 2^11;
+b = round(mask * b) / mask	% remove round off
+a
+

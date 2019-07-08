@@ -1,0 +1,3 @@
+﻿skipr = [];
+q = 2-skipr(skipr ~= 0)+1;
+skipr(skipr ~= 0) = q

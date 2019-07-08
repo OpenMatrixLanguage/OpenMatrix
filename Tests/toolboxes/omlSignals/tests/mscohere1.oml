@@ -1,0 +1,22 @@
+addtoolbox omlStatistics
+addtoolbox omlSignals
+
+n = 4096;
+fs = 256;
+ts = 1/fs;
+t = [0:ts:(n-1)*ts];
+w1 = 2*pi*20;
+w2 = 2*pi*32;
+w3 = 2*pi*48;
+w4 = 2*pi*60;
+
+signal1 = 5*cos(w1*t) + 7*cos(w2*t) + 3*cos(w4*t);
+signal2 = 7*cos(w1*t + (pi/2)) + 5*sin(w3*t) + 2*cos(w4*t + pi);
+rand('seed', 2019);
+signal1 = signal1 + randn(1, n);
+signal2 = signal2 + randn(1, n);
+
+window = ones(1, 64);
+[msc, f] = mscohere(signal1, signal2, window, 0, [], fs);
+f = f([1,6,9,13,16])'
+msc = msc([1,6,9,13,16])'

@@ -392,7 +392,8 @@ void OMLCurrencyListImpl::AddStruct(StructData* in_sd)
 void OMLCurrencyListImpl::AddFunctionHandle(FunctionInfo* fi)
 {
 	Expand();
-	_list[_count-1] = new OMLCurrencyImpl(new FunctionInfo(*fi));
+	fi->IncrRefCount();
+	_list[_count-1] = new OMLCurrencyImpl(fi);
 }
 
 double* OMLCurrencyListImpl::AllocateData(int size)

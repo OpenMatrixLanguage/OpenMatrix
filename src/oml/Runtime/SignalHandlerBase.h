@@ -1,7 +1,7 @@
 /**
 * @file SignalHandlerBase.h
 * @date June 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -36,86 +36,140 @@ class Interpreter;
 class HML2DLL_DECLS SignalHandlerBase
 {
 public:
-    virtual ~SignalHandlerBase() {} //! Destructor
+    //!
+    //! Destructor
+    //!
+    virtual ~SignalHandlerBase() {}
 
+    //!
     //! Creates clone
+    //!
     virtual SignalHandlerBase* CreateClone() { return 0; }
+    //!
     //! Deletes clone
+    //!
     virtual void DeleteClone() {}
+    //!
     //! Returns true of this is a clone
+    //!
     virtual bool IsClone() const { return false; }
+    //!
     //! Copies signals for clones, needed only for GUI
+    //!
     virtual void CopySignals() {}
 
+    //!
     //! Returns true if worker thread is being executed
+    //!
     virtual bool IsInWorkerThread() { return true; }
+    //!
     //! Returns true if application can execute in GUI thread
+    //!
     virtual bool CanExecuteInGuiThread() { return false; }
+    //!
     //! Returns result after running given function in GUI thread
+    //! \param         Function to run
+    //! \param         Evaluator
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //!
     virtual bool RunInGuiThread( FUNCPTR                      fptr,
                                  EvaluatorInterface&          eval, 
                                  const std::vector<Currency>& inputs, 
                                  std::vector<Currency>&       outputs) { return true; }
+    //!
     //! Throws oml error - needed for thread safe throw in GUI
-    //! \param[in] e Oml error
+    //! \param e Oml error
+    //!
     virtual void ThrowThreadSafeError( const OML_Error& e) { throw e; }
 
+    //!
     //! Returns class info
+    //!
     virtual const char* ClassName() const { return "SignalHandlerBase"; }
 
     // Handlers which emit the signals in derived classes from core to client
     // All implementations need to be in the derived classes
 
+    //!
     //! Emits signal to clear results
+    //!
     virtual void OnClearResultsHandler() {}
+    //!
     //! Emits signal to print result
-    //! \param[in] cur Result to print
+    //! \param cur Result to print
+    //!
     virtual void OnPrintResultHandler( const Currency& cur) {}
-
+    //!
     //! Emits signal to start pause
-    //! \param[in] msg  User message to display
-    //! \param[in] wait True if waiting for a keystroke input from user
+    //! \param msg  User message to display
+    //! \param wait True if waiting for a keystroke input from user
+    //!
     virtual void OnPauseStartHandler( const std::string& msg, 
                                       bool               wait) {}
+    //!
     //! Emits signal to end pause
+    //!
     virtual void OnPauseEndHandler() {}
 
+    //!
     //! Change current working directory
-    //! \param[in] dir Fully qualified path of the new directory
+    //! \param dir Fully qualified path of the new directory
+    //!
     virtual void OnChangeDirHandler( const std::string& dir) {}
+    //!
     //! Refreshes directories in client
+    //!
     virtual void OnRefreshDirsHandler() {}
 
+    //!
     //! Add nested display
-    //! \param[in] display Nested display to add
-    virtual void OnAddDisplayHandler( CurrencyDisplay* display) {}
+    //! \param display Nested display to add
+    //!
+    virtual void OnAddDisplayHandler(CurrencyDisplay* display) {}
+    //!
     //! Prompts save on exit in client
+    //!
     virtual void OnSaveOnExitHandler() {}
+    //!
     //! Update function list in language
+    //!
     virtual void OnUpdateFuncListHandler() {}
+    //!
     //! Emits signal to get user input from client
-    //! \param[in]  prompt Prompt to display to user
-    //! \param[in]  type   Type, if specified
-    //! \param[out] input  Input from user
+    //! \param  prompt Prompt to display to user
+    //! \param  type   Type, if specified
+    //! \param input   Input from user
+    //!
     virtual void OnUserInputHandler( const std::string& prompt,
                                      const std::string& type,
                                      std::string&       input) {}
-
+    //!
     //! Gets current file name that is being updated in the (GUI) editor
+    //!
     virtual std::string GetEditorFileName() const { return ""; }
+    //!
     //! Sets current file name that is being updated in the (GUI) editor
-    //! \param[in] name Name of the file being edited
+    //! \param name Name of the file being edited
+    //!
     virtual void SetEditorFileName( const std::string& name) {}
-    //! Execute passed in function
-    //! \param[in] funinfo handler to function
-    //! \param[in] inputs   Inputs to the function
-    virtual void ExecuteCallBack(FunctionInfo* finfo,
-																 const std::string& fname,
+    //!
+    //! Execute UI call back
+    //! \param funinfo handler to function
+    //! \param fname   Function name
+    //! \param inputs  Inputs to the function
+    //!
+    virtual void ExecuteCallBack(FunctionInfo*                finfo,
+								 const std::string&           fname,
                                  const std::vector<Currency>& inputs) {}
+    //!
     //! Set the current interpreter
-    //! \param[in] interp handle to current interpreter
+    //! \param interp handle to current interpreter
+    //!
     virtual void SetCurrentInterp(Interpreter* interp) {}
+    //!
     //! Returns the current interpreter
+    //!
     virtual Interpreter* GetCurrentInterp() const { return NULL; }
 
     //!
@@ -124,8 +178,24 @@ public:
     //!
     virtual void CancelPrinting(const std::string& name) {}
 
+    //!
+    //! Helper method which returns true if application is in Batch mode
+    //!
+    virtual bool IsInBatchMode() const { return false; }
+    //!
+    //! Helper method which returns true if application is in Console mode
+    //!
+    virtual bool IsInConsoleMode() const { return false; }
+    //!
+    //! Helper method which returns true if application is in GUI mode
+    //!
+    virtual bool IsInGuiMode() const { return false; }
+
 protected:
-    SignalHandlerBase() {}          //! Constructor
+    //!
+    //! Constructor
+    //!
+    SignalHandlerBase() {} 
 private:
 
 };

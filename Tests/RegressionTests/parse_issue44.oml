@@ -1,0 +1,6 @@
+﻿function mini_batches = random_mini_batches(X, Y, mini_batch_size)
+    mini_batch_X = shuffled_X(:, ...
+        num_complete_minibatches*mini_batch_size+1:end);
+end
+
+disp('success')

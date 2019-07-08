@@ -1,0 +1,14 @@
+pets = 
+{
+  [1,1] dog
+  [1,2] cat
+  [1,3] bird
+}
+ans = 
+{
+  [1,1] cat
+}
+pets = 
+{
+  [1,1] cat
+}

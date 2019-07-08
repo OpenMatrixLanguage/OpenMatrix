@@ -1,0 +1,5 @@
+addToolbox omlGeometry
+
+x = [10, 20, 10, 20, 13, 14]';
+y = [20, 20, 30, 30, 22, 27]';
+h = delaunay(x, y)

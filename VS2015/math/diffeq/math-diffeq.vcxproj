@@ -112,7 +112,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_LIBDIR);$(OML_SUNDIALSDIR)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mathcore.lib; libblas.lib; liblapack.lib;sundials_cvode.lib;sundials_ida.lib</AdditionalDependencies>
+      <AdditionalDependencies>mathcore.lib;libblas.lib;liblapack.lib;sundials_arkode.lib;sundials_cvode.lib;sundials_ida.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -127,18 +127,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(OML_ROOT)\src\math\diffeq\_private\hwDiffEqSolver.cxx" />
-    <ClCompile Include="$(OML_ROOT)\src\math\diffeq\_private\hwRungeKutta.cxx" />
     <ClCompile Include="$(OML_ROOT)\src\math\diffeq\_private\DiffEqFuncs.cxx" />
     <ClCompile Include="$(OML_ROOT)\src\math\diffeq\_private\hwCvodeWrap.cxx" />
     <ClCompile Include="$(OML_ROOT)\src\math\diffeq\_private\hwIdaWrap.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\diffeq\_private\hwArkodeWrap.cxx" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(OML_ROOT)\src\math\diffeq\DiffEqExports.h" />
     <ClInclude Include="$(OML_ROOT)\src\math\diffeq\hwDiffEqSolver.h" />
-    <ClInclude Include="$(OML_ROOT)\src\math\diffeq\hwRungeKutta.h" />
     <ClInclude Include="$(OML_ROOT)\src\math\diffeq\DiffEqFuncs.h" />
     <ClInclude Include="$(OML_ROOT)\src\math\diffeq\hwCvodeWrap.h" />
     <ClInclude Include="$(OML_ROOT)\src\math\diffeq\hwIdaWrap.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\diffeq\hwArkodeWrap.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

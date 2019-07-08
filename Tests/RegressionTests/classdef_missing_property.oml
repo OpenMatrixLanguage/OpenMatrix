@@ -1,0 +1,18 @@
+﻿classdef poo
+   properties (Access = private)
+     a
+   end
+   methods
+      function p = poo(my_a)
+	      p.a = my_a;
+	  end
+
+	  function z=A(self)
+	     z=self.a;
+      end
+    end
+end
+
+p = poo(3);
+p.A()
+p.b

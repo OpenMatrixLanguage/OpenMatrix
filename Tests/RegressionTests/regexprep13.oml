@@ -1,0 +1,1 @@
+s=regexprep('anything', '(?<!x)\$1','1')

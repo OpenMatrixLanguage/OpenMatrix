@@ -1,0 +1,48 @@
+% Save and load in v5 without compression (-nozip option)
+
+clear all
+filepath = fileparts(omlfilename('fullpath'));
+cd(filepath);
+
+delete('*.mat');  % Delete old files
+
+% Set up the data
+Cell = {'1','2','3',[1.234 2.345; 3.456 4.567]};
+Str = 'string test';
+Mat = [pi 155; -2 0];
+Stu = struct('a',1,'b',2,'c',[1 2 3; 4 5 6]);
+Comp = pi + e * i;
+Int = [1:10];
+Double = 3./[1:10];
+
+% save, load and compare variables
+addtoolbox omlMatio
+save([filepath '/Cell_v5_nozip.mat'],'Cell','-v5', '-nozip');
+R = load('Cell_v5_nozip.mat');
+assert(isequal(R.Cell, Cell));
+
+save([filepath '/Str_v5_nozip.mat'],'Str','-v5', 'nozip');
+R = load('Str_v5_nozip.mat');
+assert(isequal(R.Str, Str));
+
+save([filepath '/Mat_v5_nozip.mat'],'Mat','-v5', 'nozip');
+R = load('Mat_v5_nozip.mat');
+assert(isequal(R.Mat, Mat));
+
+save([filepath '/Stu_v5_nozip.mat'],'Stu','-v5', '-nozip');
+R = load('Stu_v5_nozip.mat');
+assert(isequal(R.Stu, Stu));
+
+save([filepath '/Comp_v5_nozip.mat'],'Comp','-v5', 'nozip');
+R = load('Comp_v5_nozip.mat');
+assert(isequal(R.Comp, Comp));
+
+save([filepath '/Int_v5_nozip.mat'],'Int','-v5', '-nozip');
+R = load('Int_v5_nozip.mat');
+assert(isequal(R.Int, Int));
+
+save([filepath '/Double_v5_nozip.mat'],'Double','-v5', 'nozip');
+R = load('Double_v5_nozip.mat');
+assert(isequal(R.Double, Double));
+
+disp(strcat('test [', omlfilename,'] finished'))

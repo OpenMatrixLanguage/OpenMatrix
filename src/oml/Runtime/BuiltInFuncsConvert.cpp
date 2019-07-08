@@ -530,9 +530,14 @@ bool BuiltInFuncsConvert::Bi2De(EvaluatorInterface           eval,
     {
         if (!inputs[1].IsPositiveInteger())
         {
-            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_TYPE);
+            throw OML_Error(OML_ERR_INVALID_BASE, 2, OML_VAR_TYPE);
         }
         base = inputs[1].Scalar();
+
+        if (base < 2)
+        {
+            throw OML_Error(OML_ERR_INVALID_BASE, 2);
+        }
     }
 
     bool leftmsb = false;
@@ -671,9 +676,14 @@ bool BuiltInFuncsConvert::De2Bi(EvaluatorInterface           eval,
     {
         if (!inputs[2].IsPositiveInteger())
         {
-            throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_TYPE);
+            throw OML_Error(OML_ERR_INVALID_BASE, 3, OML_VAR_TYPE);
         }
         base = static_cast<int>(inputs[2].Scalar());
+
+        if (base < 2)
+        {
+            throw OML_Error(OML_ERR_INVALID_BASE, 3);
+        }
     }
 
     bool leftmsb = false;

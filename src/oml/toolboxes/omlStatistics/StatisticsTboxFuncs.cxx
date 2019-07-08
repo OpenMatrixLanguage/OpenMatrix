@@ -172,6 +172,7 @@ int InitDll(EvaluatorInterface eval)
     eval.RegisterBuiltInFunction("polyfit",  &OmlPolyfit,  FunctionMetaData(4, 4, STATAN));
    
     eval.RegisterBuiltInFunction("regress",  &OmlMultiregress, FunctionMetaData(-3, 5, STATAN));
+    eval.RegisterBuiltInFunction("randperm", &OmlRandperm,     FunctionMetaData(-2, 1, STATAN));
     eval.RegisterBuiltInFunction("bbdesign", &OmlBBdoe,        FunctionMetaData(1, 1, STATAN));
     eval.RegisterBuiltInFunction("fullfact", &OmlFulldoe,      FunctionMetaData(1, 1, STATAN));
 
@@ -262,7 +263,7 @@ bool OmlUnifpdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(a, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    a->M(), a->N(), hwMatrix::REAL);
@@ -325,7 +326,7 @@ bool OmlUnifpdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -347,7 +348,7 @@ bool OmlUnifpdf(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -369,7 +370,7 @@ bool OmlUnifpdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -479,7 +480,7 @@ bool OmlUnifcdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(a, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    a->M(), a->N(), hwMatrix::REAL);
@@ -542,7 +543,7 @@ bool OmlUnifcdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -564,7 +565,7 @@ bool OmlUnifcdf(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -586,7 +587,7 @@ bool OmlUnifcdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -699,7 +700,7 @@ bool OmlUnifinv(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(a, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    a->M(), a->N(), hwMatrix::REAL);
@@ -762,7 +763,7 @@ bool OmlUnifinv(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -784,7 +785,7 @@ bool OmlUnifinv(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -806,7 +807,7 @@ bool OmlUnifinv(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -1021,7 +1022,7 @@ bool OmlNormpdf(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(mu, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    mu->M(), mu->N(), hwMatrix::REAL);
@@ -1084,7 +1085,7 @@ bool OmlNormpdf(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(x, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -1106,7 +1107,7 @@ bool OmlNormpdf(EvaluatorInterface           eval,
             const hwMatrix* mu = cur2.Matrix();
 
             if (!sameSize(x, mu))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -1128,7 +1129,7 @@ bool OmlNormpdf(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(x, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -1238,7 +1239,7 @@ bool OmlNormcdf(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(mu, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    mu->M(), mu->N(), hwMatrix::REAL);
@@ -1301,7 +1302,7 @@ bool OmlNormcdf(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(x, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -1323,7 +1324,7 @@ bool OmlNormcdf(EvaluatorInterface           eval,
             const hwMatrix* mu = cur2.Matrix();
 
             if (!sameSize(x, mu))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -1345,7 +1346,7 @@ bool OmlNormcdf(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(x, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -1455,7 +1456,7 @@ bool OmlNorminv(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(mu, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    mu->M(), mu->N(), hwMatrix::REAL);
@@ -1518,7 +1519,7 @@ bool OmlNorminv(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(x, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -1540,7 +1541,7 @@ bool OmlNorminv(EvaluatorInterface           eval,
             const hwMatrix* mu = cur2.Matrix();
 
             if (!sameSize(x, mu))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -1562,7 +1563,7 @@ bool OmlNorminv(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(x, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -1609,12 +1610,12 @@ bool OmlNormrnd(EvaluatorInterface           eval,
     {
         if (!inputs[0].IsScalar())
         {
-            throw OML_Error(OML_ERR_ARRAYSIZE, 1, static_cast<int>(nargin), OML_VAR_DIMS);
+            throw OML_Error(OML_ERR_ARRAYSIZE, 1, static_cast<int>(nargin));
         }
 
         if (!inputs[1].IsScalar())
         {
-            throw OML_Error(OML_ERR_ARRAYSIZE, 2, static_cast<int>(nargin), OML_VAR_DIMS);
+            throw OML_Error(OML_ERR_ARRAYSIZE, 2, static_cast<int>(nargin));
         }
     }
 
@@ -1667,7 +1668,7 @@ bool OmlNormrnd(EvaluatorInterface           eval,
         {
             if (inputs[1].IsNDMatrix())
             {
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
             }
 
             if (!inputs[1].IsScalar() && !inputs[1].IsMatrix())
@@ -1720,7 +1721,7 @@ bool OmlNormrnd(EvaluatorInterface           eval,
                 const std::vector<int>& dims = matrix1->Dimensions();
 
                 if (matrix2->Dimensions() != dims)
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
                 // convert matrices to 2D
                 std::vector<hwSliceArg> sliceArgs;
@@ -1759,7 +1760,7 @@ bool OmlNormrnd(EvaluatorInterface           eval,
 
             if (inputs[1].IsMatrix())
             {
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
             }
 
             throw OML_Error(OML_ERR_SCALARMATRIX, 2, OML_VAR_TYPE);
@@ -1776,7 +1777,7 @@ bool OmlNormrnd(EvaluatorInterface           eval,
     if (!NDout)     // 2D case
     {
         if (nargin > 4)
-            throw OML_Error(OML_ERR_ARRAYSIZE, 1, static_cast<int>(nargin), OML_VAR_DIMS);
+            throw OML_Error(OML_ERR_ARRAYSIZE, 1, static_cast<int>(nargin));
 
         if (!nargin)
         {
@@ -1984,7 +1985,7 @@ bool OmlBetapdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(a, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    a->M(), a->N(), hwMatrix::REAL);
@@ -2048,7 +2049,7 @@ bool OmlBetapdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(x->M(), 
                                    x->N(), hwMatrix::REAL);
@@ -2070,7 +2071,7 @@ bool OmlBetapdf(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -2094,7 +2095,7 @@ bool OmlBetapdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -2194,7 +2195,7 @@ bool OmlBetacdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(a, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    a->M(), a->N(), hwMatrix::REAL);
@@ -2257,7 +2258,7 @@ bool OmlBetacdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -2279,7 +2280,7 @@ bool OmlBetacdf(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -2301,7 +2302,7 @@ bool OmlBetacdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -2401,7 +2402,7 @@ bool OmlBetainv(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(a, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    a->M(), a->N(), hwMatrix::REAL);
@@ -2465,7 +2466,7 @@ bool OmlBetainv(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -2488,7 +2489,7 @@ bool OmlBetainv(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -2511,7 +2512,7 @@ bool OmlBetainv(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -2715,7 +2716,7 @@ bool OmlGampdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(a, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(a->M(), a->N(), hwMatrix::REAL);
 
@@ -2778,7 +2779,7 @@ bool OmlGampdf(EvaluatorInterface           eval,
                 const hwMatrix* b = inputs[2].Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -2801,7 +2802,7 @@ bool OmlGampdf(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -2824,7 +2825,7 @@ bool OmlGampdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -2924,7 +2925,7 @@ bool OmlGamcdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(a, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(a->M(), a->N(), hwMatrix::REAL);
 
@@ -2987,7 +2988,7 @@ bool OmlGamcdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -3010,7 +3011,7 @@ bool OmlGamcdf(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -3033,7 +3034,7 @@ bool OmlGamcdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -3133,7 +3134,7 @@ bool OmlGaminv(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(a, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(a->M(), a->N(), hwMatrix::REAL);
 
@@ -3196,7 +3197,7 @@ bool OmlGaminv(EvaluatorInterface           eval,
                 const hwMatrix* b = inputs[2].Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -3219,7 +3220,7 @@ bool OmlGaminv(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -3242,7 +3243,7 @@ bool OmlGaminv(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -3456,7 +3457,7 @@ bool OmlExppdf(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                a->M(), a->N(), hwMatrix::REAL);
@@ -3563,7 +3564,7 @@ bool OmlExpcdf(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                a->M(), a->N(), hwMatrix::REAL);
@@ -3670,7 +3671,7 @@ bool OmlExpinv(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                a->M(), a->N(), hwMatrix::REAL);
@@ -3871,7 +3872,7 @@ bool OmlChi2pdf(EvaluatorInterface           eval,
             const hwMatrix* n = cur2.Matrix();
 
             if (!sameSize(x, n))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(n->M(), n->N(), hwMatrix::REAL);
 
@@ -3991,7 +3992,7 @@ bool OmlChi2cdf(EvaluatorInterface           eval,
             const hwMatrix* n = cur2.Matrix();
 
             if (!sameSize(x, n))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                n->M(), n->N(), hwMatrix::REAL);
@@ -4113,7 +4114,7 @@ bool OmlChi2inv(EvaluatorInterface           eval,
             const hwMatrix* n = cur2.Matrix();
 
             if (!sameSize(x, n))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                n->M(), n->N(), hwMatrix::REAL);
@@ -4302,7 +4303,7 @@ bool OmlTpdf(EvaluatorInterface           eval,
             const hwMatrix* n = cur2.Matrix();
 
             if (!sameSize(x, n))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                n->M(), n->N(), hwMatrix::REAL);
@@ -4423,7 +4424,7 @@ bool OmlTcdf(EvaluatorInterface           eval,
             const hwMatrix* n = cur2.Matrix();
 
             if (!sameSize(x, n))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                n->M(), n->N(), hwMatrix::REAL);
@@ -4544,7 +4545,7 @@ bool OmlTinv(EvaluatorInterface           eval,
             const hwMatrix* n = cur2.Matrix();
 
             if (!sameSize(x, n))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                n->M(), n->N(), hwMatrix::REAL);
@@ -4730,7 +4731,7 @@ bool OmlFpdf(EvaluatorInterface           eval,
                 const hwMatrix* n = cur3.Matrix();
 
                 if (!sameSize(m, n))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(m->M(), m->N(), hwMatrix::REAL);
 
@@ -4806,7 +4807,7 @@ bool OmlFpdf(EvaluatorInterface           eval,
                 const hwMatrix* n = inputs[2].Matrix();
 
                 if (!sameSize(x, n))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -4832,7 +4833,7 @@ bool OmlFpdf(EvaluatorInterface           eval,
             const hwMatrix* m = cur2.Matrix();
 
             if (!sameSize(x, m))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -4861,7 +4862,7 @@ bool OmlFpdf(EvaluatorInterface           eval,
                 const hwMatrix* n = cur3.Matrix();
 
                 if (!sameSize(x, n))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -4985,7 +4986,7 @@ bool OmlFcdf(EvaluatorInterface           eval,
                 const hwMatrix* n = cur3.Matrix();
 
                 if (!sameSize(m, n))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(m->M(), m->N(), hwMatrix::REAL);
 
@@ -5061,7 +5062,7 @@ bool OmlFcdf(EvaluatorInterface           eval,
                 const hwMatrix* n = inputs[2].Matrix();
 
                 if (!sameSize(x, n))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -5087,7 +5088,7 @@ bool OmlFcdf(EvaluatorInterface           eval,
             const hwMatrix* m = cur2.Matrix();
 
             if (!sameSize(x, m))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -5116,7 +5117,7 @@ bool OmlFcdf(EvaluatorInterface           eval,
                 const hwMatrix* n = cur3.Matrix();
 
                 if (!sameSize(x, n))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -5240,7 +5241,7 @@ bool OmlFinv(EvaluatorInterface           eval,
                 const hwMatrix* n = cur3.Matrix();
 
                 if (!sameSize(m, n))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(m->M(), m->N(), hwMatrix::REAL);
 
@@ -5316,7 +5317,7 @@ bool OmlFinv(EvaluatorInterface           eval,
                 const hwMatrix* n = inputs[2].Matrix();
 
                 if (!sameSize(x, n))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -5342,7 +5343,7 @@ bool OmlFinv(EvaluatorInterface           eval,
             const hwMatrix* m = cur2.Matrix();
 
             if (!sameSize(x, m))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -5371,7 +5372,7 @@ bool OmlFinv(EvaluatorInterface           eval,
                 const hwMatrix* n = cur3.Matrix();
 
                 if (!sameSize(x, n))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -5593,7 +5594,7 @@ bool OmlLognpdf(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(mu, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    mu->M(), mu->N(), hwMatrix::REAL);
@@ -5656,7 +5657,7 @@ bool OmlLognpdf(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(x, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -5678,7 +5679,7 @@ bool OmlLognpdf(EvaluatorInterface           eval,
             const hwMatrix* mu = cur2.Matrix();
 
             if (!sameSize(x, mu))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -5700,7 +5701,7 @@ bool OmlLognpdf(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(x, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -5811,7 +5812,7 @@ bool OmlLogncdf(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(mu, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    mu->M(), mu->N(), hwMatrix::REAL);
@@ -5874,7 +5875,7 @@ bool OmlLogncdf(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(x, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -5896,7 +5897,7 @@ bool OmlLogncdf(EvaluatorInterface           eval,
             const hwMatrix* mu = cur2.Matrix();
 
             if (!sameSize(x, mu))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -5918,7 +5919,7 @@ bool OmlLogncdf(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(x, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -6029,7 +6030,7 @@ bool OmlLogninv(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(mu, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    mu->M(), mu->N(), hwMatrix::REAL);
@@ -6092,7 +6093,7 @@ bool OmlLogninv(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(x, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -6114,7 +6115,7 @@ bool OmlLogninv(EvaluatorInterface           eval,
             const hwMatrix* mu = cur2.Matrix();
 
             if (!sameSize(x, mu))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -6136,7 +6137,7 @@ bool OmlLogninv(EvaluatorInterface           eval,
                 const hwMatrix* sigma = cur3.Matrix();
 
                 if (!sameSize(x, sigma))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -6353,7 +6354,7 @@ bool OmlWeibullpdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(a, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    a->M(), a->N(), hwMatrix::REAL);
@@ -6416,7 +6417,7 @@ bool OmlWeibullpdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -6438,7 +6439,7 @@ bool OmlWeibullpdf(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -6460,7 +6461,7 @@ bool OmlWeibullpdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -6575,7 +6576,7 @@ bool OmlWeibullcdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(a, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    a->M(), a->N(), hwMatrix::REAL);
@@ -6638,7 +6639,7 @@ bool OmlWeibullcdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -6660,7 +6661,7 @@ bool OmlWeibullcdf(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -6682,7 +6683,7 @@ bool OmlWeibullcdf(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -6796,7 +6797,7 @@ bool OmlWeibullinv(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(a, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    a->M(), a->N(), hwMatrix::REAL);
@@ -6859,7 +6860,7 @@ bool OmlWeibullinv(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -6881,7 +6882,7 @@ bool OmlWeibullinv(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             if (cur3.IsScalar())
             {
@@ -6903,7 +6904,7 @@ bool OmlWeibullinv(EvaluatorInterface           eval,
                 const hwMatrix* b = cur3.Matrix();
 
                 if (!sameSize(x, b))
-                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3, OML_VAR_DIMS);
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                    x->M(), x->N(), hwMatrix::REAL);
@@ -7129,7 +7130,7 @@ bool OmlPoisspdf(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
                                a->M(), a->N(), hwMatrix::REAL);
@@ -7241,7 +7242,7 @@ bool OmlPoisscdf(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(a->M(), a->N(), hwMatrix::REAL);
 
@@ -7347,7 +7348,7 @@ bool OmlPoissinv(EvaluatorInterface           eval,
             const hwMatrix* a = cur2.Matrix();
 
             if (!sameSize(x, a))
-                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(a->M(), a->N(), hwMatrix::REAL);
 
@@ -8121,6 +8122,16 @@ bool OmlTtest(EvaluatorInterface           eval,
         BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
 
         mstat = TTest(*piece, mu, reject, prob, *interval, alpha);
+
+        if (!mstat.IsOk())
+        {
+            if (mstat.GetArg1() == 6)
+            {
+                if (nargin > 3 && inputs[2].StringVal() == "alpha")
+                    mstat.SetArg1(4);
+            }
+        }
+
         BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
 
         (*result)(i) = static_cast<double>(reject);
@@ -8201,6 +8212,15 @@ bool OmlChi2test(EvaluatorInterface           eval,
 
         mstat = ChiSqTest(*piece, mu, reject, prob, *interval, alpha);
         BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
+
+        if (!mstat.IsOk())
+        {
+            if (mstat.GetArg1() == 6)
+            {
+                if (nargin > 3 && inputs[2].StringVal() == "alpha")
+                    mstat.SetArg1(4);
+            }
+        }
 
         (*result)(i) = static_cast<double>(reject);
         (*p)(i)      = prob;
@@ -8343,6 +8363,15 @@ bool OmlFtest(EvaluatorInterface           eval,
         mstat = FTest(*piece1, *piece2, reject, prob, *interval, alpha);
         BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
 
+        if (!mstat.IsOk())
+        {
+            if (mstat.GetArg1() == 6)
+            {
+                if (nargin > 3 && inputs[2].StringVal() == "alpha")
+                    mstat.SetArg1(4);
+            }
+        }
+
         (*result)(i) = static_cast<double>(reject);
         (*p)(i) = prob;
         (*CI)(0, i) = (*interval)(0);
@@ -8481,6 +8510,16 @@ bool OmlTtest2(EvaluatorInterface           eval,
         }
 
         mstat = TTest2(*piece1, *piece2, reject, prob, *interval, alpha);
+
+        if (!mstat.IsOk())
+        {
+            if (mstat.GetArg1() == 6)
+            {
+                if (nargin > 3 && inputs[2].StringVal() == "alpha")
+                    mstat.SetArg1(4);
+            }
+        }
+
         BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
 
         (*result)(i) = static_cast<double>(reject);
@@ -8558,6 +8597,16 @@ bool OmlZtest(EvaluatorInterface           eval,
         BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
 
         mstat = ZTest(*piece, mu, sigma, reject, prob, *interval, alpha);
+
+        if (!mstat.IsOk())
+        {
+            if (mstat.GetArg1() == 7)
+            {
+                if (nargin > 4 && inputs[3].StringVal() == "alpha")
+                    mstat.SetArg1(5);
+            }
+        }
+
         BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
 
         (*result)(i) = static_cast<double>(reject);
@@ -8784,7 +8833,7 @@ bool OmlSkewness(EvaluatorInterface           eval,
     if (nargin > 2)
     {
         if (!inputs[2].IsPositiveInteger())
-            throw OML_Error(OML_ERR_UNSUPPORTDIM, 3);
+            throw OML_Error(OML_ERR_POSINTEGER, 3);
 
         dim = static_cast<int>(inputs[2].Scalar());
 
@@ -8883,7 +8932,7 @@ bool OmlVariance(EvaluatorInterface           eval,
     if (nargin > 2)
     {
         if (!inputs[2].IsPositiveInteger())
-            throw OML_Error(OML_ERR_UNSUPPORTDIM, 3);
+            throw OML_Error(OML_ERR_POSINTEGER, 3);
 
         dim = (int) inputs[2].Scalar();
     }
@@ -9026,7 +9075,7 @@ bool OmlStd(EvaluatorInterface           eval,
     if (nargin > 2)
     {
         if (!inputs[2].IsPositiveInteger())
-            throw OML_Error(OML_ERR_UNSUPPORTDIM, 3);
+            throw OML_Error(OML_ERR_POSINTEGER, 3);
 
         dim = (int) inputs[2].Scalar();
     }
@@ -9525,6 +9574,64 @@ bool OmlMultiregress(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
+// Generates a random permutation vector [randperm]
+//------------------------------------------------------------------------------
+bool OmlRandperm(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    int nargin = eval.GetNarginValue();
+
+    if (nargin != 1 && nargin != 2)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    if (!inputs[0].IsInteger())
+        throw OML_Error(OML_ERR_NATURALNUM, 1, OML_VAR_DATA);
+
+    int max = static_cast<int> (inputs[0].Scalar());
+    int numPts = _max(max, 0);
+
+    if (nargin == 2)
+    {
+        if (!inputs[1].IsInteger())
+            throw OML_Error(OML_ERR_NATURALNUM, 2, OML_VAR_DATA);
+
+        numPts = static_cast<int> (inputs[1].Scalar());
+    }
+
+    CreateTwister();
+    hwMatrixI permVecI;
+    hwMathStatus status = RandPerm(1, max, numPts, twister, permVecI);
+
+    if (!status.IsOk())
+    {
+        if (status.GetArg1() == 1)
+        {
+            status.SetArg1(status.GetArg2());
+            status.SetArg2(-1);
+        }
+
+        if (status.GetArg1() == 2)
+            status.SetArg1(1);
+        else if (status.GetArg1() == 3)
+            status.SetArg1(2);
+        else
+            status.ResetArgs();
+    }
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+    hwMatrix* permVec = EvaluatorInterface::allocateMatrix(1, numPts, hwMatrix::REAL);
+
+    for (int i = 0; i < numPts; ++i)
+    {
+        (*permVec)(i) = static_cast<double> (permVecI(i));
+    }
+
+    outputs.push_back(permVec);
+    return true;
+}
+//------------------------------------------------------------------------------
 // Generates a design matrix for Box-Behnken with a given number of factors [bbdesign]
 //------------------------------------------------------------------------------
 bool OmlBBdoe(EvaluatorInterface           eval,
@@ -9776,8 +9883,8 @@ bool RNG_areDimArgsND(EvaluatorInterface&          eval,
     // check for all scalars
     for (int i = firstDimArg; i < nargin; ++i)
     {
-        if (!inputs[i].IsScalar())
-            throw OML_Error(OML_ERR_ARRAYSIZE);
+        if (!inputs[i-1].IsScalar())
+            throw OML_Error(OML_ERR_NATURALNUM, i);
     }
 
     if (nargin > firstDimArg + 1)

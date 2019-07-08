@@ -36,46 +36,49 @@
 //------------------------------------------------------------------------------
 int InitDll(EvaluatorInterface eval)
 {
-    eval.RegisterBuiltInFunction("ifft",       OmlIfft,       FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("fft",        OmlFft,        FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("fft2",       OmlFft2,       FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("freq",       OmlFreq,       FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("fold",       OmlFold,       FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("xcorr",      OmlXcorr,      FunctionMetaData(-3, 1, SIGN));
-    eval.RegisterBuiltInFunction("unwrap",     OmlUnwrap,     FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("pwelch",     OmlPwelch,     FunctionMetaData(-2, 2, SIGN));
-    eval.RegisterBuiltInFunction("cpsd",       OmlCpsd,       FunctionMetaData(-3, 2, SIGN));
-    eval.RegisterBuiltInFunction("tfestimate", OmlTFestimate, FunctionMetaData(-3, 2, SIGN));
-    eval.RegisterBuiltInFunction("mscohere",   OmlMScohere,   FunctionMetaData(-3, 2, SIGN));
-    eval.RegisterBuiltInFunction("freqz",      OmlFreqz,      FunctionMetaData(4, 2, SIGN));
-    eval.RegisterBuiltInFunction("freqs",      OmlFreqs,      FunctionMetaData(3, 2, SIGN));
-    eval.RegisterBuiltInFunction("invfreqz",   OmlInvFreqz,   FunctionMetaData(-5, 2, SIGN));
-    eval.RegisterBuiltInFunction("invfreqs",   OmlInvFreqs,   FunctionMetaData(-5, 2, SIGN));
-    eval.RegisterBuiltInFunction("impz",       OmlImpz,       FunctionMetaData(-3, 2, SIGN));
-    eval.RegisterBuiltInFunction("fir1",       OmlFir1,       FunctionMetaData(-3, 1, SIGN));
-    eval.RegisterBuiltInFunction("besself",    OmlBesself,    FunctionMetaData(-3, 2, SIGN));
-    eval.RegisterBuiltInFunction("besself3",   OmlBesself3,   FunctionMetaData(-3, 2, SIGN));
-    eval.RegisterBuiltInFunction("butter",     OmlButter,     FunctionMetaData(-3, 2, SIGN));
-    eval.RegisterBuiltInFunction("cheby1",     OmlCheby1,     FunctionMetaData(-4, 2, SIGN));
-    eval.RegisterBuiltInFunction("cheby2",     OmlCheby2,     FunctionMetaData(-4, 2, SIGN));
-    eval.RegisterBuiltInFunction("ellip",      OmlEllip,      FunctionMetaData(-5, 2, SIGN));
-    eval.RegisterBuiltInFunction("buttord",    OmlButtord,    FunctionMetaData(-5, 2, SIGN));
-    eval.RegisterBuiltInFunction("cheb1ord",   OmlCheb1ord,   FunctionMetaData(-5, 2, SIGN));
-    eval.RegisterBuiltInFunction("cheb2ord",   OmlCheb2ord,   FunctionMetaData(-5, 2, SIGN));
-    eval.RegisterBuiltInFunction("ellipord",   OmlEllipord,   FunctionMetaData(-5, 2, SIGN));
-    eval.RegisterBuiltInFunction("blackman",   OmlBlackman,   FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("hann",       OmlHann,       FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("hamming",    OmlHamming,    FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("parzenwin",  OmlParzenwin,  FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("welchwin",   OmlWelchwin,   FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("chebwin",    OmlChebwin,    FunctionMetaData(-3, 1, SIGN));
-    eval.RegisterBuiltInFunction("kaiser",     OmlKaiser,     FunctionMetaData(-3, 1, SIGN));
-    eval.RegisterBuiltInFunction("filter",     OmlFilter,     FunctionMetaData(-4, 1, SIGN));
-    eval.RegisterBuiltInFunction("filtfilt",   OmlFiltfilt,   FunctionMetaData(3, 1, SIGN));
-    eval.RegisterBuiltInFunction("sinc",       OmlSinc,       FunctionMetaData(1, 1, SIGN));
-    eval.RegisterBuiltInFunction("upsample",   OmlUpsample,   FunctionMetaData(-3, 1, SIGN));
-    eval.RegisterBuiltInFunction("downsample", OmlDownsample, FunctionMetaData(-3, 1, SIGN));
-    eval.RegisterBuiltInFunction("findpeaks",  OmlFindPeaks,  FunctionMetaData(-2, 3, SIGN));
+    eval.RegisterBuiltInFunction("ifft",        OmlIfft,       FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("fft",         OmlFft,        FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("fft2",        OmlFft2,       FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("fftshift",    OmlFftShift,   FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("freq",        OmlFreq,       FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("fold",        OmlFold,       FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("xcorr",       OmlXcorr,      FunctionMetaData(-3, 1, SIGN));
+    eval.RegisterBuiltInFunction("unwrap",      OmlUnwrap,     FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("pwelch",      OmlPwelch,     FunctionMetaData(-2, 2, SIGN));
+    eval.RegisterBuiltInFunction("cpsd",        OmlCpsd,       FunctionMetaData(-3, 2, SIGN));
+    eval.RegisterBuiltInFunction("tfestimate",  OmlTFestimate, FunctionMetaData(-3, 2, SIGN));
+    eval.RegisterBuiltInFunction("mscohere",    OmlMScohere,   FunctionMetaData(-3, 2, SIGN));
+    eval.RegisterBuiltInFunction("freqz",       OmlFreqz,      FunctionMetaData(4, 2, SIGN));
+    eval.RegisterBuiltInFunction("freqs",       OmlFreqs,      FunctionMetaData(3, 2, SIGN));
+    eval.RegisterBuiltInFunction("invfreqz",    OmlInvFreqz,   FunctionMetaData(-5, 2, SIGN));
+    eval.RegisterBuiltInFunction("invfreqs",    OmlInvFreqs,   FunctionMetaData(-5, 2, SIGN));
+    eval.RegisterBuiltInFunction("impz",        OmlImpz,       FunctionMetaData(-3, 2, SIGN));
+    eval.RegisterBuiltInFunction("fir1",        OmlFir1,       FunctionMetaData(-3, 1, SIGN));
+    eval.RegisterBuiltInFunction("firls",       OmlFirls,      FunctionMetaData(-4, 1, SIGN));
+    eval.RegisterBuiltInFunction("besself",     OmlBesself,    FunctionMetaData(-3, 2, SIGN));
+    eval.RegisterBuiltInFunction("besself3",    OmlBesself3,   FunctionMetaData(-3, 2, SIGN));
+    eval.RegisterBuiltInFunction("butter",      OmlButter,     FunctionMetaData(-3, 2, SIGN));
+    eval.RegisterBuiltInFunction("cheby1",      OmlCheby1,     FunctionMetaData(-4, 2, SIGN));
+    eval.RegisterBuiltInFunction("cheby2",      OmlCheby2,     FunctionMetaData(-4, 2, SIGN));
+    eval.RegisterBuiltInFunction("ellip",       OmlEllip,      FunctionMetaData(-5, 2, SIGN));
+    eval.RegisterBuiltInFunction("buttord",     OmlButtord,    FunctionMetaData(-5, 2, SIGN));
+    eval.RegisterBuiltInFunction("cheb1ord",    OmlCheb1ord,   FunctionMetaData(-5, 2, SIGN));
+    eval.RegisterBuiltInFunction("cheb2ord",    OmlCheb2ord,   FunctionMetaData(-5, 2, SIGN));
+    eval.RegisterBuiltInFunction("ellipord",    OmlEllipord,   FunctionMetaData(-5, 2, SIGN));
+    eval.RegisterBuiltInFunction("blackman",    OmlBlackman,   FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("barthannwin", OmlBartHann,   FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("hann",        OmlHann,       FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("hamming",     OmlHamming,    FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("parzenwin",   OmlParzenwin,  FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("welchwin",    OmlWelchwin,   FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("chebwin",     OmlChebwin,    FunctionMetaData(-3, 1, SIGN));
+    eval.RegisterBuiltInFunction("kaiser",      OmlKaiser,     FunctionMetaData(-3, 1, SIGN));
+    eval.RegisterBuiltInFunction("filter",      OmlFilter,     FunctionMetaData(-4, 1, SIGN));
+    eval.RegisterBuiltInFunction("filtfilt",    OmlFiltfilt,   FunctionMetaData(3, 1, SIGN));
+    eval.RegisterBuiltInFunction("sinc",        OmlSinc,       FunctionMetaData(1, 1, SIGN));
+    eval.RegisterBuiltInFunction("upsample",    OmlUpsample,   FunctionMetaData(-3, 1, SIGN));
+    eval.RegisterBuiltInFunction("downsample",  OmlDownsample, FunctionMetaData(-3, 1, SIGN));
+    eval.RegisterBuiltInFunction("findpeaks",   OmlFindPeaks,  FunctionMetaData(-2, 3, SIGN));
     
     return 1;
 }
@@ -433,6 +436,146 @@ bool OmlFft2(EvaluatorInterface            eval,
     return true;
 }
 //------------------------------------------------------------------------------
+// Shift FFT related data to center DC component
+//------------------------------------------------------------------------------
+bool OmlFftShift(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+    std::vector<Currency> inputs2;
+    std::vector<Currency> outputs2;
+    std::vector<Currency> sliceArgs;
+
+    if (nargin == 1)
+    {
+        inputs2.push_back(inputs[0]);
+        oml_isvector(eval, inputs2, outputs2);
+
+        if (outputs2[0].Scalar() == 1.0)    // vector case
+        {
+            // get vector length and DC position
+            outputs2.clear();
+            oml_length(eval, inputs2, outputs2);
+            int length = static_cast<int>(outputs2[0].Scalar());
+            outputs2.clear();
+            int dc = static_cast<int>(ceil(length / 2.0));
+
+            // create index vector
+            hwMatrix* index = new hwMatrix(length, hwMatrix::REAL);
+
+            for (int i = 0; i < length - dc; ++i)
+                (*index)(i) = i + dc + 1;
+
+            for (int i = length - dc; i < length; ++i)
+                (*index)(i) = i - (length - dc) + 1;
+
+            // create slice arguments
+            sliceArgs.push_back(index);
+        }
+        else
+        {
+            // get matrix dimension info
+            outputs2.clear();
+            oml_ndims(eval, inputs2, outputs2);
+            int numDims = static_cast<int> (outputs2[0].Scalar());
+            outputs2.clear();
+
+            outputs2 = eval.DoMultiReturnFunctionCall(oml_size, inputs2, 1, 1, true);
+            Currency lengths = outputs2[0];
+
+            // get DC positions
+            hwMatrix* length_vec = lengths.GetWritableMatrix();
+            hwMatrix* halfLen = new hwMatrix(1, numDims, hwMatrix::REAL);
+            (*halfLen) = (*length_vec) / 2.0;
+
+            inputs2.clear();
+            inputs2.push_back(halfLen);
+            outputs2.clear();
+            oml_ceil(eval, inputs2, outputs2);
+            hwMatrix* dc_vec = outputs2[0].GetWritableMatrix();
+
+            // create index vectors and slice arguments
+            for (int i = 0; i < numDims; ++i)
+            {
+                int dc = static_cast<int> ((*dc_vec)(i));
+                int length = static_cast<int> ((*length_vec)(i));
+                hwMatrix* index = new hwMatrix(length, hwMatrix::REAL);
+
+                for (int j = 0; j < length - dc; ++j)
+                    (*index)(j) = j + dc + 1;
+
+                for (int j = length - dc; j < length; ++j)
+                    (*index)(j) = j - (length - dc) + 1;
+
+                sliceArgs.push_back(index);
+            }
+        }
+    }
+    else if (nargin == 2)
+    {
+        // get matrix dimension info
+        inputs2.push_back(inputs[0]);
+        oml_ndims(eval, inputs2, outputs2);
+        int numDims = static_cast<int> (outputs2[0].Scalar());
+        outputs2.clear();
+
+        outputs2 = eval.DoMultiReturnFunctionCall(oml_size, inputs2, 1, 1, true);
+        Currency dims = outputs2[0];
+        outputs2.clear();
+
+        // get dimension of interest
+        if (!inputs[1].IsPositiveInteger())
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_DIM);
+        }
+
+        int dim = static_cast<int> (inputs[1].Scalar());
+
+        if (dim < 1)
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_DIM);
+        }
+
+        if (dim > numDims)
+        {
+            outputs.push_back(inputs[0]);
+            return true;
+        }
+
+        // get dimension length and DC position
+        int length = static_cast<int>((*dims.Matrix())(dim - 1));
+        int dc = static_cast<int>(ceil(length / 2.0));
+
+        // create index vector
+        hwMatrix* index = new hwMatrix(length, hwMatrix::REAL);
+
+        for (int i = 0; i < length - dc; ++i)
+            (*index)(i) = i + dc + 1;
+
+        for (int i = length - dc; i < length; ++i)
+            (*index)(i) = i - (length - dc) + 1;
+
+        // create slice arguments
+        for (int i = 0; i < dim - 1; ++i)
+            sliceArgs.push_back(Currency(0.0, Currency::TYPE_COLON));
+
+        sliceArgs.push_back(index);
+
+        for (int i = dim; i < numDims; ++i)
+            sliceArgs.push_back(Currency(0.0, Currency::TYPE_COLON));
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    // re-index
+    outputs.push_back(eval.VariableIndex(inputs[0], sliceArgs));
+
+    return true;
+}
+//------------------------------------------------------------------------------
 // Generates a vector of frequency locations
 //------------------------------------------------------------------------------
 bool OmlFreq(EvaluatorInterface           eval, 
@@ -443,6 +586,21 @@ bool OmlFreq(EvaluatorInterface           eval,
     std::unique_ptr<hwMatrix> output(EvaluatorInterface::allocateMatrix());
     hwMathStatus status;
 
+    if (nargin < 1 || nargin > 4)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    std::string option;
+
+    if (inputs.back().IsString())
+    {
+        option = inputs.back().StringVal();
+        --nargin;
+    }
+    else
+    {
+        option = "twosided";
+    }
+
     if (nargin == 1)
     {
         if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
@@ -451,7 +609,7 @@ bool OmlFreq(EvaluatorInterface           eval,
         }
 
         const hwMatrix* time = inputs[0].ConvertToMatrix();
-        status               = Freq(*time, *output);
+        status               = Freq(*time, *output, option.c_str());
     }
     else if (nargin == 2)
     {
@@ -466,7 +624,7 @@ bool OmlFreq(EvaluatorInterface           eval,
 
         int    numPnts  = static_cast<int>(inputs[0].Scalar());
         double sampFreq = inputs[1].Scalar();
-        status          = Freq(numPnts, sampFreq, *output);
+        status          = Freq(numPnts, sampFreq, *output, option.c_str());
     }
     else
     {
@@ -896,7 +1054,7 @@ bool OmlPwelch(EvaluatorInterface           eval,
     {
         std::vector<Currency> plotInput;
 		std::unique_ptr<hwMatrix> freqresult(EvaluatorInterface::allocateMatrix());
-		status = Freq(fftSize, sampFreq, *freqresult);
+		status = Freq(fftSize, sampFreq, *freqresult, "twosided");
 		BuiltInFuncsUtils::CheckMathStatus(eval, status);
 
 	    if (onesided)
@@ -985,7 +1143,7 @@ bool OmlPwelch(EvaluatorInterface           eval,
     if (nargout > 1)
     {
         std::unique_ptr<hwMatrix> freqresult(EvaluatorInterface::allocateMatrix());
-        status = Freq(fftSize, sampFreq, *freqresult);
+        status = Freq(fftSize, sampFreq, *freqresult, "twosided");
 	    BuiltInFuncsUtils::CheckMathStatus(eval, status);
 
         if (onesided)
@@ -1201,7 +1359,7 @@ bool OmlCpsd(EvaluatorInterface           eval,
     {
         std::vector<Currency> plotInput;
 		std::unique_ptr<hwMatrix> freqresult(EvaluatorInterface::allocateMatrix());
-		status = Freq(fftSize, sampFreq, *freqresult);
+		status = Freq(fftSize, sampFreq, *freqresult, "twosided");
 		BuiltInFuncsUtils::CheckMathStatus(eval, status);
 
 	    if (onesided)
@@ -1242,7 +1400,7 @@ bool OmlCpsd(EvaluatorInterface           eval,
     if (nargout > 1)
     {
         std::unique_ptr<hwMatrix> freqresult(EvaluatorInterface::allocateMatrix());
-        hwMathStatus status = Freq(fftSize, sampFreq, *freqresult);
+        hwMathStatus status = Freq(fftSize, sampFreq, *freqresult, "twosided");
 	    BuiltInFuncsUtils::CheckMathStatus(eval, status);
 
         if (onesided)
@@ -1384,7 +1542,7 @@ bool OmlMScohere(EvaluatorInterface           eval,
 	return true;
 }
 //------------------------------------------------------------------------------
-// Computes cross power spectral density [cpsd command]
+// Computes digital filter frequency response values [freqz command]
 //------------------------------------------------------------------------------
 bool OmlFreqz(EvaluatorInterface           eval, 
               const std::vector<Currency>& inputs, 
@@ -2257,6 +2415,57 @@ bool OmlFir1(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
+// Creates a digital FIR filter [firls command]
+//------------------------------------------------------------------------------
+bool OmlFirls(EvaluatorInterface           eval,
+              const std::vector<Currency>& inputs,
+              std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+    if (nargin < 3 || nargin > 4)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    const Currency& cur1 = inputs[0];
+    if (!cur1.IsInteger()) // Process arg 1 - filter order
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 1);
+    }
+    int order = static_cast<int>(cur1.Scalar());
+
+    const Currency cur2 = inputs[1];
+    if (!cur2.IsScalar() && !cur2.IsMatrix())
+    {
+        throw OML_Error(OML_ERR_REALVECTOR, 2, OML_VAR_TYPE);
+    }
+    const hwMatrix* freq = cur2.Matrix();
+
+    const Currency cur3 = inputs[2];
+    if (!cur3.IsScalar() && !cur3.IsMatrix())
+    {
+        throw OML_Error(OML_ERR_REALVECTOR, 3, OML_VAR_TYPE);
+    }
+    const hwMatrix* mag = cur3.Matrix();
+
+    const hwMatrix* weight = nullptr;
+    if (nargin == 4)
+    {
+        const Currency cur4 = inputs[3];
+        if (!cur4.IsScalar() && !cur4.IsMatrix())
+        {
+            throw OML_Error(OML_ERR_REALVECTOR, 4, OML_VAR_TYPE);
+        }
+        weight = cur4.Matrix();
+    }
+
+    std::unique_ptr<hwMatrix> filterCoef(EvaluatorInterface::allocateMatrix());
+    BuiltInFuncsUtils::CheckMathStatus(eval, FirLS(order, *freq, *mag, weight, *filterCoef));
+    outputs.push_back(filterCoef.release());
+
+    return true;
+}
+//------------------------------------------------------------------------------
 // Create a Butterworth filter [butter command]
 //------------------------------------------------------------------------------
 bool OmlButter(EvaluatorInterface           eval, 
@@ -2269,14 +2478,14 @@ bool OmlButter(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
-    Currency cur1 = inputs[0];
+    const Currency& cur1 = inputs[0];
     if (!cur1.IsPositiveInteger()) // Process arg 1 - filter order
     {
         throw OML_Error(OML_ERR_POSINTEGER, 1);
     }
     int order = static_cast<int>(cur1.Scalar());
 
-    Currency cur2 = inputs[1];
+    const Currency& cur2 = inputs[1];
     if (!cur2.IsScalar() && !cur2.IsMatrix())
     {
         throw OML_Error(OML_ERR_REAL, 2, OML_VAR_TYPE);
@@ -2557,14 +2766,14 @@ bool OmlBesself(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
-    Currency cur1 = inputs[0];
+    const Currency& cur1 = inputs[0];
     if (!cur1.IsPositiveInteger()) // Process arg 1 - filter order
     {
         throw OML_Error(OML_ERR_POSINTEGER, 1);
     }
     int order = static_cast<int>(cur1.Scalar());
 
-    Currency cur2 = inputs[1];
+    const Currency& cur2 = inputs[1];
     if (!cur2.IsScalar() && !cur2.IsMatrix())
     {
         throw OML_Error(OML_ERR_REAL, 2, OML_VAR_TYPE);
@@ -2845,14 +3054,14 @@ bool OmlBesself3(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
-    Currency cur1 = inputs[0];
+    const Currency& cur1 = inputs[0];
     if (!cur1.IsPositiveInteger()) // Process arg 1 - filter order
     {
         throw OML_Error(OML_ERR_POSINTEGER, 1);
     }
     int order = static_cast<int>(cur1.Scalar());
 
-    Currency cur2 = inputs[1];
+    const Currency& cur2 = inputs[1];
     if (!cur2.IsScalar() && !cur2.IsMatrix())
     {
         throw OML_Error(OML_ERR_REAL, 2, OML_VAR_TYPE);
@@ -4475,6 +4684,49 @@ bool OmlBlackman(EvaluatorInterface           eval,
         EvaluatorInterface::allocateMatrix(n, 1, hwMatrix::REAL));
 
     hwMathStatus mstat = BlackmanWin(*window, winType.c_str());
+    BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
+
+    outputs.push_back(window.release());
+    return true;
+}
+//------------------------------------------------------------------------------
+// Returns Bartlett-Hann window coefficients [barthann command]
+//------------------------------------------------------------------------------
+bool OmlBartHann(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+    if (nargin < 1 || nargin > 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsPositiveInteger())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 1);
+    }
+    int n = static_cast<int>(inputs[0].Scalar());
+
+    std::string winType("symmetric");
+    if (nargin > 1)
+    {
+        if (!inputs[1].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, 2);
+        }
+
+        winType = inputs[1].StringVal();
+    }
+    if (winType != "symmetric" && winType != "periodic")
+    {
+        throw OML_Error(OML_ERR_OPTIONVAL, 2, OML_VAR_STRING);
+    }
+
+    std::unique_ptr<hwMatrix> window(
+        EvaluatorInterface::allocateMatrix(n, 1, hwMatrix::REAL));
+
+    hwMathStatus mstat = BartHannWin(*window, winType.c_str());
     BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
 
     outputs.push_back(window.release());

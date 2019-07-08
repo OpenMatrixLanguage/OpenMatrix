@@ -4,6 +4,7 @@ echo Run toolbox tests
 call :run_test omlCAE
 call :run_test omlCalculus
 call :run_test omlDiffEq
+call :run_test omlGeometry
 call :run_test omlMathUtils
 call :run_test omlMatio
 call :run_test omlOptimization

@@ -29,9 +29,7 @@ t =
     [1,2] BB
   }
 }
-nm = struct [
-
-]
+nm = struct [ ]
 sp = 
 {
   [1,1] 

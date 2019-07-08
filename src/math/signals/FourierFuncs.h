@@ -55,16 +55,18 @@ SIGNALS_DECLS hwMathStatus SampleFreq(const hwMatrix& time,
 //! \param sampFreq Sampling frequency
 //! \param freq     Frequency vector
 //!
-SIGNALS_DECLS hwMathStatus Freq(int       numPnts, 
-                                double    sampFreq, 
-                                hwMatrix& freq);
+SIGNALS_DECLS hwMathStatus Freq(int         numPnts, 
+                                double      sampFreq, 
+                                hwMatrix&   freq,
+                                const char* option);
 //!
 //! Create a frequency vector from a time vector  
 //! \param time Time vector
 //! \param freq Frequency vector
 //!
 SIGNALS_DECLS hwMathStatus Freq(const hwMatrix& time, 
-                                hwMatrix&       freq);
+                                hwMatrix&       freq,
+                                const char*     option);
 //!
 //! Create a 1-sided response vector by folding a 2-sided magnitude response vector  
 //! \param mag_twosided 2-sided magnitude response vector

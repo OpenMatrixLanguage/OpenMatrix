@@ -1,1 +1,4 @@
-Error: incompatible dimensions at line number 1 in file complexOpsFAIL4.oml
+ans = [Matrix] 3 x 3
+ 0 + 15i  -27 - 12i   0 + 24i
+ 0 + 20i  -36 - 16i   0 + 32i
+20 + 30i  -70 + 12i  32 + 48i

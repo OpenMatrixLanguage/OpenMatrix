@@ -1,0 +1,7 @@
+﻿nameAndLabels = {'a','b';'c','def'}
+i=1
+[name,label] = nameAndLabels{i,1:2}
+
+nameAndLabels = {'a';'b';'c';'def'}
+i=1
+[name,label] = nameAndLabels{1:2,i}

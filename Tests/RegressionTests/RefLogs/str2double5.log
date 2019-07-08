@@ -1,3 +1,1 @@
-num = [Matrix] 1 x 3
-3  3  4
-status = 1
+ans = NaN

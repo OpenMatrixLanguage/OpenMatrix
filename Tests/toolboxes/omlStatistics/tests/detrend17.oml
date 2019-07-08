@@ -1,0 +1,2 @@
+addToolbox omlStatistics
+detrend(5,[1 5 8; 2 6 9; 3 7 10])

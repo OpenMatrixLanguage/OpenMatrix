@@ -1,0 +1,4 @@
+hour('10-Apr-2019')
+hour('10-Apr-2019 5:30:45','dd-mmm-yyyy HH:MM:SS')
+hour('5:30:45', 'HH:MM:SS')
+hour('5:30:45 AM', 'HH:MM:SS PM')

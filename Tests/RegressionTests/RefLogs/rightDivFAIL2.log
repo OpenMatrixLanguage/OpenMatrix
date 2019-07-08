@@ -1,1 +1,3 @@
-Error: incompatible dimensions at line number 1 in file rightDivFAIL2.oml
+ans = [Matrix] 2 x 2
+0.14286  1.50000
+0.20000  1.50000

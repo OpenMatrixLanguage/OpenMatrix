@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsFile.cpp
 * @date March 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -32,6 +32,7 @@
 #    include <WinBase.h>
 #else
 #    include <ctype.h>
+#    include <sys/stat.h>
 #endif
 
 #include "BuiltInFuncsUtils.h"
@@ -69,20 +70,18 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
     }
     else
     {
-        throw OML_Error(OML_ERR_STRING_FILESTREAM, 1, OML_VAR_TYPE);
+        throw OML_Error(OML_ERR_STRING_FILESTREAM, 1);
     }
 
     if (!BuiltInFuncsUtils::FileExists(filename)) 
     {
-        throw OML_Error(
-            "Error: Cannot find file: " + BuiltInFuncsUtils::Normpath(filename));
+		throw OML_Error(OML_ERR_FILE_NOTFOUND, 1);
     }
 
      std::FILE* f = fopen(filename.c_str(), "r");
      if (!f)
      {
-         throw OML_Error("Error: Cannot open file: " + 
-             BuiltInFuncsUtils::Normpath(filename));
+		 throw OML_Error(OML_ERR_FILE_CANNOTOPEN, 1);
      }
 
     // Get input options - which are the second arguments if specified
@@ -139,8 +138,7 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
             {
                 if (!(cval.IsPositiveInteger() || (cval.IsScalar() && cval.Scalar() == 0)))
                 {
-                    throw OML_Error(OML_ERR_NATURALNUM, static_cast<int>(index + 1), 
-                                    OML_VAR_TYPE);
+                    throw OML_Error(OML_ERR_NATURALNUM, static_cast<int>(index + 1));
                 }
                 numheaderlines = static_cast<int>(cval.Scalar());
             }
@@ -149,7 +147,7 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
                 if (!cval.IsString()) 
                 {
                     throw OML_Error(
-                        OML_ERR_STRING, static_cast<int>(index + 1), OML_VAR_TYPE);
+                        OML_ERR_STRING, static_cast<int>(index + 1));
                 }
                 delims = cval.StringVal();
             }
@@ -406,7 +404,9 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
             tok = strtok(NULL, tmpdelims.c_str());
             column++;
             if (column >= numformats)
-                column = 0;            
+            {
+                column = 0;
+            }
         }
         linenum++;
     }
@@ -421,9 +421,7 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
         {
             return true;
         }        
-        std::string err = "; format(s) cannot be applied to [" +
-            BuiltInFuncsUtils::Normpath(filename) + "]";
-        throw OML_Error(OML_MSG_FORMAT + err);
+        throw OML_Error(OML_ERR_FORMAT);
     }
       
     return true;
@@ -960,10 +958,11 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
     bool isString = inputs[0].IsString();
     if (!isString && !inputs[0].IsPositiveInteger())
     {
-        throw OML_Error(OML_ERR_STRING_FILESTREAM, 1, OML_VAR_TYPE);
+        throw OML_Error(OML_ERR_STRING_FILESTREAM, 1);
     }
     std::string textstr = (isString) ? inputs[0].StringVal() : "";
     
+    int numFormatApplied = 0;
     int fileid = -1;
     std::FILE*        f = nullptr;
     BuiltInFuncsUtils utils;
@@ -979,34 +978,68 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
             {
                 eval.CloseFile(fileid);
             }
-            std::string filename (eval.GetFileName(fileid));
-            throw OML_Error("Error: Cannot open file: " + 
-                            BuiltInFuncsUtils::Normpath(filename));
+            throw OML_Error(OML_ERR_FILE_CANNOTOPEN, 1);
         }
     }
 
-    try
+    // Get input options - which are the second arguments if specified
+    // They could be format options specified as '%d %s', 'headerlines' or 'delimiters'
+    std::vector<std::string> basefmts;
+    std::vector<std::string> rawfmts;
+    std::vector<bool>        usefmts;
+    int         numheaderlines = 0;
+    int         repeat         = -1;
+    size_t      index          = 1;
+    bool        hasRepeat      = false;
+    bool        returnOnError  = true;
+    std::string delims;
+    size_t      numargin = inputs.size();
+
+    if (numargin > 1)
     {
-
-        // Get input options - which are the second arguments if specified
-        // They could be format options specified as '%d %s', 'headerlines' or 'delimiters'
-        std::vector<std::string> basefmts;
-        std::vector<std::string> rawfmts;
-        std::vector<bool>        usefmts;
-        int         numheaderlines = 0;
-        int         repeat         = -1;
-        size_t      index          = 1;
-        bool        hasRepeat      = false;
-        bool        returnOnError  = true;
-        std::string delims;
-        size_t      numargin = inputs.size();
-
-        if (numargin > 1)
+        const Currency& in2 = inputs[1];
+        if (in2.IsInteger())  // Format is not specified, this is repeat param
         {
-            const Currency& in2 = inputs[1];
-            if (in2.IsInteger())  // Format is not specified, this is repeat param
+            repeat = static_cast<int>(in2.Scalar());
+            if (repeat < 0 && repeat != -1)
             {
-                repeat = static_cast<int>(in2.Scalar());
+                std::string msg ("Error: invalid option specified in argument 1");
+                msg += " for repeat parameter; valid options are -1, 0 or ";
+                msg += " positive integers.";
+                throw OML_Error(msg);
+            }
+            index ++;
+            hasRepeat = true;
+        }
+        else if (!in2.IsString()) 
+        {
+            throw OML_Error(OML_ERR_STRING, 2);
+        }
+        else
+        {
+            std::string in2val (in2.StringVal());  // Specifies format
+            std::string err;
+            if (in2val.find("%") != std::string::npos)
+            {
+                bool valid = utils.GetFormats(in2val, basefmts, rawfmts, usefmts, err);
+                if (!valid)
+                {
+                    if (err.empty())
+                    {
+                        err = "Error: invalid format specified";
+                    }
+                    throw OML_Error(err + " in argument 2");
+                }
+                index ++;
+            }
+        }
+    
+        for (; index < numargin; ++index)
+        {
+            const Currency& c = inputs[index];
+            if (index == 2 && c.IsInteger() && !hasRepeat)
+            {
+                repeat = static_cast<int>(c.Scalar());
                 if (repeat < 0 && repeat != -1)
                 {
                     std::string msg ("Error: invalid option specified in argument 1");
@@ -1014,694 +1047,367 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
                     msg += " positive integers.";
                     throw OML_Error(msg);
                 }
-                index ++;
-                hasRepeat = true;
+                continue;
             }
-            else if (!in2.IsString()) 
+            std::string val = c.IsString() ? c.StringVal() : "";
+            if (val.empty())
             {
-                throw OML_Error(OML_ERR_STRING, 2, OML_VAR_TYPE);
+                throw OML_Error(OML_ERR_OPTION, static_cast<int>(index + 1));
+            }
+            if (index + 1 >= numargin) 
+            {
+                throw OML_Error(OML_ERR_NUMARGIN);
+            }
+
+            int      cIdx = static_cast<int>(index + 1);  // Get the value
+            const Currency& cval = inputs[cIdx];
+
+            std::transform(val.begin(), val.end(), val.begin(), ::tolower);
+            if (val == "headerlines")
+            {
+                if (!(cval.IsPositiveInteger() || (cval.IsScalar() && cval.Scalar() == 0)))
+                {
+                    throw OML_Error(OML_ERR_NATURALNUM, cIdx + 1);
+                }
+                numheaderlines = static_cast<int>(cval.Scalar());
+            }
+            else if (val == "delimiter")
+            {
+                if (!cval.IsString()) 
+                {
+                    throw OML_Error(OML_ERR_STRING, cIdx + 1);
+                }
+                delims = cval.StringVal();
+            }
+            else if (val == "returnonerror")
+            {
+                if (!cval.IsLogical() && !cval.IsInteger())  
+                {
+                    throw OML_Error(OML_ERR_LOGICAL, cIdx + 1);
+                }
+                int tmp = static_cast<int>(cval.Scalar());
+                if (tmp != 0 && tmp != 1)
+                {
+                    throw OML_Error(OML_ERR_FLAG_01, cIdx + 1);
+                }
+                returnOnError = (tmp == 0) ? false : true;
             }
             else
             {
-                std::string in2val (in2.StringVal());  // Specifies format
-                std::string err;
-                if (in2val.find("%") != std::string::npos)
-                {
-                    bool valid = utils.GetFormats(in2val, basefmts, rawfmts, usefmts, err);
-                    if (!valid)
-                    {
-                        if (err.empty())
-                        {
-                            err = "Error: invalid format specified";
-                        }
-                        throw OML_Error(err + " in argument 2");
-                    }
-                    index ++;
-                }
+                throw OML_Error(OML_ERR_OPTION, static_cast<int>(index + 1));
             }
+            index = cIdx;
+        }
+    }
+
+    if (basefmts.empty())
+    {
+        basefmts.push_back("%f");
+        rawfmts.push_back("%lf");  // Default option
+        usefmts.push_back(true);
+    }
+    assert(basefmts.size() == rawfmts.size());
+    assert(basefmts.size() == usefmts.size());
+    int numformats = static_cast<int>(basefmts.size());
+
+    bool newlinedelim = false;
+    if (!delims.empty())
+    {
+        size_t pos = delims.find("\\t");
+        if (pos != std::string::npos)
+        {
+            delims.replace(pos, 2, "\t");
+        }
+
+        pos = delims.find("\\n");
+        if (pos != std::string::npos)
+        {
+            if (delims == "\\n")
+            {
+                newlinedelim = true;
+            }
+            else
+            {
+                std::string tmp = delims.substr(0, pos);
+                tmp += delims.substr(pos + 2);
+                delims = tmp;
+            }
+        }
+        pos = delims.find("\\r");
+        if (pos != std::string::npos)
+        {
+            if (delims == "\\r")
+            {
+                newlinedelim = true;
+            }
+            else
+            {
+                std::string tmp = delims.substr(0, pos);
+                tmp += delims.substr(pos + 2);
+                delims = tmp;
+            }
+        }
+    }
+
+    bool excludenewline = false;
+    if (numformats == 1)
+    {
+        std::string tmp (rawfmts[0]);
+        if (tmp == "[^\\n]" || tmp == "[^\\n\\r]" || tmp == "[^\\r]")
+        {
+            excludenewline = true;
+        }
+    }
+
+    if (delims.empty())
+    {
+        delims = " ";
+    }
+    int numcols =0;
+    for (int i = 0; i < numformats; ++i)
+    {
+        if (usefmts[i])
+        {
+            numcols++;
+        }
+    }
+
+    // Set the output cell elements with the correct type
+    std::unique_ptr<HML_CELLARRAY> cell (EvaluatorInterface::allocateCellArray(
+                                            1, numcols));
+    for (int i = 0, m = 0; i < numformats && m < numcols; ++i)
+    {
+        if (!usefmts[i])
+        {
+            continue;
+        }
+        std::string fmt (basefmts[i]);
+        if (fmt == "%s" || fmt == "%c" || fmt == "custom")
+        {
+            (*cell)(m) = EvaluatorInterface::allocateCellArray();
+        }
+        else
+        {
+            (*cell)(m) = EvaluatorInterface::allocateMatrix();
+        }
+        ++m;
+    }
+
+    if (repeat == 0)   // No data is read
+    {
+        outputs.push_back(cell.release());  
+        return true;
+    }
     
-            for (; index < numargin; ++index)
+    // Read the data
+    bool quitLoop = false;
+    int  linenum  = 0;   
+    char lineC [2048];
+
+    bool resetcol = true;
+    int   cellcol       = 0;
+    int   column        = 0;
+
+    while (!quitLoop && !eval.IsInterrupt())
+    {
+        std::string line;
+        if (!f)
+        {
+            line     = textstr;
+            quitLoop = true;  // Don't need to loop through if text is processed
+        }
+        else                  // Reading file
+        {
+            memset(lineC, 0, sizeof(lineC));
+            if (fgets(lineC, sizeof(lineC), f) == nullptr)
             {
-                const Currency& c = inputs[index];
-                if (index == 2 && c.IsInteger() && !hasRepeat)
-                {
-                    repeat = static_cast<int>(c.Scalar());
-                    if (repeat < 0 && repeat != -1)
-                    {
-                        std::string msg ("Error: invalid option specified in argument 1");
-                        msg += " for repeat parameter; valid options are -1, 0 or ";
-                        msg += " positive integers.";
-                        throw OML_Error(msg);
-                    }
-                    continue;
-                }
-                std::string val = c.IsString() ? c.StringVal() : "";
-                if (val.empty())
-                {
-                    throw OML_Error(OML_ERR_OPTION, static_cast<int>(index + 1));
-                }
-                if (index + 1 >= numargin) 
-                {
-                    throw OML_Error(OML_ERR_NUMARGIN);
-                }
+                break;
+            }
+            line = lineC;
+        }
 
-                int      cIdx = static_cast<int>(index + 1);  // Get the value
-                const Currency& cval = inputs[cIdx];
+		if (linenum < numheaderlines || line.empty())
+        {
+			linenum++;  // Skip the header/empty lines
+            if (quitLoop)
+            {
+                break;
+            }
+			continue; 
+		}
 
-                std::transform(val.begin(), val.end(), val.begin(), ::tolower);
-                if (val == "headerlines")
+        if (f)
+        {
+            if (!strstr(lineC, "\n") && !strstr(lineC, "\r"))
+            {
+                while(1)
                 {
-                    if (!(cval.IsPositiveInteger() || (cval.IsScalar() && cval.Scalar() == 0)))
+                    memset(lineC, 0, sizeof(lineC));
+                    if (fgets(lineC, sizeof(lineC), f) == nullptr)
                     {
-                        throw OML_Error(OML_ERR_NATURALNUM, cIdx + 1, OML_VAR_TYPE);
+                        break;
                     }
-                    numheaderlines = static_cast<int>(cval.Scalar());
+                    line += lineC;
+                    if (strstr(lineC, "\n") || strstr(lineC, "\r"))
+                    {
+                        break;
+                    }
                 }
-                else if (val == "delimiter")
+            }
+        }
+
+        if (line[line.size() - 1] == '\n')
+        {
+            line.pop_back();
+        }
+
+        if (!line.empty() && line[line.size() - 1] == '\r')
+        {
+            line.pop_back();
+        }
+
+        if (line.empty())
+        {
+            linenum++;
+            if (quitLoop)
+            {
+                break;
+            }
+            continue;
+        }
+
+        if (excludenewline || (newlinedelim && basefmts[0] == "%s"))
+        {
+            if (usefmts[0])
+            {
+                int m = 0;
+                if ((*cell)(0).CellArray()->Size() == 0)
                 {
-                    if (!cval.IsString()) 
-                    {
-                        throw OML_Error(OML_ERR_STRING, cIdx + 1, OML_VAR_TYPE);
-                    }
-                    delims = cval.StringVal();
-                }
-                else if (val == "returnonerror")
-                {
-                    if (!cval.IsLogical() && !cval.IsInteger())  
-                    {
-                        throw OML_Error(OML_ERR_LOGICAL, cIdx + 1, OML_VAR_TYPE);
-                    }
-                    int tmp = static_cast<int>(cval.Scalar());
-                    if (tmp != 0 && tmp != 1)
-                    {
-                        throw OML_Error(OML_ERR_FLAG_01, cIdx + 1, OML_VAR_VALUE);
-                    }
-                    returnOnError = (tmp == 0) ? false : true;
+                    (*cell)(0) = EvaluatorInterface::allocateCellArray(1, 1);
                 }
                 else
                 {
-                    throw OML_Error(OML_ERR_OPTION, static_cast<int>(index + 1));
+                    m = (*cell)(0).CellArray()->M();
+                    utils.CheckMathStatus(eval, 
+                        (*cell)(0).CellArray()->Resize(m + 1, 1));
                 }
-                index = cIdx;
+                (*(*cell)(0).CellArray())(m, 0) = line;
             }
+            linenum++;
+            if (quitLoop)
+            {
+                break;
+            }
+            continue;
         }
 
-        if (basefmts.empty())
+        // Start of a new line
+        if (column >= numformats)
         {
-            basefmts.push_back("%f");
-            rawfmts.push_back("%lf");  // Default option
-            usefmts.push_back(true);
-        }
-        assert(basefmts.size() == rawfmts.size());
-        assert(basefmts.size() == usefmts.size());
-        int numformats = static_cast<int>(basefmts.size());
-
-        bool newlinedelim = false;
-        if (!delims.empty())
-        {
-            size_t pos = delims.find("\\t");
-            if (pos != std::string::npos)
+            numFormatApplied++;
+            if (repeat > 0 && numFormatApplied >= repeat)
             {
-                delims.replace(pos, 2, "\t");
-            }
-
-            pos = delims.find("\\n");
-            if (pos != std::string::npos)
-            {
-                if (delims == "\\n")
-                {
-                    newlinedelim = true;
-                }
-                else
-                {
-                    std::string tmp = delims.substr(0, pos);
-                    tmp += delims.substr(pos + 2);
-                    delims = tmp;
-                }
-            }
-            pos = delims.find("\\r");
-            if (pos != std::string::npos)
-            {
-                if (delims == "\\r")
-                {
-                    newlinedelim = true;
-                }
-                else
-                {
-                    std::string tmp = delims.substr(0, pos);
-                    tmp += delims.substr(pos + 2);
-                    delims = tmp;
-                }
+                quitLoop = true;
+                break;
             }
         }
-
-        bool excludenewline = false;
-        if (numformats == 1)
+        if (resetcol || column >= numformats || cellcol >= numcols)
         {
-            std::string tmp (rawfmts[0]);
-            if (tmp == "[^\\n]" || tmp == "[^\\n\\r]" || tmp == "[^\\r]")
-            {
-                excludenewline = true;
-            }
+            cellcol       = 0;
+            column        = 0;
         }
-
-        if (delims.empty())
+        else
         {
-            delims = " ";
+            resetcol = true;
         }
-        int numcols =0;
-        for (int i = 0; i < numformats; ++i)
+        int   columnWithErr = -1;
+        char* tok    = strtok((char *)line.c_str(), delims.c_str());
+        std::string strToProcess;
+
+        while (tok || !strToProcess.empty())
         {
-            if (usefmts[i])
+            std::string data = (strToProcess.empty()) ? tok : strToProcess;
+            if (data.empty())
             {
-                numcols++;
-            }
-        }
-
-        // Set the output cell elements with the correct type
-        std::unique_ptr<HML_CELLARRAY> cell (EvaluatorInterface::allocateCellArray(
-                                             1, numcols));
-        for (int i = 0, m = 0; i < numformats && m < numcols; ++i)
-        {
-            if (!usefmts[i])
-            {
-                continue;
-            }
-            std::string fmt (basefmts[i]);
-            if (fmt == "%s" || fmt == "%c" || fmt == "custom")
-            {
-                (*cell)(m) = EvaluatorInterface::allocateCellArray();
-            }
-            else
-            {
-                (*cell)(m) = EvaluatorInterface::allocateMatrix();
-            }
-            ++m;
-        }
-
-        if (repeat == 0)   // No data is read
-        {
-            outputs.push_back(cell.release());  
-            return true;
-        }
-    
-        // Read the data
-        bool quitLoop = false;
-        int  linenum  = 0;   
-        char lineC [2048];
-
-        bool resetcol = true;
-        int   cellcol       = 0;
-        int   column        = 0;
-
-        while (!quitLoop && !eval.IsInterrupt())
-        {
-            std::string line;
-            if (!f)
-            {
-                line     = textstr;
-                quitLoop = true;  // Don't need to loop through if text is processed
-            }
-            else                  // Reading file
-            {
-                memset(lineC, 0, sizeof(lineC));
-                if (fgets(lineC, sizeof(lineC), f) == nullptr)
-                {
-                    break;
-                }
-                line = lineC;
+                quitLoop = true;
+                break;
             }
 
-		    if (linenum < numheaderlines || line.empty())
+            if (column >= numformats)
             {
-			    linenum++;  // Skip the header/empty lines
-                if (quitLoop)
-                {
-                    break;
-                }
-			    continue; 
-		    }
-
-            if (f)
-            {
-                if (!strstr(lineC, "\n") && !strstr(lineC, "\r"))
-                {
-                    while(1)
-                    {
-                        memset(lineC, 0, sizeof(lineC));
-                        if (fgets(lineC, sizeof(lineC), f) == nullptr)
-                        {
-                            break;
-                        }
-                        line += lineC;
-                        if (strstr(lineC, "\n") || strstr(lineC, "\r"))
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (line[line.size() - 1] == '\n')
-            {
-                line.pop_back();
-            }
-
-            if (!line.empty() && line[line.size() - 1] == '\r')
-            {
-                line.pop_back();
-            }
-
-            if (line.empty())
-            {
-                linenum++;
-                if (quitLoop)
-                {
-                    break;
-                }
-                continue;
-            }
-
-            if (excludenewline || (newlinedelim && basefmts[0] == "%s"))
-            {
-                if (usefmts[0])
-                {
-                    int m = 0;
-                    if ((*cell)(0).CellArray()->Size() == 0)
-                    {
-                        (*cell)(0) = EvaluatorInterface::allocateCellArray(1, 1);
-                    }
-                    else
-                    {
-                        m = (*cell)(0).CellArray()->M();
-                        utils.CheckMathStatus(eval, 
-                            (*cell)(0).CellArray()->Resize(m + 1, 1));
-                    }
-                    (*(*cell)(0).CellArray())(m, 0) = line;
-                }
-                linenum++;
-                if (quitLoop)
-                {
-                    break;
-                }
-                continue;
-            }
-
-            // Start of a new line
-            if (resetcol || column >= numformats || cellcol >= numcols)
-            {
-                cellcol       = 0;
-                column        = 0;
-            }
-            else
-            {
-                resetcol = true;
-            }
-            int   columnWithErr = -1;
-            char* tok    = strtok((char *)line.c_str(), delims.c_str());
-            std::string strToProcess;
-
-            while (tok || !strToProcess.empty())
-            {
-                std::string data = (strToProcess.empty()) ? tok : strToProcess;
-                if (data.empty())
+                column = 0;
+                numFormatApplied++;
+                if (repeat > 0 && numFormatApplied >= repeat)
                 {
                     quitLoop = true;
                     break;
                 }
+            }
 
-                if (column >= numformats)
+            bool use = usefmts[column];
+            std::string basefmt (basefmts[column]);
+            std::string rawfmt  (rawfmts[column]);
+            std::string origfmt (rawfmt);
+
+            assert(!basefmt.empty());
+            assert(!rawfmt.empty());
+
+            int result = 0;
+            int used   = -1;
+            if (basefmt != "custom")
+            {
+                rawfmt += "%n";  // To give the number of characters still left
+            }
+
+            if (basefmt == "%s")
+            {
+				memset(lineC, 0, sizeof(lineC));
+                result = sscanf(data.c_str(), rawfmt.c_str(), lineC, &used);
+
+                std::string out (lineC);
+                size_t datalen = data.size();
+                size_t numused = (used > 0) ? static_cast<size_t>(used) : 0;
+                if (numused > 0 && numused < datalen &&
+                    (delims.find(" ")  == std::string::npos ||
+                        delims.find("\t") == std::string::npos))
                 {
-                    column = 0;
-                }
-
-                bool use = usefmts[column];
-                std::string basefmt (basefmts[column]);
-                std::string rawfmt  (rawfmts[column]);
-                std::string origfmt (rawfmt);
-
-                assert(!basefmt.empty());
-                assert(!rawfmt.empty());
-
-                int result = 0;
-                int used   = -1;
-                if (basefmt != "custom")
-                {
-                    rawfmt += "%n";  // To give the number of characters still left
-                }
-
-                if (basefmt == "%s")
-                {
-				    memset(lineC, 0, sizeof(lineC));
-                    result = sscanf(data.c_str(), rawfmt.c_str(), lineC, &used);
-
-                    std::string out (lineC);
-                    size_t datalen = data.size();
-                    size_t numused = (used > 0) ? static_cast<size_t>(used) : 0;
-                    if (numused > 0 && numused < datalen &&
-                        (delims.find(" ")  == std::string::npos ||
-                         delims.find("\t") == std::string::npos))
+                    char ch = data[numused - 1];
+                    if (isspace(ch))
                     {
-                        char ch = data[numused - 1];
+                        out += ch;
+                    }
+
+                    // sscanf will split on whitespaces or tabs, which may not be
+                    // in this delimiter list
+                    for (size_t i = numused; i < datalen;)
+                    {
+                        char ch = data[i];
                         if (isspace(ch))
                         {
                             out += ch;
-                        }
-
-                        // sscanf will split on whitespaces or tabs, which may not be
-                        // in this delimiter list
-                        for (size_t i = numused; i < datalen;)
-                        {
-                            char ch = data[i];
-                            if (isspace(ch))
-                            {
-                                out += ch;
-                                ++i;
-                                continue;
-                            }
-                            std::string newstr (data.substr(i));
-                            if (newstr.empty())
-                            {
-                                break;
-                            }
-                            memset(lineC, 0, sizeof(lineC));
-                            int tmp = 0;
-                            int newresult = sscanf(newstr.c_str(), rawfmt.c_str(),
-                                lineC, &tmp);
-                            if (newresult <= 0)
-                            {
-                                break;
-                            }
-                            out += lineC;
-                            i   += strlen(lineC);
-                        }
-                    }
-                    if (result > 0)
-                    {
-                        if (use)
-                        {
-                            int m = 0;
-                            if ((*cell)(cellcol).CellArray()->Size() == 0)
-                            {
-                                (*cell)(cellcol) = EvaluatorInterface::allocateCellArray(1, 1);
-                            }
-                            else
-                            {
-                                m = (*cell)(cellcol).CellArray()->M();
-                                utils.CheckMathStatus(eval,
-                                    (*cell)(cellcol).CellArray()->Resize(m + 1, 1));
-                            }
-                            (*(*cell)(cellcol).CellArray())(m) = out;
-                            cellcol++;
-                        }
-                        used = static_cast<int>(datalen);
-                    }
-                    else
-                    {
-                        columnWithErr = cellcol;
-                    }
-                }
-                else if (basefmt == "%c")
-                {
-                    if (strToProcess.empty())
-                    {
-                        strToProcess = data;
-                    }
-
-                    memset(lineC, 0, sizeof(lineC));
-                    result = sscanf(data.c_str(), rawfmt.c_str(), lineC, &used);
-                
-                    if (result > 0)
-                    {
-                        if (use)
-                        {
-                            int m = 0;
-                            if ((*cell)(cellcol).CellArray()->Size() == 0)
-                            {
-                                (*cell)(cellcol) = EvaluatorInterface::allocateCellArray(1, 1);
-                            }
-                            else
-                            {
-                                m = (*cell)(cellcol).CellArray()->M();
-                                utils.CheckMathStatus(eval,
-                                    (*cell)(cellcol).CellArray()->Resize(m + 1, 1));
-                            }
-                            (*(*cell)(cellcol).CellArray())(m) = std::string(lineC);
-                            cellcol++;
-                        }
-                    }
-                    else
-                    {
-                        columnWithErr = cellcol;
-                    }
-                }
-                else if (basefmt == "custom")
-                {
-                    std::string matchstr;
-                    bool foundregexmatch = false;
-                    bool newlinematch = (rawfmt == "[\\n]" || rawfmt == "[\\r\\n]" || rawfmt == "[\\r]");
-                    if (newlinematch)
-                    {
-                        foundregexmatch = true;
-                    }
-                    else
-                    {
-                        std::regex  re(rawfmt);
-                        std::sregex_iterator next(data.begin(), data.end(), re);
-                        std::sregex_iterator end;
-                        while (next != end)
-                        {
-                            foundregexmatch = true;
-
-                            std::smatch match = *next;
-                            matchstr += match.str();
-                            strToProcess = match.prefix();
-                            strToProcess += match.suffix();
-                            next++;
-                        }
-                    }
-                    
-
-                    if (foundregexmatch)
-                    {
-                        if (use)
-                        {
-                            int m = 0;
-                            if ((*cell)(cellcol).CellArray()->Size() == 0)
-                            {
-                                (*cell)(cellcol) = EvaluatorInterface::allocateCellArray(1, 1);
-                            }
-                            else
-                            {
-                                m = (*cell)(cellcol).CellArray()->M();
-                                utils.CheckMathStatus(eval,
-                                    (*cell)(cellcol).CellArray()->Resize(m + 1, 1));
-                            }
-                            (*(*cell)(cellcol).CellArray())(m) = matchstr;
-                            cellcol++;
-                        }
-
-                        if (newlinematch)
-                        {
-                            strToProcess = data;
-                            if (numformats == 1)
-                            {
-                                tok = strtok(nullptr, delims.c_str());
-                            }
-                            
-                            column++;
-                            if (column >= numformats)  // End of format. Reset column number
-                            {
-                                column = 0;
-                                if (!f)
-                                {
-                                    linenum++;
-                                    if (repeat > 0 && linenum >= repeat)
-                                    {
-                                        quitLoop = true;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (cellcol >= numcols)
-                            {
-                                cellcol = 0;
-                            }
+                            ++i;
                             continue;
                         }
-                    }
-                    else
-                    {
-                        strToProcess += data;
-                        if (numformats == 1)
+                        std::string newstr (data.substr(i));
+                        if (newstr.empty())
                         {
-                            tok = strtok(nullptr, delims.c_str());
-                            if (!tok)
-                            {
-                                // Last line
-                                if (!f)
-                                {
-                                    linenum++;
-                                    if (repeat > 0 && linenum >= repeat)
-                                    {
-                                        quitLoop = true;
-                                        break;
-                                    }
-                                }
-                            }
-                            continue;
-                        }
-                    }
-                }
-                else
-                {
-                    double val = std::numeric_limits<double>::quiet_NaN();
-                    if (basefmt == "%d" || basefmt == "%n")
-                    {
-                        int output = 0;
-                        result = sscanf(data.c_str(), rawfmt.c_str(), &output, &used);
-                        if (result <= 0)
-                        {
-                            columnWithErr = cellcol;
-                        }
-                        else
-                        {                        
-                            val = static_cast<double>(output);
-                            if (origfmt == basefmt && used < static_cast<int>(data.size()))  // Just plain number
-                            {
-                                used = static_cast<int>(data.size());
-                            }
-                        }
-                    }
-                    else // Default is float format
-                    {
-                        std::string tmpfmt (rawfmt);
-                        bool   hasspec = (origfmt.find("%lf") == std::string::npos);
-                        size_t pos     = 0;
-                        if (hasspec)
-                        {
-                            // Additional processing needed
-                            pos = origfmt.find("lf");
-                            if (pos != std::string::npos)
-                            {
-                                tmpfmt = "%";
-                                tmpfmt += origfmt.substr(pos) + "%n";
-                            }
-                            else
-                            {
-                                tmpfmt = "%lf%n";
-                            }
-                        }
-                        result = sscanf(data.c_str(), tmpfmt.c_str(), &val, &used);
-                        columnWithErr = (result <= 0) ? cellcol : -1;
-
-                        if (columnWithErr == -1 && hasspec)
-                        {
-                            // Update the value based on the specifiers
-                            std::string specstr = (pos != std::string::npos) ?
-                                                  origfmt.substr(0, pos) : "";
-                            specstr += "lf";
-                            char tmp[4096];
-                            sprintf(tmp, specstr.c_str(), val);
-                            val = atof(tmp);
-                        }
-                    }
-                    if (columnWithErr != -1)
-                    {
-                        if (!returnOnError)
-                        {
-                            std::string msg ("Error: cannot apply specified format in column ");
-                            msg += std::to_string(static_cast<long long>(columnWithErr));
-                            msg += " of row 1 in the output.";
-                            throw OML_Error(msg);
-                        }
-                        quitLoop = true;
-                        break;
-                    }
-
-                    if (use)
-                    {
-                        if ((*cell)(cellcol).Matrix()->Size() == 0)
-                        {
-                            hwMatrix* mtx = EvaluatorInterface::allocateMatrix(1, 1, val);
-                            (*cell)(cellcol) = mtx;
-                        }
-                        else
-                        {
-                            hwMatrix* mtx = (*cell)(cellcol).GetWritableMatrix();
-                            int       m   = mtx->M();
-                            BuiltInFuncsUtils::CheckMathStatus(eval, mtx->Resize(m + 1, 1));
-                            (*mtx)(m, 0) = val;
-                        }
-                        cellcol++;
-                    }
-                }
-
-                if (basefmt == "custom" && !strToProcess.empty())
-                {
-
-                }
-                else if (!strToProcess.empty() && used > 0 && 
-                    used < static_cast<int>(data.size()))
-                {
-                    strToProcess = data.substr(used);
-                }
-                else
-                {
-                    if (used > 0 && used < static_cast<int>(data.size()) &&
-                        strToProcess.empty())
-                    {
-                        data = data.substr(used);
-                        strToProcess = data;
-                    }
-                    else
-                    {
-                        tok = strtok(nullptr, delims.c_str());
-                        strToProcess = "";  // Reset
-                    }
-                }
-
-                column++;
-                if (column >= numformats)  // End of format. Reset column number
-                {
-                    column = 0;  
-                    if (!f)
-                    {
-                        linenum++;
-                        if (repeat > 0 && linenum >= repeat)
-                        {
-                            quitLoop = true;
                             break;
                         }
+                        memset(lineC, 0, sizeof(lineC));
+                        int tmp = 0;
+                        int newresult = sscanf(newstr.c_str(), rawfmt.c_str(),
+                            lineC, &tmp);
+                        if (newresult <= 0)
+                        {
+                            break;
+                        }
+                        out += lineC;
+                        i   += strlen(lineC);
                     }
                 }
-                if (cellcol >= numcols)
+                if (result > 0)
                 {
-                    cellcol = 0;
-                }
-            }
-            if (f)
-            {
-                linenum++;
-                if (repeat > 0 && linenum >= repeat)
-                {
-                    quitLoop = true;
-                    break;
-                }
-            }
-
-            // Check if there is an newline in the next format, which may need
-            // to be excluded
-            if (!tok)  // End of parsing the line
-            {
-                if (strstr(rawfmts[column].c_str(), "\\n"))
-                {
-                    if (!usefmts[column])
-                    {
-                        column++;
-                        resetcol = false;
-                    }
-                    else
+                    if (use)
                     {
                         int m = 0;
                         if ((*cell)(cellcol).CellArray()->Size() == 0)
@@ -1714,151 +1420,177 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
                             utils.CheckMathStatus(eval,
                                 (*cell)(cellcol).CellArray()->Resize(m + 1, 1));
                         }
-                        (*(*cell)(cellcol).CellArray())(m) = "";
+                        (*(*cell)(cellcol).CellArray())(m) = out;
                         cellcol++;
+                    }
+                    used = static_cast<int>(datalen);
+                }
+                else
+                {
+                    columnWithErr = cellcol;
+                }
+            }
+            else if (basefmt == "%c")
+            {
+                if (strToProcess.empty())
+                {
+                    strToProcess = data;
+                }
+
+                memset(lineC, 0, sizeof(lineC));
+                result = sscanf(data.c_str(), rawfmt.c_str(), lineC, &used);
+                
+                if (result > 0)
+                {
+                    if (use)
+                    {
+                        int m = 0;
+                        if ((*cell)(cellcol).CellArray()->Size() == 0)
+                        {
+                            (*cell)(cellcol) = EvaluatorInterface::allocateCellArray(1, 1);
+                        }
+                        else
+                        {
+                            m = (*cell)(cellcol).CellArray()->M();
+                            utils.CheckMathStatus(eval,
+                                (*cell)(cellcol).CellArray()->Resize(m + 1, 1));
+                        }
+                        (*(*cell)(cellcol).CellArray())(m) = std::string(lineC);
+                        cellcol++;
+                    }
+                }
+                else
+                {
+                    columnWithErr = cellcol;
+                }
+            }
+            else if (basefmt == "custom")
+            {
+                std::string matchstr;
+                bool foundregexmatch = false;
+                bool newlinematch = (rawfmt == "[\\n]" || rawfmt == "[\\r\\n]" || rawfmt == "[\\r]");
+                if (newlinematch)
+                {
+                    foundregexmatch = true;
+                }
+                else
+                {
+                    std::regex  re(rawfmt);
+                    std::sregex_iterator next(data.begin(), data.end(), re);
+                    std::sregex_iterator end;
+                    while (next != end)
+                    {
+                        foundregexmatch = true;
+
+                        std::smatch match = *next;
+                        matchstr += match.str();
+                        strToProcess = match.prefix();
+                        strToProcess += match.suffix();
+                        next++;
+                    }
+                }
+                    
+
+                if (foundregexmatch)
+                {
+                    if (use)
+                    {
+                        int m = 0;
+                        if ((*cell)(cellcol).CellArray()->Size() == 0)
+                        {
+                            (*cell)(cellcol) = EvaluatorInterface::allocateCellArray(1, 1);
+                        }
+                        else
+                        {
+                            m = (*cell)(cellcol).CellArray()->M();
+                            utils.CheckMathStatus(eval,
+                                (*cell)(cellcol).CellArray()->Resize(m + 1, 1));
+                        }
+                        (*(*cell)(cellcol).CellArray())(m) = matchstr;
+                        cellcol++;
+                    }
+
+                    if (newlinematch)
+                    {
+                        strToProcess = data;
+                        if (numformats == 1)
+                        {
+                            tok = strtok(nullptr, delims.c_str());
+                        }
+                            
+                        column++;
+                        if (column >= numformats)  // End of format. Reset column number
+                        {
+                            column = 0;
+                            numFormatApplied++;
+                            if (repeat > 0 && numFormatApplied >= repeat)
+                            {
+                                quitLoop = true;
+                                break;
+                            }
+
+                            if (!f)
+                            {
+                                linenum++;
+                                if (repeat > 0 && linenum >= repeat)
+                                {
+                                    quitLoop = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (cellcol >= numcols)
+                        {
+                            cellcol = 0;
+                        }
+                        continue;
+                    }
+                }
+                else
+                {
+                    strToProcess += data;
+                    if (numformats == 1)
+                    {
+                        tok = strtok(nullptr, delims.c_str());
+                        if (!tok)
+                        {
+                            // Last line
+                            if (!f)
+                            {
+                                linenum++;
+                                if (repeat > 0 && linenum >= repeat)
+                                {
+                                    quitLoop = true;
+                                    break;
+                                }
+                            }
+                        }
+                        continue;
                     }
                 }
             }
             else
             {
-                resetcol = true;
-            }
-        } 
-
-        outputs.push_back(cell.release());
-    }
-    catch (const OML_Error& e)
-    {
-        if (fileid != -1)
-        {
-            eval.CloseFile(fileid);
-        }
-        throw e;
-    }
-    
-    return true;
-}
-//------------------------------------------------------------------------------
-// Returns true after reading formatted input from file/string (fscanf)
-//------------------------------------------------------------------------------
-bool BuiltInFuncsFile::Fscanf(EvaluatorInterface           eval,
-	                          const std::vector<Currency>& inputs, 
-		                      std::vector<Currency>&       outputs)
-{
-    if (inputs.empty())
-    {
-        throw OML_Error(OML_ERR_NUMARGIN);
-    }
-
-    // First argument specifies the file
-    Currency cur1 = inputs[0];
-    if (!cur1.IsString() && !cur1.IsPositiveInteger()) 
-    {
-        throw OML_Error(OML_ERR_STRING_FILESTREAM, 1, OML_VAR_TYPE);
-    }
-    BuiltInFuncsUtils utils;
-    int               fileid = utils.GetFileId(eval, cur1, 1);
-    utils.CheckFileIndex(eval, fileid, 1, false); // Don't read std streams
-    std::FILE* file = eval.GetFile(fileid);
-
-    try
-    {
-        int numargin = static_cast<int>(inputs.size());
-        if (numargin < 2) 
-        {
-            throw OML_Error(OML_ERR_NUMARGIN);
-        }
-
-        // Second argument gives format descriptions separated by spaces. 
-        Currency cur2 = inputs[1];
-        if (!cur2.IsString()) 
-        {
-            throw OML_Error(OML_ERR_STRING, 2, OML_VAR_TYPE);
-        }
-
-        // Third argument, if available, specifies size for output.
-        double rows      = 0;
-        double cols      = 0;
-        bool hasSizeMtx  = false;
-        bool hasSizeSpec = (numargin > 2);
-	    if (numargin > 2)
-        {
-            utils.GetSizeSpecifications(inputs[2], 3, rows, cols, hasSizeMtx);
-        }
-        std::string fmtdesc(cur2.StringVal());
-
-        // Get the basefmt and the rawfmts
-        std::vector<std::string> basefmts;
-        std::vector<std::string> rawfmts;
-        std::string err;
-        bool validformat = utils.GetFormats(fmtdesc, basefmts, rawfmts, err);
-        if (!validformat)
-        {
-            if (err.empty())
-            {
-                err = "Error: invalid format specified";
-            }
-            throw OML_Error(err + " in argument 2");
-        }
-
-        // Check if string mask needs to be added and add default format
-        bool addStringMask = false;
-        if (basefmts.empty())
-        {
-            basefmts.push_back("%f");
-            rawfmts.push_back("%lf");  // Default option
-        }
-        else if (basefmts.size() == 1)
-        {
-            addStringMask = (std::find(basefmts.begin(), basefmts.end(), "%s") != 
-                             basefmts.end());
-        }
-        assert(basefmts.size() == rawfmts.size());
-
-
-        // Read formatted input from the file
-        // For each format, read in one value from input and push into matrix
-        int sizelimit = static_cast<int>(hasSizeMtx ? rows * cols : rows);
-        std::unique_ptr<hwMatrix> mtx(EvaluatorInterface::allocateMatrix(
-                                      1, 1, hwMatrix::REAL));
- 
-        int  row       = 0;
-	    int  count     = 0;
-        bool keepgoing = true;
-        char buff [1028];
-
-        // Scan the file
-        BuiltInFuncsFile funcs;
-        while (keepgoing)
-        {
-            int i = 0;
-            for (std::vector<std::string>::const_iterator itr = basefmts.begin();
-                 itr != basefmts.end(); ++itr, ++i)
-	        {
-                std::string basefmt (*itr);
-                std::string rawfmt  (rawfmts[i]);
-                std::string origfmt (rawfmt);
-
-                assert(!basefmt.empty());
-                assert(!rawfmt.empty());
-
-                int result = 0;
-                int used   = -1;
-                rawfmt += "%n";  // To give the number of characters still left
-
-                bool   iscomplex = false;
-                double complex   = 0.0;
-
-                bool   isDbl  = false;
-                double dblVal = 0.0;
-
-                bool        isStr = false;
-                std::string strVal;
-
-                bool ignoreval = (rawfmt.find("%*") != std::string::npos);
-
-                if (basefmt == "%f" || basefmt == "%g")
-	            {
+                double val = std::numeric_limits<double>::quiet_NaN();
+                if (basefmt == "%d" || basefmt == "%n")
+                {
+                    int output = 0;
+                    result = sscanf(data.c_str(), rawfmt.c_str(), &output, &used);
+                    if (result <= 0)
+                    {
+                        columnWithErr = cellcol;
+                    }
+                    else
+                    {                        
+                        val = static_cast<double>(output);
+                        if (origfmt == basefmt && used < static_cast<int>(data.size()))  // Just plain number
+                        {
+                            used = static_cast<int>(data.size());
+                        }
+                    }
+                }
+                else // Default is float format
+                {
                     std::string tmpfmt (rawfmt);
                     bool   hasspec = (origfmt.find("%lf") == std::string::npos);
                     size_t pos     = 0;
@@ -1876,181 +1608,454 @@ bool BuiltInFuncsFile::Fscanf(EvaluatorInterface           eval,
                             tmpfmt = "%lf%n";
                         }
                     }
-                    result = funcs.ReadDouble(file, tmpfmt, true, iscomplex, dblVal, complex);
-                    if (ignoreval)
-                    {
-                        continue;
-                    }
-                    if (result > 0 && hasspec)
+                    result = sscanf(data.c_str(), tmpfmt.c_str(), &val, &used);
+                    columnWithErr = (result <= 0) ? cellcol : -1;
+
+                    if (columnWithErr == -1 && hasspec)
                     {
                         // Update the value based on the specifiers
                         std::string specstr = (pos != std::string::npos) ?
                                                 origfmt.substr(0, pos) : "";
                         specstr += "lf";
                         char tmp[4096];
-                        memset(tmp, 0, sizeof(tmp));
-                        sprintf(tmp, specstr.c_str(), dblVal);
-                        dblVal = atof(tmp);
+                        sprintf(tmp, specstr.c_str(), val);
+                        val = atof(tmp);
                     }
-                    isDbl  = true;
-                    isDbl  = true;
                 }
-                else if (basefmt == "%d" || basefmt == "%n")
+                if (columnWithErr != -1)
                 {
-                    result = funcs.ReadDouble(file, rawfmt, false, iscomplex, dblVal, complex);
-                    if (ignoreval)
+                    if (!returnOnError)
                     {
-                        continue;
+                        std::string msg ("Error: cannot apply specified format in column ");
+                        msg += std::to_string(static_cast<long long>(columnWithErr));
+                        msg += " of row 1 in the output.";
+                        throw OML_Error(msg);
                     }
-                    isDbl  = true;
-                }
-                else if (basefmt == "%s")            
-                {
-                    memset(buff, 0, sizeof(buff));
-		            result = fscanf(file, rawfmt.c_str(), buff, &used);
-                    if (ignoreval)
-                    {
-                        continue;
-                    }
-                    isStr  = true;
-                    strVal = buff;
-                }
-                else if (basefmt == "%c")
-                {
-                    char ch;
-                    result = fscanf(file, rawfmt.c_str(), &ch, &used);
-                    if (ignoreval)
-                    {
-                        continue;
-                    }
-                    dblVal = static_cast<double>(ch);
-                    isDbl  = true;
-                }
-
-                if (result != 1) 
-                {
-                    keepgoing = false;
+                    quitLoop = true;
                     break;
                 }
 
-                int newrow = (!isStr) ? 
-                             row + 1 : row + static_cast<int>(strVal.size());
-                if (iscomplex)
+                if (use)
                 {
-                    newrow += 1;
-                }
-
-                hwMathStatus stat = mtx->Resize(newrow, 1);
-                utils.CheckMathStatus(eval, stat);
-                if (isDbl)
-                {
-                    (*mtx)(row) = dblVal;
-                    row++;
-                    count++;
-
-                    if (iscomplex)  // There is a complex value
+                    if ((*cell)(cellcol).Matrix()->Size() == 0)
                     {
-                        (*mtx)(row) = complex;
-                        row++;     // Don't increase the count as this is part of the number
+                        hwMatrix* mtx = EvaluatorInterface::allocateMatrix(1, 1, val);
+                        (*cell)(cellcol) = mtx;
                     }
-                }
-                else
-                {
-                    size_t len = strVal.size();
-                    for (size_t i = 0; i < len; ++i)
+                    else
                     {
-                        (*mtx)(row) = strVal[i];
-                        row++;
+                        hwMatrix* mtx = (*cell)(cellcol).GetWritableMatrix();
+                        int       m   = mtx->M();
+                        BuiltInFuncsUtils::CheckMathStatus(eval, mtx->Resize(m + 1, 1));
+                        (*mtx)(m, 0) = val;
                     }
-                    count++;
-                }
-                if (count == sizelimit)
-                {
-                    keepgoing = false;
+                    cellcol++;
                 }
             }
-	    }
 
-        int numvals = mtx->Size();
-
-        // Split the output values vector into the correct size (if any) Right now, 
-        // the result is Nx1 (which is the default)
-        // Handles cases where inf is passed. Don't cast and use values.size() as 
-        // compiler will convert
-	    int    numrows      = numvals;
-	    int    numcols      = 1;
-	    double rawnumcols   = 1.0;
-	
-        if (hasSizeSpec)                // Has size specifications
-        {
-            if (hasSizeMtx)             // Has matrix
+            if (basefmt == "custom" && !strToProcess.empty())
             {
-                numrows    = static_cast<int>(rows);
-                rawnumcols = cols;      // This can be infinity
+
             }
-            else if (addStringMask)
+            else if (!strToProcess.empty() && used > 0 && 
+                used < static_cast<int>(data.size()))
             {
-                rawnumcols   = numrows;
-                numrows      = static_cast<int>((IsInf_T(rows) ? numvals : rows));
+                strToProcess = data.substr(used);
             }
             else
             {
-			    rawnumcols = 1;
-                numrows    = static_cast<int>(IsInf_T(rows) ? numvals : rows);
-			    if (numrows > numvals)  // Don't cast here when comparing
-			        numrows = numvals;
+                if (used > 0 && used < static_cast<int>(data.size()) &&
+                    strToProcess.empty())
+                {
+                    data = data.substr(used);
+                    strToProcess = data;
+                }
+                else
+                {
+                    tok = strtok(nullptr, delims.c_str());
+                    strToProcess = "";  // Reset
+                }
+            }
+
+            column++;
+            if (column >= numformats)  // End of format. Reset column number
+            {
+                column = 0;  
+                numFormatApplied++;
+                if (repeat > 0 && numFormatApplied >= repeat)
+                {
+                    quitLoop = true;
+                    break;
+                }
+
+                if (!f)
+                {
+                    linenum++;
+                    if (repeat > 0 && linenum >= repeat)
+                    {
+                        quitLoop = true;
+                        break;
+                    }
+                }
+            }
+            if (cellcol >= numcols)
+            {
+                cellcol = 0;
+            }
+        }
+        if (f)
+        {
+            linenum++;
+            if (repeat > 0 && linenum >= repeat)
+            {
+                quitLoop = true;
+                break;
             }
         }
 
-	    if (IsInf_T(rawnumcols) || IsNegInf_T(rawnumcols) || IsNaN_T(rawnumcols))
+        // Check if there is an newline in the next format, which may need
+        // to be excluded
+        if (!tok)  // End of parsing the line
         {
-            int tmp = (numrows == 0) ? 1 : numrows;
-		    numcols = (int)numvals / tmp;
-        }
-	    else
-		    numcols = static_cast<int>(rawnumcols);
-
-	    if (numvals < numrows * numcols)
-	    {
-            int tmp = (numrows == 0) ? 1 : numrows;
-		    if (numvals % tmp == 0)
-			    numcols = (int)numvals / tmp;
-	    }
-
-	    hwMathStatus stat = mtx->Reshape(numrows, numcols);
-        if (stat.IsOk())
-        {
-            Currency out(mtx.release());
-	        if (addStringMask)
+            if (strstr(rawfmts[column].c_str(), "\\n"))
             {
-		        out.SetMask(Currency::MASK_STRING);
-            }   
-            outputs.push_back(out);
-            return true;
+                if (!usefmts[column])
+                {
+                    column++;
+                    resetcol = false;
+                }
+                else
+                {
+                    int m = 0;
+                    if ((*cell)(cellcol).CellArray()->Size() == 0)
+                    {
+                        (*cell)(cellcol) = EvaluatorInterface::allocateCellArray(1, 1);
+                    }
+                    else
+                    {
+                        m = (*cell)(cellcol).CellArray()->M();
+                        utils.CheckMathStatus(eval,
+                            (*cell)(cellcol).CellArray()->Resize(m + 1, 1));
+                    }
+                    (*(*cell)(cellcol).CellArray())(m) = "";
+                    cellcol++;
+                }
+            }
         }
-
-        // There is a mismatch in matrix dimensions, so copy data manually and pad 
-        // the matrix
-        hwMatrix* tmp = EvaluatorInterface::allocateMatrix(numrows, numcols, 0.0);
-        int       tmpSize = tmp->Size();
-        for (int i = 0; i < tmpSize && i < numvals; ++i)
+        else
         {
-            (*tmp)(i) = (*mtx)(i);
+            resetcol = true;
         }
+    } 
 
-        Currency out(tmp);
+    outputs.push_back(cell.release());
+    
+    return true;
+}
+//------------------------------------------------------------------------------
+// Returns true after reading formatted input from file/string (fscanf)
+//------------------------------------------------------------------------------
+bool BuiltInFuncsFile::Fscanf(EvaluatorInterface           eval,
+	                          const std::vector<Currency>& inputs, 
+		                      std::vector<Currency>&       outputs)
+{
+    if (inputs.empty())
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    // First argument specifies the file
+    const Currency& cur1 = inputs[0];
+    if (!cur1.IsString() && !cur1.IsPositiveInteger()) 
+    {
+        throw OML_Error(OML_ERR_STRING_FILESTREAM, 1);
+    }
+    BuiltInFuncsUtils utils;
+    int               fileid = utils.GetFileId(eval, cur1, 1);
+    utils.CheckFileIndex(eval, fileid, 1, false); // Don't read std streams
+    std::FILE* file = eval.GetFile(fileid);
+
+    int numargin = static_cast<int>(inputs.size());
+    if (numargin < 2) 
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    // Second argument gives format descriptions separated by spaces. 
+    const Currency& cur2 = inputs[1];
+    if (!cur2.IsString()) 
+    {
+        throw OML_Error(OML_ERR_STRING, 2);
+    }
+
+    // Third argument, if available, specifies size for output.
+    double rows      = 0;
+    double cols      = 0;
+    bool hasSizeMtx  = false;
+    bool hasSizeSpec = (numargin > 2);
+	if (numargin > 2)
+    {
+        utils.GetSizeSpecifications(inputs[2], 3, rows, cols, hasSizeMtx);
+    }
+    std::string fmtdesc(cur2.StringVal());
+
+    // Get the basefmt and the rawfmts
+    std::vector<std::string> basefmts;
+    std::vector<std::string> rawfmts;
+    std::string err;
+    bool validformat = utils.GetFormats(fmtdesc, basefmts, rawfmts, err);
+    if (!validformat)
+    {
+        if (err.empty())
+        {
+            err = "Error: invalid format specified";
+        }
+        throw OML_Error(err + " in argument 2");
+    }
+
+    // Check if string mask needs to be added and add default format
+    bool addStringMask = false;
+    if (basefmts.empty())
+    {
+        basefmts.push_back("%f");
+        rawfmts.push_back("%lf");  // Default option
+    }
+    else if (basefmts.size() == 1)
+    {
+        addStringMask = (std::find(basefmts.begin(), basefmts.end(), "%s") != 
+                            basefmts.end());
+    }
+    assert(basefmts.size() == rawfmts.size());
+
+    // Read formatted input from the file
+    // For each format, read in one value from input and push into matrix
+    int sizelimit = static_cast<int>(hasSizeMtx ? rows * cols : rows);
+    std::unique_ptr<hwMatrix> mtx(EvaluatorInterface::allocateMatrix(
+                                    1, 1, hwMatrix::REAL));
+ 
+    int  row       = 0;
+	int  count     = 0;
+    bool keepgoing = true;
+    char buff [1028];
+
+    // Scan the file
+    BuiltInFuncsFile funcs;
+    while (keepgoing)
+    {
+        int i = 0;
+        for (std::vector<std::string>::const_iterator itr = basefmts.begin();
+                itr != basefmts.end(); ++itr, ++i)
+	    {
+            std::string basefmt (*itr);
+            std::string rawfmt  (rawfmts[i]);
+            std::string origfmt (rawfmt);
+
+            assert(!basefmt.empty());
+            assert(!rawfmt.empty());
+
+            int result = 0;
+            int used   = -1;
+            rawfmt += "%n";  // To give the number of characters still left
+
+            bool   iscomplex = false;
+            double complex   = 0.0;
+
+            bool   isDbl  = false;
+            double dblVal = 0.0;
+
+            bool        isStr = false;
+            std::string strVal;
+
+            bool ignoreval = (rawfmt.find("%*") != std::string::npos);
+
+            if (basefmt == "%f" || basefmt == "%g")
+	        {
+                std::string tmpfmt (rawfmt);
+                bool   hasspec = (origfmt.find("%lf") == std::string::npos);
+                size_t pos     = 0;
+                if (hasspec)
+                {
+                    // Additional processing needed
+                    pos = origfmt.find("lf");
+                    if (pos != std::string::npos)
+                    {
+                        tmpfmt = "%";
+                        tmpfmt += origfmt.substr(pos) + "%n";
+                    }
+                    else
+                    {
+                        tmpfmt = "%lf%n";
+                    }
+                }
+                result = funcs.ReadDouble(file, tmpfmt, true, iscomplex, dblVal, complex);
+                if (ignoreval)
+                {
+                    continue;
+                }
+                if (result > 0 && hasspec)
+                {
+                    // Update the value based on the specifiers
+                    std::string specstr = (pos != std::string::npos) ?
+                                            origfmt.substr(0, pos) : "";
+                    specstr += "lf";
+                    char tmp[4096];
+                    memset(tmp, 0, sizeof(tmp));
+                    sprintf(tmp, specstr.c_str(), dblVal);
+                    dblVal = atof(tmp);
+                }
+                isDbl  = true;
+                isDbl  = true;
+            }
+            else if (basefmt == "%d" || basefmt == "%n")
+            {
+                result = funcs.ReadDouble(file, rawfmt, false, iscomplex, dblVal, complex);
+                if (ignoreval)
+                {
+                    continue;
+                }
+                isDbl  = true;
+            }
+            else if (basefmt == "%s")            
+            {
+                memset(buff, 0, sizeof(buff));
+		        result = fscanf(file, rawfmt.c_str(), buff, &used);
+                if (ignoreval)
+                {
+                    continue;
+                }
+                isStr  = true;
+                strVal = buff;
+            }
+            else if (basefmt == "%c")
+            {
+                char ch;
+                result = fscanf(file, rawfmt.c_str(), &ch, &used);
+                if (ignoreval)
+                {
+                    continue;
+                }
+                dblVal = static_cast<double>(ch);
+                isDbl  = true;
+            }
+
+            if (result != 1) 
+            {
+                keepgoing = false;
+                break;
+            }
+
+            int newrow = (!isStr) ? 
+                            row + 1 : row + static_cast<int>(strVal.size());
+            if (iscomplex)
+            {
+                newrow += 1;
+            }
+
+            hwMathStatus stat = mtx->Resize(newrow, 1);
+            utils.CheckMathStatus(eval, stat);
+            if (isDbl)
+            {
+                (*mtx)(row) = dblVal;
+                row++;
+                count++;
+
+                if (iscomplex)  // There is a complex value
+                {
+                    (*mtx)(row) = complex;
+                    row++;     // Don't increase the count as this is part of the number
+                }
+            }
+            else
+            {
+                size_t len = strVal.size();
+                for (size_t i = 0; i < len; ++i)
+                {
+                    (*mtx)(row) = strVal[i];
+                    row++;
+                }
+                count++;
+            }
+            if (count == sizelimit)
+            {
+                keepgoing = false;
+            }
+        }
+	}
+
+    int numvals = mtx->Size();
+
+    // Split the output values vector into the correct size (if any) Right now, 
+    // the result is Nx1 (which is the default)
+    // Handles cases where inf is passed. Don't cast and use values.size() as 
+    // compiler will convert
+	int    numrows      = numvals;
+	int    numcols      = 1;
+	double rawnumcols   = 1.0;
+	
+    if (hasSizeSpec)                // Has size specifications
+    {
+        if (hasSizeMtx)             // Has matrix
+        {
+            numrows    = static_cast<int>(rows);
+            rawnumcols = cols;      // This can be infinity
+        }
+        else if (addStringMask)
+        {
+            rawnumcols   = numrows;
+            numrows      = static_cast<int>((IsInf_T(rows) ? numvals : rows));
+        }
+        else
+        {
+			rawnumcols = 1;
+            numrows    = static_cast<int>(IsInf_T(rows) ? numvals : rows);
+			if (numrows > numvals)  // Don't cast here when comparing
+			    numrows = numvals;
+        }
+    }
+
+	if (IsInf_T(rawnumcols) || IsNegInf_T(rawnumcols) || IsNaN_T(rawnumcols))
+    {
+        int tmp = (numrows == 0) ? 1 : numrows;
+		numcols = (int)numvals / tmp;
+    }
+	else
+		numcols = static_cast<int>(rawnumcols);
+
+	if (numvals < numrows * numcols)
+	{
+        int tmp = (numrows == 0) ? 1 : numrows;
+		if (numvals % tmp == 0)
+			numcols = (int)numvals / tmp;
+	}
+
+	hwMathStatus stat = mtx->Reshape(numrows, numcols);
+    if (stat.IsOk())
+    {
+        Currency out(mtx.release());
 	    if (addStringMask)
         {
 		    out.SetMask(Currency::MASK_STRING);
         }   
-
         outputs.push_back(out);
+        return true;
     }
-    catch (const OML_Error& e)
+
+    // There is a mismatch in matrix dimensions, so copy data manually and pad 
+    // the matrix
+    hwMatrix* tmp = EvaluatorInterface::allocateMatrix(numrows, numcols, 0.0);
+    int       tmpSize = tmp->Size();
+    for (int i = 0; i < tmpSize && i < numvals; ++i)
     {
-        eval.CloseFile(fileid);
-        throw e;
+        (*tmp)(i) = (*mtx)(i);
     }
+
+    Currency out(tmp);
+	if (addStringMask)
+    {
+		out.SetMask(Currency::MASK_STRING);
+    }   
+
+    outputs.push_back(out);
     return true;
 }
 //------------------------------------------------------------------------------
@@ -2265,14 +2270,14 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
         filename = inputs[0].StringVal();
         if (!BuiltInFuncsUtils::FileExists(filename)) 
         {
-            throw OML_Error("Error: Cannot find file: " + utils.Normpath(filename));
+            throw OML_Error(OML_ERR_FILE_NOTFOUND, 1);
         }
         fptr = fopen(filename.c_str(), "rb");
     }
 
     if (!fptr)
     {
-        throw OML_Error("Error: Cannot open file: " + utils.Normpath(filename));
+        throw OML_Error(OML_ERR_FILE_CANNOTOPEN, 1);
     }
 
     std::unique_ptr<hwMatrix> mtx = nullptr;
@@ -2462,14 +2467,16 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
             
             // Start of line parsing
             double dval = emptyval;
+            int currentcol = 0;
+            int n = 0;
+            int used = 0;
+            int result = 0;
 
             if (delim.empty())
             {
-                int used   = 0;
-                int result = sscanf(line.c_str(), "%lf%n", &dval, &used);
-                if (result <= 0)
-                {
-                    throw OML_Error(OML_ERR_PLOT_UNSUPPORTED_FORMAT, 1, OML_VAR_VALUE);
+                if (std::any_of(line.begin(), line.end(), ::isdigit))
+                {    
+                    sscanf(line.c_str(), "%lf%n", &dval, &used);
                 }
                 for (size_t j = used; j < line.size(); ++j)
                 {
@@ -2478,7 +2485,7 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
                     {
                         break;
                     }
-                    else if (isspace(ch) || ispunct(ch))
+                    else if (isspace(ch) || (ispunct(ch) && ch != '%'))
                     {
                         delim += ch;
                     }
@@ -2491,11 +2498,9 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
          
             if (delim.empty())
             {
-                throw OML_Error("Error: cannot determine delimter to process file");
+                throw OML_Error("Error: cannot determine delimter to process file in argument 1");
             }
 
-            int currentcol = 0;
-            int n          = 0;
             char* tok = strtok((char *)line.c_str(), delim.c_str());
             while (tok)
             {
@@ -2510,12 +2515,16 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
                     break;
                 }
 
-                std::string data (tok);
                 double val = emptyval;
-                int result = sscanf(data.c_str(), "%lf", &val);
-                if (result <= 0)
+                std::string data(tok);
+
+                if (std::any_of(data.begin(), data.end(), ::isdigit))
                 {
-                    val = emptyval;
+                    int result = sscanf(data.c_str(), "%lf", &val);
+                    if (result <= 0)
+                    {
+                        val = emptyval;
+                    }
                 }
                 if (!mtx)
                 {
@@ -2524,7 +2533,7 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
                 else
                 {
                     int newn = std::max(mtx->N(), n + 1);
-                    utils.CheckMathStatus(eval, mtx->Resize(m + 1, newn));
+                    utils.CheckMathStatus(eval, mtx->Resize(m + 1, newn, true));
                     (*mtx)(m, n) = val;
                 }
                 tok = strtok(nullptr, delim.c_str());
@@ -2658,4 +2667,139 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
     {
         throw OML_Error(err);
     }
+ }
+ //-----------------------------------------------------------------------------
+ // Returns true and opens a file for read/write [fopen]
+ //-----------------------------------------------------------------------------
+ bool BuiltInFuncsFile::Fopen(EvaluatorInterface           eval,
+     const std::vector<Currency>& inputs,
+     std::vector<Currency>&       outputs)
+ {
+     if (inputs.empty())
+     {
+         throw OML_Error(OML_ERR_NUMARGIN);
+     }
+     size_t nargin = inputs.size();
+
+     const Currency& input = inputs[0];
+     if (!input.IsString() && !input.IsPositiveInteger())
+     {
+         throw OML_Error(OML_ERR_STRING_FILESTREAM, 1);
+     }
+
+     BuiltInFuncsUtils utils;
+     outputs.reserve(2);
+     if (!input.IsString())  // File id
+     {
+         int fileid = static_cast<int>(input.Scalar());
+         utils.CheckFileIndex(eval, fileid, 1, true);
+         outputs.push_back(eval.GetFileName(fileid));
+         outputs.push_back(eval.GetFileMode(fileid));
+         return true;
+     }
+
+     // File name
+     std::string fname = input.StringVal();
+     if (input.IsMultilineString())
+     {
+         size_t pos = fname.find_first_not_of("\n");
+         if (pos != std::string::npos)
+         {
+             fname = fname.substr(pos);
+         }
+         if (!fname.empty())
+         {
+             pos = fname.find("\n");
+             if (pos != std::string::npos)
+             {
+                 fname = fname.substr(0, pos);
+             }
+         }
+     }
+     if (fname.empty())
+     {
+         outputs.push_back(-1);
+         outputs.push_back("File name must be a non-empty string");
+         return true;
+     }
+     else if (fname == "all")  // Returns all open file ids
+     {
+         std::vector<int> indices(eval.GetFileIndices(FIRST_USER_FILE));
+         std::unique_ptr<hwMatrix> mtx(EvaluatorInterface::allocateMatrix());
+         if (!indices.empty())
+         {
+             int numvals = static_cast<int>(indices.size());
+             mtx.reset(EvaluatorInterface::allocateMatrix(1, numvals, hwMatrix::REAL));
+             for (int i = 0; i < numvals; ++i)
+             {
+                 (*mtx)(i) = indices[i];
+             }
+         }
+         outputs.push_back(mtx.release());
+         outputs.push_back(std::string());
+         return true;
+     }
+
+     std::string mode = "rb"; // Default mode
+     if (nargin > 1)
+     {
+         if (!inputs[1].IsString())
+         {
+             throw OML_Error(OML_ERR_STRING, 2);
+         }
+         mode = inputs[1].StringVal();
+         if (mode.empty() || mode.length() > 3)
+         {
+             throw OML_Error(OML_ERR_INVALID_FILE_MODE, 2);
+         }
+         std::transform(mode.begin(), mode.end(), mode.begin(), ::tolower);
+         if (mode[0] != 'r' && mode[0] != 'w' && mode[0] != 'a')
+         {
+             throw OML_Error(OML_ERR_INVALID_FILE_MODE, 2);
+         }
+         size_t len = mode.length();
+         if (len >= 2)
+         {
+             char second = mode[1];
+             if ((second != '+' && second != 'b'  && second != 't') ||
+                 (len == 3      && (second == 'b' || second == 't')))
+             {
+                 throw OML_Error(OML_ERR_INVALID_FILE_MODE, 2);
+             }
+         }
+         char last = mode[len - 1];
+         if (last == 't')
+         {
+             mode.pop_back();
+         }
+         else if (mode.find("b") == std::string::npos)
+         {
+             mode += "b";
+         }
+     }
+
+     std::FILE* f = fopen(fname.c_str(), mode.c_str());
+
+     if (f)
+     {
+         outputs.push_back(eval.AddFile(f, fname, mode));
+         outputs.push_back(std::string());
+#ifndef OS_WIN
+         if (mode[0] == 'a' || mode[0] == 'w' || mode.find("r+") != std::string::npos)
+         {
+             int result = chmod(utils.GetAbsolutePath(fname).c_str(), S_IRWXU);
+             if (result != 0)
+             {
+                 utils.SetWarning(eval, strerror(errno));
+             }
+         }
+#endif
+     }
+     else
+     {
+         outputs.push_back(-1.0);
+         outputs.push_back(std::string(strerror(errno)));
+     }
+
+     return true;
  }

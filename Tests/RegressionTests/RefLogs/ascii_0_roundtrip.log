@@ -1,4 +1,4 @@
-b = AB
+b = A B
 c = [Matrix] 1 x 3
 65  0  66
 ans = [Matrix] 1 x 3

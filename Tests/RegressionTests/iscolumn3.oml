@@ -1,0 +1,7 @@
+﻿size({'test';'cell'})
+iscolumn({'test';'cell'})
+a = struct();
+a(1,1).a = 'test';
+a(2,1).a = 'struct';
+size(a)
+iscolumn(a)

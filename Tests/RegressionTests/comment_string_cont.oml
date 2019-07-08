@@ -1,0 +1,2 @@
+﻿%%printf('    case 1000 : strcpy_s(msg,MAX_LENGTH,"Usage of unsupported block. ex Scope, SignalIn, SignalOut, ...");break;\n');
+'success'

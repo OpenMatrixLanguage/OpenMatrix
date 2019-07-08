@@ -1,2 +1,2 @@
-resultant = @anonymous
+resultant = @(x, y) sqrt(x ^ 2 + y ^ 2)
 z = 13

@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsUtils.cpp
 * @date November 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -349,7 +349,7 @@ Currency BuiltInFuncsUtils::GetFormattedInput(const std::string& in,
     // For each format, read in one value from input and push into values vector
     BuiltInFuncsUtils utils;
     std::vector<Currency> values;
-    int                   sizelimit = (int)(hasSizeMtx ? rows * cols : rows);
+    double sizelimit = (hasSizeMtx) ? rows * cols : rows;
     utils.ReadFormattedInput(in, sizelimit, formats, values);
 
     // Split the output values vector into the correct size (if any) Right now, 
@@ -360,7 +360,7 @@ Currency BuiltInFuncsUtils::GetFormattedInput(const std::string& in,
 	int    numrows      = numvals;
 	int    numcols      = 1;
 	double rawnumcols   = 1.0;
-	bool   stringoutput = false;
+    bool   stringoutput = (formats.size() == 1 && formats[0].find("%s") != std::string::npos);
 	
     if (hasSizeSpec)                // Has size specifications
     {
@@ -369,11 +369,10 @@ Currency BuiltInFuncsUtils::GetFormattedInput(const std::string& in,
             numrows    = (int)rows;
             rawnumcols = cols;      // This can be infinity
         }
-        else if ((formats.size() == 1) && (formats[0].find("%s") != std::string::npos))
+        else if (stringoutput)
         {
             rawnumcols   = numrows;
             numrows      = (int)(IsInf_T(rows) ? numvals : rows);
-            stringoutput = true;
         }
         else
         {
@@ -383,6 +382,7 @@ Currency BuiltInFuncsUtils::GetFormattedInput(const std::string& in,
 			    numrows = numvals;
         }
     }
+
 
 	if (IsInf_T(rawnumcols) || IsNegInf_T(rawnumcols) || IsNaN_T(rawnumcols))
     {
@@ -399,6 +399,11 @@ Currency BuiltInFuncsUtils::GetFormattedInput(const std::string& in,
 			numcols = (int)values.size() / tmp;
 	}
 
+    if (stringoutput && !hasSizeSpec && numcols == 1 && numrows > 1)
+    {
+        numcols = numrows;
+        numrows = 1;
+    }
 
 	hwMatrix* mymat = EvaluatorInterface::allocateMatrix(numrows, numcols, 0.0);
     assert(mymat);
@@ -421,7 +426,8 @@ Currency BuiltInFuncsUtils::GetFormattedInput(const std::string& in,
 bool BuiltInFuncsUtils::SscanfHelperFloat(const std::string&     in,
                                           const std::string&     fmt,
                                           std::vector<Currency>& outvals,
-                                          std::string&           stringread)
+                                          std::string&           stringread,
+                                          int&                   numread)
 {    
     // Read into double to handle precision issues
     std::string updatedfmt(fmt);
@@ -431,11 +437,23 @@ bool BuiltInFuncsUtils::SscanfHelperFloat(const std::string&     in,
     if (pos != std::string::npos)
         updatedfmt.replace(pos, 2, "%lf"); 
 
+    updatedfmt += "%n";
     double output = 0.0;
-    if (sscanf(in.c_str(), updatedfmt.c_str(), &output) != 1) return false;
+    int    result = sscanf(in.c_str(), updatedfmt.c_str(), &output, &numread);
+    
+    if (result != 1)
+    {
+        return false;
+    }
 
     outvals.push_back(output);
 
+    if (numread > 0)
+    {
+        stringread = in.substr(0, numread);
+        return true;
+    }
+    // This section is probably not needed
     std::ostringstream os;
     os << output;
     stringread = os.str();
@@ -523,8 +541,18 @@ bool BuiltInFuncsUtils::SscanfHelper(std::string&           in,
 
     if (fmt.find("%f") != std::string::npos || fmt.find("%g") != std::string::npos)
     {    // Float format
-        bool result = SscanfHelperFloat(in, fmt, outvals, stringread);
-        if (!result) return false;
+        int numread = 0;
+        bool result = SscanfHelperFloat(in, fmt, outvals, stringread, numread);
+        if (!result)
+        {
+            return false;
+        }
+        // Chop the input string
+        if (numread > 0)
+        {
+            in = in.substr(numread);
+            return true;  // Done parsing
+        }
     }
     else if (fmt.find("%d") != std::string::npos) // Integer format
 	{
@@ -573,7 +601,7 @@ bool BuiltInFuncsUtils::SscanfHelper(std::string&           in,
 // Reads formatted input from string
 //------------------------------------------------------------------------------
 void BuiltInFuncsUtils::ReadFormattedInput(const std::string&              input,
-                                           int                             sizelimit,
+                                           double                          sizelimit,
                                            const std::vector<std::string>& formats,
                                            std::vector<Currency>&          values)
 {
@@ -582,6 +610,8 @@ void BuiltInFuncsUtils::ReadFormattedInput(const std::string&              input
     bool keepgoing = true;
     std::string in(input);
     BuiltInFuncsUtils utils;
+
+    bool checkcount = (!IsInf_T(sizelimit) && !IsNegInf_T(sizelimit));
     while (keepgoing && !in.empty())
     {
         size_t oldvaluesSize = values.empty() ? 0 : values.size();
@@ -594,9 +624,14 @@ void BuiltInFuncsUtils::ReadFormattedInput(const std::string&              input
                 keepgoing = false;
                 break;
             }
-            count++;
-            if (count == sizelimit)
-                keepgoing = false;
+            if (checkcount)
+            {
+                count++;
+                if (count == sizelimit)
+                {
+                    keepgoing = false;
+                }
+            }
         }
 
         size_t newvaluesSize = values.empty() ? 0 : values.size();
@@ -623,7 +658,8 @@ void BuiltInFuncsUtils::SetMatrixNSlice(const hwMatrix* mtx, size_t index, hwMat
 {
     if (!mtx || !lhs) return;
 
-    hwMatrixN* rhs = ExprTreeEvaluator::Convert2DtoND(mtx);
+	hwMatrixN* rhs = EvaluatorInterface::allocateMatrixN();
+	rhs->Convert2DtoND(*mtx);
     if (!rhs) return;
 
     std::vector<hwSliceArg> slices;
@@ -1416,32 +1452,6 @@ std::string BuiltInFuncsUtils::WString2StdString(const std::wstring& in)
 
     return out;
 }
-////------------------------------------------------------------------------------
-//// Converts std::string to std::wstring
-////------------------------------------------------------------------------------
-//std::wstring BuiltInFuncsUtils::StdString2WString(const std::string& input)
-//{
-//    if (input.empty())
-//    {
-//        return std::wstring();
-//    }
-//
-//    int len = MultiByteToWideChar(CP_UTF8, 0, input.c_str(), -1, NULL, 0);
-//    assert(len != 0);
-//
-//    wchar_t* widestr = new wchar_t[len];
-//    assert(widestr);
-//
-//    len = MultiByteToWideChar(CP_UTF8, 0, input.c_str(), -1, widestr, len);
-//    assert(len != 0);
-//
-//    std::wstring out(widestr);
-//
-//    delete[] widestr;
-//    widestr = nullptr;
-//
-//    return out;
-//}
 //------------------------------------------------------------------------------
 // Strips trailing slash for wide strings
 //------------------------------------------------------------------------------
@@ -1465,6 +1475,143 @@ std::wstring BuiltInFuncsUtils::StripTrailingSlashW(const std::wstring& in)
     }
     return tmp;
 }
+//------------------------------------------------------------------------------
+// Strips trailing newlines for wide strings
+//------------------------------------------------------------------------------
+std::wstring BuiltInFuncsUtils::StripTrailingNewlineW(const std::wstring& in)
+{
+    if (in.empty())
+    {
+        return std::wstring();
+    }
 
+    std::wstring out = GetNormpathW(in);
+
+    // Strip trailing slash
+    while (!out.empty())
+    {
+        wchar_t last = out.back();
+        if (last == '\n' || last == '\r')
+        {
+            out.erase(out.end() - 1);
+        }
+        else
+        {
+            break;  // Reached the end
+        }
+    }
+    return out;
+}
+//------------------------------------------------------------------------------
+// Returns true if given path exists on disk, supports Unicode
+//------------------------------------------------------------------------------
+bool BuiltInFuncsUtils::DoesPathExistW(const std::wstring& path)
+{
+    if (path.empty())
+    {
+        return false;
+    }
+
+    int result = _waccess(path.c_str(), 0);
+    return (result == 0);
+}
+//------------------------------------------------------------------------------
+// Adds trailing slash, supports Unicode
+//------------------------------------------------------------------------------
+void BuiltInFuncsUtils::AddTrailingSlashW(std::wstring& path)
+{
+    if (!path.empty())
+    {
+        if (path[path.size() - 1] != '\\' && path[path.size() - 1] != '/')
+        {
+            path += L"/";
+        }
+        path = GetNormpathW(path);
+    }
+}
 
 #endif
+//------------------------------------------------------------------------------
+// Returns true if given path exists on disk, supports Unicode
+//------------------------------------------------------------------------------
+bool BuiltInFuncsUtils::DoesPathExist(const std::string& path)
+{
+    if (path.empty())
+    {
+        return false;
+    }
+
+#ifdef OS_WIN
+    return DoesPathExistW(StdString2WString(path));
+
+#else
+    return FileExists(path);
+#endif
+}
+//------------------------------------------------------------------------------
+//  Returns string trimmed from leading white space(s)
+//------------------------------------------------------------------------------
+std::string BuiltInFuncsUtils::LTrim(const std::string& in)
+{
+    if (in.empty())
+    {
+        return std::string();
+    }
+
+    std::string whitespace(" \t");
+    size_t pos = in.find_first_not_of(whitespace);
+    if (pos == std::string::npos)
+    {
+        return in;
+    }
+    return in.substr(pos);
+}
+//------------------------------------------------------------------------------
+//  Returns string trimmed from trailing white space(s)
+//------------------------------------------------------------------------------
+std::string BuiltInFuncsUtils::RTrim(const std::string& in)
+{
+    if (in.empty())
+    {
+        return std::string();
+    }
+
+    std::string whitespace(" \t");
+    std::string out(in);
+
+    size_t pos = out.find_last_not_of(whitespace);
+    if (pos != std::string::npos)
+    {
+        out.erase(out.find_last_not_of(whitespace) + 1);
+    }
+    return out;
+}
+//------------------------------------------------------------------------------
+// Returns string after stripping multiple slashes
+//------------------------------------------------------------------------------
+std::string BuiltInFuncsUtils::StripMultipleSlashesAndNormalize(const std::string& path)
+{
+    if (path.empty() || path.size() == 1)
+    {
+        return path;
+    }
+
+    size_t len = path.size();
+    char lastch = path[0];
+
+    std::string out;
+    out += lastch;
+    for (size_t i = 1; i < len; ++i)
+    {
+        char thisch = path[i];
+        if ((lastch == '/' || lastch == '\\') &&
+            (thisch == '/' || thisch == '\\'))
+        {
+            continue;
+        }
+        out += thisch;
+        lastch = thisch;
+    }
+    out = Normpath(out);
+    return out;
+}

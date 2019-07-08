@@ -1,0 +1,12 @@
+﻿function r = x()
+end
+function y(a, b)
+  if exist('a', 'var')
+    printf('a = %s', a)
+  end
+  if exist('b', 'var')
+    printf('b = %s', b)
+  end
+end
+ 
+y(x, 'Huhu')

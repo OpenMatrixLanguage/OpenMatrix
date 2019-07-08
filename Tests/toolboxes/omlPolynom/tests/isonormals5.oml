@@ -1,0 +1,17 @@
+addToolbox omlPolynom
+
+x = [2:1:7];
+y = [4:3:22];
+z = [3:5:20];
+[xx,yy,zz] = meshgrid(x,y,z);
+val = 50*xx.*xx + 70*yy.*yy + 30*zz.*zz;
+x2 = [4.5,5.5]';
+y2 = [9,11]';
+z2 = [7,10]';
+v = [x2, y2, z2];
+vn = isonormals(xx,yy,zz,val,v)
+
+dvdx = 100*x2;
+dvdy = 140*y2;
+dvdz =  60*z2;
+vn2 = -[dvdx, dvdy, dvdz]

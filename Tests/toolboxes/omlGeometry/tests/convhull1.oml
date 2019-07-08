@@ -1,0 +1,6 @@
+addToolbox omlGeometry
+
+ang = [1:1:60] * (2*pi/60);
+x = 8 .* (1 + 0.1*cos(8*ang)) .* cos(ang);
+y = 6 .* (1 + 0.1*cos(8*ang)) .* sin(ang);
+h = convhull(x, y)

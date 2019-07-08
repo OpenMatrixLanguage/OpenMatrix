@@ -45,6 +45,7 @@
 #include "hwChebyshev.h"
 #include "hwHamming.h"
 #include "hwHanning.h"
+#include "hwBartlettHann.h"
 #include "hwBlackman.h"
 #include "hwWelch.h"
 #include "hwParzen.h"
@@ -366,6 +367,200 @@ hwMathStatus Fir(int             order,
     }
 
     numerCoef = (*filter.GetNumerCoefs());
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// Computes FIR filter transfer function coefficients for multiband filters
+//------------------------------------------------------------------------------
+hwMathStatus FirLS(int             order,
+                   const hwMatrix& freq,
+                   const hwMatrix& mag,
+                   const hwMatrix* weight,
+                   hwMatrix&       filterCoef)
+{
+    // check inputs
+    if (order < 1)
+        return hwMathStatus(HW_MATH_ERR_NONPOSITIVE, 1);
+
+    int n = order + order % 2;     // force even order
+    int m = n / 2;
+
+    if (!freq.IsVector())
+        return hwMathStatus(HW_MATH_ERR_VECTOR, 2);
+
+    if (!freq.IsReal())
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 2);
+
+    if (!mag.IsVector())
+        return hwMathStatus(HW_MATH_ERR_VECTOR, 3);
+
+    if (!mag.IsReal())
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 3);
+
+    int numPts = freq.Size();
+    int numBands = numPts / 2;
+
+    if (mag.Size() != numPts)
+        return hwMathStatus(HW_MATH_ERR_ARRAYSIZE, 2, 3);
+
+    hwMatrix wvec;
+    hwMathStatus status;
+
+    if (weight)
+    {
+        if (!weight->IsVector())
+            return hwMathStatus(HW_MATH_ERR_VECTOR, 4);
+
+        if (!weight->IsReal())
+            return hwMathStatus(HW_MATH_ERR_COMPLEX, 4);
+
+        if (2 * weight->Size() != numPts)
+            return hwMathStatus(HW_MATH_ERR_ARRAYSIZE, 2, 4);       // need new message
+
+        wvec = (*weight);
+
+        status = wvec.Reshape(numBands, 1);
+    }
+    else
+    {
+        status = wvec.Dimension(numBands, 1, hwMatrix::REAL);
+        wvec.SetElements(1.0);
+    }
+
+    hwMatrix wk;    // weights 
+    hwMatrix pm(2, 1, hwMatrix::REAL);  // plus / minus
+
+    pm(0) = -1.0;
+    pm(1) = 1.0;
+
+    wk.Kronecker(wvec, pm);
+
+    // set up intermediate variables
+    hwMatrix omegaR(1, numPts, hwMatrix::REAL);   // row of angular frequency band limits
+    hwMatrix omegaL(1, numBands, hwMatrix::REAL); // row of lower angular frequency band limits
+    hwMatrix omegaU(1, numBands, hwMatrix::REAL); // row of upper angular frequency band limits
+    hwMatrix ampL(1, numBands, hwMatrix::REAL);   // row of lower angular frequency band amplitudes
+    hwMatrix ampU(1, numBands, hwMatrix::REAL);   // row of upper angular frequency band amplitudes
+
+    for (int i = 0; i < numBands; ++i)
+    {
+        int ii = 2 * i;
+        omegaR(ii) = omegaL(i) = freq(ii) * PI;
+        omegaR(ii + 1) = omegaU(i) = freq(ii + 1) * PI;
+        ampL(i) = mag(ii);
+        ampU(i) = mag(ii + 1);
+    }
+
+    // construct Toeplitz + Hankel LHS matrix
+    hwMatrix idxN(n, 1, hwMatrix::REAL);
+    hwMatrix idxN2(n + 1, 1, hwMatrix::REAL);
+
+    idxN2(0) = 1.0;
+
+    for (int i = 1; i < n + 1; ++i)
+    {
+        idxN(i - 1) = static_cast<double> (i);
+        idxN2(i)    = 1.0 / static_cast<double> (i);
+    }
+
+    hwMatrix temp1(idxN * omegaR);
+    hwMatrix lhs_ints(n + 1, numPts, hwMatrix::REAL);
+    status = lhs_ints.WriteRow(0, omegaR);
+
+    for (int j = 0; j < numPts; ++j)
+    {
+        for (int i = 1; i < n + 1; ++i)
+        {
+            lhs_ints(i, j) = sin(temp1(i - 1, j));
+        }
+    }
+ 
+    hwMatrix DiagElems;
+    status = DiagElems.MultByElems(idxN2, lhs_ints * wk);
+    hwMatrix ToeplitzElems(1, m + 1, (void*) DiagElems.GetRealData(), hwMatrix::REAL);
+    hwMatrix HankelElems(1, m + 1, (void*) (DiagElems.GetRealData() + m), hwMatrix::REAL);
+    hwMatrix T;
+    hwMatrix H;
+
+    T.Toeplitz(ToeplitzElems);
+    H.Hankel(ToeplitzElems, &HankelElems);
+    hwMatrix C(T + H);
+
+    // construct RHS matrix
+    hwMatrix omegaL2;
+    hwMatrix omegaU2;
+    hwMatrix idxM(m, 1, hwMatrix::REAL);
+    hwMatrix idxM2(m + 1, 1, hwMatrix::REAL);
+
+    status = omegaL2.MultByElems(omegaL, omegaL);
+    status = omegaU2.MultByElems(omegaU, omegaU);
+
+    idxM2(0) = 2.0;
+
+    for (int i = 1; i < m + 1; ++i)
+    {
+        idxM(i - 1) = static_cast<double> (i);
+        idxM2(i)    = static_cast<double> (i);
+    }
+
+    hwMatrix temp2(idxM * omegaU);
+    hwMatrix temp3(idxM * omegaL);
+    hwMatrix temp4(m + 1, numBands, hwMatrix::REAL);
+
+    status = temp4.WriteRow(0, omegaL2 - omegaU2);
+
+    for (int j = 0; j < numBands; ++j)
+    {
+        for (int i = 1; i < m + 1; ++i)
+        {
+            temp4(i, j) = cos(temp2(i - 1, j)) - cos(temp3(i - 1, j));
+        }
+    }
+
+    hwMatrix temp5(idxM2 * (omegaU - omegaL));
+    hwMatrix rhs_ints;
+    
+    status = rhs_ints.DivideByElems(temp4, temp5);
+
+    // construct d
+    hwMatrix d(2, numBands, hwMatrix::REAL);
+
+    status = wvec.Reshape(1, numBands);
+    status = temp2.MultByElems(-wvec, ampL);
+    status = temp3.MultByElems( wvec, ampU);
+    status = d.WriteSubmatrix(0, 0, temp2);
+    status = d.WriteSubmatrix(1, 0, temp3);
+    status = d.Reshape(d.Size(), 1);
+
+    // construct b
+    idxM2(0) = 1.0;
+
+    for (int i = 1; i < m + 1; ++i)
+    {
+        idxM2(i) = 1.0 / static_cast<double> (i);
+    }
+
+    hwMatrix temp6;
+    hwMatrix temp7;
+    hwMatrix b;
+    hwMatrix a;
+    hwMatrix pp(1, 2, hwMatrix::REAL);
+    pp.SetElements(1.0);
+    status = temp6.Kronecker(rhs_ints, pp);
+    status = temp7.ReadSubmatrix(0, 0, m + 1, numPts, lhs_ints);
+    status = b.MultByElems(idxM2, (temp6 + temp7) * d);
+    status = a.QRSolve(C, b);
+
+    filterCoef.Dimension(n + 1, 1, hwMatrix::REAL);
+
+    for (int i = 0; i < m; ++i)
+    {
+        filterCoef(i) = a(m - i);
+        filterCoef(n - i) = filterCoef(i);
+    }
+
+    filterCoef(m) = 2.0 * a(0);
 
     return status;
 }
@@ -1546,6 +1741,34 @@ hwMathStatus HannWin(hwMatrix&   weight,
     }
 
     hwHanning window(periodic);
+    return window.ComputeWeights(weight);
+}
+//------------------------------------------------------------------------------
+// Compute Bartlett-Hann window weights and return status
+//------------------------------------------------------------------------------
+hwMathStatus BartHannWin(hwMatrix&   weight,
+                         const char* type)
+{
+    if (!type)
+    {
+        return hwMathStatus(HW_MATH_ERR_NOTSTRING, 2);
+    }
+
+    bool periodic;
+    if (!strcmp(type, "symmetric"))
+    {
+        periodic = false;
+    }
+    else if (!strcmp(type, "periodic"))
+    {
+        periodic = true;
+    }
+    else
+    {
+        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 2);
+    }
+
+    hwBartlettHann window(periodic);
     return window.ComputeWeights(weight);
 }
 //------------------------------------------------------------------------------

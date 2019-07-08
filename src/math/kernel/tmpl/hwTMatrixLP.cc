@@ -50,7 +50,20 @@ extern "C" void zgemm_(char* TRANSA, char* TRANSB, int* M, int* N, int* K,
                        int* LDB, complexD* BETA, complexD* C, int* LDC);
 // Dot(X,Y)
 extern "C" double ddot_(int* N, double* DX, int* INCX, double* DY, int* INCY);
-extern "C" void zdotc_(complexD* dotc, int* N, complexD* DX, int* INCX, complexD* DY, int* INCY);
+// There are two conventions for how to return a complex value in FORTRAN.
+// 1. The standard BLAS convention in Windows, which simply returns the value.
+// 2. The standard BLAS convention in LINUX, which passes a pointer to the
+//    return value as the first argument.
+// MKL follows the second convention for both Windows and Linux.
+#ifdef STANDARD_BLAS    // to be defined in OpenMatrix
+  #if defined OS_WIN
+    extern "C" complexD zdotc_(int* N, complexD* DX, int* INCX, complexD* DY, int* INCY);
+  #else
+    extern "C" void zdotc_(complexD* dotc, int* N, complexD* DX, int* INCX, complexD* DY, int* INCY);
+  #endif
+#else   // MKL prototype
+    extern "C" void zdotc_(complexD* dotc, int* N, complexD* DX, int* INCX, complexD* DY, int* INCY);
+#endif
 // LU decomposition
 extern "C" void dgetrf_(int* M, int* N, double* A, int* LDA, int* IPIV, int* INFO);
 extern "C" void zgetrf_(int* M, int* N, complexD* A, int* LDA, int* IPIV, int* INFO);
@@ -5743,6 +5756,217 @@ inline hwMathStatus hwTMatrix<double>::Power(const hwTMatrix<double>& base, cons
     {
         status.ResetArgs();
         return status;
+    }
+
+    return status;
+}
+
+//! 2D convolution of two matrices
+template<>
+inline hwMathStatus hwTMatrix<double>::Conv2D(const hwTMatrix<double>& X,
+                                              const hwTMatrix<double>& Y,
+                                              int row1, int col1, int row2, int col2)
+{
+    if (this == &X)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
+    if (this == &Y)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
+
+    // 2D linear convolution
+    // X is reversed and passed over Y
+    hwMathStatus status;
+
+    if (X.IsEmpty())
+        return Dimension(0, 0, REAL);
+
+    if (X.m_complex)
+        return status(HW_MATH_ERR_COMPLEXSUPPORT, 1);
+
+    if (Y.IsEmpty())
+        return Dimension(0, 0, REAL);
+
+    if (Y.m_complex)
+        return status(HW_MATH_ERR_COMPLEXSUPPORT, 2);
+
+    int xm = X.m_nRows;
+    int xn = X.m_nCols;
+    int ym = Y.m_nRows;
+    int yn = Y.m_nCols;
+    int cm = xm + ym - 1;       // # rows in conv
+    int cn = xn + yn - 1;       // # cols in conv
+
+    if (row1 < 0)
+        return status(HW_MATH_ERR_INVALIDINDEX, 3);
+
+    if (row2 > cm - 1)
+        return status(HW_MATH_ERR_INVALIDINDEX, 5);
+
+    if (row2 == -1)
+        row2 = cm - 1;
+
+    if (col1 < 0)
+        return status(HW_MATH_ERR_INVALIDINDEX, 4);
+
+    if (col2 > cn - 1)
+        return status(HW_MATH_ERR_INVALIDINDEX, 6);
+
+    if (col2 == -1)
+        col2 = cn - 1;
+
+    status = Dimension(row2 - row1 + 1, col2 - col1 + 1, REAL);
+
+    if (!status.IsOk())
+    {
+        if (cm < 1 || cn < 1)
+            return hwMathStatus();
+
+        if (status.GetArg1() != 0)
+            status.ResetArgs();
+
+        return status;
+    }
+
+    // flip the smaller of X or Y in both dimensions
+    int incS = 1;
+    int incD = -1;
+    int count = xm * xn;
+    int count2 = ym * yn;
+    hwTMatrix<double> flip;
+    bool flipX;
+
+    if (count2 > count) // flip X
+    {
+        flipX = true;
+        status = flip.Dimension(xm, xn, REAL);
+
+        if (!status.IsOk())
+        {
+            status.ResetArgs();
+            return status;
+        }
+
+        dcopy_(&count, const_cast<double*> (X.m_real), &incS, flip.m_real, &incD);
+    }
+    else    // flip Y
+    {
+        flipX = false;
+        count = count2;
+        status = flip.Dimension(ym, yn, REAL);
+
+        if (!status.IsOk())
+        {
+            status.ResetArgs();
+            return status;
+        }
+
+        dcopy_(&count, const_cast<double*> (Y.m_real), &incS, flip.m_real, &incD);
+    }
+
+    // find each conv(i, j)
+    int start_xi;                       // X column indexing
+    int start_xj;                       // X row indexing
+    int start_yi, stop_yi;              // Y column window
+    int start_yj, stop_yj;              // Y row window
+    int partial_i = _min(xm, ym) - 1;   // size of partial col overlaps
+    int partial_j = _min(xn, yn) - 1;   // size of partial row overlaps
+    double value;
+
+    for (int j = col1; j <= col2; ++j)
+    {
+        if (j < partial_j)
+        {
+            start_yj = 0;
+            stop_yj = j + 1;
+            start_xj = j;
+        }
+        else if (j < cn - partial_j)
+        {
+            if (xn < yn)
+            {
+                start_yj = j - xn + 1;
+                stop_yj = j + 1;
+                start_xj = xn - 1;
+            }
+            else
+            {
+                start_yj = 0;
+                stop_yj = yn;
+                start_xj = j;
+            }
+        }
+        else
+        {
+            start_yj = j - xn + 1;
+            stop_yj = yn;
+            start_xj = xn - 1;
+        }
+
+        for (int i = row1; i <= row2; ++i)
+        {
+            if (i < partial_i)
+            {
+                start_yi = 0;
+                stop_yi = i + 1;
+                start_xi = i;
+            }
+            else if (i < cm - partial_i)
+            {
+                if (xm < ym)
+                {
+                    start_yi = i - xm + 1;
+                    stop_yi = i + 1;
+                    start_xi = xm - 1;
+                }
+                else
+                {
+                    start_yi = 0;
+                    stop_yi = ym;
+                    start_xi = i;
+                }
+            }
+            else
+            {
+                start_yi = i - xm + 1;
+                stop_yi = ym;
+                start_xi = xm - 1;
+            }
+
+            // multiply the 2D overlap of Y and the reversed, shifted X
+            int incx  = 1;
+            int incy  = 1;
+            value     = 0.0;
+            count     = stop_yi - start_yi;
+
+            if (flipX)
+            {
+                start_xi = xm - 1 - start_xi;
+                double* xp = const_cast<double*> (&(flip(start_xi, xn - 1 - start_xj)));
+                double* yp = const_cast<double*> (&(Y(start_yi, start_yj)));
+
+                for (int jj = start_yj; jj < stop_yj; ++jj)
+                {
+                    value += ddot_(&count, xp, &incx, yp, &incy);
+                    xp    += xm;
+                    yp    += ym;
+                }
+            }
+            else
+            {
+                start_xi = start_xi - (count - 1);
+                start_yi = ym - 1 - start_yi - (count - 1);
+                double* xp = const_cast<double*> (&(X(start_xi, start_xj)));
+                double* yp = const_cast<double*> (&(flip(start_yi, yn - 1 - start_yj)));
+
+                for (int jj = start_yj; jj < stop_yj; ++jj)
+                {
+                    value += ddot_(&count, xp, &incx, yp, &incy);
+                    xp    -= xm;
+                    yp    -= ym;
+                }
+            }
+
+            (*this)(i - row1, j - col1) = value;
+        }
     }
 
     return status;

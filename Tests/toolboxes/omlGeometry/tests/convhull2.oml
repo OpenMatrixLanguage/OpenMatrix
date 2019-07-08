@@ -1,0 +1,6 @@
+addToolbox omlGeometry
+
+x = [0 3 1.5 0 3]' + 2;
+y = [0 0 2.5 5 5]' + 7;
+
+[h, a] = convhull(x, y)

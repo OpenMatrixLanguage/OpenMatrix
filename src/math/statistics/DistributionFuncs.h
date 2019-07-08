@@ -1021,7 +1021,17 @@ STATISTICS_DECLS hwMathStatus PoissonRnd(const hwMatrix&         lambda,
                                          hwMatrixI&              matrix);
 
 // Misc functions
-
+//!
+//! Generate a random permutation vector on [min:max]
+//! \param max
+//! \param numPts
+//! \param permVec
+//!
+STATISTICS_DECLS hwMathStatus RandPerm(int                     min,
+                                       int                     max,
+                                       int                     numPts,
+                                       hwMersenneTwisterState* pMTState,
+                                       hwMatrixI&              permVec);
 //!
 //! D'Agostino-Pearson omnibus normality test
 //! \param data

@@ -1,0 +1,7 @@
+header = 
+{
+  [1,1] tsec
+  [2,1] sineval
+  [3,1] desiredTorque
+  [4,1] motor_hal_actuals_desiredDofTorque
+}

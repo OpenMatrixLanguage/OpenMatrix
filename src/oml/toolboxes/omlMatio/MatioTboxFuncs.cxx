@@ -1,7 +1,7 @@
 /**
 * @file MatioTboxFuncs.cxx
 * @date November 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -22,6 +22,7 @@
 
 #include "BuiltInFuncsUtils.h"
 #include "EvaluatorInt.h" 
+#include "FunctionInfo.h"
 #include "OML_Error.h"
 #include "StructData.h" 
 
@@ -71,7 +72,7 @@ int InitDll(EvaluatorInterface eval)
 //------------------------------------------------------------------------------
 // Converts matvar_t to currency
 //------------------------------------------------------------------------------
-Currency MatVarToCurrency(matvar_t* var)
+Currency MatVarToCurrency(matvar_t* var, std::string& warn)
 {
     assert(var);
     if (!var)
@@ -79,139 +80,132 @@ Currency MatVarToCurrency(matvar_t* var)
         return Currency(-1.0, Currency::TYPE_NOTHING);
     }
 
-    matio_classes classtype = var->class_type;
+    matio_classes type = var->class_type;
+    if (type == MAT_C_EMPTY)  // 0 => Empty array
+    {
+        return EvaluatorInterface::allocateMatrix();
+    }
 
-	if (classtype == MAT_C_DOUBLE)
+    int           rank = var->rank;
+    std::string msg = "Cannot read variable [";
+    if (var->name)
+    {
+        msg += var->name;
+    }
+    msg += "]";
+    std::string newline = (!warn.empty()) ? "\n" : "";
+
+    if (rank == 1 && (type == MAT_C_DOUBLE || type == MAT_C_SINGLE  ||
+        type == MAT_C_UINT8 || type == MAT_C_UINT32 || MAT_C_UINT64))
+    {
+        warn += newline + msg + "; cannot process rank of 1";
+        return Currency(-1.0, Currency::TYPE_NOTHING);
+    }
+
+	if (type == MAT_C_DOUBLE)
 	{
-        if (var->rank == 1) // Cannot process rank of 1
-        {
-            return Currency(-1.0, Currency::TYPE_NOTHING);
-        }
-        else if (var->rank == 2) // matrix or vector or scalar
+        int num_rows = static_cast<int>(var->dims[0]);
+        int num_cols = static_cast<int>(var->dims[1]);
+
+        if (rank == 2) // matrix or vector or scalar
 		{
-            if (var->dims[0] == 1 && var->dims[1] == 1)
+            if (num_rows == 1 && num_cols == 1) // scalar or complex
 			{
-				if (var->isComplex) // complex
-				{
-                    mat_complex_split_t* cdata = (mat_complex_split_t*)var->data;
-                    if (cdata)
-                    {
-                        double *rp = (double*)cdata->Re;
-                        double *ip = (double*)cdata->Im;
-                        return hwComplex(*rp, *ip);
-                    }
-                    else
-                    {
-                        return Currency(-1.0, Currency::TYPE_NOTHING);
-                    }
+                if (!var->isComplex)
+                {
+                    double* my_val = (double*)var->data;
+                    return *my_val; // scalar
+
                 }
-				else // scalar
-				{
-					double* my_val = (double*)var->data;
-					return *my_val;
-				}
-			}
-			else // matrix
-			{ 
-                int num_rows = static_cast<int>(var->dims[0]);
-                int num_cols = static_cast<int>(var->dims[1]);
-
-				if (var->isComplex) // complex matrix
-				{
-					hwMatrix* mat = EvaluatorInterface::allocateMatrix(
-                                    num_rows, num_cols, hwMatrix::COMPLEX);
-							                    
-                    mat_complex_split_t* cdata = (mat_complex_split_t*)var->data;
-                    if (cdata)
-                    {
-                        double *rp = (double*)cdata->Re;
-                        double *ip = (double*)cdata->Im;
-
-                        for (int j = 0; j < num_cols; ++j)
-                        {
-                            for (int k = 0; k < num_rows; ++k)
-                            {
-                                int     idx = num_rows * j + k;
-                                mat->z(k, j) = hwComplex(*(rp + idx), *(ip + idx));
-                            }
-                        }
-                    }
-                    return mat;
-                }
-				else
-				{
-					hwMatrix* mat = EvaluatorInterface::allocateMatrix(
-                                    num_rows, num_cols, hwMatrix::REAL);
-
-					for (int j=0; j<num_cols; j++)
-					{
-						for (int k=0; k<num_rows; k++)
-						{
-							int     idx  = num_rows * j + k;
-							double* next = (double*)var->data + idx;
-							(*mat)(k, j) = *next;
-						}
-					}
-										
-					return mat;
-				}
-			}
-		}
-		else // ND matrix
-		{
-			int size = 1;
-            int rank = var->rank;
-           
-            std::vector<int> dims;
-            dims.reserve(rank);
-
-			for (int j = 0; j < rank; ++j)
-			{
-                int val = static_cast<int>(var->dims[j]);
-				dims.push_back(val);
-				size *= val;
-			}
-
-			hwMatrixN* mat_n = nullptr;
-
-			if (var->isComplex)
-			{
-				mat_n = new hwMatrixN(dims, hwMatrixN::COMPLEX);
-
                 mat_complex_split_t* cdata = (mat_complex_split_t*)var->data;
                 if (cdata)
                 {
                     double *rp = (double*)cdata->Re;
                     double *ip = (double*)cdata->Im;
+                    return hwComplex(*rp, *ip);  // Complex
+                }
+                warn += newline + msg + "; empty complex data";
+                return Currency(-1.0, Currency::TYPE_NOTHING);
+			}
 
-                    for (int k = 0; k < size; ++k)
+            hwMatrix::DataType mattype = (var->isComplex) ?
+                                         hwMatrix::COMPLEX : hwMatrix::REAL;
+            hwMatrix* mat = EvaluatorInterface::allocateMatrix(
+                            num_rows, num_cols, mattype);
+
+            if (!var->isComplex)
+            {
+                for (int j = 0; j < num_cols; ++j)
+                {
+                    for (int k = 0; k < num_rows; ++k)
                     {
-                        mat_n->z(k) = hwComplex(rp[k], ip[k]);
+                        int idx = num_rows * j + k;
+                        double* next = (double*)var->data + idx;
+                        (*mat)(k, j) = *next;
+                    }
+                }
+                return mat;  // Real matrix
+            }						                    
+            mat_complex_split_t* cdata = (mat_complex_split_t*)var->data;
+            if (cdata)
+            {
+                double *rp = (double*)cdata->Re;
+                double *ip = (double*)cdata->Im;
+
+                for (int j = 0; j < num_cols; ++j)
+                {
+                    for (int k = 0; k < num_rows; ++k)
+                    {
+                        int     idx = num_rows * j + k;
+                        mat->z(k, j) = hwComplex(*(rp + idx), *(ip + idx));
                     }
                 }
             }
-			else
-			{
-				mat_n = new hwMatrixN(dims, hwMatrixN::REAL);
+            return mat;  // Complex matrix
+		}
+		// ND matrix
+		int size = 1;
+        std::vector<int> dims;
+        dims.reserve(rank);
+		for (int j = 0; j < rank; ++j)
+		{
+            int val = static_cast<int>(var->dims[j]);
+			dims.push_back(val);
+			size *= val;
+		}
 
-				double* data = (double*)var->data;
+        hwMatrixN::DataType mattype = (var->isComplex) ?
+            hwMatrixN::COMPLEX : hwMatrixN::REAL;
+
+	    hwMatrixN* mat_n = new hwMatrixN(dims, mattype);
+		if (var->isComplex)
+		{
+            mat_complex_split_t* cdata = (mat_complex_split_t*)var->data;
+            if (cdata)
+            {
+                double *rp = (double*)cdata->Re;
+                double *ip = (double*)cdata->Im;
 
                 for (int k = 0; k < size; ++k)
                 {
-                    (*mat_n)(k) = data[k];
+                    mat_n->z(k) = hwComplex(rp[k], ip[k]);
                 }
             }
-
-			return mat_n;
-		}
-	}
-	else if (var->class_type == MAT_C_UINT8)
-	{
-        if (var->rank == 1) // Cannot process rank of 1
-        {
-            return Currency(-1.0, Currency::TYPE_NOTHING);
+            return mat_n;
         }
-        else if (var->rank == 2) // matrix or vector or scalar
+		double* data = (double*)var->data;
+        for (int k = 0; k < size; ++k)
+        {
+            (*mat_n)(k) = data[k];
+        }
+		return mat_n;
+	}
+	else if (type == MAT_C_UINT8 || type == MAT_C_INT64  ||
+             type == MAT_C_UINT64 || type == MAT_C_INT32 ||
+             type == MAT_C_UINT32 || type == MAT_C_INT16 ||
+             type == MAT_C_UINT16 || type == MAT_C_INT8)
+	{
+        if (rank == 2) // matrix or vector or scalar
 		{
             if (var->dims[0] == 1 && var->dims[1] == 1)
 			{
@@ -243,7 +237,6 @@ Currency MatVarToCurrency(matvar_t* var)
 				}
 								
 				Currency ret(mat);
-
 				if (var->isLogical)
                 {
                     ret.SetMask(Currency::MASK_LOGICAL);
@@ -256,9 +249,9 @@ Currency MatVarToCurrency(matvar_t* var)
 			throw OML_Error(OML_ERR_UNSUPPORTDIM);
 		}
 	}
-	else if (var->class_type == MAT_C_CHAR)
+	else if (type == MAT_C_CHAR)
 	{
-		if (var->rank == 2)
+		if (rank == 2)
 		{
 			int num_rows = static_cast<int>(var->dims[0]);
 			int num_cols = static_cast<int>(var->dims[1]);
@@ -307,9 +300,9 @@ Currency MatVarToCurrency(matvar_t* var)
             }
         }
 	}
-	else if (var->class_type == MAT_C_CELL)
+	else if (type == MAT_C_CELL)
 	{
-		if (var->rank == 2)
+		if (rank == 2)
 		{
 			HML_CELLARRAY* cells = EvaluatorInterface::allocateCellArray(
                 static_cast<int>(var->dims[0]), static_cast<int>(var->dims[1]));
@@ -317,14 +310,14 @@ Currency MatVarToCurrency(matvar_t* var)
 
             for (int j = 0; j < cells->Size(); j++)
             {
-                (*cells)(j) = MatVarToCurrency(vals[j]);
+                (*cells)(j) = MatVarToCurrency(vals[j], warn);
             }				
 			return cells;
 		}
 	}
-	else if (var->class_type == MAT_C_STRUCT)
+	else if (type == MAT_C_STRUCT)
 	{
-		if (var->rank == 2)
+		if (rank == 2)
 		{
 			StructData* sd = new StructData;
 			sd->Dimension(static_cast<int>(var->dims[0]) - 1, 
@@ -349,7 +342,7 @@ Currency MatVarToCurrency(matvar_t* var)
                         {
                             continue;
                         }
-                        Currency cur = MatVarToCurrency(temp);
+                        Currency cur = MatVarToCurrency(temp, warn);
                         sd->SetValue(k, m, field, cur);
                     }
                 }
@@ -358,7 +351,123 @@ Currency MatVarToCurrency(matvar_t* var)
             return sd;
         }
 	}
+    else if (type == MAT_C_SINGLE)
+    {
+        if (rank == 2) // matrix or vector or scalar
+        {
+            if (var->dims[0] == 1 && var->dims[1] == 1)
+            {
+                if (var->isComplex) // complex
+                {
+                    mat_complex_split_t* cdata = (mat_complex_split_t*)var->data;
+                    if (cdata)
+                    {
+                        float *rp = (float*)cdata->Re;
+                        float *ip = (float*)cdata->Im;
+                        return hwComplex(*rp, *ip);
+                    }
+                    warn += newline + msg + "; empty complex data";
+                    return Currency(-1.0, Currency::TYPE_NOTHING);
+                }
+                else // scalar
+                {
+                    float* my_val = (float*)var->data;
+                    return Currency(static_cast<double>(*my_val));
+                }
+            }
+            else // matrix
+            {
+                int num_rows = static_cast<int>(var->dims[0]);
+                int num_cols = static_cast<int>(var->dims[1]);
 
+                if (var->isComplex) // complex matrix
+                {
+                    hwMatrix* mat = EvaluatorInterface::allocateMatrix(
+                        num_rows, num_cols, hwMatrix::COMPLEX);
+
+                    mat_complex_split_t* cdata = (mat_complex_split_t*)var->data;
+                    if (cdata)
+                    {
+                        float *rp = (float*)cdata->Re;
+                        float *ip = (float*)cdata->Im;
+
+                        for (int j = 0; j < num_cols; ++j)
+                        {
+                            for (int k = 0; k < num_rows; ++k)
+                            {
+                                int     idx = num_rows * j + k;
+                                mat->z(k, j) = hwComplex((double)*(rp + idx),
+                                    (double)*(ip + idx));
+                            }
+                        }
+                    }
+                    return mat;
+                }
+                else
+                {
+                    hwMatrix* mat = EvaluatorInterface::allocateMatrix(
+                        num_rows, num_cols, hwMatrix::REAL);
+
+                    for (int j = 0; j<num_cols; j++)
+                    {
+                        for (int k = 0; k<num_rows; k++)
+                        {
+                            int     idx = num_rows * j + k;
+                            float* next = (float*)var->data + idx;
+                            (*mat)(k, j) = static_cast<double>(*next);
+                        }
+                    }
+
+                    return mat;
+                }
+            }
+        }
+        else // ND matrix
+        {
+            int size = 1;
+
+            std::vector<int> dims;
+            dims.reserve(rank);
+
+            for (int j = 0; j < rank; ++j)
+            {
+                int val = static_cast<int>(var->dims[j]);
+                dims.push_back(val);
+                size *= val;
+            }
+
+            hwMatrixN* mat_n = nullptr;
+
+            if (var->isComplex)
+            {
+                mat_n = new hwMatrixN(dims, hwMatrixN::COMPLEX);
+
+                mat_complex_split_t* cdata = (mat_complex_split_t*)var->data;
+                if (cdata)
+                {
+                    float *rp = (float*)cdata->Re;
+                    float *ip = (float*)cdata->Im;
+                    for (int k = 0; k < size; ++k)
+                    {
+                        mat_n->z(k) = hwComplex(rp[k], ip[k]);
+                    }
+                }
+            }
+            else
+            {
+                mat_n = new hwMatrixN(dims, hwMatrixN::REAL);
+                float* data = (float*)var->data;
+                for (int k = 0; k < size; ++k)
+                {
+                    (*mat_n)(k) = static_cast<double>(data[k]);
+                }
+            }
+            return mat_n;
+        }
+    }
+
+    warn += newline + msg + "; unrecognized data type [" +
+            std::to_string(static_cast<long long>(var->class_type)) + "]";
 	return Currency(-1.0, Currency::TYPE_NOTHING);
 }
 //------------------------------------------------------------------------------
@@ -381,7 +490,7 @@ bool OmlLoad(EvaluatorInterface           eval,
 	{
         if (!inputs[nargin - 1].IsString())
         {
-            throw OML_Error(OML_ERR_STRING, nargin, OML_VAR_TYPE);
+            throw OML_Error(OML_ERR_STRING, nargin);
         }
 
     	std::string lastinput (inputs[nargin-1].StringVal());
@@ -399,16 +508,18 @@ bool OmlLoad(EvaluatorInterface           eval,
 		{
             if (!inputs[j].IsString())
             {
-                throw OML_Error(OML_ERR_STRING, j + 1, OML_VAR_TYPE);
+                throw OML_Error(OML_ERR_STRING, j + 1);
             }
     		target_variables.push_back(inputs[j].StringVal());
 		}
 	}
 
-	if (!inputs[0].IsString())
-		throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
+    if (!inputs[0].IsString())
+    {
+        throw OML_Error(OML_ERR_STRING, 1);
+    }
 
-	int nargout        = eval.GetNargoutValue();
+	int nargout = eval.GetNargoutValue();
     std::unique_ptr<StructData> out_sd = nullptr;
 
     if (nargout)
@@ -419,12 +530,12 @@ bool OmlLoad(EvaluatorInterface           eval,
     Mat_LogInitFunc("OML", SetMatioMessage);
 
 	std::string filename (inputs[0].StringVal());
+    std::string warn;
 
 	mat_t* m = Mat_Open(filename.c_str(), MAT_ACC_RDONLY);
     if (!m)
     {
-        throw OML_Error("Error: invalid value in argument 1; cannot read file ["
-            + BuiltInFuncsUtils::Normpath(filename) + "]");
+        throw OML_Error(OML_ERR_FILE_CANNOTREAD, 1);
 	}
 
     PrintMatioFileVersion(m);  // Prints file version to stdout for debugging
@@ -460,12 +571,12 @@ bool OmlLoad(EvaluatorInterface           eval,
         {
             if (!out_sd)
             {
-                eval.SetValue(name, MatVarToCurrency(var));
+                eval.SetValue(name, MatVarToCurrency(var, warn));
             }
             else
             {
                 out_sd->addField(name);
-                out_sd->SetValue(0, 0, name, MatVarToCurrency(var));
+                out_sd->SetValue(0, 0, name, MatVarToCurrency(var, warn));
             }
         }
         catch (const OML_Error& e)
@@ -484,6 +595,15 @@ bool OmlLoad(EvaluatorInterface           eval,
         outputs.push_back(out_sd.release());
     }
 
+    if (!warn.empty())
+    {
+        std::string newline;
+        if (warn.find("\n") != std::string::npos)
+        {
+            newline = "\n";
+        }
+        BuiltInFuncsUtils::SetWarning(eval, "Warning: " + newline + warn);
+    }
 	return true;
 }
 //------------------------------------------------------------------------------
@@ -494,6 +614,20 @@ matvar_t* CurrencyToMatVar(const char*     name,
                            mat_ft          version,
                            std::string&    warn)
 {
+    if (cur.IsFunctionHandle())  // No code to read/write function handle in matio
+    {
+        if (!warn.empty())
+        {
+            warn += "\n";
+        }
+        warn += "Cannot save function handle";
+        if (name)
+        {
+            warn += " [" + std::string(name) + "]";
+        }
+        return nullptr;
+    }
+
     size_t    dims[2] = { 1, 1 };
     int       flags = (cur.IsLogical()) ? MAT_F_LOGICAL : 0;
     matvar_t* var = nullptr;
@@ -637,10 +771,44 @@ matvar_t* CurrencyToMatVar(const char*     name,
         assert(cells);
         matvar_t** matvar = (matvar_t**)malloc((cells->Size() + 1) * sizeof(matvar_t*));
 
-        for (int j = 0; j<cells->Size(); j++)
-            matvar[j] = CurrencyToMatVar("cell", (*cells)(j), version, warn);
+        for (int j = 0; j < cells->Size(); ++j)
+        {
+            Currency element = (*cells)(j);
+            std::string elemname(element.GetOutputName());
+            if (elemname.empty())
+            {
+                elemname = "cell";
+            }
+            bool isFunctionHandle = element.IsFunctionHandle();
+            if (!isFunctionHandle)
+            {
+                matvar[j] = CurrencyToMatVar(elemname.c_str(), element, version, warn);
+            }
+            if (!matvar[j])
+            {
+                if (!warn.empty())
+                {
+                    warn += "\n";
+                }
+                if (!isFunctionHandle)
+                {
+                    warn += "Unrecognized data type in ";
+                }
+                else
+                {
+                    warn += "Cannot save function handle in ";
+                }
+                warn += std::string(name) + "("
+                    + std::to_string(static_cast<long long>(j + 1));
 
-        matvar[cells->Size()] = NULL;
+                size_t doubledims[2] = { 1, 1 };
+                double dummyval = std::numeric_limits<double>::quiet_NaN();
+                matvar[j] = Mat_VarCreate(elemname.c_str(), MAT_C_DOUBLE,
+                    MAT_T_DOUBLE, 2, doubledims, &dummyval, 0);
+            }
+        }
+
+        matvar[cells->Size()] = nullptr;
 
         dims[0] = cells->M();
         dims[1] = cells->N();
@@ -687,17 +855,33 @@ matvar_t* CurrencyToMatVar(const char*     name,
             {
                 for (iter = field_names.begin(); iter != field_names.end(); iter++)
                 {
+                    matvar_t* temp_var = nullptr;
                     std::string field (iter->first);
-                    matvar_t* temp_var = CurrencyToMatVar(field.c_str(),
-                        sd->GetValue(j, k, field), version, warn);
+                    Currency element = sd->GetValue(j, k, field);
+                    bool isFunctionHandle = element.IsFunctionHandle();
+                    if (!isFunctionHandle)
+                    {
+                        temp_var = CurrencyToMatVar(field.c_str(),
+                                   element, version, warn);
+                    }
                     if (!temp_var)
                     {
                         if (!warn.empty())
                         {
                             warn += "\n";
                         }
-                        warn += "Invalid data in field [" + field + "], struct ["
-                            + std::string(name) + "]";
+                        if (!isFunctionHandle)
+                        {
+                            warn += "Unrecognized data type in ";
+                        }
+                        else
+                        {
+                            warn += "Cannot save function handle in ";
+                        } 
+                        warn += std::string(name) + "("
+                            + std::to_string(static_cast<long long>(j + 1)) + ","
+                            + std::to_string(static_cast<long long>(k + 1)) + ")"  
+                            + "." + field;
 
                         size_t doubledims[2] = { 1, 1 };
                         double dummyval = std::numeric_limits<double>::quiet_NaN();
@@ -712,11 +896,6 @@ matvar_t* CurrencyToMatVar(const char*     name,
                 }
             }
         }
-
-        //for (int j = 0; j<num_fields; j++)
-        //{
-        //    free((void*)temp_fields[j]);
-        //}
 
         delete[] temp_fields;
         temp_fields = nullptr;

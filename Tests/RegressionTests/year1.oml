@@ -1,0 +1,6 @@
+year('09-Apr-2019')
+year('09-Apr-2019 18:05:56', 'dd-mmm-yyyy HH:MM:SS')
+year('9-Apr-2019', 'dd-mmm-yyyy')
+
+year('04/09/19', 'mm/dd/yy')
+year('04/09/1970', 'mm/dd/yy')

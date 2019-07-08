@@ -1,0 +1,2 @@
+addtoolbox omlSignals
+w = barthannwin(6,'periodic')

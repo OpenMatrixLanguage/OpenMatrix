@@ -1,0 +1,10 @@
+﻿function foo
+disp('foo');
+end
+
+try %% XXX
+foo;
+catch %% XXX
+err=lasterr; %% XXX
+error(err); %% XXX
+end %% XXX

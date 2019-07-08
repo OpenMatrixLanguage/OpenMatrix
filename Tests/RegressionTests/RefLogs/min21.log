@@ -1,1 +1,1 @@
-Error: incompatible array sizes in arguments 1,2; dimensions must match in call to function min at line number 1 in file min21.oml
+Error: incompatible matrices in arguments 1,2; dimensions must be consistent in call to function min at line number 1 in file min21.oml

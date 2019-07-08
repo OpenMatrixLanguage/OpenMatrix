@@ -24,10 +24,13 @@ rem add fftw directory to path
 set path=%OML_THIRDPARTY%\fftw\fftw-3.2.2\fftw-3.2.2-libs\x64\Release;%path%
 
 rem add matio directory to path
-set path=%OML_THIRDPARTY%\matio\matio-1.5.11\visual_studio\x64\Release;%path%
+set path=%OML_THIRDPARTY%\matio\matio-1.5.12\visual_studio\x64\Release;%path%
 
 rem add sundials directory to path
 set path=%OML_THIRDPARTY%\sundials\sundials-3.1.0-install\lib;%path%
+
+rem add qhull directory to path
+set path=%OML_THIRDPARTY%\qhull\qhull-2015.2\bin;%path%
 
 set OML_THIRDPARTY=%OML_THIRDPARTY:\=/%
 set OML_HELP=%OML_ROOT%/help/win/en/topics/reference/oml_language/

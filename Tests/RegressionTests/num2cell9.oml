@@ -1,0 +1,2 @@
+t = ['this is';'a test '; 'string '];
+num2cell(t, 2)

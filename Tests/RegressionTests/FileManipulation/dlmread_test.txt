@@ -1,0 +1,7 @@
+%this begins my file o data
+%and I have a header denoted by % sign
+1.0, 2.0, 3.0 %this is my first line of data
+4.0, 5.0, 6.0
+8.0, 10, 11
+% this ends my data
+

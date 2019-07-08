@@ -41,6 +41,8 @@ int InitDll(EvaluatorInterface eval)
         FunctionMetaData(-4, 1, POLY));
     eval.RegisterBuiltInFunction("interp2", &OmlInterp2,
         FunctionMetaData(-6, 1, POLY));
+    eval.RegisterBuiltInFunction("isonormals", &OmlIsoNormals,
+        FunctionMetaData(5, 1, POLY));
     eval.RegisterBuiltInFunction("deconv", &OmlDeconv,
         FunctionMetaData(2, 2, POLY));
     eval.RegisterBuiltInFunction("polyder", &OmlPolyder,
@@ -53,8 +55,8 @@ int InitDll(EvaluatorInterface eval)
 // Computes the roots of a polynomial and returns true
 //------------------------------------------------------------------------------
 bool OmlRoots(EvaluatorInterface           eval,
-    const std::vector<Currency>& inputs,
-    std::vector<Currency>&       outputs)
+              const std::vector<Currency>& inputs,
+              std::vector<Currency>&       outputs)
 {
     if (inputs.size() != 1)
         throw OML_Error(OML_ERR_NUMARGIN);
@@ -74,8 +76,8 @@ bool OmlRoots(EvaluatorInterface           eval,
 // Interpolates (x,y) data with a cubic spline and returns true
 //------------------------------------------------------------------------------
 bool OmlSpline(EvaluatorInterface           eval,
-    const std::vector<Currency>& inputs,
-    std::vector<Currency>&       outputs)
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs)
 {
     static bool unsorted = true;
     size_t nargin = inputs.size();
@@ -298,7 +300,7 @@ bool OmlSpline(EvaluatorInterface           eval,
                     {
                         if (status == HW_MATH_ERR_ARRAYSIZE)
                         {
-                            throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                            throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
                         }
                         else
                         {
@@ -327,8 +329,8 @@ bool OmlSpline(EvaluatorInterface           eval,
 // Interpolates in one dimension and returns true
 //------------------------------------------------------------------------------
 bool OmlInterp1(EvaluatorInterface           eval,
-    const std::vector<Currency>& inputs,
-    std::vector<Currency>&       outputs)
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
 {
     static bool unsorted = true;
     size_t nargin = inputs.size();
@@ -507,7 +509,7 @@ bool OmlInterp1(EvaluatorInterface           eval,
             }
             else
             {
-                throw OML_Error(HW_MATH_MSG_NOTIMPLEMENT);
+                throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_NOTIMPLEMENT));
             }
 
             outputs.push_back(yi);
@@ -540,14 +542,14 @@ bool OmlInterp1(EvaluatorInterface           eval,
                     }
                     else
                     {
-                        throw OML_Error(HW_MATH_MSG_NOTIMPLEMENT);
+                        throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_NOTIMPLEMENT));
                     }
 
                     if (!status.IsOk())
                     {
                         if (status == HW_MATH_ERR_ARRAYSIZE)
                         {
-                            throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+                            throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
                         }
                         else
                         {
@@ -573,11 +575,11 @@ bool OmlInterp1(EvaluatorInterface           eval,
 // Helper method for interp1 command
 //------------------------------------------------------------------------------
 void interpOptionsHelper(EvaluatorInterface& eval,
-    const Currency&     input,
-    bool&               extrap,
-    std::string&        method,
-    bool&               setExtrap,
-    bool&               setMethod)
+                         const Currency&     input,
+                         bool&               extrap,
+                         std::string&        method,
+                         bool&               setExtrap,
+                         bool&               setMethod)
 {
     // only used for interp1, could be used for intper2 also
     if (input.IsString())
@@ -625,7 +627,7 @@ void interpOptionsHelper(EvaluatorInterface& eval,
     }
     else if (input.IsScalar() && setExtrap)
     {
-        throw OML_Error(HW_MATH_MSG_NOTIMPLEMENT);
+        throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_NOTIMPLEMENT));
     }
     else
     {
@@ -636,8 +638,8 @@ void interpOptionsHelper(EvaluatorInterface& eval,
 // Interpolates in two-dimensions and returns true
 //------------------------------------------------------------------------------
 bool OmlInterp2(EvaluatorInterface           eval,
-    const std::vector<Currency>& inputs,
-    std::vector<Currency>&       outputs)
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
 {
     size_t nargin = inputs.size();
 
@@ -702,11 +704,234 @@ bool OmlInterp2(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
+// Computes gradient of trilinear interpolation
+//------------------------------------------------------------------------------
+bool OmlIsoNormals(EvaluatorInterface           eval,
+                   const std::vector<Currency>& inputs,
+                   std::vector<Currency>&       outputs)
+{
+    bool switchSign = true;
+
+    if (inputs.size() == 2 || inputs.size() == 3)
+    {
+        if (!inputs[0].IsNDMatrix())
+        {
+            throw OML_Error(OML_ERR_MATRIX, 4, OML_VAR_DATA);
+        }
+
+        if (!inputs[1].IsMatrix())
+        {
+            throw OML_Error(OML_ERR_MATRIX, 5, OML_VAR_DATA);
+        }
+
+        if (inputs.size() == 3)
+        {
+            if (!inputs[2].IsString())
+            {
+                throw OML_Error(OML_ERR_STRING, 3, OML_VAR_DATA);
+            }
+
+            std::string str = inputs[2].StringVal();
+
+            if (str != "negate")
+                throw OML_Error(OML_ERR_OPTION, 3);
+
+            switchSign = false;
+        }
+
+        const hwMatrixN* val_old = inputs[0].MatrixN();
+        const hwMatrix*  v_new   = inputs[1].Matrix();
+
+        const std::vector<int>& dims_old = val_old->Dimensions();
+
+        if (dims_old.size() != 3)
+            throw OML_Error(OML_ERR_ARRAYSIZE, 1);
+
+        int nx = dims_old[1];
+        int ny = dims_old[0];
+        int nz = dims_old[2];
+
+        hwMatrix x_old(nx, hwMatrix::REAL);
+        hwMatrix y_old(ny, hwMatrix::REAL);
+        hwMatrix z_old(nz, hwMatrix::REAL);
+
+        for (int i = 0; i < nx; ++i)
+            x_old(i) = static_cast<double>(i + 1);
+
+        for (int i = 0; i < ny; ++i)
+            y_old(i) = static_cast<double>(i + 1);
+
+        for (int i = 0; i < nz; ++i)
+            z_old(i) = static_cast<double>(i + 1);
+
+        std::unique_ptr<hwMatrix> grad(EvaluatorInterface::allocateMatrix());
+
+        hwMathStatus status = TrilinearInterpGrad(x_old, y_old, z_old, *val_old,
+            *v_new, *grad);
+
+        if (!status.IsOk())
+        {
+            int arg = status.GetArg1();
+            
+            if (arg > 3)
+                status.SetArg1(arg - 3);
+
+            throw OML_Error(status);
+        }
+
+        if (switchSign)
+        {
+            (*grad) = -(*grad);
+        }
+
+        outputs.push_back(grad.release());
+
+        return true;
+    }
+
+    if (inputs.size() != 5 && inputs.size() != 6)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    if (inputs.size() == 6)
+    {
+        if (!inputs[5].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, 6, OML_VAR_DATA);
+        }
+
+        std::string str = inputs[5].StringVal();
+
+        if (str != "negate")
+            throw OML_Error(OML_ERR_OPTION, 6);
+
+        switchSign = false;
+    }
+
+    if (inputs[0].IsNDMatrix() && inputs[1].IsNDMatrix() && inputs[2].IsNDMatrix())
+    {
+        const hwMatrixN* x_old = inputs[0].MatrixN();
+        const hwMatrixN* y_old = inputs[1].MatrixN();
+        const hwMatrixN* z_old = inputs[2].MatrixN();
+
+        if (x_old->Dimensions().size() != 3)
+        {
+            throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
+        }
+
+        if (x_old->Dimensions() != y_old->Dimensions())
+        {
+            throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
+        }
+
+        if (x_old->Dimensions() != z_old->Dimensions())
+        {
+            throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
+        }
+
+        std::vector<Currency> inputs2;
+
+        std::vector<int> sliceDims2D(2);
+        sliceDims2D[0] = -1;
+        sliceDims2D[1] = 1;
+
+        // x_old
+        std::vector<hwSliceArg> sliceArgs;   // assume permuted meshgrid inputs
+        sliceArgs.push_back(0);
+        sliceArgs.push_back(hwSliceArg());
+        sliceArgs.push_back(0);
+
+        hwMatrixN slice;
+        hwMatrix* slice2D = new hwMatrix;
+        x_old->SliceRHS(sliceArgs, slice);
+        slice.Reshape(sliceDims2D);     // reshape to a column
+        slice.ConvertNDto2D(*slice2D);
+        inputs2.push_back(slice2D);
+
+        // y_old
+        sliceArgs.clear();
+        sliceArgs.push_back(hwSliceArg());
+        sliceArgs.push_back(0);
+        sliceArgs.push_back(0);
+
+        slice2D = new hwMatrix;
+        y_old->SliceRHS(sliceArgs, slice);
+        slice.Reshape(sliceDims2D);     // reshape to a column
+        slice.ConvertNDto2D(*slice2D);
+        inputs2.push_back(slice2D);
+
+        // z_old
+        sliceArgs.clear();
+        sliceArgs.push_back(0);
+        sliceArgs.push_back(0);
+        sliceArgs.push_back(hwSliceArg());
+
+        slice2D = new hwMatrix;
+        z_old->SliceRHS(sliceArgs, slice);
+        slice.Reshape(sliceDims2D);     // reshape to a column
+        slice.ConvertNDto2D(*slice2D);
+        inputs2.push_back(slice2D);
+
+        for (int i = 3; i < inputs.size(); ++i)
+        {
+            inputs2.push_back(inputs[i]);
+        }
+
+        return OmlIsoNormals(eval, inputs2, outputs);
+    }
+
+    if (!inputs[0].IsMatrix())
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
+    }
+
+    if (!inputs[1].IsMatrix())
+    {
+        throw OML_Error(OML_ERR_MATRIX, 2, OML_VAR_DATA);
+    }
+
+    if (!inputs[2].IsMatrix())
+    {
+        throw OML_Error(OML_ERR_MATRIX, 3, OML_VAR_DATA);
+    }
+
+    if (!inputs[3].IsNDMatrix())
+    {
+        throw OML_Error(OML_ERR_MATRIX, 4, OML_VAR_DATA);
+    }
+
+    if (!inputs[4].IsMatrix())
+    {
+        throw OML_Error(OML_ERR_MATRIX, 5, OML_VAR_DATA);
+    }
+
+    const hwMatrix*  x_old   = inputs[0].Matrix();
+    const hwMatrix*  y_old   = inputs[1].Matrix();
+    const hwMatrix*  z_old   = inputs[2].Matrix();
+    const hwMatrixN* val_old = inputs[3].MatrixN();
+    const hwMatrix*  v_new   = inputs[4].Matrix();
+
+    std::unique_ptr<hwMatrix> grad(EvaluatorInterface::allocateMatrix());
+
+    hwMathStatus status = TrilinearInterpGrad(*x_old, *y_old, *z_old, *val_old,
+                                              *v_new, *grad);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+    
+    if (switchSign)
+    {
+        (*grad) = -(*grad);
+    }
+
+    outputs.push_back(grad.release());
+
+    return true;
+}
+//------------------------------------------------------------------------------
 // Computes polynomial division, or deconvolution
 //------------------------------------------------------------------------------
 bool OmlDeconv(EvaluatorInterface           eval,
-    const std::vector<Currency>& inputs,
-    std::vector<Currency>&       outputs)
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs)
 {
     if (inputs.size() != 2)
         throw OML_Error(OML_ERR_NUMARGIN);
@@ -738,8 +963,8 @@ bool OmlDeconv(EvaluatorInterface           eval,
 // Computes the derivative of a polynomial and returns true
 //------------------------------------------------------------------------------
 bool OmlPolyder(EvaluatorInterface           eval,
-    const std::vector<Currency>& inputs,
-    std::vector<Currency>&       outputs)
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
 {
     size_t nargin = inputs.size();
     size_t nargout = eval.GetNargoutValue();
@@ -798,8 +1023,8 @@ bool OmlPolyder(EvaluatorInterface           eval,
 // Computes the integral of a polynomial and returns true
 //------------------------------------------------------------------------------
 bool OmlPolyint(EvaluatorInterface           eval,
-    const std::vector<Currency>& inputs,
-    std::vector<Currency>&       outputs)
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
 {
     size_t nargin = inputs.size();
     size_t nargout = eval.GetNargoutValue();

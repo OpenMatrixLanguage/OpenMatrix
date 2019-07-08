@@ -629,6 +629,10 @@ bool InterpreterImpl::IsPartialExpression(const std::string& expr)
 				else
 					is_partial = false;
 			}
+			else if (tok->getType(tok) == PARSE_DUMMY)
+			{
+				is_partial = true;
+			}
 		}
     }
 

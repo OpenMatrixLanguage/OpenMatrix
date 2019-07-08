@@ -1,2 +1,2 @@
-path('functions')
-type('myfunc',['-';'q'])
+a = ['multi'; '-line'; 'string'];
+type('a')

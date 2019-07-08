@@ -123,6 +123,11 @@ std::vector<std::string> EvaluatorInterface::GetVariableNames() const
     return eval->GetVariableNames(0);
 }
 
+bool EvaluatorInterface::IsA(const Currency& target, const std::string& classname) const
+{
+	return eval->IsA(target, classname);
+}
+
 Currency EvaluatorInterface::CallFunction(const std::string& func_name, const std::vector<Currency>& params)
 {
     return eval->CallFunction(func_name, params);
@@ -250,9 +255,10 @@ void EvaluatorInterface::ClearGlobals()
 
 Currency EvaluatorInterface::CallInternalFunction(FunctionInfo*fi, const std::vector<Currency>& param_values)
 {
-	FunctionInfo* temp = new FunctionInfo(*fi);
+	FunctionInfo* temp = fi;
+	fi->IncrRefCount();
     Currency      ret  =  eval->CallInternalFunction(temp, param_values);
-	delete temp;
+	fi->DecrRefCount();
 	return ret;
 }
 

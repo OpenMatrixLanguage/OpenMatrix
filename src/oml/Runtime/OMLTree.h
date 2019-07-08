@@ -57,7 +57,9 @@ public:
 	void               GetListOfIdents(std::vector<std::string>&) const;
     const std::string* GetLeadingIdent();
 
-	std::string DumpAST();
+	std::string DumpAST() const;
+
+	std::string GetStringRepresentation() const;
 
 	void*      u; // user data
 	TREE_FPTR  func_ptr;

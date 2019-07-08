@@ -1,0 +1,46 @@
+﻿classdef shape
+	properties
+		x
+		y
+		color
+	end
+	methods
+		function s=shape(x, y, color)
+			s.x = x;
+			s.y = y;
+			s.color = color;
+		end
+
+		function disp(s)
+			fprintf('The shape is centered at (%f,%f) and has color %s\n', s.x, s.y, s.color);
+		end
+
+		function color = get_color(s)
+			color = s.color;
+		end
+	end
+end
+
+classdef circle < shape
+	properties
+		r
+	end
+
+	methods
+		function c = circle(radius, x, y, color)
+			c = c@shape(x,y,color); % Special construct for instantiating the superclass
+			c.r = radius;
+		end
+
+		function disp(c)
+			disp@shape(c); % Call the superclass display first (optional)
+			fprintf('Radius = %f\n',c.r);
+		end
+
+	end
+end
+
+c = circle(3,1,1,'blue')
+
+isa(c, 'circle')
+isa(c, 'shape')

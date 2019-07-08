@@ -1,1 +1,4 @@
-Error: incompatible dimensions at line number 1 in file rightDivFAIL.oml
+ans = [Matrix] 3 x 3
+0.14286  0.42857  0.85714
+0.50000  1.50000  3.00000
+0.12500  0.37500  0.75000

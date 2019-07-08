@@ -1,0 +1,5 @@
+minute('5:45', 'HH:MM')
+minute('5:45 PM', 'HH:MM PM')
+minute('may.5,2019 8:45:30', 'mmm.dd,yyyy HH:MM:SS')
+minute('20190405T050608', 'yyyymmddTHHMMSS')
+minute('2019-02-03 5:45:50', 'yyyy-mm-dd HH:MM:SS')

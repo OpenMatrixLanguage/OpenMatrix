@@ -1,0 +1,8 @@
+addtoolbox omlMatio
+a = 5;
+b = ones(3,3);
+c = {3i, 0, [ 1 2 3]};
+d = 'fun';
+save('saveload1.mat')
+clear all
+R = load('saveload1.mat')

@@ -1,0 +1,4 @@
+memstr =sprintf('   ProcessPageFaultCount: 12177108\n ProcessPeakWorkingSetSize: -2106646528\n ProcessWorkingSetSize: -2136461312\n ProcessQuotaPeakPagedPoolUsage: 1516320\n ProcessQuotaPagedPoolUsage: 1397912\n   ProcessQuotaPeakNonPagedPoolUsage: 102560 \n ProcessQuotaNonPagedPoolUsage: 87680\n  ProcessPagefileUsage: 2122883072\n    ProcessPeakPagefileUsage: -2141745152');
+pattern = '.*ProcessWorkingSetSize: ([0-9]*)\n';
+[startidx, endidx, extent, match, token, namedtoken, unmatchedtoken] = regexp(memstr, pattern);
+unmatchedtoken

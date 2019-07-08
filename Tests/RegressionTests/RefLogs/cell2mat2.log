@@ -1,1 +1,1 @@
-Error: input must be a cell array in call to function cell2mat at line number 1 in file cell2mat2.oml
+Error: invalid input in argument 1; must be cell array in call to function cell2mat at line number 1 in file cell2mat2.oml

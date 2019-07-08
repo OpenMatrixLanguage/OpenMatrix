@@ -732,6 +732,15 @@ bool OmlMultiregress(EvaluatorInterface           eval,
                      const std::vector<Currency>& inputs, 
                      std::vector<Currency>&       outputs);
 //!
+//! Generates a random permutation vector [randperm]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlRandperm(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs);
+//!
 //! Generates a design matrix for Box-Behnken with a given number of factors [bbdesign]
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs

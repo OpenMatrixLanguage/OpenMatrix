@@ -681,7 +681,7 @@ namespace omlplot{
                 if (state == GET_Z){
                     break;
                 } else {
-                    throw OML_Error(OML_ERR_PLOT_NOT_SUPPORTED_OPTION, pos + 1);
+                    throw OML_Error(OML_ERR_OPT_UNSUPPORTED, pos + 1);
                 }
             }
             input = getNextInput(inputs, pos);
@@ -752,7 +752,7 @@ namespace omlplot{
                 break;
             case GET_Z:
                 if (input.IsScalar() || input.IsMatrix()){
-                    throw OML_Error(OML_ERR_PLOT_NOT_SUPPORTED_OPTION, pos + 1);
+                    throw OML_Error(OML_ERR_OPT_UNSUPPORTED, pos + 1);
                     //data.colorMat = GetMatrix(input);
                     ++pos;
                     state = GET_COLOR_MAT;

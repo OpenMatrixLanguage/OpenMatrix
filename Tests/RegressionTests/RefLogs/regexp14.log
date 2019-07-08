@@ -98,24 +98,12 @@ t =
 }
 nm = 
 {
-  [1,1] struct [
-
-  ]
-  [1,2] struct [
-
-  ]
-  [2,1] struct [
-
-  ]
-  [2,2] struct [
-
-  ]
-  [3,1] struct [
-
-  ]
-  [3,2] struct [
-
-  ]
+  [1,1] struct [ ]
+  [1,2] struct [ ]
+  [2,1] struct [ ]
+  [2,2] struct [ ]
+  [3,1] struct [ ]
+  [3,2] struct [ ]
 }
 sp = 
 {

@@ -18,13 +18,9 @@
 
 #include "DiffEqExports.h"
 
-#include "hwRungeKutta.h"
+#include "hwArkodeWrap.h"
 #include "hwCvodeWrap.h"
 #include "hwIdaWrap.h"
-#include "cvode/cvode.h"
-#include "cvode/cvode_spils.h"
-#include "ida/ida.h"
-#include "ida/ida_spils.h"
 
 //------------------------------------------------------------------------------
 //!
@@ -49,15 +45,17 @@
 //! \param abserr    Optional argument: absolute error
 //! \param userData  Optional argument
 //!
-DIFFEQ_DECLS hwMathStatus RK45(RKF45Fn_client  sysfunc,
-                               double          tStart, 
-                               double          tStop,
-                               int             numTimes, 
-                               const hwMatrix& y, 
-                               hwMatrix&       ySolution,
-                               double          relerr   = 1.0e-3, 
-                               const hwMatrix* abserr   = nullptr,
-                               const hwMatrix* userData = nullptr);
+DIFFEQ_DECLS hwMathStatus RK45(ARKRhsFn_client      sysfunc,
+                               ARKRootFn_client     rootfunc,
+                               ARKDenseJacFn_client jacDfunc,
+                               double               tStart,
+                               double               tStop,
+                               int                  numTimes, 
+                               const hwMatrix&      y, 
+                               hwMatrix&            ySolution,
+                               double               relerr   = 1.0e-3, 
+                               const hwMatrix*      abserr   = nullptr,
+                               const hwMatrix*      userData = nullptr);
 //!
 //! Differential equation solver
 //! \param sysfunc
@@ -69,14 +67,16 @@ DIFFEQ_DECLS hwMathStatus RK45(RKF45Fn_client  sysfunc,
 //! \param abserr       Optional argument: absolute error
 //! \param userData     Optional argument
 //!
-DIFFEQ_DECLS hwMathStatus RK45(RKF45Fn_client  sysfunc, 
-                               const hwMatrix& time, 
-                               const hwMatrix& y,
-                               hwMatrix*       timeSolution, 
-                               hwMatrix&       ySolution, 
-                               double          relerr   = 1.0e-3,
-                               const hwMatrix* abserr   = nullptr, 
-                               const hwMatrix* userData = nullptr);
+DIFFEQ_DECLS hwMathStatus RK45(ARKRhsFn_client      sysfunc,
+                               ARKRootFn_client     rootfunc,
+                               ARKDenseJacFn_client jacDfunc,
+                               const hwMatrix&      time,
+                               const hwMatrix&      y,
+                               hwMatrix*            timeSolution, 
+                               hwMatrix&            ySolution, 
+                               double               relerr   = 1.0e-3,
+                               const hwMatrix*      abserr   = nullptr, 
+                               const hwMatrix*      userData = nullptr);
 //!
 //! Differential equation solver which wraps CVODE functions
 //! \param sysfunc

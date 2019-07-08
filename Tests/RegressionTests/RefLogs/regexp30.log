@@ -1,0 +1,12 @@
+unmatchedtoken = 
+{
+  [1,1]    ProcessPageFaultCount: 12177108
+ ProcessPeakWorkingSetSize: -2106646528
+ ProcessWorkingSetSize: -2136461312
+ ProcessQuotaPeakPagedPoolUsage: 1516320
+ ProcessQuotaPagedPoolUsage: 1397912
+   ProcessQuotaPeakNonPagedPoolUsage: 102560 
+ ProcessQuotaNonPagedPoolUsage: 87680
+  ProcessPagefileUsage: 2122883072
+    ProcessPeakPagefileUsage: -2141745152
+}

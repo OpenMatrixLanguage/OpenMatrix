@@ -1,0 +1,10 @@
+addtoolbox('omlMatio')
+a = true;
+b = false;
+save('logical1.mat')
+class(a)
+class(b)
+clear all
+load('logical1.mat')
+class(a)
+class(b)

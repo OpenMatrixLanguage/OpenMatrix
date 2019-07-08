@@ -1,1 +1,1 @@
-Error: incompatible matrices in arguments 1,2; dimensions must be equal in call to function dot at line number 1 in file dot10.oml
+Error: incompatible matrices in arguments 1,2; dimensions must be consistent in call to function dot at line number 1 in file dot10.oml

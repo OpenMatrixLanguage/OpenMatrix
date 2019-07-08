@@ -18,11 +18,15 @@
 #include "BuiltInFuncsSystem.h"
 
 #include <algorithm>
+#include <cassert>
 #include <limits.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <thread>
 #include <time.h>
+#include <utility>
+
 
 #ifdef OS_WIN
 #    include "windows.h"
@@ -40,6 +44,12 @@
 #include "OML_Error.h"
 #include "StructData.h"
 
+// Helper method to run a system command asynchronously
+void RunSystemCommand(const std::string& command)
+{
+	system(command.c_str());
+}
+
 // End defines/includes
 
 //------------------------------------------------------------------------------
@@ -55,20 +65,49 @@ bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
     std::string filenames;
     std::string out;
 
+    BuiltInFuncsUtils utils;
     if (nargin > 0)
     {
-        Currency cur = inputs[0];
-        if (!cur.IsString())
+        if (!inputs[0].IsString())
+        {
             throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
-        options = cur.StringVal();
+        }
+        options = inputs[0].StringVal();
+
+        // Check whether this is an option or a filename
+        if (!options.empty() && nargin < 2)
+        {
+#ifdef OS_WIN
+            if (options[0] != '/' && options[0] != '-') // This is a filename
+            {
+                options = utils.Normpath(options);
+                if (options.find(" ") != std::string::npos)
+                {
+                    options = "\"" + options + "\"";
+                }
+            }
+#else
+            if (options[0] != '-')                      // This is a filename
+            {
+                options = utils.Normpath(options);
+            }
+#endif
+        }
     }
 
     if (nargin > 1)
     {
-        Currency cur = inputs[1];
-        if (!cur.IsString())
+        if (!inputs[1].IsString())
+        {
             throw OML_Error(OML_ERR_STRING, 2, OML_VAR_TYPE);
-        filenames = cur.StringVal();
+        }
+        filenames = utils.Normpath(inputs[1].StringVal());
+#ifdef OS_WIN
+        if (filenames.find(" ") != std::string::npos)
+        {
+            filenames = "\"" + filenames + "\"";
+        }
+#endif
     }
 
     std::string strcmd;
@@ -82,6 +121,8 @@ bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
         strcmd += " " + options;
     if (!filenames.empty())
         strcmd += " " + filenames;
+
+    strcmd += " 2>&1";
    
     FILE* cmdoutput = nullptr;
 
@@ -91,13 +132,42 @@ bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
     cmdoutput = popen(strcmd.c_str(), "r");
 #endif
 
+    if (!cmdoutput)
+    {
+        throw OML_Error(HW_ERROR_PROBOPENPIPE);
+    }
+    
+    long id = 0;
+    bool echo = (eval.GetNargoutValue() == 0);
+
+    if (echo)
+    {
+        time_t ltime;
+        time(&ltime);
+        id = static_cast<long>(ltime);
+    }
+
     while (1) 
     {
         char buf[256];
         memset(buf, 0, sizeof(buf));
         if (fgets(buf, sizeof(buf), cmdoutput) <= 0)
+        {
             break;
+        }
         out += buf;
+
+        if (echo)
+        {
+            Currency tmp = buf;
+            tmp.DispOutput();
+            CurrencyDisplay* display = tmp.GetDisplay();
+            if (display)
+            {
+                display->SetChainedDisplay(id);
+            }
+            eval.PrintResult(tmp);
+        }
     }
 
 #ifdef OS_WIN
@@ -106,15 +176,10 @@ bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
     pclose(cmdoutput);
 #endif
 
-    
-    if (eval.GetNargoutValue() <= 0)
+    if (!echo)
     {
-         Currency output(out);
-         output.DispOutput();
-        eval.PrintResult(output);
-    }
-    else
         outputs.push_back(out);
+    }
 
     return true;
 }
@@ -315,36 +380,124 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
 
     if (!inputs[0].IsString())
     {
-        throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
+        throw OML_Error(OML_ERR_STRING, 1);
     }
+
+	bool returnoutput = false; // True if output from system command is returned
+	bool async        = false; // True if system command runs asynchronously
+	if (nargin > 1)
+	{
+		int val = 0;
+		if (inputs[1].IsLogical())
+		{
+			val = static_cast<int>(inputs[1].Scalar());
+		}
+		else if (inputs[1].IsInteger())
+		{
+			val = static_cast<int>(inputs[1].Scalar());
+			if (val != 0 && val != 1)
+			{
+				throw OML_Error(OML_ERR_LOGICAL, 2);
+			}
+		}
+		else if (inputs[1].IsString())
+		{
+			std::string val(inputs[1].StringVal());
+			if (!val.empty())
+			{
+				std::transform(val.begin(), val.end(), val.begin(), ::tolower);
+			}
+			if (val == "async")
+			{
+				async = true;
+			}
+			else if (val != "sync")
+			{
+				throw OML_Error("Error: invalid input in argument 2; must be 'sync', 'async' or logical");
+			}
+		}
+		else
+		{
+			throw OML_Error("Error: invalid input in argument 2; must be 'sync', 'async' or logical");
+		}
+		returnoutput = (val == 1) ? true : false;
+	}
+
+	if (nargin > 2)
+	{
+		if (!inputs[2].IsString())
+		{
+			throw OML_Error(OML_ERR_STRING, 3);
+		}
+		std::string val(inputs[2].StringVal());
+		if (!val.empty())
+		{
+			std::transform(val.begin(), val.end(), val.begin(), ::tolower);
+		}
+		if (val == "async")
+		{
+			async = true;
+		}
+		else if (val != "sync")
+		{
+			throw OML_Error("Error: invalid input in argument 3; must be 'sync' or 'async'");
+		}
+	}
+
     int  nargout    = eval.GetNargoutValue();
-    bool saveoutput = (nargout >= 2);
-    bool echo       = (nargout == 0);
-    
+	bool saveoutput = false;
+
+	if (nargout >= 2 || returnoutput)
+	{
+		if (async)
+		{
+			throw OML_Error("Error: invalid input in argument 3; must be 'sync' to return output");
+		}
+		saveoutput = true;
+	}
+
+	// Construct the command
+	std::string command;
+	
+#ifdef OS_WIN
+	command = "\"" + inputs[0].StringVal() + "\" 2>&1";
+#else
+	std::string in(inputs[0].StringVal());
+
+	// Strip leading spaces
+	if (!in.empty())
+	{
+		size_t pos = in.find_first_not_of(" \t");
+		if (pos != std::string::npos && pos != 0)
+		{
+			in = in.substr(pos);
+		}
+	}
+
+	// Extra quotes needed on linux with spaces
+	if (!in.empty() && in[0] != '\"' && in.find(" ") != std::string::npos)
+	{
+		in = "\"" + in + "\"";
+	}
+	command = "\"" + in + "\" 2>&1";
+#endif
+
+	if (async)
+	{
+		std::thread t (RunSystemCommand, command);
+		std::stringstream ss;
+		ss << t.get_id();
+		outputs.push_back(static_cast<int>(std::stoull(ss.str())));
+		t.detach();
+		return true;
+	}
+
+    bool echo = (nargout < 2);
     FILE* pipe = nullptr;
 
 #ifdef OS_WIN
-    std::string command = "\"" + inputs[0].StringVal() + "\" 2>&1";
 	pipe = _popen(command.c_str(), "r");
 #else
-    std::string in(inputs[0].StringVal());
-
-    // Strip leading spaces
-    if (!in.empty())
-    {
-        size_t pos = in.find_first_not_of(" \t");
-        if (pos != std::string::npos && pos != 0)
-        {
-            in = in.substr(pos);
-        }
-    }
-    
-    // Extra quotes needed on linux with spaces
-    if (!in.empty() && in[0] != '\"' && in.find(" ") != std::string::npos)
-    {
-        in = "\"" + in + "\"";  
-    }
-    std::string command = "\"" + in + "\" 2>&1";
     pipe = popen(command.c_str(), "r");
 #endif
 
@@ -353,35 +506,39 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
         throw OML_Error(HW_ERROR_PROBOPENPIPE);
     }
 
+
     std::string output;
 
     // Set the chained display id so that if one of the currencies in this 
     // group is deleted, all of them will be deleted
-    time_t ltime;
-    time(&ltime);
-    long id = static_cast<long>(ltime);
 
-    while (1)
-    {
-        char buf[256];
-        if (fgets(buf, sizeof(buf), pipe) <= 0)
-        {
-            break;
-        }
-        output += buf;
-        if (echo) // Echo it instead of saving output
-        {
-            Currency tmp = buf;
-            tmp.DispOutput();
-            CurrencyDisplay* display = tmp.GetDisplay();
-            if (display)
-            {
-                display->SetChainedDisplay(id);
-            }
-            eval.PrintResult(tmp);
-        }
-    }
+	if (saveoutput || echo)
+	{
+		time_t ltime;
+		time(&ltime);
+		long id = static_cast<long>(ltime);
 
+		while (1)
+		{
+			char buf[256];
+			if (fgets(buf, sizeof(buf), pipe) <= 0)
+			{
+				break;
+			}
+			output += buf;
+			if (echo) // Echo it instead of saving output
+			{
+				Currency tmp = buf;
+				tmp.DispOutput();
+				CurrencyDisplay* display = tmp.GetDisplay();
+				if (display)
+				{
+					display->SetChainedDisplay(id);
+				}
+				eval.PrintResult(tmp);
+			}
+		}
+	}
     int returncode = 0;
 #ifdef OS_WIN
     returncode = _pclose(pipe);
@@ -897,4 +1054,360 @@ bool BuiltInFuncsSystem::Rmdir(EvaluatorInterface           eval,
     outputs.push_back(msgid);
 
     return true;
+}
+//------------------------------------------------------------------------------
+// Gives the current time in seconds since Jan 1, 1970 [time]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsSystem::Time(EvaluatorInterface           eval,
+                              const std::vector<Currency>& inputs,
+                              std::vector<Currency>&       outputs)
+{
+    if (!inputs.empty())
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    time_t seconds = time(nullptr);
+    outputs.push_back(static_cast<double>(seconds));
+    return true;
+}
+//------------------------------------------------------------------------------
+// Gives the current time as a string [ctime]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsSystem::CTime(EvaluatorInterface           eval,
+                               const std::vector<Currency>& inputs,
+                               std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 1)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+    if (!inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_NONNEGATIVE_SCALAR, 1);
+    }
+
+    double val = inputs[0].Scalar();
+    if (val < 0)
+    {
+        throw OML_Error(OML_ERR_NONNEGATIVE_SCALAR, 1);
+    }
+
+    time_t rawtime = static_cast<time_t>(val);
+    std::string strtime (ctime(&rawtime));
+
+    outputs.push_back(strtime);
+    return true;
+}
+//------------------------------------------------------------------------------
+// Gets a path constructed from the given dir/sub-directories [genpath]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsSystem::Genpath(EvaluatorInterface           eval,
+                                 const std::vector<Currency>& inputs,
+                                 std::vector<Currency>&       outputs)
+{
+    if (inputs.empty())
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsString())
+    {
+        throw OML_Error(OML_ERR_STRING, 1);
+    }
+
+    BuiltInFuncsUtils utils;
+    std::string path (inputs[0].StringVal());
+    if (!utils.DoesPathExist(path))
+    {
+        outputs.push_back("");
+        return true;
+    }
+
+    int nargin = static_cast<int>(inputs.size());
+
+#ifdef OS_WIN
+    // Directories that need to be excluded
+    std::vector< std::pair<std::wstring, bool> > exclude;
+    exclude.reserve(nargin);
+    for (int i = 1; i < nargin; ++i)
+    {
+        if (!inputs[i].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, i + 1);
+        }
+
+        std::string tmp(inputs[i].StringVal());
+        if (tmp.empty())
+        {
+            continue;
+        }
+        std::wstring wtmp = utils.StdString2WString(tmp);
+        std::transform(wtmp.begin(), wtmp.end(), wtmp.begin(), ::tolower);
+
+        bool isabsolute = utils.IsAbsolutePath(tmp);
+        if (isabsolute)
+        {
+            wtmp = utils.GetNormpathW(wtmp);
+        }
+        exclude.push_back(std::pair<std::wstring, bool>(wtmp, isabsolute));
+    }
+
+    std::wstring wpath = utils.StdString2WString(path);
+    wpath = utils.GetAbsolutePathW(wpath);
+    
+    std::wstring paths = wpath;  // Combined paths
+
+    BuiltInFuncsSystem funcs;
+    funcs.ListDirW(wpath, exclude, paths);
+    outputs.push_back(utils.WString2StdString(paths));
+
+#else
+    std::vector< std::pair<std::string, bool> > exclude;
+    exclude.reserve(nargin);
+    for (int i = 1; i < nargin; ++i)
+    {
+        if (!inputs[i].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, i + 1);
+        }
+
+        std::string tmp(inputs[i].StringVal());
+        if (tmp.empty())
+        {
+            continue;
+        }
+        std::transform(tmp.begin(), tmp.end(), tmp.begin(), ::tolower);
+
+        bool isabsolute = utils.IsAbsolutePath(tmp);
+        if (isabsolute)
+        {
+            tmp = utils.Normpath(tmp);
+        }
+        exclude.push_back(std::pair<std::string, bool>(tmp, isabsolute));
+}
+
+    path = utils.GetAbsolutePath(path);
+
+    std::string paths (path);
+    BuiltInFuncsSystem funcs;
+    funcs.ListDir(path, exclude, paths);
+    outputs.push_back(paths);
+
+#endif
+    return true;
+}
+#ifdef OS_WIN
+//------------------------------------------------------------------------------
+// Lists directories, recursively; helper for genpath. Supports unicode
+//------------------------------------------------------------------------------
+void BuiltInFuncsSystem::ListDirW(const std::wstring&   parent,
+    const std::vector< std::pair<std::wstring, bool> >& exclude,
+    std::wstring&                                       paths)
+{
+    BuiltInFuncsUtils utils;
+    WIN32_FIND_DATAW  find_data;
+
+    std::wstring base = parent + L"\\*";
+
+    HANDLE handle = FindFirstFileW((LPCWSTR)base.c_str(), &find_data);
+
+    while (handle != INVALID_HANDLE_VALUE)
+    {
+        std::wstring name    = find_data.cFileName;
+        bool         addpath = true;
+        if (name == L"." || name == L"..")
+        {
+            addpath = false; // Ignore this
+        }
+        else if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        {
+            std::wstring subdir = parent;
+            utils.AddTrailingSlashW(subdir);
+            subdir += name;
+
+            std::wstring lowername   = name;
+            std::wstring lowersubdir = subdir;
+            std::transform(lowersubdir.begin(), lowersubdir.end(), 
+                           lowersubdir.begin(), ::tolower);
+            for (std::vector< std::pair<std::wstring, bool> > ::const_iterator itr = exclude.begin();
+                 itr != exclude.end(); ++itr)
+            {
+                std::pair<std::wstring, bool> val = *itr;
+
+                std::wstring lower = lowername;
+                std::wstring ignorepath = (*itr).first;
+
+                if ((*itr).second)  // If absolute use the subdirectory
+                {
+                    lower = lowersubdir;
+                }
+                if (lower == ignorepath)
+                {
+                    addpath = false;
+                    break;
+                }
+            } 
+            if (addpath)
+            {
+                std::wstring quotes;
+                if (subdir.find(L" ") != std::wstring::npos)
+                {
+                    quotes = L"\"";
+                }
+
+                paths += L";" + quotes + subdir + quotes;
+                ListDirW(subdir, exclude, paths);
+            }
+        }
+        if (!FindNextFileW(handle, &find_data))
+        {
+            break;
+        }
+    }    
+    FindClose(handle);
+}
+#else
+//------------------------------------------------------------------------------
+// Lists directories on Linux, recursively; helper for genpath.
+//------------------------------------------------------------------------------
+void BuiltInFuncsSystem::ListDir(const std::string& parent,
+    const std::vector< std::pair<std::string, bool> >& exclude,
+    std::string& paths)
+{
+
+    BuiltInFuncsUtils utils;
+
+    std::string base(parent);
+    utils.AddTrailingSlash(base);
+
+    DIR* dir = opendir(base.c_str());
+    struct dirent* epdf;
+    if (dir)
+    {
+        while (1)
+        {
+            struct dirent* contents = readdir(dir);
+            if (!contents)
+            {
+                break;
+            }
+            std::string name(contents->d_name);
+            bool        addpath = true;
+            if (name == "." || name == "..")
+            {
+                addpath = false; // Ignore this
+            }
+            else if (contents->d_type == DT_DIR)
+            {
+                std::string subdir = base + name;
+
+                std::string lowername = name;
+                std::string lowersubdir = subdir;
+                for (std::vector< std::pair<std::string, bool> > ::const_iterator itr = exclude.begin();
+                    itr != exclude.end(); ++itr)
+                {
+                    std::pair<std::string, bool> val = *itr;
+
+                    std::string lower = lowername;
+                    std::string ignorepath = (*itr).first;
+
+                    if ((*itr).second)  // If absolute use the subdirectory
+                    {
+                        lower = lowersubdir;
+                    }
+                    if (lower == ignorepath)
+                    {
+                        addpath = false;
+                        break;
+                    }
+                }
+                if (addpath)
+                {
+                    if (!paths.empty())
+                    {
+                        paths += ":";
+                    }
+                    paths += subdir;
+                    ListDir(subdir, exclude, paths);
+                }
+            }
+        }
+    }
+    closedir(dir);
+}
+#endif
+//------------------------------------------------------------------------------
+// Gets process id [getpid]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsSystem::GetPid(EvaluatorInterface           eval,
+                                const std::vector<Currency>& inputs,
+                                std::vector<Currency>&       outputs)
+{
+#ifdef OS_WIN
+    DWORD pid = GetCurrentProcessId();
+    outputs.push_back(static_cast<int>(pid));
+#else
+    pid_t pid = getpid();
+    outputs.push_back(static_cast<int>(pid));
+#endif
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Creates an absolute path name [make_absolute_filename]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsSystem::MakeAbsFilename(EvaluatorInterface           eval,
+    const std::vector<Currency>& inputs,
+    std::vector<Currency>&       outputs)
+{
+    if (inputs.empty())
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsString())
+    {
+        throw OML_Error(OML_ERR_STRING, 1);
+    }
+
+    std::string in(inputs[0].StringVal());
+    if (in.empty())
+    {
+        outputs.push_back(std::string());
+        return true;
+    }
+
+    BuiltInFuncsUtils utils;
+    std::string path;
+
+#ifdef OS_WIN
+    std::wstring wstr = utils.StdString2WString(in);
+    std::wstring abspath = utils.GetAbsolutePathW(wstr); // Does not need path to exist
+
+    path = utils.WString2StdString(abspath);
+#else
+    path = utils.GetAbsolutePath(in); // Needs path to exist
+    if (path.empty())
+    {
+        in = utils.Normpath(in);
+        path = utils.GetCurrentWorkingDir();
+        if (in.find("./") == 0)
+        {
+            path += "/" + in.substr(2);
+        }
+        else if (in[0] == '/')
+        {
+            path += in;
+        }       
+        else 
+        {
+            path += "/" + in;
+        }
+    }
+#endif
+
+    outputs.push_back(path);
+    return true;
+
 }

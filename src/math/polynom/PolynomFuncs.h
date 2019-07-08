@@ -25,6 +25,10 @@ template <typename T1, typename T2> class hwTMatrix;
 typedef hwTComplex<double> hwComplex;
 typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
 
+template <typename T1, typename T2> class hwTMatrixN;
+typedef hwTMatrixN<double, hwTComplex<double> > hwMatrixN;
+
+
 //------------------------------------------------------------------------------
 //!
 //! \brief Polynomial functions
@@ -226,5 +230,21 @@ POLYNOM_DECLS hwMathStatus Spline2D(const hwMatrix& x_old,
                                     const hwMatrix& y_new, 
                                     hwMatrix&       z_new,
                                     bool            extrap = false);
+//!
+//! Computes gradient of trilinear interpolation and returns status
+//! \param x_old 
+//! \param y_old 
+//! \param z_old 
+//! \param v_new
+//! \param grad
+//! \param extrap Optional argument
+//! 
+
+POLYNOM_DECLS hwMathStatus TrilinearInterpGrad(const hwMatrix&  x_old,
+                                               const hwMatrix&  y_old,
+                                               const hwMatrix&  z_old,
+                                               const hwMatrixN& val_old,
+                                               const hwMatrix&  v_new,
+                                               hwMatrix&        grad);
 
 #endif // _Polynom_WrapperFuncs_h

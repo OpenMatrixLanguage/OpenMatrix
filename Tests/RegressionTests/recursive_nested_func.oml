@@ -1,0 +1,20 @@
+﻿function recursiveScope(c)
+	for ind = 1:length(c)
+		recursiveSubFunction(c,ind);
+	end
+
+	function recursiveSubFunction(c, ind)
+		children = c{ind(length(ind))};
+		if length(children)>0
+			for ind2 = 1:length(children)
+				recursiveSubFunction(children,[ind ind2]);
+			end
+		else
+			fprintf(' leaf\n')
+		end
+	end
+end
+
+q = {  { {} }, { {}, {} }  };
+
+recursiveScope(q)

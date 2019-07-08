@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncs.h
 * @date October 2013
-* Copyright (C) 2013-2018 Altair Engineering, Inc.  
+* Copyright (C) 2013-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -52,7 +52,7 @@ bool oml_struct2cell(EvaluatorInterface eval, const std::vector<Currency>& input
 bool oml_cart2sph(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_sph2cart(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_cart2pol(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_isvector(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+HML2DLL_DECLS bool oml_isvector(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_deblank(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_pol2cart(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_nargin(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -152,7 +152,6 @@ bool oml_isglobal(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
 bool oml_fprintf(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_printf(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_str2num(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_str2double(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_fieldnames(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_sprintf(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_feval(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -193,7 +192,6 @@ bool oml_islogical(EvaluatorInterface eval, const std::vector<Currency>& inputs,
 bool oml_ftell(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_fgets(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_fclose(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_fopen(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_strsplit(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_ischar(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_char(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -230,9 +228,9 @@ bool oml_i(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::ve
 //! Returns true if successul, output is a vector of nonzero elements of matrix
 bool oml_find(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 bool oml_eval(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_length(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_ndims(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_size(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+HML2DLL_DECLS bool oml_length(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+HML2DLL_DECLS bool oml_ndims(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+HML2DLL_DECLS bool oml_size(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_iscomplex(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_isreal(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_isequal(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -298,13 +296,12 @@ bool oml_atanh(EvaluatorInterface, const std::vector<Currency>& inputs, std::vec
 bool oml_sqrt(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_max(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_min(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_ceil(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+HML2DLL_DECLS bool oml_ceil(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_floor(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_round(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_print(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_inv(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_pwd(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_size(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_memoryuse(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_logical(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_clear(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -339,6 +336,9 @@ bool oml_helpmodule(EvaluatorInterface, const std::vector<Currency>& inputs, std
 bool oml_erromsgonly(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 //! Sets a warning without stack information [warningmsgonly]
 bool oml_warningmsgonly(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
+bool oml_getargc(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
+bool oml_getargv(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
+bool oml_now(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 
 //! List variables in the current session matching given pattern
 bool oml_who(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
@@ -672,8 +672,6 @@ std::vector<std::string> separatePathNames(EvaluatorInterface& eval, Currency cu
 void checkFileIndex(EvaluatorInterface &eval, int i, bool checkStdStreams);
 
 // unique helpers
-// diag
-void safeResizeMatrix(EvaluatorInterface& eval, int m, int n, hwMatrix &A, bool initZero);
 // factor
 void addValMultiplicity(long long value, bool useTwoVecs, std::vector<long long> &primes, std::vector<int> &multiplics);
 // poly
@@ -790,6 +788,8 @@ inline std::deque<T> dosetxor(std::deque<T> &a, std::deque<T> &b) { dounique(a);
 template <typename T>
 inline std::deque<T> dosetdiff(std::deque<T> &a, std::deque<T> &b) { dounique(a); dounique(b); return doSetFunc(a, b, std::set_difference); }
 // override these cases because we need to make a copy of a and b - they are used later in sortBasedOperation
+inline std::deque<std::string> dounion(std::deque<std::string> &a, std::deque<std::string> &b) { std::deque<std::string> aa(a); std::deque<std::string> bb(b); return dounion<std::string>(aa, bb); }
+inline std::deque<std::string> dointersect(std::deque<std::string> &a, std::deque<std::string> &b) { std::deque<std::string> aa(a); std::deque<std::string> bb(b); return dointersect<std::string>(aa, bb); }
 inline std::deque<std::string> dosetxor(std::deque<std::string> &a, std::deque<std::string> &b) { std::deque<std::string> aa(a); std::deque<std::string> bb(b); return dosetxor<std::string>(aa, bb); }
 inline std::deque<std::string> dosetdiff(std::deque<std::string> &a, std::deque<std::string> &b) { std::deque<std::string> aa(a); std::deque<std::string> bb(b); return dosetdiff<std::string>(aa, bb); }
 

@@ -1,0 +1,20 @@
+nameAndLabels = 
+{
+  [1,1] a
+  [1,2] b
+  [2,1] c
+  [2,2] def
+}
+i = 1
+name = a
+label = b
+nameAndLabels = 
+{
+  [1,1] a
+  [2,1] b
+  [3,1] c
+  [4,1] def
+}
+i = 1
+name = a
+label = b

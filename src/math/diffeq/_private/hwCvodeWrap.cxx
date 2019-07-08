@@ -390,7 +390,7 @@ void hwCvodeWrap::SetStopTime(double tstop)
     int flag = CVodeSetStopTime(cvode_mem, tstop);
 }
 //------------------------------------------------------------------------------
-// Check IDA flag
+// Check CVODE flag
 //------------------------------------------------------------------------------
 int hwCvodeWrap::Check_flag(void* flagvalue, const char* funcname, int opt)
 {

@@ -1,0 +1,2 @@
+﻿function f a=1;end;
+disp('success')

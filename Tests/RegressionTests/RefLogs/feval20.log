@@ -1,2 +1,2 @@
-f = @anonymous
+f = @(x) 2 * x
 ans = 10

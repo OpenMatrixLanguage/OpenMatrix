@@ -1,7 +1,7 @@
 /**
 * @file ConsoleWrapper.cpp
 * @date June 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -299,6 +299,7 @@ void ConsoleWrapper::ProcessPagination()
     }
     else
     {
+        bool printmsg = true;
         if (display->GetMode() != CurrencyDisplay::DISPLAYMODE_QUIT)
         {
 	        // Print to console
@@ -341,9 +342,10 @@ void ConsoleWrapper::ProcessPagination()
         {
             std::cout << "\r" << std::endl;
             display->SetDeleteLine(false);
+            printmsg = false;
         }
 
-        EndPagination(true);  // Done with pagination
+        EndPagination(printmsg);  // Done with pagination
 
         if (!_displayStack.empty())
         {
@@ -383,7 +385,7 @@ void ConsoleWrapper::ProcessPagination()
             }
             if (display && !(display->IsPaginatingCols() || display->IsPaginatingRows()))
             {
-                EndPagination(true);
+                EndPagination(printmsg);
             }
         }
     }

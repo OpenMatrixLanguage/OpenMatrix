@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsCore.cpp
 * @date February 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iomanip>
+#include <memory>
 #include <sstream>
 #include <time.h>
 
@@ -174,7 +175,7 @@ bool BuiltInFuncsCore::Format(EvaluatorInterface           eval,
     const Currency& in1 = inputs[0];
     bool  isString      = in1.IsString();
     if (!isString && !in1.IsPositiveInteger() && in1.Scalar() !=  static_cast<int>(0)) 
-        throw OML_Error(OML_ERR_STRING_NATURALNUM, 1, OML_VAR_TYPE);
+        throw OML_Error(OML_ERR_STRING_NATURALNUM, 1);
 
     if (isString) // Set precision
     {
@@ -185,12 +186,12 @@ bool BuiltInFuncsCore::Format(EvaluatorInterface           eval,
         else if (precisionStr == "short")
             format->SetShortFormat();
         else
-            throw OML_Error(OML_ERR_FORMAT, 1, OML_VAR_TYPE);
+            throw OML_Error(OML_ERR_FORMAT, 1);
 
         if (nargin >= 2) // Set format flag
         {
             const Currency& in2 = inputs[1];
-            if (!in2.IsString()) throw OML_Error(OML_ERR_STRING, 2, OML_VAR_TYPE);
+            if (!in2.IsString()) throw OML_Error(OML_ERR_STRING, 2);
 
             std::string type (in2.StringVal());
             if (type == "e")  
@@ -198,7 +199,7 @@ bool BuiltInFuncsCore::Format(EvaluatorInterface           eval,
             else if (type == "E")
                 format->SetFlags(std::ios::scientific | std::ios_base::uppercase);
             else
-                throw OML_Error(OML_ERR_FORMAT, 2, OML_VAR_TYPE);
+                throw OML_Error(OML_ERR_FORMAT, 2);
         }
 
         outputs.push_back(format);
@@ -209,7 +210,7 @@ bool BuiltInFuncsCore::Format(EvaluatorInterface           eval,
     const Currency& in2 = inputs[1];
     if (!in2.IsPositiveInteger() && in2.Scalar() < 0) 
     {
-        throw OML_Error(OML_ERR_NATURALNUM, 2, OML_VAR_TYPE);
+        throw OML_Error(OML_ERR_NATURALNUM, 2);
     }
     format->SetCustomFormat(static_cast<int>(in1.Scalar()), static_cast<int>(in2.Scalar()));
 
@@ -568,6 +569,8 @@ bool BuiltInFuncsCore::IsA(EvaluatorInterface eval, const std::vector<Currency>&
 	{
 		if (obj.GetClassname() == target_class)
 			val.ReplaceScalar(1.0);
+		else
+			val.ReplaceScalar(eval.IsA(obj, target_class));
 	}
 	else if (obj.IsMatrix() || obj.IsScalar() || obj.IsNDMatrix() || obj.IsComplex())
 	{
@@ -587,7 +590,7 @@ void* BuiltInFuncsCore::DyLoadLibrary(const std::string& name)
 #ifdef OS_WIN
     return (void*)LoadLibrary(name.c_str());
 #else  // OS_UNIX
-    return dlopen(name.c_str(), RTLD_GLOBAL|RTLD_LAZY);
+    return dlopen(name.c_str(), RTLD_LAZY);
 #endif  // OS_UNIX
 }
 //------------------------------------------------------------------------------
@@ -609,6 +612,9 @@ void* BuiltInFuncsCore::DyGetFunction(void* handle, const std::string& name)
 //------------------------------------------------------------------------------
 void BuiltInFuncsCore::DyFreeLibrary(void* handle)
 {
+    if (!handle)
+        return;
+
 #ifdef OS_WIN
     FreeLibrary((HINSTANCE)handle);
 #else  // OS_UNIX
@@ -628,7 +634,7 @@ bool BuiltInFuncsCore::AddToolbox(EvaluatorInterface           eval,
 
     const Currency& in = inputs[0];
     if (!in.IsString())
-        OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
+        OML_Error(OML_ERR_STRING, 1);
 
     std::string importDll (in.StringVal());
 
@@ -654,8 +660,10 @@ bool BuiltInFuncsCore::AddToolbox(EvaluatorInterface           eval,
         // Adding additional check only for omlziptoolbox now
         if (!DyGetFunction(vResult, "GetToolboxVersion"))
         {
-            throw OML_Error(OML_MSG_INVALID_VERSION + std::string(" in ") +
-                            importDll);  
+			// Setting a warning here so we know which dll has an issue
+			BuiltInFuncsUtils::SetWarning(eval,
+				"Warning: Invalid version in " + importDll);
+            throw OML_Error(OML_ERR_INVALID_VERSION, 1);  
         }
     }
 
@@ -999,113 +1007,146 @@ bool BuiltInFuncsCore::Exist(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Returns true and returns a description of type of the given input [type command]
+// Returns true and returns a description of type of the given input [type]
 //------------------------------------------------------------------------------
-bool BuiltInFuncsCore::Type(EvaluatorInterface           eval, 
-                            const std::vector<Currency>& inputs, 
+bool BuiltInFuncsCore::Type(EvaluatorInterface           eval,
+                            const std::vector<Currency>& inputs,
                             std::vector<Currency>&       outputs)
 {
     if (inputs.empty())
-        throw OML_Error(OML_ERR_NUMARGIN);
-
-    size_t nargin = inputs.size();
-
-    // Check for quiet option, input validity
-    std::map<int, std::string> in;
-    int  i     = 1;
-    bool quiet = false;
-    for (std::vector<Currency>::const_iterator itr = inputs.begin(); 
-         itr != inputs.end(); ++itr, ++i)
     {
-        Currency tmp = *itr;
-        if (!tmp.IsString())
-            throw OML_Error(OML_ERR_STRING, i, OML_VAR_TYPE);
-
-        std::string val (tmp.StringVal());
-        if (val.empty())
-            throw OML_Error(OML_ERR_NONEMPTY_STR, i, OML_VAR_VALUE);
-
-        const hwMatrix* mat = tmp.Matrix();
-        if (mat && mat->M() != 1)
-            throw OML_Error(OML_ERR_ONEROW_STRING, i, OML_VAR_VALUE);
-
-        if (val == "-q" || val == "-Q")
-            quiet = true;
-
-        else
-            in[i] = val;
+        throw OML_Error(OML_ERR_NUMARGIN);
     }
+
+    // Go through inputs and check for quiet option, validity
+    bool quiet   = false;
+    int nargin   = static_cast<int>(inputs.size());
+    int  numcols = nargin;
+    for (int i = 0; i < nargin; ++i)
+    {
+        if (!inputs[i].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, i + 1);
+        }
+
+        std::string val(inputs[i].StringVal());
+        if (val.empty())
+        {
+            throw OML_Error(OML_ERR_NONEMPTY_STR, i + 1);
+        }
+        if (val == "-q" || val == "-Q")
+        {
+            quiet = true;
+            numcols--;
+        }
+    }
+
     int nargout = eval.GetNargoutValue();
-    if (in.empty())
+
+    if (numcols <= 0)  // Only quiet options specified
     {
         if (nargout > 0)
+        {
             outputs.push_back(EvaluatorInterface::allocateCellArray());
+        }
         return true;
     }
-
-    HML_CELLARRAY* cell = (nargout > 0) ? 
-        EvaluatorInterface::allocateCellArray((int)nargin, 1) :
-        nullptr;
-    
-    i = 0;
-    std::string reservedtokens ("[]{}();,%\"");
-    for (std::map<int, std::string>::const_iterator itr = in.begin();
-         itr != in.end(); ++itr, ++i)
+     
+    std::unique_ptr<HML_CELLARRAY> cell = nullptr;
+    if (nargout > 0)
     {
-        std::string str = itr->second;
+        cell.reset(EvaluatorInterface::allocateCellArray(1, numcols));
+    }
+
+    std::string reservedtokens("[]{}();,%\"");
+    const OutputFormat* fmt = eval.GetOutputFormat();
+    BuiltInFuncsUtils utils;
+
+    std::string cwd = utils.GetCurrentWorkingDir();
+    for (int i = 0, cellindex = 0; i < nargin; ++i)
+    {
+        std::string str (inputs[i].StringVal());
+        if (quiet && str == "-q" || str == "-Q")
+        {
+            continue;
+        }
+
         std::string type;
         if (eval.IsOperator(str))
+        {
             type = "'" + str + "' is an operator";
-
+        }
         else if (eval.IsKeyword(str))
+        {
             type = "'" + str + "' is a keyword";
-
+        }
         else if (eval.IsStdFunction(str))
+        {
             type = "'" + str + "' is a built-in function";
-       
+        }
         else if (eval.IsUserFunction(str))
+        {
             type = "'" + str + "' is a user-defined function";
-        
+        }
         else if (reservedtokens.find(str) != std::string::npos)
+        {
             type = "'" + str + "' is a reserved token";
-
+        }
         else
         {
             const Currency& val = eval.GetValue(str);
             if (!val.IsNothing())
-               type = "'" + str + "' is a variable\n" + val.GetOutputString(eval.GetOutputFormat());
-            else 
             {
-                std::string fname (str);
-                if (BuiltInFuncsUtils::IsDir(fname))
+                if (!quiet)
+                {
+                    type = "'" + str + "' is a variable\n";
+                }
+                Currency elementval = eval.GetValue(str);
+                elementval.DispOutput();
+                type += elementval.GetOutputString(fmt);
+            }
+            else
+            {
+                std::string fname(str);
+                if (utils.IsDir(str))
                 {
                     throw OML_Error("Error: invalid input in argument " +
-                        std::to_string(static_cast<long long>(itr->first)) + 
-                        "; [" + BuiltInFuncsUtils::Normpath(fname) + 
-                        "] is a directory and is not defined");
+                        std::to_string(static_cast<long long>(i + 1)) + "; [" + 
+                        utils.Normpath(str) + "] is a directory and is not defined");
                 }
 
-                if (!BuiltInFuncsUtils::FileExists(fname) && 
-                     BuiltInFuncsUtils::GetFileExtension(fname).empty())
-                    fname += ".oml";
-                bool foundfunc = eval.FindFileInPath(fname, fname);
-                if (!quiet && foundfunc)
-                    type = "'" + str + "' is a function defined in [" + 
-                           BuiltInFuncsUtils::Normpath(fname) + "]";
-
-                if (!foundfunc && !BuiltInFuncsUtils::FileExists(fname))
+                bool exists = utils.FileExists(fname);
+                std::string ext = utils.GetFileExtension(fname);
+                if (!exists && ext.empty())
                 {
-                    throw OML_Error("Error: invalid input in argument "    +
-                        std::to_string(static_cast<long long>(itr->first)) + 
+                    fname += ".oml";
+                }
+                // Make sure we send only the relative path
+                std::string rpath = fname;
+                if (rpath.find(cwd) != std::string::npos)
+                {
+                    rpath = utils.GetRelativePath(fname, cwd);
+
+                }
+                bool foundfunc = eval.FindFileInPath(rpath, fname);
+                if (foundfunc)
+                {
+                    if (!quiet && ext.empty())
+                    {
+                        type = "'" + str + "' is a function defined in [" +
+                            utils.Normpath(fname) + "]";
+                    }
+                }
+                else if (!foundfunc && !exists)
+                {
+                    throw OML_Error("Error: invalid input in argument " +
+                        std::to_string(static_cast<long long>(i + 1)) +
                         "; '" + str + "' is not defined");
                 }
                 std::ifstream ifs(fname.c_str());
-                if (ifs.fail()) 
+                if (ifs.fail())
                 {
-                    throw OML_Error("Error: invalid input in argument "    +
-                        std::to_string(static_cast<long long>(itr->first)) + 
-                        "; unable to open file for reading [" + 
-                        BuiltInFuncsUtils::Normpath(fname) + "]");
+                    throw OML_Error(OML_ERR_FILE_CANNOTREAD, i + 1);
                 }
                 // Read the entire file
                 while (!ifs.eof())
@@ -1114,26 +1155,32 @@ bool BuiltInFuncsCore::Type(EvaluatorInterface           eval,
                     std::getline(ifs, thisline);
 
                     if (!type.empty())
+                    {
                         type += "\n";
+                    }
                     type += thisline;
                 }
                 ifs.close();
             }
         }
 
-        Currency tmp(type);
-
         if (cell)
-            (*cell)(i, 0) = tmp;
+        {
+            (*cell)(0, cellindex++) = type;
+        }
         else
         {
-            tmp.DispOutput();
-            eval.PrintResult(tmp);
+            Currency display(type);
+            display.DispOutput();
+            eval.PrintResult(display);
         }
     }
 
     if (cell)
-        outputs.push_back(cell);
+    {
+        outputs.push_back(cell.release());
+    }
+
     return true;
 }
 //------------------------------------------------------------------------------

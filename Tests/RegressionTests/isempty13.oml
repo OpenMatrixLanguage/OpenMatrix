@@ -1,0 +1,3 @@
+﻿isempty({@(x) x^2})
+isempty(@(x) x^2)
+anon = @(x) x^2;isempty(anon)

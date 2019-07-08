@@ -1,6 +1,0 @@
-save variables to matio_default.m file
-clear all
-load matio_default.m file
-display variables a and b
-a = 1
-b = 0

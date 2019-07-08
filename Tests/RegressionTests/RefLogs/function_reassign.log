@@ -1,5 +1,5 @@
-foo = @anonymous
-goo = @anonymous
+foo = @(x, y) x + y
+goo = @(x, y) x + y
 5
 poo = @sqrt
 ans = 3

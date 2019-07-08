@@ -1,0 +1,7 @@
+year('apr.4,2019 10:11:12', 'mmm.dd,yyyy HH:MM:SS')
+year('19/4/5', 'yyyy/mm/dd')
+
+year('2019-1-3', 'yyyy-mm-dd')
+year('20190304T040506', 'yyyymmddTHHMMSS')
+
+year('2019-4-5 10:11:12', 'yyyy-mm-dd HH:MM:SS')

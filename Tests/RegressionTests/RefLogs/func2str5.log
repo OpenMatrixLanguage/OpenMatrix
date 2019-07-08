@@ -1,2 +1,2 @@
-f = @anonymous
-ans = anonymous
+f = @(x) 2 * x
+ans = 2 * x

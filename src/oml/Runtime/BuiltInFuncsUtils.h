@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsUtils.h
 * @date November 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -300,6 +300,17 @@ public:
     //!
     static bool IsPaginationEnvEnabled();
 
+    //!
+    //! Returns string trimmed from leading white space(s)
+    //! \param in Input string
+    //!
+    std::string LTrim(const std::string& in);
+    //!
+    //! Returns string trimmed from trailing white space(s)
+    //! \param in Input string
+    //!
+    std::string RTrim(const std::string& in);
+
     // utf8 support utilities
 #ifdef OS_WIN
     //!
@@ -332,8 +343,34 @@ public:
     //! \param in Wide string input
     //!
     std::string WString2StdString(const std::wstring& in);
+    //!
+    //! Strips trailing newlines for wide strings
+    //! \param in Wide string input
+    //!
+    std::wstring StripTrailingNewlineW(const std::wstring& in);
+    //! 
+    //! Returns true if normalized path exists on disk, supports Unicode
+    //! \param path Given path
+    //!
+    bool DoesPathExistW(const std::wstring& path);
+    //!
+    //! Adds a trailing slash, supports unicode
+    //! \param path Given path
+    //!
+    void AddTrailingSlashW(std::wstring& path);
 #endif
 
+    //!
+    //! Returns true if given path exists on disk, supports Unicode
+    //! \param path Given path
+    //!
+    bool DoesPathExist(const std::string& path);
+
+    //!
+    //! Returns path after stripping multiple slashes and normalizing for OS
+    //! \param path Given path
+    //!
+    std::string StripMultipleSlashesAndNormalize(const std::string& path);
 private: 
     //!
     //! Reads formatted input and returns true if successful
@@ -343,7 +380,7 @@ private:
     //! \param outvals Outputs
     //!
     void ReadFormattedInput( const std::string&              input,
-                             int                             sizelimit,
+                             double                          sizelimit,
                              const std::vector<std::string>& formats,
                              std::vector<Currency>&          outvals);
     //!
@@ -361,11 +398,13 @@ private:
     //! \param fmt        Format template
     //! \param outvals    Outputs
     //! \param stringread Output read in string format
+    //! \param numread    Number of characters read
     //!
     bool SscanfHelperFloat( const std::string&     in,
                             const std::string&     fmt,
                             std::vector<Currency>& outvals,
-                            std::string&           stringread);
+                            std::string&           stringread,
+                            int&                   numread);
     //!
     //! Reads formatted string from string using sscanf and returns true if successul
     //! \param[in]  in         Input string

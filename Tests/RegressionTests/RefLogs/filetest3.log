@@ -1,4 +1,3 @@
-fname = FileManipulation/EmptyFile.txt
 fid1 = 3
 error = 
 fid2 = 4
@@ -7,6 +6,8 @@ filepath = FileManipulation/EmptyFile.txt
 filemode = rb
 filepath = FileManipulation/EmptyFile.txt
 filemode = rb
+ans = [Matrix] 1 x 2
+3  4
 ans = 0
 ans = 0
-ans = [Matrix] 1 x 0
+ans = [Matrix] 0 x 0
