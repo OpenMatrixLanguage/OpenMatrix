@@ -33,6 +33,8 @@ set path=%OML_THIRDPARTY%\matio\matio-1.5.2_HDF\bin\win64;%path%
 set path=%OML_THIRDPARTY%\hdf\hdf5-1.8.16\shared\win64\bin;%path%
 rem add sundials directory to path
 set path=%OML_THIRDPARTY%\sundials\sundials-3.1.0-install\lib;%path%
+rem add qhull directory to path
+set path=%OML_THIRDPARTY%\qhull\qhull-2015.2\bin;%path%
 rem add python directory to path
 rem set path=%OML_THIRDPARTY%\python\python3.5;%path%
 rem add MINGW directory to path
