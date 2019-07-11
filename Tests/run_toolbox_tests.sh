@@ -34,6 +34,7 @@ for f in $1;
 run_test omlCAE
 run_test omlCalculus
 run_test omlDiffEq
+run_test omlGeometry
 run_test omlMathUtils
 run_test omlMatio
 run_test omlOptimization

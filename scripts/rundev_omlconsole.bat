@@ -32,6 +32,8 @@ rem add matio directory to path
 set path=%OML_THIRDPARTY%\matio\matio-1.5.11\visual_studio\x64\Release;%path%
 rem add sundials directory to path
 set path=%OML_THIRDPARTY%\sundials\sundials-3.1.0-install\lib;%path%
+rem add qhull directory to path
+set path=%OML_THIRDPARTY%\qhull\qhull-2015.2\bin;%path%
 rem add python directory to path
 set path=%OML_PYTHONHOME%;%path%
 rem add MINGW directory to path

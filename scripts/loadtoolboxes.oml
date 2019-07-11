@@ -16,6 +16,7 @@ end
 loadtoolbox omlCAE
 loadtoolbox omlCalculus
 loadtoolbox omlDiffEq
+loadtoolbox omlGeometry
 loadtoolbox omlMathUtils
 loadtoolbox omlOptimization
 loadtoolbox omlPolynom
