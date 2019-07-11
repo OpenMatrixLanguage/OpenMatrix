@@ -40,6 +40,7 @@ eval_regression_test RegressionTests
 eval_toolbox_test omlCAE
 eval_toolbox_test omlCalculus
 eval_toolbox_test omlDiffEq
+eval_toolbox_test omlGeometry
 eval_toolbox_test omlMathUtils
 eval_toolbox_test omlMatio
 eval_toolbox_test omlOptimization
