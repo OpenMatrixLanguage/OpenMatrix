@@ -45,7 +45,10 @@
         
           <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
 
-          <dd class="dd pd">Type: <span class="keyword">string | mat</span></dd>
+          <dd class="dd pd">If there is a non-printable character in <var class="keyword varname">s</var>, it will be substituted
+            by <span class="ph synph">' '</span> (whitespace character) when <span class="ph synph">R</span> is displayed.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string | mat</span></dd>
 
         
       </dl>
@@ -73,6 +76,9 @@ A
 B
 C
 ABC</code></code></pre></div>
+
+      <div class="p">Non-printable characters in the input:
+        <pre class="pre codeblock"><code>R = char([65 0 66])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = A B</code></code></pre></div>
 
     </section>
 

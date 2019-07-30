@@ -1,0 +1,123 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2019" /><meta name="DC.rights.owner" content="(C) Copyright 2019" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="minute" /><meta name="abstract" content="Returns the minutes in a given date string, s." /><meta name="description" content="Returns the minutes in a given date string, s." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Time Commands" /><meta name="indexterms" content="minute" /><meta name="DC.subject" content="minute" /><meta name="keywords" content="minute" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Time/time_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/System/date.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Time/datenum.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Time/month.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Time/year.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Time/hour.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Time/second.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Time/day.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>minute</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Time/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Time/time_commands.htm" title="Time Commands">Time Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Time/time_commands.htm" title="Time Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Time Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">minute</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Returns the minutes in a given date string, <var class="keyword varname">s</var>.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">R = minute<span class="ph var">(s)</span></span></p>
+
+      <p class="p"><span class="ph synph">R = minute<span class="ph var">(s, fmt)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">s</var></dt>
+
+          <dd class="dd pd">A string representing a date. By default, if no <var class="keyword varname">fmt</var> is specified,
+              <var class="keyword varname">s</var> is expected to be in the format <span class="ph synph">dd-mmm-yyyy</span>. If in
+            this format, <span class="ph synph">minute</span> returns <samp class="ph systemoutput">0</samp>.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">fmt</var> (optional)</dt>
+
+          <dd class="dd pd">Gives the given format that <var class="keyword varname">s</var> is in. Valid formats that can return
+            a valid <span class="ph synph">minute</span> value are:<ul class="ul" id="reference_wpv_kyv_pr__ul_wly_hzx_4hb">
+              <li class="li"><span class="ph synph">'dd-mmm-yyyy HH:MM:SS'</span></li>
+
+              <li class="li"><span class="ph synph">'HH:MM:SS'</span></li>
+
+              <li class="li"><span class="ph synph">'HH:MM:SS PM'</span></li>
+
+              <li class="li"><span class="ph synph">'HH:MM'</span></li>
+
+              <li class="li"><span class="ph synph">'HH:MM PM'</span></li>
+
+              <li class="li"><span class="ph synph">'mmm.dd,yyyy HH:MM:SS'</span></li>
+
+              <li class="li"><span class="ph synph">'yyyymmddTHHMMSS'</span></li>
+
+              <li class="li"><span class="ph synph">'yyyy-mm-dd HH:MM:SS'</span></li>
+
+            </ul>
+</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+          <dd class="dd pd">Minutes from the given date string <var class="keyword varname">s</var>.
+              <samp class="ph systemoutput">0</samp> returned for most formats, <var class="keyword varname">fmt</var>,
+            which don't specify minutes.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span></dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Examples:</h2>
+      
+        <div class="p">Return minutes from a string in a specific date format:
+        <pre class="pre codeblock"><code>R = minute('Apr.04,2019 10:11:12', 'mmm.dd,yyyy HH:MM:SS')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 11</code></code></pre></div>
+
+    </section>
+
+    <section class="section">
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/System/date.htm" title="Returns the current date as a string in the format DD-MMM-YYYY.">date</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Time/datenum.htm" title="Returns the day and time input as a number of days since January 1, 0000.">datenum</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Time/month.htm" title="Returns the month of a given date string, s.">month</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Time/year.htm" title="Returns the year of a given date string, s.">year</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Time/hour.htm" title="Returns the hours in a given date string, s.">hour</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Time/second.htm" title="Returns the seconds in a given string, s.">second</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Time/day.htm" title="Returns the day of a given date string, s.">day</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Time/time_commands.htm" title="Time Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Time Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2019)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2019" /><meta name="DC.rights.owner" content="(C) Copyright 2019" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="bi2de" /><meta name="abstract" content="Converts a matrix of binary number(s), m to the decimal equivalent." /><meta name="description" content="Converts a matrix of binary number(s), m to the decimal equivalent." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Elementary Math Commands" /><meta name="indexterms" content="bi2de" /><meta name="DC.subject" content="bi2de" /><meta name="keywords" content="bi2de" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/de2bi.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>bi2de</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2019" /><meta name="DC.rights.owner" content="(C) Copyright 2019" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="bi2de" /><meta name="abstract" content="Converts numbers from binary or a specified base to their decimal equivalents." /><meta name="description" content="Converts numbers from binary or a specified base to their decimal equivalents." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Elementary Math Commands" /><meta name="indexterms" content="bi2de" /><meta name="DC.subject" content="bi2de" /><meta name="keywords" content="bi2de" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/de2bi.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>bi2de</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -15,8 +15,7 @@
 
   
   
-  <div class="body refbody"><p class="shortdesc">Converts a matrix of binary number(s), <var class="keyword varname">m</var> to the 
-    decimal equivalent.</p>
+  <div class="body refbody"><p class="shortdesc">Converts numbers from binary or a specified base to their decimal equivalents.</p>
 
     <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       <p class="p"><span class="ph synph">R = bi2de<span class="ph var">(m)</span></span></p>
@@ -42,8 +41,8 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">base</var> (optional)</dt>
 
-          <dd class="dd pd">A finite, non-negative integer, used as the base for the output,
-            <var class="keyword varname">R</var>.</dd>
+          <dd class="dd pd">Integer greater than or equal to 2 (default), used as the base for the output,
+              <var class="keyword varname">R</var>.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span></dd>
 
@@ -51,9 +50,9 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">fmt</var> (optional)</dt>
 
-          <dd class="dd pd">Contains values <span class="keyword option">right-msb</span> or <span class="keyword option">left-msb</span>, which specify
-            whether the first or last element of <var class="keyword varname">m</var> is most-significant. The
-            default value is <span class="keyword option">right-msb</span>.</dd>
+          <dd class="dd pd">Contains values <span class="keyword option">'right-msb'</span> or <span class="keyword option">'left-msb'</span>, which
+            specify whether the first or last element of <var class="keyword varname">m</var> is most-significant.
+            The default value is <span class="keyword option"> 'right-msb'</span>.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
 
@@ -81,18 +80,18 @@
     <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
       <div class="p">Binary to decimal with default
-        values:<pre class="pre codeblock"><code>R = bi2de([0,0,0,1,1,1])</code></pre><pre class="pre codeblock"><code><samp class="ph systemoutput">R = 56</samp></code></pre></div>
+        values:<pre class="pre codeblock"><code>R = bi2de([0,0,0,1,1,1])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 56</code></code></pre></div>
 
       <div class="p">Binary to decimal in base
-        5:<pre class="pre codeblock"><code>R = bi2de([0,0,0,1,1], 5)</code></pre><pre class="pre codeblock"><code><samp class="ph systemoutput">R = 750</samp></code></pre></div>
+        5:<pre class="pre codeblock"><code>R = bi2de([0,0,0,1,1], 5)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 750</code></code></pre></div>
 
-      <div class="p">Binary to decimal in base 3, specifying <span class="keyword option">left-msb</span>:
+      <div class="p">Binary to decimal in base 3, specifying left-msb:
         <pre class="pre codeblock"><code>r = de2bi([12, 23456, 45, 6777], [], 3, 'left-msb');
-R = bi2de(r, 3, 'left-msb')</code></pre><pre class="pre codeblock"><code><samp class="ph systemoutput">R = [Matrix] 4 x 1
+R = bi2de(r, 3, 'left-msb')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = [Matrix] 4 x 1
    12
 23456
    45
- 6777</samp></code></pre></div>
+ 6777</code></code></pre></div>
   
     </section>
 
@@ -105,7 +104,7 @@ R = bi2de(r, 3, 'left-msb')</code></pre><pre class="pre codeblock"><code><samp c
 <nav role="navigation" class="related-links">
 <div class="linklist linklist"><strong>See Also </strong><br />
 
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/ElementaryMath/de2bi.htm" title="Converts a non-negative vector of integers, v, to its binary equivalent.">de2bi</a></div></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/ElementaryMath/de2bi.htm" title="Converts non-negative integers to their equivalents in binary or a specified base.">de2bi</a></div></div>
 </nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" title="Elementary Math Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Elementary Math Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         
