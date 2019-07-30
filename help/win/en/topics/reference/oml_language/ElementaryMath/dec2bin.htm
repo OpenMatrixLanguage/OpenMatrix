@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2019" /><meta name="DC.rights.owner" content="(C) Copyright 2019" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="dec2bin" /><meta name="abstract" content="Converts a non-negative integer, matrix or cell array, n, to it's binary equivalent." /><meta name="description" content="Converts a non-negative integer, matrix or cell array, n, to it's binary equivalent." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Elementary Math Commands" /><meta name="indexterms" content="dec2bin" /><meta name="DC.subject" content="dec2bin" /><meta name="keywords" content="dec2bin" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>dec2bin</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2019" /><meta name="DC.rights.owner" content="(C) Copyright 2019" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="dec2bin" /><meta name="abstract" content="Converts non-negative integers to their binary equivalents." /><meta name="description" content="Converts non-negative integers to their binary equivalents." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Elementary Math Commands" /><meta name="indexterms" content="dec2bin" /><meta name="DC.subject" content="dec2bin" /><meta name="keywords" content="dec2bin" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/bin2dec.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/dec2hex.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>dec2bin</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -15,8 +15,7 @@
 
   
   
-  <div class="body refbody"><p class="shortdesc">Converts a non-negative integer, matrix or cell array, 
-    <var class="keyword varname">n</var>, to it's binary equivalent.</p>
+  <div class="body refbody"><p class="shortdesc">Converts non-negative integers to their binary equivalents.</p>
 
     <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       <p class="p"><span class="ph synph">R = dec2bin<span class="ph var">(n)</span></span></p>
@@ -32,7 +31,8 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">n</var></dt>
 
-          <dd class="dd pd">Finite, non-negative integer, matrix or cell array of finite, non-negative integers.</dd>
+          <dd class="dd pd">Finite, non-negative integer, matrix, or cell array of finite, non-negative
+            integers.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">cell | mat | int</span></dd>
           
@@ -40,9 +40,8 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">len</var> (optional)</dt>
 
-          <dd class="dd pd">Optional argument which can specify the minimum length of each element if 
-            <var class="keyword varname">n</var> is a matrix or a cell array. Valid values are 
-            finite, positive integers.</dd>
+          <dd class="dd pd">Specifies the minimum length of each element if <var class="keyword varname">n</var> is a matrix or a
+            cell array. Valid values are finite, positive integers.</dd>
 
           <dd class="dd pd ddexpand">Type: Finite, positive <span class="keyword">integer</span></dd>
 
@@ -57,10 +56,9 @@
         
           <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
 
-          <dd class="dd pd">If <var class="keyword varname">n</var> is a matrix or cell array, <var class="keyword varname">R</var>,
-            will be a string array with one row for each element. Every element 
-            will be the same width as the widest element, with leading zeros 
-            padding the value.</dd>
+          <dd class="dd pd">If <var class="keyword varname">n</var> is a matrix or cell array, <var class="keyword varname">R</var> will be a
+            string array with one row for each element. Every element will be the same width as the
+            widest element, with leading zeros padding the value.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">matrix | string</span></dd>
 
@@ -72,17 +70,17 @@
 
     <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
-      <div class="p">Integer to binary
-        example:<pre class="pre codeblock"><code>R = dec2bin(97)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 1100001</code></code></pre></div>
+      <div class="p">Integer to
+        binary:<pre class="pre codeblock"><code>R = dec2bin(97)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 1100001</code></code></pre></div>
 
-      <div class="p">Matrix to binary
-        example:<pre class="pre codeblock"><code>R = dec2bin([97, 65, 1])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R =
+      <div class="p">Matrix to
+        binary:<pre class="pre codeblock"><code>R = dec2bin([97, 65, 1])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R =
 1100001
 1000001
 0000001</code></code></pre></div>
 
-      <div class="p">Cell array, with minimum output length specified, to binary
-        example:<pre class="pre codeblock"><code>R = dec2bin({7, 5, 1}, 8)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R =
+      <div class="p">Cell array, with the minimum output length specified, to
+        binary:<pre class="pre codeblock"><code>R = dec2bin({7, 5, 1}, 8)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R =
 00000111
 00000101
 00000001</code></code></pre></div>
@@ -91,12 +89,16 @@
 
     <section class="section">
       
-      
     </section>
 
   </div>
 
-<nav role="navigation" class="related-links"></nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also </strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/ElementaryMath/bin2dec.htm" title="Converts binary numbers to their decimal equivalents.">bin2dec</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/ElementaryMath/dec2hex.htm" title="Converts non-negative integers to their hexadecimal equivalents.">dec2hex</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" title="Elementary Math Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Elementary Math Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         
         <div>

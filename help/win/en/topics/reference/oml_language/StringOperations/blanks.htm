@@ -54,17 +54,19 @@
       <?STOPOUT?>
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Example</h2>
+    <section class="section" id="reference_wpv_kyv_pr__section_ds2_bh2_thb"><h2 class="title sectiontitle">Example</h2>
       
       <p class="p">Create a string with ten spaces:</p>
 
       <pre class="pre codeblock"><code>R = blanks(10)</code></pre>
       <pre class="pre codeblock"><code><code class="ph codeph">R = </code></code></pre>
-      <pre class="pre codeblock"><code>vardetail('R')</code></pre>
-      <pre class="pre codeblock"><code><code class="ph codeph">R scope Base type string</code></code></pre>
       <pre class="pre codeblock"><code>size(R)</code></pre>
       <pre class="pre codeblock"><code><code class="ph codeph">ans = [Matrix] 1 x 2
-1 10</code></code></pre>
+       1 10</code></code></pre>
+      <p class="p">Create a string including some spaces:</p>
+
+      <pre class="pre codeblock"><code>S = ['A',blanks(5),'B'];</code></pre>
+      <pre class="pre codeblock"><code><code class="ph codeph">S =A     B </code></code></pre>
     </section>
 
     <section class="section">

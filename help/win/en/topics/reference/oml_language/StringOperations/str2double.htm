@@ -31,7 +31,7 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">s</var></dt>
           
-          <dd class="dd pd">Type: <span class="keyword">string | mat</span></dd>
+          <dd class="dd pd">Type: <span class="keyword">string | cell</span></dd>
           
         
       </dl>
@@ -45,7 +45,9 @@
         
           <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
 
-          <dd class="dd pd">If a conversion fails, <samp class="ph systemoutput">Nan</samp> is returned.</dd>
+          <dd class="dd pd">If a conversion fails, <samp class="ph systemoutput">Nan</samp> is returned. If
+              <var class="keyword varname">s</var> is a cell array of size greater than 1, <span class="ph synph">R</span> will be
+            a matrix of the same dimensions as <var class="keyword varname">s</var>.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">scalar | complex number | matrix</span></dd>
 
@@ -55,19 +57,23 @@
       <?STOPOUT?>
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+    <section class="section" id="reference_wpv_kyv_pr__section_mxw_n4q_jhb"><h2 class="title sectiontitle">Examples</h2>
       
-      <div class="p">String to scalar
-        conversion:<pre class="pre codeblock"><code>R = str2double('2.345e+5')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 234500</code></code></pre></div>
-      
-      <div class="p">String to complex
-        conversion:<pre class="pre codeblock"><code>R = str2double('24 + 7i')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = [Matrix] 1 x 1
-24 + 7i</code></code></pre></div>
+      <div class="p">String to scalar:
+        <pre class="pre codeblock"><code>R = str2double('2.345e+5')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 234500</code></code></pre></div>
 
-      <div class="p">Matrix of strings to matrix of numbers
-        conversion:<pre class="pre codeblock"><code>R = str2double(['65', '66'; '88', '92'])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = [Matrix] 2 x 1
+      <div class="p">String to complex:
+        <pre class="pre codeblock"><code>R = str2double('24 + 7i')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 24 + 7i</code></code></pre></div>
+
+      <div class="p">Matrix of strings to matrix of numbers:
+        <pre class="pre codeblock"><code>R = str2double(['65', '66'; '88', '92'])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = [Matrix] 2 x 1
 6566
 8892</code></code></pre></div>
+
+      <div class="p">Cell array to matrix:
+        <pre class="pre codeblock"><code>R = str2double({'45', '4', 5; 'pi' 99, '134 + 45i'})</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = [Matrix] 2 x 3
+45 + 0i    4 + 0i  NaN +  0i
+NaN + 0i  NaN + 0i  134 + 45i</code></code></pre></div>
 
     </section>
 

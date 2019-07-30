@@ -35,7 +35,7 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">n</var></dt>
 
-          <dd class="dd pd">The filter order. </dd>
+          <dd class="dd pd">The filter order.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span></dd>
 
@@ -45,9 +45,9 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">w</var></dt>
 
-          <dd class="dd pd">A scalar specifying the cutoff frequency of a low or high pass filter, or a two
-            element vector specifying the cutoff frequencies of a bandpass or band stop filter, or.
-            For a vector containing cutoff frequencies of a multi-band filter.</dd>
+          <dd class="dd pd">A scalar specifying the cutoff frequency of a low or high pass filter, or a
+            two-element vector specifying the cutoff frequencies of a bandpass or band stop filter,
+            or for a vector containing cutoff frequencies of a multiband filter.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
 
@@ -57,24 +57,23 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">type</var></dt>
 
-          <dd class="dd pd">The band type of the filter. The valid options are: <ul class="ul" id="reference_wpv_kyv_pr__ul_dvz_snt_2z">
-              <li class="li">'low' for a low pass filter</li>
+          <dd class="dd pd">The band type of the filter. The valid options are: <ul class="ul">
+              <li class="li"><span class="keyword option">'low'</span> for a low pass filter</li>
 
-              <li class="li">'high' for a high pass filter</li>
+              <li class="li"><span class="keyword option">'high'</span> for a high pass filter</li>
 
-              <li class="li">'bandpass' for a bandpass filter </li>
+              <li class="li"><span class="keyword option">'bandpass'</span> for a bandpass filter</li>
 
-              <li class="li"> 'stop' for a band stop filter</li>
+              <li class="li"><span class="keyword option">'stop'</span> for a band stop filter</li>
 
-              <li class="li">'DC-0' for a multi-band filter with a DC value of 0</li>
+              <li class="li"><span class="keyword option">'DC-0'</span> for a multiband filter with a DC value of 0</li>
 
-              <li class="li">'DC-1' for a multi-band filter with a DC value of 1</li>
+              <li class="li"><span class="keyword option">'DC-1'</span> for a multiband filter with a DC value of 1</li>
 
             </ul>
-</dd>
-
-          <dd class="dd pd ddexpand">If <var class="keyword varname">type</var> is omitted, the defaults are 'low', 'bandpass', or 'DC-0',
-            depending on the content of <var class="keyword varname">w</var>.</dd>
+ If <var class="keyword varname">type</var> is omitted, the defaults are <span class="keyword option">'low'</span>,
+              <span class="keyword option">'bandpass'</span>, or <span class="keyword option">'DC-0'</span>, depending on the content of
+              <var class="keyword varname">w</var>.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
 
@@ -92,23 +91,22 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">noscale</var></dt>
 
-          <dd class="dd pd">Set to <var class="keyword varname">noscale</var> if the output is not to be normalized. When omitted,
-            the gain is set to 1 as follows:<ul class="ul" id="reference_wpv_kyv_pr__ul_r4d_1st_2z">
-              <li class="li">at DC for 'low'</li>
+          <dd class="dd pd">Set to '<var class="keyword varname">noscale</var>' if the output is not to be normalized. When
+            omitted, the gain is set to 1 as follows:<ul class="ul">
+              <li class="li">At DC for <span class="keyword option">'low'</span></li>
 
-              <li class="li">at the Nyquist frequency for 'high'</li>
+              <li class="li">At the Nyquist frequency for <span class="keyword option">'high'</span></li>
 
-              <li class="li">at the center of the pass band for 'bandpass'</li>
+              <li class="li">At the center of the pass band for <span class="keyword option">'bandpass'</span></li>
 
-              <li class="li">at DC for 'stop'</li>
+              <li class="li">At DC for <span class="keyword option">'stop'</span></li>
 
-              <li class="li">at the center of the first pass band for 'DC-0'</li>
+              <li class="li">At the center of the first pass band for <span class="keyword option">'DC-0'</span></li>
 
-              <li class="li">at DC for 'DC-1'</li>
+              <li class="li">At DC for <span class="keyword option">'DC-1'</span></li>
 
             </ul>
-
-          </dd>
+</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
 
@@ -134,7 +132,7 @@
       <?STOPOUT?>
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Example</h2>
+    <section class="section" id="reference_wpv_kyv_pr__section_v3z_yd2_dhb"><h2 class="title sectiontitle">Example</h2>
       
       <p class="p">Plot the magnitude response in decibels for a 50th order FIR low pass digital filter with a
         250 Hz cutoff frequency and a 2000 Hz sampling frequency.</p>
@@ -145,16 +143,17 @@ fs = 2000;
 num = fir1(50,fc/(fs/2),'low',w);
 [h,f] = freqz(num,1,[0:5:1000],fs);
 plot(f,20*log10(abs(h)));</code></pre>
+      <div class="p">
+        <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_t5n_v4r_bt">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_flt_lxm_c5" src="../../../../images/math_solutions/plots/fir1_help_figure1.png" height="350" width="350" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 1. </span>fir1 figure 1</span></figure>
+
+      </div>
+
     </section>
 
-    <section class="section" id="reference_wpv_kyv_pr__section_ux5_wcc_jfb">
-      <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_t5n_v4r_bt">
-        <br /><img class="image" id="reference_wpv_kyv_pr__image_itk_gxl_lx" src="../../../../images/math_solutions/plots/fir1_help_figure1.png" height="350" width="350" /><br />
-      </figure>
-
-    </section>
-
-    <section class="section" id="reference_wpv_kyv_pr__section_vx5_wcc_jfb"><h2 class="title sectiontitle">Example</h2>
+    <section class="section" id="reference_wpv_kyv_pr__section_w3z_yd2_dhb"><h2 class="title sectiontitle">Example 2</h2>
       
       <p class="p">Plot the magnitude response in decibels for a 50th order FIR multiband digital filter with
         passbands of [300,400], [590,610], [775,825], and a 2000 Hz sampling frequency.</p>
@@ -165,21 +164,24 @@ fs = 2000;
 num = fir1(50,fc/(fs/2),'DC-0',w);
 [h,f] = freqz(num,1,[0:5:1000],fs);
 plot(f,20*log10(abs(h)));</code></pre>
-      <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_wx5_wcc_jfb">
-        <br /><img class="image" id="reference_wpv_kyv_pr__image_jtk_gxl_lx" src="../../../../images/math_solutions/plots/fir1_help_figure2.png" height="350" width="350" /><br />
-      </figure>
+    </section>
+
+      <section class="section">
+      <figure class="fig fignone">
+        
+        <br /><img class="image" id="reference_wpv_kyv_pr__image_fcg_j22_dhb" src="../../../../images/math_solutions/plots/fir1_help_figure2.png" height="350" width="350" /><br />
+      <span class="figcap"><span class="fig--title-label">Figure 2. </span>fir1 figure 2</span></figure>
 
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Comments</h2>
       
-      <p class="p">The filter order must be even for highpass or band stop filters. The function will
-        increment an invalid odd order automatically when the default window is used.</p>
+      <p class="p">The filter order must be even for highpass or band stop filters. The function increments an
+        invalid odd order automatically when the default window is used.</p>
 
     </section>
 
     <section class="section">
-      
       
     </section>
 

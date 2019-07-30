@@ -26,9 +26,8 @@
 
     <section class="section"><h2 class="title sectiontitle">Example</h2>
       
-      <p class="p">Assign a series of variables and run varlist and vardetail to see the information available.</p>
-
-      <pre class="pre codeblock"><code>t_number = 1234;
+      <div class="p">Assign a series of variables and run <span class="keyword cmdname">varlist</span> to see the information
+        available.<pre class="pre codeblock"><code>t_number = 1234;
 t_float = pi;
 t_string = 'testing123';
 t_matrix = [ 11 12; 21 22];
@@ -38,23 +37,13 @@ t_struct.string = t_string;
 t_struct.matrix = t_matrix;
 printf('varlist information:\n');
 varlist
-printf('vardetail information:\n');
-vardetail</code></pre>
-      <pre class="pre codeblock"><code><samp class="ph systemoutput">varlist information:
-t_float t_matrix t_number t_string t_struct 
-vardetail information:
-t_float scope Base type number
-t_matrix scope Base type matrix [2 x 2] pointer a1fb8f0 count 2
-t_number scope Base type number
-t_string scope Base type string
-t_struct scope Base type struct [1 x 1]
-</samp></code></pre>
+
+varlist information:
+t_float t_matrix t_number t_string t_struct</code></pre></div>
+
     </section>
 
-    <section class="section">
-      
-      
-    </section>
+    <section class="section"></section>
 
   </div>
 

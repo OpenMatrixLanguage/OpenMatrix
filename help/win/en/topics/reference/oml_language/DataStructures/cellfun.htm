@@ -20,7 +20,11 @@
 
     <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       
-      <p class="p"><span class="ph synph">R = cellfun<span class="ph var">(func, c)</span></span></p>
+      <p class="p"><span class="ph synph">R = cellfun<span class="ph var">(func, input1)</span></span></p>
+
+      <p class="p"><span class="ph synph">R = cellfun<span class="ph var">(func, input2, input2)</span></span></p>
+
+      <p class="p"><span class="ph synph">R = cellfun<span class="ph var">(..., 'uniformoutput', flag)</span></span></p>
 
       <?STOP?>
     </section>
@@ -37,15 +41,32 @@
 
         
         
-          <dt class="dt pt dlterm"><var class="keyword varname">c</var></dt>
+          <dt class="dt pt dlterm"><var class="keyword varname">input1</var></dt>
 
           <dd class="dd pd">Cell array to be operated on.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">cell</span></dd>
 
-          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">input2</var> (optional)</dt>
+
+          <dd class="dd pd">Cell array which contains additional inputs for <var class="keyword varname">func</var>.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">cell</span></dd>
 
         
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">flag</var></dt>
+
+          <dd class="dd pd">Uniform output type which specifies the class of <var class="keyword varname">R</var>. By default,
+              <var class="keyword varname">flag</var> is <span class="keyword option">1</span>, with <var class="keyword varname">R</var> being a
+              <span class="keyword">matrix</span>. If <var class="keyword varname">flag</var> is <span class="keyword option">0</span>,
+              <var class="keyword varname">R</var> will be a <span class="keyword">cell</span></dd>
+
+            <dd class="dd pd ddexpand">Type: <span class="keyword">integer | log</span></dd>
+
+          
       </dl>
 
       <?STOPINP?>
@@ -57,7 +78,7 @@
         
           <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
 
-          <dd class="dd pd">Resulting output matrix.</dd>
+          <dd class="dd pd">Resulting output.</dd>
 
         
       </dl>
@@ -66,54 +87,37 @@
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Examples</h2>
-      
-      <div class="p">String <span class="keyword cmdname">cellfun</span> with uniform output
-        option:<pre class="pre codeblock"><code>a = {1, [1,2;3,4], [1,2,3;4,5,6;7,8,9]};
+      <div class="p">String <span class="keyword cmdname">cellfun</span> with default options:
+        <pre class="pre codeblock"><code>a = {1, [1,2;3,4], [1,2,3;4,5,6;7,8,9]};
 R = cellfun('det',a)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = [Matrix] 1 x 3
 1.00000e+00  -2.00000e+00  6.66134e-16</code></code></pre></div>
 
-      <div class="p">Function handle <span class="keyword cmdname">cellfun</span> with uniform output option:
+        
+      <div class="p">Function handle <span class="keyword cmdname">cellfun</span> with default options:
         <pre class="pre codeblock"><code>function z=my_func(a)
-z=det(a);
+  z=det(a);
 end
-
 a = {1, [1,2;3,4], [1,2,3;4,5,6;7,8,9]};
 R = cellfun(@my_func,a)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = [Matrix] 1 x 3
 1.00000e+00  -2.00000e+00  6.66134e-16</code></code></pre></div>
 
-      <div class="p"><span class="keyword cmdname">cellfun</span> with uniform output and <span class="keyword cmdname">cellfun</span> with
-        non-uniform
-        output:<pre class="pre codeblock"><code>Uniform Output:
-a  = [ 1 2 3 ] ;
-b = [ 2 3 4 5 ] ;
-c = [ 3 4 5 6 7 ] ;
-d = { a , b , c } ;
-t = cellfun( 'length' , d )
-
-*t = [Matrix] 1 x 3
-3  4  5*
-
-Non-Uniform Output:
-a  = [ 1 2 3 ] ;
-b = [ 2 3 4 5 ] ;
-c = [ 3 4 5 6 7 ] ;
-d = { a , b , c } ;
-t = cellfun( 'cumsum' , d , 'uniformoutput' , false )
-
-*t = 
+          
+   <div class="p"><span class="keyword cmdname">cellfun</span> with <span class="keyword option">UniformOutput</span>
+        option:<pre class="pre codeblock"><code>R = cellfun('sqrt',{2,36,-9,[4,9;16,36],[4i+9,36i-16]},'uniformoutput',0)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R =
 {
-[1,1] [Matrix] 1 x 3
-1  3  6
-[1,2] [Matrix] 1 x 4
-2  5  9  14
-[1,3] [Matrix] 1 x 5
-3  7  12  18  25
-}*</code></pre></div>
+  [1,1] 1.41421356
+  [1,2] 6
+  [1,3] 0 + 3i
+  [1,4] [Matrix] 2 x 2
+  2  3
+  4  6 
+  [1,5] [Matrix] 1 x 2
+  3.06992 + 0.65148i  3.42019 + 5.26286i
+}</code></code></pre></div>
 
-    </section>
+      </section>
 
     <section class="section">
-      
       
     </section>
 
