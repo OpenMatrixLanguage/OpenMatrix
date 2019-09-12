@@ -105,7 +105,7 @@ my $goodtests = 0;
 my @failedTests = qw();
 my $errorcompare = 0;
 
-print "Run Compose regression test using $omlprogram at path:\n";
+print "Run OML regression test using $omlprogram at path:\n";
 system("which ".$omlprogram);
 print "\n";
 my $omlargs = '-notoolbox ';
