@@ -1,7 +1,7 @@
 ﻿function f()
 	function g()
 		c=5;
-		error('Error is not crashing Compose');
+		error('Error is not crashing OML');
 	end
 
 	g();
