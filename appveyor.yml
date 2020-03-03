@@ -22,8 +22,10 @@ environment:
   OML_THIRDPARTY: c:\oss\third_party\third_party
   OML_APPVEYOR: TRUE
   OML_PYTHON: c:\python36-x64
+  KMP_AFFINITY: SCATTER
+  MKL_NUM_THREADS: 7
+  MKL_DOMAIN_NUM_THREADS: MKL_BLAS=7
   
-
 before_build:
 - cmd: >-
     
@@ -39,6 +41,10 @@ before_build:
     
     set OML
     
+    set MKL
+    
+    set MKP
+    
 
 
 build:
@@ -52,7 +58,9 @@ test_script:
     
     set PATH=%OML_ROOT%\VS2015\OpenMatrix\x64\Release;%PATH%
     
-    set PATH=%OML_THIRDPARTY%\lapack\lapack-3.7.1-build\bin;%PATH%
+    set PATH=%OML_THIRDPARTY%\intel\compilers_and_libraries_2019.5.281\windows\redist\intel64_win\compiler;%PATH%
+    
+    set PATH=%OML_THIRDPARTY%\intel\compilers_and_libraries_2019.5.281\windows\redist\intel64_win\mkl;%PATH%
     
     set PATH=%OML_THIRDPARTY%\fftw\fftw-3.2.2\fftw-3.2.2-libs\x64\Release;%PATH%
     

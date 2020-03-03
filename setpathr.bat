@@ -17,8 +17,16 @@ set OML_PYTHON_NUMPYDIR=%OML_PYTHONHOME%/Lib/site-packages/numpy/core/include/nu
 @echo on
 set OML_THIRDPARTY=\oss\third_party
 
-rem add lapack directory to path
-set path=%OML_THIRDPARTY%\lapack\lapack-3.7.1-build\bin;%path%
+
+rem add MKL directory for libiomp5md.dll
+set path=%OML_THIRDPARTY%\intel\compilers_and_libraries_2019.5.281\windows\redist\intel64_win\compiler;%path%
+rem add MKL directory 
+set path=%OML_THIRDPARTY%\intel\compilers_and_libraries_2019.5.281\windows\redist\intel64_win\mkl;%path%
+
+rem MKL related environment variables.
+set KMP_AFFINITY=SCATTER
+set MKL_NUM_THREADS=7
+set MKL_DOMAIN_NUM_THREADS=MKL_BLAS=7
 
 rem add fftw directory to path
 set path=%OML_THIRDPARTY%\fftw\fftw-3.2.2\fftw-3.2.2-libs\x64\Release;%path%
