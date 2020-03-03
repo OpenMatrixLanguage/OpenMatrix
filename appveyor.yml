@@ -76,6 +76,8 @@ test_script:
     
     cd %OML_ROOT%\Tests
     
+    perl -v
+    
     run_tests.bat
     
     cd %OML_ROOT%\Tests
