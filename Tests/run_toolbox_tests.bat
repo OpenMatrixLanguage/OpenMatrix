@@ -20,7 +20,9 @@ echo Run %1 toolbox tests
 cd %OML_ROOT%/Tests/toolboxes/%1/tests
 echo.
 pwd
-%OML_ROOT%/Tests/regressOMLConsole.pl
+@echo on
+perl %OML_ROOT%\Tests\regressOMLConsole.pl
+@echo off
 echo Completed %1 toolbox tests
 echo ==================== ====================  ==================== ====================
 if not exist *.log echo ALL %1 toolbox tests PASS! & echo. & goto :EOF
