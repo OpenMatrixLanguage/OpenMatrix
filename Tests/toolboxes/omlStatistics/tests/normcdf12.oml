@@ -1,2 +1,2 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 normcdf([1 2 3 4],4,5i+0.8)

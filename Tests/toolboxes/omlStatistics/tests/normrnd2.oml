@@ -1,4 +1,4 @@
-addtoolbox('omlStatistics')
+addtoolbox('omlstatistics')
 a = 5;
 b = 6;
 rand('seed', 2003);

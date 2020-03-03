@@ -1,4 +1,4 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 
 x = reshape([1:30],5,6);
 y = fftshift(x, 1)

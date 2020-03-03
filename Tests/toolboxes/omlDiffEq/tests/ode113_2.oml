@@ -1,4 +1,4 @@
-addtoolbox omlDiffEq
+addtoolbox omldiffeq
 
 global b;
 b = pi/4;

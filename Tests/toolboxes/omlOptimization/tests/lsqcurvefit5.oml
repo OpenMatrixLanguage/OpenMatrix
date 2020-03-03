@@ -1,4 +1,4 @@
-addtoolbox omlOptimization
+addtoolbox omloptimization
 
 FittingFunc= @(c, t) c(1) * exp(-c(2)*t);
 t = [1; 2; 3; 4];

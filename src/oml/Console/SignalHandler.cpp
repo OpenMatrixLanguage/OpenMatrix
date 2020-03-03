@@ -29,10 +29,14 @@
 SignalHandler::SignalHandler(const SignalHandler* src) 
     : _src (src)
     , _wrapper (NULL)
+    , _batchmode(true)
 {
     // Set the console wrapper for handling actions from oml core in client
     if (_src)
+    {
         _wrapper = _src->_wrapper;
+        _batchmode = _src->_batchmode;
+    }
 }
 //------------------------------------------------------------------------------
 //! Clone signal handler

@@ -1,7 +1,7 @@
 /**
 * @file MemoryScope.h
 * @date August 2013
-* Copyright (C) 2013-2018 Altair Engineering, Inc.  
+* Copyright (C) 2013-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -31,7 +31,11 @@ class MemoryScope
 	friend class MemoryScopeManager;
 
 public:
-	MemoryScope(FunctionInfo* info) : fi(info), debug_line(0), debug_filename(NULL) { }
+    //!
+    //! Constructor
+    //! \param fi Function info pointer
+    //!
+    MemoryScope(FunctionInfo* info);
 	~MemoryScope();
 	MemoryScope(const MemoryScope&);
 	MemoryScope(const MemoryScope&, FunctionInfo* fi);

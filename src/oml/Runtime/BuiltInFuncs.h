@@ -97,7 +97,6 @@ bool oml_ne(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::v
 bool oml_linsolve(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_pinv(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_normalize(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_expm(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_mkdir(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_setenv(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_cond(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -157,6 +156,7 @@ bool oml_sprintf(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
 bool oml_feval(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_rmpath(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_addpath(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_addhiddenpath(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_addpath2(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_path(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_repmat(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -259,6 +259,12 @@ bool oml_kron(EvaluatorInterface, const std::vector<Currency>& inputs, std::vect
 bool oml_pow2(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_diff(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_diag(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_sparse(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_issparse(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_nnz(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_speye(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_spones(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_full(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_conv(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_e(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_pi(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -345,6 +351,7 @@ bool oml_who(EvaluatorInterface, const std::vector<Currency>&, std::vector<Curre
 bool oml_logspace(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_rot90(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_rehash(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_verbose(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 
 // function replacement methods
 HML2DLL_DECLS void _OML_Error(EvaluatorInterface& eval, std::vector<Currency>::const_iterator start, std::vector<Currency>::const_iterator end);
@@ -643,7 +650,7 @@ HML2DLL_DECLS bool islonglong(double d);
 HML2DLL_DECLS bool isposint(double d);
 HML2DLL_DECLS bool isint(const hwMatrix *mtx);
 HML2DLL_DECLS bool isinfinity(double d);
-HML2DLL_DECLS bool isfinite(double d);
+// HML2DLL_DECLS bool isfinite(double d);
 HML2DLL_DECLS double realval(const hwMatrix*, int i, int j);
 HML2DLL_DECLS double realval(const hwMatrix*, int index);
 HML2DLL_DECLS double realvalorscalar(const hwMatrix* mtx, int i, int j);
@@ -721,49 +728,26 @@ HML_CELLARRAY* sort(EvaluatorInterface& eval, const HML_CELLARRAY* cell, std::pa
 double getCPUTime();
 
 // cart2sph
-
-void cart2sphHelper(double x, double y, double z, double& az, double& elev, double& r);
-void cart2sphHelper(double x, double y, const hwComplex& z, double& az, hwComplex& elev, hwComplex& r);
-void cart2sphHelper(double x, const hwComplex& y, double z, hwComplex& az, hwComplex& elev, hwComplex& r);
-void cart2sphHelper(const hwComplex& x, double y, double z, hwComplex& az, hwComplex& elev, hwComplex& r);
-void cart2sphHelper(const hwComplex& x, double y, const hwComplex& z, hwComplex& az, hwComplex& elev, hwComplex& r);
-void cart2sphHelper(const hwComplex& x, const hwComplex& y, double z, hwComplex& az, hwComplex& elev, hwComplex& r);
-void cart2sphHelper(double x, const hwComplex& y, const hwComplex& z, hwComplex& az, hwComplex& elev, hwComplex& r);
-void cart2sphHelper(const hwComplex& x, const hwComplex& y, const hwComplex& z, hwComplex& az, hwComplex& elev, hwComplex& r);
 std::vector<Currency> cart2sphHelper(EvaluatorInterface& eval, const std::vector<Currency>& inputs);
+void cart2sphHelper(double x, double y, double z, double& az, double& elev, double& r);
 
 // sph2cart
-
-void sph2cartHelper(double az, double elev, double r, double& x, double& y, double& z);
-void sph2cartHelper(double az, double elev, const hwComplex& r, hwComplex& x, hwComplex& y, hwComplex& z);
-void sph2cartHelper(double az, const hwComplex& elev, double r, hwComplex& x, hwComplex& y, hwComplex& z);
-void sph2cartHelper(const hwComplex& az, double elev, double r, hwComplex& x, hwComplex& y, double& z);
-void sph2cartHelper(const hwComplex& az, double elev, const hwComplex& r, hwComplex& x, hwComplex& y, hwComplex& z);
-void sph2cartHelper(const hwComplex& az, const hwComplex& elev, double r, hwComplex& x, hwComplex& y, hwComplex& z);
-void sph2cartHelper(double az, const hwComplex& elev, const hwComplex& r, hwComplex& x, hwComplex& y, hwComplex& z);
-void sph2cartHelper(const hwComplex& az, const hwComplex& elev, const hwComplex& r, hwComplex& x, hwComplex& y, hwComplex& z);
 std::vector<Currency> sph2cartHelper(EvaluatorInterface& eval, const std::vector<Currency>& inputs);
+void sph2cartHelper(double az, double elev, double r, double& x, double& y, double& z);
 
 // pol2cart
 std::vector<Currency> pol2cartHelper(EvaluatorInterface& eval, const std::vector<Currency>& inputs);
 std::pair<double, double> pol2cartHelper(double theta, double r);
-std::pair<hwComplex, hwComplex> pol2cartHelper(double theta, const hwComplex& r);
-std::pair<hwComplex, hwComplex> pol2cartHelper(const hwComplex& theta, double r);
-std::pair<hwComplex, hwComplex> pol2cartHelper(const hwComplex& theta, const hwComplex& r);
 
 // cart2pol
 std::vector<Currency> cart2polHelper(EvaluatorInterface& eval, const std::vector<Currency>& inputs);
 std::pair<double, double> cart2polHelper(double theta, double r);
-std::pair<hwComplex, hwComplex> cart2polHelper(double theta, const hwComplex& r);
-std::pair<hwComplex, hwComplex> cart2polHelper(const hwComplex& theta, double r);
-std::pair<hwComplex, hwComplex> cart2polHelper(const hwComplex& theta, const hwComplex& r);
 
 // removePadding
 void _countZeros(const hwMatrix *mtx, int *count, int stop_count, int stop_inner, int incr, bool horiz);
 void _countZerosComplex(const hwMatrix *mtx, int *count, int stop_count, int stop_inner, int incr, bool horiz);
 
 // set-related helpers
-
 void dounique(std::deque<hwMatrix> &vals);
 void dounique(std::deque<double> &vals);
 void dounique(std::deque<hwComplex> &vals);
@@ -794,7 +778,6 @@ inline std::deque<std::string> dosetxor(std::deque<std::string> &a, std::deque<s
 inline std::deque<std::string> dosetdiff(std::deque<std::string> &a, std::deque<std::string> &b) { std::deque<std::string> aa(a); std::deque<std::string> bb(b); return dosetdiff<std::string>(aa, bb); }
 
 // Helper functions
-
 //!
 //! Helper function for oml_celldisp
 //! \param eval     Evaluator interface
@@ -860,5 +843,16 @@ void UniqueHelperFuncCell( EvaluatorInterface&    eval,
                            bool                   outputIdx,
                            bool                   inputIdx,
                            std::vector<Currency>& outputs);
+
+// Sparse matrix helper functions
+// These functions reside here temporarily to avoid propogating an MKL header
+// dependency to all /kernel clients. They may be moved to /math/sparse in
+// a future release.
+
+// Multiply a sparse matrix by a full matrix, prod = A * B
+void SparseMult(const hwMatrixS& A, const hwMatrix& B, hwMatrix& prod);
+
+// Divide a full matrix by a sparse matrix on the left side, Q = A \ B
+void SparseDivideLeft(const hwMatrixS& A, const hwMatrix& B, hwMatrix& Q);
 
 #endif

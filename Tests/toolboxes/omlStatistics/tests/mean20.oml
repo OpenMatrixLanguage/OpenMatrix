@@ -1,2 +1,2 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 mean([2,5i,1;2i-1,9+2i,0.5i],2)

@@ -1,2 +1,2 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 x = sinc('k')

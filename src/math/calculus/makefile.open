@@ -23,7 +23,7 @@ CXX_DEFINES += -DCALCULUS_EXPORTS
 CXX_INCLUDES += -I. $(HWMATHKERNEL_INC)
 
 LIBS += $(MATHKERNEL_LIBS)
-LIBS += $(BLAS_LIBS)
+LIBS += $(MKL_LIBS)
 
 # ====================================================================
 

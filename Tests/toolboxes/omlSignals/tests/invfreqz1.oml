@@ -1,4 +1,4 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 fc = 200;
 fs = 1000;
 order = 4;

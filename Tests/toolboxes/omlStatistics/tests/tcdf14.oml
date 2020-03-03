@@ -1,2 +1,2 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 tcdf(2,[1 2; 2 4; 3 8; 4 16])

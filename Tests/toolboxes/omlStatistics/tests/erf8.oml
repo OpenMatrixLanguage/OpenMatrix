@@ -1,2 +1,2 @@
-addToolbox('omlStatistics')
+addToolbox('omlstatistics')
 erf({0.3, -0.01, 1.1;-0.3, 1, 2})

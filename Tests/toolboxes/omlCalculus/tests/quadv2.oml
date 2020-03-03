@@ -1,4 +1,4 @@
-addtoolbox omlCalculus
+addtoolbox omlcalculus
 
 function y = Integrand(x)
     y = 13 * (x - x^2) * exp(-3*x/2);

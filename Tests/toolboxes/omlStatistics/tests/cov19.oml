@@ -1,4 +1,4 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 b=[2,3,4;4,9,16;8,27,64;16,9,4];
 c=cov(b,1)
 

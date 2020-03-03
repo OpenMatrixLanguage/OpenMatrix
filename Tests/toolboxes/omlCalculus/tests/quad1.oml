@@ -1,4 +1,4 @@
-addtoolbox omlCalculus
+addtoolbox omlcalculus
 
 function q = g(y)
   q = ones(size (y));

@@ -1,4 +1,4 @@
-addtoolbox omlOptimization
+addtoolbox omloptimization
 % one zero of a parabola
 
 Residuals = @(x) x.*x - 9;

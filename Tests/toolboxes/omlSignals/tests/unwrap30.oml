@@ -1,4 +1,4 @@
-addToolbox omlSignals
+addToolbox omlsignals
 unwrap([4; .25; -6; pi],1)
 
 %written by mbsmith, 5/15/15

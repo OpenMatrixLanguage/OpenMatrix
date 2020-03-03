@@ -1,7 +1,7 @@
 /**
 * @file MemoryScope.cpp
 * @date August 2013
-* Copyright (C) 2013-2018 Altair Engineering, Inc.  
+* Copyright (C) 2013-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -22,6 +22,20 @@
 std::map<std::string, Currency> MemoryScope::globals;
 
 int MemoryScopeManager::_env_counter = 0;
+
+//------------------------------------------------------------------------------
+// Constructor
+//------------------------------------------------------------------------------
+MemoryScope::MemoryScope(FunctionInfo* info)
+    : fi(info)
+    , debug_line(0)
+    , debug_filename(NULL) 
+{
+    if (fi)
+    {
+        fi->IncrRefCount();
+    }
+}
 
 MemoryScope::MemoryScope(const MemoryScope& in)
 {
@@ -44,19 +58,28 @@ MemoryScope::MemoryScope(const MemoryScope& in, FunctionInfo* finfo)
 	if (finfo)
 		nested_functions = in.nested_functions;
 }
-
+//------------------------------------------------------------------------------
+// Destructor
+//------------------------------------------------------------------------------
 MemoryScope::~MemoryScope()
 {
+    if (fi)
+    {
+        fi->DecrRefCount(); //\todo: Delete if refcnt is 0?
+    }
 	std::unordered_map<const std::string*, FunctionInfo*>::const_iterator iter;
 
 	for (iter = nested_functions.begin(); iter != nested_functions.end(); iter++)
 	{
-		FunctionInfo* fi = iter->second;
+		FunctionInfo* nfi = iter->second;
 		
-		fi->DecrRefCount();
+		nfi->DecrRefCount();
 		
-		if (fi->GetRefCount() == 0)
-			delete fi;
+        if (nfi->GetRefCount() == 0)
+        {
+            delete nfi;
+            nfi = nullptr;
+        }
 	}
 }
 
@@ -479,13 +502,15 @@ FunctionInfo* MemoryScope::GetNestedFunction(const std::string* func_name)
 
 FunctionInfo* MemoryScope::GetLocalFunction(const std::string* func_name)
 {
-	if (!fi)
-		return NULL;
-
-	if (fi->local_functions->find(func_name) != fi->local_functions->end())
-		return (*fi->local_functions)[func_name];
-	else
-		return NULL;
+    if (!fi || !fi->local_functions)
+    {
+        return nullptr;
+    }
+    if (fi->local_functions->find(func_name) != fi->local_functions->end())
+    {
+        return (*fi->local_functions)[func_name];
+    }
+    return nullptr;
 }
 
 const std::string& MemoryScope::GetFilename() const
@@ -546,7 +571,7 @@ MemoryScope* MemoryScopeManager::GetParentScope() const
 void MemoryScopeManager::OpenScope(FunctionInfo*fi)
 {
 #if _DEBUG
-	#define MAX_VAL 44
+	#define MAX_VAL 42
 #else
 	#define MAX_VAL 100
 #endif

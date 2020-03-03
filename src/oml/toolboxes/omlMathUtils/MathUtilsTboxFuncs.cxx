@@ -43,7 +43,9 @@ int InitDll(EvaluatorInterface eval)
                                  FunctionMetaData(2, 1, STATAN));
     eval.RegisterBuiltInFunction("gamma", OmlGamma, 
                                  FunctionMetaData(1, 1, STATAN));
-    eval.RegisterBuiltInFunction("bins", OmlBins, 
+    eval.RegisterBuiltInFunction("factorial", OmlFactorial,
+                                 FunctionMetaData(1, 1, STATAN));
+    eval.RegisterBuiltInFunction("bins", OmlBins,
                                  FunctionMetaData(2, 1, STATAN));
     eval.RegisterBuiltInFunction("rat", OmlRat, 
                                  FunctionMetaData(-2, -2, ELEM));
@@ -59,7 +61,11 @@ bool OmlBeta(EvaluatorInterface           eval,
     if (inputs.size() != 2)
         throw OML_Error(OML_ERR_NUMARGIN);
 
-    outputs.push_back(mtxFun(eval, inputs, 1, &doBeta)[0]);
+    if (inputs[0].IsScalar() && inputs[1].IsScalar())
+        outputs = doBeta(eval, inputs);
+    else
+        outputs.push_back(mtxFun(eval, inputs, 1, &doBeta)[0]);
+
     return true;
 }
 //------------------------------------------------------------------------------
@@ -100,7 +106,11 @@ bool OmlGamma(EvaluatorInterface           eval,
     if (inputs.size() != 1)
         throw OML_Error(OML_ERR_NUMARGIN);
 
-    outputs.push_back(mtxFun(eval, inputs, 1, &doGamma)[0]);
+    if (inputs[0].IsScalar())
+        outputs = doGamma(eval, inputs);
+    else
+        outputs.push_back(mtxFun(eval, inputs, 1, &doGamma)[0]);
+
     return true;
 }
 //------------------------------------------------------------------------------
@@ -114,6 +124,64 @@ std::vector<Currency> doGamma(EvaluatorInterface&          eval,
 
     std::vector<Currency> result;
     result.push_back(GammaFunc(inputs[0].Scalar()));
+    return result;
+}
+//------------------------------------------------------------------------------
+//  Factorial function
+//------------------------------------------------------------------------------
+bool OmlFactorial(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 1)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    if (inputs[0].IsScalar())
+        outputs = doFactorial(eval, inputs);
+    else
+        outputs.push_back(mtxFun(eval, inputs, 1, &doFactorial)[0]);
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Executes the factorial function and returns outputs
+//------------------------------------------------------------------------------
+std::vector<Currency> doFactorial(EvaluatorInterface&          eval,
+                                  const std::vector<Currency>& inputs)
+{
+    if (!inputs[0].IsInteger())
+        throw OML_Error(OML_ERR_NATURALNUM, 1, OML_VAR_TYPE);
+
+    double k = inputs[0].Scalar();
+    double factorial;
+
+    if (k < 0.0)
+        throw OML_Error(OML_ERR_NATURALNUM, 1, OML_VAR_TYPE);
+
+    if (k < 10.0)
+    {
+        switch (static_cast<int> (k))
+        {
+        case 0:  factorial = 1.0;      break;
+        case 1:  factorial = 1.0;      break;
+        case 2:  factorial = 2.0;      break;
+        case 3:  factorial = 6.0;      break;
+        case 4:  factorial = 24.0;     break;
+        case 5:  factorial = 120.0;    break;
+        case 6:  factorial = 720.0;    break;
+        case 7:  factorial = 5040.0;   break;
+        case 8:  factorial = 40320.0;  break;
+        case 9:  factorial = 362880.0; break;
+        default: break;
+        }
+    }
+    else
+    {
+        factorial = floor(GammaFunc(k + 1.0) + 0.5);
+    }
+
+    std::vector<Currency> result;
+    result.push_back(factorial);
     return result;
 }
 //------------------------------------------------------------------------------

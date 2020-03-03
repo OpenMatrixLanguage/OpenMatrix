@@ -286,7 +286,7 @@ int BuiltInFuncsCore::GetsBytesUsed(const Currency& cur) const
     return 0;
 }
 //------------------------------------------------------------------------------
-// Returns true, gets information of variables defined in current scope [whos command]
+// Returns true, gets information of variables defined in current scope [whos]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsCore::Whos(EvaluatorInterface           eval, 
 	                        const std::vector<Currency>& inputs, 
@@ -294,7 +294,9 @@ bool BuiltInFuncsCore::Whos(EvaluatorInterface           eval,
 {
     std::vector<std::string> names;  // vector of names
     if (inputs.empty())
+    {
         names = eval.GetVariableNames();
+    }
     else
     {
         int i = 1;
@@ -395,6 +397,19 @@ bool BuiltInFuncsCore::Whos(EvaluatorInterface           eval,
             const hwMatrixN* mtxn = var.MatrixN();
             sz     = funcs.DimensionToString(mtxn->Dimensions());
             isreal = mtxn->IsReal();
+        }
+        else if (var.IsSparse())
+        {
+            const hwMatrixS* mtx = var.MatrixS();
+            if (mtx)
+            {
+                sz = std::to_string(static_cast<long long>(mtx->M())) + "x" +
+                    std::to_string(static_cast<long long>(mtx->N()));
+                isreal = mtx->IsReal();
+                numbytes = isreal ? (mtx->NNZ() * sizeof(double)) :
+                    (mtx->NNZ() * sizeof(double)) * 2;
+
+            }
         }
 
         if (sd)
@@ -513,73 +528,130 @@ bool BuiltInFuncsCore::Class(EvaluatorInterface eval, const std::vector<Currency
 //------------------------------------------------------------------------------
 std::string BuiltInFuncsCore::GetCurrencyClass(const Currency& cur) const
 {
-    if (cur.IsScalar())
-        return (cur.IsLogical() ? "logical" : "double");
-    
-    else if (cur.IsString())
-        return "char";
-    
-    else if (cur.IsComplex())
-        return "double";
+	if (cur.IsScalar())
+		return (cur.IsLogical() ? "logical" : "double");
 
-    else if (cur.IsMatrix())
+	else if (cur.IsString())
+		return "char";
+
+	else if (cur.IsComplex())
+		return "double";
+
+	else if (cur.IsMatrix())
+		return (cur.IsLogical() ? "logical" : "double");
+
+	else if (cur.IsNDMatrix())
+		return (cur.IsLogical() ? "logical" : "double");
+
+	else if (cur.IsFunctionHandle())
+		return "function_handle";
+
+	else if (cur.IsCellArray())
+		return "cell";
+
+    else if  (cur.IsNDMatrix() || cur.IsSparse())
         return (cur.IsLogical() ? "logical" : "double");
 
-    else if  (cur.IsNDMatrix())
-        return (cur.IsLogical() ? "logical" : "double");
+	else if (cur.IsStruct())
+		return "struct";
 
-    else if (cur.IsFunctionHandle())
-        return "function_handle";
-    
-    else if (cur.IsCellArray())
-        return "cell";
-    
-    else if (cur.IsStruct())
-        return "struct";
-    
-    else if (cur.IsObject() || cur.IsBoundObject())
+	else if (cur.IsObject() || cur.IsBoundObject())
 		return cur.GetClassname();
+
+	else if (cur.IsPointer())
+		return cur.Pointer()->GetClassname();
 
     return "";
 }
 //------------------------------------------------------------------------------
-// Returns true after getting class information [class command]
+// Returns true after getting class information [isa command]
 //------------------------------------------------------------------------------
-bool BuiltInFuncsCore::IsA(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+bool BuiltInFuncsCore::IsA(EvaluatorInterface           eval,
+                           const std::vector<Currency>& inputs, 
+                           std::vector<Currency>&       outputs)
 {
     if (inputs.size() != 2)
+    {
         throw OML_Error(OML_ERR_NUMARGIN);
+    }
 
-    if (eval.GetNargoutValue() > 1)
-        throw OML_Error(OML_ERR_NUMARGOUT);
+    if (!inputs[1].IsString() && !inputs[1].IsCellArray())
+    {
+        throw OML_Error(OML_ERR_STRING_STRINGCELL, 2);
+    }
+    std::unique_ptr<HML_CELLARRAY> type = nullptr;
+    if (inputs[1].IsCellArray())
+    {
+        type.reset(EvaluatorInterface::allocateCellArray(inputs[1].CellArray()));
+    }
+    else
+    {
+        type.reset(EvaluatorInterface::allocateCellArray(1,1));
+        (*type)(0) = inputs[1].StringVal();
+    }
+    std::unique_ptr<HML_CELLARRAY> out(EvaluatorInterface::allocateCellArray(
+        type->M(), type->N()));
 
-	Currency    obj          = inputs[0];
-	Currency    class_type   = inputs[1];
-	std::string target_class;
+    int numtypes = type->Size();
+    
+    const Currency& cur1 = inputs[0];
 
-	if (class_type.IsString())
-		target_class = class_type.StringVal();
-	else
-		throw OML_Error("");
+	std::string classname = cur1.GetClassname();
+	bool  isobj = false;
 
-	Currency val(0.0);
-	val.SetMask(Currency::MASK_LOGICAL);
+	if (classname.length())
+		isobj = true;
 
-	if (obj.IsObject())
-	{
-		if (obj.GetClassname() == target_class)
-			val.ReplaceScalar(1.0);
-		else
-			val.ReplaceScalar(eval.IsA(obj, target_class));
-	}
-	else if (obj.IsMatrix() || obj.IsScalar() || obj.IsNDMatrix() || obj.IsComplex())
-	{
-		if ((target_class == "numeric") || (target_class == "float"))
-			val.ReplaceScalar(1.0);
-	}
-		
-	outputs.push_back(val);
+    for (int i = 0; i < numtypes; ++i)
+    {
+        Currency element = (*type)(i);
+        if (!element.IsString())
+        {
+            throw OML_Error(OML_ERR_STRING_STRINGCELL, 2);
+        }
+        std::string cmp(element.StringVal());
+        bool result = false;
+        
+        if (isobj)
+        {
+            result = (classname == cmp);
+            if (!result) // Check if this is a derived class
+            {
+                result = eval.IsA(cur1, cmp);
+            }
+        }
+        else if (!cmp.empty())
+        {
+            std::transform(cmp.begin(), cmp.end(), cmp.begin(), ::tolower);
 
+            if (cmp == "integer")
+            {
+                result = (cur1.IsInteger() || cur1.IsLogical());
+            }
+            else if (cmp == "float" || cmp == "double" || cmp == "numeric")
+            {
+                result = (cur1.IsScalar()   || cur1.IsMatrix() || 
+                          cur1.IsNDMatrix() || cur1.IsSparse() || 
+                          cur1.IsComplex()  || cur1.IsLogical());
+            }
+			else if (cmp == "struct")
+			{
+				result = cur1.IsStruct();
+			}
+        }
+        Currency tmp(result);
+        tmp.SetMask(Currency::MASK_LOGICAL);
+        (*out)(i) = tmp;
+    }
+
+    if (out->Size() == 1)
+    {
+        outputs.push_back(Currency((*out)(0)));
+    }
+    else
+    {
+        outputs.push_back(out.release());
+    }
     return true;
 }
 //------------------------------------------------------------------------------
@@ -608,6 +680,27 @@ void* BuiltInFuncsCore::DyGetFunction(void* handle, const std::string& name)
 #endif
 }
 //------------------------------------------------------------------------------
+// Get filename of a dynamically loaded library
+//------------------------------------------------------------------------------
+std::string BuiltInFuncsCore::DyGetLibraryPath(void* handle)
+{
+	char buff[2048];
+
+	if (handle)
+	{
+#ifdef OS_WIN
+		GetModuleFileName((HMODULE)handle, buff, sizeof(buff));
+#else  // OS_UNIX
+#include <dlfcn.h>
+		Dl_info dli;
+	    	dladdr(handle, &dli);
+		strcpy(buff, dli.dli_fname);
+#endif  // OS_UNIX
+	}
+
+	return buff;
+}
+//------------------------------------------------------------------------------
 // Release dynamically loaded library
 //------------------------------------------------------------------------------
 void BuiltInFuncsCore::DyFreeLibrary(void* handle)
@@ -626,23 +719,33 @@ void BuiltInFuncsCore::DyFreeLibrary(void* handle)
 //------------------------------------------------------------------------------
 // Returns true after adding a toolbox [addtoolbox command]
 //------------------------------------------------------------------------------
-bool BuiltInFuncsCore::AddToolbox(EvaluatorInterface           eval, 
-	                              const std::vector<Currency>& inputs, 
-			                      std::vector<Currency>&       outputs)
+bool BuiltInFuncsCore::AddToolbox(EvaluatorInterface           eval,
+	const std::vector<Currency>& inputs,
+	std::vector<Currency>&       outputs)
 {
-    if (inputs.empty()) throw OML_Error(OML_ERR_NUMARGIN);
+	if (inputs.empty()) throw OML_Error(OML_ERR_NUMARGIN);
 
-    const Currency& in = inputs[0];
-    if (!in.IsString())
-        OML_Error(OML_ERR_STRING, 1);
+	const Currency& in = inputs[0];
+	if (!in.IsString())
+		OML_Error(OML_ERR_STRING, 1);
 
-    std::string importDll (in.StringVal());
+	std::string importDll(in.StringVal());
+
+	void *vResult = BuiltInFuncsCore::DyLoadLibrary(importDll.c_str());
 
 #ifndef OS_WIN
-    importDll = "lib" + importDll + ".so";
-#endif
+	if (!vResult)
+	{
+		importDll = importDll + ".so";
+		vResult = BuiltInFuncsCore::DyLoadLibrary(importDll.c_str());
+	}
 
-     void *vResult = BuiltInFuncsCore::DyLoadLibrary(importDll.c_str());
+	if (!vResult)
+	{
+		importDll = "lib" + importDll;
+		vResult = BuiltInFuncsCore::DyLoadLibrary(importDll.c_str());
+	}
+#endif
 
     if (!vResult)
     {
@@ -677,8 +780,13 @@ bool BuiltInFuncsCore::AddToolbox(EvaluatorInterface           eval,
 			OMLInterfaceImpl impl(&eval);
 
 			eval.SuspendFuncListUpdate();   
-
+#ifdef OS_WIN
+			eval.SetDLLContext(DyGetLibraryPath(vResult));
+#else
+			eval.SetDLLContext(DyGetLibraryPath(symbol));
+#endif
 			fp(&impl);
+			eval.SetDLLContext("");
 
 			eval.UnsuspendFuncListUpdate();
 			eval.OnUpdateFuncList();
@@ -776,6 +884,28 @@ bool BuiltInFuncsCore::Varlist(EvaluatorInterface           eval,
     cur.DispOutput();
     outputs.push_back(cur);
     return true;
+}
+//------------------------------------------------------------------------------
+// Returns true after displaying a list of keywords in the interpreter [varlist command]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsCore::Keywordlist(EvaluatorInterface           eval,
+	const std::vector<Currency>& inputs,
+	std::vector<Currency>&       outputs)
+{
+	std::vector<std::string> varlist(eval.GetKeywords());
+
+	std::string msg;
+	for (std::vector<std::string>::const_iterator itr = varlist.begin();
+		itr != varlist.end(); ++itr)
+	{
+		std::string var(*itr);
+		if (!var.empty())
+			msg += var + " ";
+	}
+	Currency cur(msg);
+	cur.DispOutput();
+	outputs.push_back(cur);
+	return true;
 }
 //------------------------------------------------------------------------------
 // Gets build number from the given file
@@ -1074,23 +1204,23 @@ bool BuiltInFuncsCore::Type(EvaluatorInterface           eval,
         std::string type;
         if (eval.IsOperator(str))
         {
-            type = "'" + str + "' is an operator";
+            type = str + " is an operator";
         }
         else if (eval.IsKeyword(str))
         {
-            type = "'" + str + "' is a keyword";
+            type = str + " is a keyword";
         }
         else if (eval.IsStdFunction(str))
         {
-            type = "'" + str + "' is a built-in function";
+            type = str + " is a built-in function";
         }
         else if (eval.IsUserFunction(str))
         {
-            type = "'" + str + "' is a user-defined function";
+            type = str + " is a user-defined function";
         }
         else if (reservedtokens.find(str) != std::string::npos)
         {
-            type = "'" + str + "' is a reserved token";
+            type = str + " is a reserved token";
         }
         else
         {
@@ -1099,7 +1229,7 @@ bool BuiltInFuncsCore::Type(EvaluatorInterface           eval,
             {
                 if (!quiet)
                 {
-                    type = "'" + str + "' is a variable\n";
+                    type = str + " is a variable\n";
                 }
                 Currency elementval = eval.GetValue(str);
                 elementval.DispOutput();
@@ -1133,7 +1263,7 @@ bool BuiltInFuncsCore::Type(EvaluatorInterface           eval,
                 {
                     if (!quiet && ext.empty())
                     {
-                        type = "'" + str + "' is a function defined in [" +
+                        type = str + " is a function defined in [" +
                             utils.Normpath(fname) + "]";
                     }
                 }
@@ -1143,6 +1273,30 @@ bool BuiltInFuncsCore::Type(EvaluatorInterface           eval,
                         std::to_string(static_cast<long long>(i + 1)) +
                         "; '" + str + "' is not defined");
                 }
+#ifdef OS_WIN
+                BuiltInFuncsUtils utils;
+                std::wstring wtype;
+                std::wstring wname = utils.StdString2WString(fname);
+                FILE* f = _wfopen(wname.c_str(), L"r, ccs=UTF-8");
+                if (!f)
+                {
+                    throw OML_Error(OML_ERR_FILE_CANNOTREAD, i + 1);
+                }
+                struct _stat fstat;
+                _wstat(wname.c_str(), &fstat);
+                long fsize = fstat.st_size;
+
+                // Read entire file contents in to memory
+                if (fsize > 0)
+                {
+                    wtype.resize(fsize);
+                    size_t numread = fread(&(wtype.front()), sizeof(wchar_t), fsize, f);
+                    wtype.resize(numread);
+                    wtype.shrink_to_fit();
+                }
+                fclose(f);
+                type = utils.WString2StdString(wtype);
+#else
                 std::ifstream ifs(fname.c_str());
                 if (ifs.fail())
                 {
@@ -1161,6 +1315,7 @@ bool BuiltInFuncsCore::Type(EvaluatorInterface           eval,
                     type += thisline;
                 }
                 ifs.close();
+#endif
             }
         }
 

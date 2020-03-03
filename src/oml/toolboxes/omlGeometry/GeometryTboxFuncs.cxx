@@ -13,11 +13,15 @@
 * Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
 * Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
+#include <cassert>
+#include <string>
 #include <memory>       // for std::unique_ptr
-#include <assert.h>
+#include <fstream>
 
 #ifdef OS_WIN
-#include <windows.h>    // for makeTempFile2()
+#    include <io.h>        // for dup
+#else
+#    include <unistd.h>    // for dup
 #endif
 
 #include "BuiltInFuncs.h"
@@ -29,6 +33,14 @@
 
 #define GEOM "Geometry"
 #define TBOXVERSION 2019.1
+
+// Returns temporary error file name and redirect QHull errors
+std::string SetQHullErrorFile(EvaluatorInterface eval,
+                              int&               oldstderrhandle);
+// Shows QHull messages and deletes temporary files
+void ShowQHullMessages(EvaluatorInterface eval,
+                       const std::string& name,
+                       int                oldstderrhandle);
 
 //------------------------------------------------------------------------------
 // Entry point which registers oml Geometry functions with oml
@@ -44,43 +56,6 @@ int InitDll(EvaluatorInterface eval)
     eval.RegisterBuiltInFunction("delaunayn", &OmlDelaunayn,
                                  FunctionMetaData(-2, 1, GEOM));
     return 1;
-}
-//------------------------------------------------------------------------------
-// Creates temporary file and returns file pointer
-//------------------------------------------------------------------------------
-static FILE* makeTempFile2()
-{
-    // copied from BuiltInFuncs.cpp; discard if modifications not retained
-#ifdef OS_WIN
-    DWORD len = GetTempPath(0, nullptr);
-
-    if (len != 0)
-    {
-        LPSTR dirpath = new CHAR[len + 1];
-        len = GetTempPath(len + 1, dirpath);
-        if (len != 0)
-        {
-            LPSTR path = new CHAR[MAX_PATH + 1];
-            if (GetTempFileName(dirpath, "HW_TEMP_FILE_BUFFER", 0, path))
-            {
-                FILE* f = fopen(path, "w");
-                // FILE* f = fopen(path, "w", stderr); // redirect stderr
-                delete[] path;
-                if (f)
-                {
-                    delete[] dirpath;
-                    return f;
-                }
-            }
-        }
-        delete[] dirpath;
-    }
-#else
-    FILE* f = tmpfile();
-    if (f)
-        return f;
-#endif
-    throw OML_Error(HW_ERROR_PROBCREATTEMPF);
 }
 //------------------------------------------------------------------------------
 // Computes the 2D convex hull [convhull command]
@@ -156,44 +131,26 @@ bool OmlConvHull(EvaluatorInterface           eval,
         }
     }
 
-    // check for batch mode and set error file
-    bool batchmode = false;
-    FILE* errfile = nullptr;
-
-    SignalHandlerBase* handler = eval.GetSignalHandler();
-    if (handler && (handler->IsInGuiMode() || handler->IsInConsoleMode()))
-    {
-        errfile = stderr;
-    }
-    else // batch mode
-    {
-        batchmode = true;
-        errfile = makeTempFile2();
-    }
-
-    // call QHull
     hwMatrixI hull;
     double    area;
-
-    if (nargout == 2)
+    
+    if (nargout == 2) 
         area = 1.0;
     else
         area = -1.0;
 
-    hwMathStatus status = ConvexHull(*x, *y, options, hull, area, errfile);
+    // Redirect stderr
+    int handle = -1;
+    std::string name = SetQHullErrorFile(eval, handle);
 
-    if (batchmode)
-    {
-        if (status == HW_MATH_ERR_QHULL)
-        {
-            // do something with the contents
-        }
+    // call QHull
+    hwMathStatus status = ConvexHull(*x, *y, options, hull, area, nullptr);
 
-        int success = fclose(errfile);
-    }
+    // Show QHull messages, based on application mode
+    ShowQHullMessages(eval, name, handle); 
 
     BuiltInFuncsUtils::CheckMathStatus(eval, status);
-
+    
     hwMatrix* hullidx = EvaluatorInterface::allocateMatrix(hull.Size(), 1, hwMatrix::REAL);
 
     for (int i = 0; i < hullidx->M(); ++i)
@@ -281,21 +238,6 @@ bool OmlConvHulln(EvaluatorInterface           eval,
         }
     }
 
-    // check for batch mode and set error file
-    bool batchmode;
-    FILE* errfile = nullptr;
-
-    SignalHandlerBase* handler = eval.GetSignalHandler();
-    if (handler && (handler->IsInGuiMode() || handler->IsInConsoleMode()))
-    {
-        errfile = stderr;
-    }
-    else // batch mode
-    {
-        batchmode = true;
-        errfile = makeTempFile2();
-    }
-
     // call QHull
     double volume;
 
@@ -308,17 +250,15 @@ bool OmlConvHulln(EvaluatorInterface           eval,
     hwMatrix     Ptrans;
     hwMathStatus status = Ptrans.Transpose(*P);
 
-    status = ConvexHulln(Ptrans, options, hull, volume, errfile);
+    // Redirect stderr
+    int handle = -1;
+    std::string name = SetQHullErrorFile(eval, handle);
 
-    if (batchmode)
-    {
-        if (status == HW_MATH_ERR_QHULL)
-        {
-            // do something with the contents
-        }
+    // call QHull
+    status = ConvexHulln(Ptrans, options, hull, volume, nullptr);
 
-        int success = fclose(errfile);
-    }
+    // Show QHull messages, based on the application mode
+    ShowQHullMessages(eval, name, handle);
 
     BuiltInFuncsUtils::CheckMathStatus(eval, status);
 
@@ -510,36 +450,19 @@ bool OmlDelaunayn(EvaluatorInterface           eval,
         }
     }
 
-    // check for batch mode and set error file
-    bool batchmode = false;
-    FILE* errfile = nullptr;
-
-    SignalHandlerBase* handler = eval.GetSignalHandler();
-    if (handler && (handler->IsInGuiMode() || handler->IsInConsoleMode()))
-    {
-        errfile = stderr;
-    }
-    else // batch mode
-    {
-        batchmode = true;
-        errfile = makeTempFile2();
-    }
-    // call QHull
     hwMatrixI    triang;
     hwMatrix     Ptrans;
     hwMathStatus status = Ptrans.Transpose(*P);
 
-    status = Delaunayn(Ptrans, options, triang, errfile);
+    // Redirect stderr
+    int handle = -1;
+    std::string name = SetQHullErrorFile(eval, handle);
 
-    if (batchmode)
-    {
-        if (status == HW_MATH_ERR_QHULL)
-        {
-            // do something with the contents
-        }
+    // call QHull
+    status = Delaunayn(Ptrans, options, triang, nullptr);
 
-        int success = fclose(errfile);
-    }
+    // Show QHull messages, based on application mode
+    ShowQHullMessages(eval, name, handle);
 
     BuiltInFuncsUtils::CheckMathStatus(eval, status);
 
@@ -560,4 +483,79 @@ bool OmlDelaunayn(EvaluatorInterface           eval,
 double GetToolboxVersion(EvaluatorInterface eval)
 {
 	return TBOXVERSION;
+}
+//------------------------------------------------------------------------------
+// Returns temporary error file name and redirect QHull errors
+//------------------------------------------------------------------------------
+std::string SetQHullErrorFile(EvaluatorInterface eval, int& olderrhandle)
+{
+    SignalHandlerBase* handler = eval.GetSignalHandler();
+    if (handler && handler->IsInConsoleMode() && 
+        !handler->IsInConsoleBatchMode()) // Console interactive
+    {
+        return "";  // Errors should just go to stderr
+    }
+
+    // Batch, Console-batch and GUI modes
+    std::string name(std::tmpnam(nullptr));
+    if (name.empty())
+    {
+        return "";
+    }
+
+    int handle1 = fileno(stderr);
+#ifdef OS_WIN
+    olderrhandle = _dup(handle1);
+#else
+    olderrhandle = dup(handle1);
+#endif
+
+    // Redirect stderr
+    FILE* fptr  = freopen(name.c_str(), "w", stderr);
+
+#ifdef OS_WIN
+    _dup2(_fileno(fptr), handle1);
+#else
+    dup2(fileno(fptr), handle1);
+#endif
+
+    return name;
+}
+//------------------------------------------------------------------------------
+// Displays QHull errors, based on application mode
+//------------------------------------------------------------------------------
+void ShowQHullMessages(EvaluatorInterface eval, const std::string& name, int handle)
+{
+    if (name.empty())
+    {
+        return;
+    }
+    fflush(stderr);
+
+#ifdef OS_WIN
+    _dup2(handle, fileno(stderr));
+    _flushall();
+#else
+    dup2(handle, fileno(stderr));
+#endif
+
+    SignalHandlerBase* handler = eval.GetSignalHandler();
+    if (handler &&  handler->IsInGuiMode())
+    {
+        // Errors are displayed to oml command window only for GUI mode
+        std::ifstream ifs(name);
+        if (ifs.good())
+        {
+            while (1)
+            {
+                std::string line;
+                if (std::getline(ifs, line).eof())
+                {
+                    break;
+                }
+                eval.PrintResult(line);
+            }
+        }
+    }
+    std::remove(name.c_str());
 }

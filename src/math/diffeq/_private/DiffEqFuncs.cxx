@@ -32,9 +32,11 @@ hwMathStatus RK45(ARKRhsFn_client      sysfunc,
                   hwMatrix&            ySolution,
                   double               relerr, 
                   const hwMatrix*      abserr, 
+                  double               maxstep,
                   const hwMatrix*      userData)
 {
-    hwArkWrap rkf45(sysfunc, rootfunc, jacDfunc, tStart, y, relerr, abserr, userData);
+    hwArkWrap rkf45(sysfunc, rootfunc, jacDfunc, tStart, y, relerr, abserr,
+        maxstep, userData);
 
     hwMathStatus status = rkf45.GetStatus();
 
@@ -107,6 +109,7 @@ hwMathStatus RK45(ARKRhsFn_client      sysfunc,
                   hwMatrix&            ySolution, 
                   double               relerr,
                   const hwMatrix*      abserr, 
+                  double               maxstep,
                   const hwMatrix*      userData)
 {
     if (!time.IsReal())
@@ -120,7 +123,8 @@ hwMathStatus RK45(ARKRhsFn_client      sysfunc,
         return hwMathStatus();
     }
 
-    hwArkWrap rkf45(sysfunc, rootfunc, jacDfunc, time(0), y, relerr, abserr, userData);
+    hwArkWrap rkf45(sysfunc, rootfunc, jacDfunc, time(0), y, relerr, abserr,
+        maxstep, userData);
 
     hwMathStatus status = rkf45.GetStatus();
 
@@ -180,6 +184,7 @@ hwMathStatus ODE(CVRhsFn_client      sysfunc,
                  const char*         job,
                  double              reltol,
                  const hwMatrix*     abstol,
+                 double              maxstep,
                  const hwMatrix*     userData)
 {
     if (!time.IsReal())
@@ -193,7 +198,8 @@ hwMathStatus ODE(CVRhsFn_client      sysfunc,
         return hwMathStatus();
     }
 
-    hwCvodeWrap cvode(sysfunc, rootfunc, jacDfunc, time(0), y, job, reltol, abstol, userData);
+    hwCvodeWrap cvode(sysfunc, rootfunc, jacDfunc, time(0), y, job, reltol, abstol,
+        maxstep, userData);
 
     hwMathStatus status = cvode.GetStatus();
 
@@ -255,11 +261,12 @@ hwMathStatus ODE11(CVRhsFn_client  sysfunc,
                    hwMatrix&       ySolution,
                    double          reltol,
                    const hwMatrix* abstol,
+                   double          maxstep,
                    const hwMatrix* userData)
 {
     const char*  job    = "11";
     hwMathStatus status = ODE(sysfunc, rootfunc, (CVDenseJacFn_client) nullptr,
-        time, y, timeSolution, ySolution, job, reltol, abstol, userData);
+        time, y, timeSolution, ySolution, job, reltol, abstol, maxstep, userData);
 
     if (!status.IsOk())
     {
@@ -299,11 +306,12 @@ hwMathStatus ODE22a(CVRhsFn_client      sysfunc,
                     hwMatrix&           ySolution,
                     double              reltol,
                     const hwMatrix*     abstol,
+                    double              maxstep,
                     const hwMatrix*     userData)
 {
     const char*  job    = "22a";
     hwMathStatus status = ODE(sysfunc, rootfunc, jacDfunc, time, y, 
-        timeSolution, ySolution, job, reltol, abstol, userData);
+        timeSolution, ySolution, job, reltol, abstol, maxstep, userData);
 
     if (!status.IsOk())
     {
@@ -336,6 +344,7 @@ hwMathStatus DAE(IDAResFn_client      sysfunc,
                  const char*          job,
                  double               reltol,
                  const hwMatrix*      abstol,
+                 double               maxstep,
                  const hwMatrix*      userData)
 {
     if (!time.IsReal())
@@ -349,7 +358,7 @@ hwMathStatus DAE(IDAResFn_client      sysfunc,
     }
 
     hwIdaWrap ida(sysfunc, rootfunc, jacDfunc, time(0), y, yp, job, reltol, 
-                  abstol, userData);
+                  abstol, maxstep, userData);
 
     hwMathStatus status = ida.GetStatus();
 
@@ -417,11 +426,12 @@ hwMathStatus DAE11a(IDAResFn_client      sysfunc,
                     hwMatrix&            ySolution,
                     double               reltol,
                     const hwMatrix*      abstol,
+                    double               maxstep,
                     const hwMatrix*      userData)
 {
     const char*  job    = "11a";
     hwMathStatus status = DAE(sysfunc, rootfunc, jacDfunc, time, y, yp,
-        timeSolution, ySolution, job, reltol, abstol, userData);
+        timeSolution, ySolution, job, reltol, abstol, maxstep, userData);
 
     if (!status.IsOk())
     {

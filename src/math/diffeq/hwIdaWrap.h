@@ -78,8 +78,9 @@ public:
               const hwMatrix&      y_, 
               const hwMatrix&      yp_, 
               const char*          job,
-              double               reltol   = 1.0e-3, 
+              double               reltol   = 0.001,
               const hwMatrix*      abstol   = nullptr,
+              double               maxstep  = -999.0,
               const hwMatrix*      userData = nullptr);
     //!
     //! Destructor

@@ -1,7 +1,7 @@
 /**
 * @file FunctionInfo.cpp
 * @date August 2013
-* Copyright (C) 2013-2018 Altair Engineering, Inc.  
+* Copyright (C) 2013-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -42,6 +42,7 @@ FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*
 	_persistent_scope = new MemoryScope(NULL);
 	_is_nested        = false;
 	_is_constructor   = false;
+	_is_encrypted     = false;
 
 	local_functions = new std::map<const std::string*, FunctionInfo*>;
 }
@@ -62,6 +63,7 @@ FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*
 	_persistent_scope = new MemoryScope(NULL);
 	_is_nested        = false;
 	_is_constructor   = false;
+	_is_encrypted     = false;
 
 	local_functions = new std::map<const std::string*, FunctionInfo*>;
 }
@@ -76,6 +78,7 @@ FunctionInfo::FunctionInfo(std::string func_name, FUNCPTR builtin_func)
 	_persistent_scope = NULL;
 	_is_nested        = false;
 	_is_constructor   = false; 
+	_is_encrypted     = false;
 	local_functions   = NULL;
 	_refcnt           = 1;
 }
@@ -90,6 +93,7 @@ FunctionInfo::FunctionInfo()
 	_builtin          = NULL;
 	_is_nested        = false;
 	_is_constructor   = false;
+	_is_encrypted     = false;
 	local_functions   = NULL;
 	_refcnt = 1;
 }
@@ -122,6 +126,7 @@ FunctionInfo::~FunctionInfo()
 }
 
 FunctionInfo::FunctionInfo(const FunctionInfo& in)
+    : _statements (nullptr)
 {
 	_function_name = in._function_name;
 	_file_name = in._file_name;
@@ -130,7 +135,10 @@ FunctionInfo::FunctionInfo(const FunctionInfo& in)
 	_parameters = in._parameters;
 	_refcnt = 1;
 
-	_statements = new OMLTree(*in._statements);
+    if (in._statements)
+    {
+        _statements = new OMLTree(*in._statements);
+    }
 
 	if (in._persistent_scope)
 		_persistent_scope = new MemoryScope(*in._persistent_scope);
@@ -143,16 +151,23 @@ FunctionInfo::FunctionInfo(const FunctionInfo& in)
 		_anon_scope = NULL;
 
 	_is_constructor = in._is_constructor;
-	_is_nested = in._is_nested;
+	_is_nested      = in._is_nested;
+	_is_encrypted   = in._is_encrypted;
 
 	_help_string = in._help_string;
 
 	local_functions = new std::map<const std::string*, FunctionInfo*>;
 
-	std::map<const std::string*, FunctionInfo*>::iterator iter;
+    if (in.local_functions)
+    {
+        std::map<const std::string*, FunctionInfo*>::iterator iter;
 
-	for (iter = in.local_functions->begin(); iter != in.local_functions->end(); ++iter)
-		(*local_functions)[iter->first] = new FunctionInfo(*iter->second);
+        for (iter = in.local_functions->begin();
+            iter != in.local_functions->end(); ++iter)
+        {
+            (*local_functions)[iter->first] = new FunctionInfo(*iter->second);
+        }
+    }
 }
 
 bool FunctionInfo::IsReturnValue(const std::string* varname) const

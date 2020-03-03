@@ -16,7 +16,7 @@ Int = [1:10];
 Double = 3./[1:10];
 
 % save, load and compare variables
-addtoolbox omlMatio
+addtoolbox omlmatio
 save([filepath '/Cell_v5.mat'],'Cell','-v5');
 R = load('Cell_v5.mat');
 assert(isequal(R.Cell, Cell));

@@ -1,2 +1,2 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 betacdf([1 2 3 4],1,{})

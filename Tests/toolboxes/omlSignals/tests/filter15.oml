@@ -1,4 +1,4 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 
 % define signal
 f1 = 62.5;

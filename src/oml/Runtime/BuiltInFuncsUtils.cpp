@@ -30,6 +30,9 @@
 
 #ifdef OS_WIN
 #    include <io.h>
+#include <locale>
+#include <codecvt>
+
 #    include <Windows.h>
 // Undefine these as Microsoft defines them elsewhere in windows headers
 #    undef FormatMessage
@@ -50,6 +53,7 @@
 #include "Evaluator.h"
 #include "MatrixNDisplay.h"
 #include "OML_Error.h"
+#include "utf8utils.h"
 
 #include <hwMatrix.h>
 
@@ -639,14 +643,16 @@ void BuiltInFuncsUtils::ReadFormattedInput(const std::string&              input
 	}
 }
 //------------------------------------------------------------------------------
-// Returns true if file exists
+// Returns true if file exists - works with wide characters
 //------------------------------------------------------------------------------
 bool BuiltInFuncsUtils::FileExists(const std::string& name)
 {
     if (name.empty()) return false;
 
 #ifdef OS_WIN
-    return (_access(name.c_str(), 0) == 0);
+    BuiltInFuncsUtils utils;
+    std::wstring wname(utils.StdString2WString(name));
+    return (_waccess(wname.c_str(), 0) == 0);
 #else
     return (access(name.c_str(), 0) == 0);
 #endif
@@ -774,17 +780,23 @@ std::string BuiltInFuncsUtils::GetCurrentWorkingDir()
 std::vector<std::string> BuiltInFuncsUtils::GetMatchingFiles(const std::string& pattern)
 {
     std::vector<std::string> files;
+
 #ifdef OS_WIN
-    WIN32_FIND_DATA data;
-    HANDLE          handle = FindFirstFile(pattern.c_str(), &data);
+    BuiltInFuncsUtils utils;
+    std::wstring wpattern (utils.StdString2WString(pattern));
+    WIN32_FIND_DATAW data;
+    HANDLE handle = FindFirstFileW(wpattern.c_str(), &data);
 
     while (handle != INVALID_HANDLE_VALUE)
     {
-        files.push_back(std::string(data.cFileName));
+        std::wstring name = data.cFileName;
+        
+        files.push_back(utils.WString2StdString(name));
 
-        if (!FindNextFile(handle, &data))
+        if (!FindNextFileW(handle, &data))
             break;
     }
+    FindClose(handle);
 #else
     glob_t data;
     int retcode = glob(pattern.c_str(), GLOB_TILDE, nullptr, &data);
@@ -900,18 +912,34 @@ bool BuiltInFuncsUtils::IsDir(const std::string& path)
     {
         return false;
     }
-    std::string dir (Normpath(path));
-    StripTrailingSlash(dir);
+
+    int returncode = 0;
+
+#ifdef OS_WIN
+    BuiltInFuncsUtils utils;
+
+    std::wstring dir(utils.GetNormpathW(utils.StdString2WString(path)));
+    dir = utils.StripTrailingSlashW(dir);
+    struct _stat64i32 file_stat;
+    if (_wstat(dir.c_str(), &file_stat) == -1)
+    {
+        return false;
+    }
+    returncode = (file_stat.st_mode & _S_IFDIR);
+#else
+    std::string dir(Normpath(path));
+    if (dir == "/")
+    {
+        return true;
+    }
+    {
+        StripTrailingSlash(dir);
+    }
     struct stat file_stat;
     if (stat(dir.c_str(), &file_stat) == -1)
     {
         return false;
     }
-    int returncode = 0;
-
-#ifdef OS_WIN
-    returncode = (file_stat.st_mode & _S_IFDIR);
-#else
     returncode = S_ISDIR(file_stat.st_mode);
 #endif
 
@@ -1380,32 +1408,6 @@ std::wstring BuiltInFuncsUtils::GetAbsolutePathW(const std::wstring& path)
     return out;
 }
 //------------------------------------------------------------------------------
-// Converts std::string to std::wstring
-//------------------------------------------------------------------------------
-std::wstring BuiltInFuncsUtils::StdString2WString(const std::string& input)
-{
-    if (input.empty())
-    {
-        return std::wstring();
-    }
-
-    int len = MultiByteToWideChar(CP_UTF8, 0, input.c_str(), -1, NULL, 0);
-    assert(len != 0);
-
-    wchar_t* widestr = new wchar_t[len];
-    assert(widestr);
-
-    len = MultiByteToWideChar(CP_UTF8, 0, input.c_str(), -1, widestr, len);
-    assert(len != 0);
-
-    std::wstring out(widestr);
-
-    delete[] widestr;
-    widestr = nullptr;
-
-    return out;
-}
-//------------------------------------------------------------------------------
 // Returns normalized path for the operating system, supports Unicode
 //------------------------------------------------------------------------------
 std::wstring BuiltInFuncsUtils::GetNormpathW(const std::wstring& path)
@@ -1434,23 +1436,6 @@ std::wstring BuiltInFuncsUtils::GetCurrentWorkingDirW()
 
     std::wstring workingdir = buf;
     return workingdir;
-}
-//------------------------------------------------------------------------------
-// Converts std::wstring to std::string, supports Unicode
-//------------------------------------------------------------------------------
-std::string BuiltInFuncsUtils::WString2StdString(const std::wstring& in)
-{
-    if (in.empty())
-    {
-        return "";
-    }
-
-    int wlen = static_cast<int>(in.size());
-    int len = WideCharToMultiByte(CP_UTF8, 0, &in[0], wlen, NULL, 0, NULL, NULL);
-    std::string out(len, 0);
-    WideCharToMultiByte(CP_UTF8, 0, &in[0], wlen, &out[0], len, NULL, NULL);
-
-    return out;
 }
 //------------------------------------------------------------------------------
 // Strips trailing slash for wide strings
@@ -1604,7 +1589,8 @@ std::string BuiltInFuncsUtils::StripMultipleSlashesAndNormalize(const std::strin
     for (size_t i = 1; i < len; ++i)
     {
         char thisch = path[i];
-        if ((lastch == '/' || lastch == '\\') &&
+        // Check for i > 1 to account for network drives
+        if (i > 1 && (lastch == '/' || lastch == '\\') && 
             (thisch == '/' || thisch == '\\'))
         {
             continue;
@@ -1614,4 +1600,232 @@ std::string BuiltInFuncsUtils::StripMultipleSlashesAndNormalize(const std::strin
     }
     out = Normpath(out);
     return out;
+}
+//------------------------------------------------------------------------------
+// Create a chained display id so that all displays with the same id can be
+// chained and deleted even if one of them in the chain is deleted. Used 
+// for displaying multiline strings
+//------------------------------------------------------------------------------
+long BuiltInFuncsUtils::CreateChainedDisplayId()
+{
+    time_t ltime;
+    time(&ltime);
+    return static_cast<long>(ltime);
+}
+//------------------------------------------------------------------------------
+// Helper method to set environment variables
+//------------------------------------------------------------------------------
+void BuiltInFuncsUtils::SetEnvVariable(const std::string& name, 
+                                       const std::string& val)
+{
+    if (name.empty())
+    {
+        return;
+    }
+#ifdef OS_WIN
+    _putenv_s(name.c_str(), val.c_str());
+#else
+    setenv(name.c_str(), val.c_str(), 1);
+#endif
+}
+#ifdef OS_WIN
+//------------------------------------------------------------------------------
+// Returns true if given path is absolute, supports unicode on Windows
+//------------------------------------------------------------------------------
+bool BuiltInFuncsUtils::IsAbsolutePathW(const std::wstring& path)
+{
+    if (path.empty())
+    {
+        return false;
+    }
+    wchar_t ch = path[0];
+    if (!(ch == L'/' || ch == L'\\' || (path.length() > 1 && path[1] == L':')))
+    {
+        return false;
+    }
+    return true;
+}
+#endif
+//------------------------------------------------------------------------------
+// Converts std::string to std::wstring
+//------------------------------------------------------------------------------
+std::wstring BuiltInFuncsUtils::StdString2WString(const std::string& input)
+{
+    if (input.empty())
+    {
+        return std::wstring();
+    }
+
+#ifdef OS_WIN
+
+#if 0 // Pre C++ 11 way of converting //\todo: Delete
+    int len = MultiByteToWideChar(CP_UTF8, 0, input.c_str(), -1, NULL, 0);
+
+    assert(len != 0);
+    wchar_t* widestr = new wchar_t[len];
+    assert(widestr);
+
+    len = MultiByteToWideChar(CP_UTF8, 0, input.c_str(), -1, widestr, len);
+
+    assert(len != 0);
+
+    std::wstring out(widestr);
+
+    delete[] widestr;
+    widestr = nullptr;
+#endif
+
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::wstring out = converter.from_bytes(input);
+#else
+    std::wstring out(input.begin(), input.end());
+#endif
+
+    return out;
+}
+//------------------------------------------------------------------------------
+// Converts std::wstring to std::string, supports Unicode
+//------------------------------------------------------------------------------
+std::string BuiltInFuncsUtils::WString2StdString(const std::wstring& in)
+{
+    if (in.empty())
+    {
+        return std::string();
+    }
+
+#ifdef OS_WIN
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::string out = converter.to_bytes(in);
+
+#if 0 // Pre C++ 11 way of converting //\todo: Delete
+    int wlen = static_cast<int>(in.size());
+    int len = WideCharToMultiByte(CP_UTF8, 0, &in[0], wlen, NULL, 0, NULL, NULL);
+    assert(len);
+    std::string out(len, 0);
+    WideCharToMultiByte(CP_UTF8, 0, &in[0], wlen, &out[0], len, NULL, NULL);
+#endif 
+
+#else
+    std::string out(in.begin(), in.end());
+#endif
+
+    return out;
+}
+//------------------------------------------------------------------------------
+// Throws regex error
+//------------------------------------------------------------------------------
+void BuiltInFuncsUtils::ThrowRegexError(std::regex_constants::error_type code)
+{
+    std::string errmsg;
+    switch (code)
+    {
+    case std::regex_constants::error_collate:
+        errmsg = "invalid collating element name";
+        break;
+    case std::regex_constants::error_ctype:
+        errmsg = "invalid character class name";
+        break;
+    case std::regex_constants::error_escape:
+        errmsg = "invalid escape sequence";
+        break;
+    case std::regex_constants::error_backref:
+        errmsg = "invalid back reference";
+        break;
+    case std::regex_constants::error_brack:
+        errmsg = "invalid unmatched square brackets";
+        break;
+    case std::regex_constants::error_paren:
+        errmsg = "invalid unmatched parenthesis";
+        break;
+    case std::regex_constants::error_brace:
+        errmsg = "invalid unmatched curly braces";
+        break;
+    case std::regex_constants::error_badbrace:
+        errmsg = "invalid range in braces";
+        break;
+    case std::regex_constants::error_range:
+        errmsg = "invalid character range";
+        break;
+    case std::regex_constants::error_space:
+    case std::regex_constants::error_stack:
+        errmsg = "not enough memory";
+        break;
+    case std::regex_constants::error_badrepeat:
+        errmsg = "invalid section to repeat";
+        break;
+    case std::regex_constants::error_complexity:
+        errmsg = "match was too complex";
+        break;
+#ifdef OS_WIN
+    case std::regex_constants::error_syntax:
+        errmsg = "syntax error with regular expression";
+        break;
+#endif
+    default:
+        errmsg = "cannot parse regular expression";
+        break;
+    }
+
+    throw OML_Error("Error: " + errmsg);
+}
+//------------------------------------------------------------------------------
+// Returns true if file is encoded
+//------------------------------------------------------------------------------
+bool BuiltInFuncsUtils::IsFileEncoded(EvaluatorInterface eval, int fid)
+{
+    if (fid < 1)
+    {
+        return false;
+    }
+    std::string mode(eval.GetFileMode(fid));
+    return (!mode.empty() && mode.find("ccs=") != std::string::npos);
+}
+//------------------------------------------------------------------------------
+// Gets size of widest character - works with Unicode
+//------------------------------------------------------------------------------
+size_t BuiltInFuncsUtils::GetWidestCharSize(const std::string& str)
+{
+    if (str.empty())
+    {
+        return 0;
+    }
+
+    size_t width = 1;
+    size_t len   = str.length();
+    for (int i = 0; i < len; ++i)
+    {
+        unsigned char ch = str[i];
+        size_t charSize = utf8_get_char_size(&ch);
+
+        if (width < charSize)
+        {
+            width = charSize;
+        }
+    }
+
+    return width;
+}
+//------------------------------------------------------------------------------
+// Returns true if there are wide characters
+//------------------------------------------------------------------------------
+bool BuiltInFuncsUtils::HasWideChars(const std::string& str)
+{
+    if (str.empty())
+    {
+        return false;
+    }
+
+    size_t len = str.length();
+    for (int i = 0; i < len; ++i)
+    {
+        unsigned char ch = str[i];
+        size_t charSize = utf8_get_char_size(&ch);
+
+        if (charSize > 1)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }

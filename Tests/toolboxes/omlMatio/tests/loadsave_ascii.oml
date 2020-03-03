@@ -11,7 +11,7 @@ Mat = eye(10);
 
 % save, load and compare variables
 
-addtoolbox omlMatio
+addtoolbox omlmatio
 save([filepath '/matrix_ascii.mat'], 'Mat', '-ascii');
 R = load('matrix_ascii.mat', '-ascii');
 assert(isequal(R, Mat));

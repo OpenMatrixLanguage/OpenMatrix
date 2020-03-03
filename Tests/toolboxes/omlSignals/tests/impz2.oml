@@ -1,4 +1,4 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 
 % test 2 - stable with pole at origin
 fc = 500;

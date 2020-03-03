@@ -1,4 +1,4 @@
-addtoolbox omlPolynom
+addtoolbox omlpolynom
 
 p = [6 8 3];
 d = polyint(p, 7)

@@ -1,4 +1,4 @@
-addtoolbox omlPolynom
+addtoolbox omlpolynom
 
 q = 0;
 r = [0 0 1];

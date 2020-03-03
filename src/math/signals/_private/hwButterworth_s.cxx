@@ -31,7 +31,7 @@ hwButterworth_s::hwButterworth_s(int    order,
     hwAnalogFilterGen_AP filterGen(filterSpecs, *this);
 
     m_status = filterGen.Status();
-    if (!m_status.IsOk())
+    if (!m_status.IsOk() && !m_status.IsWarning())
     {
         return;
     }

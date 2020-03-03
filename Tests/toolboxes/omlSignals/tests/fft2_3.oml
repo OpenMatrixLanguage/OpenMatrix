@@ -1,5 +1,5 @@
-addtoolbox omlSignals
-addtoolbox omlStatistics
+addtoolbox omlsignals
+addtoolbox omlstatistics
 
 mask = 1000000000;
 m = 8;

@@ -1,2 +1,2 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 w = chebwin(6,60,'periodic')

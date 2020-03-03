@@ -76,6 +76,9 @@ int main(int argc, char* argv[])
     bool paginateVal = CurrencyDisplay::GetPaginate();
     CurrencyDisplay::SetPaginate(0);  // Disable pagination
 
+    std::setlocale(LC_ALL, "");
+    std::setlocale(LC_NUMERIC, "C");
+
     // Flags for command line arguments
 
 	bool continueAfterScript = false; // Needed if commands/files are in cmd line
@@ -231,28 +234,6 @@ int main(int argc, char* argv[])
         {
 			dummyFilename = arg.substr(10, arg.length()-10);
         }
-		else if(lower_str.compare(0,5,"/ansi") == 0)
-		{
-#if OS_WIN
-			SetConsoleCP(1252);
-			SetConsoleOutputCP(1252);
-#endif
-		}
-		else if(lower_str.compare(0,5,"/utf8") == 0)
-		{
-#if OS_WIN
-			SetConsoleCP(65001);
-			SetConsoleOutputCP(65001);
-#endif 
-		}
-		else if (lower_str == "/quiet" || lower_str == "-quiet")
-        {
-            if (wrapper)
-            {
-                wrapper->SetQuietMode(true);
-            }
-        }
-
         else
 			scriptPath = arg; 
 	}
@@ -268,8 +249,6 @@ int main(int argc, char* argv[])
     }
     else
     {
-	    std::setlocale(LC_ALL, "");
-	    std::setlocale(LC_NUMERIC, "C");
 
         if(!scriptPath.empty())
 	    {
@@ -287,6 +266,11 @@ int main(int argc, char* argv[])
         // Start of interactive mode
         CurrencyDisplay::SetPaginate(paginateVal);  // Reset pagination value
         PrintBanner();  
+        SignalHandler* handler = static_cast<SignalHandler*>(interp->GetSignalHandler());
+        if (handler)
+        {
+            handler->SetConsoleBatchMode(false);
+        }
 
         if (wrapper)  
         {
@@ -309,7 +293,6 @@ void CallNewConsolePrompting(ConsoleWrapper* wrapper)
     wrapper->SetPaginationVariables();
 
     int  hearbeatcounter = 1;
-    bool quietmode       = wrapper->GetQuietMode();
 	while (1)
     {
         bool breakloop = HandleUserInterrupt(wrapper);
@@ -323,15 +306,14 @@ void CallNewConsolePrompting(ConsoleWrapper* wrapper)
             continue;
         }
 
+        if (std::cin.fail())
+        {
+            std::cin.clear();
+        }
         wrapper->PrintNewPrompt();
         
         std::string strCommand = GetInputCommand(wrapper);
         Currency    output = interp->DoString(strCommand);
-
-        if (quietmode && output.IsError()) 
-        {
-            break;
-        }
     }
 }
 //------------------------------------------------------------------------------
@@ -342,7 +324,6 @@ std::string GetInputCommand(ConsoleWrapper* wrapper)
     assert(wrapper);
 
     std::string strCommand;
-    bool        quietmode = wrapper->GetQuietMode();
     while (1)
     {
 		if (ClearCommandString)
@@ -352,11 +333,7 @@ std::string GetInputCommand(ConsoleWrapper* wrapper)
 			std::cin.clear();
 		}
 
-		// if running in quietMode and redirected file has ended
-		// break out of the input loop.
-		if (quietmode && std::cin.eof()) break;
-
-		if (!strCommand.empty())
+    	if (!strCommand.empty())
             wrapper->PrintToStdout("??>");
 
         std::string partialCommand;
@@ -368,7 +345,9 @@ std::string GetInputCommand(ConsoleWrapper* wrapper)
         strCommand += partialCommand;
 
         if (!strCommand.empty())
+        {
             strCommand += "\r\n";
+        }
 
         bool isPartialExpression = interp->IsPartialExpression(strCommand);
         if (!isPartialExpression) break;
@@ -420,7 +399,7 @@ void PrintBanner()
 
     std::cout << line << std::endl;
 	std::cout << GetVersion(interp->GetApplicationDir()) << std::endl;
-	std::cout << "(c) Altair Engineering, Inc. and Contributors. (2007-2019)"  << std::endl;
+	std::cout << "(c) Altair Engineering, Inc. and Contributors. (2007-2018)"  << std::endl;
 	std::cout << line << std::endl;
 #endif
 }

@@ -1,4 +1,4 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 
 % define and plot test signal
 n = 256;			% number of points

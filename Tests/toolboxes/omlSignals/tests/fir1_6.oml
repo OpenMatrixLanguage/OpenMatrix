@@ -1,4 +1,4 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 w = hamming(51,'symmetric');
 num = fir1(50,[0.3,0.4,0.5875,0.6125,0.775,0.825],'DC-1',w);
 h = freqz(num,1,[0:0.005:1],2);

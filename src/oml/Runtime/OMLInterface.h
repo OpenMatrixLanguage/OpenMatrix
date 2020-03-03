@@ -27,18 +27,20 @@
 
 typedef hwTMatrix<Currency, void*> HML_CELLARRAY;
 
-class OMLInterfaceImpl : public OMLInterface2
+class OMLInterfaceImpl : public OMLInterface3
 {
 public:
 	OMLInterfaceImpl(EvaluatorInterface* in_eval) { _eval = in_eval; }
 
 	void RegisterFunction(const char*, ALT_FUNCPTR);
+	void RegisterFunctionWithMetadata(const char*, ALT_FUNCPTR, const char*, int, int);
 
 	void ThrowError(const char*);
 
 	int  Nargout() const;
 
 	const OMLCurrency* CallFunction(const OMLFunctionHandle* handle, OMLCurrencyList* inputs);
+	const OMLCurrency* CallFunction(const char* name, OMLCurrencyList* inputs);
 
 	OMLCurrencyList* CreateCurrencyList();
 
@@ -46,7 +48,7 @@ private:
 	EvaluatorInterface* _eval;
 };
 
-class OMLCurrencyImpl : public OMLCurrency2
+class OMLCurrencyImpl : public OMLCurrency3
 {
 public:
 	OMLCurrencyImpl(Currency in_cur) { _cur = in_cur; cached_pointers.push_back(this); }
@@ -57,6 +59,8 @@ public:
 	bool IsMatrix() const;
 	bool IsNDMatrix() const;
 	bool IsCellArray() const;
+	bool IsNDCellArray() const;
+	bool IsSparseMatrix() const;
 	bool IsStruct() const;
 	bool IsFunctionHandle() const;
 
@@ -100,7 +104,7 @@ private:
 class OMLMatrixImpl : public OMLMatrix
 {
 public:
-		OMLMatrixImpl(const hwMatrix* in_mtx) { _mtx = (hwMatrix*)in_mtx; cached_pointers.push_back(this); } 
+	OMLMatrixImpl(const hwMatrix* in_mtx)  { _mtx = (hwMatrix*)in_mtx; cached_pointers.push_back(this); }
 
 		bool    IsReal() const;
 
@@ -116,7 +120,7 @@ public:
 		static void GarbageCollect();
 
 private:
-		hwMatrix* _mtx;
+		hwMatrix*  _mtx;
 		
 		static std::vector<OMLMatrixImpl*> cached_pointers;
 };
@@ -145,6 +149,30 @@ private:
 		static std::vector<OMLNDMatrixImpl*> cached_pointers;
 };
 
+class OMLSparseMatrixImpl : public OMLSparseMatrix
+{
+public:
+	OMLSparseMatrixImpl(const hwMatrixS* in_mtx) { _mtxs = (hwMatrixS*)in_mtx; cached_pointers.push_back(this); }
+
+	bool    IsReal() const;
+
+	int     GetRows() const;
+	int     GetCols() const;
+
+	const double* GetRealData() const;
+	const double* GetImaginaryData() const;
+
+	OMLCurrency*   GetCurrency() const;
+	hwMatrixS*      GetMatrixPointer() const;
+
+	static void GarbageCollect();
+
+private:
+	hwMatrixS*  _mtxs;
+
+	static std::vector<OMLSparseMatrixImpl*> cached_pointers;
+};
+
 class OMLCellArrayImpl : public OMLCellArray
 {
 public:
@@ -168,6 +196,28 @@ private:
 	HML_CELLARRAY* _cells;
 
 	static std::vector<OMLCellArrayImpl*> cached_pointers;
+};
+
+class OMLNDCellArrayImpl : public OMLNDCellArray
+{
+public:
+	OMLNDCellArrayImpl(HML_ND_CELLARRAY* in_cells) { _cells = in_cells; cached_pointers.push_back(this); }
+
+	int     GetNumDimension() const;
+	int     GetDimension(int) const;
+
+	OMLCurrency* GetValue(int index1) const;
+	void         SetValue(int index1, OMLCurrency* val);
+
+	OMLCurrency*      GetCurrency() const;
+	HML_ND_CELLARRAY* GetCells() const;
+
+	static void GarbageCollect();
+
+private:
+	HML_ND_CELLARRAY* _cells;
+
+	static std::vector<OMLNDCellArrayImpl*> cached_pointers;
 };
 
 class OMLStructImpl : public OMLStruct
@@ -210,7 +260,7 @@ private:
 		static std::vector<OMLFunctionHandleImpl*> cached_pointers;
 };
 
-class OMLCurrencyListImpl : public OMLCurrencyList
+class OMLCurrencyListImpl : public OMLCurrencyList2
 {
 public:
 	OMLCurrencyListImpl() { _list = nullptr; _count = 0; }
@@ -223,10 +273,14 @@ public:
 	void AddString(const char*);
 	void AddCellArray(OMLCellArray*);
 	void AddCellArray(HML_CELLARRAY* cells);
+	void AddNDCellArray(HML_ND_CELLARRAY* cells);
+	void AddNDCellArray(OMLNDCellArray*);
 	void AddMatrix(OMLMatrix*);
 	void AddMatrix(const hwMatrix*);
 	void AddNDMatrix(OMLNDMatrix*);
 	void AddNDMatrix(const hwMatrixN*);
+	void AddSparseMatrix(OMLSparseMatrix*);
+	void AddSparseMatrix(const hwMatrixS*);
 	void AddComplex(OMLComplex*);
 	void AddComplex(hwComplex);
 	void AddStruct(OMLStruct*);
@@ -247,6 +301,10 @@ public:
 	OMLNDMatrix*  CreateNDMatrix(int num_dims, int* dims, double* real, double* imag);
 	OMLComplex*   CreateComplex(double real, double imag);
 	OMLStruct*    CreateStruct(int rows, int cols);
+
+
+	OMLNDCellArray*  CreateNDCellArray(int num_dims, int* dims);
+	OMLSparseMatrix* CreateSparseMatrix(int rows, int cols);
 
 private:
 	void Expand();

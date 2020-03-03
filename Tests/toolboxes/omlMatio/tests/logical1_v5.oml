@@ -1,4 +1,4 @@
-addtoolbox('omlMatio')
+addtoolbox('omlmatio')
 a = true;
 b = false;
 save('logical1_v5.mat', '-v5', '-nozip')

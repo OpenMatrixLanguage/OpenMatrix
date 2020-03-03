@@ -1,4 +1,4 @@
-addToolbox omlPolynom
+addToolbox omlpolynom
 
 % create (x,y,z) data grid
 x_old = [2, 5, 6, 10, 12, 17];

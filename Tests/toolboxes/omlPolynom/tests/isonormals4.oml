@@ -1,4 +1,4 @@
-addToolbox omlPolynom
+addToolbox omlpolynom
 
 x = [2:1:7];
 y = [4:3:22];

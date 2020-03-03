@@ -1,4 +1,4 @@
-addtoolbox omlOptimization
+addtoolbox omloptimization
 % intersection of two paraboloids and a plane
 % with user parameter passing via a function handle
 

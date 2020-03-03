@@ -69,6 +69,7 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
                          const char*         job, 
                          double              reltol_,
                          const hwMatrix*     abstol_, 
+                         double              maxstep,
                          const hwMatrix*     userData)
     : hwDiffEqSolver(y_)
     , cvode_mem     (nullptr)
@@ -219,13 +220,13 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
         {
             if (!abstol_->IsReal())
             {
-                m_status(HW_MATH_ERR_COMPLEX, 12);
+                m_status(HW_MATH_ERR_COMPLEX, 8);
                 return;
             }
 
             if (!abstol_->IsVector())
             {
-                m_status(HW_MATH_ERR_VECTOR, 12);
+                m_status(HW_MATH_ERR_VECTOR, 8);
                 return;
             }
 
@@ -284,6 +285,15 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
 
         flag = CVodeSStolerances(cvode_mem, reltol_, abstol);
         // if (Check_flag(&flag, "CVodeSStolerances", 1)) return(1);
+    }
+
+    if (maxstep > 0.0)
+    {
+        CVodeSetMaxStep(cvode_mem, maxstep);
+    }
+    else if (maxstep != -999.0)
+    {
+        m_status(HW_MATH_ERR_NONPOSITIVE, 9);
     }
 }
 //------------------------------------------------------------------------------

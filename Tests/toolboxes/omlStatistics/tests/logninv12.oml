@@ -1,2 +1,2 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 logncdf([0.1 0.2 0.3 0.4],4,5i+0.8)

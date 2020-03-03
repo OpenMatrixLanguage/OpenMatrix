@@ -21,28 +21,28 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A43408A8-61F7-476C-80D0-51D47B95E27E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -108,21 +108,21 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; SIGNALS_EXPORTS</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\polynom;$(OML_ROOT)\src\math\statistics;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\math\signals;$(OML_FFTWDIR)\api</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\polynom;$(OML_ROOT)\src\math\statistics;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\math\signals;$(OML_FFTWDIR)\api; $(OML_MKL_INCLUDE)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_LIBDIR);$(OML_FFTWDIR)\fftw-3.2.2-libs/x64/Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mathcore.lib;hwmathutils.lib; hwpolynom.lib; hwstatistics.lib; libblas.lib; liblapack.lib; libfftw-3.2.2-x64.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_MKL_LIBDIR);$(OML_FFTWDIR)\fftw-3.2.2-libs/x64/Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mathcore.lib;hwmathutils.lib; hwpolynom.lib; hwstatistics.lib; libfftw-3.2.2-x64.lib; mkl_rt.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; SIGNALS_EXPORTS</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\polynom;$(OML_ROOT)\src\math\statistics;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\math\signals;$(OML_FFTWDIR)\api</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\polynom;$(OML_ROOT)\src\math\statistics;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\math\signals;$(OML_FFTWDIR)\api;$(OML_MKL_INCLUDE)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_LIBDIR);$(OML_FFTWDIR)\fftw-3.2.2-libs/x64/Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mathcore.lib;hwmathutils.lib; hwpolynom.lib; hwstatistics.lib; libblas.lib; liblapack.lib; libfftw-3.2.2-x64.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_MKL_LIBDIR);$(OML_FFTWDIR)\fftw-3.2.2-libs/x64/Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mathcore.lib;hwmathutils.lib;hwpolynom.lib;hwstatistics.lib;libfftw-3.2.2-x64.lib;mkl_rt.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

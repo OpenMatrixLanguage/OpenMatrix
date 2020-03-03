@@ -28,7 +28,7 @@
 
 #include "matio.h"
 
-#define TBOXVERSION 2019.0
+#define TBOXVERSION 2019.3
 
 // Returns true after loading file in ascii format
 bool ReadASCIIFile(EvaluatorInterface           eval, 
@@ -43,6 +43,17 @@ matvar_t* CurrencyToMatVar(const char*     name,
                            const Currency& cur,
                            mat_ft          version,
                            std::string&    warn);
+
+Currency MatVarToCurrency(matvar_t*, std::string&);   // Var to currency
+Currency MatCell2Currency(matvar_t*, std::string&);   // Cell to currency
+Currency MatChar2Currency(matvar_t*, std::string&);   // Char array to currency
+
+std::string GetTypeString(matvar_t*);                 // Gets type description
+
+Currency HandleInvalidDims(matvar_t*, std::string&);  // Sets warning and returns empty currency)
+Currency HandleInvalidRank(matvar_t*, std::string&);  // Sets warning and returns empty currency
+
+
 // Prints matio version for debugging
 void PrintMatioVersion();
 // Prints mat file version to stdout for debugging
@@ -80,14 +91,10 @@ Currency MatVarToCurrency(matvar_t* var, std::string& warn)
         return Currency(-1.0, Currency::TYPE_NOTHING);
     }
 
+    // \todo Convert all to a switch command
     matio_classes type = var->class_type;
-    if (type == MAT_C_EMPTY)  // 0 => Empty array
-    {
-        return EvaluatorInterface::allocateMatrix();
-    }
-
     int           rank = var->rank;
-    std::string msg = "Cannot read variable [";
+    std::string msg("Cannot read variable [");
     if (var->name)
     {
         msg += var->name;
@@ -95,11 +102,28 @@ Currency MatVarToCurrency(matvar_t* var, std::string& warn)
     msg += "]";
     std::string newline = (!warn.empty()) ? "\n" : "";
 
+    if (type == MAT_C_EMPTY) // 0  => Empty array
+    {
+        return EvaluatorInterface::allocateMatrix();
+    }
+    else if (type == MAT_C_CELL)   // 1  => Cell array
+    {
+        return MatCell2Currency(var, warn);
+    }
+    else if (type == MAT_C_CHAR)   // 4  => Character array
+    {
+        return MatChar2Currency(var, warn);
+    }
+    else if (type == MAT_C_SPARSE || type == MAT_C_OPAQUE || type == MAT_C_FUNCTION)
+    {
+        warn += newline + msg + "; unsupported type [" + GetTypeString(var) + "]";
+        return Currency(-1.0, Currency::TYPE_NOTHING);
+    }
+
     if (rank == 1 && (type == MAT_C_DOUBLE || type == MAT_C_SINGLE  ||
         type == MAT_C_UINT8 || type == MAT_C_UINT32 || MAT_C_UINT64))
     {
-        warn += newline + msg + "; cannot process rank of 1";
-        return Currency(-1.0, Currency::TYPE_NOTHING);
+        return HandleInvalidRank(var, warn);
     }
 
 	if (type == MAT_C_DOUBLE)
@@ -200,17 +224,63 @@ Currency MatVarToCurrency(matvar_t* var, std::string& warn)
         }
 		return mat_n;
 	}
-	else if (type == MAT_C_UINT8 || type == MAT_C_INT64  ||
-             type == MAT_C_UINT64 || type == MAT_C_INT32 ||
-             type == MAT_C_UINT32 || type == MAT_C_INT16 ||
-             type == MAT_C_UINT16 || type == MAT_C_INT8)
+    else if (type == MAT_C_UINT8 || type == MAT_C_INT64 ||
+        type == MAT_C_UINT64 || type == MAT_C_INT32 || type == MAT_C_INT16 ||
+        type == MAT_C_UINT16 || type == MAT_C_INT8)
+    {
+        if (rank == 2) // matrix or vector or scalar
+        {
+            if (var->dims[0] == 1 && var->dims[1] == 1)
+            {
+                unsigned char* my_val = (unsigned char*)var->data;
+                Currency ret((double)*my_val);
+
+                if (var->isLogical)
+                {
+                    ret.SetMask(Currency::MASK_LOGICAL);
+                }
+                return ret;
+            }
+            else // matrix
+            {
+                int num_rows = static_cast<int>(var->dims[0]);
+                int num_cols = static_cast<int>(var->dims[1]);
+
+                hwMatrix* mat = EvaluatorInterface::allocateMatrix(
+                    num_rows, num_cols, hwMatrix::REAL);
+
+                for (int j = 0; j < num_cols; ++j)
+                {
+                    for (int k = 0; k < num_rows; ++k)
+                    {
+                        int     idx = num_rows * j + k;
+                        char* next = (char*)var->data + idx;
+                        (*mat)(k, j) = (double)*next;
+                    }
+                }
+
+                Currency ret(mat);
+                if (var->isLogical)
+                {
+                    ret.SetMask(Currency::MASK_LOGICAL);
+                }
+                return ret;
+            }
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_UNSUPPORTDIM);
+        }
+    }
+	else if (type == MAT_C_UINT32)
 	{
         if (rank == 2) // matrix or vector or scalar
 		{
+            char *data1 = (char*)var->data;
             if (var->dims[0] == 1 && var->dims[1] == 1)
 			{
-				unsigned char* my_val = (unsigned char*)var->data;
-				Currency ret((double)*my_val);
+                unsigned long val = *(mat_uint32_t*)data1;
+				Currency ret(static_cast<int>(val));
 
                 if (var->isLogical)
                 {
@@ -231,8 +301,8 @@ Currency MatVarToCurrency(matvar_t* var, std::string& warn)
                     for (int k = 0; k < num_rows; ++k)
 					{
                         int     idx = num_rows * j + k;
-						char* next = (char*)var->data + idx;
-						(*mat)(k, j) = (double)*next;
+                        unsigned long next = *((mat_uint32_t*)data1 + idx);
+                        (*mat)(k, j) = static_cast<int>(next);
 					}
 				}
 								
@@ -247,72 +317,6 @@ Currency MatVarToCurrency(matvar_t* var, std::string& warn)
 		else
 		{
 			throw OML_Error(OML_ERR_UNSUPPORTDIM);
-		}
-	}
-	else if (type == MAT_C_CHAR)
-	{
-		if (rank == 2)
-		{
-			int num_rows = static_cast<int>(var->dims[0]);
-			int num_cols = static_cast<int>(var->dims[1]);
-
-            if (num_rows != 1 || num_cols <= 0)
-            {
-                return "";
-            }
-
-            if (var->data_type == MAT_T_UINT16)
-            {
-                std::string str;
-                char tmp[256];
-                int i = 0;
-                const mat_uint16_t *data = (const mat_uint16_t*)var->data;
-
-                for (int j = 0; j < num_cols; j++)
-                {
-                    const mat_uint16_t c = data[j*var->dims[0] + i];
-                    memset(tmp, 0, sizeof(tmp));
-                    if (c <= 0x7f)
-                    {
-                        sprintf(tmp, "%c", c);
-                    }
-                    else if (c <= 0x7FF)
-                    {
-                        sprintf(tmp, "%c%c", 0xC0 | (c >> 6), 0x80 | (c & 0x3F));
-                    }
-                    else
-                    {
-                        sprintf(tmp, "%c%c%c", 0xE0 | (c >> 12), 0x80 | ((c >> 6) & 0x3F), 0x80 | (c & 0x3F));
-                    }
-                    str += tmp;
-                }
-                return str.c_str();
-            }
-            else
-            {
-                char* text = (char*)var->data;
-                std::string strdata;
-                for (int j = 0; j < num_cols; j++)
-                {
-                    strdata += text[j];
-                }
-                return strdata.c_str();
-            }
-        }
-	}
-	else if (type == MAT_C_CELL)
-	{
-		if (rank == 2)
-		{
-			HML_CELLARRAY* cells = EvaluatorInterface::allocateCellArray(
-                static_cast<int>(var->dims[0]), static_cast<int>(var->dims[1]));
-			matvar_t**     vals  = (matvar_t**)var->data;
-
-            for (int j = 0; j < cells->Size(); j++)
-            {
-                (*cells)(j) = MatVarToCurrency(vals[j], warn);
-            }				
-			return cells;
 		}
 	}
 	else if (type == MAT_C_STRUCT)
@@ -466,8 +470,7 @@ Currency MatVarToCurrency(matvar_t* var, std::string& warn)
         }
     }
 
-    warn += newline + msg + "; unrecognized data type [" +
-            std::to_string(static_cast<long long>(var->class_type)) + "]";
+    warn += newline + msg + "; type [" + GetTypeString(var) + "]";
 	return Currency(-1.0, Currency::TYPE_NOTHING);
 }
 //------------------------------------------------------------------------------
@@ -1388,4 +1391,184 @@ void SetMatioMessage(int level, char* msg)
     {
         OMLMATIO_PRINT("Matio debug; " + strmsg, 0);
     }
+}
+//------------------------------------------------------------------------------
+// Gets type description of matvar
+//------------------------------------------------------------------------------
+std::string GetTypeString(matvar_t* var)
+{
+    if (!var)
+    {
+        return "NULL";
+    }
+
+    switch (var->class_type)
+    {
+        case MAT_C_EMPTY:    return "Empty matrix";
+        case MAT_C_CELL:     return "Cell array";
+        case MAT_C_STRUCT:   return "Struct";
+        case MAT_C_OBJECT:   return "Object";
+        case MAT_C_CHAR:     return "Character array";
+        case MAT_C_SPARSE:   return "Sparse matrix";
+        case MAT_C_DOUBLE:   return "Double-precision";
+        case MAT_C_SINGLE:   return "Single-precision";
+        case MAT_C_INT8:     return "Signed 8-bit integer";
+        case MAT_C_UINT8:    return "Unsigned 8-bit integer";
+        case MAT_C_INT16:    return "Signed 16-bit integer";
+        case MAT_C_UINT16:   return "Unsigned 16-bit integer";
+        case MAT_C_INT32:    return "Signed 32-bit integer";
+        case MAT_C_UINT32:   return "Unsigned 32-bit integer";
+        case MAT_C_INT64:    return "Signed 64-bit integer";
+        case MAT_C_UINT64:   return "Unsigned 64-bit integer";
+        case MAT_C_FUNCTION: return "Function handle";
+        case MAT_C_OPAQUE:   return "Opaque";
+        default: break;
+    }
+
+    return "Unknown: " + std::to_string(static_cast<long long>(var->class_type));
+}
+//------------------------------------------------------------------------------
+// Converts mat cell array to currency
+//------------------------------------------------------------------------------
+Currency MatCell2Currency(matvar_t* var, std::string& warn)
+{
+    assert(var);
+    assert(var->class_type == MAT_C_CELL);
+
+    if (var->rank != 2)
+    {
+        return HandleInvalidRank(var, warn);
+    }
+
+    if (!var->dims)
+    {
+        return HandleInvalidDims(var, warn);
+    }
+
+    int m = static_cast<int>(var->dims[0]);
+    int n = static_cast<int>(var->dims[1]);
+
+    HML_CELLARRAY* cells = EvaluatorInterface::allocateCellArray(m, n);
+    matvar_t**     vals = (matvar_t**)var->data;
+
+    for (int j = 0; j < cells->Size(); ++j)
+    {
+        (*cells)(j) = MatVarToCurrency(vals[j], warn);
+    }
+    return cells;
+}
+//------------------------------------------------------------------------------
+// Converts matvar of character array to currency
+//------------------------------------------------------------------------------
+Currency MatChar2Currency(matvar_t* var, std::string& warn)
+{
+    assert(var);
+    assert(var->class_type == MAT_C_CHAR);
+
+    if (var->rank != 2)
+    {
+        return HandleInvalidRank(var, warn);
+    }
+
+    if (!var->dims)
+    {
+        return HandleInvalidDims(var, warn);
+    }
+
+    int m = static_cast<int>(var->dims[0]);
+    int n = static_cast<int>(var->dims[1]);
+
+    if (var->data_type == MAT_T_UINT16 || var->data_type == MAT_T_UTF16)
+    {
+        std::vector<std::string> rowvals;
+        rowvals.reserve(n);
+
+        BuiltInFuncsUtils utils;
+        char tmp[256];
+        const mat_uint16_t *data = (const mat_uint16_t*)var->data;
+        for (int i = 0; i < m; ++i)
+        {
+            std::string row;
+            for (int j = 0; j < n; ++j)
+            {
+                const mat_uint16_t c = data[j * m + i];
+                memset(tmp, 0, sizeof(tmp));
+                if (c <= 0x7f)
+                {
+                    sprintf(tmp, "%c", c);
+                }
+                else if (c <= 0x7FF)
+                {
+                    sprintf(tmp, "%c%c", 0xC0 | (c >> 6), 0x80 |
+                        (c & 0x3F));
+                }
+                else
+                {
+                    sprintf(tmp, "%c%c%c", 0xE0 | (c >> 12), 0x80 |
+                        ((c >> 6) & 0x3F), 0x80 | (c & 0x3F));
+                }
+                row += tmp;
+            }
+            rowvals.push_back(row);
+        }
+        return utils.FormatOutput(rowvals, false, false, false, ' ');
+    }
+
+    std::unique_ptr<hwMatrix> mtx(EvaluatorInterface::allocateMatrix(
+                                  m, n, hwMatrix::REAL));
+    const char* tmp = (const char*)var->data;
+    for (int i = 0; i < m; ++i)
+    {
+        for (int j = 0; j < n; ++j)
+        {
+            (*mtx)(i, j) = (char)tmp[j * m + i];
+        }
+    }
+    Currency result(mtx.release());
+    result.SetMask(Currency::MASK_STRING);
+    return result;
+}
+//------------------------------------------------------------------------------
+// Sets warning and returns empty currency
+//------------------------------------------------------------------------------
+Currency HandleInvalidRank(matvar_t* var, std::string& warn)
+{
+    if (!var)
+    {
+        return Currency(-1.0, Currency::TYPE_NOTHING);
+    }
+
+    if (!warn.empty())
+    {
+        warn += "\n";
+    }
+    warn += "Cannot read variable [";
+    if (var->name)
+    {
+        warn += var->name;
+    }
+    warn += "]; cannot process rank [" + std::to_string(
+        static_cast<long long>(var->rank)) + "] for " + GetTypeString(var);
+    return Currency(-1.0, Currency::TYPE_NOTHING);
+}
+//------------------------------------------------------------------------------
+// Sets warning and returns empty currency
+//------------------------------------------------------------------------------
+Currency HandleInvalidDims(matvar_t* var, std::string& warn)
+{
+    if (!var)
+    {
+        return Currency(-1.0, Currency::TYPE_NOTHING);
+    }
+    if (!warn.empty())
+    {
+        warn += "\n";
+    }
+    warn += "Cannot read variable [";
+    if (var->name)
+    {
+        warn += var->name;
+    }
+    warn += "]; dimensions are empty for " + GetTypeString(var);
+    return Currency(-1.0, Currency::TYPE_NOTHING);
 }

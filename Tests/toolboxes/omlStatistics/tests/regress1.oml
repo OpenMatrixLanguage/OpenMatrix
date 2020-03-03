@@ -1,4 +1,4 @@
-addtoolbox omlStatistics
+addtoolbox omlstatistics
 
 a = 2;
 b = -1;

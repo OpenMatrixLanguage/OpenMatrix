@@ -1,4 +1,4 @@
-addtoolbox omlOptimization
+addtoolbox omloptimization
 % with user parameter passing via a function handle
 
 function [res,Jac] = FittingFunc(c,t,five,seven)

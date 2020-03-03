@@ -1,2 +1,2 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 w = parzenwin(7)

@@ -34,15 +34,15 @@ hwChebyshev_II_s::hwChebyshev_II_s(int    order,
     hwAnalogFilterGen_ZP filterGen(filterSpecs, *this);
 
     m_status = filterGen.Status();
-    if (!m_status.IsOk())
+    if (!m_status.IsOk() && !m_status.IsWarning())
     {
         return;
     }
 
     m_pCheby_II_Proto = new hwChebyshev_II_Proto(order, stopEdgeDb);
-    m_status          = m_pCheby_II_Proto->Status();
-    if (!m_status.IsOk())
+    if (!m_pCheby_II_Proto->Status().IsOk())
     {
+        m_status = m_pCheby_II_Proto->Status();
         if (m_status.GetArg1() == 2)
         {
             m_status.SetArg1(4);

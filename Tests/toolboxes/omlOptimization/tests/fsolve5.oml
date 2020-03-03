@@ -1,4 +1,4 @@
-addtoolbox omlOptimization
+addtoolbox omloptimization
 % intersection of two paraboloids and a plane
 % no solution, return best fit
 % warning needs to be displayed

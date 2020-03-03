@@ -1,2 +1,2 @@
-addtoolbox omlStatistics
+addtoolbox omlstatistics
 polyfit([1 2 3],[4 2 3; 6 4 3; 8 7 3],2)

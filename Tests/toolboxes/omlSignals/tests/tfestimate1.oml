@@ -1,5 +1,5 @@
-addtoolbox omlStatistics
-addtoolbox omlSignals
+addtoolbox omlstatistics
+addtoolbox omlsignals
 
 %define filter
 fc = 100;

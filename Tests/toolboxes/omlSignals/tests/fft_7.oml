@@ -1,2 +1,2 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 fft(3)

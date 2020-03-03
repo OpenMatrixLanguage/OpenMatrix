@@ -31,6 +31,9 @@ typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
 template <typename T1, typename T2> class hwTMatrixN;
 typedef hwTMatrixN<double, hwTComplex<double> > hwMatrixN;
 
+template <typename T1, typename T2> class hwTMatrixS;
+typedef hwTMatrixS<double, hwTComplex<double> > hwMatrixS;
+
 class HML2DLL_DECLS Currency;
 class HML2DLL_DECLS CurrencyDisplay;
 class OutputFormat;
@@ -81,6 +84,7 @@ public:
 	Currency(bool logical_val);
 	Currency(hwMatrix* data);
 	Currency(hwMatrixN* data);
+	Currency(hwMatrixS* data);
 	Currency(const hwComplex& cplx);
 	Currency(); // Microsoft STL forces this 
 	Currency(const Currency& cur);
@@ -118,6 +122,7 @@ public:
 	bool  IsRealVector() const;
 	bool  IsMatrix()    const;
 	bool  IsNDMatrix()    const;
+	bool  IsSparse()    const;
 	bool  IsComplex()   const;
 	bool  IsMatrixOrString() const { return type == TYPE_MATRIX; }
 	bool  IsColon()     const      { return type == TYPE_COLON; }
@@ -137,7 +142,8 @@ public:
 	bool  IsEmpty() const;
 	bool  IsInteger() const;
 	bool  IsPositiveInteger() const;
-	bool  IsPositiveVector() const;
+	bool  IsPositiveIntegralVector() const;
+	bool  IsPositiveIntegralMatrix() const;
 	bool  IsLogical() const;
 	bool  IsCharacter() const;
 	bool  IsCellList() const;
@@ -158,7 +164,9 @@ public:
 	const hwMatrix*     Matrix() const;
 	hwMatrix*           GetWritableMatrix();
 	const hwMatrixN*    MatrixN() const;
+	const hwMatrixS*    MatrixS() const;
 	hwMatrixN*          GetWritableMatrixN();
+	hwMatrixS*          GetWritableMatrixS();
 	hwComplex           Complex() const;
 	double              Real() const           { return data.complex->Real(); }
 	double              Imag() const           { return data.complex->Imag(); }
@@ -175,11 +183,11 @@ public:
 	void                SetOutputName(const std::string& name) const; // the const is a mistake and needs to be fixed -- JDS
 	void                SetOutputName(const std::string* name) const; // the const is a mistake and needs to be fixed -- JDS
 	void                ClearOutputName();
-	std::string         GetOutputName() const;
 	const std::string*  GetOutputNamePtr() const;
+	std::string         GetOutputName() const { return *GetOutputNamePtr(); }
 
 	void                SetClass(const std::string& name);
-	std::string         GetClassname() const { return *classname; }
+	std::string         GetClassname() const;
 
 	void                ReplaceScalar(double new_value) { data.value = new_value; type = TYPE_SCALAR; }
 	void                ReplaceComplex(hwComplex new_value);
@@ -188,9 +196,11 @@ public:
 	const hwMatrix*     ExpandMatrix(const hwMatrix*) const;
 	HML_CELLARRAY*      ConvertToCellArray();
 
+	void                FlattenCellList();
+
 	void                ConvertToStruct();
 
-	enum CurrencyType { TYPE_SCALAR, TYPE_STRING, TYPE_MATRIX, TYPE_COLON, TYPE_COMPLEX, TYPE_CELLARRAY, TYPE_ERROR, TYPE_BREAK, TYPE_RETURN, TYPE_FUNCHANDLE, TYPE_STRUCT, TYPE_NOTHING, TYPE_FORMAT, TYPE_BREAKPOINT, TYPE_POINTER, TYPE_CONTINUE, TYPE_ND_MATRIX, TYPE_OBJECT, TYPE_BOUNDOBJECT, TYPE_ND_CELLARRAY };
+	enum CurrencyType { TYPE_SCALAR, TYPE_STRING, TYPE_MATRIX, TYPE_COLON, TYPE_COMPLEX, TYPE_CELLARRAY, TYPE_ERROR, TYPE_BREAK, TYPE_RETURN, TYPE_FUNCHANDLE, TYPE_STRUCT, TYPE_NOTHING, TYPE_FORMAT, TYPE_BREAKPOINT, TYPE_POINTER, TYPE_CONTINUE, TYPE_ND_MATRIX, TYPE_OBJECT, TYPE_BOUNDOBJECT, TYPE_ND_CELLARRAY, TYPE_SPARSE };
 	enum MaskType { MASK_NONE, MASK_DOUBLE, MASK_STRING, MASK_LOGICAL, MASK_CELL_LIST, MASK_EXPLICIT_COMPLEX };
 
 	static StringManager vm;
@@ -239,13 +249,14 @@ private:
 	void  Copy(const Currency&);
 	void  DeleteMatrix(hwMatrix*);
 	void  DeleteMatrixN(hwMatrixN*);
+	void  DeleteMatrixS(hwMatrixS*);
 	void  DeleteCells(HML_CELLARRAY*);
 	void  DeleteCellsN(HML_ND_CELLARRAY*);
 	void  DeleteStruct(StructData*);
 	void  DeleteFunctionInfo(FunctionInfo*);
 
 	mutable CurrencyType type;
-	MaskType mask;
+	mutable MaskType mask;
 
 	union DataStorage
 	{
@@ -253,6 +264,7 @@ private:
 		hwComplex*           complex;
 		hwMatrix*            mtx;
 		hwMatrixN*           mtxn;
+		hwMatrixS*			 mtxs;
 		HML_CELLARRAY*       cells;
 		HML_ND_CELLARRAY*    cells_nd;
 		FunctionInfo*        func;

@@ -1,4 +1,4 @@
-addtoolbox omlCalculus
+addtoolbox omlcalculus
 
 tol = [1.0e-7,1.0e-9];
 area = quad(@(x) exp(-x .^ 2),0,-Inf,tol) / (-sqrt(pi)/2)

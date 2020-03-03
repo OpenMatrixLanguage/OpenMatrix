@@ -1,2 +1,2 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 down = downsample([1 2 3 4 5],2)

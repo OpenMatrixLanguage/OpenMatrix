@@ -17,7 +17,9 @@
 #define OML_PYTHON_BRIDGE_CORE_H__
 
 #include "OmlPythonBridgeCoreDefs.h"
+
 #include "Currency.h"
+#include "EvaluatorInt.h" 
 
 #ifndef PyObject_HEAD
 struct _object;
@@ -84,6 +86,12 @@ public:
     void HandleException(void);
     void SetErrorMessage(const std::string &error);
     std::string GetErrorMessage();
+
+    //! 
+    //! Gets argv as Py_initialize does not set sys.argv
+    //! \param eval Evaluator interface
+    //!
+    std::vector<std::string> GetArgv(EvaluatorInterface eval);
 
 private:
     //! Constructor

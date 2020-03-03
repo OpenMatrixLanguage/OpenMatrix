@@ -1,0 +1,33 @@
+addtoolbox omldiffeq
+% compute the current in a series RLC circuit
+% L*d2i/dt2 + R*di/dt + c*i = 0
+
+% define system function
+function f = RLC(t,y,yp,v,R,L,C)
+   f = [0, 0, 0];
+   f(1) = (y(2)-y(3)) - L*yp(1);	% voltage drop over inductor
+   f(2) = y(1) - C*yp(3);		% current through capacitor
+   f(3) = (v-y(2)) - y(1)*R;		% voltage drop over resistor
+end
+
+v = 2.4; % volts
+R = 1.1; % resistor
+L = 1.6; % inductor
+C = 0.8; % capacitor
+
+handle = @(t,y,yp) RLC(t,y,yp,v,R,L,C);
+t = [0, 12]; % time vector
+yi = [0, v, 0];
+ypi = [v/L, -R*v/L, 0.0];
+
+options = odeset('MaxStep',0.12);
+[t,y] = ode15i(handle,t,yi,ypi,options);
+mx = max(diff(t'))
+y
+%i = y(:,1)'
+
+% closed form solution
+%a = R / (2.0*L)		% attenuation
+%w = sqrt(1.0/(L*C)-a*a)	% oscillation frequency
+%A = v / (L*w)			% amplitude
+%i1 = A * exp(-a*t) .* sin(w*t)	% current

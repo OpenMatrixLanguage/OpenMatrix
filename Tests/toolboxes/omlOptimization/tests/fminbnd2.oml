@@ -1,4 +1,4 @@
-addtoolbox omlOptimization
+addtoolbox omloptimization
 
 function y = func(x)
     y = -log(x) / x;

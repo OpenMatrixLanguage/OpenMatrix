@@ -5,15 +5,18 @@
     <OML_ROOT>C:\oss</OML_ROOT>
     <OML_THIRDPARTY>\oss\third_party\third_party</OML_THIRDPARTY>
     <OML_MINGW>c:\Program Files\mingw-w64\x86_64-7.1.0-posix-seh-rt_v5-rev2\mingw64\bin</OML_MINGW>
-    <OML_PATHS>$(OML_THIRDPARTY)\lapack\lapack-3.7.1-build\bin;$(OML_MINGW);$(OML_PYTHONHOME)</OML_PATHS>
+    <OML_PATHS>$(OML_MKLBIN);$(OML_MINGW);$(OML_PYTHONHOME)</OML_PATHS>
     <OML_LIBDIR>$(OML_THIRDPARTY)\lapack\lapack-3.7.1-build\lib</OML_LIBDIR>
     <OML_FFTWDIR>$(OML_THIRDPARTY)\fftw\fftw-3.2.2</OML_FFTWDIR>
     <OML_BOOSTDIR>$(OML_THIRDPARTY)\boost\boost_1_64_0</OML_BOOSTDIR>
-    <OML_PYTHONHOME>c:\Python36-x64</OML_PYTHONHOME>
-    <OML_PYTHONVERSION>python36</OML_PYTHONVERSION>
+    <OML_PYTHONHOME>C:\python</OML_PYTHONHOME>
+    <OML_PYTHONVERSION>python35</OML_PYTHONVERSION>
     <OML_MATIODIR>$(OML_THIRDPARTY)\matio\matio-1.5.12</OML_MATIODIR>
     <OML_SUNDIALSDIR>$(OML_THIRDPARTY)/sundials/sundials-3.1.0-install</OML_SUNDIALSDIR>
     <OML_QHULLDIR>$(OML_THIRDPARTY)\qhull\qhull-2015.2\lib</OML_QHULLDIR>
+    <OML_MKL_INCLUDE>$(OML_THIRDPARTY)\intel\compilers_and_libraries_2019.5.281\windows\mkl\include</OML_MKL_INCLUDE>
+    <OML_MKL_LIBDIR>$(OML_THIRDPARTY)\intel\compilers_and_libraries_2019.5.281\windows\mkl\lib\intel64_win</OML_MKL_LIBDIR>
+    <OML_MKLBIN>$(OML_THIRDPARTY)\intel\compilers_and_libraries_2019.5.281\windows\redist\intel64_win\mkl</OML_MKLBIN>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup>
@@ -35,6 +38,7 @@
     </BuildMacro>
     <BuildMacro Include="OML_PATHS">
       <Value>$(OML_PATHS)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
     <BuildMacro Include="OML_LIBDIR">
       <Value>$(OML_LIBDIR)</Value>
@@ -49,6 +53,7 @@
     </BuildMacro>
     <BuildMacro Include="OML_PYTHONHOME">
       <Value>$(OML_PYTHONHOME)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
     <BuildMacro Include="OML_PYTHONVERSION">
       <Value>$(OML_PYTHONVERSION)</Value>
@@ -62,6 +67,18 @@
     </BuildMacro>
     <BuildMacro Include="OML_QHULLDIR">
       <Value>$(OML_QHULLDIR)</Value>
+    </BuildMacro>
+    <BuildMacro Include="OML_MKL_INCLUDE">
+      <Value>$(OML_MKL_INCLUDE)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="OML_MKL_LIBDIR">
+      <Value>$(OML_MKL_LIBDIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="OML_MKLBIN">
+      <Value>$(OML_MKLBIN)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
   </ItemGroup>
 </Project>

@@ -18,9 +18,9 @@
 
 #include <cassert>
 #include <cmath>
+#include <limits.h>
+#include <math.h>
 #include <iomanip>
-
-#include <boost/math/special_functions/sign.hpp>
 
 #include "BuiltInFuncsUtils.h"
 #include "Interpreter.h"
@@ -29,6 +29,7 @@
 #include "StructData.h"
 
 #include "hwMatrix.h"
+#include "hwMatrixS.h"
 #include "math/kernel/GeneralFuncs.h"
 
 int CurrencyDisplay::m_maxRows      = 0;
@@ -91,6 +92,15 @@ bool CurrencyDisplay::CanPaginate(const Currency& cur)
     }
     else if (cur.IsString() && CanPaginate(cur.StringVal()))
     {
+        return true;
+    }
+    else if (cur.IsSparse())
+    {
+        const hwMatrixS* mtx = cur.MatrixS();
+        if (!mtx || mtx->Size() == 0 || mtx->IsEmpty())
+        {
+            return false;
+        }
         return true;
     }
     return false;
@@ -387,7 +397,7 @@ void CurrencyDisplay::GetComplexNumberVals(const hwComplex& val,
     imagsign = " + ";
     if (IsInf_T(imagval) || IsNaN_T(imagval)) return;
 
-    if (IsNegInf_T(imagval) || boost::math::signbit(imagval))
+    if (IsNegInf_T(imagval) || std::signbit(static_cast<long double>(imagval)))
     {
          imagsign = " - ";
          imagval  = fabs(imagval);
@@ -859,12 +869,10 @@ void CurrencyDisplay::StripEndline(std::string& str) const
     {
         str.pop_back();
     }
-#ifndef OS_WIN
     if (!str.empty() && str[str.size() - 1] == '\r')
     {
         str.pop_back();
     }
-#endif
 }
 //------------------------------------------------------------------------------
 // Gets indent string
@@ -876,4 +884,16 @@ std::string CurrencyDisplay::GetIndentString(int val) const
         return std::string(2 * val, ' ');
     }
     return "";
+}
+//------------------------------------------------------------------------------
+// True if header needs to be printed
+//------------------------------------------------------------------------------
+bool CurrencyDisplay::IsHeaderPrinted() const
+{
+    if (m_parentDisplay && m_parentDisplay->IsNDMatrixDisplay() &&
+        WasPaginating())
+    {
+        return false;
+    }
+    return true;
 }

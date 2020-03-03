@@ -437,6 +437,12 @@ bool OmlFsolve(EvaluatorInterface           eval,
                 status.ResetArgs();
             }
 
+            if (status.GetArg2() == 7)
+            {
+                status.SetArg2(status.GetArg1());
+                status.SetArg1(1);
+            }
+
             if (status.IsWarning())
             {
                 BuiltInFuncsUtils::SetWarning(eval, status.GetMessageString());

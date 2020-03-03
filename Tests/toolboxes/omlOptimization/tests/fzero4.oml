@@ -1,4 +1,4 @@
-addtoolbox omlOptimization
+addtoolbox omloptimization
 
 interval = [1, 6];
 options = optimset('Display', 'iter');

@@ -1,4 +1,4 @@
-addToolbox omlPolynom
+addToolbox omlpolynom
 
 a=0:0.02:10;
 b=sin(a);

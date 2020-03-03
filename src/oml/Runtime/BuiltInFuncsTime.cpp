@@ -373,8 +373,9 @@ bool BuiltInFuncsTime::Month(EvaluatorInterface           eval,
         // mm/dd
         case 6: str = "%d/%*d"; break;
 
-        // mmmyy
-        case 12: str = "%3s%*d"; isstring = true; break;
+        // mmmyy mmmyyyy
+        case 12:
+        case 28: str = "%3s%*d"; isstring = true; break;
 
         // dd/mm
         case 19: str = "%*d/%d"; break;

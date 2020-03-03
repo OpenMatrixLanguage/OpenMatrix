@@ -24,6 +24,8 @@
 #define HW_MATH_MSG_SINGMATRIXDIV    "Warning: singular matrix divisor (to within machine precision)"
 #define HW_MATH_MSG_MTXNOTFULLRANK_W "Warning: rank deficient matrix; matrix does not have full rank"
 #define HW_MATH_MSG_MATRIXDEPENDCOL  "Warning: rank deficient matrix; columns are not linearly independent"
+#define HW_MATH_MSG_NOSQRTM          "Warning: singular matrix; it may not have a square root"
+#define HW_MATH_MSG_MAXSQRTM         "Warning: maximum number of allowed square roots has been exceeded"
 #define HW_MATH_MSG_HANKEL           "Warning: arg1(end) ~= arg2(0); arg2(0) is ignored"
 #define HW_MATH_MSG_TOEPLITZ         "Warning: arg1(0) ~= arg2(0); arg2(0) is ignored"
 // Algorithm warnings
@@ -39,9 +41,10 @@
 #define HW_MATH_MSG_CONVIOLATEBEST   "Warning: the best reported design violates the constraint"
 #define HW_MATH_MSG_POORPOLYFIT      "Warning: if poor fit quality, consult the help document"
 // Signal processing warnings
+#define HW_MATH_MSG_FILTERORDERIRR  "Warning: high filter order; numerical accuracy may be diminished"
 #define HW_MATH_MSG_FILTERSIMPLOW   "Warning: syntax simplifies to low pass filter"
 #define HW_MATH_MSG_FILTERSIMPHIGH  "Warning: syntax simplifies to high pass filter"
-#define HW_MATH_MSG_FILTERSPEC_W    "Warning: filter specification is too extreme, results cannot be trusted"
+#define HW_MATH_MSG_FILTERSPEC_W    "Warning: extreme filter specification; numerical accuracy may be diminished"
 #define HW_MATH_MSG_NYQUIST         "Warning: data exceeds Nyquist frequency"
 #define HW_MATH_MSG_UNEQUALTIMESAMP "Warning: samples are not equally spaced"
 #define HW_MATH_MSG_FILTERCFC       "Warning: invalid frequency; filter should not be used for CFC > 180"
@@ -110,6 +113,7 @@
 #define HW_MATH_MSG_COLUMNVEC       "Error: invalid matrix; must be column vector"
 #define HW_MATH_MSG_INVALIDINDEX    "Error: invalid index; must be within allowed bounds"
 #define HW_MATH_MSG_DATANOTFOUND    "Error: invalid data; not found"
+#define HW_MATH_MSG_SINGMATRIX_E    "Error: singular matrix (to within machine precision)"
 #define HW_MATH_MSG_MTXNOTFULLRANK_E "Error: invalid matrix; must have full rank"
 #define HW_MATH_MSG_MTXNOTSQUARE    "Error: invalid matrix; must be square"
 #define HW_MATH_MSG_MTXNOTSYM       "Error: invalid matrix; must be symmetric"
@@ -147,7 +151,6 @@
 // Signal processing errors
 #define HW_MATH_MSG_FILTERTYPE      "Error: invalid filter; must be a supported type"
 #define HW_MATH_MSG_FILTERORDER     "Error: invalid filter; must be positive"
-#define HW_MATH_MSG_FILTERORDERIRR  "Error: invalid filter; must be an integer from 1 to 14"
 #define HW_MATH_MSG_FILTERORDERODD  "Error: invalid filter; requires even order"
 #define HW_MATH_MSG_FILTERSPEC_E    "Error: invalid filter, specification is too extreme"
 #define HW_MATH_MSG_FILTERFREQ_A    "Error: invalid filter; must be positive"
@@ -210,6 +213,8 @@ std::string GetHMathErrMsg(hwMathMsgCode code)
             case HW_MATH_WARN_SINGMATRIXDIV:    retStr = HW_MATH_MSG_SINGMATRIXDIV;     break;
             case HW_MATH_WARN_MTXNOTFULLRANK:   retStr = HW_MATH_MSG_MTXNOTFULLRANK_W;  break;
             case HW_MATH_WARN_MATRIXDEPENDCOL:  retStr = HW_MATH_MSG_MATRIXDEPENDCOL;   break;
+            case HW_MATH_WARN_NOSQRTM:          retStr = HW_MATH_MSG_NOSQRTM;           break;
+            case HW_MATH_WARN_MAXSQRTM:         retStr = HW_MATH_MSG_MAXSQRTM;          break;
             case HW_MATH_WARN_HANKEL:           retStr = HW_MATH_MSG_HANKEL;            break;
             case HW_MATH_WARN_TOEPLITZ:         retStr = HW_MATH_MSG_TOEPLITZ;          break;
             // algorithm warnings
@@ -225,6 +230,7 @@ std::string GetHMathErrMsg(hwMathMsgCode code)
             case HW_MATH_WARN_CONVIOLATEBEST:   retStr = HW_MATH_MSG_CONVIOLATEBEST;    break;
             case HW_MATH_WARN_POORPOLYFIT:      retStr = HW_MATH_MSG_POORPOLYFIT;       break;
             // signal processing warnings
+            case HW_MATH_WARN_FILTERORDERIRR:   retStr = HW_MATH_MSG_FILTERORDERIRR;    break;
             case HW_MATH_WARN_FILTERSIMPLOW:    retStr = HW_MATH_MSG_FILTERSIMPLOW;     break;
             case HW_MATH_WARN_FILTERSIMPHIGH:   retStr = HW_MATH_MSG_FILTERSIMPHIGH;    break;
             case HW_MATH_WARN_FILTERSPEC_W:     retStr = HW_MATH_MSG_FILTERSPEC_W;      break;
@@ -307,6 +313,7 @@ std::string GetHMathErrMsg(hwMathMsgCode code)
             case HW_MATH_ERR_COLUMNVEC:             retStr = HW_MATH_MSG_COLUMNVEC;         break;
             case HW_MATH_ERR_INVALIDINDEX:          retStr = HW_MATH_MSG_INVALIDINDEX;      break;
             case HW_MATH_ERR_DATANOTFOUND:          retStr = HW_MATH_MSG_DATANOTFOUND;      break;
+            case HW_MATH_ERR_SINGMATRIX:            retStr = HW_MATH_MSG_SINGMATRIX_E;      break;
             case HW_MATH_ERR_MTXNOTFULLRANK:        retStr = HW_MATH_MSG_MTXNOTFULLRANK_E;  break;
             case HW_MATH_ERR_MTXNOTSQUARE:          retStr = HW_MATH_MSG_MTXNOTSQUARE;      break;
             case HW_MATH_ERR_MTXNOTSYM:             retStr = HW_MATH_MSG_MTXNOTSYM;         break;
@@ -344,7 +351,6 @@ std::string GetHMathErrMsg(hwMathMsgCode code)
             // signal processing errors
             case HW_MATH_ERR_FILTERTYPE:            retStr = HW_MATH_MSG_FILTERTYPE;        break;
             case HW_MATH_ERR_FILTERORDER:           retStr = HW_MATH_MSG_FILTERORDER;       break;
-            case HW_MATH_ERR_FILTERORDERIRR:        retStr = HW_MATH_MSG_FILTERORDERIRR;    break;
             case HW_MATH_ERR_FILTERORDERODD:        retStr = HW_MATH_MSG_FILTERORDERODD;    break;
             case HW_MATH_ERR_FILTERSPEC_E:          retStr = HW_MATH_MSG_FILTERSPEC_E;      break;
             case HW_MATH_ERR_FILTERFREQ_A:          retStr = HW_MATH_MSG_FILTERFREQ_A;      break;

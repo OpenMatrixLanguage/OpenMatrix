@@ -1,4 +1,4 @@
-addtoolbox omlDiffEq
+addtoolbox omldiffeq
 
 function J = Jac(t,y,yp)
    J = [];

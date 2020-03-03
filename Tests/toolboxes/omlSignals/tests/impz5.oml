@@ -1,4 +1,4 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 
 % test 5 - oscillating
 w = 2*pi*50/(2*1000);

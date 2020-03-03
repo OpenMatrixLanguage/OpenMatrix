@@ -1,4 +1,4 @@
-addtoolbox omlOptimization
+addtoolbox omloptimization
 
 function res = FittingFunc(c, t)
     % c is the parameter vector

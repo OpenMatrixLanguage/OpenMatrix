@@ -79,6 +79,8 @@ public:
     //! Determine if the matrix contains real or complex data
     //! (i.e. no non-zero imaginary components)
     bool IsRealData() const;
+    //! Determine if the matrix is diagonal
+    bool IsDiag() const;
     //! Return the data type
     DataType Type() const { return (m_bits.realData ? REAL : COMPLEX); }
     //! Set the data ownership
@@ -267,7 +269,7 @@ public:
 
     //! Read a submatrix of a source, starting at the specified location, writing to the calling object
     hwMathStatus ReadSubmatrix(int startRow, int startCol, int numRows, int numCols, const hwTMatrix<T1, T2>& source);
-    //! Write a submatrix of a source to the calling object, starting at the specified location
+    //! Write a submatrix source to the calling object, starting at the specified location
     hwMathStatus WriteSubmatrix(int startRow, int startCol, const hwTMatrix<T1, T2>& source);
 
     // ****************************************************

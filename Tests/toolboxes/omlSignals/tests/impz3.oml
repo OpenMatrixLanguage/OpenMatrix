@@ -1,0 +1,11 @@
+addtoolbox omlsignals
+
+% test 3 - stable with positive real pole
+fs = 2000;
+num = [1, 1];
+den = [1, 0.5];
+[x,t] = impz(num, den, [], fs);
+shift = 2^16;
+x = shift * x	% shift to compensate for low bits affecting sprintf
+t
+

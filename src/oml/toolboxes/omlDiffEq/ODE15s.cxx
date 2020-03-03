@@ -220,11 +220,12 @@ bool OmlOde15s(EvaluatorInterface           eval,
     FunctionInfo* funcInfo2 = nullptr;
     FUNCPTR       funcPntr2 = nullptr;
 
-    const hwMatrix* time   = cur2.ConvertToMatrix();
-    const hwMatrix* y      = cur3.ConvertToMatrix();
-    double reltol          = 1.0e-3;
-    const hwMatrix* abstol = nullptr;
-    bool deleteAbsTol      = false;
+    const hwMatrix* time         = cur2.ConvertToMatrix();
+    const hwMatrix* y            = cur3.ConvertToMatrix();
+    double          reltol       = 0.001;
+    const hwMatrix* abstol       = nullptr;
+    double          maxstep      = -999.0;
+    bool            deleteAbsTol = false;
 
     if (nargin > 3)
     {
@@ -238,6 +239,7 @@ bool OmlOde15s(EvaluatorInterface           eval,
             }
             const Currency& reltol_C   = options->GetValue(0, -1, "RelTol");
             const Currency& abstol_C   = options->GetValue(0, -1, "AbsTol");
+            const Currency& maxstep_C  = options->GetValue(0, -1, "MaxStep");
             const Currency& jacobian_C = options->GetValue(0, -1, "Jacobian");
 
             if (!reltol_C.IsEmpty())
@@ -264,6 +266,18 @@ bool OmlOde15s(EvaluatorInterface           eval,
             else
             {
                 throw OML_Error(OML_ERR_SCALARVECTOR, 4, OML_VAR_ABSTOL);
+            }
+
+            if (!maxstep_C.IsEmpty())
+            {
+                if (maxstep_C.IsScalar())
+                {
+                    maxstep = maxstep_C.Scalar();
+                }
+                else
+                {
+                    throw OML_Error(OML_ERR_SCALAR, 4, OML_VAR_MAXSTEP);
+                }
             }
 
             if (!jacobian_C.IsEmpty())
@@ -341,12 +355,12 @@ bool OmlOde15s(EvaluatorInterface           eval,
         if (!ODE15s_JAC_func)
         {
             status = ODE22a(ODE15s_file_func, rootFunc, (CVDenseJacFn_client) nullptr,
-                *time, *y, timeSolution, *ySolution, reltol, abstol, userData);
+                *time, *y, timeSolution, *ySolution, reltol, abstol, maxstep, userData);
         }
         else
         {
             status = ODE22a(ODE15s_file_func, rootFunc, ODE15s_jac_file_func,
-                *time, *y, timeSolution, *ySolution, reltol, abstol, userData);
+                *time, *y, timeSolution, *ySolution, reltol, abstol, maxstep, userData);
         }
     }
     else
@@ -358,12 +372,12 @@ bool OmlOde15s(EvaluatorInterface           eval,
         if (!ODE15s_JAC_func)
         {
             status = ODE22a(ODE15s_file_func, rootFunc, (CVDenseJacFn_client) nullptr,
-                *time, *y, nullptr, *ySolution, reltol, abstol, userData);
+                *time, *y, nullptr, *ySolution, reltol, abstol, maxstep, userData);
         }
         else
         {
             status = ODE22a(ODE15s_file_func, rootFunc, ODE15s_jac_file_func,
-                *time, *y, nullptr, *ySolution, reltol, abstol, userData);
+                *time, *y, nullptr, *ySolution, reltol, abstol, maxstep, userData);
         }
     }
 

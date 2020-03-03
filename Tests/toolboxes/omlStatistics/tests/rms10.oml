@@ -1,2 +1,2 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 rms({2,5,1,2})

@@ -1,7 +1,7 @@
 /**
 * @file MatrixDisplay.cpp
 * @date November 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -19,9 +19,9 @@
 
 #include <cassert>
 #include <iomanip>
+#include <math.h>
 #include <sstream>
-
-#include <boost/math/special_functions/sign.hpp>
+#include <limits.h>
 
 #include "BuiltInFuncsUtils.h"
 #include "Currency.h"
@@ -349,6 +349,10 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
                     m_deleteLine = true;
                 }
             }
+            else
+            {
+                header += "\n";
+            }
         }
         skipFirstHeader = false;
         output += header + data;
@@ -626,7 +630,7 @@ std::string MatrixDisplay::RealToString(double val, DisplayFormat fmt) const
         os.setf(static_cast<std::ios_base::fmtflags>(0), std::ios::floatfield);       
         os << std::setprecision(static_cast<std::streamsize>(_totaldigits));
 
-        if (boost::math::signbit(val)) // Detect -0
+        if (std::signbit(static_cast<long double>(val))) // Detect -0
             os << "-" << fabs(val);
         else
             os << val;
@@ -1311,18 +1315,6 @@ bool MatrixDisplay::GetPaginationEndMsg(std::string& msg) const
 bool MatrixDisplay::IsPaginating() const
 {
     return (IsPaginatingRows() || IsPaginatingCols());
-}
-//------------------------------------------------------------------------------
-// True if header needs to be printed
-//------------------------------------------------------------------------------
-bool MatrixDisplay::IsHeaderPrinted() const
-{
-    if (m_parentDisplay && m_parentDisplay->IsNDMatrixDisplay() && 
-        WasPaginating())
-    {
-        return false;
-    }
-    return true;
 }
 
 // End of file

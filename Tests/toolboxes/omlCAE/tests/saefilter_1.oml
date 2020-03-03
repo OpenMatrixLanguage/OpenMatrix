@@ -1,0 +1,10 @@
+addtoolbox omlcae
+
+t = [0:0.0001:0.02-0.0001];
+signal = sin(2*pi*200*t);
+output = saefilter(signal, 10000, 60);
+
+mask = 2^28;
+output = fix(mask * output) / mask + 0;	% remove -0
+
+disp(output);

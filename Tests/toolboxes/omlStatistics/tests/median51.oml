@@ -1,2 +1,2 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 median([4 .1 2 5; .25 3 8 .6; -6 9 0 1; pi -1 2 3],0)

@@ -40,7 +40,7 @@ enum omlMathErrCode
     OML_ERR_STRING,                          // must be string
     OML_ERR_INTSTRING,                       // must be integer or string
     OML_ERR_SCALARSTRING,                    // must be scalar or string
-    OML_ERR_BAD_STRING,                      // invalid string; see help for options
+    OML_ERR_BAD_STRING,                      // unsupported option; see help for valid options
     OML_ERR_NUMERIC,                         // must be numeric
     OML_ERR_SCALAR,                          // must be a scalar
     OML_ERR_VECTOR,                          // must be a vector
@@ -133,6 +133,12 @@ enum omlMathErrCode
 	OML_ERR_INPUT_EMPTY,                     // cannot be empty
     OML_ERR_MULTILINE_STRING,                // cannot be a multiline string
     OML_ERR_INVALID_FILE_MODE,               // invalid file mode; check help for valid file modes
+    OML_ERR_FILE_CANNOTWRITE,                // cannot write to file
+    OML_ERR_CELL_MTX,                        // must be a cell or matrix
+    OML_ERR_INVALIDTIMEVAL,                  // value is out of range for time function
+    OML_ERR_HANDLE_STRING_CELL,              // must be a function handle, string or cell with function details
+    OML_ERR_INTERNAL,                        // internal error
+    OML_ERR_AUTHENTICATE,                    // authentication failure
 
 	// plot codes
     OML_ERR_PLOT_DIM_NOT_MATCH,              // invalid inputs; data dimensions do not match
@@ -165,11 +171,14 @@ enum omlMathErrCode
     OML_ERR_PLOT_AMBIGUOUS_PROPERTY,         // ambiguous property \todo: used only in open matrix
 
 	// ABF Codes
-	OML_ERR_ABF_CREATE_FAILED,
-	OML_ERR_ABF_WRITE_FAILED,
-	OML_ERR_ABF_SUBCASE_EMPTY,
-	OML_ERR_ABF_EXPORT_DONE,
-	OML_ERR_ABF_WRITE_IN_PROGRESS,
+	OML_ERR_ABF_CREATE_FAILED,               // failed to create ABF writer; check input
+	OML_ERR_ABF_WRITE_FAILED,                // file not opened for writing; open file
+	OML_ERR_ABF_SUBCASE_EMPTY,               // subcase name is missing; check input
+	OML_ERR_ABF_EXPORT_DONE,                 // data is already exported
+	OML_ERR_ABF_WRITE_IN_PROGRESS,           // data write is in progress
+
+    //HW reader Codes
+    OML_ERR_HWREADER_TIMECHANNELS_COMPARE,   // to compare time channels
 
     OML_ERR_END
 };
@@ -201,9 +210,16 @@ enum omlMathVarCode
     OML_VAR_GRADCONSTR,
     OML_VAR_ABSTOL,
     OML_VAR_RELTOL,
+    OML_VAR_MAXSTEP,
     OML_VAR_TOLX,
     OML_VAR_TOLFUN,
+    OML_VAR_TOLFUNABS,
+    OML_VAR_TOLFUNREL,
     OML_VAR_TOLCON,
+    OML_VAR_CONRET,
+    OML_VAR_MOVE,
+    OML_VAR_MPERT,
+    OML_VAR_PERT,
     OML_VAR_TOLKKT,
     OML_VAR_MAXFUNEVALS,
     OML_VAR_MAXITER,
@@ -401,7 +417,6 @@ private:
 #define HW_ERROR_SCALOUTCHARRANGE "Error: scalar outside of character range"
 #define HW_ERROR_INVINPSTRUCTANDCOMPNOTCONVSTR "Error: invalid input type: structs and complex values cannot be converted to strings"
 
-#define HW_ERROR_MONTHMUSTINT "Error: number of months must be an integer"
 #define HW_ERROR_DATENOTCOMP "Error: date cannot be complex"
 #define HW_ERROR_PROBCREATTEMPF "Error: problem creating temporary file"
 #define HW_ERROR_OPTNOTSING "Error: option is not singular"
@@ -421,11 +436,9 @@ private:
 #define HW_ERROR_INVBALFLAG "Error: invalid balance flag"
 
 #define HW_ERROR_INVCLASSNAME "Error: invalid class name"
-#define HW_ERROR_INVSTRVAL "Error: invalid string value"
 #define HW_ERROR_CONVFILEMODTIME "Error: problem converting file modified time"
 #define HW_ERROR_TRYSTR "Error: try expression must be a string"
 #define HW_ERROR_DIRECT1STLAST "Error: direction must be 'first' or 'last'"
-#define HW_ERROR_NUMVALFINDPOSINT "Error: number of values to find must be a positive integer"
 #define HW_ERROR_INVINP "Invalid inputs"
 #define HW_ERROR_INVINPVAL "Error: invalid input value"
 #define HW_ERROR_INVINPTYPE "Error: invalid input type"

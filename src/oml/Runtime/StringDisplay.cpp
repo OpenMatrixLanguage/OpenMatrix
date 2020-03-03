@@ -197,6 +197,7 @@ std::string StringDisplay::GetOutputForwardPagination(const OutputFormat* fmt,
     size_t      len        = sub.length();
     int         totalrows  = m_linesPrinted + linestofit;
 
+    bool printedNonNewlineChar = false;
     for (size_t i = 0; i < len && m_linesPrinted < totalrows; ++i, ++m_rowEnd)
     {
         char ch = sub[i];
@@ -208,7 +209,14 @@ std::string StringDisplay::GetOutputForwardPagination(const OutputFormat* fmt,
         if (ch == '\n' || ch == '\r')
 #endif
         {
-            ++m_linesPrinted;
+            if (printedNonNewlineChar)
+            {
+                ++m_linesPrinted;
+            }
+        }
+        else
+        {
+            printedNonNewlineChar = true;
         }
     }
     std::string out = os.str() + output;

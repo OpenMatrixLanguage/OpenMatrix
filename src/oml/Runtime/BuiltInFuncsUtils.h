@@ -41,7 +41,7 @@ public:
     ~BuiltInFuncsUtils() {}
 
     //!
-    //! Returns true if file exists
+    //! Returns true if file exists - works with wide characters
     //! \param name Given file name
     //
     static bool FileExists( const std::string& name);
@@ -311,14 +311,25 @@ public:
     //!
     std::string RTrim(const std::string& in);
 
+    //!
+    //! Throws regex error
+    //! \param code Error code
+    //!
+    void ThrowRegexError(std::regex_constants::error_type code);
+
     // utf8 support utilities
 #ifdef OS_WIN
     //!
     //! Gets absolute path, supports unicode on Windows
-    //! Returns absolute path
     //! \param input Input string
     //!
     std::wstring GetAbsolutePathW(const std::wstring& input);
+    //!
+    //! Returns true if given path is absolute, supports unicode on Windows
+    //! \param input Input string
+    //!
+    bool IsAbsolutePathW(const std::wstring& input);
+
     //!
     //! Gets current working directory on windows
     //!
@@ -333,16 +344,6 @@ public:
     //! \param in Input string
     //!
     std::wstring StripTrailingSlashW(const std::wstring& in);
-    //!
-    //! Converts std::string to std::wstring
-    //! \param in Input string
-    //!
-    std::wstring StdString2WString(const std::string& in);
-    //!
-    //! Converts std::wstring to std::string, supports Unicode
-    //! \param in Wide string input
-    //!
-    std::string WString2StdString(const std::wstring& in);
     //!
     //! Strips trailing newlines for wide strings
     //! \param in Wide string input
@@ -359,6 +360,16 @@ public:
     //!
     void AddTrailingSlashW(std::wstring& path);
 #endif
+    //!
+    //! Converts std::string to std::wstring
+    //! \param in Input string
+    //!
+    std::wstring StdString2WString(const std::string& in);
+    //!
+    //! Converts std::wstring to std::string, supports Unicode
+    //! \param in Wide string input
+    //!
+    std::string WString2StdString(const std::wstring& in);
 
     //!
     //! Returns true if given path exists on disk, supports Unicode
@@ -371,6 +382,37 @@ public:
     //! \param path Given path
     //!
     std::string StripMultipleSlashesAndNormalize(const std::string& path);
+    //!
+    //! Create a chained display id so that all displays with the same id can be
+    //! chained and deleted even if one of them in the chain is deleted. Used 
+    //! for displaying multiline strings
+    //!
+    long CreateChainedDisplayId();
+    //!
+    //! Helper method to set environment variable
+    //! \param name Env variable to set
+    //! \param val  Value to set
+    //!
+    void SetEnvVariable(const std::string& name,
+                        const std::string& val);
+    //!
+    //! Returns true if file is encoded
+    //! \param eval Evaluator interface
+    //! \param fid  File id
+    //!
+    bool IsFileEncoded(EvaluatorInterface eval,
+                       int                fid);
+    //!
+    //! Returns true if there are wide characters
+    //! \param str Input string
+    //!
+    bool HasWideChars(const std::string& str);
+
+    //!
+    //! Gets size of widest character - works with Unicode
+    //! \param str Input string
+    //!
+    size_t GetWidestCharSize(const std::string& str);
 private: 
     //!
     //! Reads formatted input and returns true if successful

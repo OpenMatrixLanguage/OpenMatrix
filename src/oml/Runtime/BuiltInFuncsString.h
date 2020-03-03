@@ -113,11 +113,6 @@ public:
                            const std::vector<Currency>& inputs,
                            std::vector<Currency>&       outputs);
     //!
-    //! Utility to throw regex error
-    //! \param code Error code
-    //!
-    static void ThrowRegexError( std::regex_constants::error_type code);
-    //!
     //! Returns true after converting a numerical value to a string
     //! \param eval    Evaluator interface
     //! \param inputs  Vector of inputs
@@ -144,6 +139,24 @@ public:
     static bool Str2Double(EvaluatorInterface           eval,
                            const std::vector<Currency>& inputs,
                            std::vector<Currency>&       outputs);
+    //!
+    //! Returns true if given pattern is found in the input [contains]
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //!
+    static bool Contains(EvaluatorInterface           eval,
+                         const std::vector<Currency>& inputs,
+                         std::vector<Currency>&       outputs);
+    //!
+    //! Returns true and strips leading/trailing characters from input [strip]
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //!
+    static bool Strip(EvaluatorInterface           eval,
+                      const std::vector<Currency>& inputs,
+                      std::vector<Currency>&       outputs);
 
 private:
     //!
@@ -253,6 +266,21 @@ private:
     bool IsValidStrtodResult(const std::string& in,
                              const std::string& end,
                              double             val);
+    //!
+    //! Helper method to left trim input
+    //! \param in  Input string
+    //! \param str String to trim
+    //!
+    void LeftTrim(std::string&       in,
+                  const std::string& str);
+    //!
+    //! Helper method to right trim input
+    //! \param in  Input string
+    //! \param str String to trim
+    //!
+    void RightTrim(std::string&       in,
+                   const std::string& str);
+
 };
 #endif
 

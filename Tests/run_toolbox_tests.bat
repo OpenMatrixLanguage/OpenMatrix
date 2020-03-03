@@ -8,7 +8,7 @@ call :run_test omlGeometry
 call :run_test omlMathUtils
 call :run_test omlMatio
 call :run_test omlOptimization
-call :run_test omlpythonbridge
+REM call :run_test omlpythonbridge
 call :run_test omlPolynom
 call :run_test omlSignals
 call :run_test omlStatistics

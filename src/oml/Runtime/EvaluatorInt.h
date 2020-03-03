@@ -20,6 +20,7 @@
 #include "Currency.h"
 #include "hwMatrix.h"
 #include "hwMatrixN.h"
+#include "hwMatrixS.h"
 #include "FunctionMetaData.h"
 #include "OMLInterfacePublic.h"
 #include <string>
@@ -48,6 +49,7 @@ public:
     ~EvaluatorInterface();
 
     bool RegisterBuiltInFunction(const std::string& func_name, ALT_FUNCPTR fp);
+	bool RegisterBuiltInFunction(const std::string& func_name, ALT_FUNCPTR fp, const FunctionMetaData& md);
     bool RegisterBuiltInFunction(const std::string& func_name, FUNCPTR fp, int nargin, int nargout);
     bool RegisterBuiltInFunction(const std::string& func_name, FUNCPTR fp, const FunctionMetaData& md);
     std::vector<std::string> GetBuiltinFunctionNames() const;
@@ -90,6 +92,7 @@ public:
     void ClearPath();
     bool RemovePath(std::string &pathname);
     void AddPath(std::string pathname, bool end);
+	void AddHiddenPath(std::string pathname);
 	void AddPath2(const std::string& pathname, const std::vector<std::string> funcs);
     const std::vector<std::string>& GetPaths() const;
     void ResetFuncSearchCache();
@@ -192,6 +195,8 @@ public:
 	bool IsDiaryOpen();
 	void SetDiary(std::string filename);
 
+	void SetDLLContext(const std::string& dll_name);
+
     //! Returns a vector of function names
     std::vector<std::string> GetFunctionNames() const;
     //! Returns a count of functions
@@ -239,6 +244,9 @@ public:
     //! \param[in] val Sets to true if the evaluator is in experimental mode
     void SetExperimental( bool val);
 
+	int  GetVerbose() const;
+	void SetVerbose(int val);
+
     //! Gets signal handler
     SignalHandlerBase* GetSignalHandler() const;
 
@@ -273,6 +281,9 @@ public:
     //! Returns true if the given string is an operator
     //! \param[in] in Given input
     bool IsOperator( const std::string& in) const;
+
+	void RegisterChildEvaluator(ExprTreeEvaluator*);
+	void RemoveChildEvaluator();
 
 private:
     ExprTreeEvaluator* eval;

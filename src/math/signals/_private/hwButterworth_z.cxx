@@ -32,7 +32,7 @@ hwButterworth_z::hwButterworth_z(int    order,
     hwDigitalFilterGen_AP filterGen(filterSpecs, *this);
 
     m_status = filterGen.Status();
-    if (!m_status.IsOk())
+    if (!m_status.IsOk() && !m_status.IsWarning())
     {
         return;
     }

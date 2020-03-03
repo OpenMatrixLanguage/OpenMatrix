@@ -260,6 +260,10 @@ private:
     void ListDirW(const std::wstring&                                 parent,
                   const std::vector< std::pair<std::wstring, bool> >& exclude,
                   std::wstring&                                       paths);
+    //!
+    //! Helper method to set locale and output mode to support Unicode
+    //!
+    void SetToUtf8Locale();
 #else
     //!
     //! Lists directories, recursively; helper for genpath.

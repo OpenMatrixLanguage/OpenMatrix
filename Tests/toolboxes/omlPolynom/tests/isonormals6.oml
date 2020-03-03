@@ -1,4 +1,4 @@
-addToolbox omlPolynom
+addToolbox omlpolynom
 
 % create the grid
 x = [2:1:7];

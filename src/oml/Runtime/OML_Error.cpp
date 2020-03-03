@@ -36,7 +36,7 @@
 #define OML_MSG_STRING        "Error: invalid input; must be string"
 #define OML_MSG_INTSTRING     "Error: invalid input; must be integer or string"
 #define OML_MSG_SCALARSTRING  "Error: invalid input; must be scalar or string"
-#define OML_MSG_BAD_STRING    "Error: invalid string; see help for options"
+#define OML_MSG_BAD_STRING    "Error: unsupported option; see help for valid options"
 #define OML_MSG_NUMERIC       "Error: invalid input; must be numeric"
 #define OML_MSG_SCALAR        "Error: invalid input; must be a scalar"
 #define OML_MSG_VECTOR        "Error: invalid input; must be a vector"
@@ -127,8 +127,14 @@
 #define OML_MSG_INVALID_DATE_FMT            "Error: invalid format; check help for valid date formats"
 #define OML_MSG_CANNOTAPPLY_DATE_FMT        "Error: cannot apply format; check help for applicable date formats"
 #define OML_MSG_INPUT_EMTPY                 "Error: invalid input; cannot be empty"
-#define OML_MSG_MULTILINE_STRING                "Error: invalid input; cannot be a multiline string"
+#define OML_MSG_MULTILINE_STRING            "Error: invalid input; cannot be a multiline string"
 #define OML_MSG_INVALID_FILE_MODE           "Error: invalid file mode; check help for valid file modes"
+#define OML_MSG_FILE_CANNOTWRITE            "Error: invalid input; cannot write to file"
+#define OML_MSG_CELL_MTX                    "Error: invalid input; must be a cell or matrix"
+#define OML_MSG_INVALIDTIMEVAL              "Error: invalid input: value is out of range for time function"
+#define OML_MSG_HANDLE_STRING_CELL          "Error: invalid input: must be a function handle, string or cell with function details"
+#define OML_MSG_INTERNAL                    "Error: internal error"
+#define OML_MSG_AUTHENTICATE                "Error: authentication failure"
 
 // plot messages
 #define OML_MSG_PLOT_DIM_NOT_MATCH              "Error: invalid inputs; data dimensions do not match"
@@ -169,6 +175,9 @@
 #define OML_MSG_ABF_EXPORT_DONE        "Error: data is already exported"
 #define OML_MSG_ABF_WRITE_IN_PROGRESS  "Error: data write is in progress"
 
+// HW reader messages
+#define OML_MSG_HWREADER_TIMECHANNELS_COMPARE    "Time channels does not match"
+
 // Variable type definitions
 #define OML_STR_MATRIX          "matrix"
 #define OML_STR_VECTOR          "vector"
@@ -193,9 +202,16 @@
 #define OML_STR_GRADCONSTR      "GradConstr"
 #define OML_STR_ABSTOL          "AbsTol"
 #define OML_STR_RELTOL          "RelTol"
+#define OML_STR_MAXSTEP         "MaxStep"
 #define OML_STR_TOLX            "TolX"
 #define OML_STR_TOLFUN          "TolFun"
+#define OML_STR_TOLFUNABS       "TolFunAbs"
+#define OML_STR_TOLFUNREL       "TolFunRel"
 #define OML_STR_TOLCON          "TolCon"
+#define OML_STR_CONRET          "Constrant Retention"
+#define OML_STR_MOVE            "Move Limit Fraction"
+#define OML_STR_MPERT           "Perturbation Method"
+#define OML_STR_PERT            "Initial Perturbation Value"
 #define OML_STR_TOLKKT          "TolKKT"
 #define OML_STR_MAXFUNEVALS     "MaxFunEvals"
 #define OML_STR_MAXITER         "MaxIter"
@@ -505,6 +521,12 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode errCode) const
 	case OML_ERR_INPUT_EMPTY:                   msgStr = OML_MSG_INPUT_EMTPY; break;
     case OML_ERR_MULTILINE_STRING:              msgStr = OML_MSG_MULTILINE_STRING; break;
     case OML_ERR_INVALID_FILE_MODE:             msgStr = OML_MSG_INVALID_FILE_MODE; break;
+    case OML_ERR_FILE_CANNOTWRITE:              msgStr = OML_MSG_FILE_CANNOTWRITE; break;
+    case OML_ERR_CELL_MTX:                      msgStr = OML_MSG_CELL_MTX; break;
+    case OML_ERR_INVALIDTIMEVAL:                msgStr = OML_MSG_INVALIDTIMEVAL; break;
+    case OML_ERR_HANDLE_STRING_CELL:            msgStr = OML_MSG_HANDLE_STRING_CELL; break;
+    case OML_ERR_INTERNAL:                      msgStr = OML_MSG_INTERNAL; break;
+    case OML_ERR_AUTHENTICATE:                  msgStr = OML_MSG_AUTHENTICATE; break;
 
 	// plot error messages:
     case OML_ERR_PLOT_DIM_NOT_MATCH:            msgStr = OML_MSG_PLOT_DIM_NOT_MATCH;            break;
@@ -542,6 +564,8 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode errCode) const
 	case OML_ERR_ABF_SUBCASE_EMPTY:             msgStr = OML_MSG_ABF_SUBCASE_EMPTY;             break;
 	case OML_ERR_ABF_EXPORT_DONE:               msgStr = OML_MSG_ABF_EXPORT_DONE;               break;
 
+    // HW reader error messages:
+    case OML_ERR_HWREADER_TIMECHANNELS_COMPARE: msgStr = OML_MSG_HWREADER_TIMECHANNELS_COMPARE; break;
     default: break;
     }
 
@@ -579,9 +603,16 @@ std::string OML_Error::GetOmlVarStr(omlMathVarCode varCode) const
     case OML_VAR_GRADCONSTR:   varStr = OML_STR_GRADCONSTR;   break;
     case OML_VAR_ABSTOL:       varStr = OML_STR_ABSTOL;       break;
     case OML_VAR_RELTOL:       varStr = OML_STR_RELTOL;       break;
+    case OML_VAR_MAXSTEP:      varStr = OML_STR_MAXSTEP;      break;
     case OML_VAR_TOLX:         varStr = OML_STR_TOLX;         break;
     case OML_VAR_TOLFUN:       varStr = OML_STR_TOLFUN;       break;
+    case OML_VAR_TOLFUNABS:    varStr = OML_STR_TOLFUNABS;    break;
+    case OML_VAR_TOLFUNREL:    varStr = OML_STR_TOLFUNREL;    break;
     case OML_VAR_TOLCON:       varStr = OML_STR_TOLCON;       break;
+    case OML_VAR_CONRET:       varStr = OML_STR_CONRET;       break;
+    case OML_VAR_MOVE:         varStr = OML_STR_MOVE;         break;
+    case OML_VAR_MPERT:        varStr = OML_STR_MPERT;        break;
+    case OML_VAR_PERT:         varStr = OML_STR_PERT;         break;
     case OML_VAR_TOLKKT:       varStr = OML_STR_TOLKKT;       break;
     case OML_VAR_MAXFUNEVALS:  varStr = OML_STR_MAXFUNEVALS;  break;
     case OML_VAR_MAXITER:      varStr = OML_STR_MAXITER;      break;

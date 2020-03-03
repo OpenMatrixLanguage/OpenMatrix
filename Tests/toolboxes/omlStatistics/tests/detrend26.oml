@@ -1,2 +1,2 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 detrend([1 32 2 4],'constant')

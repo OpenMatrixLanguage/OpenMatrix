@@ -34,16 +34,15 @@ hwElliptic_s::hwElliptic_s(int    order,
     hwAnalogFilterGen_ZP filterGen(filterSpecs, *this);
 
     m_status = filterGen.Status();
-    if (!m_status.IsOk())
+    if (!m_status.IsOk() && !m_status.IsWarning())
     {
         return;
     }
 
     m_pElliptic_Proto = new hwElliptic_Proto(order, passEdgeDb, stopEdgeDb);
-    m_status          = m_pElliptic_Proto->Status();
-
-    if (!m_status.IsOk())
+    if (!m_pElliptic_Proto->Status().IsOk())
     {
+        m_status = m_pElliptic_Proto->Status();
         if (m_status.GetArg1() == 2)
         {
             m_status.SetArg1(4);

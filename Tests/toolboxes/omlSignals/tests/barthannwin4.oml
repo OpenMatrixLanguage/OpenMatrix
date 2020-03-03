@@ -1,2 +1,2 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 w = barthannwin(6,'periodic')

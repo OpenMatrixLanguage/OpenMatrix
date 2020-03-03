@@ -970,17 +970,17 @@ bool oml_MatrixN_circshift(EvaluatorInterface eval, const std::vector<Currency>&
     int numElems = matrix->Size();
     int numDim = static_cast<int> (dims.size());
 
-    std::vector<int> rhsMatrixIndex(numDim);
+    std::vector<int> offset(numDim);
     std::vector<int> lhsMatrixIndex(numDim);
 
     for (int i = 0; i < numShifts; ++i)
     {
-        int offset = static_cast<int>((*shift)(i)) % dims[i];
+        offset[i] = static_cast<int>((*shift)(i)) % dims[i];
 
-        if (offset < 0)
-            offset += dims[i];
+        if (offset[i] < 0)
+            offset[i] += dims[i];
 
-        lhsMatrixIndex[i] = offset;
+        lhsMatrixIndex[i] = offset[i];
     }
 
     for (int i = 0; i < numElems; ++i)
@@ -993,30 +993,14 @@ bool oml_MatrixN_circshift(EvaluatorInterface eval, const std::vector<Currency>&
         // advance matrix indices
         for (int j = 0; j < numDim; ++j)
         {
-            // increment index j if possible
-            if (rhsMatrixIndex[j] < (int) dims[j]-1)
-            {
-                ++rhsMatrixIndex[j];
-
-                if (lhsMatrixIndex[j] < (int) dims[j]-1)
-                    ++lhsMatrixIndex[j];
-                else
-                    lhsMatrixIndex[j] = 0;
-
-                break;
-            }
-
-            // index j is maxed out, so reset and continue to j+1
-            rhsMatrixIndex[j] = 0;
-
-            if (j < numShifts)
-            {
-                ++lhsMatrixIndex[j];    // returns to initial shifted position
-            }
+            // increment j or wrap around
+            if (lhsMatrixIndex[j] < dims[j] - 1)
+                ++lhsMatrixIndex[j];
             else
-            {
                 lhsMatrixIndex[j] = 0;
-            }
+
+            if (lhsMatrixIndex[j] != offset[j])
+                break;
         }
     }
 

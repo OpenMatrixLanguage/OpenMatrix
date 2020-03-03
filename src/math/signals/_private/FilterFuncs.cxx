@@ -137,7 +137,7 @@ hwMathStatus Besself3(int         order,
         {
             status.SetArg1(6);
         }
-        if (status != HW_MATH_WARN_FILTERSPEC_W)
+        if (!status.IsWarning())
         {
             delete pFilter;
             return status;
@@ -180,7 +180,7 @@ hwMathStatus Butter(int         order,
     }
 
     hwMathStatus status = pFilter->Status();
-    if (!status.IsOk())
+    if (!status.IsOk() && !status.IsWarning())
     {
         delete pFilter;
         return status;
@@ -224,7 +224,7 @@ hwMathStatus Cheby1(int         order,
     }
 
     hwMathStatus status = pFilter->Status();
-    if (!status.IsOk())
+    if (!status.IsOk() && !status.IsWarning())
     {
         delete pFilter;
         return status;
@@ -268,7 +268,7 @@ hwMathStatus Cheby2(int         order,
     }
 
     hwMathStatus status = pFilter->Status();
-    if (!status.IsOk())
+    if (!status.IsOk() && !status.IsWarning())
     {
         delete pFilter;
         return status;
@@ -315,7 +315,7 @@ hwMathStatus Ellip(int         order,
     }
 
     hwMathStatus status = pFilter->Status();
-    if (!status.IsOk())
+    if (!status.IsOk() && !status.IsWarning())
     {
         delete pFilter;
         return status;

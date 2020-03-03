@@ -1,4 +1,4 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 x = normrnd(5,6,2,20);
 y = normrnd(4,6,2,20);
 x = fix(10*x)/10

@@ -80,6 +80,7 @@ hwIdaWrap::hwIdaWrap(IDAResFn_client      sysfunc,
                      const char*          job,
                      double               reltol_, 
                      const hwMatrix*      abstol_, 
+                     double               maxstep,
                      const hwMatrix*      userData)
     : hwDiffEqSolver(y_)
     , ida_mem       (nullptr)
@@ -317,6 +318,15 @@ hwIdaWrap::hwIdaWrap(IDAResFn_client      sysfunc,
 
         flag = IDASStolerances(ida_mem, reltol_, abstol);
         // if (Check_flag(&flag, "IDASStolerances", 1)) return(1);
+    }
+
+    if (maxstep > 0.0)
+    {
+        IDASetMaxStep(ida_mem, maxstep);
+    }
+    else if (maxstep != -999.0)
+    {
+        m_status(HW_MATH_ERR_NONPOSITIVE, 10);
     }
 }
 //------------------------------------------------------------------------------

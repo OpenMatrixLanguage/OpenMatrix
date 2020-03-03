@@ -1,4 +1,4 @@
-addtoolbox omlDiffEq
+addtoolbox omldiffeq
 % this test is an example from Sundials/IDA
 
 % define system function

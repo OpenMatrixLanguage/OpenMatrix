@@ -69,10 +69,21 @@ public:
     //! Helper method which returns true if application is in Console mode
     //!
     virtual bool IsInConsoleMode() const { return true; }
+    //!
+    //! Returns true if in Console, non-interactive mode
+    //!
+    virtual bool IsInConsoleBatchMode() const { return _batchmode; }
+    //! 
+    //! Sets batch mode option
+    //! \param val True if application is in batch mode
+    //!
+    void SetConsoleBatchMode(bool val) { _batchmode = val; }
 
 private:
-    const SignalHandler*       _src;            //! Source, if this is a clone                 
-    WrapperBase* _wrapper; //! Console wrapper
+    const SignalHandler* _src;            //!< Source, if this is a clone                 
+    WrapperBase*         _wrapper;        //!< Console wrapper
+    bool                 _batchmode;      //!< True if application is in batch mode
+
 
     SignalHandler( const SignalHandler* src);   //! Copy constructor
 };

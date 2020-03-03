@@ -1,4 +1,4 @@
-addtoolbox omlMatio
+addtoolbox omlmatio
 a = 5;
 b = ones(3,3);
 c = {3i, 0, [ 1 2 3]};

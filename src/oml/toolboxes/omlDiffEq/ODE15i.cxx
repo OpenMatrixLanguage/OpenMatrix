@@ -266,8 +266,9 @@ bool OmlOde15i(EvaluatorInterface           eval,
     }
     const hwMatrix*  time         = inputs[1].ConvertToMatrix();
     const hwMatrix*  y            = inputs[2].ConvertToMatrix();
-    double           reltol       = 1.0e-3;
+    double           reltol       = 0.001;
     const hwMatrix*  abstol       = nullptr;
+    double           maxstep      = -999.0;
     bool             deleteAbsTol = false;
     const hwMatrix*  yp           = inputs[3].ConvertToMatrix();
 
@@ -283,6 +284,7 @@ bool OmlOde15i(EvaluatorInterface           eval,
             }
             const Currency& reltol_C   = options->GetValue(0, -1, "RelTol");
             const Currency& abstol_C   = options->GetValue(0, -1, "AbsTol");
+            const Currency& maxstep_C  = options->GetValue(0, -1, "MaxStep");
             const Currency& jacobian_C = options->GetValue(0, -1, "Jacobian");
 
             if (!reltol_C.IsEmpty())
@@ -308,7 +310,19 @@ bool OmlOde15i(EvaluatorInterface           eval,
             }
             else
             {
-                throw OML_Error(OML_ERR_SCALARVECTOR, 4, OML_VAR_ABSTOL);
+                throw OML_Error(OML_ERR_SCALARVECTOR, 5, OML_VAR_ABSTOL);
+            }
+
+            if (!maxstep_C.IsEmpty())
+            {
+                if (maxstep_C.IsScalar())
+                {
+                    maxstep = maxstep_C.Scalar();
+                }
+                else
+                {
+                    throw OML_Error(OML_ERR_SCALAR, 5, OML_VAR_MAXSTEP);
+                }
             }
 
             if (!jacobian_C.IsEmpty())
@@ -387,12 +401,12 @@ bool OmlOde15i(EvaluatorInterface           eval,
         {
             status = DAE11a(ODE15i_file_func, rootFunc, 
                 (IDADenseJacFn_client) NULL, *time, *y, *yp, timeSolution, 
-                *ySolution, reltol, abstol, userData);
+                *ySolution, reltol, abstol, maxstep, userData);
         }
         else
         {
             status = DAE11a(ODE15i_file_func, rootFunc, ODE15i_jac_file_func,
-                *time, *y, *yp, timeSolution, *ySolution, reltol, abstol, userData);
+                *time, *y, *yp, timeSolution, *ySolution, reltol, abstol, maxstep, userData);
         }
     }
     else
@@ -404,12 +418,12 @@ bool OmlOde15i(EvaluatorInterface           eval,
         if (!ODE15i_JAC_func)
         {
             status = DAE11a(ODE15i_file_func, rootFunc, (IDADenseJacFn_client) nullptr, 
-                *time, *y, *yp, nullptr, *ySolution, reltol, abstol, userData);
+                *time, *y, *yp, nullptr, *ySolution, reltol, abstol, maxstep, userData);
         }
         else
         {
             status = DAE11a(ODE15i_file_func, rootFunc, ODE15i_jac_file_func,
-                *time, *y, *yp, nullptr, *ySolution, reltol, abstol, userData);
+                *time, *y, *yp, nullptr, *ySolution, reltol, abstol, maxstep, userData);
         }
     }
 

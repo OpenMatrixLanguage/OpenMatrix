@@ -1,10 +1,10 @@
-addtoolbox omlOptimization
+addtoolbox omloptimization
 
 function [obj,grad] = Rosenbrock(p)
     % p[1] is the x coordinate
     % p[2] is the y coordinate
     % compute the objective
-    obj = (1 - p(1))^2 + 100 * (p(2) - p(1)^2)^2;
+    obj = (1 - p(1))^2 + 100 * (p(2) - p(1)^2)^2 + 1;
 
     if nargout > 1
         % compute the gradient

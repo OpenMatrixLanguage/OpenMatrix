@@ -1,2 +1,2 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 std([1;6;1.2;2;-3;5;-6])
