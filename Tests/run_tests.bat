@@ -11,7 +11,7 @@ cd RegressionTests
 echo.
 pwd
 @echo on
-%OML_ROOT%/Tests/regressOMLConsole.pl
+perl %OML_ROOT%\Tests\regressOMLConsole.pl
 @echo off
 echo Completed core tests
 echo ==================== ====================  ==================== ====================
