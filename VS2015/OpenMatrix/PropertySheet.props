@@ -6,7 +6,6 @@
     <OML_THIRDPARTY>\oss\third_party\third_party</OML_THIRDPARTY>
     <OML_MINGW>c:\Program Files\mingw-w64\x86_64-7.1.0-posix-seh-rt_v5-rev2\mingw64\bin</OML_MINGW>
     <OML_PATHS>$(OML_MKLBIN);$(OML_MINGW);$(OML_PYTHONHOME)</OML_PATHS>
-    <OML_LIBDIR>$(OML_THIRDPARTY)\lapack\lapack-3.7.1-build\lib</OML_LIBDIR>
     <OML_FFTWDIR>$(OML_THIRDPARTY)\fftw\fftw-3.2.2</OML_FFTWDIR>
     <OML_BOOSTDIR>$(OML_THIRDPARTY)\boost\boost_1_64_0</OML_BOOSTDIR>
     <OML_PYTHONHOME>C:\python</OML_PYTHONHOME>
@@ -39,9 +38,6 @@
     <BuildMacro Include="OML_PATHS">
       <Value>$(OML_PATHS)</Value>
       <EnvironmentVariable>true</EnvironmentVariable>
-    </BuildMacro>
-    <BuildMacro Include="OML_LIBDIR">
-      <Value>$(OML_LIBDIR)</Value>
     </BuildMacro>
     <BuildMacro Include="OML_FFTWDIR">
       <Value>$(OML_FFTWDIR)</Value>

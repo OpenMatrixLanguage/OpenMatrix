@@ -1,0 +1,2 @@
+﻿a = {'this';'is'};
+a{end+1} = 'a test'

@@ -1,0 +1,5 @@
+﻿function z=goo(a)
+   z.a = a;
+end
+
+b = goo(3).a

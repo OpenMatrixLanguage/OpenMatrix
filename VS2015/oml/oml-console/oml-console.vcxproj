@@ -145,6 +145,7 @@
     <ClInclude Include="$(OML_ROOT)\src\oml\console\ServerWrapper.h" />
     <ClInclude Include="$(OML_ROOT)\src\oml\console\SignalHandler.h" />
     <ClInclude Include="$(OML_ROOT)\src\oml\console\WrapperBase.h" />
+    <ClInclude Include="$(OML_ROOT)\src\oml\Console\OpenMatrix_Version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,1 +1,3 @@
-Error: incompatible dimensions in call to function ldivide at line number 1 in file ldivideFAIL.oml
+ans = [Matrix] 2 x 2
+2.00000  4.00000
+0.50000  1.00000

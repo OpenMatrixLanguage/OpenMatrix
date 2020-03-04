@@ -1,0 +1,5 @@
+in = {'               ,,,this is a test           ', ' foo2,'};
+str = {',', ' '};
+R = strip(in, 'left', str)
+R = strip(in, 'right', str)
+R = strip(in, 'both', str)

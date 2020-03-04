@@ -37,7 +37,7 @@ extern Interpreter*    interp;
 extern ConsoleWrapper* wrapper;
 
 #define OML_PRODUCT "OpenMatrix "
-#define OML_VERSION "1.0"
+#include "OpenMatrix_Version.h"
 // End defines/includes
 
 #if OS_WIN

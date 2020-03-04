@@ -1,0 +1,4 @@
+[a,b,c]=svd([i,2-i,1+i;9,1,2+i;2,5i,1-i], 1)
+disp(a)
+disp(b)
+disp(c)

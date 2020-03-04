@@ -1,0 +1,7 @@
+﻿function [a,varargout] = myfunc
+   a = 0;
+   varargout= {1,2,3}; 
+end
+
+[x, y{1:3}] = myfunc
+[x, y{1}, y{2}, y{3}] = myfunc

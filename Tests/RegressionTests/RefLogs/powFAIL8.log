@@ -1,1 +1,3 @@
-Error: incompatible dimensions at line number 1 in file powFAIL8.oml
+ans = [Matrix] 2 x 2
+16   81
+64  216

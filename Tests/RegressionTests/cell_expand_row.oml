@@ -1,0 +1,2 @@
+﻿fn = {'family','link','options','numvar'}
+fn(2,:) = {[]}

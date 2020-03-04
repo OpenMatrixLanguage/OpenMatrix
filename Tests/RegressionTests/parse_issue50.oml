@@ -1,0 +1,4 @@
+﻿i=3;
+if i<4 who  end  
+if i<4, who; end
+if i<4, who end  

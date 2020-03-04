@@ -1,0 +1,12 @@
+a = struct [
+Struct array of size 1 x 3 with fields:
+z
+]
+y = struct [
+Struct array of size 1 x 6 with fields:
+z
+]
+z = struct [
+Struct array of size 2 x 3 with fields:
+z
+]

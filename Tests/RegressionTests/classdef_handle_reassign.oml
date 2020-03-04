@@ -1,0 +1,19 @@
+﻿classdef A < handle
+   properties
+       b
+   end
+   methods
+       function self = A(bb)
+	       self.b = bb;
+       end
+   end
+end
+
+function myfunc(a)
+   q = a
+   q = 5
+end
+
+a = A(4);
+
+myfunc(a)
