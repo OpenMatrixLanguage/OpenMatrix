@@ -1,4 +1,0 @@
-[a,b,c]=svd([1,4,2;2,-5,-1], 1)
-disp(a)
-disp(b)
-disp(c)
