@@ -20,6 +20,7 @@ env:
   SH=bash
   OML_ROOT=$PWD
   OML_THIRDPARTY=$PWD/Linux/third_party
+  LD_LIBRARY_PATH=$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/mkl/lib/intel64_lin:$LD_LIBRARY_PATH
   LD_LIBRARY_PATH=$OML_THIRDPARTY/fftw/fftw-3.2.2/.libs:$LD_LIBRARY_PATH
   LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/lapack/lapack-3.7.1
   LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/ANTLR/libantlr3c-3.4/.libs
@@ -58,9 +59,9 @@ after_success:
 - ls -alF $OML_ROOT/src/bin/linux64
 - ldd $OML_ROOT/src/bin/linux64/omlconsole
 - cd $OML_ROOT/Tests && pwd
-- source run_tests.sh
+#- source run_tests.sh
 - cd $OML_ROOT/Tests && pwd
-- source run_toolbox_tests.sh
+#- source run_toolbox_tests.sh
 - cd $OML_ROOT/Tests
-- source evaluate_test_results.sh
+#- source evaluate_test_results.sh
 #compiler: gcc
