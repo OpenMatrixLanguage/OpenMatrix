@@ -21,8 +21,8 @@ env:
   OML_ROOT=$PWD
   OML_THIRDPARTY=$PWD/Linux/third_party
   LD_LIBRARY_PATH=$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/mkl/lib/intel64_lin:$LD_LIBRARY_PATH
+  LD_LIBRARY_PATH=$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/compiler/lib/intel64_lin:$LD_LIBRARY_PATH
   LD_LIBRARY_PATH=$OML_THIRDPARTY/fftw/fftw-3.2.2/.libs:$LD_LIBRARY_PATH
-  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/lapack/lapack-3.7.1
   LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/ANTLR/libantlr3c-3.4/.libs
   LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/matio/matio-1.5.12/src/.libs
   LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/hdf5/hdf5-1.10.1/hdf5/lib
@@ -51,7 +51,8 @@ script:
 - ls -alF /usr/lib/x86_64-linux-gnu | grep fortran
 #- ls -alF /lib/x86_64-linux-gnu | grep fortran
 - set | grep LD_LIBRARY_PATH
-- cd $OML_THIRDPARTY;find . -name "*mkl*.so"
+- cd $OML_THIRDPARTY/intel
+- find . -name "*mkl*.so"
 - cd $OML_ROOT/src
 - ls -alF
 - make -f makefile.open
