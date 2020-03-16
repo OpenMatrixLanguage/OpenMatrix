@@ -2478,7 +2478,7 @@ bool oml_iscell(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
 //------------------------------------------------------------------------------
 bool oml_isfinite(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
 {
-    return allowComplexToLogical(inputs, outputs, &::isfinite, true);
+    return allowComplexToLogical(inputs, outputs, &::checkisfinite, true);
 }
 //------------------------------------------------------------------------------
 // Unary plus sign [uplus]
