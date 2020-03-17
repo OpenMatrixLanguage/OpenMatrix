@@ -61,9 +61,9 @@ after_success:
 - ls -alF $OML_ROOT/src/bin/linux64
 - ldd $OML_ROOT/src/bin/linux64/omlconsole
 - cd $OML_ROOT/Tests && pwd
-#- source run_tests.sh
+- source run_tests.sh
 - cd $OML_ROOT/Tests && pwd
-#- source run_toolbox_tests.sh
+- source run_toolbox_tests.sh
 - cd $OML_ROOT/Tests
-#- source evaluate_test_results.sh
+- source evaluate_test_results.sh
 #compiler: gcc
