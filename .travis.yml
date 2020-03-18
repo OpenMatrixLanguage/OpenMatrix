@@ -45,6 +45,8 @@ script:
 - find . -name "*mkl*.so"
 - cd $OML_THIRDPARTY/ANTLR
 - find . -iname "libantlr3c*"
+- echo ==============================
+- echo ==============================
 - echo $LD_LIBRARY_PATH
 - echo $OML_ROOT
 - echo $OML_THIRDPARTY
