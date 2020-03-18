@@ -51,8 +51,11 @@ script:
 - ls -alF /usr/lib/x86_64-linux-gnu | grep fortran
 #- ls -alF /lib/x86_64-linux-gnu | grep fortran
 - set | grep LD_LIBRARY_PATH
+- set | grep OML
 - cd $OML_THIRDPARTY/intel
 - find . -name "*mkl*.so"
+- cd $OML_THIRDPARTY/ANTLR
+- find . -iname "libantlr3c*"
 - cd $OML_ROOT/src
 - ls -alF
 - make -f makefile.open
@@ -62,7 +65,7 @@ after_success:
 - cd $OML_ROOT/Tests && pwd
 - source run_tests.sh
 - cd $OML_ROOT/Tests && pwd
-- source run_toolbox_tests.sh
+#- source run_toolbox_tests.sh
 - cd $OML_ROOT/Tests
-- source evaluate_test_results.sh
+#- source evaluate_test_results.sh
 #compiler: gcc
