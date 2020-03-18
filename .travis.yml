@@ -14,7 +14,7 @@ sudo: required
 python: 
 - '3.6'
 before_install:
-- git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Linux_OS66.git Linux
+#- git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Linux_OS66.git Linux
 #- if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
 env:
   SH=bash
@@ -56,6 +56,10 @@ script:
 - find . -name "*mkl*.so"
 - cd $OML_THIRDPARTY/ANTLR
 - find . -iname "libantlr3c*"
+- echo $LD_LIBRARY_PATH
+- echo $OML_ROOT
+- echo $OML_THIRDPARTY
+- echo $PATH
 - cd $OML_ROOT/src
 - ls -alF
 - make -f makefile.open
