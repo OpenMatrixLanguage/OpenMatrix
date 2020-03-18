@@ -59,6 +59,6 @@ after_success:
 - source run_tests.sh
 - cd $OML_ROOT/Tests && pwd
 #- source run_toolbox_tests.sh
-- cd $OML_ROOT/Tests
+- cd $OML_ROOT/Tests && pwd
 #- source evaluate_test_results.sh
 #compiler: gcc
