@@ -14,7 +14,7 @@ sudo: required
 python: 
 - '3.6'
 before_install:
-#- git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Linux_OS66.git Linux
+- git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Linux_OS66.git Linux
 #- if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
 env:
   SH=bash
