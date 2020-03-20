@@ -5,7 +5,8 @@ cd $OML_ROOT/Tests/RegressionTests
 echo
 pwd
 # update for travis
-perl $OML_ROOT/Tests/regressOMLConsole.pl -travis --limit 10
+#perl $OML_ROOT/Tests/regressOMLConsole.pl -travis --limit 10
+perl $OML_ROOT/Tests/regressOMLConsole.pl -travis
 echo Completed core regression tests
 echo ==================== ====================  ==================== ====================
 display_files "*.log"
