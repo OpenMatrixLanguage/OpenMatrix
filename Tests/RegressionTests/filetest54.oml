@@ -1,8 +1,0 @@
-fname = 'FileManipulation/FileToWrite7.txt'
-fid = fopen(fname, 'w')
-fwrite(fid, [50,2,1;82,12,42], '2*long', 1)
-fclose(fid)
-fid = fopen(fname,'r')
-fread(fid)
-fclose(fid)
-delete(fname)

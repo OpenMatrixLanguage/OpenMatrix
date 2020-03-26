@@ -266,7 +266,10 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
                 if (col != col_prev)
                 {
                     if (col_prev > -1)
-                        m_pointerB[col] = m_pointerE[col] = m_pointerE[col_prev];
+                    {
+                        for (int k = col_prev + 1; k <= col; ++k)
+                            m_pointerB[k] = m_pointerE[k] = m_pointerE[k - 1];
+                    }
 
                     col_prev = col;
                 }
@@ -320,7 +323,10 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
                 if (col != col_prev)
                 {
                     if (col_prev > -1)
-                        m_pointerB[col] = m_pointerE[col] = m_pointerE[col_prev];
+                    {
+                        for (int k = col_prev + 1; k <= col; ++k)
+                            m_pointerB[k] = m_pointerE[k] = m_pointerE[k - 1];
+                    }
 
                     col_prev = col;
                 }

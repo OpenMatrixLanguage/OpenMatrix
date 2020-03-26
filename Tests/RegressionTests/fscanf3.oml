@@ -1,3 +1,0 @@
-f = fopen('FileManipulation\precip.txt');
-fscanf(f, '%s %f %g', [5 Inf])
-fclose(f);
