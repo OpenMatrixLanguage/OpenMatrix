@@ -145,11 +145,12 @@ bool OmlOde113(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_SCALARVECTOR, 3);
     }
 
-    const hwMatrix* time   = cur2.ConvertToMatrix();
-    const hwMatrix* y      = cur3.ConvertToMatrix();
-    double reltol          = 1.0e-3;
-    const hwMatrix* abstol = nullptr;
-    bool deleteAbsTol      = false;
+    const hwMatrix* time         = cur2.ConvertToMatrix();
+    const hwMatrix* y            = cur3.ConvertToMatrix();
+    double          reltol       = 0.001;
+    const hwMatrix* abstol       = nullptr;
+    double          maxstep      = -999.0;
+    bool            deleteAbsTol = false;
 
     if (nargin > 3)
     {
@@ -160,8 +161,9 @@ bool OmlOde113(EvaluatorInterface           eval,
             {
                 throw OML_Error(OML_ERR_OPTION, 4);
             }
-            const Currency& reltol_C = options->GetValue(0, -1, "RelTol");
-            const Currency& abstol_C = options->GetValue(0, -1, "AbsTol");
+            const Currency& reltol_C  = options->GetValue(0, -1, "RelTol");
+            const Currency& abstol_C  = options->GetValue(0, -1, "AbsTol");
+            const Currency& maxstep_C = options->GetValue(0, -1, "MaxStep");
 
             if (!reltol_C.IsEmpty())
             {
@@ -188,6 +190,19 @@ bool OmlOde113(EvaluatorInterface           eval,
             {
                 throw OML_Error(OML_ERR_SCALARVECTOR, 4, OML_VAR_ABSTOL);
             }
+
+            if (!maxstep_C.IsEmpty())
+            {
+                if (maxstep_C.IsScalar())
+                {
+                    maxstep = maxstep_C.Scalar();
+                }
+                else
+                {
+                    throw OML_Error(OML_ERR_SCALAR, 4, OML_VAR_MAXSTEP);
+                }
+            }
+
         }
         else if (inputs[3].IsMatrix())
         {
@@ -225,7 +240,7 @@ bool OmlOde113(EvaluatorInterface           eval,
         // one step mode
         timeSolution = new hwMatrix;
         status = ODE11(ODE113_file_func, rootFunc, *time, *y, timeSolution,
-                       *ySolution, reltol, abstol, userData);
+                       *ySolution, reltol, abstol, maxstep, userData);
     }
     else
     {
@@ -233,7 +248,7 @@ bool OmlOde113(EvaluatorInterface           eval,
         timeSolution = (hwMatrix*) time;
         timeSolution->IncrRefCount();
         status = ODE11(ODE113_file_func, rootFunc, *time, *y, nullptr, *ySolution,
-                       reltol, abstol, userData);
+                       reltol, abstol, maxstep, userData);
     }
 
     if (deleteAbsTol)

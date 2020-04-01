@@ -1,4 +1,4 @@
-addtoolbox omlOptimization
+addtoolbox omloptimization
 
 function e=f(x) e=x-1; end
 function e=g(x) y=fsolve(@f,0); e=y-x; end

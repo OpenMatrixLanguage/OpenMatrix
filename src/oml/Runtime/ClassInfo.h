@@ -74,6 +74,10 @@ public:
     //! Returns true if property with the given name is private
     //! \param[in] name Name of the property
     bool IsPropertyPrivate( const std::string& name) const;
+	//! Registers a default for a property
+	//! \param[in] name      Property name
+	//! \param[in] value     The default value for the property
+	void AddPropertyDefault(const std::string& name,  Currency value);
 
 	Currency CreateEmpty() const;
 
@@ -82,6 +86,7 @@ private:
     std::vector<PropertyInfo*>           _properties;   //! Properties
     std::vector<const ClassInfo*>        _baseclass;    //! Base classes
     std::map<std::string, FunctionInfo*> _methods;      //! Methods in language
+	std::map<std::string, Currency>      _defaults;      //! Methods in language
 }; 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------

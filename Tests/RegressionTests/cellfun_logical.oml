@@ -1,0 +1,7 @@
+﻿str = 'data.tar.gz';
+
+pattern= {'docx','tar'};
+
+b=cellfun(@(s)~isempty(s),strfind(str,pattern))
+
+str(b) %fails because b is not logical, but should be.

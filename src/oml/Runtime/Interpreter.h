@@ -120,6 +120,11 @@ public:
 	void RegisterDebugListener(EvaluatorDebugInterface* edi);
 
 	void RegisterExternalVariableFunction(EXTPTR ep);
+    //!
+    //! Returns true if successful in locking a built-in function
+    //! \param funcname Built in function to lock
+    //!
+    bool LockBuiltInFunction(const std::string& funcname);
 
     //! Rename
     int RenameVariable(const std::string& oldname,     
@@ -153,12 +158,13 @@ public:
 
     //! Returns true if evaluator is in experimental mode
     bool GetExperimental() const;
-    //! Sets the experimental mode flag (-ex)
+    //! Sets the experimental mode flag (-x)
     //! \param[in] val Sets to true if the evaluator is in experimental mode
     void SetExperimental(bool val);
 
 	//! Search User Docs
 	std::string GetHelpModule(std::string funcName);
+	std::string GetHelpDirectory(std::string funcName);
 	std::string GetHelpFilename(std::string funcName);
 
     //! Gets signal handler

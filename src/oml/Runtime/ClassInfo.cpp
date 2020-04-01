@@ -81,7 +81,11 @@ bool ClassInfo::IsSubclassOf(const std::string& baseclass) const
 	for (int j=0; j<_baseclass.size(); j++)
 	{
 		const ClassInfo* base_class = _baseclass[j];
+
 		if (base_class->_class_name == baseclass)
+			return true;
+
+		if (base_class->IsSubclassOf(baseclass))
 			return true;
 	}
 
@@ -137,6 +141,13 @@ void ClassInfo::AddProperty(const std::string& name, bool isPrivate)
 
     PropertyInfo* prop = new PropertyInfo(name, isPrivate);    
     _properties.push_back(prop);
+}
+
+void ClassInfo::AddPropertyDefault(const std::string& name, Currency value)
+{
+	if (name.empty() || !HasProperty(name)) return;
+
+	_defaults[name] = value;
 }
 //------------------------------------------------------------------------------
 //! Returns true if a property with the given name exists
@@ -201,8 +212,21 @@ Currency ClassInfo::CreateEmpty() const
 
 	StructData* sd = cur.Struct();
 
-	for (int j=0; j<_properties.size(); j++)
-		sd->SetValue(0, 0, _properties[j]->Name(), new hwMatrix); 
+	for (int j = 0; j < _properties.size(); j++)
+	{
+		std::string prop_name = _properties[j]->Name();
+
+		Currency default_value;
+
+		std::map<std::string, Currency>::const_iterator temp = _defaults.find(prop_name);
+
+		if (temp != _defaults.end())
+			default_value = temp->second;
+		else
+			default_value = new hwMatrix;
+
+		sd->SetValue(0, 0, prop_name, default_value);
+	}
 
 	cur.SetClass(_class_name);
 

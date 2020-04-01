@@ -1,0 +1,7 @@
+str = {'  AAAAAA    ',
+
+'    BBBBBB     ',
+
+'    CCCCCC    '};
+
+strip_result = strip(str,'left')

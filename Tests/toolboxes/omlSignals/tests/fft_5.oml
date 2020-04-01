@@ -1,2 +1,2 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 fft([3i 6 2; 5 3i 1;8 6-5i 3],4)

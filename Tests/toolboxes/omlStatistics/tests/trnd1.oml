@@ -1,4 +1,4 @@
-addtoolbox('omlStatistics')
+addtoolbox('omlstatistics')
 n= 10;
 rand('seed', 2003);
 rnd1 = trnd(n)

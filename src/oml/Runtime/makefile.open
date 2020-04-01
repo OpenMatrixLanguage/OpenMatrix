@@ -31,9 +31,10 @@ CXX_INCLUDES += -I.
 CXX_INCLUDES += -I$(BOOST_DIR)
 CXX_INCLUDES += -I${ANTLR_SRC} -I${ANTLR_DIR} -I${ANTLR_DIR}/include
 CXX_INCLUDES += -I$(MATH_DIR) -I$(MATH_DIR)/kernel -I$(MATH_DIR)/..
+CXX_INCLUDES += -I$(MKL_INCLUDE)
 LIBS += $(ANTLR_LIBS)
 LIBS += $(MATHKERNEL_LIBS)
-LIBS += $(LAPACK_LIBS) $(BLAS_LIBS)
+LIBS += $(MKL_LIBS)
 SO_FLAGS += -LTCG
 
 # ====================================================================

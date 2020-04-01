@@ -27,7 +27,6 @@
 #include <time.h>
 #include <utility>
 
-
 #ifdef OS_WIN
 #    include "windows.h"
 #else
@@ -42,6 +41,7 @@
 #include "CurrencyDisplay.h"
 #include "Evaluator.h"
 #include "OML_Error.h"
+#include "SignalHandlerBase.h"
 #include "StructData.h"
 
 // Helper method to run a system command asynchronously
@@ -57,7 +57,7 @@ void RunSystemCommand(const std::string& command)
 //------------------------------------------------------------------------------
 bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
                             const std::vector<Currency>& inputs,
-                            std::vector<Currency>&       outputs)
+                            std::vector<Currency>& outputs)
 {
     size_t nargin = inputs.empty() ? 0 : inputs.size();
 
@@ -114,7 +114,7 @@ bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
 #ifdef OS_WIN
     strcmd = "dir";
 #else
-    strcmd =  "ls";
+    strcmd = "ls";
 #endif
 
     if (!options.empty())
@@ -123,31 +123,105 @@ bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
         strcmd += " " + filenames;
 
     strcmd += " 2>&1";
-   
+
     FILE* cmdoutput = nullptr;
+    bool echo = (eval.GetNargoutValue() == 0);
+
+#ifdef _DEBUG    // This needs to be done otherwise Unicode chars don't show up correctly
+#ifdef OS_WIN
+    char* oldlocale = setlocale(LC_ALL, nullptr);
+    std::string cachelocale("C");
+    if (!oldlocale)
+    {
+        utils.SetWarning(eval, "Warning: Unable to determine locale");
+    }
+    else
+    {
+        cachelocale = oldlocale;
+    }
+    UINT oldoutputcp = GetConsoleOutputCP();
+    cmdoutput = _wpopen(utils.StdString2WString(strcmd).c_str(), L"r");
+    if (!cmdoutput)
+    {
+        throw OML_Error(HW_ERROR_PROBOPENPIPE);
+    }
+
+    BuiltInFuncsSystem funcs;
+    std::wstring line;
+    std::wstring woutput;
+
+    if (oldlocale)
+    {
+        funcs.SetToUtf8Locale(); // Set to utf locale before getting char
+        fflush(stdout);
+    }
+
+    while (!feof(cmdoutput))
+    {
+        wint_t c = fgetwc(cmdoutput);
+        if (c == L'\r' || c == L'\n')
+        {
+            std::string buf(utils.WString2StdString(line));
+            line = L""; // Reset line
+            out += buf + "\n";
+            if (echo)
+            {
+                Currency tmp(buf);
+                tmp.DispOutput();
+                if (oldlocale)               //  Reset to original locale
+                {
+                    setlocale(LC_ALL, cachelocale.c_str());
+                    SetConsoleOutputCP(oldoutputcp);
+                    fflush(stdout);
+                }
+                eval.PrintResult(tmp);
+                if (oldlocale)
+                {
+                    funcs.SetToUtf8Locale(); // Set to utf locale before getting char
+                    fflush(stdout);
+                }
+
+            }
+        }
+        else if (c != WEOF)
+        {
+            line += c;
+        }
+    }
+    if (oldlocale)               //  Reset to original locale
+    {
+        setlocale(LC_ALL, cachelocale.c_str());
+        SetConsoleOutputCP(oldoutputcp);
+        fflush(stdout);
+    }
+
+    _pclose(cmdoutput);
+
+    if (!echo)
+    {
+        outputs.push_back(out);
+    }
+    return true;
+#endif
+#endif
+
 
 #ifdef OS_WIN
-    cmdoutput = _popen(strcmd.c_str(), "r");
+    cmdoutput = _popen(strcmd.c_str(), "rt");
 #else
     cmdoutput = popen(strcmd.c_str(), "r");
 #endif
 
     if (!cmdoutput)
     {
-        throw OML_Error(HW_ERROR_PROBOPENPIPE);
-    }
-    
-    long id = 0;
-    bool echo = (eval.GetNargoutValue() == 0);
+        std::string err(strerror(errno));
+        std::string msg = (!err.empty() && err != "No error") ? err : 
+            OML_Error(HW_ERROR_PROBOPENPIPE).GetErrorMessage();
 
-    if (echo)
-    {
-        time_t ltime;
-        time(&ltime);
-        id = static_cast<long>(ltime);
+        throw OML_Error(msg);
     }
 
-    while (1) 
+    while (1)
     {
         char buf[256];
         memset(buf, 0, sizeof(buf));
@@ -159,13 +233,14 @@ bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
 
         if (echo)
         {
-            Currency tmp = buf;
-            tmp.DispOutput();
-            CurrencyDisplay* display = tmp.GetDisplay();
-            if (display)
+            std::string line(buf);
+            utils.StripTrailingNewline(line);
+            if (line.empty())
             {
-                display->SetChainedDisplay(id);
+                continue;
             }
+            Currency tmp = line;
+            tmp.DispOutput();
             eval.PrintResult(tmp);
         }
     }
@@ -180,7 +255,6 @@ bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
     {
         outputs.push_back(out);
     }
-
     return true;
 }
 //------------------------------------------------------------------------------
@@ -251,6 +325,7 @@ bool BuiltInFuncsSystem::Dir(EvaluatorInterface           eval,
     if (isdir)
         pattern = dir + DIRECTORY_DELIM + std::string("*");
 
+    BuiltInFuncsUtils utils;
     if (eval.GetNargoutValue() == 0)  // Just print the results
     {
         std::vector<std::string> files (BuiltInFuncsUtils::GetMatchingFiles(pattern));
@@ -298,7 +373,7 @@ bool BuiltInFuncsSystem::Dir(EvaluatorInterface           eval,
         startupPath = BuiltInFuncsUtils::GetBaseDir(dir) + DIRECTORY_DELIM;
     }
 
-    int i = 0;     
+    int i = 0;    
     for (std::vector<std::string>::const_iterator itr = files.begin(); 
          itr != files.end(); ++itr, ++i)
     {
@@ -456,30 +531,33 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
 		saveoutput = true;
 	}
 
+    BuiltInFuncsUtils utils;
+
 	// Construct the command
 	std::string command;
-	
-#ifdef OS_WIN
-	command = "\"" + inputs[0].StringVal() + "\" 2>&1";
-#else
-	std::string in(inputs[0].StringVal());
+    std::string in(inputs[0].StringVal());
 
-	// Strip leading spaces
-	if (!in.empty())
-	{
-		size_t pos = in.find_first_not_of(" \t");
-		if (pos != std::string::npos && pos != 0)
-		{
-			in = in.substr(pos);
-		}
-	}
+#ifdef OS_WIN
+	command = "\"" + in + "\" 2>&1";
+#else
+
+    // Strip leading spaces
+    if (!in.empty())
+    {
+        size_t pos = in.find_first_not_of(" \t");
+        if (pos != std::string::npos && pos != 0)
+        {
+            in = in.substr(pos);
+        }
+    }
 
 	// Extra quotes needed on linux with spaces
 	if (!in.empty() && in[0] != '\"' && in.find(" ") != std::string::npos)
 	{
 		in = "\"" + in + "\"";
 	}
-	command = "\"" + in + "\" 2>&1";
+
+    command = "\"" + in + "\" 2>&1";  // Extra quotes for cases where command has a quote
 #endif
 
 	if (async)
@@ -495,8 +573,32 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
     bool echo = (nargout < 2);
     FILE* pipe = nullptr;
 
+    int returncode = 0;
+    std::string       output;
+    // Set the chained display id so that if one of the currencies in this 
+    // group is deleted, all of them will be deleted
+    long id = 0;
+    if (saveoutput || echo)
+    {
+        time_t ltime;
+        time(&ltime);
+        id = static_cast<long>(ltime);
+    }
+
 #ifdef OS_WIN
-	pipe = _popen(command.c_str(), "r");
+    char* oldlocale = setlocale(LC_ALL, nullptr);
+    std::string cachelocale("C");
+    if (!oldlocale)
+    {
+        utils.SetWarning(eval, "Warning: Unable to determine locale");
+    }
+    else
+    {
+        cachelocale = oldlocale;
+    }
+    UINT oldoutputcp = GetConsoleOutputCP();
+
+	pipe = _wpopen(utils.StdString2WString(command).c_str(), L"r");
 #else
     pipe = popen(command.c_str(), "r");
 #endif
@@ -506,18 +608,65 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
         throw OML_Error(HW_ERROR_PROBOPENPIPE);
     }
 
+#ifdef OS_WIN
+    BuiltInFuncsSystem funcs;
+    std::wstring line;
+    if (saveoutput || echo)
+    {
+        if (oldlocale)
+        {
+            funcs.SetToUtf8Locale(); // Set to utf locale before getting char
+            fflush(stdout);
+        }
 
-    std::string output;
+        while (!feof(pipe))
+        {
+            wint_t c = fgetwc(pipe);
+            if (c == L'\r' || c == L'\n')
+            {
+                std::string buf(utils.WString2StdString(line));
+                output += buf + "\n";
+                line = L""; // Reset line
+                if (echo)
+                {
+                    Currency tmp(buf);
+                    tmp.DispOutput();
+                    CurrencyDisplay* display = tmp.GetDisplay();
+                    if (display)
+                    {
+                        display->SetChainedDisplay(id);
+                    }
+                    if (oldlocale)               //  Reset to original locale
+                    {
+                        setlocale(LC_ALL, cachelocale.c_str());
+                        SetConsoleOutputCP(oldoutputcp);
+                        fflush(stdout);
+                    }
+                    eval.PrintResult(tmp);
+                    if (oldlocale)
+                    {
+                        funcs.SetToUtf8Locale(); // Set to utf locale before getting char
+                        fflush(stdout);
+                    }
+                }
+            }
+            else if (c != WEOF)
+            {
+                line += c;
+            }
+        }
+        if (oldlocale)               //  Reset to original locale
+        {
+            setlocale(LC_ALL, cachelocale.c_str());
+            SetConsoleOutputCP(oldoutputcp);
+            fflush(stdout);
+        }
 
-    // Set the chained display id so that if one of the currencies in this 
-    // group is deleted, all of them will be deleted
-
+    }
+    returncode = _pclose(pipe);
+#else
 	if (saveoutput || echo)
 	{
-		time_t ltime;
-		time(&ltime);
-		long id = static_cast<long>(ltime);
-
 		while (1)
 		{
 			char buf[256];
@@ -525,10 +674,11 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
 			{
 				break;
 			}
-			output += buf;
 			if (echo) // Echo it instead of saving output
 			{
-				Currency tmp = buf;
+                std::string val(buf);
+                utils.StripTrailingNewline(val);
+				Currency tmp = val;
 				tmp.DispOutput();
 				CurrencyDisplay* display = tmp.GetDisplay();
 				if (display)
@@ -537,12 +687,12 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
 				}
 				eval.PrintResult(tmp);
 			}
+            else
+            {
+                output += buf;
+            }
 		}
 	}
-    int returncode = 0;
-#ifdef OS_WIN
-    returncode = _pclose(pipe);
-#else
     returncode = pclose(pipe);
 #endif
 
@@ -585,6 +735,7 @@ bool BuiltInFuncsSystem::Delete(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
+    BuiltInFuncsUtils utils;
     std::string warn;
     for (int i = 0; i < nargin; ++i)
     {
@@ -598,8 +749,42 @@ bool BuiltInFuncsSystem::Delete(EvaluatorInterface           eval,
         {
             continue;
         }
+
         name = BuiltInFuncsUtils::Normpath(name);
         int result = true;
+
+#ifdef OS_WIN
+        std::wstring wname(utils.StdString2WString(name));
+        if (wname.find(L"*") == std::wstring::npos)  // No wildcards
+        {
+            if (_wremove(wname.c_str()))
+            {
+                result = false;
+            }
+        }
+        else
+        {
+            // Use the system command to as the name could contain wildcards
+            // System command will not return info about missing files unless
+            // the output is sent to a pipe, which is not done here
+            std::wstring cmd = L"del \"" + wname + L"\" /F /Q";
+            if (_wsystem(cmd.c_str()) != 0)
+            {
+                result = false;
+            }
+        }
+        if (!result)
+        {
+            warn += "File [" + utils.WString2StdString(wname) + "]";
+            std::string err = strerror(errno);
+            if (!err.empty() && err != "No error")
+            {
+                warn += ", error [" + err + "]";
+            }
+            warn += "\n";
+        }
+
+#else
         if (name.find("*") == std::string::npos)  // No wildcards
         {
             if (remove(name.c_str()))
@@ -612,13 +797,7 @@ bool BuiltInFuncsSystem::Delete(EvaluatorInterface           eval,
             // Use the system command to as the name could contain wildcards
             // System command will not return info about missing files unless
             // the output is sent to a pipe, which is not done here
-            std::string cmd;
-#ifdef OS_WIN
-            cmd = "del \"" + name + "\" /F /Q";
-#else
-            cmd = "rm -rf " + name + " > /dev/null";
-#endif
-
+            std::string cmd = "rm -rf " + name + " > /dev/null";
             if (system(cmd.c_str()) != 0)
             {
                 result = false;
@@ -634,6 +813,8 @@ bool BuiltInFuncsSystem::Delete(EvaluatorInterface           eval,
             } 
             warn += "\n";
         }
+
+#endif
     }
 
     if (!warn.empty())
@@ -876,7 +1057,10 @@ bool BuiltInFuncsSystem::Cd(EvaluatorInterface           eval,
         dir = utils.WString2StdString(cwd);
 #else
         dir = utils.GetAbsolutePath(val);
-        utils.StripTrailingSlash(dir);
+        if (dir.length() > 1)
+        {
+            utils.StripTrailingSlash(dir);
+        }
         if (!utils.IsDir(dir))
         {
             throw OML_Error("Error: invalid directory name in argument 1");
@@ -978,7 +1162,10 @@ bool BuiltInFuncsSystem::Rmdir(EvaluatorInterface           eval,
     if (!removeSubdir)
     {
 #ifdef OS_WIN
-        BOOL returncode = RemoveDirectory((LPCSTR)dir.c_str());
+        std::wstring wdir(utils.StdString2WString(inputs[0].StringVal()));
+        wdir = utils.GetAbsolutePathW(wdir);
+
+        BOOL returncode = RemoveDirectoryW((LPCWSTR)wdir.c_str());
         if (!returncode)
         {
             result = false;
@@ -1019,14 +1206,15 @@ bool BuiltInFuncsSystem::Rmdir(EvaluatorInterface           eval,
     // System command will not return info about missing files unless
     // the output is sent to a pipe, which is not done here
 #ifdef OS_WIN
-    std::wstring wstr = utils.StdString2WString(dir);
-    std::wstring cmd  = L"rmdir \"" + wstr + L"\" /S /Q";
+    std::wstring wdir(utils.StdString2WString(inputs[0].StringVal()));
+    wdir = utils.GetAbsolutePathW(wdir);
+    std::wstring cmd  = L"rmdir \"" + wdir + L"\" /S /Q";
     if (_wsystem(cmd.c_str()) != 0)
     {
         result = false;
         msgid = "rmdir";
         std::string err = strerror(errno);
-        error = "Error deleting [" + utils.WString2StdString(wstr) +
+        error = "Error deleting [" + utils.WString2StdString(wdir) +
             +"]";
         if (!err.empty() && err != "No error")
         {
@@ -1092,11 +1280,26 @@ bool BuiltInFuncsSystem::CTime(EvaluatorInterface           eval,
     {
         throw OML_Error(OML_ERR_NONNEGATIVE_SCALAR, 1);
     }
-
+    else if (IsInf_T(val) || IsNaN_T(val) || IsNegInf_T(val))
+    {
+        throw OML_Error(OML_ERR_INVALIDTIMEVAL, 1);
+    }
     time_t rawtime = static_cast<time_t>(val);
-    std::string strtime (ctime(&rawtime));
 
-    outputs.push_back(strtime);
+    struct tm* mytime = localtime(&rawtime);
+    if (!mytime)
+    {
+        throw OML_Error(OML_ERR_INVALIDTIMEVAL, 1);
+    }
+    char buff[256];
+    if (strftime(buff, sizeof(buff), "%a %b %d %H:%M:%S %Y", mytime))
+    {
+        outputs.push_back(std::string(buff));
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_INVALIDTIMEVAL, 1);
+    }
     return true;
 }
 //------------------------------------------------------------------------------
@@ -1411,3 +1614,13 @@ bool BuiltInFuncsSystem::MakeAbsFilename(EvaluatorInterface           eval,
     return true;
 
 }
+#ifdef OS_WIN
+//------------------------------------------------------------------------------
+// Helper method to set locale and output mode to support Unicode
+//------------------------------------------------------------------------------
+void BuiltInFuncsSystem::SetToUtf8Locale()
+{
+    setlocale(LC_ALL, "en_US.UTF-8");
+    SetConsoleOutputCP(65001);
+}
+#endif

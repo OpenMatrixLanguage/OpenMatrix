@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsString.cpp
 * @date November 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -440,7 +440,10 @@ Currency BuiltInFuncsString::StrtrimHelper(EvaluatorInterface& eval,
 {
     bool iscell   = cur.IsCellArray();
     bool isstring = cur.IsString();
-    if (!iscell && !isstring) throw OML_Error(HW_ERROR_INPUTSTRINGCELLARRAY);
+    if (!iscell && !isstring)
+    {
+        throw OML_Error(OML_ERR_STRING_STRINGCELL, 1);
+    }
 
     if (iscell)
     {
@@ -852,7 +855,8 @@ bool BuiltInFuncsString::Regexprep(EvaluatorInterface           eval,
                     }
                     catch (std::regex_error& err)
                     {
-                        ThrowRegexError(err.code());
+                        BuiltInFuncsUtils utils;
+                        utils.ThrowRegexError(err.code());
                     }
                 }
                 catch (...)
@@ -921,69 +925,7 @@ std::vector<std::string> BuiltInFuncsString::Currency2StringVec(const Currency& 
     }
     return out;
 }
-//------------------------------------------------------------------------------
-// Throws regex error
-//------------------------------------------------------------------------------
-void BuiltInFuncsString::ThrowRegexError(std::regex_constants::error_type code)
-{
-    std::string errmsg;
-    switch (code)
-    {
-        case std::regex_constants::error_collate:
-            errmsg = "invalid collating element name";
-            break;
-        case std::regex_constants::error_ctype:
-            errmsg = "invalid character class name";
-            break;
-        case std::regex_constants::error_escape:
-            errmsg = "invalid escape sequence";
-            break;
-        case std::regex_constants::error_backref:
-            errmsg = "invalid back reference";
-            break;
-        case std::regex_constants::error_brack:
-#ifdef LINUX 
-            // Square brackets[] is not supported with gcc 4.8
-            errmsg = "invalid square brackets - not supported in regular expressions";
-#else
-            errmsg = "invalid unmatched square brackets";
-#endif
-            break;
-        case std::regex_constants::error_paren:
-            errmsg = "invalid unmatched parenthesis";
-            break;
-        case std::regex_constants::error_brace:
-            errmsg = "invalid unmatched curly braces";
-            break;
-        case std::regex_constants::error_badbrace:
-            errmsg = "invalid range in braces";
-            break;
-        case std::regex_constants::error_range:
-            errmsg = "invalid character range";
-            break;
-        case std::regex_constants::error_space:
-        case std::regex_constants::error_stack:
-            errmsg = "not enough memory";
-            break;
-        case std::regex_constants::error_badrepeat:
-            errmsg = "invalid section to repeat";
-            break;
-        case std::regex_constants::error_complexity:
-            errmsg = "match was too complex";
-            break;
-#ifdef OS_WIN
-        case std::regex_constants::error_syntax:
-            errmsg = "syntax error with regular expression";
-            break;
-#endif
-        default:
-            errmsg = "cannot parse regular expression";
-            break;
-    }
 
-    throw OML_Error("Error: " + errmsg);
-}
-//------------------------------------------------------------------------------
 // Returns true after converting a numerical value to a string
 //------------------------------------------------------------------------------
 bool BuiltInFuncsString::Num2Str(EvaluatorInterface           eval,
@@ -1586,4 +1528,397 @@ bool BuiltInFuncsString::IsValidStrtodResult(const std::string& in,
     }
     
     return (end.find_first_of("ij") != std::string::npos);
+}
+//------------------------------------------------------------------------------
+// Returns true if given pattern is found in the input [contains]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsString::Contains(EvaluatorInterface           eval,
+                                  const std::vector<Currency>& inputs,
+                                  std::vector<Currency>&       outputs)
+{
+    int nargin = inputs.empty() ? 0 : static_cast<int>(inputs.size());
+    if (nargin != 2 && nargin != 4)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    // Validate inputs
+    bool isStringTxt = inputs[0].IsString();
+    if (!isStringTxt && !inputs[0].IsCellArray())
+    {
+        throw OML_Error(OML_ERR_STRING_STRINGCELL, 1);
+    }
+
+    bool isStringPat = inputs[1].IsString();
+    if (!isStringPat && !inputs[1].IsCellArray())
+    {
+        throw OML_Error(OML_ERR_STRING_STRINGCELL, 2);
+    }
+
+    bool ignorecase = false;
+    if (nargin == 4)
+    {
+        if (!inputs[2].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, 3);
+        }
+        std::string val(inputs[2].StringVal());
+        if (!val.empty())
+        {
+            std::transform(val.begin(), val.end(), val.begin(), ::tolower);
+        }
+        if (val != "ignorecase")
+        {
+            throw OML_Error(OML_ERR_BAD_STRING, 3);
+        }
+
+        if (!inputs[3].IsLogical() && !inputs[3].IsInteger())
+        {
+            throw OML_Error(OML_ERR_LOGICAL, 4);
+        }
+        int tmp = static_cast<int>(inputs[3].Scalar());
+        if (tmp != 0 && tmp != 1)
+        {
+            throw OML_Error(OML_ERR_FLAG_01, 4);
+        }
+        ignorecase = (tmp == 0) ? false : true;
+    }
+
+    const hwMatrix* mtx1 = (isStringTxt) ? inputs[0].Matrix() : nullptr;
+    const hwMatrix* mtx2 = (isStringPat) ? inputs[1].Matrix() : nullptr;
+
+    if (mtx1 && mtx2 && mtx1->Size() == 1 && mtx2->Size() == 1)
+    {
+        std::string txt(inputs[0].StringVal());
+        std::string pat(inputs[1].StringVal());
+
+        if (ignorecase)
+        {
+            if (!txt.empty())
+            {
+                std::transform(txt.begin(), txt.end(), txt.begin(), ::tolower);
+            }
+            if (!pat.empty())
+            {
+                std::transform(pat.begin(), pat.end(), pat.begin(), ::tolower);
+            }
+        }
+        bool contains = false;
+        if (!txt.empty() && !pat.empty() && txt.find(pat) != std::string::npos)
+        {
+            contains = true;
+        }
+        Currency out(contains);
+        out.SetMask(Currency::MASK_LOGICAL);
+        outputs.push_back(out);
+        return true;
+    }
+
+    HML_CELLARRAY* cell1        = nullptr;
+	bool           delete_cell1 = false;
+
+    BuiltInFuncsUtils utils;
+    if (inputs[0].IsCellArray())
+    {
+        cell1 = inputs[0].CellArray();
+    }
+    else
+    {
+        if (mtx1 && mtx1->Size())
+        {
+            int m = mtx1->M();
+            cell1 = EvaluatorInterface::allocateCellArray(m, 1);
+			delete_cell1 = true;
+
+            for (int i = 0; i < m; ++i)
+            {
+                std::unique_ptr<hwMatrix> row(EvaluatorInterface::allocateMatrix());
+                utils.CheckMathStatus(eval, mtx1->ReadRow(i, *row));
+                Currency tmp(row.release());
+                tmp.SetMask(Currency::MASK_STRING);
+                (*cell1)(i) = tmp;
+            }
+        }
+    }
+    if (!cell1)
+    {
+        Currency cur(false);
+        cur.SetMask(Currency::MASK_LOGICAL);
+        outputs.push_back(cur);
+        return true;
+    }
+
+    HML_CELLARRAY* cell2        = nullptr;
+	bool           delete_cell2 = false;
+    if (inputs[1].IsCellArray())
+    {
+        cell2 = inputs[1].CellArray();
+    }
+    else
+    {
+        if (mtx2 && mtx2->Size())
+        {
+            int m2 = mtx2->M();
+            cell2 = EvaluatorInterface::allocateCellArray(m2, 1);
+			delete_cell2 = true;
+
+            for (int i = 0; i < m2; ++i)
+            {
+                std::unique_ptr<hwMatrix> row(EvaluatorInterface::allocateMatrix());
+                utils.CheckMathStatus(eval, mtx2->ReadRow(i, *row));
+                Currency tmp(row.release());
+                tmp.SetMask(Currency::MASK_STRING);
+                (*cell2)(i, 0) = tmp;
+            }
+        }
+    }
+
+    int m1 = cell1->M();
+    int n1 = cell1->N();
+
+    hwMatrix* out(EvaluatorInterface::allocateMatrix(m1, n1, hwMatrix::REAL));
+
+    out->SetElements(0);
+    if (!cell2 || cell2->IsEmpty())
+    {
+        Currency cur(out);
+        cur.SetMask(Currency::MASK_LOGICAL);
+        outputs.push_back(cur);
+        return true;
+    }
+
+    int m2 = cell2->M();
+    int n2 = cell2->N();
+
+    for (int i1 = 0; i1 < m1; ++i1)
+    {
+        for (int j1 = 0; j1 < n1; ++j1)
+        {
+            Currency curTxt = (*cell1)(i1, j1);
+            if (!curTxt.IsString())
+            {
+                throw OML_Error(OML_ERR_STRING_STRINGCELL, 1);
+            }
+            std::string txt(curTxt.StringVal());
+            if (txt.empty())
+            {
+                continue;
+            }
+            else if (ignorecase)
+            {
+                std::transform(txt.begin(), txt.end(), txt.begin(), ::tolower);
+            }
+            int contains = 0;
+            for (int i2 = 0; i2 < m2 && contains == 0; ++i2)
+            {
+                for (int j2 = 0; j2 < n2 && contains == 0; ++j2)
+                {
+                    Currency curPat = (*cell2)(i2, j2);
+                    if (!curPat.IsString())
+                    {
+                        throw OML_Error(OML_ERR_STRING_STRINGCELL, 2);
+                    }
+                    std::string pat(curPat.StringVal());
+                    if (pat.empty())
+                    {
+                        continue;
+                    }
+                    else if (ignorecase)
+                    {
+                        std::transform(pat.begin(), pat.end(), pat.begin(), ::tolower);
+                    }
+                    if (txt.find(pat) != std::string::npos)
+                    {
+                        contains = 1;
+                        break;
+                    }
+                }
+            }
+            (*out)(i1, j1) = contains;
+        }
+    }
+
+	if (delete_cell1)
+		delete cell1;
+
+	if (delete_cell2)
+		delete cell2;
+
+    Currency cur(out);
+    cur.SetMask(Currency::MASK_LOGICAL);
+    outputs.push_back(cur);
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Returns true and strips leading/trailing characters from input [strip]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsString::Strip(EvaluatorInterface eval,
+                               const std::vector<Currency>& inputs,
+                               std::vector<Currency>&       outputs)
+{
+    if (inputs.empty())
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    const Currency& cur1 = inputs[0];
+    bool isstring1 = cur1.IsString();
+    if (!isstring1 && !cur1.IsCellArray())
+    {
+        throw OML_Error(OML_ERR_STRING_STRINGCELL, 1);
+    }
+
+    size_t nargin = inputs.size();
+    std::string mode("both");
+    if (nargin > 1)
+    {
+        if (!inputs[1].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, 2);
+        }
+        std::string tmp(inputs[1].StringVal());
+        if (tmp.empty())
+        {
+            throw OML_Error(OML_ERR_BAD_STRING, 2);
+        }
+        std::transform(tmp.begin(), tmp.end(), tmp.begin(), ::tolower);
+        if (tmp == "left")
+        {
+            mode = "left";
+        }
+        else if (tmp == "right")
+        {
+            mode = "right";
+        }
+        else if (tmp != "both")
+        {
+            throw OML_Error(OML_ERR_BAD_STRING, 2);
+        }
+    }
+
+    std::string trim;
+    bool isstring3 = true;
+    if (nargin > 2)
+    {
+        const Currency& cur3 = inputs[2];
+        isstring3 = cur3.IsString();
+        if (!isstring3 && !cur3.IsCellArray())
+        {
+            throw OML_Error(OML_ERR_STRING_STRINGCELL, 3);
+        }
+        
+        if (isstring3)
+        {
+            trim = cur3.StringVal();
+        }
+        else
+        {
+            HML_CELLARRAY* cell = cur3.CellArray();
+            if (cell)
+            {
+                int numelements = cell->Size();
+                for (int i = 0; i < numelements; ++i)
+                {
+                    const Currency& elem = (*cell)(i);
+                    if (!elem.IsString())
+                    {
+                        throw OML_Error(OML_ERR_STRING_STRINGCELL, 3);
+                    }
+                    trim += elem.StringVal();
+                }
+            }
+        }
+    }
+
+    if (trim.empty())
+    {
+        trim = " ";
+    }
+
+    BuiltInFuncsString funcs;
+
+    if (isstring1)
+    {
+        std::string in(cur1.StringVal());
+        
+        if (mode == "both" || mode == "left")
+        {
+            funcs.LeftTrim(in, trim);
+        }
+
+        if (mode == "both" || mode == "right")
+        {
+            funcs.RightTrim(in, trim);
+        }
+        outputs.push_back(in);
+        return true;
+    }
+
+    // Cell input
+    HML_CELLARRAY* cell1 = cur1.CellArray();
+    if (!cell1 || cell1->Size() == 0)
+    {
+        return EvaluatorInterface::allocateCellArray();
+    }
+
+    int numelements1 = cell1->Size();
+
+    std::unique_ptr<HML_CELLARRAY> out(EvaluatorInterface::allocateCellArray(
+        1, numelements1));
+
+    for (int i = 0; i < numelements1; ++i)
+    {
+        const Currency& elem1 = (*cell1)(i);
+        if (!elem1.IsString())
+        {
+            throw OML_Error(OML_ERR_STRING_STRINGCELL, 1);
+        }
+        std::string in(elem1.StringVal());
+
+
+        if (mode == "both" || mode == "left")
+        {
+            funcs.LeftTrim(in, trim);
+        }
+
+        if (mode == "both" || mode == "right")
+        {
+            funcs.RightTrim(in, trim);
+        }
+        (*out)(i) = in;
+    }
+
+    outputs.push_back(out.release());
+    return true;
+}
+//------------------------------------------------------------------------------
+// Helper method to left trim input
+//------------------------------------------------------------------------------
+void BuiltInFuncsString::LeftTrim(std::string& in, const std::string& str)
+{
+    if (in.empty() || str.empty())
+    {
+        return;
+    }
+    size_t pos = in.find_first_not_of(str);
+    if (pos != std::string::npos)
+    {
+        in = in.substr(pos);
+    }
+}
+//------------------------------------------------------------------------------
+// Helper method to right trim input
+//------------------------------------------------------------------------------
+void BuiltInFuncsString::RightTrim(std::string& in, const std::string& str)
+{
+    if (in.empty() || str.empty())
+    {
+        return;
+    }
+    size_t pos = in.find_last_not_of(str);
+    if (pos != std::string::npos)
+    {
+        in.erase(pos + 1);
+    }
 }

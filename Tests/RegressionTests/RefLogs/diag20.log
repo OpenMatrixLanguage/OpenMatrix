@@ -1,1 +1,9 @@
-Error: when using 3 arguments, the first argument must be a vector in call to function diag at line number 1 in file diag20.oml
+ans = [Matrix] 8 x 8
+0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 +  0i
+0 + 0i  0 + 0i  0 + 0i  2 + 0i  0 + 0i  0 + 0i  0 + 0i  0 +  0i
+0 + 0i  0 + 0i  0 + 0i  0 + 0i  3 + 0i  0 + 0i  0 + 0i  0 +  0i
+0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 + 0i  4 + 0i  0 + 0i  0 +  0i
+0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 +  0i
+0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 + 0i  6 + 99i
+0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 +  0i
+0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 + 0i  0 +  0i

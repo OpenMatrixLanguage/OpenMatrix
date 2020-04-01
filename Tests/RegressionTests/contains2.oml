@@ -1,0 +1,3 @@
+contains('dog is black', ['Dog'; 'is '])
+contains('dog is black', ['Dog'; 'was'], 'IgnoreCase', true)
+contains('dog is black', {'Dog'; 'is'})

@@ -1,0 +1,19 @@
+addtoolbox omldiffeq
+
+global b;
+b = pi/4;
+
+function dy = func(t,y)
+   global b;
+   dy = zeros(3,1);
+   dy(1) = -b*y(2);
+   dy(2) = y(1);
+   dy(3) = y(1)*y(2);
+end
+
+options = odeset('RelTol', 1.0e-4, 'AbsTol', [1.0e-5, 1.0e-6, 1.0e-7],'MaxStep',0.105);
+
+% one step mode test
+[t,y] = ode15s(@func, [0,12], [0,1,1], options);
+mx = max(diff(t'))
+y

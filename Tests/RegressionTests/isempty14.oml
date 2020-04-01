@@ -1,0 +1,16 @@
+﻿a = zeros(6,5);
+a(1, 1) =  1;
+a(2, 1) =  2;
+a(4, 1) =  4;
+a(1, 2) =  7;
+a(2, 2) =  8;
+a(5, 2) = 11;
+a(3, 3) = 15;
+a(4, 3) = 16;
+
+b = sparse(a);
+isempty(b)
+islogical(ans)
+c = sparse(0, 0);
+isempty(c)
+islogical(ans)

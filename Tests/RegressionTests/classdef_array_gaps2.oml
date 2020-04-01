@@ -1,0 +1,19 @@
+classdef testclass 
+    properties
+       a
+	end
+
+	methods
+	   function z = testclass(b)
+		   if (nargin == 0)
+		      z.a = 0;
+		   else
+		      z.a = b;
+		   end
+	   end
+	end
+end
+
+t(4) = testclass(4);
+t(3)
+t(4)

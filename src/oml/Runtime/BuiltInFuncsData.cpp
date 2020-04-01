@@ -1055,11 +1055,11 @@ bool BuiltInFuncsData::Sortrows(EvaluatorInterface           eval,
             }
             if (!descend)
             {
-                std::sort(tmp.begin(), tmp.end(), &IsLessThan);
+                std::stable_sort(tmp.begin(), tmp.end(), &IsLessThan);
             }
             else
             {
-                std::sort(tmp.begin(), tmp.end(), &IsGreaterThan);
+                std::stable_sort(tmp.begin(), tmp.end(), &IsGreaterThan);
             }
             for (int j = 0; j < m; ++j)
             {

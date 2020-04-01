@@ -1,4 +1,4 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 wc = (2*pi)*200;
 order = 4;
 [num,den] = butter(order, wc, 's')

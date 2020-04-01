@@ -157,11 +157,14 @@ bool quadraticRoots(double a, double b, double c,
 //*******************************************************************
 //                    General utility functions
 //*******************************************************************
-//! Check to see if a value is an integer to within a tolerance
+//! Check if a double has an int equivalent, within a tolerance
 hwMathStatus IsInteger(double value, double tol)
 {
     if (tol < 0.0)
         return hwMathStatus(HW_MATH_ERR_NEGATIVE, 2);
+
+    if (IsNaN_T(value))
+        return hwMathStatus(HW_MATH_ERR_NONINTEGER, 1);
 
     if (value >= 0.0)
     {

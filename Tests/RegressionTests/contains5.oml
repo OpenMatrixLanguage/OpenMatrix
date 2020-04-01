@@ -1,0 +1,1 @@
+contains({'one', 'two', 'three'}, {'zz', 'bb', 'h'})

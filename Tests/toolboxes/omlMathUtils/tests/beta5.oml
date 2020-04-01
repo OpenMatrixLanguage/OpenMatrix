@@ -1,2 +1,2 @@
-addToolbox omlMathUtils
+addToolbox omlmathutils
 beta([1 6 2;6 3 2; 4 4 5])

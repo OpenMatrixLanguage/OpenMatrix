@@ -1,7 +1,7 @@
 /**
 * @file Evaluator.h
 * @date August 2013
-* Copyright (C) 2013-2018 Altair Engineering, Inc.  
+* Copyright (C) 2013-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -67,9 +67,16 @@ struct BuiltinFunc
 	ALT_FUNCPTR alt_fptr;
 
 	FunctionMetaData md;
-    BuiltinFunc(FUNCPTR func, FunctionMetaData in_md) : fptr(func), alt_fptr(nullptr), md(in_md) {}
-    BuiltinFunc(ALT_FUNCPTR func) : fptr(nullptr), alt_fptr(func) {}
-    BuiltinFunc() : fptr(nullptr), alt_fptr(nullptr) {}
+    BuiltinFunc(FUNCPTR func, FunctionMetaData in_md) : fptr(func), alt_fptr(nullptr), md(in_md), locked(false), dll(nullptr) {}
+    BuiltinFunc(ALT_FUNCPTR func, const std::string* context) : fptr(nullptr), alt_fptr(func), locked(false), dll(context) {}
+	BuiltinFunc(ALT_FUNCPTR func, FunctionMetaData in_md, const std::string* context) : fptr(nullptr), alt_fptr(func), md(in_md), locked(false), dll(context) {}
+    BuiltinFunc() : fptr(nullptr), alt_fptr(nullptr), locked(false), dll(nullptr) {}
+
+	void Lock() { locked = true; }
+
+	bool locked;
+
+	const std::string* dll;
 };
 
 struct UserFunc
@@ -113,32 +120,35 @@ public:
 
 	static TREE_FPTR GetFuncPointerFromType(int type);
 
-	const Currency& GetValue(std::string varname, int offset=0) const;
+	const Currency& GetValue(std::string varname, int offset = 0) const;
 	const Currency& GetGlobalValue(std::string varname) const;
 	bool            SetGlobalValue(std::string varname, const Currency& value);
 	bool            SetValue(std::string varname, const Currency& value);
-    bool            IsGlobal(const std::string& varname) const { return msm->IsGlobal(varname); }
+	bool            SetValue(const std::string* varname, const Currency& value);
+	bool            IsGlobal(const std::string& varname) const { return msm->IsGlobal(varname); }
 	void            Clear(const std::string& varname);
-    bool            ClearFromFunctions(const std::string& name);
-    bool            ClearFromGlobals  (const std::string& name);
-    bool            ClearFromVariables(const std::string& name);
+	bool            ClearFromFunctions(const std::string& name);
+	bool            ClearFromGlobals(const std::string& name);
+	bool            ClearFromVariables(const std::string& name);
 	void            Clear(const std::regex& varname);
-    bool            ClearFromFunctions(const std::regex& name);
-    bool            ClearFromGlobals  (const std::regex& name);
-    bool            ClearFromVariables(const std::regex& name);
-    void            ClearFunctions();
-    void            ClearGlobals();
-    void            ClearVariables();
+	bool            ClearFromFunctions(const std::regex& name);
+	bool            ClearFromGlobals(const std::regex& name);
+	bool            ClearFromVariables(const std::regex& name);
+	void            ClearFunctions();
+	void            ClearGlobals();
+	void            ClearVariables();
 	int             RenameVariable(std::string old_name, std::string new_name);
 	bool            Contains(const std::string& varname) const;
 
-    void            LockCurrent();
-    void            UnlockCurrent();
-    void            Unlock(const std::string& fname);
-    bool            IsCurrentLocked() const;
-    bool            IsLocked(const std::string& fname) const;
+	void            LockCurrent();
+	void            UnlockCurrent();
+	void            Unlock(const std::string& fname);
+	bool            IsCurrentLocked() const;
+	bool            IsLocked(const std::string& fname) const;
 
-    std::string     GetCurrentFilename() const;
+	std::string     GetCurrentFilename() const;
+
+	void SetDLLContext(const std::string& dll_name);
 
 	std::vector<std::string> GetVariableNames(int offset) const;
 	std::vector<std::string> GetBuiltinFunctionNames() const;
@@ -159,44 +169,46 @@ public:
 	bool  RegisterBuiltInFunction(const std::string& func_name, FUNCPTR fp, int nargin, int nargout);
 	bool  RegisterBuiltInFunction(const std::string& func_name, FUNCPTR fp, FunctionMetaData fmd);
 	bool  RegisterBuiltInFunction(const std::string& func_name, ALT_FUNCPTR fp);
+	bool  RegisterBuiltInFunction(const std::string& func_name, ALT_FUNCPTR fp, FunctionMetaData fmd);
 	void  RegisterExternalVariableFunction(EXTPTR ep) { ext_var_ptr = ep; }
 	void  ClearTemporaryExternalVariables() { _externals.clear(); }
 
-    //! Returns true if successful in registering (swig) bound class
-    //! \param[in] name Bound class name
-    //! \param[in] info Bound class info
-    bool RegisterBoundClass( const std::string& name,
-                             BoundClassInfo*    info);
+	//! Returns true if successful in registering (swig) bound class
+	//! \param[in] name Bound class name
+	//! \param[in] info Bound class info
+	bool RegisterBoundClass(const std::string& name,
+		BoundClassInfo*    info);
 
 	int                         GetStackDepth() const { return msm->GetStackDepth(); }
 	std::vector<DebugStateInfo> GetCallStack() const { return msm->GetCallStack(); }
- 	void                        GetStackInfo(int level, std::string& filename, int& line_number);
+	void                        GetStackInfo(int level, std::string& filename, int& line_number);
 
-    std::vector<Currency> DoMultiReturnFunctionCall(FunctionInfo* fi, const std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars = nullptr);
-    std::vector<Currency> DoMultiReturnFunctionCall(FUNCPTR fptr, const std::string& func_name, const std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars);
+	std::vector<Currency> DoMultiReturnFunctionCall(FunctionInfo* fi, const std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars = nullptr);
+	std::vector<Currency> DoMultiReturnFunctionCall(FUNCPTR fptr, const std::string& func_name, const std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars);
 
-	void DoMultiReturnFunctionCall(FUNCPTR fptr,     const std::string& func_name, const std::vector<Currency>& param_values, int num_ins, bool suppress_output, OMLTree* out_tree);
-	void DoMultiReturnFunctionCall(ALT_FUNCPTR fptr,     const std::string& func_name, const std::vector<Currency>& param_values, int num_ins, bool suppress_output, OMLTree* out_tree);
+	void DoMultiReturnFunctionCall(FUNCPTR fptr, const std::string& func_name, const std::vector<Currency>& param_values, int num_ins, bool suppress_output, OMLTree* out_tree);
+	void DoMultiReturnFunctionCall(ALT_FUNCPTR fptr, const std::string& func_name, const std::vector<Currency>& param_values, int num_ins, bool suppress_output, OMLTree* out_tree);
 	void DoMultiReturnFunctionCall(FunctionInfo* fi, const std::vector<Currency>& param_values, int num_ins, bool suppress_output, OMLTree* out_tree);
 
 	std::vector<Currency> DoAnonymousMultiReturnFunctionCall(FunctionInfo* fi, const std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars = nullptr);
 
-    bool     FindFunctionByName(const std::string&, FunctionInfo**, FUNCPTR*);
+	bool     FindFunctionByName(const std::string&, FunctionInfo**, FUNCPTR*);
 
-    Currency CallFunction(const std::string&, const std::vector<Currency>&);
+	Currency CallFunction(const std::string&, const std::vector<Currency>&);
 	Currency CallFunction(const std::string*, const std::vector<Currency>&);
-    void     CallFunction(const std::string&, const std::vector<Currency>&, std::vector<Currency>&, int nargout = -1);
-    Currency CallBuiltinFunction(FUNCPTR, const std::string&, const std::vector<Currency>&);
-    Currency CallBuiltinFunction(ALT_FUNCPTR, const std::string&, const std::vector<Currency>&);
+	void     CallFunction(const std::string&, const std::vector<Currency>&, std::vector<Currency>&, int nargout = -1);
+	Currency CallBuiltinFunction(FUNCPTR, const std::string&, const std::vector<Currency>&);
+	Currency CallBuiltinFunction(ALT_FUNCPTR, const std::string&, const std::vector<Currency>&);
 	Currency CallInternalFunction(FunctionInfo*, const std::vector<Currency>&);
 	Currency CallInternalFunction(FunctionInfo*, const std::vector<Currency>&, const std::string&, const Currency&);
 
-    HML_CELLARRAY* CreateVararginCell(const std::vector<Currency>& params, int start_index);
+	HML_CELLARRAY* CreateVararginCell(const std::vector<Currency>& params, int start_index);
 
-    inline bool IsUserFunction(const std::string& func_name) { return functions->find(func_name) != functions->end(); }
-    inline bool IsStdFunction(const std::string& func_name)  { return std_functions->find(func_name) != std_functions->end(); }
-    FUNCPTR GetStdFunction(const std::string& func_name) const;
+	inline bool IsUserFunction(const std::string& func_name) { return functions->find(func_name) != functions->end(); }
+	inline bool IsStdFunction(const std::string& func_name) { return std_functions->find(func_name) != std_functions->end(); }
+	FUNCPTR GetStdFunction(const std::string& func_name) const;
 	std::string GetHelpModule(const std::string& func_name);
+	std::string GetHelpDirectory(const std::string& func_name);
 
 	bool IsA(const Currency& target, const std::string& classname) const;
 	FunctionInfo* GetBaseClassFunctionInfo(const std::string* func_name, std::string* base_name, Currency* base_val);
@@ -207,106 +219,109 @@ public:
 	std::vector<Currency>	GetOutputResults() const;
 	void					ClearOutputResults();
 	Currency				GetLastResult() const;
-	void				    PushResult(const Currency& res, bool to_output=true);
+	void				    PushResult(const Currency& res, bool to_output = true);
 	void				    PrintResult(Currency res);
 
 	bool					CloseAllFiles();
 	int						AddFile(std::FILE *newfile, const std::string &fname, const std::string &fmode);
-	int						GetNumFiles() { return (int) userFileStreams->size(); }
-    void                    AddPath(std::string pathname, bool end);
+	int						GetNumFiles() { return (int)userFileStreams->size(); }
+	void                    AddPath(std::string pathname, bool end);
+	void                    AddHiddenPath(std::string pathname);
 	void                    AddPath2(const std::string& pathname, const std::vector<std::string>& func_names);
-    bool                    RemovePath(std::string &pathname);
-    inline void             ClearPath() { paths->erase(paths->begin() + NUM_MANDATORY_PATHS, paths->end()); }
-    bool                    FindFileInPath(const std::string& file_plus_ext, std::string& filepath) const;
-    void                    RestorePath();
+	bool                    RemovePath(std::string &pathname);
+	inline void             ClearPath() { paths->erase(paths->begin() + NUM_MANDATORY_PATHS, paths->end()); }
+	bool                    FindFileInPath(const std::string& file_plus_ext, std::string& filepath) const;
+	void                    RestorePath();
 
-    bool                    IsInPaths   (const std::string &str) const;
-    inline const std::vector<std::string>& GetPaths() const { return *paths; }
+	bool                    IsInPaths(const std::string &str) const;
+	inline const std::vector<std::string>& GetPaths() const { return *paths; }
 
 	// these assume the index is valid
-	bool					CloseFile   (int i);
-    inline std::FILE*		GetFile     (int i) { return userFileStreams->at(i).file; }
-	inline std::string		GetFileName (int i) { return userFileStreams->at(i).name; }
-	inline std::string		GetFileMode (int i) { return userFileStreams->at(i).mode; }
+	bool					CloseFile(int i);
+	inline std::FILE*		GetFile(int i) { return userFileStreams->at(i).file; }
+	inline std::string		GetFileName(int i) { return userFileStreams->at(i).name; }
+	inline std::string		GetFileMode(int i) { return userFileStreams->at(i).mode; }
 	std::vector<int>		GetFileIndices(int start);
 
-    inline const OutputFormat* GetOutputFormat() const { return format; }
-    inline void  SetOutputFormat(const OutputFormat& fmt) { *format = fmt; } 
-    
-    inline void ResetFuncSearchCache() { not_found_functions->clear(); } 
+	inline const OutputFormat* GetOutputFormat() const { return format; }
+	inline void  SetOutputFormat(const OutputFormat& fmt) { *format = fmt; }
 
-    //! True if using the debugger
-    bool IsDebugging() const { return (debug_listener ? true : false); }
-    //! Sets the debug listener
+	inline void ResetFuncSearchCache() { not_found_functions->clear(); }
+
+	//! True if using the debugger
+	bool IsDebugging() const { return (debug_listener ? true : false); }
+	//! Sets the debug listener
 	void RegisterDebugListener(EvaluatorDebugInterface* edi) { debug_listener = edi; }
 
-    Currency EqualityOperator   (const Currency& lhs, const Currency& rhs, int op);
-    Currency LessThanOperator   (const Currency& lhs, const Currency& rhs);
+	Currency EqualityOperator(const Currency& lhs, const Currency& rhs, int op);
+	Currency LessThanOperator(const Currency& lhs, const Currency& rhs);
 	Currency GreaterThanOperator(const Currency& lhs, const Currency& rhs);
-	Currency LessEqualOperator   (const Currency& lhs, const Currency& rhs);
+	Currency LessEqualOperator(const Currency& lhs, const Currency& rhs);
 	Currency GreaterEqualOperator(const Currency& lhs, const Currency& rhs);
-    Currency LogicalOperator    (const Currency& lhs, const Currency& rhs, int op);
-    Currency BinaryOperator     (const Currency& lhs, const Currency& rhs, int op);
-    Currency UnaryOperator      (const Currency& operand, int op);
+	Currency LogicalOperator(const Currency& lhs, const Currency& rhs, int op);
+	Currency BinaryOperator(const Currency& lhs, const Currency& rhs, int op);
+	Currency UnaryOperator(const Currency& operand, int op);
 
 	std::string FormatErrorMessage(const std::string& base_message);
-    /* set/get the last error message */
-    static std::string GetLastErrorMessage();
-    static void SetLastErrorMessage(const std::string& lasterr);
-    static std::string GetLastWarning();
-    static void SetLastWarning(const std::string& lastwarn);
+	/* set/get the last error message */
+	static std::string GetLastErrorMessage();
+	static void SetLastErrorMessage(const std::string& lasterr);
+	static std::string GetLastWarning();
+	static void SetLastWarning(const std::string& lastwarn);
 	void ErrorCleanup();
 
-    inline bool IsUsedForEvalin() const { return is_for_evalin; }
-    ExprTreeEvaluator* MakeContextCopy(bool base, bool pop_nargs) const;
+	inline bool IsUsedForEvalin() const { return is_for_evalin; }
+	ExprTreeEvaluator* MakeContextCopy(bool base, bool pop_nargs) const;
 
-    static hwMatrix*       allocateMatrix();
-    static hwMatrix*       allocateMatrix(const hwMatrix*);
-    static hwMatrix*       allocateMatrix(int m, int n, void* data, hwMatrix::DataType type);
-    static hwMatrix*       allocateMatrix(int m, int n, hwMatrix::DataType type);
-    static hwMatrix*       allocateMatrix(int m, int n, double value);
-    static hwMatrix*       allocateMatrix(int m, int n, hwComplex& value);
-    static hwMatrixI*      allocateMatrix(int m, int n, hwMatrixI::DataType type);
-    static hwMatrixI*      allocateMatrix(int m, int n, int val);
+	static hwMatrix*       allocateMatrix();
+	static hwMatrix*       allocateMatrix(const hwMatrix*);
+	static hwMatrix*       allocateMatrix(int m, int n, void* data, hwMatrix::DataType type);
+	static hwMatrix*       allocateMatrix(int m, int n, hwMatrix::DataType type);
+	static hwMatrix*       allocateMatrix(int m, int n, double value);
+	static hwMatrix*       allocateMatrix(int m, int n, hwComplex& value);
+	static hwMatrixI*      allocateMatrix(int m, int n, hwMatrixI::DataType type);
+	static hwMatrixI*      allocateMatrix(int m, int n, int val);
 
-    static const hwMatrix* allocateColumn(const hwMatrix* mtx, int col);
+	static const hwMatrix* allocateColumn(const hwMatrix* mtx, int col);
 
-    static hwMatrixN*      allocateMatrixN();
+	static hwMatrixN*      allocateMatrixN();
 	static hwMatrixN*      allocateMatrixN(const std::vector<int>& dims, const hwMatrixN::DataType& dataType);
 	static hwMatrixN*      allocateMatrixN(const hwMatrixN*);
 
-    static HML_CELLARRAY*  allocateCellArray();
-    static HML_CELLARRAY*  allocateCellArray(int m, int n);
-    static HML_CELLARRAY*  allocateCellArray(const HML_CELLARRAY*);
+	static hwMatrixS*      allocateMatrixS();
+
+	static HML_CELLARRAY*  allocateCellArray();
+	static HML_CELLARRAY*  allocateCellArray(int m, int n);
+	static HML_CELLARRAY*  allocateCellArray(const HML_CELLARRAY*);
 
 	static HML_ND_CELLARRAY*  allocateNDCellArray();
 	static HML_ND_CELLARRAY*  allocateNDCellArray(std::vector<int> dims);
 	static HML_ND_CELLARRAY*  allocateNDCellArray(const HML_ND_CELLARRAY*);
 
-    static StructData*     allocateStruct(const StructData*);
-    static StructData*     allocateStruct();
+	static StructData*     allocateStruct(const StructData*);
+	static StructData*     allocateStruct();
 
-    bool HasBuiltin(const std::string& func_name) const;
-    int NargoutFor(const std::string& func_name) const;
-    int NarginFor(const std::string& func_name) const;
+	bool HasBuiltin(const std::string& func_name) const;
+	int NargoutFor(const std::string& func_name) const;
+	int NarginFor(const std::string& func_name) const;
 
 	void     SetInterrupt(bool);
 	bool	 IsInterrupt();
 
-    //!
-    //! Returns true if there is a pause request pending
-    //!
-    bool IsPauseRequestPending() const { return _pauseRequestPending; }
-    //!
-    //! Requests/resets pause. Pause request/reset will be processed after 
-    //! execution of current statement
-    //! \param val True if a pause request is intiated, false otherwise
-    //!
-    void SetPauseRequestPending(bool val) { _pauseRequestPending = val; }
-    //!
-    //! Returns true if interpreter is paused
-    //!
-    bool IsPaused() const { return _paused; }
+	//!
+	//! Returns true if there is a pause request pending
+	//!
+	bool IsPauseRequestPending() const { return _pauseRequestPending; }
+	//!
+	//! Requests/resets pause. Pause request/reset will be processed after 
+	//! execution of current statement
+	//! \param val True if a pause request is intiated, false otherwise
+	//!
+	void SetPauseRequestPending(bool val) { _pauseRequestPending = val; }
+	//!
+	//! Returns true if interpreter is paused
+	//!
+	bool IsPaused() const { return _paused; }
 
 	void     SetDiary(bool);
 	void     SetDiary(std::string filename);
@@ -315,70 +330,73 @@ public:
 
 	void StoreSuppressedResults(bool store) { _store_suppressed = store; }
 
-    //! Returns true if evaluator is quitting
-    bool IsQuit() const { return _quit; }
-    //! Sets the quit flag
-    //! \param[in] val Sets to true if the evaluator is quitting
-    void SetQuit( bool val) { _quit = val; }
+	//! Returns true if evaluator is quitting
+	bool IsQuit() const { return _quit; }
+	//! Sets the quit flag
+	//! \param[in] val Sets to true if the evaluator is quitting
+	void SetQuit(bool val) { _quit = val; }
 
-    //! Returns true if evaluator is in experimental mode
-    bool GetExperimental() const;
-    //! Sets the experimental mode flag (-ex)
-    //! \param[in] val Sets to true if the evaluator is in experimental mode
-    void SetExperimental( bool val);
+	//! Returns true if evaluator is in experimental mode
+	bool GetExperimental() const;
+	//! Sets the experimental mode flag (-ex)
+	//! \param[in] val Sets to true if the evaluator is in experimental mode
+	void SetExperimental(bool val);
+
+	int  GetVerbose() const;
+	void SetVerbose(int val);
 
 	Currency  VariableIndex(const Currency&, const std::vector<Currency>&);
-    Currency  CellValueHelper(const Currency&, const std::vector<Currency>&);
+	Currency  CellValueHelper(const Currency&, const std::vector<Currency>&);
 	Currency  NDCellValueHelper(const Currency&, const std::vector<Currency>&);
 
-	void AssignHelper(Currency& target, const std::vector<Currency>& indices, const Currency& value, int refcnt_target=1);
-    void CellAssignmentHelper(Currency& target, const std::vector<Currency>& params, const Currency& value);
-    void NDAssignmetHelper(Currency& target, const std::vector<Currency>& params, const Currency& value, int refcnt_target=1);
+	void AssignHelper(Currency& target, const std::vector<Currency>& indices, const Currency& value, int refcnt_target = 1);
+	void CellAssignmentHelper(Currency& target, const std::vector<Currency>& params, const Currency& value);
+	void NDAssignmetHelper(Currency& target, const std::vector<Currency>& params, const Currency& value, int refcnt_target = 1);
 	void NDCellAssignmetHelper(Currency& target, const std::vector<Currency>& params, const Currency& value, int refcnt_target = 1);
 
 	void SetScriptName(std::string script) { _script_name = script; }
 
 	FunctionInfo* FunctionInfoFromString(const std::string&);
 
-    //! Gets signal handler
-    SignalHandlerBase* GetSignalHandler() const { return _signalHandler; }
-    //! Sets signal handler, if not null or to null if already set
-    //! \param[in] handler Signal handler
-    void SetSignalHandler( SignalHandlerBase* handler);
+	//! Gets signal handler
+	SignalHandlerBase* GetSignalHandler() const { return _signalHandler; }
+	//! Sets signal handler, if not null or to null if already set
+	//! \param[in] handler Signal handler
+	void SetSignalHandler(SignalHandlerBase* handler);
 
-    // Actions handled in the client
+	// Actions handled in the client
 
-    //! Clear results stored in client
-    void OnClearResults();
-    //! Print the given currency
-    //! \param[in] cur Currency to print
-    void OnPrintResult( const Currency& cur);
+	//! Clear results stored in client
+	void OnClearResults();
+	//! Print the given currency
+	//! \param[in] cur Currency to print
+	void OnPrintResult(const Currency& cur);
 
-    //! Start pause
-    //! \param[in] msg  User message to display
-    //! \param[in] wait True if waiting for a keystroke input from user
-    void OnPauseStart( const std::string& msg, 
-                       bool               wait);
-    //! End pause
-    void OnPauseEnd();
+	//! Start pause
+	//! \param[in] msg  User message to display
+	//! \param[in] wait True if waiting for a keystroke input from user
+	void OnPauseStart(const std::string& msg,
+		bool               wait);
+	//! End pause
+	void OnPauseEnd();
 
-    //! Change current working directory in client
-    //! \param[in] dir Fully qualified path of the new directory
-    void OnChangeDir( const std::string& dir);
-    //! Refreshes directories in client
-    void OnRefreshDirs();
+	//! Change current working directory in client
+	//! \param[in] dir Fully qualified path of the new directory
+	void OnChangeDir(const std::string& dir);
+	//! Refreshes directories in client
+	void OnRefreshDirs();
 
-    //! Prompts to save before exiting
+	//! Prompts to save before exiting
 	void OnSaveOnExit();
-    //! Update function list in language
-    void OnUpdateFuncList();
-    //! Gets user input
-    //! \param[in]  prompt Prompt to display to user
-    //! \param[in]  type   Type, if specified
-    //! \param[out] input  Input from user
-    void OnUserInput( const std::string& prompt,
-                      const std::string& type,
-                      std::string&       input);
+	//! Update function list in language
+	void OnUpdateFuncList();
+	//! Gets user input
+	//! \param[in]  prompt Prompt to display to user
+	//! \param[in]  type   Type, if specified
+	//! \param[out] input  Input from user
+	void OnUserInput(const std::string& prompt,
+		const std::string& type,
+		std::string&       input);
 
 	std::string GetCurrentDebugFile() const;
 	int         GetCurrentDebugLine() const;
@@ -394,10 +412,10 @@ public:
 	void     SetEnvValue(int, std::string, const Currency&);
 	void     ImportEnv(int source, int dest);
 
-    //! Suspend function list updates in language
-    void SuspendFuncListUpdate() { _suspendFunclistUpdate = true; }
-    //! Unsuspends function list updates, call OnUpdateFuncList to refresh
-    void UnsuspendFuncListUpdate() { _suspendFunclistUpdate = false; }
+	//! Suspend function list updates in language
+	void SuspendFuncListUpdate() { _suspendFunclistUpdate = true; }
+	//! Unsuspends function list updates, call OnUpdateFuncList to refresh
+	void UnsuspendFuncListUpdate() { _suspendFunclistUpdate = false; }
 
 	void EncryptOMLFile(const std::string& in_file, const std::string& out_file);
 	void RegisterOMLDecryptor(const std::string& extenstion, ENCRPTR ptr);
@@ -409,15 +427,24 @@ public:
 
 	std::string IsValidString(const std::string& in) const;
 
-    //! Gets the application directory
-    std::string GetApplicationDir() const { return _appdir; }
-    //! Sets the application directory
-    void SetApplicationDir( const std::string& dir);
+	//! Gets the application directory
+	std::string GetApplicationDir() const { return _appdir; }
+	//! Sets the application directory
+	void SetApplicationDir(const std::string& dir);
 
 	void WritePFile(const std::string& infile, const std::string& outfile);
-	
+
 	Currency Analyze(const std::string& infile);
 	Currency GetMetadata(const std::string& infile);
+
+	void RegisterChildEvaluator(ExprTreeEvaluator* eval) { child_interps.push_back(eval); }
+	void RemoveChildEvaluator() { child_interps.pop_back(); }
+
+    //!
+    //! Returns true if successful in locking built in function
+    //! \param funcname Built in function which needs to be locked
+    //!
+    bool LockBuiltInFunction(const std::string& funcname);
 
 private:
 	Currency AddOperator(const Currency&, const Currency&);
@@ -439,6 +466,7 @@ private:
 	Currency TextString(OMLTree* tree);
 	Currency Identifier(OMLTree* tree);
 	Currency Nothing(OMLTree* tree);
+	Currency MissingEnd(OMLTree* tree);
 	Currency Return(OMLTree* tree);
 	Currency AssignOperator(OMLTree* tree);
 	Currency CellAssignOperator(OMLTree* tree);
@@ -446,6 +474,7 @@ private:
 	Currency BinaryOperator(OMLTree* tree);
     Currency EqualityOperator(OMLTree* tree);
 	Currency EqualityOperatorEx(const Currency& lhs, const Currency& rhs);
+	Currency EqualityOperatorEx(const Currency& lhs, const Currency& rhs, int oper);
 	bool     EqualityHelper(const Currency& lhs, const Currency& rhs);
 	Currency LessThanOperator(OMLTree* tree);
 	Currency GreaterThanOperator(OMLTree* tree);
@@ -539,7 +568,7 @@ private:
 	bool FindFunctionByName(const std::string*, FunctionInfo**, FUNCPTR*);
 
 	bool CheckForPreviousTrailingDot(pANTLR3_BASE_TREE tree, pANTLR3_COMMON_TOKEN_STREAM tokens);
-	bool ValidateMatrix(const std::vector<std::vector<Currency>>& currencies, unsigned int*, unsigned int*);
+	bool ValidateMatrix(const std::vector<std::vector<Currency>>& currencies, unsigned int*, unsigned int*, bool*);
 	bool PadStringsIfNecessary(std::vector<std::vector<Currency>>& currencies);
 	bool ValidateFunction(OMLTree* tree);
     void ValidateExtractionIndices(const hwMatrix& target, int index1, int index2);
@@ -565,6 +594,8 @@ private:
     Currency BoundClassMethod( const Currency*   in, 
                                OMLTree* field);
 
+
+
 private:
 
 	//data members
@@ -577,7 +608,8 @@ private:
 
     std::vector<std::string> *not_found_functions;
 
-	std::string _script_name;
+	std::string        _script_name;
+	const std::string* _dll_context;
 
 	std::map<std::string, ClassInfo*>      *class_info_map;      //classdef classes
     std::map<std::string, BoundClassInfo*> _boundclassinfo; //! Bound classes
@@ -600,6 +632,8 @@ private:
 	OMLTree*    current_tree;
 
 	int         nested_function_marker;
+	bool        encrypted_function_marker;
+
 	bool        _owns_msm;
     bool        _owns_functions;
     bool        _owns_userfiles;
@@ -627,6 +661,7 @@ private:
 	bool _pauseRequestPending;  //!< True if pause request is pending
     bool _paused;               //!< True if interpreter is paused
 
+	int  _verbose;
 
     OutputFormat* format;
 
@@ -635,9 +670,12 @@ private:
 	
     std::vector<UserFile>* userFileStreams;
     std::vector<std::string>* paths;
+	std::vector<std::string> hidden_paths;
 
 	EXTPTR ext_var_ptr;
 	std::vector<Currency> _externals;
+
+	std::vector<ExprTreeEvaluator*> child_interps;
 
 	EvaluatorDebugInterface* debug_listener;
 

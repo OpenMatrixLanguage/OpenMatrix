@@ -1,7 +1,7 @@
 /**
 * @file Currency.h
 * @date August 2013
-* Copyright (C) 2013-2018 Altair Engineering, Inc.  
+* Copyright (C) 2013-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -24,12 +24,14 @@
 #include "MatrixDisplay.h"
 #include "MatrixNDisplay.h"
 #include "OutputFormat.h"
+#include "SparseDisplay.h"
 #include "StringDisplay.h"
 #include "StructData.h"
 #include "StructDisplay.h"
 #include "GeneralFuncs.h"
 
 #include "hwMatrixN.h"
+#include "hwMatrixS.h"
 
 #include <cassert>
 #include <sstream>
@@ -131,6 +133,12 @@ _display(0), _outputType(OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 	}
 }
 
+Currency::Currency(hwMatrixS* in_data) : type(TYPE_SPARSE), mask(MASK_DOUBLE), out_name(NULL),
+_display(0), _outputType(OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+{
+	data.mtxs = in_data;
+}
+
 Currency::Currency(const hwComplex& cplx): type (TYPE_COMPLEX), mask(MASK_DOUBLE), out_name(NULL),
     _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 {
@@ -216,6 +224,7 @@ void Currency::Copy(const Currency& cur)
 {
 	hwMatrix*         old_matrix   = NULL;
 	hwMatrixN*        old_matrix_n = NULL;
+	hwMatrixS*        old_matrix_s = NULL;
 	HML_CELLARRAY*    old_cells    = NULL;
 	HML_ND_CELLARRAY* old_cells_n = NULL;
 	StructData*       old_sd       = NULL;
@@ -223,12 +232,16 @@ void Currency::Copy(const Currency& cur)
 	bool              was_scalar   = false;
 	FunctionInfo*     old_fi       = NULL;
 
+	classname = NULL;
+
 	if (type == TYPE_SCALAR)
 		was_scalar = true;
 	else if (type == TYPE_MATRIX)
 		old_matrix = data.mtx;
 	else if (type == TYPE_ND_MATRIX)
 			old_matrix_n = data.mtxn;
+	else if (type == TYPE_SPARSE)
+		old_matrix_s = data.mtxs;
 	else if (type == TYPE_CELLARRAY)
 		old_cells = data.cells;
 	else if (type == TYPE_ND_CELLARRAY)
@@ -263,6 +276,13 @@ void Currency::Copy(const Currency& cur)
 
 		if (data.mtxn)
 			data.mtxn->IncrRefCount();
+	}
+	else if (type == TYPE_SPARSE)
+	{
+		data.mtxs = cur.data.mtxs;
+
+		if (data.mtxs)
+			data.mtxs->IncrRefCount();
 	}
 	else if (type == TYPE_COMPLEX)
 	{
@@ -332,6 +352,8 @@ void Currency::Copy(const Currency& cur)
 			DeleteMatrix(old_matrix);
 		else if (old_matrix_n)
 			DeleteMatrixN(old_matrix_n);
+		else if (old_matrix_s)
+			DeleteMatrixS(old_matrix_s);
 		else if (old_cells)
 			DeleteCells(old_cells);
 		else if (old_cells_n)
@@ -373,6 +395,24 @@ void Currency::DeleteMatrixN(hwMatrixN* matrix)
 
 			if (matrix == data.mtxn)
 				data.mtxn = NULL;
+		}
+		else
+		{
+			matrix->DecrRefCount();
+		}
+	}
+}
+
+void Currency::DeleteMatrixS(hwMatrixS* matrix)
+{
+	if (matrix)
+	{
+		if (!matrix->IsMatrixShared())
+		{
+			delete matrix;
+
+			if (matrix == data.mtxs)
+				data.mtxs = NULL;
 		}
 		else
 		{
@@ -499,6 +539,8 @@ Currency::~Currency()
 		;
 	else if (type == TYPE_ND_MATRIX)
 		DeleteMatrixN(data.mtxn);
+	else if (type == TYPE_SPARSE)
+		DeleteMatrixS(data.mtxs);
 	else if (type == TYPE_COMPLEX)
         delete data.complex;
 	else if ((type == TYPE_STRUCT) || (type == TYPE_OBJECT))
@@ -526,7 +568,7 @@ void Currency::ReplaceComplex(hwComplex new_value)
 	type = TYPE_COMPLEX;
 }
 //------------------------------------------------------------------------------
-//! Returns a string description of the currency type
+// Returns a string description of the currency type
 //------------------------------------------------------------------------------
 std::string Currency::GetTypeString() const
 {
@@ -629,8 +671,24 @@ std::string Currency::GetTypeString() const
         output = strstream.str();
     }
     else if (IsBoundObject())
+    {
         return GetClassname();
+    }
+    else if (IsSparse())
+    {
+        const hwMatrixS* mtx = MatrixS();
+        if (!mtx || mtx->Size() == 0)
+        {
+            return "sparse [ ]";
+        }
+        int m    = mtx->M();
+        int n    = mtx->N();
+        int nnz  = mtx->NNZ();
 
+        output = "sparse [" + std::to_string(static_cast<long long>(m)) + " x "
+            + std::to_string(static_cast<long long>(n)) + "], nnz = "
+            + std::to_string(static_cast<long long>(nnz));
+    }
 	return output;
 }
 //------------------------------------------------------------------------------
@@ -696,12 +754,13 @@ bool Currency::IsVector() const
 {
 	bool ret_val = false;
 
-	// not sure if this should return true or not for scalar.  Technically,
-	// a scalar is a vector of size 1
 	if (type == TYPE_MATRIX && data.mtx && mask != MASK_STRING)
 	{
-		if ((data.mtx->M() == 1) || (data.mtx->N() == 1))
-			ret_val = true;
+		if (data.mtx->Size() != 1)
+		{
+			if ((data.mtx->M() == 1) || (data.mtx->N() == 1))
+				ret_val = true;
+		}
 	}
 
 	return ret_val;
@@ -825,9 +884,17 @@ bool Currency::IsInteger() const
 {
 	if (IsScalar())
 	{
-		double temp = Scalar();
+		double    temp  = Scalar();
+		long long temp2;
 
-    	if (abs(temp - ((long long)(temp+1.0e-15)) < 1.0e-15))
+		if (temp < 0)
+			temp2 = ((long long)(temp - 1.0e-15));
+		else
+			temp2 = ((long long)(temp + 1.0e-15));
+
+		double delta = temp - temp2;
+
+    	if (abs(delta) < 1.0e-15)
 			return true;
 	}
 
@@ -850,7 +917,7 @@ bool Currency::IsPositiveInteger() const
 	return false;
 }
 
-bool Currency::IsPositiveVector() const
+bool Currency::IsPositiveIntegralVector() const
 {
 	if (IsLogical())
 		return false;
@@ -889,6 +956,36 @@ bool Currency::IsPositiveVector() const
 	return false;
 }
 
+bool Currency::IsPositiveIntegralMatrix() const
+{
+	if (IsLogical())
+		return false;
+
+	if (IsMatrix() && !IsString())
+	{
+		const hwMatrix* mtx = Matrix();
+
+		if (!mtx->IsReal())
+			return false;
+
+		if (mtx->IsEmpty())
+			return false;
+
+		for (int k = 0; k<mtx->Size(); k++)
+		{
+			double val = (*mtx)(k);
+
+			// making sure it's an integer (or close enough)
+			if (abs(val - (int(val + 1.0e-15)) > 1.0e-15))
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
 bool Currency::IsEmpty() const
 {
 	if (IsMatrix())
@@ -916,6 +1013,12 @@ bool  Currency::IsNDMatrix() const
 	return type == TYPE_ND_MATRIX; 
 }
 
+bool  Currency::IsSparse() const
+{
+	// Sparse matrices can't be strings so don't bother checking
+	return type == TYPE_SPARSE;
+}
+
 bool Currency::IsCharacter() const 
 {
 	if (IsString())
@@ -940,6 +1043,11 @@ const hwMatrixN* Currency::MatrixN() const
 	return data.mtxn;
 }
 
+const hwMatrixS* Currency::MatrixS() const
+{
+	return data.mtxs;
+}
+
 hwMatrix* Currency::GetWritableMatrix() 
 {
 	if (!data.mtx)
@@ -954,6 +1062,14 @@ hwMatrixN* Currency::GetWritableMatrixN()
 		data.mtxn = ExprTreeEvaluator::allocateMatrixN();
 
 	return data.mtxn;
+}
+
+hwMatrixS* Currency::GetWritableMatrixS()
+{
+	if (!data.mtxs)
+		data.mtxs = ExprTreeEvaluator::allocateMatrixS();
+
+	return data.mtxs;
 }
 
 void Currency::ReplaceMatrix(hwMatrix* new_mtx)
@@ -1070,9 +1186,12 @@ const hwMatrix* Currency::ConvertToMatrix() const
 			{
 				const hwMatrix* string = temp.Matrix();
 				size_needed += string->N();
+
+				mask = MASK_STRING;
 			}
 			else
 			{
+				mask = MASK_CELL_LIST;
 				return NULL;
 			}
 		}
@@ -1132,8 +1251,6 @@ const hwMatrix* Currency::ExpandMatrix(const hwMatrix* target) const
 
 	if (type == TYPE_MATRIX)
 	{
-		result = data.mtx;
-
 		if (data.mtx->M() == 1)
 		{
 			result = EvaluatorInterface::allocateMatrix(target->M(), data.mtx->N(), data.mtx->Type());
@@ -1147,6 +1264,10 @@ const hwMatrix* Currency::ExpandMatrix(const hwMatrix* target) const
 
 			for (int j = 0; j < target->N(); ++j)
 				result->WriteColumn(j, *data.mtx);
+		}
+		else
+		{
+			result = EvaluatorInterface::allocateMatrix(data.mtx);
 		}
 	}
 
@@ -1194,6 +1315,75 @@ HML_CELLARRAY* Currency::ConvertToCellArray()
 	return data.cells;
 }
 
+void Currency::FlattenCellList()
+{
+	if (IsCellList())
+	{
+		HML_CELLARRAY* new_cells = NULL;
+		HML_CELLARRAY* old_cells = CellArray();
+
+		int new_size = 0;
+		
+		for (int j = 0; j < old_cells->Size(); ++j)
+		{
+			Currency loc_temp = (*old_cells)(j);
+
+			if (loc_temp.IsCellArray())
+			{
+				HML_CELLARRAY* loc_cells = loc_temp.CellArray();
+
+				if (loc_cells->M() == 1)
+					new_size += loc_cells->N();
+				else
+					return; // failed conversion
+			}
+			else if (loc_temp.IsScalar() || loc_temp.IsString() || loc_temp.IsMatrix())
+			{
+				new_size += 1;
+			}
+			else if (loc_temp.IsStruct())
+			{
+				StructData* sd = loc_temp.Struct();
+				
+				if (sd->Size() == 1)
+					new_size += 1;
+				else
+					return;
+			}
+			else
+			{
+				return;
+			}
+		}
+
+		new_cells        = new HML_CELLARRAY(1, new_size, HML_CELLARRAY::REAL);
+		int new_cell_cnt = 0;
+
+		for (int j = 0; j < old_cells->Size(); ++j)
+		{
+			Currency loc_temp = (*old_cells)(j);
+
+			if (loc_temp.IsCellArray())
+			{
+				HML_CELLARRAY* loc_cells = loc_temp.CellArray();
+
+				for (int k = 0; k < loc_cells->Size(); ++k)
+				{
+					(*new_cells)(new_cell_cnt) = (*loc_cells)(k);
+					++new_cell_cnt;
+				}
+			}
+			else if (loc_temp.IsScalar() || loc_temp.IsString() || loc_temp.IsMatrix() || loc_temp.IsStruct())
+			{
+				(*new_cells)(new_cell_cnt) = loc_temp;
+				++new_cell_cnt;
+			}
+		}
+
+		ReplaceCellArray(new_cells);
+	}
+}
+
 void Currency::ConvertToStruct()
 {
 	if (IsStruct())
@@ -1209,6 +1399,33 @@ void Currency::ConvertToStruct()
 			delete cells;
 			data.sd = new StructData;
 			type = TYPE_STRUCT;
+		}
+		else if (IsCellList())
+		{
+			bool valid_switch = true;
+			for (int j = 0; j < cells->Size(); j++)
+			{
+				if ((*cells)(j).IsStruct())
+				{
+				}
+				else
+				{
+					valid_switch = false;
+				}
+			}
+
+			if (valid_switch)
+			{
+				type = TYPE_STRUCT;
+				StructData* temp_sd = new StructData;
+				temp_sd->DimensionNew(1, cells->Size());
+
+				for (int j = 0; j < cells->Size(); j++)
+					temp_sd->SetElement(j+1, -1, (*cells)(j).Struct());
+
+				delete cells;
+				data.sd = temp_sd;
+			}
 		}
 	}
 	else if (IsMatrix())
@@ -1243,14 +1460,6 @@ void Currency::ClearOutputName()
    out_name = empty_str;
 }
 
-std::string Currency::GetOutputName() const
-{
-	if (out_name)
-		return *out_name;
-	else
-		return "";
-}
-
 const std::string* Currency::GetOutputNamePtr() const
 {
 	if (out_name)
@@ -1266,10 +1475,10 @@ std::string Currency::GetOutputString(const OutputFormat* fmt) const
 {
 	std::ostringstream os;
 
-	std::string output_name (GetOutputName());
+	const std::string* output_name = GetOutputNamePtr();
 
-    if (!output_name.empty() && !IsDispOutput() && !IsError() && !IsPrintfOutput())
-			os << output_name << " = ";
+    if (!output_name->empty() && !IsDispOutput() && !IsError() && !IsPrintfOutput())
+			os << *output_name << " = ";
 
 	if (IsScalar())
 	{
@@ -1292,7 +1501,7 @@ std::string Currency::GetOutputString(const OutputFormat* fmt) const
         }
 	}
 	else if (IsMatrix() || IsCellArray() || IsStruct() || IsNDMatrix() ||
-             IsObject() || IsNDCellArray())
+             IsObject() || IsNDCellArray() || IsSparse())
 	{
         return (GetDisplay()->GetOutput(fmt, os));
 	}
@@ -1331,9 +1540,25 @@ std::string Currency::GetOutputString(const OutputFormat* fmt) const
     {
         os << GetClassname();
     }
+	else if (IsPointer())
+	{
+		os << "<pointer " << Pointer() << ">";
+	}
     std::string output (os.str());
 	return output;
 }
+
+std::string Currency::GetClassname() const
+{
+	if (IsObject() || IsBoundObject())
+		return *classname;
+	else if (IsPointer())
+		return data.cur_ptr->GetClassname();
+	else
+		return "";
+}
+
+
 const std::string* StringManager::GetStringPointer(const std::string& var)
 {
 	StringStorage::iterator iter;
@@ -1356,20 +1581,27 @@ const std::string* StringManager::GetStringPointer(const std::string& var)
 //------------------------------------------------------------------------------
 CurrencyDisplay* Currency::GetDisplay() const
 {
-    if (_display) return _display;
+    if (_display)
+    {
+        return _display;
+    }
 
     if (IsCellArray())
+    {
         _display = new CellDisplay(*this);
-    
+    }
     else if (IsMatrix())
+    {
         _display = new MatrixDisplay(*this);
-
+    }
     else if (IsStruct() || IsObject())
+    {
         _display = new StructDisplay(*this);
-
+    }
     else if (IsNDMatrix())
+    {
         _display = new MatrixNDisplay(*this);
-
+    }
     else if (IsString())
     {
         std::string val (StringVal());
@@ -1378,10 +1610,14 @@ CurrencyDisplay* Currency::GetDisplay() const
             _display = new StringDisplay(*this);
         }
     }
-	else if (IsNDCellArray())
-		_display = new CellNDisplay(*this);
-
-
+    else if (IsNDCellArray())
+    {
+        _display = new CellNDisplay(*this);
+    }
+    else if (IsSparse())
+    {
+        _display = new SparseDisplay(*this);
+    }
     return _display;
 }
 //------------------------------------------------------------------------------
@@ -1411,7 +1647,7 @@ std::string Currency::GetValues(const OutputFormat* fmt) const
     bool stringpaginate = (IsString() && CurrencyDisplay::CanPaginate(StringVal()));
 
 	if (IsMatrix() || IsCellArray() || IsStruct() || IsNDMatrix() || 
-        IsObject() || stringpaginate)
+        IsObject() || stringpaginate || IsSparse())
     {
         std::string out = GetDisplay()->GetValues(fmt);
         const_cast<Currency*>(this)->DeleteDisplay();

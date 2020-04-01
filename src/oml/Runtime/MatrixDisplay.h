@@ -272,15 +272,11 @@ private:
     //!
     //! Returns true if matrix was paginating
     //!
-    bool WasPaginating()  const;
+    virtual bool WasPaginating()  const;
     //!
     //! Returns true if matrix is paginating
     //!
     bool IsPaginating()  const;
-    //!
-    //! True if header needs to be printed
-    //!
-    bool IsHeaderPrinted() const;
 };
 
 #endif

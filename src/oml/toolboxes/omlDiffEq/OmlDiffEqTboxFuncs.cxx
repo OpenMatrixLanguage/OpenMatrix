@@ -56,6 +56,7 @@ bool OmlOdeset(EvaluatorInterface           eval,
         std::string msg = "Available ODE options:\n";
         msg += "RelTol\n";
         msg += "AbsTol\n";
+        msg += "MaxStep\n";
         msg += "Jacobian\n";
 
         Currency cmsg (msg);
@@ -68,6 +69,7 @@ bool OmlOdeset(EvaluatorInterface           eval,
             assert(out.Struct());
             out.Struct()->SetValue(0, -1, "RelTol",   1.0e-3);
             out.Struct()->SetValue(0, -1, "AbsTol",   1.0e-6);
+            out.Struct()->SetValue(0, -1, "MaxStep",  std::numeric_limits<double>::infinity());
             out.Struct()->SetValue(0, -1, "Jacobian", Currency());
             outputs.push_back(out);
         }
@@ -100,6 +102,13 @@ bool OmlOdeset(EvaluatorInterface           eval,
         else if (val == "AbsTol")
         {
             if (!inputs[i+1].IsScalar() && !inputs[i+1].IsMatrix())
+            {
+                throw OML_Error(OML_ERR_SCALARVECTOR, i + 2, OML_VAR_ABSTOL);
+            }
+        }
+        else if (val == "MaxStep")
+        {
+            if (!inputs[i + 1].IsScalar())
             {
                 throw OML_Error(OML_ERR_SCALARVECTOR, i + 2, OML_VAR_ABSTOL);
             }

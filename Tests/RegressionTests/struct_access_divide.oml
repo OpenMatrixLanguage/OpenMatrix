@@ -1,0 +1,42 @@
+﻿function speedData = LR_Function(x,channelOfInterest,rainBins)
+	% Define channels of interest
+	nameSpeed = 'WheelBasedVehicleSpeed';
+	nameDistance = 'TotalVehicleDistanceHighRes';
+	nameBrake = 'BrakeSwitch';
+	nameTemp = 'AmbientAirTemperature';
+	nameEnSpeed = 'EngineSpeed';
+	nameEnTorque = 'ActualEnginePercentTorque';
+	nameGear = 'ETC2E_TransCurrentGear';
+	nameGCW = 'GrossCombinationVehicleWeight';
+	nameFuel = 'FuelLevel';
+
+	numSamples = length(x(1).data);
+	sampleRate =  x(1).samplerate;
+	endtime = numSamples/sampleRate;
+	deltaTime = 1/ sampleRate;
+	time = 0+deltaTime:deltaTime:endtime;
+
+	%%%% Find distance travled. Variable: totalDistance
+	indexSpeed = find(strcmp({x.chname},nameSpeed) ==1)
+	dutyCycles='';
+	totalDistance = 0;
+	if sum(indexSpeed)>0 && sum(indexSpeed)
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		% Syntaxes that do not work:
+		speedData = x(indexSpeed).data/3600
+		% speedData = (x(indexSpeed).data)/3600;
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		%temp = x(indexSpeed).data;
+		%speedData = temp/3600;
+	end
+end
+
+x(1).chname = 'WheelBasedVehicleSpeed';
+x(1).data = ones(10,1);
+x(1).samplerate = 0.1;
+x(2).chname = 'TotalVehicleDistanceHighRes';
+x(2).data = ones(10,1);
+x(2).samplerate = 0.1;
+channelOfInterest{1} = 2;
+rainBins = 3;
+speedData = LR_Function(x,channelOfInterest,rainBins);

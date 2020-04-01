@@ -27,6 +27,12 @@ void OMLInterfaceImpl::RegisterFunction(const char* name, ALT_FUNCPTR fp)
 	_eval->RegisterBuiltInFunction(name, fp);
 }
 
+void OMLInterfaceImpl::RegisterFunctionWithMetadata(const char* name, ALT_FUNCPTR fp, const char* module,
+	                                                int in_vals, int out_vals)
+{
+	_eval->RegisterBuiltInFunction(name, fp, FunctionMetaData(in_vals, out_vals, module));
+}
+
 void OMLInterfaceImpl::ThrowError(const char* message)
 {
 	throw OML_Error(message);
@@ -59,6 +65,22 @@ const OMLCurrency* OMLInterfaceImpl::CallFunction(const OMLFunctionHandle* handl
 	return new OMLCurrencyImpl(result);
 }
 
+const OMLCurrency* OMLInterfaceImpl::CallFunction(const char* name, OMLCurrencyList* inputs)
+{
+	std::vector<Currency> ins;
+
+	for (int j = 0; j < inputs->Size(); j++)
+	{
+		const OMLCurrency* temp = inputs->Get(j);
+		OMLCurrencyImpl* impl = (OMLCurrencyImpl*)temp;
+
+		ins.push_back(impl->GetCurrency());
+	}
+
+	Currency result = _eval->CallFunction(name, ins);
+	return new OMLCurrencyImpl(result);
+}
+
 bool OMLCurrencyImpl::IsScalar() const
 {
 	return _cur.IsScalar();
@@ -84,9 +106,19 @@ bool OMLCurrencyImpl::IsNDMatrix() const
 	return _cur.IsNDMatrix();
 }
 
+bool OMLCurrencyImpl::IsSparseMatrix() const
+{
+	return _cur.IsSparse();
+}
+
 bool OMLCurrencyImpl::IsCellArray() const
 {
 	return _cur.IsCellArray();
+}
+
+bool OMLCurrencyImpl::IsNDCellArray() const
+{
+	return _cur.IsNDCellArray();
 }
 
 bool OMLCurrencyImpl::IsStruct() const
@@ -229,6 +261,51 @@ hwMatrixN* OMLNDMatrixImpl::GetMatrixPointer() const
 	return _mtx;
 }
 
+bool OMLSparseMatrixImpl::IsReal() const
+{
+	return _mtxs->IsReal();
+}
+
+int OMLSparseMatrixImpl::GetRows() const
+{
+	return _mtxs->M();
+}
+
+int OMLSparseMatrixImpl::GetCols() const
+{
+	return _mtxs->N();
+}
+
+const double* OMLSparseMatrixImpl::GetRealData() const
+{
+	if (_mtxs->IsReal())
+		return _mtxs->GetRealData();
+
+	hwMatrixS temp;
+	_mtxs->UnpackComplex(&temp, NULL);
+	return temp.GetRealData();
+}
+
+const double* OMLSparseMatrixImpl::GetImaginaryData() const
+{
+	if (_mtxs->IsReal())
+		return NULL;
+
+	hwMatrixS temp;
+	_mtxs->UnpackComplex(NULL, &temp);
+	return temp.GetRealData();
+}
+
+OMLCurrency* OMLSparseMatrixImpl::GetCurrency() const
+{
+	return (new OMLCurrencyImpl(_mtxs));
+}
+
+hwMatrixS* OMLSparseMatrixImpl::GetMatrixPointer() const
+{
+	return _mtxs;
+}
+
 OMLCurrency* OMLCellArrayImpl::GetValue(int index1) const
 {
 	return new OMLCurrencyImpl((*_cells)(index1));
@@ -267,6 +344,41 @@ OMLCurrency* OMLCellArrayImpl::GetCurrency() const
 }
 
 HML_CELLARRAY* OMLCellArrayImpl::GetCells() const
+{
+	return _cells;
+}
+
+OMLCurrency* OMLNDCellArrayImpl::GetValue(int index1) const
+{
+	return new OMLCurrencyImpl((*_cells)(index1));
+}
+
+void OMLNDCellArrayImpl::SetValue(int index1, OMLCurrency* val)
+{
+	OMLCurrencyImpl* ci = (OMLCurrencyImpl*)val;
+	(*_cells)(index1) = ci->GetCurrency();
+}
+
+int OMLNDCellArrayImpl::GetNumDimension() const
+{
+	std::vector<int> dims = _cells->Dimensions();
+
+	return (int)dims.size();
+}
+
+int OMLNDCellArrayImpl::GetDimension(int num) const
+{
+	std::vector<int> dims = _cells->Dimensions();
+
+	return dims[num];
+}
+
+OMLCurrency* OMLNDCellArrayImpl::GetCurrency() const
+{
+	return (new OMLCurrencyImpl(_cells));
+}
+
+HML_ND_CELLARRAY* OMLNDCellArrayImpl::GetCells() const
 {
 	return _cells;
 }
@@ -476,6 +588,60 @@ OMLComplex* OMLCurrencyListImpl::CreateComplex(double real, double imag)
 	return NULL;
 }
 
+void OMLCurrencyListImpl::AddNDCellArray(HML_ND_CELLARRAY* cells)
+{
+	Expand();
+
+	cells->IncrRefCount();
+
+	_list[_count - 1] = new OMLCurrencyImpl(cells);
+}
+
+void OMLCurrencyListImpl::AddNDCellArray(OMLNDCellArray* array)
+{
+	Expand();
+	_list[_count - 1] = array->GetCurrency();
+}
+
+void OMLCurrencyListImpl::AddSparseMatrix(OMLSparseMatrix* mtx)
+{
+	Expand();
+	_list[_count - 1] = mtx->GetCurrency();
+}
+
+void OMLCurrencyListImpl::AddSparseMatrix(const hwMatrixS* mtx)
+{
+	Expand();
+
+	hwMatrix* cheat = (hwMatrix*)mtx;
+	cheat->IncrRefCount();
+
+	_list[_count - 1] = new OMLCurrencyImpl((hwMatrix*)mtx);
+}
+
+OMLNDCellArray*  OMLCurrencyListImpl::CreateNDCellArray(int num_dims, int* dims)
+{
+	std::vector<int> dim_vec;
+
+	for (int j = 0; j<num_dims; j++)
+		dim_vec.push_back(dims[j]);
+
+	HML_ND_CELLARRAY* cells = new HML_ND_CELLARRAY(dim_vec, HML_ND_CELLARRAY::REAL);
+	return new OMLNDCellArrayImpl(cells);
+}
+
+OMLSparseMatrix* OMLCurrencyListImpl::CreateSparseMatrix(int num_rows, int num_cols)
+{
+	// expecting to create a sparse matrix of the specified size with all zero-values
+	// the user can then fill in the non-zero values one-at-a-time
+	const std::vector<int> ivec;
+	const std::vector<int> jvec;
+	const hwMatrix dummy;
+
+	hwMatrixS* temp =  new hwMatrixS(ivec, jvec, dummy, num_rows, num_cols);
+	return new OMLSparseMatrixImpl(temp);
+}
+
 double OMLComplexImpl::GetReal() const
 {
 	return cplx.Real();
@@ -571,10 +737,28 @@ void OMLNDMatrixImpl::GarbageCollect()
 	cached_pointers.clear();
 }
 
+std::vector<OMLSparseMatrixImpl*> OMLSparseMatrixImpl::cached_pointers;
+void OMLSparseMatrixImpl::GarbageCollect()
+{
+	for (int j = 0; j<cached_pointers.size(); j++)
+		delete cached_pointers[j];
+
+	cached_pointers.clear();
+}
+
 std::vector<OMLCellArrayImpl*> OMLCellArrayImpl::cached_pointers;
 void OMLCellArrayImpl::GarbageCollect()
 {
 	for (int j=0; j<cached_pointers.size(); j++)
+		delete cached_pointers[j];
+
+	cached_pointers.clear();
+}
+
+std::vector<OMLNDCellArrayImpl*> OMLNDCellArrayImpl::cached_pointers;
+void OMLNDCellArrayImpl::GarbageCollect()
+{
+	for (int j = 0; j<cached_pointers.size(); j++)
 		delete cached_pointers[j];
 
 	cached_pointers.clear();

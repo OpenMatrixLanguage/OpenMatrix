@@ -1,7 +1,7 @@
 /**
 * @file Interpreter.cpp
 * @date February 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2019 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -33,6 +33,7 @@
 #include "FunctionInfo.h"
 #include "ANTLRData.h"
 #include "BuiltInFuncs.h"
+#include "BuiltInFuncsUtils.h"
 #include "OutputFormat.h"
 #include "OMLTree.h"
 
@@ -175,11 +176,14 @@ public:
     void SetExperimental(bool val) { _eval.SetExperimental(val); }
 
 	std::string GetHelpModule(const std::string&);
+	std::string GetHelpDirectory(const std::string& funcName);
 	std::string GetHelpFilename(const std::string&);
 
 	int ArgumentsForFunction(const std::string& functionName);
 
     FunctionInfo* FunctionInfoFromName(const std::string& funcname);
+
+    bool LockBuiltInFunction(const std::string& name) { return _eval.LockBuiltInFunction(name); }
 
 	int         syntax_error_line;
 	std::string syntax_error_file;
@@ -290,6 +294,7 @@ Currency InterpreterImpl::DoString(const std::string& instring, bool store_suppr
         _eval.Unmark();                         
 		_eval.StoreSuppressedResults(false);
 		_eval.SetDebugInfo(dbg_file_ptr, dbg_line);
+		_eval.SetInterrupt(false);
 		Currency result = _eval.GetLastResult();
 		if(_eval.IsDiaryOpen())
 		{
@@ -312,7 +317,8 @@ Currency InterpreterImpl::DoString(const std::string& instring, bool store_suppr
 		Currency cur(Currency::TYPE_ERROR, error_str);
 		_eval.SetLastErrorMessage(error.GetErrorMessage());
 		_eval.PushResult(cur);
-        _eval.Restore();                         
+        _eval.Restore();       
+		_eval.SetInterrupt(false);
 		return cur;
 	}
 
@@ -741,8 +747,12 @@ std::string Interpreter::GetHelpModule (std::string funcName)
 	return _impl->GetHelpModule(funcName);
 }
 
-std::string Interpreter::GetHelpFilename (std::string funcName)
+std::string Interpreter::GetHelpDirectory(std::string funcName)
 {
+	return _impl->GetHelpDirectory(funcName);
+}
+
+std::string Interpreter::GetHelpFilename (std::string funcName){
 	return _impl->GetHelpFilename(funcName);
 }
 //----------------------------------------------------------------------------------------------
@@ -944,9 +954,20 @@ std::string InterpreterImpl::GetHelpModule(const std::string& funcName)
 		return _eval.GetHelpModule(funcName);
 }
 
+std::string InterpreterImpl::GetHelpDirectory(const std::string& funcName)
+{
+	if (_eval.IsKeyword(funcName))
+		return "CoreMinimalInterpreter";
+	else if (_eval.IsOperator(funcName))
+		return "CoreMinimalInterpreter";
+	else
+		return _eval.GetHelpDirectory(funcName);
+}
+
 std::string InterpreterImpl::GetHelpFilename(const std::string& funcName)
 {
-	std::string module = GetHelpModule(funcName);
+	// VSM-5943 std::string module = GetHelpModule(funcName);
+	std::string module = GetHelpDirectory(funcName);
 
 	if (_eval.IsOperator(funcName))
 	{
@@ -997,11 +1018,21 @@ std::string InterpreterImpl::GetHelpFilename(const std::string& funcName)
 	}
 	else
 	{
-		module += "/";
+		// VSM-5493 module += "/";
+		module += DIRECTORY_DELIM;
 		module += funcName;
 		module += ".htm";
 	}
-
+	// if the module include "/help/" the file must exist
+	if (module.find(DIRECTORY_DELIM + std::string("help") + DIRECTORY_DELIM) != std::string::npos)
+	{
+		if (!BuiltInFuncsUtils::FileExists(module))
+		{
+			module = DIRECTORY_DELIM;
+			module += funcName;
+			module += ".htm";
+		}
+	}
 	return module;
 }
 //------------------------------------------------------------------------------
@@ -1068,13 +1099,17 @@ bool Interpreter::GetExperimental() const
     return Currency::GetExperimental(); 
 }
 //------------------------------------------------------------------------------
-//! Sets the experimental mode flag (-ex)
+//! Sets the experimental mode flag (-x)
 //! \param[in] val Sets to true if the evaluator is in experimental mode
 //------------------------------------------------------------------------------
 void Interpreter::SetExperimental(bool val)
 {
      Currency::SetExperimental(val); 
 }
+
+//------------------------------------------------------------------------------
+//! Returns true if evaluator is in verbose mode
+//------------------------------------------------------------------------------
 
 void CheckForFunctionsInTree(pANTLR3_BASE_TREE tree, std::vector<std::string>& results)
 {
@@ -1257,6 +1292,13 @@ bool Interpreter::IsPauseRequestPending() const
         return eval->IsPauseRequestPending();
     }
     return false;
+}
+//------------------------------------------------------------------------------
+// Returns true if successful in locking a built-in function
+//------------------------------------------------------------------------------
+bool Interpreter::LockBuiltInFunction(const std::string& name)
+{
+    return _impl->LockBuiltInFunction(name);
 }
 
 // End of file:

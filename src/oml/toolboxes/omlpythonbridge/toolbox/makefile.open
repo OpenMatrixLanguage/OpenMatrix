@@ -26,6 +26,7 @@ CXX_DEFINES += -DOMLPYTHONBRIDGE_EXPORTS
 
 CXX_INCLUDES += -I$(OML_ROOT)/src/oml/toolboxes/omlpythonbridge/core
 CXX_INCLUDES += -I$(OML_ROOT)/src/oml/toolboxes/omlpythonbridge/toolbox
+CXX_INCLUDES += -I$(OML_PYTHON_NUMPYDIR)/numpy
 
 ifneq (,$(findstring win,$(PLATFORM)))
     LIBS +=  $(OML_ROOT)/src/lib/$(PLATFORM)/omlpythonbridgecore.lib

@@ -66,6 +66,8 @@ enum hwMathMsgCode
     HW_MATH_WARN_SINGMATRIXDIV,        // singular matrix divisor (to within machine precision)
     HW_MATH_WARN_MTXNOTFULLRANK,       // rank deficient matrix; matrix does not have full rank
     HW_MATH_WARN_MATRIXDEPENDCOL,      // rank deficient matrix; columns are not linearly independent
+    HW_MATH_WARN_NOSQRTM,              // singular matrix; the square root may not exist
+    HW_MATH_WARN_MAXSQRTM,             // maximum number of allowed square roots has been exceeded
     HW_MATH_WARN_HANKEL,               // arg1(end) ~= arg2(0); arg2(0) is ignored
     HW_MATH_WARN_TOEPLITZ,             // arg1(0) ~= arg2(0); arg2(0) is ignored
     // Algorithm warnings
@@ -81,9 +83,10 @@ enum hwMathMsgCode
     HW_MATH_WARN_CONVIOLATEBEST,       // the best reported design violates the constraint
     HW_MATH_WARN_POORPOLYFIT,          // if poor fit quality, consult the help document
     // Signal processing warnings
+    HW_MATH_WARN_FILTERORDERIRR,       // high filter order; numerical accuracy may be diminished
     HW_MATH_WARN_FILTERSIMPLOW,        // syntax simplifies to low pass filter
     HW_MATH_WARN_FILTERSIMPHIGH,       // syntax simplifies to high pass filter
-    HW_MATH_WARN_FILTERSPEC_W,         // filter specification is too extreme, results cannot be trusted
+    HW_MATH_WARN_FILTERSPEC_W,         // extreme filter specification; numerical accuracy may be diminished
     HW_MATH_WARN_NYQUIST,              // data exceeds Nyquist frequency
     HW_MATH_WARN_UNEQUALTIMESAMP,      // samples are not equally spaced
     HW_MATH_WARN_FILTERCFC,            // invalid frequency; filter should not be used for CFC > 180
@@ -155,6 +158,7 @@ enum hwMathMsgCode
     HW_MATH_ERR_COLUMNVEC,             // invalid matrix; must be column vector
     HW_MATH_ERR_INVALIDINDEX,          // invalid index; must be within allowed bounds
     HW_MATH_ERR_DATANOTFOUND,          // invalid data; not found
+    HW_MATH_ERR_SINGMATRIX,            // singular matrix (to within machine precision)
     HW_MATH_ERR_MTXNOTFULLRANK,        // invalid matrix; must have full rank
     HW_MATH_ERR_MTXNOTSQUARE,          // invalid matrix; must be square
     HW_MATH_ERR_MTXNOTSYM,             // invalid matrix; must be symmetric
@@ -192,7 +196,6 @@ enum hwMathMsgCode
     // Signal processing errors
     HW_MATH_ERR_FILTERTYPE,            // invalid filter; must be a supported type
     HW_MATH_ERR_FILTERORDER,           // invalid filter; must be positive
-    HW_MATH_ERR_FILTERORDERIRR,        // invalid filter; must be an integer from 1 to 14
     HW_MATH_ERR_FILTERORDERODD,        // invalid filter; requires even order
     HW_MATH_ERR_FILTERSPEC_E,          // invalid filter, specification is too extreme
     HW_MATH_ERR_FILTERFREQ_A,          // invalid filter; must be positive

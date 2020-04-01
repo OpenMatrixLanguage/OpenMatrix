@@ -1,4 +1,4 @@
-addtoolbox omlOptimization
+addtoolbox omloptimization
 % intersection of two paraboloids and a plane
 % with Jacobian
 
@@ -15,4 +15,8 @@ end
 options = optimset('MaxIter', 200);
 init = [1, 2];
 
-[x,fval,info,output] = fsolve(@Residuals, init, options)
+[x,fval,info,output] = fsolve(@Residuals, init, options);
+x
+fval = fix(10^12 * fval)
+info
+output

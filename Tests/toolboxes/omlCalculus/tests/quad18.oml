@@ -1,4 +1,4 @@
-addtoolbox omlCalculus
+addtoolbox omlcalculus
 
 tol = [1.0e-7,1.0e-9];
 area = quad(@(x) 1./sqrt(-x),-1,0) / 2

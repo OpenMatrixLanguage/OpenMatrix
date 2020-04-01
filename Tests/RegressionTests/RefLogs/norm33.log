@@ -1,1 +1,1 @@
-Error: invalid string in argument 2; see help for options in call to function norm at line number 1 in file norm33.oml
+Error: unsupported option in argument 2; see help for valid options in call to function norm at line number 1 in file norm33.oml

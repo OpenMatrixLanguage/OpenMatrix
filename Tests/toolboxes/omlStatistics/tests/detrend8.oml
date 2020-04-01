@@ -1,4 +1,4 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 y = detrend([1 2 6 7; 6 1.2 3 5]);
 mask = 2^46;	% remove low bit round off
 round(y * mask) / mask

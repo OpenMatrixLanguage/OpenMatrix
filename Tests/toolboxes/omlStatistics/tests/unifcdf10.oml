@@ -1,2 +1,2 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 unifcdf([1 2 3 4],4,5)

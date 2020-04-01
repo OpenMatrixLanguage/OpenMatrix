@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cctype>        // For std::isdigit
 #include <cstdio>        // For std::rename
 #include <iomanip>       // For std::setprecision
 #include <iostream>
@@ -966,6 +967,7 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
     int fileid = -1;
     std::FILE*        f = nullptr;
     BuiltInFuncsUtils utils;
+    BuiltInFuncsFile  funcs;
     if (!isString)
     {
         fileid = utils.GetFileId(eval, inputs[0], 1);
@@ -995,6 +997,7 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
     std::string delims;
     size_t      numargin = inputs.size();
 
+    std::string prefix;
     if (numargin > 1)
     {
         const Currency& in2 = inputs[1];
@@ -1021,12 +1024,13 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
             std::string err;
             if (in2val.find("%") != std::string::npos)
             {
-                bool valid = utils.GetFormats(in2val, basefmts, rawfmts, usefmts, err);
+                bool valid = funcs.GetFormats(in2val, basefmts, rawfmts,
+                    usefmts, err, prefix);
                 if (!valid)
                 {
                     if (err.empty())
                     {
-                        err = "Error: invalid format specified";
+                        throw OML_Error(OML_ERR_FORMAT, 2);
                     }
                     throw OML_Error(err + " in argument 2");
                 }
@@ -1321,7 +1325,20 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
             resetcol = true;
         }
         int   columnWithErr = -1;
-        char* tok    = strtok((char *)line.c_str(), delims.c_str());
+
+        // Handle prefix
+        std::string line2(line);
+        if (!prefix.empty())
+        {
+            size_t pos2 = line2.find(prefix);
+            if (pos2 == 0)
+            {
+                line2 = line2.substr(prefix.length());
+            }
+        }
+
+        char* tok = (!line2.empty()) ?
+            strtok((char*)line2.c_str(), delims.c_str()) : nullptr;
         std::string strToProcess;
 
         while (tok || !strToProcess.empty())
@@ -1342,6 +1359,10 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
                     quitLoop = true;
                     break;
                 }
+            }
+            if (column == 0)
+            {
+                data = prefix + data;
             }
 
             bool use = usefmts[column];
@@ -2410,6 +2431,7 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
             memset(lineC, 0, sizeof(lineC));
             if (fgets(lineC, sizeof(lineC), fptr) == nullptr)
             {
+                quitLoop = true;
                 break;
             }
             line = lineC;
@@ -2546,18 +2568,14 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
     }
     catch (const OML_Error& e)
     {
-        if (!isString)
-        {
-            eval.CloseFile(fileid);
-        }
-        else
+        if (isString)
         {
             fclose(fptr);
         }
         throw e;
     }
 
-    if (!isString)
+    if (isString)
     {
         fclose(fptr);
     }
@@ -2778,7 +2796,15 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
          }
      }
 
-     std::FILE* f = fopen(fname.c_str(), mode.c_str());
+     std::FILE* f = nullptr;
+#ifdef OS_WIN
+     std::wstring wfname(utils.StdString2WString(fname));
+     std::wstring wmode(utils.StdString2WString(mode));
+
+     f = _wfopen(wfname.c_str(), wmode.c_str());
+#else
+     f = fopen(fname.c_str(), mode.c_str());
+#endif
 
      if (f)
      {
@@ -2801,5 +2827,162 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
          outputs.push_back(std::string(strerror(errno)));
      }
 
+     return true;
+ }
+//------------------------------------------------------------------------------
+// Returns true after parsing input and gets formats
+// This is very similar to BuiltInFuncsUtils::GetFormats but handles the case of
+// '* %d'. Not sure whether this can be implemented across the board for all
+// file utilities which use BuiltInFuncsUtils::GetFormats
+//------------------------------------------------------------------------------
+ bool BuiltInFuncsFile::GetFormats(const std::string& input,
+     std::vector<std::string>& basefmts,
+     std::vector<std::string>& rawfmts,
+     std::vector<bool>& usefmts,
+     std::string& err,
+     std::string& prefix)
+ {
+     if (input.empty())
+     {
+         basefmts.push_back("%f");
+         rawfmts.push_back("%lf");  // Default option
+         usefmts.push_back(true);
+         return true;
+     }
+
+     // Handle case where the format string does not start with %
+     std::string in(input);
+     size_t pos = in.find_first_of("%");
+     if (pos > 0 && pos != std::string::npos)
+     {
+         prefix = input.substr(0, pos);
+         in     = input.substr(pos);
+     }
+
+     bool firsttoken = true;
+     char* tok = strtok((char*)in.c_str(), "%");
+
+     while (tok)
+     {
+         std::string tmp(tok);
+
+         std::string basefmt;
+         std::string rawfmt;
+         bool        use = true;
+         int  numDecimalPts = 0;
+         bool hasOnlyDigits = true;
+
+         size_t len = tmp.size();
+
+         if (tmp[0] == '[' && tmp[len - 1] == ']')
+         {
+             basefmts.push_back("custom");
+             rawfmts.push_back(tok);
+             usefmts.push_back(true);
+             tok = strtok(NULL, "%");
+             continue;
+         }
+         for (size_t i = 0; i < len; ++i)
+         {
+             char ch = tmp[i];
+             if (i == 0 && ch == '*')
+             {
+                 use = false;
+                 continue;
+             }
+             else if (!use)
+             {
+                 if (ch == '[')
+                 {
+                     basefmt = "custom";
+                     rawfmt += ch;
+                     continue;
+                 }
+             }
+             if (!basefmt.empty())
+             {
+                 rawfmt += ch; // Add any characters after the specifier are ok
+                 continue;
+             }
+             else if (ch == 'c' || ch == 'd' || ch == 'e' || ch == 'f' ||
+                 ch == 'g' || ch == 'i' || ch == 's' || ch == 'n')
+             {
+                 basefmt += ch;
+                 if (ch == 'f' || ch == 'g')
+                 {
+                     if (!hasOnlyDigits || numDecimalPts > 1)
+                     {
+                         rawfmt = "";
+                         err = "Error: invalid format %" + tmp;
+                         break;
+                     }
+                     rawfmt += "lf";
+                 }
+                 else if (ch == 'c' || ch == 'd' || ch == 'n')
+                 {
+                     if (!hasOnlyDigits || numDecimalPts > 0)
+                     {
+                         rawfmt = "";
+                         err = "Error: invalid format %" + tmp;
+                         break;
+                     }
+                     if (ch == 'n')
+                     {
+                         ch = 'd';
+                     }
+                     rawfmt += ch;
+                 }
+                 else
+                 {
+                     rawfmt += ch;
+                 }
+                 continue;
+             }
+             rawfmt += ch;
+
+             if (ch == '.')
+             {
+                 numDecimalPts++;
+             }
+             else if (!std::isdigit(static_cast<unsigned char>(ch)))
+             {
+                 hasOnlyDigits = false;
+             }
+         }
+
+         if (basefmt.empty() || rawfmt.empty())
+         {
+             return false;
+         }
+
+         basefmts.push_back("%" + basefmt);
+         if (firsttoken)
+         {
+             rawfmts.push_back(prefix + "%" + rawfmt);
+             firsttoken = false;
+         }
+         else
+         {
+             rawfmts.push_back("%" + rawfmt);
+         }
+         usefmts.push_back(use);
+
+         tok = strtok(NULL, "%");
+     }
+
+     // Check if there are tabs in the format
+     size_t i = 0;
+     for (std::vector<std::string>::iterator itr = rawfmts.begin();
+         itr != rawfmts.end(); ++itr, ++i)
+     {
+         std::string fmt(*itr);
+         size_t      pos = fmt.find("\\t");
+         bool        replace = false;
+         if (pos != std::string::npos)
+         {
+             fmt.replace(pos, 2, "\t");
+             rawfmts[i] = fmt;
+         }
+     }
      return true;
  }

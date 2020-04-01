@@ -1,4 +1,4 @@
-addtoolbox('omlDiffEq')
+addtoolbox('omldiffeq')
 function dy = MSD(t,y,m,k,c)
   % y = [x, dx/dt]
   dy = [0, 0];

@@ -1,4 +1,4 @@
-addToolbox omlMathUtils
+addToolbox omlmathutils
 
 rat(1000000000000007)
 rat(1/1000000000000007)

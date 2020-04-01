@@ -1,4 +1,4 @@
-addToolbox omlSignals
+addToolbox omlsignals
 t=-pi:0.01:pi;
 x=tan(t);
 interval=200;

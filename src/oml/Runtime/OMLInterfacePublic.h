@@ -20,6 +20,7 @@
 
 class OMLCurrency;
 class OMLCellArray;
+class OMLNDCellArray;
 class OMLMatrix;
 class OMLNDMatrix;
 class OMLComplex;
@@ -50,6 +51,13 @@ public:
 	virtual OMLCurrencyList* CreateCurrencyList() = 0;
 };
 
+class OMLInterface3 : public OMLInterface2
+{
+public:
+	virtual void RegisterFunctionWithMetadata(const char*, ALT_FUNCPTR, const char*, int, int) = 0;
+	virtual const OMLCurrency* CallFunction(const char*, OMLCurrencyList* inputs) = 0;
+};
+
 class OMLCurrency
 {
 public:
@@ -78,6 +86,13 @@ public:
 	virtual bool IsFunctionHandle() const = 0;
 
 	virtual const OMLFunctionHandle* GetFunctionHandle() const = 0;
+};
+
+class OMLCurrency3 : public OMLCurrency2
+{
+public:
+	virtual bool IsNDCellArray() const = 0;
+	virtual bool IsSparseMatrix() const = 0;
 };
 
 class OMLComplex
@@ -123,6 +138,22 @@ public:
 	virtual ~OMLNDMatrix() {};
 };
 
+class OMLSparseMatrix
+{
+public:
+	virtual bool    IsReal() const = 0;
+
+	virtual int     GetRows() const = 0;
+	virtual int     GetCols() const = 0;
+
+	virtual const double* GetRealData() const = 0;
+	virtual const double* GetImaginaryData() const = 0;
+
+	virtual OMLCurrency* GetCurrency() const = 0;
+
+	virtual ~OMLSparseMatrix() {};
+};
+
 class OMLCellArray
 {
 public:
@@ -138,6 +169,21 @@ public:
 	virtual OMLCurrency* GetCurrency() const = 0;
 
 	virtual ~OMLCellArray() {};
+};
+
+class OMLNDCellArray
+{
+public:
+	virtual int     GetNumDimension() const = 0;
+	virtual int     GetDimension(int) const = 0;
+
+	// only supporting single-indexing b/c we have no vectors available
+	virtual OMLCurrency* GetValue(int index1) const = 0;
+	virtual void         SetValue(int index1, OMLCurrency* val) = 0;
+
+	virtual OMLCurrency* GetCurrency() const = 0;
+
+	virtual ~OMLNDCellArray() {};
 };
 
 class OMLStruct
@@ -181,15 +227,25 @@ public:
 	virtual OMLCurrency*  CreateCurrencyFromDouble(double dbl) = 0;
 	virtual OMLCurrency*  CreateCurrencyFromString(const char* str) = 0;
 
-	virtual OMLCellArray* CreateCellArray(int rows, int cols) = 0;
-	virtual OMLStruct*    CreateStruct(int rows, int cols) = 0;
-	virtual OMLMatrix*    CreateMatrix(int rows, int cols, double* data) = 0;
-	virtual OMLMatrix*    CreateMatrix(int rows, int cols, double* real, double* imag) = 0;
-	virtual OMLNDMatrix*  CreateNDMatrix(int num_dims, int* dims, double* real) = 0;
-	virtual OMLNDMatrix*  CreateNDMatrix(int num_dims, int* dims, double* real, double* imag) = 0;
-	virtual OMLComplex*   CreateComplex(double real, double imag) = 0;
+	virtual OMLCellArray*    CreateCellArray(int rows, int cols) = 0;
+	virtual OMLStruct*       CreateStruct(int rows, int cols) = 0;
+	virtual OMLMatrix*       CreateMatrix(int rows, int cols, double* data) = 0;
+	virtual OMLMatrix*       CreateMatrix(int rows, int cols, double* real, double* imag) = 0;
+	virtual OMLNDMatrix*     CreateNDMatrix(int num_dims, int* dims, double* real) = 0;
+	virtual OMLNDMatrix*     CreateNDMatrix(int num_dims, int* dims, double* real, double* imag) = 0;
+	virtual OMLComplex*      CreateComplex(double real, double imag) = 0;
 
 	virtual ~OMLCurrencyList() {};
+};
+
+class OMLCurrencyList2 : public OMLCurrencyList
+{
+public:
+	virtual void AddNDCellArray(OMLNDCellArray*) = 0;
+	virtual void AddSparseMatrix(OMLSparseMatrix*) = 0;
+
+	virtual OMLNDCellArray*  CreateNDCellArray(int num_dims, int* dims) = 0;
+	virtual OMLSparseMatrix* CreateSparseMatrix(int rows, int cols) = 0;
 };
 
 #endif

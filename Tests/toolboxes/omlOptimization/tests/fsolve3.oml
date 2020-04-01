@@ -1,4 +1,4 @@
-addtoolbox omlOptimization
+addtoolbox omloptimization
 % intersection of two paraboloids and a plane
 % with history
 
@@ -15,7 +15,9 @@ end
 options = optimset('MaxIter', 200, 'Display', 'iter', 'TolFun', 1.0e-12, 'TolX', 1.0e-5);
 init = [1; 2];
 
-[x,fval] = fsolve(@Residuals, init, options)
+[x,fval] = fsolve(@Residuals, init, options);
+x
+fval = fix(10^12 * fval)
 
 
 

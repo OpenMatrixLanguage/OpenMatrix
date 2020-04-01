@@ -1,4 +1,4 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 
 function result = ButtOrdBS()
 	result = 'fail';

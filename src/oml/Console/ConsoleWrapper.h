@@ -64,21 +64,11 @@ public:
     void SetPaginationVariables();
 
     //!
-    //! True if quiet mode is enabled
-    //!
-    bool GetQuietMode() const { return _quietMode; }
-    //!
-    //! Sets quiet mode
-    //! \param val True if quiet mode is enabled
-    //!
-    void SetQuietMode(bool val) { _quietMode = val; }
-
-    //!
     //! Prints new prompt and resets append flags
     //!
     void PrintNewPrompt();
     //!
-    //! Prints to stdout if not in quiet mode
+    //! Prints to stdout
     //! \param msg Message to print
     //!
     void PrintToStdout(const std::string& msg);
@@ -135,7 +125,6 @@ public:
 
 private:
     bool _appendOutput;                           //! True if output is appended
-    bool _quietMode;                              //! True if in quiet mode
     bool _addnewline;                             //! True if new line should be added
 
     std::vector<Currency>        _resultsToPrint; //! Results to print

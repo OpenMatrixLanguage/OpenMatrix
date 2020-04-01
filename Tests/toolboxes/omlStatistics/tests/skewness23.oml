@@ -1,2 +1,2 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 skewness([1,6,2;-3,5,-6],'test',2)

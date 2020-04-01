@@ -1,1 +1,1 @@
-Error: cell inputs must only contain strings in call to function union at line number 1 in file union12.oml
+Error: invalid input; must be a string or a cell array of strings in call to function union at line number 1 in file union12.oml

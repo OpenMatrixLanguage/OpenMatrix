@@ -1,4 +1,4 @@
-addToolbox omlGeometry
+addToolbox omlgeometry
 
 ang = [1:1:60] * (2*pi/60);
 x = 8 .* (1 + 0.1*cos(8*ang)) .* cos(ang);

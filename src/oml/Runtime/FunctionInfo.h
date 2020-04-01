@@ -37,6 +37,8 @@ public:
 	bool IsAnonymous() const { return _anon_scope != 0; }
 	bool IsNested() const { return _is_nested; }
 	void IsNested(bool nest) { _is_nested = nest; }
+	bool IsEncrypted() const { return _is_encrypted; }
+	void IsEncrypted(bool encrypt) { _is_encrypted = encrypt; }
 	bool IsBuiltIn() const { return _builtin != 0; }
 	bool IsLocalFunction(std::string script_name) const;
 	bool IsReturnValue(const std::string* varname) const;
@@ -95,6 +97,7 @@ private:
 	MemoryScope* _anon_scope;
 	MemoryScope* _persistent_scope;
 	bool         _is_nested;
+	bool         _is_encrypted;
 	bool         _is_constructor;
 }; 
 

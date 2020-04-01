@@ -1,4 +1,4 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 
 % test 8 - unstable complex poles
 fs = 2000;

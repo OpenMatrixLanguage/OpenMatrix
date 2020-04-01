@@ -1,2 +1,2 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 up = upsample([1 2 3],2,1)

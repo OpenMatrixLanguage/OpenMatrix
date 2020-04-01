@@ -68,6 +68,7 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
                      const hwMatrix&      y_,
                      double               reltol_,
                      const hwMatrix*      abstol_,
+                     double               maxstep,
                      const hwMatrix*      userData)
     : hwDiffEqSolver(y_)
     , arkode_mem(nullptr)
@@ -192,13 +193,13 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
         {
             if (!abstol_->IsReal())
             {
-                m_status(HW_MATH_ERR_COMPLEX, 12);
+                m_status(HW_MATH_ERR_COMPLEX, 7);
                 return;
             }
 
             if (!abstol_->IsVector())
             {
-                m_status(HW_MATH_ERR_VECTOR, 12);
+                m_status(HW_MATH_ERR_VECTOR, 7);
                 return;
             }
 
@@ -208,7 +209,7 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
 
                 if (abstol <= 0.0)
                 {
-                    m_status(HW_MATH_ERR_NONPOSITIVE, 8);
+                    m_status(HW_MATH_ERR_NONPOSITIVE, 7);
                     return;
                 }
 
@@ -221,7 +222,7 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
                 {
                     if ((*abstol_)(i) <= 0.0)
                     {
-                        m_status(HW_MATH_ERR_NONPOSITIVE, 8);
+                        m_status(HW_MATH_ERR_NONPOSITIVE, 7);
                         return;
                     }
                 }
@@ -257,6 +258,15 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
 
         flag = ARKodeSStolerances(arkode_mem, reltol_, abstol);
         // if (Check_flag(&flag, "ARKodeSStolerances", 1)) return(1);
+    }
+
+    if (maxstep > 0.0)
+    {
+        ARKodeSetMaxStep(arkode_mem, maxstep);
+    }
+    else if (maxstep != -999.0)
+    {
+        m_status(HW_MATH_ERR_NONPOSITIVE, 8);
     }
 }
 //------------------------------------------------------------------------------

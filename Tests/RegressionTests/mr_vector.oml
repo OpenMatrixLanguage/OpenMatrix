@@ -1,0 +1,4 @@
+﻿function [a,b] = myfunc
+  a = 0;
+ b = 1:3;
+end [x, y(2:4)] = myfunc

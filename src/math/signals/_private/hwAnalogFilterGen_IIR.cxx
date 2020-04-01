@@ -25,16 +25,15 @@
 hwAnalogFilterGen_IIR::hwAnalogFilterGen_IIR(const hwFilterSpecs& filterSpecs,
                                              hwAnalogFilter&      analogFilter)
 {
-    if (filterSpecs.Order() < 1 || filterSpecs.Order() > 14)
+    m_status = filterSpecs.Status();
+    if (!m_status.IsOk())
     {
-        m_status(HW_MATH_ERR_FILTERORDERIRR, 1);
         return;
     }
 
-    m_status = filterSpecs.Status();
-    if (!m_status.IsOk())   // checked after order for API reasons
+    if (filterSpecs.Order() < 1 || filterSpecs.Order() > 14)
     {
-        return;
+        m_status(HW_MATH_WARN_FILTERORDERIRR, 1);
     }
 
     if (filterSpecs.BandType() == LowPass || filterSpecs.BandType() == HighPass)

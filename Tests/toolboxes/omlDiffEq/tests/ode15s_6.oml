@@ -1,4 +1,4 @@
-addtoolbox omlDiffEq
+addtoolbox omldiffeq
 
 % define system function
 function yp = RLC(t,y,R,L,C)

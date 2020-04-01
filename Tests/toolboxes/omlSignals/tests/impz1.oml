@@ -1,4 +1,4 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 
 % test 1 - stable with complex poles
 fc = 100;

@@ -1,4 +1,4 @@
-addtoolbox omlPolynom
+addtoolbox omlpolynom
 
 x = [1,3,10,7,15];
 y = [5,3,9,2,7]';

@@ -15,28 +15,24 @@ python:
 - '3.6'
 before_install:
 - git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Linux_OS66.git Linux
-- if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
+#- if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
 env:
   SH=bash
   OML_ROOT=$PWD
   OML_THIRDPARTY=$PWD/Linux/third_party
-  LD_LIBRARY_PATH=$OML_THIRDPARTY/fftw/fftw-3.2.2/.libs:$LD_LIBRARY_PATH
-  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/lapack/lapack-3.7.1
-  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/ANTLR/libantlr3c-3.4/.libs
-  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/matio/matio-1.5.12/src/.libs
-  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/hdf5/hdf5-1.10.1/hdf5/lib
-  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/sundials/sundials-3.1.0-install/lib
-  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/qhull/qhull-2015.2/lib
-  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_ROOT/src/bin/linux64
-  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/bin:/usr/lib:/usr/lib64
-  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu
-  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lib/x86_64-linux-gnu
   PATH=$PATH:$OML_ROOT/src/bin/linux64
   OML_PYTHONHOME=/usr
   OML_PYTHONVERSION=python3
   OML_PYTHON_NUMPYDIR=$OML_PYTHONHOME/lib/$OML_PYTHONVERSION/dist-packages/numpy/core/include/numpy/
 before_script:
 script:
+- export LD_LIBRARY_PATH=$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/mkl/lib/intel64_lin:$LD_LIBRARY_PATH
+- export LD_LIBRARY_PATH=$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/compiler/lib/intel64_lin:$LD_LIBRARY_PATH
+- export LD_LIBRARY_PATH=$OML_THIRDPARTY/fftw/fftw-3.2.2/.libs:$OML_THIRDPARTY/ANTLR/libantlr3c-3.4/.libs:$LD_LIBRARY_PATH
+- export LD_LIBRARY_PATH=$OML_THIRDPARTY/matio/matio-1.5.12/src/.libs:$OML_THIRDPARTY/hdf5/hdf5-1.10.1/hdf5/lib:$LD_LIBRARY_PATH
+- export LD_LIBRARY_PATH=$OML_THIRDPARTY/sundials/sundials-3.1.0-install/lib:$OML_THIRDPARTY/qhull/qhull-2015.2/lib:$LD_LIBRARY_PATH
+- export LD_LIBRARY_PATH=$OML_ROOT/src/bin/linux64:$LD_LIBRARY_PATH
+- export LD_LIBRARY_PATH=/usr/bin:/usr/lib:/usr/lib64:/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 - g++ --version
 - $CXX --version
 - which $CXX
@@ -50,17 +46,27 @@ script:
 - ls -alF /usr/lib/x86_64-linux-gnu | grep fortran
 #- ls -alF /lib/x86_64-linux-gnu | grep fortran
 - set | grep LD_LIBRARY_PATH
+- set | grep OML
+- cd $OML_THIRDPARTY/intel
+- find . -name "*mkl*.so"
+- cd $OML_THIRDPARTY/ANTLR
+- find . -iname "libantlr3c*"
+- echo ==============================
+- echo ==============================
+- echo $LD_LIBRARY_PATH
+- echo $OML_ROOT
+- echo $OML_THIRDPARTY
+- echo $PATH
 - cd $OML_ROOT/src
 - ls -alF
 - make -f makefile.open
 after_success:
-#- chmod 777 $OML_ROOT/src/bin/linux64/omlconsole
 - ls -alF $OML_ROOT/src/bin/linux64
 - ldd $OML_ROOT/src/bin/linux64/omlconsole
 - cd $OML_ROOT/Tests && pwd
 - source run_tests.sh
 - cd $OML_ROOT/Tests && pwd
 - source run_toolbox_tests.sh
-- cd $OML_ROOT/Tests
+- cd $OML_ROOT/Tests && pwd
 - source evaluate_test_results.sh
 #compiler: gcc

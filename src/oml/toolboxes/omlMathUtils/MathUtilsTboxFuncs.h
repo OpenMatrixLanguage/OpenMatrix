@@ -62,6 +62,15 @@ bool OmlGamma(EvaluatorInterface           eval,
               const std::vector<Currency>& inputs, 
               std::vector<Currency>&       outputs);
 //!
+//! Returns true after executing gamma function
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlFactorial(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs);
+//!
 //! Returns true after dividing range of data into given number of equal bins
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
@@ -93,5 +102,12 @@ std::vector<Currency> doBeta(EvaluatorInterface&          eval,
 //!
 std::vector<Currency> doGamma(EvaluatorInterface&          eval, 
                               const std::vector<Currency>& inputs);
+//!
+//! Returns outputs after executing the factorial function
+//! \param eval 
+//! \param inputs Vector of inputs
+//!
+std::vector<Currency> doFactorial(EvaluatorInterface&          eval,
+                                  const std::vector<Currency>& inputs);
 
 #endif // __MATHUTILSTBOXFUNCS_H__

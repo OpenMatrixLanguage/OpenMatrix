@@ -123,6 +123,16 @@ public:
     static bool Varlist( EvaluatorInterface           eval, 
                          const std::vector<Currency>& inputs, 
                          std::vector<Currency>&       outputs);
+
+	//!
+	//! Returns true after displaying a list of keywords in the interpreter [varlist command]
+	//! \param eval    Evaluator interface
+	//! \param inputs  Vector of inputs
+	//! \param outputs Vector of outputs
+	//!
+	static bool Keywordlist(EvaluatorInterface           eval,
+		const std::vector<Currency>& inputs,
+		std::vector<Currency>&       outputs);
     //!
     //! Returns true after getting current file name being processed [omlfilename command]
     //! \param eval    Evaluator interface
@@ -189,6 +199,12 @@ public:
     //! \param handle Handle to dynamically loaded library
     //!
     static void DyFreeLibrary(void* handle);
+
+	//!
+	//! Gets the path of a loaded library
+	//! \param handle Handle to dynamically loaded library
+	//!
+	static std::string DyGetLibraryPath(void* handle);
 
 private:
     //!

@@ -1,3 +1,3 @@
-addToolbox omlMathUtils
+addToolbox omlmathutils
 
 str = rat(266/115, 0.01)

@@ -1,5 +1,5 @@
-addtoolbox omlStatistics
-addtoolbox omlSignals
+addtoolbox omlstatistics
+addtoolbox omlsignals
 
 n = 4096;
 fs = 256;

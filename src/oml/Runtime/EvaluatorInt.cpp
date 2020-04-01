@@ -53,6 +53,11 @@ bool EvaluatorInterface::RegisterBuiltInFunction(const std::string& func_name, A
     return eval->RegisterBuiltInFunction(func_name, fp);
 }
 
+bool EvaluatorInterface::RegisterBuiltInFunction(const std::string& func_name, ALT_FUNCPTR fp, const FunctionMetaData& md)
+{
+	return eval->RegisterBuiltInFunction(func_name, fp, md);
+}
+
 std::vector<std::string> EvaluatorInterface::GetBuiltinFunctionNames() const
 {
     return eval->GetBuiltinFunctionNames();
@@ -295,6 +300,11 @@ int EvaluatorInterface::GetNumFiles()
 void EvaluatorInterface::AddPath(std::string pathname, bool end)
 {
     eval->AddPath(pathname, end);
+}
+
+void EvaluatorInterface::AddHiddenPath(std::string pathname)
+{
+	eval->AddHiddenPath(pathname);
 }
 
 void EvaluatorInterface::AddPath2(const std::string& pathname, const std::vector<std::string> funcs)
@@ -553,6 +563,11 @@ void EvaluatorInterface::SetDiary(bool val)
 	eval->SetDiary(val);
 }
 
+void EvaluatorInterface::SetDLLContext(const std::string& dll_name)
+{
+	eval->SetDLLContext(dll_name);
+}
+
 bool EvaluatorInterface::IsDiaryOpen()
 {
 	return eval->IsDiaryOpen();
@@ -693,6 +708,16 @@ void EvaluatorInterface::SetExperimental(bool val)
 {
     assert(eval);
     eval->SetExperimental(val);
+}
+
+int EvaluatorInterface::GetVerbose() const
+{
+	return eval->GetVerbose();
+}
+
+void EvaluatorInterface::SetVerbose(int val)
+{
+	eval->SetVerbose(val);
 }
 
 void EvaluatorInterface::CacheLineInfomation()
@@ -845,4 +870,14 @@ Currency EvaluatorInterface::Analyze(const std::string& infile)
 Currency EvaluatorInterface::GetMetadata(const std::string& infile)
 {
 	return eval->GetMetadata(infile);
+}
+
+void EvaluatorInterface::RegisterChildEvaluator(ExprTreeEvaluator* child)
+{
+	eval->RegisterChildEvaluator(child);
+}
+
+void EvaluatorInterface::RemoveChildEvaluator()
+{
+	eval->RemoveChildEvaluator();
 }

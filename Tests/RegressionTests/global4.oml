@@ -1,0 +1,4 @@
+﻿a(1).name = 'cae';
+global a; 
+a(1).name
+

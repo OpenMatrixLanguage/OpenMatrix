@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29424.173
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "oml-console", "..\oml\oml-console\oml-console.vcxproj", "{7E5BA3DC-77FB-4D17-B74E-270FBC18A228}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -119,12 +119,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toolbox-omlCAE", "..\oml\to
 		{0CFFDA9D-E279-42C9-BA45-01A593BD9207} = {0CFFDA9D-E279-42C9-BA45-01A593BD9207}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toolbox-omlpythonbridge", "..\oml\toolbox-omlpythonbridge\toolbox-omlpythonbridge.vcxproj", "{8B758BA8-FB7E-4320-A66E-B57FD2451176}"
-	ProjectSection(ProjectDependencies) = postProject
-		{96AC9924-F1AE-461F-AEB8-452623BB4C4F} = {96AC9924-F1AE-461F-AEB8-452623BB4C4F}
-		{DA6FC32A-2069-4AAD-9F56-F60067C03A11} = {DA6FC32A-2069-4AAD-9F56-F60067C03A11}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toolbox-omlbatchplotcore", "..\oml\toolbox-omlbatchplotcore\toolbox-omlbatchplotcore.vcxproj", "{5DAE86E1-3AC5-4ACB-A953-EA15CCF09BC1}"
 	ProjectSection(ProjectDependencies) = postProject
 		{96AC9924-F1AE-461F-AEB8-452623BB4C4F} = {96AC9924-F1AE-461F-AEB8-452623BB4C4F}
@@ -152,6 +146,19 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "math-geometry", "..\math\geometry\math-geometry.vcxproj", "{1BC4FBBC-7F88-49DB-B77F-4EE1B369DAE3}"
 	ProjectSection(ProjectDependencies) = postProject
 		{96AC9924-F1AE-461F-AEB8-452623BB4C4F} = {96AC9924-F1AE-461F-AEB8-452623BB4C4F}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toolbox-omlpythonbridge", "..\oml\toolbox-omlpythonbridge\toolbox-omlpythonbridge.vcxproj", "{8B758BA8-FB7E-4320-A66E-B57FD2451176}"
+	ProjectSection(ProjectDependencies) = postProject
+		{96AC9924-F1AE-461F-AEB8-452623BB4C4F} = {96AC9924-F1AE-461F-AEB8-452623BB4C4F}
+		{DA6FC32A-2069-4AAD-9F56-F60067C03A11} = {DA6FC32A-2069-4AAD-9F56-F60067C03A11}
+		{DB14AF69-035C-4AC6-94EF-1E0345973A37} = {DB14AF69-035C-4AC6-94EF-1E0345973A37}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toolbox-omlpythonbridgecore", "..\oml\toolbox-omlpythonbridgecore\toolbox-omlpythonbridgecore.vcxproj", "{DB14AF69-035C-4AC6-94EF-1E0345973A37}"
+	ProjectSection(ProjectDependencies) = postProject
+		{96AC9924-F1AE-461F-AEB8-452623BB4C4F} = {96AC9924-F1AE-461F-AEB8-452623BB4C4F}
+		{DA6FC32A-2069-4AAD-9F56-F60067C03A11} = {DA6FC32A-2069-4AAD-9F56-F60067C03A11}
 	EndProjectSection
 EndProject
 Global
@@ -314,13 +321,6 @@ Global
 		{F9F6F155-FFF6-4088-88E8-FD3980FE997F}.Release|x64.Build.0 = Release|x64
 		{F9F6F155-FFF6-4088-88E8-FD3980FE997F}.Release|x86.ActiveCfg = Release|Win32
 		{F9F6F155-FFF6-4088-88E8-FD3980FE997F}.Release|x86.Build.0 = Release|Win32
-		{8B758BA8-FB7E-4320-A66E-B57FD2451176}.Debug|x64.ActiveCfg = Debug|x64
-		{8B758BA8-FB7E-4320-A66E-B57FD2451176}.Debug|x64.Build.0 = Debug|x64
-		{8B758BA8-FB7E-4320-A66E-B57FD2451176}.Debug|x86.ActiveCfg = Debug|Win32
-		{8B758BA8-FB7E-4320-A66E-B57FD2451176}.Debug|x86.Build.0 = Debug|Win32
-		{8B758BA8-FB7E-4320-A66E-B57FD2451176}.Release|x64.ActiveCfg = Release|x64
-		{8B758BA8-FB7E-4320-A66E-B57FD2451176}.Release|x86.ActiveCfg = Release|Win32
-		{8B758BA8-FB7E-4320-A66E-B57FD2451176}.Release|x86.Build.0 = Release|Win32
 		{5DAE86E1-3AC5-4ACB-A953-EA15CCF09BC1}.Debug|x64.ActiveCfg = Debug|x64
 		{5DAE86E1-3AC5-4ACB-A953-EA15CCF09BC1}.Debug|x64.Build.0 = Debug|x64
 		{5DAE86E1-3AC5-4ACB-A953-EA15CCF09BC1}.Debug|x86.ActiveCfg = Debug|Win32
@@ -361,8 +361,23 @@ Global
 		{1BC4FBBC-7F88-49DB-B77F-4EE1B369DAE3}.Release|x64.Build.0 = Release|x64
 		{1BC4FBBC-7F88-49DB-B77F-4EE1B369DAE3}.Release|x86.ActiveCfg = Release|Win32
 		{1BC4FBBC-7F88-49DB-B77F-4EE1B369DAE3}.Release|x86.Build.0 = Release|Win32
+		{8B758BA8-FB7E-4320-A66E-B57FD2451176}.Debug|x64.ActiveCfg = Debug|x64
+		{8B758BA8-FB7E-4320-A66E-B57FD2451176}.Debug|x86.ActiveCfg = Debug|Win32
+		{8B758BA8-FB7E-4320-A66E-B57FD2451176}.Debug|x86.Build.0 = Debug|Win32
+		{8B758BA8-FB7E-4320-A66E-B57FD2451176}.Release|x64.ActiveCfg = Release|x64
+		{8B758BA8-FB7E-4320-A66E-B57FD2451176}.Release|x86.ActiveCfg = Release|Win32
+		{8B758BA8-FB7E-4320-A66E-B57FD2451176}.Release|x86.Build.0 = Release|Win32
+		{DB14AF69-035C-4AC6-94EF-1E0345973A37}.Debug|x64.ActiveCfg = Debug|x64
+		{DB14AF69-035C-4AC6-94EF-1E0345973A37}.Debug|x86.ActiveCfg = Debug|Win32
+		{DB14AF69-035C-4AC6-94EF-1E0345973A37}.Debug|x86.Build.0 = Debug|Win32
+		{DB14AF69-035C-4AC6-94EF-1E0345973A37}.Release|x64.ActiveCfg = Release|x64
+		{DB14AF69-035C-4AC6-94EF-1E0345973A37}.Release|x86.ActiveCfg = Release|Win32
+		{DB14AF69-035C-4AC6-94EF-1E0345973A37}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EBABC0A9-B434-4475-9DC0-630C282BDB59}
 	EndGlobalSection
 EndGlobal

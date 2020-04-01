@@ -1,2 +1,2 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 w = welchwin(7,'periodic')

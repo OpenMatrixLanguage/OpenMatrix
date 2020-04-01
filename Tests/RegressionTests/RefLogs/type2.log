@@ -1,8 +1,8 @@
-'-' is an operator
-'*' is an operator
-'/' is an operator
-'./' is an operator
-'\' is an operator
-'.\' is an operator
-'=' is an operator
+- is an operator
+* is an operator
+/ is an operator
+./ is an operator
+\ is an operator
+.\ is an operator
+= is an operator
 Error: invalid input in argument 8; '!=' is not defined in call to function type at line number 1 in file type2.oml

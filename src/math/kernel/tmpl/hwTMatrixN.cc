@@ -1737,8 +1737,6 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
     }
 }
 
-
-
 //! Write to a matrix slice of the calling object, as if the calling object is being
 //! sliced on the left hand side of an equals sign
 //! matrix(slice args) = rhs_matrix
@@ -1821,7 +1819,7 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
         throw;
     }
 
-    // count the LHS slicing colons pick the initial slicing rule
+    // count the LHS slicing colons; pick the initial slicing rule
     // Rule 1: map the RHS dimensions to the LHS colons
     // Rule 2: map the non-singleton RHS dimensions to the LHS colons
     // Rule 3: attempt Rule2 if Rule 1 fails
@@ -2137,8 +2135,6 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
         }
     }
 }
-
-
 
 //! Write to a matrix slice of the calling object, as if the calling object is being
 //! sliced on the left hand side of an equals sign

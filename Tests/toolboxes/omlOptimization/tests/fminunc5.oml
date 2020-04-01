@@ -1,6 +1,6 @@
-addtoolbox omlOptimization
+addtoolbox omloptimization
 
-Rosenbrock = @(p) (1 - p(1))^2 + 100 * (p(2) - p(1)^2)^2;
+Rosenbrock = @(p) (1 - p(1))^2 + 100 * (p(2) - p(1)^2)^2 + 1;
 init = [-1.2, 1.0];
 options = optimset('MaxIter', 200, 'MaxFunEvals', 190, 'TolFun', 1.0e-12);
 

@@ -1,1 +1,3 @@
-Error: incompatible dimensions at line number 1 in file powFAIL6.oml
+ans = [Matrix] 2 x 2
+ 25   125
+256  4096

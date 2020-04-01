@@ -188,6 +188,7 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 				exit_type = RCURLY;
 
 			int brace_token = j;
+			int start_count = 1;
 
 			for (int k=j+1; k<num_tokens; k++)
 			{
@@ -259,6 +260,10 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 					}
 
 					k=q;
+				}
+				else if ((token_type == LBRACKET) && (exit_type == RBRACKET))
+				{
+					start_count++;
 				}
 
 				if ((token_type == WS)  && (k != brace_token+1))
@@ -378,8 +383,13 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 				}
 				else if (token_type == exit_type)
 				{
-					j=k;
-					break;
+					--start_count;
+
+					if (start_count == 0)
+					{
+						j = k;
+						break;
+					}
 				}
 			}
 		}
@@ -452,6 +462,37 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 				}
 
 				j=q;
+			}
+		}
+
+		if (token_type == NUMBERHACK)
+		{
+			pANTLR3_COMMON_TOKEN tok2 = (pANTLR3_COMMON_TOKEN)vec->get(vec, j+1);
+
+			if (tok2->getType(tok2) == TIMES)
+			{
+				tok->setType(tok, NUMBER);
+				tok2->setType(tok2, ETIMES);
+			}
+			else if (tok2->getType(tok2) == DIV)
+			{
+				tok->setType(tok, NUMBER);
+				tok2->setType(tok2, EDIV);
+			}
+			else if (tok2->getType(tok2) == POW)
+			{
+				tok->setType(tok, NUMBER);
+				tok2->setType(tok2, DOTPOW);
+			}
+			else if (tok2->getType(tok2) == LDIV)
+			{
+				tok->setType(tok, NUMBER);
+				tok2->setType(tok2, ELDIV);
+			}
+			else if (tok2->getType(tok2) == QUOTE)
+			{
+				tok->setType(tok, NUMBER);
+				tok2->setType(tok2, QUOTE);
 			}
 		}
 		

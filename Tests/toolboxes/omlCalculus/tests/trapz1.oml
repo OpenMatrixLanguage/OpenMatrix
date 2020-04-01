@@ -1,4 +1,4 @@
-addtoolbox omlCalculus
+addtoolbox omlcalculus
 
 x = [0:0.05:1]*pi;
 area = trapz(x,sin(x))

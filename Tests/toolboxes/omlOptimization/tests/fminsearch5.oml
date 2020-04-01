@@ -1,4 +1,4 @@
-addtoolbox omlOptimization
+addtoolbox omloptimization
 
 function e=f(x) e=(x-2)^2+1; end
 function e=g(x) y=fminsearch(@f,3); e=(y-x)^2; end

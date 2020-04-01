@@ -1,0 +1,6 @@
+﻿s = struct('z',0);
+b0 = struct('q',0,'r',0,'s',0,'c',s);
+b = [b0;b0;b0];
+a = [b.c]
+y = [b.c b.c]
+z = [b.c; b.c]

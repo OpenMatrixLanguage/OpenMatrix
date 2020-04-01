@@ -1,0 +1,3 @@
+in = ',,,this is a test**********????***';
+str = ',*?';
+R = strip(in, 'both', str)

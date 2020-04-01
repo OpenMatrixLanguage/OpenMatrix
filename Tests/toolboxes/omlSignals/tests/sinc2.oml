@@ -1,4 +1,4 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 p = [-1:0.2:1];
 p(8) = p(8) + 0.5i;
 x = sinc(p)

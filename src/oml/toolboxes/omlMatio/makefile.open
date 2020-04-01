@@ -1,7 +1,7 @@
 # ====================================================================
 # OpenMatrix oml/toolboxes/omlMatio makefile
 # ====================================================================
-PROJ := omlMatio
+PROJ := omlmatio
 
 UNAME := $(shell uname)
 ifneq (,$(findstring NT,$(UNAME)))

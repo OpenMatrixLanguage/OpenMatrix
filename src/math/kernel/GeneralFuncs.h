@@ -184,13 +184,13 @@ T MachPrecision(T ref)
     if (ref < (T) 0)
         ref = -ref;
 
-    T eps;
-    T temp = (T) 1;
+    T eps  = static_cast<T> (0);
+    T temp = static_cast<T> (1);
 
     while (ref + temp != ref)
     {
         eps = temp;
-        temp *= (T) 0.5;
+        temp *= static_cast<T> (0.5);
     }
 
     return eps;

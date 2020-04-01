@@ -1,4 +1,4 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 function [newAvgs]= balanceGrades(array1,newTarget)
 	meanArray= mean(array1);
 	%finds the mean grade of each column

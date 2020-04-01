@@ -53,8 +53,9 @@ DIFFEQ_DECLS hwMathStatus RK45(ARKRhsFn_client      sysfunc,
                                int                  numTimes, 
                                const hwMatrix&      y, 
                                hwMatrix&            ySolution,
-                               double               relerr   = 1.0e-3, 
+                               double               relerr   = 0.001,
                                const hwMatrix*      abserr   = nullptr,
+                               double               maxstep  = -999.0,
                                const hwMatrix*      userData = nullptr);
 //!
 //! Differential equation solver
@@ -74,8 +75,9 @@ DIFFEQ_DECLS hwMathStatus RK45(ARKRhsFn_client      sysfunc,
                                const hwMatrix&      y,
                                hwMatrix*            timeSolution, 
                                hwMatrix&            ySolution, 
-                               double               relerr   = 1.0e-3,
+                               double               relerr   = 0.001,
                                const hwMatrix*      abserr   = nullptr, 
+                               double               maxstep  = -999.0,
                                const hwMatrix*      userData = nullptr);
 //!
 //! Differential equation solver which wraps CVODE functions
@@ -101,6 +103,7 @@ hwMathStatus ODE(CVRhsFn_client      sysfunc,
                  const char*         job,
                  double              reltol,
                  const               hwMatrix* abstol,
+                 double              maxstep,
                  const               hwMatrix* userData);
 
 //!
@@ -121,8 +124,9 @@ DIFFEQ_DECLS hwMathStatus ODE11(CVRhsFn_client  sysfunc,
                                 const hwMatrix& y,
                                 hwMatrix*       timeSolution,
                                 hwMatrix&       ySolution,
-                                double          reltol   = 1.0e-3,
+                                double          reltol   = 0.001,
                                 const hwMatrix* abstol   = nullptr,
+                                double          maxstep  = -999.0,
                                 const hwMatrix* userData = nullptr);
 
 //!
@@ -145,8 +149,9 @@ DIFFEQ_DECLS hwMathStatus ODE22a(CVRhsFn_client      sysfunc,
                                  const hwMatrix&     y,
                                  hwMatrix*           timeSolution,
                                  hwMatrix&           ySolution,
-                                 double              reltol   = 1.0e-3,
+                                 double              reltol   = 0.001,
                                  const hwMatrix*     abstol   = nullptr,
+                                 double              maxstep  = -999.0,
                                  const hwMatrix*     userData = nullptr);
 
 //!
@@ -175,6 +180,7 @@ hwMathStatus DAE(IDAResFn_client      sysfunc,
                  const char*          job,
                  double               reltol,
                  const hwMatrix*      abstol,
+                 double               maxstep,
                  const hwMatrix*      userData);
 
 //!
@@ -198,8 +204,9 @@ DIFFEQ_DECLS hwMathStatus DAE11a(IDAResFn_client      sysfunc,
                                  const hwMatrix&      yp,
                                  hwMatrix*            timeSolution,
                                  hwMatrix&            ySolution,
-                                 double               reltol   = 1.0e-3,
+                                 double               reltol   = 0.001,
                                  const hwMatrix*      abstol   = nullptr,
+                                 double               maxstep  = -999.0,
                                  const hwMatrix*      userData = nullptr);
 
 #endif // _DiffEq_WrapperFuncs_h

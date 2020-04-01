@@ -1,4 +1,4 @@
-addToolbox omlMathUtils
+addToolbox omlmathutils
 
 lastwarn('Warning')
 lastwarn()

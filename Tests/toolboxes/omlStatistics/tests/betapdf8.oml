@@ -1,2 +1,2 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 betapdf([82 33 0 2.4],1,1)

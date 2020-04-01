@@ -256,7 +256,7 @@ hwMathStatus NLSolve(const LSqFitFunc pRespFunc,
 
         if (status.GetArg2() == 4)
         {
-            status.SetArg2(5);
+            status.SetArg2(7);
         }
 
         if (!status.IsWarning() && !status.IsInfoMsg())

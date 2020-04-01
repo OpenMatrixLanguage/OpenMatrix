@@ -1,2 +1,2 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 var([1,6,2;-3,5,-6],1,3)

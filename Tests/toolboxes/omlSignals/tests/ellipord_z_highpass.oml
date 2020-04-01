@@ -1,4 +1,4 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 
 function result = EllipOrdHP()
 	result = 'fail';

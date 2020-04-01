@@ -1,3 +1,0 @@
-[q,r]=qr([1-i, 2+9i; 9i, 4; 2-i, 2+i])
-disp(q)
-disp(r)

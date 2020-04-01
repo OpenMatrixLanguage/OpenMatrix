@@ -1,0 +1,2 @@
+S =speye(1e5);
+whos S

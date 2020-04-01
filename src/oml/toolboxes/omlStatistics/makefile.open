@@ -1,7 +1,7 @@
 # ====================================================================
 # OpenMatrix oml/toolboxes/omlStatistics makefile
 # ====================================================================
-PROJ := omlStatistics
+PROJ := omlstatistics
 
 UNAME := $(shell uname)
 ifneq (,$(findstring NT,$(UNAME)))
@@ -32,7 +32,7 @@ endif
 LIBS += $(MATHKERNEL_LIBS)
 LIBS += $(OML_LIBS)
 
-LIBS += $(LAPACK_LIBS) $(BLAS_LIBS)
+LIBS += $(MKL_LIBS)
 
 # ====================================================================
 

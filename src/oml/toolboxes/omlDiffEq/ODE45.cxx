@@ -144,8 +144,9 @@ bool OmlOde45(EvaluatorInterface           eval,
     }
     const hwMatrix* time         = cur2.ConvertToMatrix();
     const hwMatrix* y            = cur3.ConvertToMatrix();
-    double          reltol       = 1.0e-3;
+    double          reltol       = 0.001;
     const hwMatrix* abstol       = nullptr;
+    double          maxstep      = -999.0;
     bool            deleteAbsTol = false;
 
     if (nargin > 3)
@@ -158,8 +159,9 @@ bool OmlOde45(EvaluatorInterface           eval,
             {
                 throw OML_Error(OML_ERR_OPTION, 4);
             }
-            const Currency& reltol_C = options->GetValue(0, -1, "RelTol");
-            const Currency& abstol_C = options->GetValue(0, -1, "AbsTol");
+            const Currency& reltol_C  = options->GetValue(0, -1, "RelTol");
+            const Currency& abstol_C  = options->GetValue(0, -1, "AbsTol");
+            const Currency& maxstep_C = options->GetValue(0, -1, "MaxStep");
 
             if (!reltol_C.IsEmpty())
             {
@@ -186,6 +188,19 @@ bool OmlOde45(EvaluatorInterface           eval,
             {
                 throw OML_Error(OML_ERR_SCALARVECTOR, 4, OML_VAR_ABSTOL);
             }
+
+            if (!maxstep_C.IsEmpty())
+            {
+                if (maxstep_C.IsScalar())
+                {
+                    maxstep = maxstep_C.Scalar();
+                }
+                else
+                {
+                    throw OML_Error(OML_ERR_SCALAR, 4, OML_VAR_MAXSTEP);
+                }
+            }
+
         }
         else if (inputs[3].IsMatrix())
         {
@@ -225,7 +240,7 @@ bool OmlOde45(EvaluatorInterface           eval,
         timeSolution = new hwMatrix;
 
         status = RK45(ODE45_file_func, rootFunc, jacDFunc, *time, *y, timeSolution,
-            *ySolution, reltol, abstol, userData);
+            *ySolution, reltol, abstol, maxstep, userData);
     }
     else
     {
@@ -234,7 +249,7 @@ bool OmlOde45(EvaluatorInterface           eval,
         timeSolution->IncrRefCount();
 
         status = RK45(ODE45_file_func, rootFunc, jacDFunc, *time, *y, nullptr,
-            *ySolution, reltol, abstol, userData);
+            *ySolution, reltol, abstol, maxstep, userData);
     }
 
     if (deleteAbsTol && abstol)

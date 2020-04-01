@@ -33,17 +33,15 @@ hwChebyshev_I_s::hwChebyshev_I_s(int    order,
     hwAnalogFilterGen_AP filterGen(filterSpecs, *this);
 
     m_status = filterGen.Status();
-    if (!m_status.IsOk())
+    if (!m_status.IsOk() && !m_status.IsWarning())
     {
         return;
     }
 
     m_pCheby_I_Proto = new hwChebyshev_I_Proto(order, passEdgeDb);
-
-    m_status = m_pCheby_I_Proto->Status();
-
-    if (!m_status.IsOk())
+    if (!m_pCheby_I_Proto->Status().IsOk())
     {
+        m_status = m_pCheby_I_Proto->Status();
         if (m_status.GetArg1() == 2)
         {
             m_status.SetArg1(4);

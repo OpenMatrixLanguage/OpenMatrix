@@ -190,6 +190,36 @@ std::string OMLTree::GetStringRepresentation() const
 		OMLTree* child_2 = GetChild(1);
 		result = child_1->GetStringRepresentation() + " ^ " + child_2->GetStringRepresentation();
 	}
+	else if (tok == ETIMES)
+	{
+		OMLTree* child_1 = GetChild(0);
+		OMLTree* child_2 = GetChild(1);
+		result = child_1->GetStringRepresentation() + " .* " + child_2->GetStringRepresentation();
+	}
+	else if (tok == EDIV)
+	{
+		OMLTree* child_1 = GetChild(0);
+		OMLTree* child_2 = GetChild(1);
+		result = child_1->GetStringRepresentation() + " ./ " + child_2->GetStringRepresentation();
+	}
+	else if (tok == DOTPOW)
+	{
+		OMLTree* child_1 = GetChild(0);
+		OMLTree* child_2 = GetChild(1);
+		result = child_1->GetStringRepresentation() + " .^ " + child_2->GetStringRepresentation();
+	}
+	else if (tok == LDIV)
+	{
+		OMLTree* child_1 = GetChild(0);
+		OMLTree* child_2 = GetChild(1);
+		result = child_1->GetStringRepresentation() + " \\ " + child_2->GetStringRepresentation();
+	}
+	else if (tok == ELDIV)
+	{
+		OMLTree* child_1 = GetChild(0);
+		OMLTree* child_2 = GetChild(1);
+		result = child_1->GetStringRepresentation() + " .\\ " + child_2->GetStringRepresentation();
+	}
 	else if ((tok == IDENT) || (tok == NUMBER))
 	{
 		result = GetText();

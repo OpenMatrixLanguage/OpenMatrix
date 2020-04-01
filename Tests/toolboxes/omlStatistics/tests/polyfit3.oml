@@ -1,2 +1,2 @@
-addtoolbox omlStatistics
+addtoolbox omlstatistics
 polyfit(1,2,-2)

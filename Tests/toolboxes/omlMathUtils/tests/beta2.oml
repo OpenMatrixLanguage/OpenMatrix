@@ -1,4 +1,4 @@
-addToolbox omlMathUtils
+addToolbox omlmathutils
 
 % Should return a vector of the beta function of the values passed in
 

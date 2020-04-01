@@ -828,7 +828,7 @@ inline hwMathStatus hwTMatrix<double>::BalanceReal(bool noperm, hwTMatrix<double
     }
 
     for (int i = 0; i < n; i++)
-        P(i) = i+1;
+        P(i) = static_cast<double>(i+1);
 
     for (int i = n - 1; i >= IHI; i--)
     {
@@ -915,7 +915,7 @@ inline hwMathStatus hwTMatrix<double>::BalanceComplex(bool noperm, hwTMatrix<dou
     }
 
     for (int i = 0; i < n; i++)
-        P(i) = i+1;
+        P(i) = static_cast<double>(i+1);
 
     for (int i = n - 1; i >= IHI; i--)
     {
@@ -1056,10 +1056,26 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompComplex(const hwTMa
     hwTMatrix<double> B1(B); // copy matrix
 
     if (A1.IsReal())
-        A1.MakeComplex();
+    {
+        status = A1.MakeComplex();
+
+        if (!status.IsOk())
+        {
+            status.ResetArgs();
+            return status;
+        }
+    }
 
     if (B1.IsReal())
-        B1.MakeComplex();
+    {
+        status = B1.MakeComplex();
+
+        if (!status.IsOk())
+        {
+            status.ResetArgs();
+            return status;
+        }
+    }
 
     status = V.Dimension(n, n, COMPLEX);
 
@@ -1211,10 +1227,26 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompComplexHermitian(co
     V = A;
 
     if (V.IsReal())
-        V.MakeComplex();
+    {
+        status = V.MakeComplex();
+
+        if (!status.IsOk())
+        {
+            status.ResetArgs();
+            return status;
+        }
+    }
 
     if (Bin.IsReal())
-        Bin.MakeComplex();
+    {
+        status = Bin.MakeComplex();
+
+        if (!status.IsOk())
+        {
+            status.ResetArgs();
+            return status;
+        }
+    }
 
     hwTMatrix<double> RWORK(_max(1,3*A.m_nCols-2), 1, REAL);
 
@@ -1389,9 +1421,8 @@ inline hwMathStatus hwTMatrix<double>::RealSVD(const SVDtype& type, hwTMatrix<do
 
     if (VT)
     {
-        // We ctranspose the result for compatibility
-        VT->Conjugate();
-        VT->Transpose();
+        // transpose result for compatibility
+        status = VT->Transpose();
 
         if (type == SVD_ECON_FLAG)
         {
@@ -1563,9 +1594,9 @@ inline hwMathStatus hwTMatrix<double>::ComplexSVD(const SVDtype& type, hwTMatrix
 
     if (VT)
     {
-        // We ctranspose the result for compatibility
+        // hermitian result for compatibility
         VT->Conjugate();
-        VT->Transpose();
+        status = VT->Transpose();
 
         if (type == SVD_ECON_FLAG)
         {
@@ -1733,14 +1764,14 @@ inline hwMathStatus hwTMatrix<double>::RealQR(hwTMatrix<double>& Q, hwTMatrix<do
     }
     else if (m != 0)
     {
-        Q.Dimension(m, m, REAL);
+        status = Q.Dimension(m, m, REAL);
         Q.Identity();
-        R.Dimension(m, 0, REAL);
+        status = R.Dimension(m, 0, REAL);
     }
     else
     {
-        Q.Dimension(0, 0, REAL);
-        R.Dimension(0, n, REAL);
+        status = Q.Dimension(0, 0, REAL);
+        status = R.Dimension(0, n, REAL);
     }
 
     return status;
@@ -1904,7 +1935,7 @@ inline hwMathStatus hwTMatrix<double>::RealPinv(const hwTMatrix<double>& source)
 
     if (source.IsEmpty())
     {
-        pinv.Dimension(source.m_nCols, source.m_nRows, REAL);
+        status = pinv.Dimension(source.m_nCols, source.m_nRows, REAL);
         return status;
     }
 
@@ -2020,7 +2051,7 @@ inline hwMathStatus hwTMatrix<double>::ComplexPinv(const hwTMatrix<double>& sour
 
     if (source.IsEmpty())
     {
-        pinv.Dimension(source.m_nCols, source.m_nRows, REAL);
+        status = pinv.Dimension(source.m_nCols, source.m_nRows, REAL);
         return status;
     }
 
@@ -2071,8 +2102,8 @@ inline hwMathStatus hwTMatrix<double>::ComplexPinv(const hwTMatrix<double>& sour
 
     try
     {
-        rwork = new double[5*nu];
-        work = new complexD[1];
+        rwork = new double[5*static_cast<long int>(nu)];
+        work  = new complexD[1];
     }
     catch (std::bad_alloc&) 
     {
@@ -2475,8 +2506,6 @@ inline hwMathStatus hwTMatrix<double>::RCond(double& rCondNum) const
 
     if (IsEmpty())
     {
-        double d = 0.0;
-        double n = 1.0;
         rCondNum = std::numeric_limits<double>::infinity();
         return status;
     }
@@ -2619,7 +2648,13 @@ inline hwMathStatus hwTMatrix<double>::QRSolve(const hwTMatrix<double>& A, const
         }
         else if (A.IsReal() && !B.IsReal())
         {
-            Acopy.PackComplex(A);
+            status = Acopy.PackComplex(A);
+
+            if (!status.IsOk())
+            {
+                status.ResetArgs();
+                return status;
+            }
 
             for (int i = 0; i < m; ++i)
             {
@@ -2647,9 +2682,9 @@ inline hwMathStatus hwTMatrix<double>::QRSolve(const hwTMatrix<double>& A, const
 
         try
         {
-            jpvt = new int[n];
-            rwork = new double[2*n];
-            work = new complexD[1];
+            jpvt  = new int[n];
+            rwork = new double[2 * static_cast<long int>(n)];
+            work  = new complexD[1];
         }
         catch (std::bad_alloc&) 
         {
@@ -2826,7 +2861,13 @@ inline hwMathStatus hwTMatrix<double>::LSolve(const hwTMatrix<double>& A, const 
             return status;
         }
 
-        X.PackComplex(B);
+        status = X.PackComplex(B);
+
+        if (!status.IsOk())
+        {
+            status.ResetArgs();
+            return status;
+        }
 
         complexD* a_c = (complexD*) Acopy.m_complex;
         complexD* x_c = (complexD*) X.m_complex;
@@ -3244,7 +3285,13 @@ inline hwMathStatus hwTMatrix<double>::Mult(const hwTMatrix<double>& A, const hw
         if (A.Size() != 0)
         {
             hwTMatrix<double> AC(A);
-            AC.MakeComplex();
+            status = AC.MakeComplex();
+
+            if (!status.IsOk())
+            {
+                status.ResetArgs();
+                return status;
+            }
 
             complexD* t_c = (complexD*) m_complex;
             complexD* a_c = (complexD*) AC.m_complex;
@@ -3272,7 +3319,14 @@ inline hwMathStatus hwTMatrix<double>::Mult(const hwTMatrix<double>& A, const hw
         if (B.Size() != 0)
         {
             hwTMatrix<double> BC(B);
-            BC.MakeComplex();
+            status = BC.MakeComplex();
+
+            if (!status.IsOk())
+            {
+                status.ResetArgs();
+                return status;
+            }
+
             complexD* t_c = (complexD*) m_complex;
             complexD* a_c = (complexD*) A.m_complex;
             complexD* b_c = (complexD*) BC.m_complex;
@@ -3282,7 +3336,7 @@ inline hwMathStatus hwTMatrix<double>::Mult(const hwTMatrix<double>& A, const hw
         }
         else if (Size() != 0)
         {
-            Dimension(m, n, REAL);
+            status = Dimension(m, n, REAL);
             SetElements(0.0);
         }
     }
@@ -3378,7 +3432,14 @@ inline hwMathStatus hwTMatrix<double>::Mult(const hwTMatrix<double>& A, const hw
         {
             hwTMatrix<double> AC(A);
 
-            AC.MakeComplex();
+            status = AC.MakeComplex();
+
+            if (!status.IsOk())
+            {
+                status.ResetArgs();
+                return status;
+            }
+
             complexD* a_c = (complexD*) AC.m_complex;
             zcopy_(&size, a_c, &inc, t_c, &inc);
             zscal_(&size, (complexD*) &z, t_c, &inc);
@@ -3714,7 +3775,7 @@ inline hwMathStatus hwTMatrix<double>::Inverse(const hwTMatrix<double>& source)
     int lda = n;
     int info;
     int lwork = -1;
-    int* ipiv;
+    int* ipiv = nullptr;
 
     try
     {
@@ -3733,12 +3794,19 @@ inline hwMathStatus hwTMatrix<double>::Inverse(const hwTMatrix<double>& source)
 
         dgetrf_(&n, &n, a_r, &lda, ipiv, &info); 
 
-        if (info != 0)
+        if (info)
         {
-            inv.SetElements(std::numeric_limits<double>::infinity());
-            return status(HW_MATH_WARN_SINGMATRIX, 1);
+            if (info > 0)
+            {
+                inv.SetElements(std::numeric_limits<double>::infinity());
+                return status(HW_MATH_WARN_SINGMATRIX, 1);
+            }
+            else
+            {
+                return status(HW_MATH_ERR_INVALIDINPUT, 1);
+            }
         }
-
+            
         // workspace query
         try
         {
@@ -3921,7 +3989,7 @@ inline hwMathStatus hwTMatrix<double>::MatExp(const hwTMatrix<double>& power)
 
     for (int k = 2; k <= q; ++k)
     {
-        c = c * (q-k+1.0) / (k*(2.0*q-k+1.0));
+        c = c * (static_cast<long int>(q-k)+1.0) / (k*(2.0*q-k+1.0));
         X = B * X;
         tempM = X * c;
         E = E + tempM;
@@ -4584,15 +4652,15 @@ inline hwMathStatus hwTMatrix<double>::Eigen(bool balance, hwTMatrix<double>* V,
     if (IsEmpty())
     {
         if (V)
-            V->Dimension(0, 0, COMPLEX);
+            status = V->Dimension(0, 0, REAL);
 
-        D.Dimension(0, 0, COMPLEX);
+        status = D.Dimension(0, 0, REAL);
 
         return status;
     }
 
     if (!IsFinite())
-        return status(HW_MATH_ERR_INVALIDINPUT, 1);
+        return status(HW_MATH_ERR_NONFINITEDATA, 1);
 
     if (IsReal())
         status = EigenDecompReal(balance, V, D);
@@ -4700,7 +4768,13 @@ inline hwMathStatus hwTMatrix<double>::EigenDecompComplexHermitian(hwTMatrix<dou
     V = A;
 
     if (V.IsReal())
-        V.MakeComplex();
+        status = V.MakeComplex();
+
+    if (!status.IsOk())
+    {
+        status.ResetArgs();
+        return status;
+    }
 
     status = D.Dimension(n, 1, REAL);
 
@@ -4751,9 +4825,9 @@ inline hwMathStatus hwTMatrix<double>::Balance(bool noperm, hwTMatrix<double>& S
 
     if (IsEmpty())
     {
-        S.Dimension(0, 0, REAL);
-        P.Dimension(0, 0, REAL);
-        B.Dimension(0, 0, REAL);
+        status = S.Dimension(0, 0, REAL);
+        status = P.Dimension(0, 0, REAL);
+        status = B.Dimension(0, 0, REAL);
 
         return status;
     }
@@ -4764,7 +4838,7 @@ inline hwMathStatus hwTMatrix<double>::Balance(bool noperm, hwTMatrix<double>& S
 
     // Finite matrix required
     if (!IsFinite())
-        return status(HW_MATH_ERR_INVALIDINPUT, 0);
+        return status(HW_MATH_ERR_NONFINITEDATA, 0);
 
     if (IsReal())
         status = BalanceReal(noperm, S, P, B);
@@ -4786,15 +4860,15 @@ inline hwMathStatus hwTMatrix<double>::EigenSH(hwTMatrix<double>* V, hwTMatrix<d
     if (IsEmpty())
     {
         if (V)
-            V->Dimension(0, 0, COMPLEX);
+            status = V->Dimension(0, 0, REAL);
 
-        D.Dimension(0, 0, COMPLEX);
+        status = D.Dimension(0, 0, REAL);
 
         return status;
     }
 
     if (!IsFinite())
-        return status(HW_MATH_ERR_INVALIDINPUT, 0);
+        return status(HW_MATH_ERR_NONFINITEDATA, 0);
 
     if (IsReal())
         status = EigenDecompRealSymmetric(*V, D);
@@ -4948,17 +5022,17 @@ inline hwMathStatus hwTMatrix<double>::Eigen(const hwTMatrix<double>& A, const h
 
     if (A.IsEmpty())
     {
-        V.Dimension(0, 0, REAL);
-        D.Dimension(0, 0, REAL);
+        status = V.Dimension(0, 0, REAL);
+        status = D.Dimension(0, 0, REAL);
 
         return status;
     }
 
     if (!A.IsFinite())
-        return status(HW_MATH_ERR_INVALIDINPUT, 1);
+        return status(HW_MATH_ERR_NONFINITEDATA, 1);
 
     if (!B.IsFinite())
-        return status(HW_MATH_ERR_INVALIDINPUT, 2);
+        return status(HW_MATH_ERR_NONFINITEDATA, 2);
 
     if (A.IsReal() && B.IsReal())
     {
@@ -5234,7 +5308,9 @@ inline hwMathStatus hwTMatrix<double>::Norm(double& norm, int p) const
     else if (p == 2)
     {
         if (IsVector())
-            L2Norm(norm);
+        {
+            status = L2Norm(norm);
+        }
         else    //matrix
         {
             if (IsEmpty())

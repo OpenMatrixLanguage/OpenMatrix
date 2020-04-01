@@ -1,2 +1,2 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 detrend(-5i+4.5,2)

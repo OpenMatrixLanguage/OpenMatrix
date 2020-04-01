@@ -28,13 +28,7 @@ ifneq (,$(findstring win,$(PLATFORM)))
     TARGET = $(BINDIR)/$(PROJ).exe
 else
     TARGET = $(BINDIR)/$(PROJ)
-    MATHKERNEL_LIBS = -L$(OML_ROOT)/src/bin/linux64 -lmathcore
-    BLAS_DIR := $(OML_THIRDPARTY)/lapack/lapack-3.7.1
-    LAPACK_DIR := $(OML_THIRDPARTY)/lapack/lapack-3.7.1
-    BLAS_LIBS = -L$(BLAS_DIR) -lrefblas
-    LAPACK_LIBS = -L$(LAPACK_DIR) -llapack -ltmglib
-    OML_LIBS += -lgfortran
-    SO_FLAGS = -Wl,--no-as-needed -ldl -lrt -rdynamic -pthread -L/lib/x86_64-linux-gnu -lgfortran
+    SO_FLAGS = -Wl,--no-as-needed -ldl -lrt -rdynamic -pthread
 endif
 
 SOURCES += $(wildcard *.cpp)
@@ -48,8 +42,7 @@ CXX_INCLUDES += -I..
 CXX_INCLUDES += -I$(MATHKERNEL_DIR)/kernel -I$(MATHKERNEL_DIR)/..
 LIBS += $(ANTLR_LIBS)
 LIBS += $(MATHKERNEL_LIBS)
-LIBS += $(LAPACK_LIBS)
-LIBS += $(BLAS_LIBS)
+LIBS += $(MKL_LIBS)
 LIBS += $(OML_LIBS)
 
 # ====================================================================

@@ -1,0 +1,3 @@
+fid = fopen('FileManipulation/textscan19.txt','r');
+Line = textscan(fid,'* %d %d %f')
+fclose(fid);

@@ -1,0 +1,7 @@
+﻿resultlist = {'aaa' 'bbb' 'ccc'};
+
+findresult = strfind(resultlist,'ddd');
+
+idxresult = find(~cellfun(@isempty,findresult));
+
+resultname = resultlist{idxresult}

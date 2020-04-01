@@ -27,6 +27,8 @@
 #include <vector>
 #include <MathCoreExports.h>
 
+#pragma warning(disable: 4251)
+
 class MATHCORE_DECLS hwSliceArg
 {
 public:

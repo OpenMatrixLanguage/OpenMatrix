@@ -1,4 +1,4 @@
-addtoolbox omlDiffEq
+addtoolbox omldiffeq
 % compute the current in a series RLC circuit
 % L*d2i/dt2 + R*di/dt + c*i = 0
 

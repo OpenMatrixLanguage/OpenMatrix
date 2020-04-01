@@ -1,2 +1,2 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 f = freq(10, 100)

@@ -1,2 +1,2 @@
-addToolbox omlStatistics
+addToolbox omlstatistics
 c=cov(zeros(0,4),zeros(0,3))

@@ -33,23 +33,31 @@ hwBessel_z::hwBessel_z(int         order,
     hwDigitalFilterGen_AP filterGen(filterSpecs, *this);
 
     m_status = filterGen.Status();
-    if (!m_status.IsOk())
+    if (!m_status.IsOk() && !m_status.IsWarning())
     {
         return;
     }
 
     m_pBesselProto = new hwBessel_Proto(order, type);
-    m_status = m_pBesselProto->Status();
-
-    if (!m_status.IsOk())
+    if (!m_pBesselProto->Status().IsOk())
     {
-        if (m_status.GetArg1() == 2)
+        if (!m_pBesselProto->Status().IsWarning())
         {
-            m_status.SetArg1(4);
-        }
-        if (!m_status.IsWarning())
-        {
+            m_status = m_pBesselProto->Status();    // error
+            if (m_status.GetArg1() == 2)
+            {
+                m_status.SetArg1(4);
+            }
+
             return;
+        }
+        else if (m_status.IsOk())
+        {
+            m_status = m_pBesselProto->Status();    // warning
+            if (m_status.GetArg1() == 2)
+            {
+                m_status.SetArg1(4);
+            }
         }
     }
 

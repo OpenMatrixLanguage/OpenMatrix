@@ -1,0 +1,2 @@
+contains('dog', 'D')
+contains('dog', 'D', 'ignorecase', 1)

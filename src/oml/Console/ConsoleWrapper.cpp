@@ -56,7 +56,6 @@ int maxcols = 0;
 //------------------------------------------------------------------------------
 ConsoleWrapper::ConsoleWrapper(Interpreter* interp)
     : WrapperBase(interp)
-    , _quietMode        (false)
     , _appendOutput     (false)
     , _addnewline       (false)
 {
@@ -291,11 +290,7 @@ void ConsoleWrapper::ProcessPagination()
     if (display->GetMode() == CurrencyDisplay::DISPLAYMODE_EXIT)
     {
         std::cout << "\r" << std::endl;
-
-        while (!_displayStack.empty())
-        {
-            EndPagination(false);
-        }
+        HandleOnClearResults();   // Quit all printing
     }
     else
     {
@@ -801,12 +796,11 @@ void ConsoleWrapper::PrintInfoToOmlWindow(const std::string& msg)
 #endif
 }
 //------------------------------------------------------------------------------
-// Prints info message, silent in quiet mode
+// Prints info message
 //------------------------------------------------------------------------------
 void ConsoleWrapper::PrintToStdout(const std::string& msg)
 {
-    if (!_quietMode)
-        std::cout << msg;
+    std::cout << msg;
 }
 //------------------------------------------------------------------------------
 // Prints new prompt, resets append flags

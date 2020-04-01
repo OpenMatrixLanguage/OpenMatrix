@@ -1,13 +1,13 @@
-addtoolbox omlMatio
+addtoolbox omlmatio
 a = 5;
 b = ones(3,3);
 c = {3i, 0, [ 1 2 3]};
 
 d = 'fun';
-save('selectedV5.mat', 'a', 'b', 'c', 'd', '-v5', '-nozip')
+save('selectedv5.mat', 'a', 'b', 'c', 'd', '-v5', '-nozip')
 clear all;
-R = load('selectedV5.mat')
-R_bc = load('selectedV5.mat','b', 'c')
-R_ad = load('selectedV5.mat','a', 'd')
-delete('selectedV5.mat')
+R = load('selectedv5.mat')
+R_bc = load('selectedv5.mat','b', 'c')
+R_ad = load('selectedv5.mat','a', 'd')
+delete('selectedv5.mat')
 

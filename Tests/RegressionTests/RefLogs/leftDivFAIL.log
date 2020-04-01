@@ -1,1 +1,4 @@
-Error: incompatible dimensions at line number 1 in file leftDivFAIL.oml
+ans = [Matrix] 3 x 3
+7.00000  2.33333  1.16667
+2.00000  0.66667  0.33333
+8.00000  2.66667  1.33333

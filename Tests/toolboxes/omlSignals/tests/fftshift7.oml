@@ -1,4 +1,4 @@
-addtoolbox omlSignals
+addtoolbox omlsignals
 
 x = [1:9]';
 y = fftshift(x)

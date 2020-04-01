@@ -1,1 +1,1 @@
-Error: number of months must be an integer in call to function datenum at line number 1 in file datenum15.oml
+Error: invalid input; must be positive integer in call to function datenum at line number 1 in file datenum15.oml

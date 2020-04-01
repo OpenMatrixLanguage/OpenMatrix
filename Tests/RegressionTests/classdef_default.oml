@@ -1,0 +1,14 @@
+﻿classdef TestClass
+   properties
+      p1
+      p2 = 'a string'
+   end
+   methods
+       function disp(this)
+	       disp(this.p1);
+		   disp(this.p2);
+	   end
+   end
+end
+
+c=TestClass

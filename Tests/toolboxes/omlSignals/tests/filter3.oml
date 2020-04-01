@@ -1,2 +1,2 @@
-addToolbox omlSignals
+addToolbox omlsignals
 filter(6,3i-2,[7,1,-7;7,12,3])

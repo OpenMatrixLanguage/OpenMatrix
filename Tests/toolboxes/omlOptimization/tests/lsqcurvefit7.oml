@@ -1,4 +1,4 @@
-addtoolbox omlOptimization
+addtoolbox omloptimization
 
 function e=f(c, x) e=c(1)*x+c(2); end
 function e=g(c, x)

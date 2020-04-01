@@ -1,6 +1,6 @@
 /**
 * @file OmlPythonBridgeCore.cxx
-* @date February, 2019
+* @date February, 2015
 * Copyright (C) 2015-2019 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
@@ -15,25 +15,16 @@
 */
 
 // Begin defines/includes
-/* Remove it if debug version of python is available. */
-#if defined(_DEBUG)
-#   undef _DEBUG
-#   define PYTHON_DEBUG
-#endif
-/* End change */
 
 #include "Python.h"
-#include "arrayobject.h"
+#include "numpy/arrayobject.h"
 
-/* Remove it if debug version of python is available. */
-#if defined(PYTHON_DEBUG)
-#   define _DEBUG 1
-#endif
-/* End change */
-#include "hwMatrix.h"
-#include "StructData.h"
-#include "EvaluatorInt.h"
 #include "OmlPythonBridgeCore.h"
+
+#include "BuiltInFuncsUtils.h"
+#include "StructData.h"
+
+#include "hwMatrix.h"
 
 // End defines/includes
 
@@ -81,7 +72,7 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
     {
         if (var.IsLogical())
         {
-            obj = PyBool_FromLong(var.Scalar());
+            obj = PyBool_FromLong(static_cast<long>(var.Scalar()));
         }
         //ToDo: uncomment following code once oml interpreter supports true integer
         //else if (var.IsInteger())
@@ -250,7 +241,7 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
 
         if (data->IsReal())
         {
-            obj = PyArray_ZEROS(nd, dims, NPY_DOUBLE, 1);
+            obj = PyArray_ZEROS(static_cast<int>(nd), dims, NPY_DOUBLE, 1);
             double* dptr = (npy_double *)PyArray_DATA(obj);
 
             for (int i = 0; i < data->Size(); i++)
@@ -260,7 +251,7 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
         }
         else
         {
-            obj = PyArray_ZEROS(nd, dims, NPY_COMPLEX128, 1);
+            obj = PyArray_ZEROS(static_cast<int>(nd), dims, NPY_COMPLEX128, 1);
             npy_complex128* outdata = (npy_complex128 *)PyArray_DATA(obj);
 
             for (int i = 0; i < data->Size(); i++)
@@ -347,7 +338,8 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
     else if (PyList_Check(obj))
     {
         Py_ssize_t size = PyList_GET_SIZE(obj);
-        HML_CELLARRAY* list = EvaluatorInterface::allocateCellArray(1, size);
+        HML_CELLARRAY* list = EvaluatorInterface::allocateCellArray(1, 
+            static_cast<int>(size));
         bool status = true;
         for (Py_ssize_t index = 0; index < size; index++)
         {
@@ -359,7 +351,7 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
             {
                 break;
             }
-            (*list)(0, index) = elements[0];
+            (*list)(0, static_cast<int>(index)) = elements[0];
         }
 
         if (status)
@@ -430,7 +422,7 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
         {
             int nd = PyArray_NDIM((PyArrayObject *)obj);
             npy_intp* dimenstions = PyArray_DIMS((PyArrayObject *)obj);
-            int size = PyArray_SIZE(obj);
+            int size = static_cast<int>(PyArray_SIZE(obj));
             std::vector<int> dims;
             bool hasZeroDimSize = false;
 
@@ -438,7 +430,7 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
             {
                 for (int i = 0; i < nd; i++)
                 {
-                    dims.push_back(dimenstions[i]);
+                    dims.push_back(static_cast<int>(dimenstions[i]));
                     if (0 == dimenstions[i])
                         hasZeroDimSize = true;
                 }
@@ -446,7 +438,7 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
             else if (1 == nd)
             {
                 dims.push_back(1);
-                dims.push_back(dimenstions[0]);
+                dims.push_back(static_cast<int>(dimenstions[0]));
 
                 if (0 == dimenstions[0])
                     hasZeroDimSize = true;
@@ -578,13 +570,13 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
                             case NPY_LONGLONG:
                             {
                                 npy_longlong* outdata = (npy_longlong*)data;
-                                (*matN)(i) = (*outdata);
+                                (*matN)(i) = static_cast<long double>((*outdata));
                                 break;
                             }
                             case NPY_ULONGLONG:
                             {
                                 npy_ulonglong* outdata = (npy_ulonglong*)data;
-                                (*matN)(i) = (*outdata);
+                                (*matN)(i) = static_cast<long double>((*outdata));
                                 break;
                             }
                             case NPY_FLOAT:
@@ -793,4 +785,31 @@ bool OmlPythonBridgeCore::IsTypeSupported(PyObject* const& obj)
     }
     
     return is_supported;
+}
+//------------------------------------------------------------------------------
+// Gets argv as Py_initialize does not set sys.argv
+//------------------------------------------------------------------------------
+std::vector<std::string> OmlPythonBridgeCore::GetArgv(EvaluatorInterface eval)
+{
+    std::vector<Currency> inputs;
+    Currency result = eval.CallFunction("getargc", inputs);
+
+    int argc = (result.IsInteger()) ? static_cast<int>(result.Scalar()) : 0;
+
+    std::vector<std::string> argv;
+    argv.reserve(argc);
+    for (int i = 0; i < argc; ++i)
+    {
+        std::vector<Currency> in;
+        in.push_back(i + 1);
+
+        Currency tmp = eval.CallFunction("getargv", in);        
+        if (!tmp.IsString())
+        {
+            continue;
+        }
+        argv.push_back(tmp.StringVal());
+    }
+    
+    return argv;
 }

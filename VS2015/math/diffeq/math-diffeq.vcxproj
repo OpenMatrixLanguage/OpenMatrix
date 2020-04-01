@@ -21,28 +21,28 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2B90588D-2EE2-4B45-A746-72B2014D131E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -107,22 +107,22 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\diffeq;$(OML_ROOT)\src\math\kernel;$(OML_SUNDIALSDIR)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\diffeq;$(OML_ROOT)\src\math\kernel;$(OML_SUNDIALSDIR)\include;$(OML_MKL_INCLUDE)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;OS_WIN; _WIN64; DIFFEQ_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_LIBDIR);$(OML_SUNDIALSDIR)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mathcore.lib;libblas.lib;liblapack.lib;sundials_arkode.lib;sundials_cvode.lib;sundials_ida.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_MKL_LIBDIR);$(OML_SUNDIALSDIR)\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mathcore.lib;sundials_arkode.lib;sundials_cvode.lib;sundials_ida.lib;mkl_rt.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\diffeq;$(OML_ROOT)\src\math\kernel</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>OS_WIN; _WIN64; DIFFEQ_EXPORTS </PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\diffeq;$(OML_ROOT)\src\math\kernel;$(OML_MKL_INCLUDE);$(OML_SUNDIALSDIR)\include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; DIFFEQ_EXPORTS </PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_LIBDIR)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mathcore.lib; libblas.lib; liblapack.lib </AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration); $(OML_MKL_LIBDIR); $(OML_SUNDIALSDIR)\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mathcore.lib;sundials_arkode.lib;sundials_cvode.lib;sundials_ida.lib;mkl_rt.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

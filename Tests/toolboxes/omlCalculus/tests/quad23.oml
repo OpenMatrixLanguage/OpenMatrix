@@ -1,5 +1,5 @@
-addtoolbox omlCalculus
-addtoolbox omlStatistics
+addtoolbox omlcalculus
+addtoolbox omlstatistics
 
 % compute d2(5) from statistical process control
 % tabluated result is 2.326

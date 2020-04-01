@@ -57,6 +57,11 @@ public:
     //! Copies signals for clones, needed only for GUI
     //!
     virtual void CopySignals() {}
+    //!
+    //! Copies signals for clones that are not related to printing, needed only for GUI
+    //! This method should be called in cases where printing is handled separately
+    //!
+    virtual void CopyNonPrintSignals() {}
 
     //!
     //! Returns true if worker thread is being executed
@@ -190,7 +195,10 @@ public:
     //! Helper method which returns true if application is in GUI mode
     //!
     virtual bool IsInGuiMode() const { return false; }
-
+    //!
+    //! Returns true if in Console, non-interactive mode
+    //!
+    virtual bool IsInConsoleBatchMode() const { return false; }
 protected:
     //!
     //! Constructor

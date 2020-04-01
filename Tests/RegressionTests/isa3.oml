@@ -1,0 +1,1 @@
+isa([1;2;3], {'double', 'float', 'integer', 'numeric', 'foo'})

@@ -198,7 +198,10 @@ hwTMatrix<T1, T2>& hwTMatrix<T1, T2>::operator=(const hwTMatrix<T1, T2>& rhs)
     if (this == &rhs)
         return *this;
 
-    Copy(rhs);
+    hwMathStatus status = Copy(rhs);
+
+    if (!status.IsOk())
+        MakeEmpty();
 
     return *this;
 }
@@ -218,6 +221,42 @@ bool hwTMatrix<T1, T2>::IsRealData() const
         {
             if (m_complex[i].Imag() != 0.0)
                 return false;
+        }
+    }
+
+    return true;
+}
+
+//! Determine if the matrix is diagonal
+template<typename T1, typename T2>
+bool hwTMatrix<T1, T2>::IsDiag() const
+{
+    if (IsReal())
+    {
+        for (int jj = 0; jj < m_nCols; ++jj)
+        {
+            for (int ii = 0; ii < m_nCols; ++ii)
+            {
+                if (ii == jj)
+                    continue;
+
+                if ((*this)(ii, jj) != static_cast<T1> (0))
+                    return false;
+            }
+        }
+    }
+    else
+    {
+        for (int jj = 0; jj < m_nCols; ++jj)
+        {
+            for (int ii = 0; ii < m_nCols; ++ii)
+            {
+                if (ii == jj)
+                    continue;
+
+                if (z(ii, jj) != static_cast<T1> (0))
+                    return false;
+            }
         }
     }
 
@@ -317,6 +356,14 @@ hwMathStatus hwTMatrix<T1, T2>::Resize(int m, int n, bool initZero)
 	if ((m_old == m) && (n_old == n))
 		return hwMathStatus();
 
+    if (m == 0 || n == 0)
+    {
+        MakeEmpty();
+        m_nRows = m;
+        m_nCols = n;
+        return hwMathStatus();
+    }
+
     m_nRows = m;
     m_nCols = n;
 
@@ -324,7 +371,7 @@ hwMathStatus hwTMatrix<T1, T2>::Resize(int m, int n, bool initZero)
     // requires rethinking the allocation/copy functionality.
     // simply change dimensions if capacity is sufficient, and
     // object is a vector or only higher dimensions are changing
-    if (n == 0 || m <= m_capacity / n)
+    if (m <= m_capacity / n)
     {
         bool capacityIsOK;
 
@@ -496,7 +543,7 @@ bool hwTMatrix<T1, T2>::IsSymmetric(T1 tol) const
     else
     {
         T1 norm;
-        Norm(norm, "inf");
+        hwMathStatus status = Norm(norm, "inf");
 
         if (m_real)
         {
@@ -569,7 +616,7 @@ bool hwTMatrix<T1, T2>::IsHermitian(T1 tol) const
     else
     {
         T1 norm;
-        Norm(norm, "inf");
+        hwMathStatus status = Norm(norm, "inf");
 
         if (m_real)
         {
@@ -1118,7 +1165,7 @@ hwMathStatus hwTMatrix<T1, T2>::InsertElements(const hwTMatrix<T1, T2>& source, 
         CopyBlock(elems.m_complex, elemsSize, 1, 0, elemsSize-1, 0, 0, startElem, 0);
     }
 
-    if (source.m_nRows == 1)
+    if (source.m_nCols != 1)
         Transpose();
 
     return status;
@@ -1167,7 +1214,7 @@ hwMathStatus hwTMatrix<T1, T2>::InsertElements(const hwTMatrix<T1, T2>& source, 
 
     ZeroBlock(startElem, startElem+numElems-1, 0, 0);
 
-    if (source.m_nRows == 1)
+    if (source.m_nCols != 1)
         Transpose();
 
     return status;
@@ -1772,7 +1819,7 @@ hwMathStatus hwTMatrix<T1, T2>::ReadSubmatrix(int startRow, int startCol, int nu
     return status;
 }
 
-//! Write a submatrix of a source to the calling object, starting at the specified location
+//! Write a submatrix source to the calling object, starting at the specified location
 template<typename T1, typename T2>
 hwMathStatus hwTMatrix<T1, T2>::WriteSubmatrix(int startRow, int startCol, const hwTMatrix<T1, T2>& source)
 {
@@ -4380,10 +4427,10 @@ hwMathStatus hwTMatrix<T1, T2>::ConvLin(const hwTMatrix<T1, T2>& X, const hwTMat
     // X is reversed and passed over Y
     hwMathStatus status;
 
-    if (!X.IsVector())
+    if (X.m_nRows != 1 && X.m_nCols != 1)  // allow empty vector
         return status(HW_MATH_ERR_VECTOR, 1);
 
-    if (!Y.IsVector())
+    if (Y.m_nRows != 1 && Y.m_nCols != 1)  // allow empty vector
         return status(HW_MATH_ERR_VECTOR, 2);
 
     int xn = X.Size();
@@ -4398,6 +4445,9 @@ hwMathStatus hwTMatrix<T1, T2>::ConvLin(const hwTMatrix<T1, T2>& X, const hwTMat
             status = Dimension(1, cn, REAL);
         else
             status = Dimension(cn, 1, REAL);
+
+        if (!cn)
+            return status;
 
         if (!status.IsOk())
         {
@@ -4480,6 +4530,9 @@ hwMathStatus hwTMatrix<T1, T2>::ConvLin(const hwTMatrix<T1, T2>& X, const hwTMat
             status = Dimension(1, cn, COMPLEX);
         else
             status = Dimension(cn, 1, COMPLEX);
+
+        if (!cn)
+            return status;
 
         if (!status.IsOk())
         {
@@ -5723,7 +5776,7 @@ inline void hwTMatrix<double>::SetCapacity(DataType dataType)
         return;
     }
 
-    size_t maxSize = std::numeric_limits<int>::max();
+    constexpr size_t maxSize = std::numeric_limits<int>::max();
 
     if ((size_t) m_nCols > maxSize / (size_t) m_nRows)
     {
@@ -5767,7 +5820,7 @@ void hwTMatrix<T1, T2>::SetCapacity(DataType dataType)
         return;
     }
 
-    size_t maxSize = std::numeric_limits<int>::max();
+    constexpr size_t maxSize = std::numeric_limits<int>::max();
     
     if ((size_t) m_nCols > maxSize / (size_t) m_nRows)
     {
@@ -6214,7 +6267,7 @@ void hwTMatrix<T1, T2>::ZeroBlock(int row1, int row2, int col1, int col2)
 
     if (m_real)
     {
-        T1* start = m_real + (col1 * m_nRows + row1);
+        T1* start = m_real + (static_cast<long int>(col1) * m_nRows + row1);
 
         if (numRows == m_nRows)  // contiguous memory
         {
@@ -6240,7 +6293,7 @@ void hwTMatrix<T1, T2>::ZeroBlock(int row1, int row2, int col1, int col2)
 
     if (m_complex)
     {
-        T2* start = m_complex + (col1 * m_nRows + row1);
+        T2* start = m_complex + (static_cast<long int>(col1) * m_nRows + row1);
 
         if (numRows == m_nRows)  // contiguous memory
         {

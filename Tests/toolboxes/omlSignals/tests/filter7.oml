@@ -1,2 +1,2 @@
-addToolbox omlSignals
+addToolbox omlsignals
 filter([1,2,3,4,1,2],[5,1,2,7,2,3],[7,1,-7;7,12,3],[],2)

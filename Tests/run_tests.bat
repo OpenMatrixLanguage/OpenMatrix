@@ -10,7 +10,9 @@ echo Run core regression tests
 cd RegressionTests
 echo.
 pwd
-%OML_ROOT%/Tests/regressOMLConsole.pl
+@echo on
+perl %OML_ROOT%\Tests\regressOMLConsole.pl
+@echo off
 echo Completed core tests
 echo ==================== ====================  ==================== ====================
 if not exist *.log echo ALL core tests PASS! & echo. & goto :EOF

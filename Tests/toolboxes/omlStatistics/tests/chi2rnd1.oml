@@ -1,4 +1,4 @@
-addtoolbox('omlStatistics')
+addtoolbox('omlstatistics')
 n= 5;
 rand('seed', 2003);
 rnd1 = chi2rnd(n)
