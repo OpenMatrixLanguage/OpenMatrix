@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2019" /><meta name="DC.rights.owner" content="(C) Copyright 2019" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="vardetail" /><meta name="abstract" content="Shows variable scope and internal type for each variable name recognized by the interpreter." /><meta name="description" content="Shows variable scope and internal type for each variable name recognized by the interpreter." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Core Minimal Interpreter Commands" /><meta name="indexterms" content="vardetail" /><meta name="DC.subject" content="vardetail" /><meta name="keywords" content="vardetail" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CoreMinimalInterpreter/coreminimalinterpreter_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>vardetail</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="methods" /><meta name="abstract" content="Begins a methods block within a class definition." /><meta name="description" content="Begins a methods block within a class definition." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="CoreMinimalInterpreter" /><meta name="indexterms" content="methods" /><meta name="DC.subject" content="methods" /><meta name="keywords" content="methods" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CoreMinimalInterpreter/coreminimalinterpreter_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>methods</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -11,51 +11,53 @@
 <body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
 <header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/coreminimalinterpreter_commands.htm" title="Core Minimal Interpreter Commands">Core Minimal Interpreter Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/coreminimalinterpreter_commands.htm" title="Core Minimal Interpreter Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Core Minimal Interpreter Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
-  <h1 class="title topictitle1" id="ariaid-title1">vardetail</h1>
+  <h1 class="title topictitle1" id="ariaid-title1">methods</h1>
 
   
   
-  <div class="body refbody"><p class="shortdesc">Shows variable scope and internal type for each variable name recognized by the interpreter.</p>
+  <div class="body refbody"><p class="shortdesc">Begins a methods block within a class definition.</p>
 
     <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       
-      <p class="p"><span class="ph synph">vardetail</span></p>
+      <p class="p"><span class="ph synph">methods</span></p>
+
+      <p class="p"><span class="ph synph">methods<span class="ph var">(Access = [Public | Private])</span></span></p>
+
+      <p class="p"><span class="ph synph">methods<span class="ph var">(Static = [true | false]</span>)</span></p>
 
       <?STOP?>
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Example</h2>
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
       
-      <p class="p">Assign a series of variables and run <span class="keyword cmdname">varlist</span> and <span class="keyword cmdname">vardetail
-        </span>to see the information available.</p>
-
-      <pre class="pre codeblock"><code>t_number = 1234;
-t_float = pi;
-t_string = 'testing123';
-t_matrix = [ 11 12; 21 22];
-t_struct.number = t_number;
-t_struct.float = t_float;
-t_struct.string = t_string;
-t_struct.matrix = t_matrix;
-printf('varlist information:\n');
-varlist
-printf('vardetail information:\n');
-vardetail</code></pre>
-      <pre class="pre codeblock"><code><samp class="ph systemoutput">
-varlist information:
-t_float t_matrix t_number t_string t_struct 
-vardetail information:
-t_float scope Base type number
-t_matrix scope Base type matrix [2 x 2] pointer a1fb8f0 count 2
-t_number scope Base type number
-t_string scope Base type string
-t_struct scope Base type struct [1 x 1]
-</samp></code></pre>
+      <?STOPINP?>
     </section>
 
-    <section class="section">
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
       
-      
+      <div class="p">Defining a new class named Circle that has both static and regular
+        methods:<pre class="pre codeblock"><code>classdef Shape &lt; handle
+             properties %default Access is public
+                 radius
+             end
+              properties 
+                 center_x
+                 center_y
+             end
+             methods
+                  function self=Shape(r)
+                     self.radius = r;
+                     self.center_x = 0.0;
+                     self.center_y = 0.0;
+                  end
+             end
+             methods (Static = true)
+                 function c = circumference(radius)
+                     c = 2 * pi() .* radius;
+                 end
+             end
+         end</code></pre></div>
+
     </section>
 
   </div>
@@ -64,7 +66,7 @@ t_struct scope Base type struct [1 x 1]
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/coreminimalinterpreter_commands.htm" title="Core Minimal Interpreter Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Core Minimal Interpreter Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         
         <div>
-            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2019)</p>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
                
         </div>
     </div></footer></body>

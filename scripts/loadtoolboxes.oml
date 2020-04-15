@@ -13,15 +13,15 @@ function loadtoolbox(tb_name)
 	end
 end
 
-loadtoolbox omlCAE
-loadtoolbox omlCalculus
-loadtoolbox omlDiffEq
-loadtoolbox omlGeometry
-loadtoolbox omlMathUtils
-loadtoolbox omlOptimization
-loadtoolbox omlPolynom
+loadtoolbox omlcae
+loadtoolbox omlcalculus
+loadtoolbox omldiffeq
+loadtoolbox omlgeometry
+loadtoolbox omlmathutils
+loadtoolbox omloptimization
+loadtoolbox omlpolynom
 %loadtoolbox omlpythonbridge
-loadtoolbox omlSignals
-loadtoolbox omlStatistics
-loadtoolbox omlMatio
+loadtoolbox omlsignals
+loadtoolbox omlstatistics
+loadtoolbox omlmatio
 loadtoolbox omlbatchplot
