@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2019" /><meta name="DC.rights.owner" content="(C) Copyright 2019" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="find" /><meta name="abstract" content="Returns the position of non-zero elements in a matrix. If two returns are requested find returns the row and column indices of nonzero elements of a matrix." /><meta name="description" content="Returns the position of non-zero elements in a matrix. If two returns are requested find returns the row and column indices of nonzero elements of a matrix." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Elementary Math Commands" /><meta name="indexterms" content="find" /><meta name="DC.subject" content="find" /><meta name="keywords" content="find" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>find</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="find" /><meta name="abstract" content="Returns the position of non-zero elements in a matrix." /><meta name="description" content="Returns the position of non-zero elements in a matrix." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Elementary Math Commands" /><meta name="indexterms" content="find" /><meta name="DC.subject" content="find" /><meta name="keywords" content="find" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>find</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -15,9 +15,7 @@
 
   
   
-  <div class="body refbody"><p class="shortdesc">Returns the position of non-zero elements in a matrix. If two returns are requested
-      <span class="keyword cmdname">find</span> returns the row and column indices of nonzero elements of a
-    matrix.</p>
+  <div class="body refbody"><p class="shortdesc">Returns the position of non-zero elements in a matrix.</p>
 
     <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       
@@ -40,27 +38,29 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">x</var></dt>
 
-		  <dd class="dd pd">The matrix to find non-zero elements in.</dd>
-
-          <dd class="dd pd ddexpand">Any valid <span class="keyword">scalar | vector | matrix</span></dd>
+          <dd class="dd pd">The matrix to search for non-zero elements.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer | logical | struct | cell</span></dd>
 
           <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
 
         
-		
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">n</var></dt>
+
+          <dd class="dd pd">The maximum number of elements to return.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span></dd>
+
+        
+	
           <dt class="dt pt dlterm"><var class="keyword varname">dir</var></dt>
 
-		  <dd class="dd pd">The direction in which to start the search, either "first" or "last". 
-		  "first" searches the matrix from the beginning, whereas "last" starts the search 
-		  from the end of the matrix.</dd>
+	  <dd class="dd pd">The direction in which to start the search, either "first" or "last". 
+            "first" searches the matrix from the beginning, whereas "last" starts the search 
+            from the end of the matrix.</dd>
 
-          <dd class="dd pd ddexpand">Any valid <span class="keyword">scalar | vector | matrix</span></dd>
-
-          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer | logical | struct | cell</span></dd>
-
-          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
 
         
       </dl>
@@ -71,41 +71,36 @@
     <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
       
       <dl class="dl parml">
-		
+        
           <dt class="dt pt dlterm"><span class="ph synph">idx</span></dt>
 
-		  <dd class="dd pd">A vector of the vector indices of the nonzero elements. To achieve this result, <span class="keyword">OML</span> treats the matrix as if the columns of the given matrix are one
-            vector.</dd>
+          <dd class="dd pd">A vector of the vector indices of the nonzero elements. To achieve this result,
+              <span class="keyword">OML</span> treats the matrix as if the columns of the given matrix are
+            one vector.</dd>
 
-          <dd class="dd pd ddexpand">Any valid <span class="keyword">scalar | vector | matrix</span></dd>
+          <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span></dd>
 
-          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer | logical | struct | cell</span></dd>
-
-          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector</span></dd>
 
         
         
           <dt class="dt pt dlterm"><span class="ph synph">i,j</span></dt>
 
-		  <dd class="dd pd">The indices of nonzero elements in the given matrix.</dd>
+          <dd class="dd pd">The row and column indices of nonzero elements in the given matrix.</dd>
 
-          <dd class="dd pd ddexpand">Any valid <span class="keyword">scalar | vector | matrix</span></dd>
+          <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span></dd>
 
-          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer | logical | struct | cell</span></dd>
-
-          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector</span></dd>
 
         
-		
+        
           <dt class="dt pt dlterm"><span class="ph synph">v</span></dt>
 
-		  <dd class="dd pd">A vector of the found nonzero elements.</dd>
+          <dd class="dd pd">A vector of the found nonzero elements.</dd>
 
-          <dd class="dd pd ddexpand">Any valid <span class="keyword">scalar | vector | matrix</span></dd>
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | int | log</span></dd>
 
-          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer | logical | struct | cell</span></dd>
-
-          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector</span></dd>
 
         
       </dl>
@@ -115,37 +110,30 @@
 
     <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
-      <p class="p">Simple matrix input:</p>
+      <div class="p">Simple matrix
+        input:<pre class="pre codeblock"><code>R = find([1,0;0,1])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = [ 1 ; 4 ]</code></code></pre></div>
 
-      <pre class="pre codeblock"><code>R = find([1,0;0,1])</code></pre>
-      <pre class="pre codeblock"><code><code class="ph codeph">R = [ 1 ; 4 ]</code></code></pre>
-      <p class="p">Simple matrix input with max return of 1:</p>
+      <div class="p">Simple matrix input with a maximum return of
+        1:<pre class="pre codeblock"><code>R = find([1,0;0,1],1)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 1</code></code></pre></div>
 
-      <pre class="pre codeblock"><code>R = find([1,0;0,1],1)</code></pre>
-      <pre class="pre codeblock"><code><code class="ph codeph">R = 1</code></code></pre>
-      <p class="p">Simple matrix input with max return of 1, starting search from beginning:</p>
+      <div class="p">Simple matrix input with a maximum return of 1, starting the search from the
+        beginning:<pre class="pre codeblock"><code>R = find([1,0;0,1],1,'first')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 1</code></code></pre></div>
 
-      <pre class="pre codeblock"><code>R = find([1,0;0,1],1,'first')</code></pre>
-      <pre class="pre codeblock"><code><code class="ph codeph">R = 1</code></code></pre>
-      <p class="p">Simple matrix input with max return of 1, starting search from end:</p>
+      <div class="p">Simple matrix input with a maximum return of 1, starting the search from the
+        end:<pre class="pre codeblock"><code>R = find([1,0;0,1],1,'last')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 4</code></code></pre></div>
 
-      <pre class="pre codeblock"><code>R = find([1,0;0,1],1,'last')</code></pre>
-      <pre class="pre codeblock"><code><code class="ph codeph">R = 4</code></code></pre>
-      <p class="p">Two variable return with a matrix input:</p>
+      <div class="p">Two variable return with a matrix
+        input:<pre class="pre codeblock"><code>[a,b]=find([0,1,0,-1])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">a = [ 1 1 ]
+b = [ 2 4 ]</code></code></pre></div>
 
-      <pre class="pre codeblock"><code>[a,b]=find([0,1,0,-1])</code></pre>
-      <pre class="pre codeblock"><code><code class="ph codeph">a = [ 1 1 ]
-b = [ 2 4 ]</code></code></pre>
-      <p class="p">Three variable return with a matrix input:</p>
-
-      <pre class="pre codeblock"><code>[a,b,c]=find([0,1,0,-1])</code></pre>
-      <pre class="pre codeblock"><code><code class="ph codeph">a = [ 1 1 ]
+      <div class="p">Three variable return with a matrix
+        input:<pre class="pre codeblock"><code>[a,b,c]=find([0,1,0,-1])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">a = [ 1 1 ]
 b = [ 2 4 ]
-c = [ 1 -1 ]</code></code></pre>
+c = [ 1 -1 ]</code></code></pre></div>
+
     </section>
 
     <section class="section">
-      
       
     </section>
 
@@ -155,7 +143,7 @@ c = [ 1 -1 ]</code></code></pre>
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" title="Elementary Math Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Elementary Math Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         
         <div>
-            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2019)</p>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
                
         </div>
     </div></footer></body>

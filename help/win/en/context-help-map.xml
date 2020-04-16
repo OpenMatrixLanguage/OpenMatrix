@@ -75,6 +75,8 @@
    <appContext helpID="reference_d3t_3mm_vt" path="topics/language_guides/cell_arrays_r.htm"/>
    <appContext helpID="reference_d3t_3mm_vt"
                path="topics/language_guides/multidimensional_matrices_r.htm"/>
+   <appContext helpID="oml_support_sparse_matrices_r"
+               path="topics/language_guides/oml_support_sparse_matrices_r.htm"/>
    <appContext helpID="reference_lny_qjy_pv"
                path="topics/language_guides/strings_header_r.htm"/>
    <appContext helpID="reference_pcl_5y2_vt" path="topics/language_guides/encoding_r.htm"/>
@@ -177,6 +179,8 @@
    <appContext helpID="reference_ax1_h4h_vt" path="topics/language_guides/try_catch2_r.htm"/>
    <appContext helpID="reference_pyq_vhn_vt"
                path="topics/language_guides/warning_messages_r.htm"/>
+   <appContext helpID="reference_xjy_jcp_j3b"
+               path="topics/language_guides/objects_open_matrix_language_r.htm"/>
    <appContext helpID="reference_xd1_jg4_2z"
                path="topics/reference/oml_language/oml_reference_guide_r.htm"/>
    <appContext helpID="reference_pv1_4pr_cv"
@@ -212,6 +216,8 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/eq_sign.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CoreMinimalInterpreter/addlibrary.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/addpath.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/addtoolbox.htm"/>
@@ -239,6 +245,8 @@
                path="topics/reference/oml_language/CoreMinimalInterpreter/catch.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/class.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CoreMinimalInterpreter/classdef.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/clc.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -312,6 +320,8 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/input.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CoreMinimalInterpreter/isa.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/isinf.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/ismatrix.htm"/>
@@ -347,6 +357,8 @@
                path="topics/reference/oml_language/CoreMinimalInterpreter/lt.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/memoryuse.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CoreMinimalInterpreter/methods.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/minus.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -405,6 +417,8 @@
                path="topics/reference/oml_language/CoreMinimalInterpreter/power.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/power_sign.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CoreMinimalInterpreter/properties.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/putenv.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -807,12 +821,12 @@
                path="topics/reference/oml_language/LinearAlgebra/dot.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/LinearAlgebra/eig.htm"/>
-   <appContext helpID="reference_wpv_kyv_pr"
-               path="topics/reference/oml_language/LinearAlgebra/expm.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/full.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/LinearAlgebra/inv.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/LinearAlgebra/ishermitian.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/issparse.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/LinearAlgebra/issquare.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -823,6 +837,7 @@
                path="topics/reference/oml_language/LinearAlgebra/linsolve.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/LinearAlgebra/lu.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/nnz.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/LinearAlgebra/norm.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -835,6 +850,9 @@
                path="topics/reference/oml_language/LinearAlgebra/rcond.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/LinearAlgebra/schur.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/sparse.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/speye.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/spones.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/LinearAlgebra/svd.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -886,9 +904,13 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/close.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/Plotting/colorbar.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/contour.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/contour3.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/Plotting/drawnow.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/figure.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -930,6 +952,8 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/plot3.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/Plotting/plotyy.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/polar.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/scatter.htm"/>
@@ -951,6 +975,10 @@
                path="topics/reference/oml_language/Plotting/text.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/title.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/Plotting/uiresume.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/Plotting/uiwait.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/xlabel.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -1117,6 +1145,8 @@
                path="topics/reference/oml_language/StatisticalAnalysis/exppdf.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/StatisticalAnalysis/exprnd.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/StatisticalAnalysis/factorial.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/StatisticalAnalysis/fcdf.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -1291,6 +1321,8 @@
                path="topics/reference/oml_language/StringOperations/strcmpi.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/StringOperations/strfind.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/StringOperations/strip.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/StringOperations/strjoin.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -1472,6 +1504,9 @@
    <appContext helpID="reference_hjm_gnm_vt" path="topics/language_guides/structures_r.htm"/>
    <appContext helpID="reference_xxs_3qv_tt" path="topics/language_guides/collections_r.htm"/>
    <appContext helpID="reference_ekd_wz2_vt" path="topics/language_guides/indexing_r.htm"/>
+   <appContext helpID="oml_support_sparse_matrices_r"
+               path="topics/language_guides/oml_support_sparse_matrices_r.htm"/>
+   <appContext helpID="reference_xxs_3qv_tt" path="topics/language_guides/collections_r.htm"/>
    <appContext helpID="reference_pcl_5y2_vt" path="topics/language_guides/clear_r.htm"/>
    <appContext helpID="reference_lny_qjy_pv"
                path="topics/language_guides/variables_and_assignments_r.htm"/>
@@ -1746,6 +1781,10 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/and.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CoreMinimalInterpreter/addlibrary.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CoreMinimalInterpreter/addpath.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/and_sign.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/and.htm"/>
@@ -1859,6 +1898,8 @@
                path="topics/reference/oml_language/DataStructures/isstruct.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/type.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CoreMinimalInterpreter/isa.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/clear.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -2058,6 +2099,16 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/elseif.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CoreMinimalInterpreter/isa.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CoreMinimalInterpreter/class.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CoreMinimalInterpreter/isnumeric.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CoreMinimalInterpreter/isscalar.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CoreMinimalInterpreter/type.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/isinf.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/ElementaryMath/islogical.htm"/>
@@ -2218,7 +2269,7 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/mpower.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
-               path="topics/reference/oml_language/LinearAlgebra/expm.htm"/>
+               path="topics/reference/oml_language/ControlSystem/expm.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/mtimes.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -3618,6 +3669,16 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CAEReaders/gettotalsubcases.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CAEReaders/gettimesteplist.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CAEReaders/getsubcaselist.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CAEReaders/gettypelist.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CAEReaders/getreqlist.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/CAEReaders/getcomplist.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CAEReaders/gettotalsubcases.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CAEReaders/getsubcaseindex.htm"/>
@@ -3749,12 +3810,20 @@
                path="topics/reference/oml_language/LinearAlgebra/qr.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/LinearAlgebra/svd.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/full.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/issparse.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/nnz.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/sparse.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/LinearAlgebra/inv.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/mldivide.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/mrdivide.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/issparse.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/full.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/nnz.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/sparse.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/LinearAlgebra/issquare.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -3787,6 +3856,10 @@
                path="topics/reference/oml_language/LinearAlgebra/cond.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/LinearAlgebra/svd.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/nnz.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/issparse.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/full.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/sparse.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/LinearAlgebra/pinv.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -3813,6 +3886,22 @@
                path="topics/reference/oml_language/LinearAlgebra/eig.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/LinearAlgebra/svd.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/sparse.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/full.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/issparse.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/nnz.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/speye.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/issparse.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/sparse.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/spones.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ElementaryMath/eye.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/spones.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ElementaryMath/ones.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/issparse.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/sparse.htm"/>
+   <appContext helpID="clip" path="topics/reference/oml_language/LinearAlgebra/speye.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/LinearAlgebra/svd.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -4132,6 +4221,10 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/properties.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/Plotting/plotyy.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/Plotting/properties.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/polar.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/properties.htm"/>
@@ -4223,6 +4316,14 @@
                path="topics/reference/oml_language/Plotting/undock.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/dock.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/Plotting/uiresume.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/Plotting/uiwait.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/Plotting/uiwait.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/Plotting/uiresume.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/xlabel.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -4930,6 +5031,10 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/StatisticalAnalysis/polyfit.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/StatisticalAnalysis/factorial.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/StatisticalAnalysis/gamma.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/StatisticalAnalysis/fullfact.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/StatisticalAnalysis/bbdesign.htm"/>
@@ -5185,6 +5290,12 @@
                path="topics/reference/oml_language/StringOperations/strncmpi.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/StringOperations/strcmpi.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/StringOperations/strip.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/StringOperations/strtrim.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/StringOperations/deblank.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/StringOperations/strncmpi.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -5592,6 +5703,8 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Trigonometry/atan2.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/Trigonometry/atan.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Trigonometry/atanh.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Trigonometry/tan.htm"/>
@@ -5864,7 +5977,7 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/ControlSystem/sqrtm.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
-               path="topics/reference/oml_language/LinearAlgebra/expm.htm"/>
+               path="topics/reference/oml_language/ControlSystem/expm.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/ControlSystem/lqe.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -5990,7 +6103,7 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/ControlSystem/logm.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
-               path="topics/reference/oml_language/LinearAlgebra/expm.htm"/>
+               path="topics/reference/oml_language/ControlSystem/expm.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/ControlSystem/ss.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -6011,6 +6124,20 @@
                path="topics/reference/oml_language/ControlSystem/tf2ss.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/ControlSystem/ss.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/tf2ssc.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/ss2tfc.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/tf.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/tf2ss.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/tf2ssc.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/ss.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/ss2tf.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/ControlSystem/ssdata.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -6037,6 +6164,20 @@
                path="topics/reference/oml_language/ControlSystem/ss2tf.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/ControlSystem/tf.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/tf2ssc.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/tf2ssc.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/ss.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/ss2tf.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/ss2tfc.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/tf.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/tf2ss.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/ControlSystem/tf2zp.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -6073,6 +6214,14 @@
                path="topics/reference/oml_language/ControlSystem/ss.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/ControlSystem/tf.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/zp2tf.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/tf.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/tf2zp.htm"/>
+   <appContext helpID="reference_wpv_kyv_pr"
+               path="topics/reference/oml_language/ControlSystem/zpk.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/ControlSystem/zpkdata.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
