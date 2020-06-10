@@ -1,0 +1,8 @@
+addtoolbox omlsignals
+
+x = 0:0.1:10;
+y1 = sin(x) + 1.1;
+y2 = sin(x) - 1.1;
+
+peak_y1 = findpeaks(y1,'DoubleSided')
+peak_y2 = findpeaks(y2,'DoubleSided')

@@ -1,0 +1,9 @@
+﻿x(4,5,6) = 1;
+y = x(:,:);
+result = length(y)
+z = x(:,:,:);
+result = length(z)
+q = x(:,:,:,1);
+result = length(q)
+p = x(:,:,1);
+result = length(p)

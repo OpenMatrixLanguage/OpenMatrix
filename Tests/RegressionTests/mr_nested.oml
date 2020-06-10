@@ -1,0 +1,16 @@
+﻿function [z1 z2] = parentTest(x,checkSecondAssert)
+	a=3;
+
+    function q = nestedTest( y )
+		q = a*y;
+    end
+
+    z1 = nestedTest(3);
+
+	if (nargout == 2)
+	   z2 = 0;
+	end
+
+end
+
+[v w] = parentTest(2)

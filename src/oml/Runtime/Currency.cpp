@@ -46,31 +46,31 @@ StringManager Currency::pm;
 bool Currency::_experimental = false;
 
 Currency::Currency(double val): type(TYPE_SCALAR),  mask(MASK_DOUBLE), out_name(NULL), 
-    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
 	data.value = val;
 }
 
 Currency::Currency(int val): type(TYPE_SCALAR), mask(MASK_DOUBLE), out_name(NULL), _display(0), 
-    _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+    _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
 	data.value = val;
 }
 
 Currency::Currency(size_t val): type(TYPE_SCALAR), mask(MASK_DOUBLE), out_name(NULL), _display(0), 
-    _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+    _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
 	data.value = (double)val;
 }
 
 Currency::Currency(double val, int in_type): type(CurrencyType(in_type)), mask(MASK_DOUBLE), out_name(NULL),
-    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
 	data.value = val;
 }
 
 Currency::Currency(double val, std::string info): type(TYPE_ERROR), mask(MASK_NONE), out_name(NULL), _display(0), 
-    _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+    _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
 	message = new std::string;
 	*message = info;
@@ -78,44 +78,65 @@ Currency::Currency(double val, std::string info): type(TYPE_ERROR), mask(MASK_NO
 }
 
 Currency::Currency(bool logical_val) : type(TYPE_SCALAR), mask(MASK_LOGICAL), out_name(NULL), _display(0), 
-    _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+    _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
 	data.value = logical_val ? 1 : 0;
 }
 
 Currency::Currency(const char* in_str): type(TYPE_MATRIX), mask(MASK_STRING), out_name(NULL),
-    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
-	std::string str = in_str;
-    data.mtx = ExprTreeEvaluator::allocateMatrix(str.length() ? 1 : 0, (int)str.length(), hwMatrix::REAL);
-	for (unsigned int i = 0; i < str.length(); i++) 
-		(*data.mtx)(i) = (unsigned char) str[i];
+	size_t length = strlen(in_str);
+
+    data.mtx = ExprTreeEvaluator::allocateMatrix(length ? 1 : 0, (int)length, hwMatrix::REAL);
+	for (size_t i = 0; i < length; i++)
+	{
+		unsigned char next_char = (unsigned char)in_str[i];
+		(*data.mtx)((int)i) = next_char;
+
+		if (next_char >= 192)
+			_is_utf8 = true;
+	}
 }
 
 Currency::Currency(const std::string& str): type(TYPE_MATRIX), mask(MASK_STRING), out_name(NULL),
-    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
     data.mtx = ExprTreeEvaluator::allocateMatrix(str.length() ? 1 : 0, (int)str.length(), hwMatrix::REAL);
-	for (unsigned int i = 0; i < str.length(); i++) 
-		(*data.mtx)(i) = (unsigned char) str[i];
+	for (unsigned int i = 0; i < str.length(); i++)
+	{
+		unsigned char next_char = (unsigned char)str[i];
+		(*data.mtx)(i) = next_char;
+
+		if (next_char >= 192)
+			_is_utf8 = true;
+	}
 }
 
 Currency::Currency(const std::vector<double>& in_data): type(TYPE_MATRIX), mask(MASK_DOUBLE), out_name(NULL),
-    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 { 
-	data.mtx = ExprTreeEvaluator::allocateMatrix(1, (int)in_data.size(), hwMatrix::REAL);
-	for (unsigned int i = 0; i < in_data.size(); i++) 
-		(*data.mtx)(i) = in_data[i];
+	if (!in_data.empty())
+	{
+		double* data_ptr = new double[in_data.size()];
+		memcpy(data_ptr, &in_data.front(), sizeof(double) * in_data.size());
+		data.mtx = ExprTreeEvaluator::allocateMatrix(1, (int)in_data.size(), (void*)data_ptr, hwMatrix::REAL);
+		data.mtx->OwnData(true);
+	}
+	else
+	{
+		data.mtx = ExprTreeEvaluator::allocateMatrix(1, 0, hwMatrix::REAL);
+	}
 }
 
 Currency::Currency(hwMatrix* in_data): type (TYPE_MATRIX), mask(MASK_DOUBLE), out_name(NULL),
-    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
 	data.mtx = in_data;
 }
 
 Currency::Currency(hwMatrixN* in_data) : type(TYPE_ND_MATRIX), mask(MASK_DOUBLE), out_name(NULL),
-_display(0), _outputType(OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+_display(0), _outputType(OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
 	data.mtxn = in_data;
 
@@ -134,31 +155,31 @@ _display(0), _outputType(OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 }
 
 Currency::Currency(hwMatrixS* in_data) : type(TYPE_SPARSE), mask(MASK_DOUBLE), out_name(NULL),
-_display(0), _outputType(OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+_display(0), _outputType(OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
 	data.mtxs = in_data;
 }
 
 Currency::Currency(const hwComplex& cplx): type (TYPE_COMPLEX), mask(MASK_DOUBLE), out_name(NULL),
-    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
 	data.complex = new hwComplex(cplx);
 }
 
 Currency::Currency(): type(TYPE_MATRIX), mask(MASK_DOUBLE), out_name(NULL),
-    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
 	data.mtx = NULL; 
 }
 
 Currency::Currency(HML_CELLARRAY* cell_array): type(TYPE_CELLARRAY), mask(MASK_NONE), out_name(NULL),
-    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
 	data.cells = cell_array;
 }
 
 Currency::Currency(HML_ND_CELLARRAY* cell_array) : type(TYPE_ND_CELLARRAY), mask(MASK_NONE), out_name(NULL),
-_display(0), _outputType(OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+_display(0), _outputType(OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
 	data.cells_nd = cell_array;
 
@@ -177,26 +198,27 @@ _display(0), _outputType(OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
 }
 
 Currency::Currency(FunctionInfo* fi): type(TYPE_FUNCHANDLE), mask(MASK_NONE), out_name(NULL),
-    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
 	data.func = fi;
-	data.func->IsNested(false);
+    data.func->IsNested(false); // -- I have no idea why I coded it this way -- JDS
+	// the above line should be removed, but it breaks Activate in combination with other changes
 }
 
 Currency::Currency(StructData* in_data): type(TYPE_STRUCT), mask(MASK_NONE), out_name(NULL),
-    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
 	data.sd = in_data;
 }
 
 Currency::Currency(OutputFormat* fmt) : type(TYPE_FORMAT), mask(MASK_NONE), out_name(NULL),
-    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
 	data.format = fmt;
 }
 
 Currency::Currency(Currency* ptr) : type(TYPE_POINTER), out_name(NULL), mask(MASK_NONE),
-    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL)
+    _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false)
 {
 	data.cur_ptr = ptr;
 }
@@ -258,6 +280,7 @@ void Currency::Copy(const Currency& cur)
 	out_name         = cur.out_name;
     _display         = NULL; // Do not copy display, it will be set later
     _outputType      = cur._outputType;
+	_is_utf8         = cur._is_utf8;
 
 	if (type == TYPE_SCALAR)
 	{
@@ -723,6 +746,8 @@ std::string Currency::StringVal() const
 
 	std::string st;
 
+	st.reserve(data.mtx->Size());
+
 	int rows = data.mtx->M();
 	int cols = data.mtx->N();
 
@@ -988,7 +1013,7 @@ bool Currency::IsPositiveIntegralMatrix() const
 
 bool Currency::IsEmpty() const
 {
-	if (IsMatrix())
+	if (IsMatrixOrString())
 	{
 		if (data.mtx)
 			return data.mtx->IsEmpty();

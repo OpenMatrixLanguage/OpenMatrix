@@ -198,8 +198,9 @@ const double* OMLMatrixImpl::GetRealData() const
 	if (_mtx->IsReal())
 		return _mtx->GetRealData();
 	
-	hwMatrix temp;
-	_mtx->UnpackComplex(&temp, NULL);
+	hwTMatrix<double, hwComplex> temp;
+	hwMathStatus stat = _mtx->UnpackComplex(&temp, NULL);
+	temp.OwnData(false);
 	return temp.GetRealData();
 }
 
@@ -208,8 +209,9 @@ const double* OMLMatrixImpl::GetImaginaryData() const
 	if (_mtx->IsReal())
 		return NULL;
 
-	hwMatrix temp;
-	_mtx->UnpackComplex(NULL, &temp);
+	hwTMatrix<double, hwComplex> temp;
+	hwMathStatus stat = _mtx->UnpackComplex(NULL, &temp);
+	temp.OwnData(false);
 	return temp.GetRealData();
 }
 

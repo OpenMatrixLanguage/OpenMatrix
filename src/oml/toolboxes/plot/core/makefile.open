@@ -47,20 +47,3 @@ LIBS += $(OML_LIBS)
 LIBS += $(ANTLR_LIBS)
 LIBS += $(MATHKERNEL_LIBS)
 LIBS += $(MKL_LIBS)
-# ====================================================================
-
-$(PLATFORM)/%.o : %.cxx $(objdir)
-	$(compile-cxx)
-$(PLATFORM)/%.o : %.cpp $(objdir)
-	$(compile-cxx)
-$(PLATFORM)/%.o : %.c $(objdir)
-	$(compile-c)
-
-$(TARGET) : $(OBJECTS)
-	$(build-shared-lib)
-
-clean::
-	-$(RM) -rf $(TARGET)
-	-$(RM) -rf $(PLATFORM)
-	-$(RM) -rf $(BINDIR)/$(PROJ).*
-	-$(RM) -rf $(LIBDIR)/$(PROJ).*

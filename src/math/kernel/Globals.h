@@ -125,6 +125,8 @@ enum hwMathMsgCode
     HW_MATH_ERR_NONPOSINT,             // invalid value; must be positive integer
     HW_MATH_ERR_NONNONNEGINT,          // invalid value; must be nonnegative integer(s)
     HW_MATH_ERR_NONINCREASE,           // invalid data; must be strictly increasing
+    HW_MATH_ERR_NONUNIQUE,             // invalid data; must contain all unique values
+    HW_MATH_ERR_CONSECUTIVE3,          // invalid data; must contain at most 2 consecutive identical values
     HW_MATH_ERR_MINMAXVALUES,          // invalid values; maximum must be >= minimum
     HW_MATH_ERR_BADRANGE,              // invalid data; value is out of range
     HW_MATH_ERR_ZERORANGE,             // invalid data; has a range of zero

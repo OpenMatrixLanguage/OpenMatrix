@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsString.cpp
 * @date November 2015
-* Copyright (C) 2015-2019 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -1318,7 +1318,6 @@ bool BuiltInFuncsString::Str2Double(EvaluatorInterface           eval,
     }
 
     BuiltInFuncsString funcs;
-    BuiltInFuncsUtils  utils;
 
     bool iscomplex = false;
     bool isscalar  = true;
@@ -1352,7 +1351,9 @@ bool BuiltInFuncsString::Str2Double(EvaluatorInterface           eval,
         // Multiline string
         std::unique_ptr<hwMatrix> out(EvaluatorInterface::allocateMatrix(
             m, 1, std::numeric_limits<double>::quiet_NaN()));
-        
+
+        BuiltInFuncsUtils  utils;
+
         for (int i = 0; i < m; ++i)
         {
             std::unique_ptr<hwMatrix> row(EvaluatorInterface::allocateMatrix());
@@ -1377,49 +1378,51 @@ bool BuiltInFuncsString::Str2Double(EvaluatorInterface           eval,
             }
         }
         outputs.push_back(out.release());
-        return true;
     }
-
-    HML_CELLARRAY* cell = inputs[0].CellArray();
-    if (!cell || cell->Size() == 0)
+    else
     {
-        outputs.push_back(std::numeric_limits<double>::quiet_NaN());
-        return true;
-    }
-
-    int m = cell->M();
-    int n = cell->N();
-
-    std::unique_ptr<hwMatrix> mtx(EvaluatorInterface::allocateMatrix(m, n,
-        std::numeric_limits<double>::quiet_NaN()));
-
-    for (int i = 0; i < m; ++i)
-    {
-        for (int j = 0; j < n; ++j)
+        HML_CELLARRAY* cell = inputs[0].CellArray();
+        if (!cell || cell->Size() == 0)
         {
-            if (!(*cell)(i, j).IsString())
-            {
-                continue;
-            }
-            funcs.Str2Num((*cell)(i, j).StringVal(), rval, ival, isscalar);
-            if (!iscomplex && !isscalar)
-            {
-                utils.CheckMathStatus(eval, mtx->MakeComplex());
-                iscomplex = true;
-            }
+            outputs.push_back(std::numeric_limits<double>::quiet_NaN());
+            return true;
+        }
 
-            if (!iscomplex)
+        int m = cell->M();
+        int n = cell->N();
+
+        std::unique_ptr<hwMatrix> mtx(EvaluatorInterface::allocateMatrix(m, n,
+            std::numeric_limits<double>::quiet_NaN()));
+
+        BuiltInFuncsUtils  utils;
+
+        for (int i = 0; i < m; ++i)
+        {
+            for (int j = 0; j < n; ++j)
             {
-                (*mtx)(i, j) = rval;
-            }
-            else
-            {
-                mtx->z(i, j) = hwComplex(rval, ival);
+                if (!(*cell)(i, j).IsString())
+                {
+                    continue;
+                }
+                funcs.Str2Num((*cell)(i, j).StringVal(), rval, ival, isscalar);
+                if (!iscomplex && !isscalar)
+                {
+                    utils.CheckMathStatus(eval, mtx->MakeComplex());
+                    iscomplex = true;
+                }
+
+                if (!iscomplex)
+                {
+                    (*mtx)(i, j) = rval;
+                }
+                else
+                {
+                    mtx->z(i, j) = hwComplex(rval, ival);
+                }
             }
         }
+        outputs.push_back(mtx.release());
     }
-    outputs.push_back(mtx.release());
-
     return true;
 }
 //------------------------------------------------------------------------------
@@ -1797,7 +1800,7 @@ bool BuiltInFuncsString::Strip(EvaluatorInterface eval,
         }
     }
 
-    std::string trim;
+    std::vector<std::string> trim;
     bool isstring3 = true;
     if (nargin > 2)
     {
@@ -1810,7 +1813,11 @@ bool BuiltInFuncsString::Strip(EvaluatorInterface eval,
         
         if (isstring3)
         {
-            trim = cur3.StringVal();
+            std::string tmp (cur3.StringVal());
+            if (!tmp.empty())
+            {
+                trim.push_back(tmp);
+            }
         }
         else
         {
@@ -1825,7 +1832,12 @@ bool BuiltInFuncsString::Strip(EvaluatorInterface eval,
                     {
                         throw OML_Error(OML_ERR_STRING_STRINGCELL, 3);
                     }
-                    trim += elem.StringVal();
+
+                    std::string thistrim (elem.StringVal());
+                    if (!thistrim.empty())
+                    {
+                        trim.push_back(thistrim);
+                    }
                 }
             }
         }
@@ -1833,7 +1845,7 @@ bool BuiltInFuncsString::Strip(EvaluatorInterface eval,
 
     if (trim.empty())
     {
-        trim = " ";
+        trim.push_back(" ");
     }
 
     BuiltInFuncsString funcs;
@@ -1862,31 +1874,34 @@ bool BuiltInFuncsString::Strip(EvaluatorInterface eval,
         return EvaluatorInterface::allocateCellArray();
     }
 
-    int numelements1 = cell1->Size();
-
+    int m = cell1->M();
+    int n = cell1->N();
     std::unique_ptr<HML_CELLARRAY> out(EvaluatorInterface::allocateCellArray(
-        1, numelements1));
+        m, n));
 
-    for (int i = 0; i < numelements1; ++i)
+    for (int i = 0; i < m; ++i)
     {
-        const Currency& elem1 = (*cell1)(i);
-        if (!elem1.IsString())
+        for (int j = 0; j < n; ++j)
         {
-            throw OML_Error(OML_ERR_STRING_STRINGCELL, 1);
-        }
-        std::string in(elem1.StringVal());
+            const Currency& elem1 = (*cell1)(i, j);
+            if (!elem1.IsString())
+            {
+                throw OML_Error(OML_ERR_STRING_STRINGCELL, 1);
+            }
+            std::string in(elem1.StringVal());
 
 
-        if (mode == "both" || mode == "left")
-        {
-            funcs.LeftTrim(in, trim);
-        }
+            if (mode == "both" || mode == "left")
+            {
+                funcs.LeftTrim(in, trim);
+            }
 
-        if (mode == "both" || mode == "right")
-        {
-            funcs.RightTrim(in, trim);
+            if (mode == "both" || mode == "right")
+            {
+                funcs.RightTrim(in, trim);
+            }
+            (*out)(i, j) = in;
         }
-        (*out)(i) = in;
     }
 
     outputs.push_back(out.release());
@@ -1895,30 +1910,137 @@ bool BuiltInFuncsString::Strip(EvaluatorInterface eval,
 //------------------------------------------------------------------------------
 // Helper method to left trim input
 //------------------------------------------------------------------------------
-void BuiltInFuncsString::LeftTrim(std::string& in, const std::string& str)
+void BuiltInFuncsString::LeftTrim(std::string& in, 
+                                  const std::vector<std::string>& vec)
 {
-    if (in.empty() || str.empty())
+    if (vec.empty())
     {
         return;
     }
-    size_t pos = in.find_first_not_of(str);
-    if (pos != std::string::npos)
+
+    std::vector<std::string> trim(vec);
+    size_t insize = in.size();
+    while (!trim.empty() && !in.empty())
     {
-        in = in.substr(pos);
+        for (std::vector<std::string>::iterator itr = trim.begin();
+            itr != trim.end() && !in.empty();)
+        {
+            std::string str(*itr);
+            if (str.empty())
+            {
+                itr = trim.erase(itr);
+                continue;
+            }
+
+            // Cannot use find_first_not_of as if len > 1 as it will match any 
+            // character and not the entire substring
+            size_t len = str.length();
+            if (len == 1)
+            {
+                size_t pos = in.find_first_not_of(str);
+                if (pos < in.length())
+                {
+                    in = in.substr(pos);
+                    if (in.find(str) == std::string::npos)
+                    {
+                        itr = trim.erase(itr);
+                        continue;
+                    }
+                    ++itr;
+                }
+                else
+                {
+                    itr = trim.erase(itr);
+                }
+                continue;
+            }
+            size_t pos = in.find(str);
+            if (pos == 0)
+            {
+                in = in.substr(len);
+                itr = trim.erase(itr);
+                continue;
+            }
+            else if (pos > in.length())
+            {
+                itr = trim.erase(itr);
+                continue;
+            }
+            ++itr;
+        }
+        if (insize == in.size()) // Nothing new to trim
+        {
+            break;
+        }
+        insize = in.size();
     }
 }
 //------------------------------------------------------------------------------
 // Helper method to right trim input
 //------------------------------------------------------------------------------
-void BuiltInFuncsString::RightTrim(std::string& in, const std::string& str)
+void BuiltInFuncsString::RightTrim(std::string&                    in, 
+                                   const std::vector<std::string>& vec)
 {
-    if (in.empty() || str.empty())
+    if (in.empty() || vec.empty())
     {
         return;
     }
-    size_t pos = in.find_last_not_of(str);
-    if (pos != std::string::npos)
+
+
+    std::vector<std::string> trim(vec);
+    size_t insize = in.size();
+    while (!trim.empty() && !in.empty())
     {
-        in.erase(pos + 1);
+        for (std::vector<std::string>::iterator itr = trim.begin();
+            itr != trim.end() && !in.empty();)
+        {
+            std::string str(*itr);
+            if (str.empty())
+            {
+                itr = trim.erase(itr);
+                continue;
+            }
+
+            // Cannot use find_last_not_of as if len > 1 as it will match any 
+            // character and not the entire substring
+            if (str.length() == 1)
+            {
+                size_t pos = in.find_last_not_of(str);
+                if (pos < in.length())
+                {
+                    in.erase(pos + 1);
+                    if (in.find(str) == std::string::npos)
+                    {
+                        itr = trim.erase(itr);
+                        continue;
+                    }
+                    ++itr;
+                }
+                else
+                {
+                    itr = trim.erase(itr);
+                }
+                continue;
+            }
+
+            size_t pos = in.rfind(str);
+            if (pos == std::string::npos)
+            {
+                itr = trim.erase(itr);
+                continue;
+            }
+            else if (pos + str.length() == in.length())
+            {
+                in = in.substr(0, pos);
+                itr = trim.erase(itr);
+                continue;
+            }
+            ++itr;
+        }
+        if (insize == in.size()) // Nothing new to trim
+        {
+            break;
+        }
+        insize = in.size();
     }
 }

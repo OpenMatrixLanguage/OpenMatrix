@@ -69,6 +69,7 @@
 #define OML_MSG_OPTIONVAL     "Error: invalid option; is incorrectly specified"
 #define OML_MSG_FUNCSWITCH    "Error: invalid option; must be either 'on' or 'off'"
 #define OML_MSG_NOBUILTIN     "Error: built in function not supported in this context"
+#define OML_MSG_OBJSTRRET1    "Error: invalid objective function; must have exactly 1 return"
 #define OML_MSG_CONSTRARG2    "Error: invalid constraint function; argument 2 must be []"
 #define OML_MSG_CONSTRRET2    "Error: invalid constraint function; can have at most 2 returns"
 #define OML_MSG_CONSTRRET4    "Error: invalid constraint function; can have at most 4 returns"
@@ -177,6 +178,7 @@
 
 // HW reader messages
 #define OML_MSG_HWREADER_TIMECHANNELS_COMPARE    "Time channels does not match"
+#define OML_MSG_HWREADER_SUBCASE_INVALID_RANGE   "Error: invalid input; subcase index out of range;"
 
 // Variable type definitions
 #define OML_STR_MATRIX          "matrix"
@@ -209,9 +211,13 @@
 #define OML_STR_TOLFUNREL       "TolFunRel"
 #define OML_STR_TOLCON          "TolCon"
 #define OML_STR_CONRET          "Constrant Retention"
-#define OML_STR_MOVE            "Move Limit Fraction"
-#define OML_STR_MPERT           "Perturbation Method"
-#define OML_STR_PERT            "Initial Perturbation Value"
+#define OML_STR_MOVELIM         "Move Limit Fraction"
+#define OML_STR_PERTM           "Perturbation Method"
+#define OML_STR_PERTV           "Initial Perturbation Value"
+#define OML_STR_INITSAMPNTS     "Number of Initial Sample Points"
+#define OML_STR_MAXFAIL         "Maximum Failed Iterations"
+#define OML_STR_PNTSPERITER     "Points Per Iteration"
+#define OML_STR_STOPNOIMPR      "Iterations with no Improvement"
 #define OML_STR_TOLKKT          "TolKKT"
 #define OML_STR_MAXFUNEVALS     "MaxFunEvals"
 #define OML_STR_MAXITER         "MaxIter"
@@ -461,6 +467,7 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode errCode) const
     case OML_ERR_OPTIONVAL:                     msgStr = OML_MSG_OPTIONVAL;                     break;
     case OML_ERR_FUNCSWITCH:                    msgStr = OML_MSG_FUNCSWITCH;                    break;
     case OML_ERR_NOBUILTIN:                     msgStr = OML_MSG_NOBUILTIN;                     break;
+    case OML_ERR_OBJSTRRET1:                    msgStr = OML_MSG_OBJSTRRET1;                    break;
     case OML_ERR_CONSTRARG2:                    msgStr = OML_MSG_CONSTRARG2;                    break;
     case OML_ERR_CONSTRRET2:                    msgStr = OML_MSG_CONSTRRET2;                    break;
     case OML_ERR_CONSTRRET4:                    msgStr = OML_MSG_CONSTRRET4;                    break;
@@ -566,6 +573,7 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode errCode) const
 
     // HW reader error messages:
     case OML_ERR_HWREADER_TIMECHANNELS_COMPARE: msgStr = OML_MSG_HWREADER_TIMECHANNELS_COMPARE; break;
+	case OML_ERR_HWREADER_SUBCASE_INVALID_RANGE: msgStr = OML_MSG_HWREADER_SUBCASE_INVALID_RANGE; break;
     default: break;
     }
 
@@ -610,9 +618,13 @@ std::string OML_Error::GetOmlVarStr(omlMathVarCode varCode) const
     case OML_VAR_TOLFUNREL:    varStr = OML_STR_TOLFUNREL;    break;
     case OML_VAR_TOLCON:       varStr = OML_STR_TOLCON;       break;
     case OML_VAR_CONRET:       varStr = OML_STR_CONRET;       break;
-    case OML_VAR_MOVE:         varStr = OML_STR_MOVE;         break;
-    case OML_VAR_MPERT:        varStr = OML_STR_MPERT;        break;
-    case OML_VAR_PERT:         varStr = OML_STR_PERT;         break;
+    case OML_VAR_MOVELIM:      varStr = OML_STR_MOVELIM;      break;
+    case OML_VAR_PERTM:        varStr = OML_STR_PERTM;        break;
+    case OML_VAR_PERTV:        varStr = OML_STR_PERTV;        break;
+    case OML_VAR_INITSAMPNTS:  varStr = OML_STR_INITSAMPNTS;  break;
+    case OML_VAR_MAXFAIL:      varStr = OML_STR_MAXFAIL;      break;
+    case OML_VAR_PNTSPERITER:  varStr = OML_STR_PNTSPERITER;  break;
+    case OML_VAR_STOPNOIMPR :  varStr = OML_STR_STOPNOIMPR;   break;
     case OML_VAR_TOLKKT:       varStr = OML_STR_TOLKKT;       break;
     case OML_VAR_MAXFUNEVALS:  varStr = OML_STR_MAXFUNEVALS;  break;
     case OML_VAR_MAXITER:      varStr = OML_STR_MAXITER;      break;

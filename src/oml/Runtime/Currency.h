@@ -117,6 +117,7 @@ public:
     //! Returns true if currency is of the given type
     bool  IsScalar()    const;
 	bool  IsString()    const;
+	bool  IsUTF8String()    const { return _is_utf8; }
 	bool  IsMultilineString() const;
 	bool  IsVector()    const;
 	bool  IsRealVector() const;
@@ -245,6 +246,8 @@ public:
 
 private:
 	Currency(const hwMatrix* data); // stubbed
+	Currency(const hwMatrixS* data); // stubbed
+	Currency(const hwMatrixN* data); // stubbed
 
 	void  Copy(const Currency&);
 	void  DeleteMatrix(hwMatrix*);
@@ -286,6 +289,7 @@ private:
 	std::string*               classname;
 	mutable const std::string* out_name;
     mutable CurrencyDisplay*   _display;        //! Displays for output
+	bool                       _is_utf8;
     
     static bool _experimental;                  //! True if experimental mode is active
 };

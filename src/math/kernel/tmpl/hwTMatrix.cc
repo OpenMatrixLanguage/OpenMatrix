@@ -3131,16 +3131,60 @@ hwMathStatus hwTMatrix<T1, T2>::MultEquals(const T2& cmplx)
 template<typename T1, typename T2>
 hwMathStatus hwTMatrix<T1, T2>::Divide(const hwTMatrix<T1, T2>& A, T1 real)
 {
-    return Mult(A, 1.0 / real);
+    if (this == &A)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
+
+    int size = A.Size();
+    hwMathStatus status = Dimension(A.m_nRows, A.m_nCols, A.Type());
+
+    if (!status.IsOk())
+    {
+        status.ResetArgs();
+        return status;
+    }
+
+    if (A.IsReal())
+    {
+        for (int i = 0; i < size; ++i)
+            (*this)(i) = A(i) / real;
+    }
+    else
+    {
+        for (int i = 0; i < size; ++i)
+            z(i) = A.z(i) / real;
+    }
+
+    return status;
 }
 
 //! Divide a matrix by a complex number so that (*this) = A / cmplx
 template<typename T1, typename T2>
 hwMathStatus hwTMatrix<T1, T2>::Divide(const hwTMatrix<T1, T2>& A, const T2& cmplx)
 {
-    T2 one((T1) 1, (T1) 0);
+    if (this == &A)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
 
-    return Mult(A, one / cmplx);
+    int size = A.Size();
+    hwMathStatus status = Dimension(A.m_nRows, A.m_nCols, COMPLEX);
+
+    if (!status.IsOk())
+    {
+        status.SetArg1(0);
+        return status;
+    }
+
+    if (A.IsReal())
+    {
+        for (int i = 0; i < size; ++i)
+            z(i) = A(i) / cmplx;
+    }
+    else
+    {
+        for (int i = 0; i < size; ++i)
+            z(i) = A.z(i) / cmplx;
+    }
+
+    return status;
 }
 
 //! Divide a real number by each element of a matrix
@@ -3213,16 +3257,48 @@ hwMathStatus hwTMatrix<T1, T2>::Divide(const T2& cmplx, const hwTMatrix<T1, T2>&
 template<typename T1, typename T2>
 void hwTMatrix<T1, T2>::DivideEquals(T1 real)
 {
-    return MultEquals(1.0 / real);
+    int count = Size();
+
+    if (IsReal())
+    {
+        T1* t_r = m_real;
+
+        while (count--)
+            *t_r++ /= real;
+    }
+    else
+    {
+        T2* t_c = m_complex;
+
+        while (count--)
+            *t_c++ /= real;
+    }
 }
 
 //! Divide the calling object by a complex number
 template<typename T1, typename T2>
 hwMathStatus hwTMatrix<T1, T2>::DivideEquals(const T2& cmplx)
 {
-    T2 one((T1) 1, (T1) 0);
+    hwMathStatus status;
+    int count = Size();
 
-    return MultEquals(one / cmplx);
+    if (IsReal())
+    {
+        status = MakeComplex();
+
+        if (!status.IsOk())
+        {
+            status.SetArg1(0);
+            return status;
+        }
+    }
+
+    T2* t_c = m_complex;
+
+    while (count--)
+        *t_c++ /= cmplx;
+
+    return status;
 }
 
 //! Multiply two matrices entry by entry so that (*this) = A .* B

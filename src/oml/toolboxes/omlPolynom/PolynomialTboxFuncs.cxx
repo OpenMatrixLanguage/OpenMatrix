@@ -333,6 +333,7 @@ bool OmlInterp1(EvaluatorInterface           eval,
                 std::vector<Currency>&       outputs)
 {
     static bool unsorted = true;
+    static bool requireUniqueX = false;
     size_t nargin = inputs.size();
 
     if (nargin < 3 || nargin > 5)
@@ -358,7 +359,7 @@ bool OmlInterp1(EvaluatorInterface           eval,
     {
         std::vector<Currency> inputs2;
         inputs2.push_back(inputs[0]);           // push_back(x)
-        inputs2.push_back("ascending");
+        inputs2.push_back("either");
 
         oml_issorted(eval, inputs2, outputs);   // issorted(x)
 
@@ -405,18 +406,21 @@ bool OmlInterp1(EvaluatorInterface           eval,
 
             try
             {
-                unsorted = false;
+                unsorted       = false;
+                requireUniqueX = true;
                 bool retv = OmlInterp1(eval, inputs2, outputs); // call function on sorted_x, reordered_y
                 return retv;
             }
             catch (OML_Error&)
             {
-                unsorted = true;    // reset
+                unsorted       = true;    // reset
+                requireUniqueX = false;
                 throw;
             }
             catch (hwMathException&)
             {
-                unsorted = true;    // reset
+                unsorted       = true;    // reset
+                requireUniqueX = false;
                 throw;
             }
         }
@@ -470,6 +474,7 @@ bool OmlInterp1(EvaluatorInterface           eval,
         }
         catch (OML_Error& omlerr)
         {
+            requireUniqueX = false;
             throw OML_Error(omlerr.GetErrorMessage());
         }
 
@@ -481,6 +486,7 @@ bool OmlInterp1(EvaluatorInterface           eval,
             }
             catch (OML_Error& omlerr)
             {
+                requireUniqueX = false;
                 throw OML_Error(omlerr.GetErrorMessage());
             }
         }
@@ -497,7 +503,9 @@ bool OmlInterp1(EvaluatorInterface           eval,
 
             if (method == "linear")
             {
-                BuiltInFuncsUtils::CheckMathStatus(eval, LinearInterp(*x, *y, *xi, *yi, extrap));
+                hwMathStatus status = LinearInterp(*x, *y, *xi, *yi, requireUniqueX, extrap);
+                requireUniqueX = false;
+                BuiltInFuncsUtils::CheckMathStatus(eval, status);
             }
             else if (method == "pchip")
             {
@@ -530,7 +538,7 @@ bool OmlInterp1(EvaluatorInterface           eval,
 
                     if (method == "linear")
                     {
-                        status = LinearInterp(*x, *ycol, *xi, *yicol, extrap);
+                        status = LinearInterp(*x, *ycol, *xi, *yicol, requireUniqueX, extrap);
                     }
                     else if (method == "pchip")
                     {
@@ -542,6 +550,7 @@ bool OmlInterp1(EvaluatorInterface           eval,
                     }
                     else
                     {
+                        requireUniqueX = false;
                         throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_NOTIMPLEMENT));
                     }
 
@@ -549,6 +558,7 @@ bool OmlInterp1(EvaluatorInterface           eval,
                     {
                         if (status == HW_MATH_ERR_ARRAYSIZE)
                         {
+                            requireUniqueX = false;
                             throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
                         }
                         else
@@ -561,6 +571,7 @@ bool OmlInterp1(EvaluatorInterface           eval,
                 }
             }
 
+            requireUniqueX = false;
             outputs.push_back(yi);
         }
     }

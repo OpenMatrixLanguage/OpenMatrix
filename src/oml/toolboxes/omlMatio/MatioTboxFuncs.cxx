@@ -1,7 +1,7 @@
 /**
 * @file MatioTboxFuncs.cxx
 * @date November 2015
-* Copyright (C) 2015-2019 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -26,9 +26,12 @@
 #include "OML_Error.h"
 #include "StructData.h" 
 
+#include "hwMatrixN.h"
+#include "hwMatrixS.h"
+
 #include "matio.h"
 
-#define TBOXVERSION 2019.3
+#define TBOXVERSION 2020
 
 // Returns true after loading file in ascii format
 bool ReadASCIIFile(EvaluatorInterface           eval, 
@@ -47,6 +50,9 @@ matvar_t* CurrencyToMatVar(const char*     name,
 Currency MatVarToCurrency(matvar_t*, std::string&);   // Var to currency
 Currency MatCell2Currency(matvar_t*, std::string&);   // Cell to currency
 Currency MatChar2Currency(matvar_t*, std::string&);   // Char array to currency
+Currency MatSparse2Currency(matvar_t*, std::string&);  // Sparse mtx to currency
+
+matvar_t* Currency2MatSparse(const char*, const Currency&); // Sparse mtx to matvar_t
 
 std::string GetTypeString(matvar_t*);                 // Gets type description
 
@@ -61,7 +67,6 @@ void PrintMatioFileVersion(mat_t* m);
 // Sets error from the matio library
 void SetMatioMessage(int   level,
                      char* msg);
-
 //# define OMLMATIO_DBG 1  // Uncomment to print debug info
 #ifdef OMLMATIO_DBG
 #    define OMLMATIO_PRINT(str, m) { std::cout << str << m << std::endl; }
@@ -114,14 +119,15 @@ Currency MatVarToCurrency(matvar_t* var, std::string& warn)
     {
         return MatChar2Currency(var, warn);
     }
-    else if (type == MAT_C_SPARSE || type == MAT_C_OPAQUE || type == MAT_C_FUNCTION)
+    else if (type == MAT_C_OPAQUE || type == MAT_C_FUNCTION)
     {
         warn += newline + msg + "; unsupported type [" + GetTypeString(var) + "]";
         return Currency(-1.0, Currency::TYPE_NOTHING);
     }
 
     if (rank == 1 && (type == MAT_C_DOUBLE || type == MAT_C_SINGLE  ||
-        type == MAT_C_UINT8 || type == MAT_C_UINT32 || MAT_C_UINT64))
+        type == MAT_C_UINT8 || type == MAT_C_UINT32 || MAT_C_UINT64 ||
+        type == MAT_C_SPARSE))
     {
         return HandleInvalidRank(var, warn);
     }
@@ -468,6 +474,10 @@ Currency MatVarToCurrency(matvar_t* var, std::string& warn)
             }
             return mat_n;
         }
+    }
+    else if (type == MAT_C_SPARSE)  // Sparse matrix
+    {
+        return MatSparse2Currency(var, warn);
     }
 
     warn += newline + msg + "; type [" + GetTypeString(var) + "]";
@@ -902,6 +912,10 @@ matvar_t* CurrencyToMatVar(const char*     name,
 
         delete[] temp_fields;
         temp_fields = nullptr;
+    }
+    else if (cur.IsSparse())
+    {
+        return Currency2MatSparse(name, cur);
     }
     return var;
 }
@@ -1571,4 +1585,159 @@ Currency HandleInvalidDims(matvar_t* var, std::string& warn)
     }
     warn += "]; dimensions are empty for " + GetTypeString(var);
     return Currency(-1.0, Currency::TYPE_NOTHING);
+}
+//------------------------------------------------------------------------------
+// Converts matvar of sparse array to currency
+//------------------------------------------------------------------------------
+Currency MatSparse2Currency(matvar_t* var, std::string& warn)
+{
+    assert(var);
+    assert(var->class_type == MAT_C_SPARSE);
+
+
+    mat_sparse_t* sparse = (mat_sparse_t*)var->data;
+    if (!sparse || !sparse->ir || !sparse->jc || !sparse->data || sparse->njc <= 1 )
+    {
+        return new hwMatrixS;
+    }
+
+    int m = static_cast<int>(var->dims[0]);
+    int n = static_cast<int>(var->dims[1]);
+
+    assert(sparse->njc == n + 1);
+
+    // First n elements of jc
+    std::vector<int> begincount(sparse->jc, sparse->jc + n);
+
+    // Last n elements of jc
+    std::vector<int> endcount(sparse->jc + 1, sparse->jc + sparse->njc);
+
+    if (!var->isComplex)  // Real
+    {
+        return new hwMatrixS(m, n, begincount.data(), endcount.data(),
+            sparse->ir, (double*)sparse->data);
+    }
+
+    std::vector<hwComplex> vec;
+
+    mat_complex_split_t* cdata = (mat_complex_split_t*)sparse->data;
+    if (cdata)
+    {
+        double* rp = (double*)cdata->Re;
+        double* ip = (double*)cdata->Im;
+
+        vec.reserve(sparse->ndata);
+        for (int j = 0; j < sparse->ndata; ++j)
+        {
+            vec.push_back(hwComplex(*(rp + j), *(ip + j)));
+        }
+    }
+
+    hwMatrixS* mtx =  new hwMatrixS(m, n, begincount.data(), endcount.data(),
+            sparse->ir, vec.data());
+
+    return mtx;
+}
+//------------------------------------------------------------------------------
+// Converts currency to matvar_t for sparse matrices
+//------------------------------------------------------------------------------
+matvar_t* Currency2MatSparse(const char* name, const Currency& cur)
+{
+    size_t dims[2] = { 1, 1 };
+    int    flags = (cur.IsLogical()) ? MAT_F_LOGICAL : 0;
+
+    const hwMatrixS* spm = cur.MatrixS();
+    if (!spm || spm->IsEmpty())
+    {
+        std::unique_ptr<hwMatrix> mtx(EvaluatorInterface::allocateMatrix());
+        return Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims,
+                (void*)mtx.get()->GetRealData(), flags);
+    }
+
+    int m   = spm->M();
+    int n   = spm->N();
+    int nnz = spm->NNZ();
+
+    dims[0] = m;  // Number of total rows
+    dims[1] = n;  // Number of total columns
+
+    // Populate the sparse matio structure
+    mat_sparse_t sparse;
+    sparse.nzmax = nnz;  // Max non-zero elements
+
+    // Array of size nzmax where ir[k] is the row of data[k].
+    sparse.ir = (mat_int32_t*)spm->rows();
+    sparse.nir = nnz; // Number of elements in ir
+
+    // Array size n + 1 with jc[k] being the index into ir / data of the
+    // first non - zero element for row k. Need to combine first n elements
+    // of pointerB with last element of pointerE
+    std::vector<int> jc(spm->pointerB(), spm->pointerB() + n);
+    jc.push_back(*(spm->pointerE() + n - 1));
+    sparse.jc = (mat_int32_t*)jc.data();
+    sparse.njc = n + 1;
+
+    sparse.ndata = nnz;                       // Number of values
+
+    int rank = 2;
+
+    matvar_t* tmp = nullptr;
+    if (spm->IsReal())   // Real values
+    {
+        sparse.data  = (void*)spm->GetRealData(); // Array of values
+
+        tmp = Mat_VarCreate(name, MAT_C_SPARSE, MAT_T_DOUBLE, 2, dims, &sparse, flags);
+        if (tmp) // Recommended way of writing in matio
+        {
+            matvar_t* matvar2 = Mat_VarCreate(name, MAT_C_SPARSE,
+                MAT_T_DOUBLE, 2, dims, tmp->data, flags);
+            Mat_VarFree(tmp);
+            return matvar2;
+        }
+        return Mat_VarCreate(name, MAT_C_SPARSE, MAT_T_DOUBLE, rank, dims, 
+                &sparse, flags);
+    }
+
+    double* realvec = new double[nnz];
+    double* imagvec = new double[nnz];
+
+    hwComplex* cdata = const_cast<hwComplex*>(spm->GetComplexData());
+    for (int i = 0; i < nnz; ++i)
+    {
+        hwComplex cplx = cdata[i];
+        realvec[i] = cplx.Real();
+        imagvec[i] = cplx.Imag();
+    }
+
+    mat_complex_split_t t{ nullptr, nullptr };
+    t.Re = (void*)realvec;
+    t.Im = (void*)imagvec;
+
+    sparse.data = &t;
+
+    tmp = Mat_VarCreate(name, MAT_C_SPARSE, MAT_T_DOUBLE, 2, dims, &sparse, MAT_F_COMPLEX);
+    if (tmp) // Recommended way of writing in matio
+    {
+        matvar_t* matvar2 = Mat_VarCreate(name, MAT_C_SPARSE, MAT_T_DOUBLE, 2, dims, tmp->data, MAT_F_COMPLEX);
+        Mat_VarFree(tmp);
+
+        delete[] realvec;
+        delete[] imagvec;
+
+        realvec = nullptr;
+        imagvec = nullptr;
+
+        return matvar2;
+    }
+
+    matvar_t* matvar2 =  Mat_VarCreate(name, MAT_C_SPARSE, MAT_T_DOUBLE, rank, dims,
+        &sparse, MAT_F_COMPLEX);
+
+    delete[] realvec;
+    delete[] imagvec;
+
+    realvec = nullptr;
+    imagvec = nullptr;
+
+    return matvar2;
 }

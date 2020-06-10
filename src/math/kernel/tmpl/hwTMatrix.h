@@ -295,7 +295,7 @@ public:
     //! Invert a matrix
     hwMathStatus Inverse(const hwTMatrix<double>& source);
     //! Matrix pseudo-inversion (Moore-Penrose)
-    hwMathStatus Pinv(const hwTMatrix<double>& source);
+    hwMathStatus Pinv(const hwTMatrix<double>& source, double tol = -999.0);
     //! Real determinant
     hwMathStatus Determinant(double& det) const;
     //! Complex determinant
@@ -311,7 +311,7 @@ public:
     //! Matrix norm
     hwMathStatus Norm(double& norm, int p = 2) const;
     //! Matrix norm
-    hwMathStatus Norm(double& norm, const char* type = "fro") const;
+    hwMathStatus Norm(double& norm, const char* type) const;
     //! Normalize a vector
     hwMathStatus Normalize();
     //! Matrix exponential (not a matrix of exponentials)
@@ -702,9 +702,9 @@ private:
     //! Complex Singular Value Decomposition
     hwMathStatus ComplexSVD(const SVDtype& type, hwTMatrix<double>* U, hwTMatrix<double>& S, hwTMatrix<double>* VT) const;
     //! Real matrix pseudo-inversion (Moore-Penrose)
-    hwMathStatus RealPinv(const hwTMatrix<double>& source);
+    hwMathStatus RealPinv(const hwTMatrix<double>& source, double tol);
     //! Complex matrix pseudo-inversion (Moore-Penrose)
-    hwMathStatus ComplexPinv(const hwTMatrix<double>& source);
+    hwMathStatus ComplexPinv(const hwTMatrix<double>& source, double tol);
     //! Real QR decomposition
     hwMathStatus RealQR(hwTMatrix<double>& Q, hwTMatrix<double>& R) const;
     //! Complex QR decomposition

@@ -91,7 +91,7 @@ bool OmlFzero(EvaluatorInterface           eval,
 
     if (funcName == "anonymous")
         funcInfo = cur1.FunctionHandle();
-    else if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr))
+    else if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr, nullptr))
         throw OML_Error(OML_ERR_FUNCNAME, 1, OML_VAR_PARAMETER);
 
     if (funcInfo && funcInfo->Parameters().size() != 1)

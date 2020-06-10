@@ -59,7 +59,7 @@ public:
     //! Convert hwTMatrixN to hwTMatrix 
     void ConvertNDto2D(hwTMatrix<T1, T2>& target) const;
     //! Convert hwTMatrix to hwTMatrixN 
-    void Convert2DtoND(const hwTMatrix<T1, T2>& source);
+    void Convert2DtoND(const hwTMatrix<T1, T2>& source, bool copyData = true);
 
     // ****************************************************
     //               Data Type, Ownership

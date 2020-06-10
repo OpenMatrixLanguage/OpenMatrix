@@ -142,6 +142,11 @@ public:
     //! Function callback
 	Currency CallFunction(FunctionInfo*                  finfo, 
                            const std::vector<Currency>& inputs);
+
+	//! Function callback
+	Currency CallFunctionInCurrentScope(FunctionInfo* finfo,
+		const std::vector<Currency>& inputs);
+	
     //! Function callback
 	void CallFunction(const std::string&           funcname, 
                        const std::vector<Currency>& inputs, 

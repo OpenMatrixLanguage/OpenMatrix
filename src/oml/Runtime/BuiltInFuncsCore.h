@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsCore.h
 * @date February 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -18,6 +18,7 @@
 #define __BUILTINFUNCSCORE__
 
 #include "EvaluatorInt.h"
+#include <map>
 
 //------------------------------------------------------------------------------
 //!
@@ -105,6 +106,9 @@ public:
     static bool Funccount( EvaluatorInterface           eval, 
                            const std::vector<Currency>& inputs, 
                            std::vector<Currency>&       outputs);
+
+	static bool RemoveToolbox(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+
     //!
     //! Returns true after displaying a list of functions along with total count [funclist command]
     //! \param eval    Evaluator interface
@@ -188,6 +192,7 @@ public:
     //! \param name Library name
     //!
     static void* DyLoadLibrary(const std::string& name);
+    //!
     //! Returns function pointer from a dynamically loaded library
     //! \param handle Handle to dynamically loaded library
     //! \param name   Function name
@@ -200,11 +205,32 @@ public:
     //!
     static void DyFreeLibrary(void* handle);
 
+	static void Finalize(void* handle);
+
 	//!
 	//! Gets the path of a loaded library
 	//! \param handle Handle to dynamically loaded library
 	//!
 	static std::string DyGetLibraryPath(void* handle);
+
+    //!
+    //! Returns true and prints memory usage (memoryuse)
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //!
+    static bool MemoryUse(EvaluatorInterface           eval,
+                          const std::vector<Currency>& inputs,
+                          std::vector<Currency>&       outputs);
+    //!
+    //! Returns true and clears command window (clc)
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //!
+    static bool Clc(EvaluatorInterface, 
+                    const std::vector<Currency>&,
+                    std::vector<Currency>&);
 
 private:
     //!
@@ -230,7 +256,9 @@ private:
     //! Gets number of bytes used by Currency
     //! \param cur Given currency
     //!
-    int GetsBytesUsed( const Currency& cur) const;
+    unsigned long long GetsBytesUsed( const Currency& cur) const;
+
+	static std::map<std::string, void*> libs;
 };
 
 #endif // __BUILTINFUNCSCORE__

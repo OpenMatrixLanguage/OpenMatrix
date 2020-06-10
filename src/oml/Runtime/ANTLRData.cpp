@@ -142,7 +142,7 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 			}
 		}
 
-		if (token_type == PCTLCURLY && !in_string)
+		if (token_type == PCTLCURLY && !in_string && !in_comment)
 		{
 			for (int k=j; k<num_tokens; ++k)
 			{
@@ -493,6 +493,12 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 			{
 				tok->setType(tok, NUMBER);
 				tok2->setType(tok2, QUOTE);
+			}
+			else if (tok2->getType(tok2) == DOTDOT)
+			{
+				tok->setType(tok, NUMBER);
+				tok2->setType(tok2, NEWLINE);
+				tok2->setChannel(tok2, 0);
 			}
 		}
 		

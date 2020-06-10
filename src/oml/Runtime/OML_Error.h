@@ -73,6 +73,7 @@ enum omlMathErrCode
     OML_ERR_OPTIONVAL,                       // invalid option; is incorrectly specified
     OML_ERR_FUNCSWITCH,                      // invalid option; must be either 'on' or 'off'
     OML_ERR_NOBUILTIN,                       // built in function not supported in this context
+    OML_ERR_OBJSTRRET1,                      // invalid objective function; must have exactly 1 return
     OML_ERR_CONSTRARG2,                      // invalid constraint function; argument 2 must be []
     OML_ERR_CONSTRRET2,                      // invalid constraint function; can have at most 2 returns
     OML_ERR_CONSTRRET4,                      // invalid constraint function; can have at most 4 returns
@@ -179,6 +180,7 @@ enum omlMathErrCode
 
     //HW reader Codes
     OML_ERR_HWREADER_TIMECHANNELS_COMPARE,   // to compare time channels
+    OML_ERR_HWREADER_SUBCASE_INVALID_RANGE,  // subcase index out of range
 
     OML_ERR_END
 };
@@ -217,9 +219,13 @@ enum omlMathVarCode
     OML_VAR_TOLFUNREL,
     OML_VAR_TOLCON,
     OML_VAR_CONRET,
-    OML_VAR_MOVE,
-    OML_VAR_MPERT,
-    OML_VAR_PERT,
+    OML_VAR_MOVELIM,
+    OML_VAR_PERTM,
+    OML_VAR_PERTV,
+    OML_VAR_INITSAMPNTS,
+    OML_VAR_MAXFAIL,
+    OML_VAR_PNTSPERITER,
+    OML_VAR_STOPNOIMPR,
     OML_VAR_TOLKKT,
     OML_VAR_MAXFUNEVALS,
     OML_VAR_MAXITER,

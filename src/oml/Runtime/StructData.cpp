@@ -234,7 +234,10 @@ StructData* StructData::GetElement(int index_1, int index_2)
 void StructData::SetElement(int index_1, int index_2, StructData* sd)
 {
 	if (field_names.size() == 0)
+	{
 		field_names = sd->field_names;
+		next_key = sd->next_key;
+	}
 
 	if (index_2 != -1)
 	{

@@ -53,11 +53,11 @@ void displayRecognitionErrorNew  (pANTLR3_BASE_RECOGNIZER recognizer, pANTLR3_UI
 //extern void* OML_CALLOC(size_t num_el, size_t size);
 //extern void OML_FREE(void* ptr);
 
-#if 0
 class AntlrMemoryPool
 {
 public:
 	AntlrMemoryPool(int item_size, int items_per_block);
+	~AntlrMemoryPool();
 	void* Get();
 	void  Free(void*);
 	bool  Owns(void*);
@@ -68,22 +68,26 @@ private:
 	int item_size;
 	int items_per_block;
 	int used;
-	int num_in_use; // remove this later
+	long long allocation_size;
 	std::vector<unsigned char*> blocks;
 	std::vector<void*> freed_ptrs;
 };
 
-AntlrMemoryPool::AntlrMemoryPool(int isize, int bsize) : item_size(isize), items_per_block(bsize), num_in_use(0)
+AntlrMemoryPool::AntlrMemoryPool(int isize, int bsize) : item_size(isize), items_per_block(bsize)
 {
+	allocation_size = item_size * items_per_block;
 	AddBlock();
+}
+
+AntlrMemoryPool::~AntlrMemoryPool()
+{
 }
 
 void AntlrMemoryPool::AddBlock()
 {
-	int            alloc_size = item_size*items_per_block;
-	unsigned char* new_block  = new unsigned char [alloc_size];
+	unsigned char* new_block  = new unsigned char [allocation_size];
 
-	memset(new_block, 0, alloc_size);
+	memset(new_block, 0, allocation_size);
 
 	blocks.push_back(new_block);
 	used = 0;
@@ -95,7 +99,7 @@ void* AntlrMemoryPool::Get()
 
 	if (freed_ptrs.size())
 	{
-		ret_ptr = (unsigned char*)freed_ptrs[freed_ptrs.size()-1];
+		ret_ptr = (unsigned char*)freed_ptrs.back();
 		freed_ptrs.pop_back();
 	}
 	else
@@ -103,11 +107,10 @@ void* AntlrMemoryPool::Get()
 		if (used == items_per_block)
 			AddBlock();
 
-		unsigned char* last_block = blocks[blocks.size()-1];
+		unsigned char* last_block = blocks.back();
 
-		ret_ptr = last_block + used*item_size;
-		used++;		
-		num_in_use++;
+		ret_ptr = last_block + used * item_size;
+		++used;		
 	}
 
 	return ret_ptr;
@@ -119,8 +122,7 @@ bool AntlrMemoryPool::Owns(void* ptr)
 	{
 		unsigned char* block = blocks[j];
 
-		unsigned char* block_start = block;
-		unsigned char* block_end   = block+item_size*items_per_block;
+		unsigned char* block_end   = block + allocation_size;
 
 		if ((ptr >= block) && (ptr < block_end))
 			return true;
@@ -138,6 +140,11 @@ void AntlrMemoryPool::Free(void* ptr)
 static AntlrMemoryPool pool56(56, 256);
 static AntlrMemoryPool pool40(40, 32768);
 static AntlrMemoryPool pool32(32, 32768);
+static AntlrMemoryPool pool88(88, 256);
+static AntlrMemoryPool pool1544(1544, 256);
+static AntlrMemoryPool pool90012(90012, 32);
+static AntlrMemoryPool pool352(352, 256);
+static AntlrMemoryPool pool270336(270336, 256);
 
 extern "C"
 {
@@ -149,8 +156,40 @@ extern "C"
 			return pool40.Get();
 		else if (size == 32)
 			return pool32.Get();
+		else if (size == 270336)
+			return pool270336.Get();
+		else if (size == 1544)
+			return pool1544.Get();
+		else if (size == 88)
+			return pool88.Get();
 		else
+		{
+			//std::cout << size << std::endl;
 			return calloc(num_el, size);
+		}
+	}
+
+	void* OML_MALLOC(size_t size)
+	{
+		if (size == 352)
+			return pool352.Get();
+		else if (size == 90012)
+			return pool90012.Get();
+/*
+		else if (size == 32)
+			return pool32.Get();
+		else if (size == 270336)
+			return pool270336.Get();
+		else if (size == 1544)
+			return pool1544.Get();
+		else if (size == 88)
+			return pool88.Get();
+*/
+		else
+		{
+			//std::cout << size << std::endl;
+			return malloc(size);
+		}
 	}
 
 	void OML_FREE(void* ptr)
@@ -161,8 +200,17 @@ extern "C"
 			pool40.Free(ptr);
 		else if (pool32.Owns(ptr))
 			pool32.Free(ptr);
+		else if (pool270336.Owns(ptr))
+			pool270336.Free(ptr);
+		else if (pool1544.Owns(ptr))
+			pool1544.Free(ptr);
+		else if (pool88.Owns(ptr))
+			pool88.Free(ptr);
+		else if (pool352.Owns(ptr))
+			pool352.Free(ptr);
+		else if (pool90012.Owns(ptr))
+			pool90012.Free(ptr);
 		else
 			free(ptr);
 	}
 }
-#endif

@@ -29,6 +29,7 @@ public:
 	FunctionInfo(std::string, std::vector<const std::string*>, std::vector<const std::string*>, std::map<const std::string*, Currency>, OMLTree*, std::string, std::string);
 	FunctionInfo(std::string, std::vector<const std::string*>, std::vector<const std::string*>, OMLTree*, std::string);
 	FunctionInfo(std::string, FUNCPTR);
+	FunctionInfo(std::string, ALT_FUNCPTR);
 	FunctionInfo();
 	~FunctionInfo();
 	FunctionInfo(const FunctionInfo&);
@@ -40,6 +41,7 @@ public:
 	bool IsEncrypted() const { return _is_encrypted; }
 	void IsEncrypted(bool encrypt) { _is_encrypted = encrypt; }
 	bool IsBuiltIn() const { return _builtin != 0; }
+	bool IsAltBuiltIn() const { return _alt_fptr != 0; }
 	bool IsLocalFunction(std::string script_name) const;
 	bool IsReturnValue(const std::string* varname) const;
 	bool IsInputParameter(const std::string* varname) const;
@@ -56,10 +58,12 @@ public:
 	std::string                      FileName() const { return *_file_name; }
 	const std::string*               FileNamePtr() const { return _file_name; }
 	std::string                      HelpString() const { return _help_string; }
+	void                             SetHelpString(const std::string&);
 	std::vector<const std::string*>  Parameters() const { return _parameters; }
 	std::vector<const std::string*>  ReturnValues() const { return _return_values; }
 	OMLTree*                         Statements() const;
 	FUNCPTR                          Builtin() const { return _builtin; }
+	ALT_FUNCPTR                      AltBuiltin() const { return _alt_fptr; }
 	MemoryScope*                     AnonScope() const { return _anon_scope; }
 
 	const std::vector<const std::string*>* ParametersPtr() const { return &(_parameters); }
@@ -94,6 +98,7 @@ private:
 	OMLTree*     _statements;
 	int          _refcnt;
 	FUNCPTR      _builtin;
+	ALT_FUNCPTR  _alt_fptr;
 	MemoryScope* _anon_scope;
 	MemoryScope* _persistent_scope;
 	bool         _is_nested;

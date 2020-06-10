@@ -1,7 +1,7 @@
 /**
 * @file ConsoleWrapper.h
 * @date June 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -26,6 +26,10 @@
 #include <stack>
 #include <string>
 #include <vector>
+
+#ifdef OS_WIN
+#   include <Windows.h>
+#endif
 
 class CurrencyDisplay;
 class Interpreter;
@@ -58,10 +62,6 @@ public:
     //! Paginates matrix
     //!
     void Paginate();
-    //!
-    //! Sets pagination variables
-    //!
-    void SetPaginationVariables();
 
     //!
     //! Prints new prompt and resets append flags
@@ -122,6 +122,19 @@ public:
     //! \param args Args
     //!
     void SetArgv(const std::vector<std::string>& args) { _argv = args; }
+    //!
+    //! Initializes command window screen buffer for interactive mode
+    //!
+    void InitCommandWindowInfo();
+    //!
+    //! Gets visible rows and columns from command window screen size
+    //!
+    void GetCommandWindowInfo();
+    //!
+    //! Sets to true if command window size needs to be set
+    //! \param True if command window size needs to be set
+    //!
+    void SetWindowSize(bool val) { _getWindowSize = val; }
 
 private:
     bool _appendOutput;                           //! True if output is appended
@@ -132,12 +145,26 @@ private:
 
     std::vector<std::string> _argv;               //!< Arg v
 
-    // Private default constructor
+    bool _getWindowSize;                          //!< True when size needs to be updated
+
+#ifdef OS_WIN
+    HANDLE _inhandle;                             //!< Stdin  handle
+    HANDLE _outhandle;                            //!< Stdout handle
+    WORD   _defaultWinAttr;                       //!< Console window  attribute
+#endif
+
+    //!
+    //! Private default constructor
+    //!
     ConsoleWrapper() : WrapperBase(nullptr) {}
-
-    //! True if pagination environment is enabled
-    bool IsPaginationEnvEnabled() const;
-
+    //!
+    //! Stubbed out copy constructor
+    //!
+    ConsoleWrapper(const ConsoleWrapper&);
+    //!
+    //! Stubbed out assignment operator
+    //!
+    ConsoleWrapper& operator=(const ConsoleWrapper&);
     //!
     //! Cleans up after pagination like clearing display
     //! \param printMsg True if end of pagination message needs to be printed
@@ -148,10 +175,6 @@ private:
     //!
     void ProcessPagination();
     //!
-    //! Gets visible rows and columns from command window screen size
-    //!
-    void GetCommandWindowInfo() const;
-    //!
     //! Print currency. Return false if this currency could not be printed and 
     //! needs to be processed later
     //! \param cur Currency (result) to print
@@ -161,9 +184,11 @@ private:
     //! Prints string to console
     //! \param result        Result
     //! \param isprintoutput True if this is a result from printf/fprintf
+    //! \param forceflush    Force flush if true
     //!
     void PrintToConsole(const std::string& result,
-                        bool               isprintOutput);
+                        bool               isprintOutput,
+                        bool               forceflush);
     //!
     //! Prints message for continuing/skipping pagination
     //! \param colPaginate True if column control keys are dispalyed

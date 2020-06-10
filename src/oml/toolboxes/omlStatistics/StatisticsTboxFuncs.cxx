@@ -9318,6 +9318,18 @@ bool OmlMean(EvaluatorInterface           eval,
         {
             outputs[0] = std::numeric_limits<double>::quiet_NaN();
         }
+        else if (outputs[0].IsScalar())
+        {
+            double mean = outputs[0].Scalar();
+            outputs.clear();
+            outputs.push_back(mean / data->Size());
+        }
+        else if (outputs[0].IsComplex())
+        {
+            hwComplex mean = outputs[0].Complex();
+            outputs.clear();
+            outputs.push_back(mean / data->Size());
+        }
         else if (outputs[0].IsMatrix())
         {
             double divby = 1;

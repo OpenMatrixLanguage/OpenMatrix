@@ -33,6 +33,7 @@ FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*
 	_default_values   = default_vals;
 	_statements       = stmt_list;
 	_builtin          = NULL;
+	_alt_fptr         = NULL;
 	_anon_scope       = NULL;
 	_help_string      = help_str;
 	_refcnt           = 1;
@@ -55,6 +56,7 @@ FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*
 	_parameters       = params;
 	_statements       = new OMLTree(*stmt_list);
 	_builtin          = NULL;
+	_alt_fptr         = NULL;
 	_anon_scope       = NULL;
 	_refcnt           = 1;
 
@@ -73,6 +75,7 @@ FunctionInfo::FunctionInfo(std::string func_name, FUNCPTR builtin_func)
 	_function_name    = Currency::vm.GetStringPointer(func_name);
 	_file_name        = Currency::pm.GetStringPointer("");
 	_builtin          = builtin_func;
+	_alt_fptr         = NULL;
 	_statements       = NULL;
 	_anon_scope       = NULL;
 	_persistent_scope = NULL;
@@ -83,6 +86,22 @@ FunctionInfo::FunctionInfo(std::string func_name, FUNCPTR builtin_func)
 	_refcnt           = 1;
 }
 
+FunctionInfo::FunctionInfo(std::string func_name, ALT_FUNCPTR alt_func)
+{
+	_function_name = Currency::vm.GetStringPointer(func_name);
+	_file_name = Currency::pm.GetStringPointer("");
+	_builtin = NULL;
+	_alt_fptr = alt_func;
+	_statements = NULL;
+	_anon_scope = NULL;
+	_persistent_scope = NULL;
+	_is_nested = false;
+	_is_constructor = false;
+	_is_encrypted = false;
+	local_functions = NULL;
+	_refcnt = 1;
+}
+
 FunctionInfo::FunctionInfo()
 {
 	_function_name    = Currency::vm.GetStringPointer("");
@@ -91,6 +110,7 @@ FunctionInfo::FunctionInfo()
 	_anon_scope       = NULL;
 	_persistent_scope = NULL;
 	_builtin          = NULL;
+	_alt_fptr         = NULL;
 	_is_nested        = false;
 	_is_constructor   = false;
 	_is_encrypted     = false;
@@ -168,6 +188,8 @@ FunctionInfo::FunctionInfo(const FunctionInfo& in)
             (*local_functions)[iter->first] = new FunctionInfo(*iter->second);
         }
     }
+
+    _alt_fptr = in._alt_fptr;
 }
 
 bool FunctionInfo::IsReturnValue(const std::string* varname) const
@@ -484,4 +506,9 @@ Currency FunctionInfo::GetDefaultValue(const std::string* param_name) const
 		return temp->second;
 	else
 		return _not_found;
+}
+
+void FunctionInfo::SetHelpString(const std::string& str)
+{
+	_help_string = str;
 }

@@ -143,7 +143,7 @@ bool OmlQuad(EvaluatorInterface           eval,
     }
     else
     {
-        if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr))
+        if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr, nullptr))
             throw OML_Error(OML_ERR_FUNCNAME, 1);
     }
 
@@ -441,7 +441,7 @@ bool OmlQuadv(EvaluatorInterface           eval,
     }
     else
     {
-        if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr))
+        if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr, nullptr))
             throw OML_Error(OML_ERR_FUNCNAME, 1);
     }
 

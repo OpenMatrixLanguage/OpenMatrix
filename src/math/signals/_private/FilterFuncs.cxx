@@ -2214,16 +2214,19 @@ hwMathStatus FindPeaks(const hwMatrix& signal,
     hwMatrix signalD;
 
     // remove mean
-    status = Detrend(signal, "constant", signalD);
-
-    if (!status.IsOk())
+    if (twoSided)
     {
-        status.ResetArgs();
-        return status;
+        status = Detrend(signal, "constant", signalD);
+
+        if (!status.IsOk())
+        {
+            status.ResetArgs();
+            return status;
+        }
     }
 
     // find peak locations
-    int n = signalD.Size();
+    int n = signal.Size();
     int numPeaks = 0;
     hwMatrixI indexRaw(0, 1, hwMatrixI::REAL);
 
@@ -2246,11 +2249,7 @@ hwMathStatus FindPeaks(const hwMatrix& signal,
     // apply minumum height criterion
     if (minPeakHeight == -1.0)
     {
-        hwMatrix signalA;
-
-        signalA.Abs(signalD);
-        StdDev(signalA, minPeakHeight);
-        minPeakHeight *= 2.0;
+        minPeakHeight = MACHEP2;
     }
 
     if (minPeakHeight > 0)
@@ -2259,7 +2258,7 @@ hwMathStatus FindPeaks(const hwMatrix& signal,
         {
             for (int i = 0; i < numPeaks; ++i)
             {
-                if (fabs(signal(indexRaw(i))) < minPeakHeight)
+                if (fabs(signalD(indexRaw(i))) < minPeakHeight)
                 {
                     indexRaw.DeleteRows(i);
                     --i;
@@ -2364,7 +2363,11 @@ hwMathStatus FindPeaks(const hwMatrix& signal,
             for (int j = 0; j < size; ++j)
             {
                 indexD(j) = static_cast<double>(idx + indexOrigin);
-                neighbors(j) = signal(idx++);
+
+                if (twoSided)
+                    neighbors(j) = signalD(idx++);
+                else
+                    neighbors(j) = signal(idx++);
             }
 
             status = PolyCurveFit(indexD, neighbors, 2, coef);    // ascending coef

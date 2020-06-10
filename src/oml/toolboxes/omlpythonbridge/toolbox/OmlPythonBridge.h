@@ -1,7 +1,7 @@
 /**
 * @file OmlPythonBridge.h
 * @date December, 2017
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -20,6 +20,7 @@
 
 #include <string>
 #include "Currency.h"
+#include "EvaluatorInt.h" 
 #ifndef Py_PYTHON_H
 #define PyObject void
 #endif
@@ -32,8 +33,11 @@
 class OmlPythonBridge
 {
 public:
-
-    static OmlPythonBridge* GetInstance();
+    //!
+    //! Gets instance
+    //! \param eval Evaluator interface
+    //!
+    static OmlPythonBridge* GetInstance(EvaluatorInterface eval);
     static void ReleaseInstance();
     //! Creates/Updates Python variable in the __main__ scope and sets the value
     //! \param name is name of python variable
@@ -60,9 +64,11 @@ public:
     //! \return true if script evaluation attempt did not produce errors, false otherwise
     bool EvalPythonScript(const std::string &script);
 private:
-    
+    //!
     //! Constructor
-    OmlPythonBridge();
+    //! \param eval Evaluator interface
+    //!
+    OmlPythonBridge(EvaluatorInterface eval);
     //! Copy Constructor
     OmlPythonBridge( const OmlPythonBridge& ) = delete;
     //! Assignment Operator
@@ -78,6 +84,11 @@ private:
     bool RunFile(const std::string& python_file, PyObject* globals, PyObject* locals);
     //! Initializes numpy
     void* InitNumpy();
+    //!
+    //! Initializes command line arguments
+    //! \param eval Evaluator interface
+    //!
+    void InitializeCommandLineArgs(EvaluatorInterface eval);
 
     static OmlPythonBridge* _instance;
     void* _threadState;

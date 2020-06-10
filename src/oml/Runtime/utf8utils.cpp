@@ -80,3 +80,69 @@ size_t utf8_byte_position_from_index(unsigned char* ptr, size_t index)
 
 	return internal_index;
 }
+//------------------------------------------------------------------------------
+// Outputs the largest of the dimensions of the input
+//------------------------------------------------------------------------------
+size_t utf8_get_char_size(const double* ptr)
+{
+	unsigned char temp = (unsigned char)*ptr;
+
+	if ((temp & 0x80) == 0)
+		return 1;
+
+	if ((temp & 0x40) == 0)
+		return 1;
+
+	if ((temp & 0x20) == 0)
+		return 2;
+
+	if ((temp & 0x10) == 0)
+		return 3;
+
+	if ((temp & 0x08) == 0)
+		return 4;
+
+	if ((temp & 0x04) == 0)
+		return 5;
+
+	if ((temp & 0x02) == 0)
+		return 6;
+
+	return 1;
+}
+//------------------------------------------------------------------------------
+// 
+//------------------------------------------------------------------------------
+const double* utf8_increment_pointer(const double* ptr)
+{
+	return ptr + utf8_get_char_size(ptr);
+}
+//------------------------------------------------------------------------------
+// Gets length of utf string
+//------------------------------------------------------------------------------
+size_t utf8_strlen(const double* ptr)
+{
+	size_t len = 0;
+
+	for (; *ptr; ++len)
+		ptr = utf8_increment_pointer(ptr);
+
+	return len;
+}
+//------------------------------------------------------------------------------
+// Converts nominal index to byte position
+//------------------------------------------------------------------------------
+size_t utf8_byte_position_from_index(const double* ptr, size_t index)
+{
+	int internal_index = 0;
+
+	for (int j = 0; j < index; ++j)
+	{
+		unsigned char temp_char = (unsigned char)ptr[j];
+		size_t char_size = utf8_get_char_size(&temp_char);
+
+		internal_index += (int)char_size;
+	}
+
+	return internal_index;
+}

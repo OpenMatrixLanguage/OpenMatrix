@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsSystem.cpp
 * @date October 2016
-* Copyright (C) 2016-2019 Altair Engineering, Inc.  
+* Copyright (C) 2016-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -80,16 +80,12 @@ bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
 #ifdef OS_WIN
             if (options[0] != '/' && options[0] != '-') // This is a filename
             {
-                options = utils.Normpath(options);
-                if (options.find(" ") != std::string::npos)
-                {
-                    options = "\"" + options + "\"";
-                }
+                filenames = utils.Normpath(options);
             }
 #else
             if (options[0] != '-')                      // This is a filename
             {
-                options = utils.Normpath(options);
+                filenames = utils.Normpath(options);
             }
 #endif
         }
@@ -102,116 +98,92 @@ bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
             throw OML_Error(OML_ERR_STRING, 2, OML_VAR_TYPE);
         }
         filenames = utils.Normpath(inputs[1].StringVal());
-#ifdef OS_WIN
-        if (filenames.find(" ") != std::string::npos)
-        {
-            filenames = "\"" + filenames + "\"";
-        }
-#endif
     }
 
-    std::string strcmd;
-#ifdef OS_WIN
-    strcmd = "dir";
-#else
-    strcmd = "ls";
-#endif
-
-    if (!options.empty())
-        strcmd += " " + options;
-    if (!filenames.empty())
-        strcmd += " " + filenames;
-
-    strcmd += " 2>&1";
-
-    FILE* cmdoutput = nullptr;
     bool echo = (eval.GetNargoutValue() == 0);
 
-#ifdef _DEBUG    // This needs to be done otherwise Unicode chars don't show up correctly
 #ifdef OS_WIN
-    char* oldlocale = setlocale(LC_ALL, nullptr);
-    std::string cachelocale("C");
-    if (!oldlocale)
+    std::string dir;
+    if (filenames.empty())
     {
-        utils.SetWarning(eval, "Warning: Unable to determine locale");
+        std::wstring wstr = utils.GetCurrentWorkingDirW();
+        dir = utils.WString2StdString(wstr);
     }
     else
     {
-        cachelocale = oldlocale;
+        dir = filenames;
     }
-    UINT oldoutputcp = GetConsoleOutputCP();
-    cmdoutput = _wpopen(utils.StdString2WString(strcmd).c_str(), L"r");
-    if (!cmdoutput)
-    {
-        throw OML_Error(HW_ERROR_PROBOPENPIPE);
-    }
+    bool isdir  = false;
+    bool isfile = false;
 
+    utils.StripTrailingSlash(dir);
+    if (utils.IsRootDir(dir))
+    {
+        dir += "\\";
+    }
     BuiltInFuncsSystem funcs;
-    std::wstring line;
-    std::wstring woutput;
+    funcs.IsDirectoryOrFile(dir, isdir, isfile);
 
-    if (oldlocale)
+    std::string pattern(dir);
+    if (isdir)
     {
-        funcs.SetToUtf8Locale(); // Set to utf locale before getting char
-        fflush(stdout);
+        pattern = dir + DIRECTORY_DELIM + std::string("*");
     }
-
-    while (!feof(cmdoutput))
+    std::vector<std::string> files(utils.GetMatchingFiles(pattern));
+    if (files.empty())
     {
-        wint_t c = fgetwc(cmdoutput);
-        if (c == L'\r' || c == L'\n')
+        std::string warn("Warning: Cannot find directory/files matching '"
+            + pattern + "'");
+        utils.SetWarning(eval, warn);
+        return true;
+    }
+    std::string newline;
+    for (std::vector<std::string>::const_iterator itr = files.begin();
+        itr != files.end(); ++itr)
+    {
+        std::string val(*itr);
+        isdir = (val == "." || val == "..");
+        if (!isdir)
         {
-            std::string buf(utils.WString2StdString(line));
-            line = L""; // Reset line
-            out += buf + "\n";
-            if (echo)
-            {
-                Currency tmp(buf);
-                tmp.DispOutput();
-                if (oldlocale)               //  Reset to original locale
-                {
-                    setlocale(LC_ALL, cachelocale.c_str());
-                    SetConsoleOutputCP(oldoutputcp);
-                    fflush(stdout);
-                }
-                eval.PrintResult(tmp);
-                if (oldlocale)
-                {
-                    funcs.SetToUtf8Locale(); // Set to utf locale before getting char
-                    fflush(stdout);
-                }
-
-            }
+            funcs.IsDirectoryOrFile(val, isdir, isfile);
         }
-        else if (c != WEOF)
+        if (isdir)
         {
-            line += c;
+            val = "[" + val + "]";
+        }
+        if (echo)
+        {
+            Currency name(val);
+            name.DispOutput();
+            eval.PrintResult(name);
+        }
+        else
+        {
+            out += newline + val;
+            newline = "\n";
         }
     }
-    if (oldlocale)               //  Reset to original locale
-    {
-        setlocale(LC_ALL, cachelocale.c_str());
-        SetConsoleOutputCP(oldoutputcp);
-        fflush(stdout);
-    }
-
-    _pclose(cmdoutput);
-
     if (!echo)
     {
         outputs.push_back(out);
     }
     return true;
-#endif
-#endif
-
-
-#ifdef OS_WIN
-    cmdoutput = _popen(strcmd.c_str(), "rt");
 #else
-    cmdoutput = popen(strcmd.c_str(), "r");
-#endif
 
+    std::string strcmd("ls");
+
+    if (!options.empty())
+    {
+        strcmd += " " + options;
+    }
+    if (!filenames.empty())
+    {
+        strcmd += " " + filenames;
+    }
+
+    strcmd += " 2>&1";
+    std::cout << std::flush;
+    FILE* cmdoutput = popen(strcmd.c_str(), "r");
     if (!cmdoutput)
     {
         std::string err(strerror(errno));
@@ -227,8 +199,10 @@ bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
         memset(buf, 0, sizeof(buf));
         if (fgets(buf, sizeof(buf), cmdoutput) <= 0)
         {
+            std::cout << std::flush;
             break;
         }
+        std::cout << std::flush;
         out += buf;
 
         if (echo)
@@ -245,9 +219,6 @@ bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
         }
     }
 
-#ifdef OS_WIN
-    _pclose(cmdoutput);
-#else
     pclose(cmdoutput);
 #endif
 
@@ -268,11 +239,19 @@ void BuiltInFuncsSystem::IsDirectoryOrFile(const std::string& path,
         return;
 
     std::string in(path);
-    if (BuiltInFuncsUtils::IsRootDir(path))
+    BuiltInFuncsUtils utils;
+    if (utils.IsRootDir(path))
         in += "/";
 
+    int result = 0;
+#ifdef OS_WIN
+    std::wstring wstr(utils.StdString2WString(in));
+    struct _stat64i32 st;
+    result = _wstat(wstr.c_str(), &st);
+#else
     struct stat st;
-    int result = stat(in.c_str(), &st);
+    result = stat(in.c_str(), &st);
+#endif
 
     if (result != 0)
         return;
@@ -300,9 +279,17 @@ bool BuiltInFuncsSystem::Dir(EvaluatorInterface           eval,
     if (numargs > 1) 
         throw OML_Error(OML_ERR_NUMARGIN);
 
+    BuiltInFuncsUtils utils;
     std::string dir;
     if (numargs == 0)
-        dir = BuiltInFuncsUtils::GetCurrentWorkingDir(); // Use current working dir
+    {
+#ifdef OS_WIN
+        std::wstring wstr = utils.GetCurrentWorkingDirW();
+        dir = utils.WString2StdString(wstr);
+#else
+        dir = utils.GetCurrentWorkingDir(); // Use current working dir
+#endif
+    }
     else
     {
         const Currency& cur = inputs[0];
@@ -313,9 +300,8 @@ bool BuiltInFuncsSystem::Dir(EvaluatorInterface           eval,
 
     bool isdir  = false;
     bool isfile = false;
-
-    BuiltInFuncsUtils::StripTrailingSlash(dir);
-    if (BuiltInFuncsUtils::IsRootDir(dir))
+    utils.StripTrailingSlash(dir);
+    if (utils.IsRootDir(dir))
         dir += "\\"; 
 
     BuiltInFuncsSystem funcs;
@@ -325,21 +311,36 @@ bool BuiltInFuncsSystem::Dir(EvaluatorInterface           eval,
     if (isdir)
         pattern = dir + DIRECTORY_DELIM + std::string("*");
 
-    BuiltInFuncsUtils utils;
-    if (eval.GetNargoutValue() == 0)  // Just print the results
+    bool echo = (eval.GetNargoutValue() == 0);  // Just print the results
+    std::vector<std::string> files(utils.GetMatchingFiles(pattern));
+    if (files.empty())
     {
-        std::vector<std::string> files (BuiltInFuncsUtils::GetMatchingFiles(pattern));
-        if (files.empty())
+        std::string warn("Warning: Cannot find directory/files matching '"
+            + pattern + "'");
+        utils.SetWarning(eval, warn);
+        if (!echo)
         {
-            std::string warn("Warning: Cannot find directory/files matching '"
-                             + pattern + "'");
-            BuiltInFuncsUtils::SetWarning(eval, warn);
-            return true;
+            outputs.push_back(new StructData());
         }
+        return true;
+    }
+
+    if (echo)  // Just print the results
+    {
         for (std::vector<std::string>::const_iterator itr = files.begin();
              itr != files.end(); ++itr)
         {
-            Currency name  (*itr);
+            std::string val(*itr);
+            isdir = (val == "." || val == "..");
+            if (!isdir)
+            {
+                funcs.IsDirectoryOrFile(val, isdir, isfile);
+            }
+            if (isdir)
+            {
+                val = "[" + val + "]";
+            }
+            Currency name(val);
             name.DispOutput();
             eval.PrintResult(name);
         }
@@ -347,17 +348,6 @@ bool BuiltInFuncsSystem::Dir(EvaluatorInterface           eval,
     }
 
     // Create an array of structs
-    std::vector<std::string> files (BuiltInFuncsUtils::GetMatchingFiles(pattern));
-
-    if (files.empty())
-    {
-        std::string warn("Warning: Cannot find directory/files matching '"
-                            + pattern + "'");
-        BuiltInFuncsUtils::SetWarning(eval, warn);
-        outputs.push_back(new StructData());
-        return true;
-    }
-
     StructData *sd       = new StructData();
     int         numfiles = static_cast<int>(files.size());
     sd->DimensionNew(numfiles, 1);
@@ -444,8 +434,8 @@ std::string BuiltInFuncsSystem::GetTimeString(time_t rawtime)
 // Returns true after running a system command [system command]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
-                                const std::vector<Currency>& inputs, 
-                                std::vector<Currency>&       outputs)
+    const std::vector<Currency>& inputs,
+    std::vector<Currency>& outputs)
 {
     size_t nargin = inputs.size();
     if (nargin < 1)
@@ -457,108 +447,90 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
     {
         throw OML_Error(OML_ERR_STRING, 1);
     }
-
-	bool returnoutput = false; // True if output from system command is returned
-	bool async        = false; // True if system command runs asynchronously
-	if (nargin > 1)
-	{
-		int val = 0;
-		if (inputs[1].IsLogical())
-		{
-			val = static_cast<int>(inputs[1].Scalar());
-		}
-		else if (inputs[1].IsInteger())
-		{
-			val = static_cast<int>(inputs[1].Scalar());
-			if (val != 0 && val != 1)
-			{
-				throw OML_Error(OML_ERR_LOGICAL, 2);
-			}
-		}
-		else if (inputs[1].IsString())
-		{
-			std::string val(inputs[1].StringVal());
-			if (!val.empty())
-			{
-				std::transform(val.begin(), val.end(), val.begin(), ::tolower);
-			}
-			if (val == "async")
-			{
-				async = true;
-			}
-			else if (val != "sync")
-			{
-				throw OML_Error("Error: invalid input in argument 2; must be 'sync', 'async' or logical");
-			}
-		}
-		else
-		{
-			throw OML_Error("Error: invalid input in argument 2; must be 'sync', 'async' or logical");
-		}
-		returnoutput = (val == 1) ? true : false;
-	}
-
-	if (nargin > 2)
-	{
-		if (!inputs[2].IsString())
-		{
-			throw OML_Error(OML_ERR_STRING, 3);
-		}
-		std::string val(inputs[2].StringVal());
-		if (!val.empty())
-		{
-			std::transform(val.begin(), val.end(), val.begin(), ::tolower);
-		}
-		if (val == "async")
-		{
-			async = true;
-		}
-		else if (val != "sync")
-		{
-			throw OML_Error("Error: invalid input in argument 3; must be 'sync' or 'async'");
-		}
-	}
-
-    int  nargout    = eval.GetNargoutValue();
-	bool saveoutput = false;
-
-	if (nargout >= 2 || returnoutput)
-	{
-		if (async)
-		{
-			throw OML_Error("Error: invalid input in argument 3; must be 'sync' to return output");
-		}
-		saveoutput = true;
-	}
-
-    BuiltInFuncsUtils utils;
-
-	// Construct the command
-	std::string command;
     std::string in(inputs[0].StringVal());
-
-#ifdef OS_WIN
-	command = "\"" + in + "\" 2>&1";
-#else
-
-    // Strip leading spaces
-    if (!in.empty())
+    BuiltInFuncsUtils utils;
+    in = utils.LTrim(in);
+    in = utils.RTrim(in);
+    if (in.empty())
     {
-        size_t pos = in.find_first_not_of(" \t");
-        if (pos != std::string::npos && pos != 0)
+        throw (OML_ERR_NONEMPTY_STR, 1);
+    }
+
+    bool returnoutput = false; // True if output from system command is returned
+    bool async = false; // True if system command runs asynchronously
+    if (nargin > 1)
+    {
+        int val = 0;
+        if (inputs[1].IsLogical())
         {
-            in = in.substr(pos);
+            val = static_cast<int>(inputs[1].Scalar());
+        }
+        else if (inputs[1].IsInteger())
+        {
+            val = static_cast<int>(inputs[1].Scalar());
+            if (val != 0 && val != 1)
+            {
+                throw OML_Error(OML_ERR_LOGICAL, 2);
+            }
+        }
+        else if (inputs[1].IsString())
+        {
+            std::string val(inputs[1].StringVal());
+            if (!val.empty())
+            {
+                std::transform(val.begin(), val.end(), val.begin(), ::tolower);
+            }
+            if (val == "async")
+            {
+                async = true;
+            }
+            else if (val != "sync")
+            {
+                throw OML_Error("Error: invalid input in argument 2; must be 'sync', 'async' or logical");
+            }
+        }
+        else
+        {
+            throw OML_Error("Error: invalid input in argument 2; must be 'sync', 'async' or logical");
+        }
+        returnoutput = (val == 1) ? true : false;
+    }
+
+    if (nargin > 2)
+    {
+        if (!inputs[2].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, 3);
+        }
+        std::string val(inputs[2].StringVal());
+        if (!val.empty())
+        {
+            std::transform(val.begin(), val.end(), val.begin(), ::tolower);
+        }
+        if (val == "async")
+        {
+            async = true;
+        }
+        else if (val != "sync")
+        {
+            throw OML_Error("Error: invalid input in argument 3; must be 'sync' or 'async'");
         }
     }
 
-	// Extra quotes needed on linux with spaces
-	if (!in.empty() && in[0] != '\"' && in.find(" ") != std::string::npos)
-	{
-		in = "\"" + in + "\"";
-	}
+    int  nargout = eval.GetNargoutValue();
+    bool saveoutput = false;
 
-    command = "\"" + in + "\" 2>&1";  // Extra quotes for cases where command has a quote
-#endif
+    if (nargout >= 2 || returnoutput)
+    {
+        if (async)
+        {
+            throw OML_Error("Error: invalid input in argument 3; must be 'sync' to return output");
+        }
+        saveoutput = true;
+    }
+
+    // Construct the command
+    std::string command(GetInputForSystemCommand(in));
 
 	if (async)
 	{
@@ -1008,6 +980,22 @@ bool BuiltInFuncsSystem::CloneEnv(EvaluatorInterface           eval,
     int newenv = eval.GetNewEnvHandle();
     eval.ImportEnv(env1, newenv);
     outputs.push_back(newenv);
+	return true;
+}
+//------------------------------------------------------------------------------
+// Returns true and gets new environment handle [getnewenv]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsSystem::DeleteEnv(EvaluatorInterface eval,
+	const std::vector<Currency>& inputs,
+	std::vector<Currency>& outputs)
+{
+	if (inputs.empty())
+	{
+		throw OML_Error(OML_ERR_NUMARGIN);
+	}
+
+	int env1 = static_cast<int>(inputs[0].Scalar());
+	eval.DeleteEnv(env1);
 	return true;
 }
 //------------------------------------------------------------------------------
@@ -1624,3 +1612,85 @@ void BuiltInFuncsSystem::SetToUtf8Locale()
     SetConsoleOutputCP(65001);
 }
 #endif
+//------------------------------------------------------------------------------
+// Helper method to correctly quote command that is sent to system
+//------------------------------------------------------------------------------
+std::string BuiltInFuncsSystem::GetInputForSystemCommand(const std::string& str)
+{
+#ifdef OS_WIN
+    return std::string('"' + str + "\" 2>&1");
+#else
+    //system('"ls /tmp"')
+    //system('ls /tmp')
+    //system('"ls" "/tmp"')
+    //system('""ls" "/tmp""')
+    //system('/users/user1/test.sh')
+    //system('/users/user1/test.sh 1')
+    //system('"/users/user1/test.sh" 1')
+    //system('"<exe> -f getcmdinput_test.oml -input [1 3 4] string "test""');
+    //system('"<exe> -input [1 3 4] string "test" -f getcmdinput_test.oml"');
+
+    std::string in(str);
+    std::string cmd;
+    size_t pos = in.find(" ");
+    if (pos != std::string::npos)
+    {
+        cmd = in.substr(0, pos);
+        in = in.substr(pos);
+    }
+    else
+    {
+        // No space, so strip all extra quotes, if any
+        cmd = in;
+        in = "";
+    }
+    // This is the actual system command that needs to be run, so strip any
+    // quotes from that
+    
+    size_t numLeadingQuotes = cmd.find_first_not_of("\"");
+    size_t numTrailingQuotes = 0;
+    if (numLeadingQuotes == std::string::npos)
+    {
+        numLeadingQuotes = 0;
+    }
+    else
+    {
+        size_t len1 = cmd.length();
+        size_t numquotesremoved = 0;
+        std::string tmp;
+        for (size_t i = 0; i < len1; ++i)
+        {
+            char ch = cmd[i];
+            if (ch != '"')
+            {
+                tmp += ch;
+            }
+            else
+            {
+                numquotesremoved++;
+            }
+        }
+        cmd = tmp;
+
+        if (numquotesremoved == numLeadingQuotes)
+        {
+            numTrailingQuotes = numLeadingQuotes;
+        }
+        else if (numquotesremoved == numLeadingQuotes * 2)
+        {
+            numTrailingQuotes = 0;
+        }
+        else if (numquotesremoved > numLeadingQuotes)
+        {
+            numTrailingQuotes = numquotesremoved - numLeadingQuotes;
+        }
+        if (numTrailingQuotes > 0 && !in.empty())
+        {
+            in = in.substr(0, in.length() - numTrailingQuotes);
+        }
+    }
+    
+    cmd += in;
+    return std::string(cmd + " 2>&1");
+#endif
+}

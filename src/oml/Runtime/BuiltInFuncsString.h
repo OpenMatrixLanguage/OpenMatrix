@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsString.h
 * @date November 2015
-* Copyright (C) 2015-2019 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -157,6 +157,17 @@ public:
     static bool Strip(EvaluatorInterface           eval,
                       const std::vector<Currency>& inputs,
                       std::vector<Currency>&       outputs);
+    //!
+    //! Returns true successful in converting string to scalar/complex
+    //! \param in       Input string
+    //! \param rval     Real part
+    //! \param ival     Imaginary part, if it exists
+    //! \param isscalar True if value is scalar
+    //!
+    bool Str2Num(const std::string& in,
+                 double& rval,
+                 double& ival,
+                 bool& isscalar);
 
 private:
     //!
@@ -247,17 +258,6 @@ private:
                              const OutputFormat* fmt,
                              int                 totaldigits) const;
     //!
-    //! Returns true successful in converting string to scalar/complex
-    //! \param in       Input string
-    //! \param rval     Real part
-    //! \param ival     Imaginary part, if it exists
-    //! \param isscalar True if value is scalar
-    //!
-    bool Str2Num(const std::string& in,
-                 double&            rval,
-                 double&            ival,
-                 bool&              isscalar);
-    //!
     //! Returns true if strtod conversion is successful
     //! \param in  Input string
     //! \param end End string
@@ -268,18 +268,18 @@ private:
                              double             val);
     //!
     //! Helper method to left trim input
-    //! \param in  Input string
-    //! \param str String to trim
+    //! \param Input string
+    //! \param Pattern(s) to trim
     //!
-    void LeftTrim(std::string&       in,
-                  const std::string& str);
+    void LeftTrim(std::string&, 
+                  const std::vector<std::string>&);
     //!
     //! Helper method to right trim input
-    //! \param in  Input string
-    //! \param str String to trim
+    //! \param Input string
+    //! \param Pattern(s) to trim
     //!
     void RightTrim(std::string&       in,
-                   const std::string& str);
+                   const std::vector<std::string>& trim);
 
 };
 #endif

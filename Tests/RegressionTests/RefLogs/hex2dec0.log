@@ -15,7 +15,7 @@ hex value fffffff decimal value 268435455
 ans = 268435455
 hex value 7fffffff decimal value 2147483647
 ans = 2.14748365e+09
-hex value 80000000 decimal value -2147483648
+hex value 80000000 decimal value 2147483648
 ans = 2.14748365e+09
-hex value ffffffff decimal value -1
+hex value ffffffff decimal value 4294967295
 ans = 4.2949673e+09

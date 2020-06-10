@@ -1,7 +1,7 @@
 /**
 * @file MatrixDisplay.cpp
 * @date November 2016
-* Copyright (C) 2016-2019 Altair Engineering, Inc.  
+* Copyright (C) 2016-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -73,7 +73,7 @@ std::string MatrixDisplay::GetOutput(const OutputFormat* fmt,
 
     if (numrows == 0 || numcols == 0)
     {
-        return header;
+        return os.str();
     }
 
     if (!IsHeaderPrinted())
@@ -97,14 +97,21 @@ std::string MatrixDisplay::GetOutput(const OutputFormat* fmt,
 	if (m_mode == DISPLAYMODE_FORWARD || m_mode == DISPLAYMODE_RIGHT ||
 		m_mode == DISPLAYMODE_DOWN)
     {
-        std::string data (GetOutputForwardPagination(fmt));
-        if (!data.empty())
+        try
         {
-            return header + data;
+            std::string data(GetOutputForwardPagination(fmt));
+            if (!data.empty())
+            {
+                return header + data;
+            }
+            else
+            {
+                return "";
+            }
         }
-        else
+        catch (...)
         {
-            return "";
+			return "";
         }
     }        
     else if (m_mode == DISPLAYMODE_BACK || m_mode == DISPLAYMODE_LEFT ||
@@ -217,12 +224,22 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
 
     int i        = 0;
     int j        = 0;
-    int maxlines = std::max(GetNumRowsToFit()-1, 1); // Add pagination msg
-
-    if (m_linesPrinted >= m_maxRows - 1)
+    int maxlines = m_maxRows;
+    int tmpidx = 0;
+    if (CurrencyDisplay::IsPaginateOn())
     {
-         m_linesPrinted = m_maxRows - 2;  // Force print 1 line
+        m_linesPrinted = 0;
     }
+    else if (CurrencyDisplay::IsPaginateInteractive())
+    {
+        tmpidx = 1;
+        maxlines = std::max(GetNumRowsToFit() - 1, 1); // Add pagination msg
+        if (m_linesPrinted >= m_maxRows - 1)
+        {
+            m_linesPrinted = m_maxRows - 2;  // Force print 1 line
+        }
+    }
+    
          
     bool firstheader     = true;
     bool linesprinted    = false;
@@ -250,8 +267,8 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
     bool quitearly = false;
         int endrow = 0;
         int endcol = 0;
-
-    while (m_linesPrinted < m_maxRows - 1 && (i < numrows || j < numcols) && !quitearly)
+    BuiltInFuncsUtils utils;
+    while (m_linesPrinted < m_maxRows - tmpidx && (i < numrows || j < numcols) && !quitearly)
     {
         bool wasPaginating = WasPaginating();
 
@@ -295,7 +312,12 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
                     data += _delimiter;
                 }
             }
-            data += "\n";
+            data = utils.RTrim(data);
+            if (data.empty() || data.back() != '\n')
+            {
+                data += '\n';
+            }
+
             m_linesPrinted++;
             if (m_linesPrinted >= m_maxRows - 1 && i < totalrows - 1)
             {
@@ -355,6 +377,10 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
             }
         }
         skipFirstHeader = false;
+        if (IsPaginateOn() && !output.empty() && output.back() == '\n')
+        {
+            output.pop_back();
+        }
         output += header + data;
         m_linesPrinted ++;
         linesprinted = true;
@@ -634,31 +660,37 @@ std::string MatrixDisplay::RealToString(double val, DisplayFormat fmt) const
             os << "-" << fabs(val);
         else
             os << val;
-        return std::string (os.str());
+        return os.str();
     }
-
-    char tmp[1024];
-    
+   
     if (fmt == DisplayFormatFloat && _precision == OutputFormat::PRECISION_SHORT)
     {
-        sprintf(tmp, "%.5f", val);
-        return std::string (tmp);
+        return CurrencyDisplay::GetFormattedString("%.5f", val);
     }
     else if (fmt == DisplayFormatFloat && _precision == OutputFormat::PRECISION_LONG)
-        sprintf(tmp, "%.8f", val);
-
+    {
+        return CurrencyDisplay::GetFormattedString("%.8f", val);
+    }
     else if (fmt == DisplayFormatFloat && _precision == OutputFormat::PRECISION_SCALAR)
     {
         std::ostringstream os;
         os << "%" << _formatinteger << "." << _formatdecimal << "f";
-        sprintf(tmp, std::string(os.str()).c_str(), val);
+        return CurrencyDisplay::GetFormattedString(os.str().c_str(), val);
     }
 
     else if (fmt == DisplayFormatScientific && _precision == OutputFormat::PRECISION_SHORT)
-        _uppercase ? sprintf(tmp, "%.5E", val) : sprintf(tmp, "%.5e", val);
+    {
+        return (_uppercase) ?
+            CurrencyDisplay::GetFormattedString("%.5E", val) :
+            CurrencyDisplay::GetFormattedString("%.5e", val);
+    }
 
     else if (fmt == DisplayFormatScientific && _precision == OutputFormat::PRECISION_LONG)
-        _uppercase ? sprintf(tmp, "%.8E", val) : sprintf(tmp, "%.8e", val);
+    {
+        return (_uppercase) ?
+            CurrencyDisplay::GetFormattedString("%.8E", val) :
+            CurrencyDisplay::GetFormattedString("%.8e", val);
+    }
 
     else
     {
@@ -668,9 +700,9 @@ std::string MatrixDisplay::RealToString(double val, DisplayFormat fmt) const
             os << "E";
         else
             os << "e";
-        sprintf(tmp, std::string(os.str()).c_str(), val);
+        return CurrencyDisplay::GetFormattedString(os.str().c_str(), val);
     }
-    return std::string (tmp);
+    return CurrencyDisplay::GetFormattedString("%.5f", val);
 }
 //------------------------------------------------------------------------------
 // Sets data for forward display
@@ -1022,8 +1054,8 @@ MatrixDisplay::DisplayFormat MatrixDisplay::GetFormat(double val) const
             !(aval < _maxfloat))
             _haslargeint = true;
 
-        std::string tmp (RealToString(val, DisplayFormatInt));
-        if (tmp.size() > _totaldigits) return DisplayFormatScientific;
+        size_t sz = MatrixDisplay::GetFormattedStringLength(val, DisplayFormatInt);
+        if (sz > _totaldigits) return DisplayFormatScientific;
 
         if (!_haslargeint || _displayformat == DisplayFormatInt) return DisplayFormatInt;
     }
@@ -1033,9 +1065,9 @@ MatrixDisplay::DisplayFormat MatrixDisplay::GetFormat(double val) const
     // Additional check if we have very small floats
     if (!(aval > _minfloat)) return DisplayFormatScientific;
 
-    std::string tmp (RealToString(val, DisplayFormatFloat));
+    size_t sz = MatrixDisplay::GetFormattedStringLength(val, DisplayFormatFloat);
     
-    if (tmp.size() > _totaldigits) return DisplayFormatScientific;
+    if (sz > _totaldigits) return DisplayFormatScientific;
 
     return DisplayFormatFloat;
 }
@@ -1110,17 +1142,15 @@ void MatrixDisplay::SetWidth(Interpreter* interp)
                 realval = (*mtx)(i, j);
             else
                 GetComplexNumberVals(mtx->z(i, j), realval, imagval, imagsign);
-
-            std::string realstr (RealToString(realval));
-            assert (!realstr.empty());
-               
-            realwidth = std::max(realwidth, static_cast<int>(realstr.size()));
-
+             
+            realwidth = std::max(realwidth, static_cast<int>
+                (MatrixDisplay::GetFormattedStringLength(realval, _displayformat)));
             if (isrealdata) continue;
 
-            std::string imagstr (RealToString(imagval));
-            assert (!imagstr.empty());
-            imagwidth = std::max(imagwidth, static_cast<int>(imagstr.size()) + 1);
+            imagwidth = std::max(imagwidth, static_cast<int>
+                (MatrixDisplay::GetFormattedStringLength(imagval, _displayformat))
+                + 1);
+
         }
         _realwidth.push_back(realwidth);
         if (!isrealdata)
@@ -1162,10 +1192,7 @@ std::string MatrixDisplay::GetOutputValues(const Currency&     in,
     }
     else if (isscalar)
     {
-        char tmp[1024];
-        sprintf(tmp, precisionreal.c_str(), in.Scalar());
-        std::string output(tmp);
-        return tmp;
+        return CurrencyDisplay::GetFormattedString(precisionreal.c_str(), in.Scalar());
     }
     else if (iscomplex)
     {
@@ -1270,10 +1297,7 @@ std::string MatrixDisplay::RealToString(double val, const std::string& precision
             }
         }
     }
-    char tmp[1028];
-    sprintf(tmp, fmt.c_str(), val);
-    std::string out(tmp);
-    return tmp;
+    return CurrencyDisplay::GetFormattedString(fmt.c_str(), val);
 }
 //------------------------------------------------------------------------------
 // Gets values as a string
@@ -1316,5 +1340,72 @@ bool MatrixDisplay::IsPaginating() const
 {
     return (IsPaginatingRows() || IsPaginatingCols());
 }
+//------------------------------------------------------------------------------
+// Return estimated length of formatted string for given value
+//------------------------------------------------------------------------------
+size_t MatrixDisplay::GetFormattedStringLength(double val, DisplayFormat type) const
+{
+    if (IsInf_T(val) || IsNaN_T(val))
+    {
+        return 3;
+    }
+    else if (IsNegInf_T(val))
+    {
+        return 4;
+    }
 
+    if (type == DisplayFormatInt)
+    {
+        std::ostringstream os;
+        os.setf(static_cast<std::ios_base::fmtflags>(0), std::ios::floatfield);
+        os << std::setprecision(static_cast<std::streamsize>(_totaldigits));
+
+        if (std::signbit(static_cast<long double>(val))) // Detect -0
+            os << "-" << fabs(val);
+        else
+            os << val;
+
+        os.seekp(0, std::ios::end);
+        return static_cast<size_t>(os.tellp());
+    }
+
+    if (type == DisplayFormatFloat && _precision == OutputFormat::PRECISION_SHORT)
+    {
+        return CurrencyDisplay::GetFormattedStringLength("%.5f", val);
+    }
+    else if (type == DisplayFormatFloat && _precision == OutputFormat::PRECISION_LONG)
+    {
+        return CurrencyDisplay::GetFormattedStringLength("%.8f", val);
+    }
+    else if (type == DisplayFormatFloat && _precision == OutputFormat::PRECISION_SCALAR)
+    {
+        std::ostringstream os;
+        os << "%" << _formatinteger << "." << _formatdecimal << "f";
+        return CurrencyDisplay::GetFormattedStringLength(os.str().c_str(), val);
+    }
+    else if (type == DisplayFormatScientific && _precision == OutputFormat::PRECISION_SHORT)
+    {
+        return (_uppercase) ?
+            CurrencyDisplay::GetFormattedStringLength("%.5E", val) :
+            CurrencyDisplay::GetFormattedStringLength("%.5e", val);
+    }
+
+    else if (type == DisplayFormatScientific && _precision == OutputFormat::PRECISION_LONG)
+    {
+        return (_uppercase) ?
+            CurrencyDisplay::GetFormattedStringLength("%.8E", val) :
+            CurrencyDisplay::GetFormattedStringLength("%.8e", val);
+    }
+    else
+    {
+        std::ostringstream os;
+        os << "%" << _formatinteger << "." << _formatdecimal;
+        if (_uppercase)
+            os << "E";
+        else
+            os << "e";
+        return CurrencyDisplay::GetFormattedStringLength(os.str().c_str(), val);
+    }
+    return CurrencyDisplay::GetFormattedStringLength("%.5f", val);
+}
 // End of file

@@ -1,3 +1,4 @@
 in = ',,,this is a test**********????***';
 str = {',', ' ', '?', '*'};
-R = strip(in, 'both', str)
+R = strip(in, 'both', {','});
+R = strip(R, 'right', {'????', '*'})

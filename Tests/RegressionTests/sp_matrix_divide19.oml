@@ -1,0 +1,5 @@
+% divide #1 (sparse \ full)
+d11 = sparse(zeros(3,3)) \ zeros(3,0)
+
+% divide #2 (full / sparse)
+d21 = zeros(0,3) / sparse(zeros(3,3))

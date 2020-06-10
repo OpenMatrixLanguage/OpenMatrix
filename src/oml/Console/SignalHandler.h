@@ -1,7 +1,7 @@
 /**
 * @file SignalHandler.h
 * @date June 2016
-* Copyright (C) 2016-2019 Altair Engineering, Inc.  
+* Copyright (C) 2016-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -24,44 +24,74 @@ class WrapperBase;
 // End defines/includes
 
 //------------------------------------------------------------------------------
-//! Class for handling actions from oml core in client
+//!
+//! \class SignalHandler
+//! \brief Class for handling actions from oml core in console
+//!
 //------------------------------------------------------------------------------
 class SignalHandler : public SignalHandlerBase
 {
 public:
-    SignalHandler() : _src (NULL) {}                  //! Constructor
-    virtual ~SignalHandler() {}                       //! Destructor    
+    //!
+    //! Constructor
+    //!
+    SignalHandler() : _src (NULL) {} 
+    //!
+    //! Destructor
+    //!
+    virtual ~SignalHandler() {}
 
+    //!
     //! Creates clone
+    //!
     virtual SignalHandlerBase* CreateClone();
+    //!
     //! Returns true of this is a clone
+    //!
     virtual bool IsClone() const { return _src ? true : false; }
     
+    //!
     //! Sets the console wrapper
+    //! \param wrapper Wrapper pointer
+    //!
     void SetWrapper( WrapperBase* wrapper) { _wrapper = wrapper; }
 
+    //!
     //! Returns class info
+    //!
     virtual const char* ClassName() const { return "SignalHandler"; }
 
+    //!
     //! Clear results
+    //!
     virtual void OnClearResultsHandler();
+    //!
     //! Print result
-    //! \param[in] cur Result to print
+    //! \param cur Result to print
+    //!
     virtual void OnPrintResultHandler( const Currency& cur);
+    //!
     //! Start pause
-    //! \param[in] msg  User message to display
-    //! \param[in] wait True if waiting for a keystroke input from user
+    //! \param msg  User message to display
+    //! \param wait True if waiting for a keystroke input from user
+    //!
     virtual void OnPauseStartHandler( const std::string& msg,
                                       bool               wait);
+    //!
     //! Prints prompt for save on exit
+    //!
     virtual void OnSaveOnExitHandler();
+    //!
     //! Adds nested display for pagination
-    //! \param[in] display Nested display to add
+    //! \param display Nested display to add
+    //!
     virtual void OnAddDisplayHandler( CurrencyDisplay* display);
+    //!
     //! Get user input
-    //! \param[in]  prompt Prompt to display to user
-    //! \param[in]  type   Type, if specified
-    //! \param[out] input  Input from user
+    //! \param prompt Prompt to display to user
+    //! \param type   Type, if specified
+    //! \param input  Input from user
+    //!
     virtual void OnUserInputHandler( const std::string& prompt,
                                      const std::string& type,
                                      std::string&       input);
@@ -80,12 +110,15 @@ public:
     void SetConsoleBatchMode(bool val) { _batchmode = val; }
 
 private:
-    const SignalHandler* _src;            //!< Source, if this is a clone                 
-    WrapperBase*         _wrapper;        //!< Console wrapper
-    bool                 _batchmode;      //!< True if application is in batch mode
+    const SignalHandler*       _src;            //!< Source, if this is a clone                 
+    WrapperBase*               _wrapper;        //!< Console wrapper
+    bool                       _batchmode;      //!< True if application is in batch mode
 
-
-    SignalHandler( const SignalHandler* src);   //! Copy constructor
+    //!
+    //! Copy constructor
+    //! \param src Source
+    //!
+    SignalHandler( const SignalHandler* src);
 };
 
 #endif

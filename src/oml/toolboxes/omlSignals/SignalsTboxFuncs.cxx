@@ -318,22 +318,34 @@ bool OmlFft(EvaluatorInterface           eval,
         else if (dim == 1)
         {
             freq.reset(EvaluatorInterface::allocateMatrix(fftSize, mtx->N(), hwMatrix::COMPLEX));
+            hwComplex* response = freq->GetComplexData();
+            hwMathStatus status;
 
-            std::unique_ptr<hwMatrix> colin (EvaluatorInterface::allocateMatrix());
-            std::unique_ptr<hwMatrix> colout(EvaluatorInterface::allocateMatrix());
-
-            for (int i  = 0; i < mtx->N(); ++i)
+            if (mtx->IsReal())
             {
-                hwMathStatus mstat = mtx->ReadColumn(i, *colin);
-                BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
-                mstat = Fft(*colin, *colout, fftSize);
-                BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
-                if (colout->N() != 1)
+                double* signal = const_cast<double*> (mtx->GetRealData());
+
+                for (int i = 0; i < mtx->N(); ++i)
                 {
-                    colout->Transpose();
+                    hwMatrix col_in(mtx->M(), 1, reinterpret_cast<void*> (signal), hwMatrix::REAL);
+                    hwMatrix col_out(fftSize, 1, reinterpret_cast<void*> (response), hwMatrix::COMPLEX);
+                    status = Fft(col_in, col_out, fftSize);
+                    signal += mtx->M();
+                    response += fftSize;
                 }
-                mstat = freq->WriteColumn(i, *colout);
-                BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
+            }
+            else
+            {
+                hwComplex* signal = const_cast<hwComplex*> (mtx->GetComplexData());
+
+                for (int i = 0; i < mtx->N(); ++i)
+                {
+                    hwMatrix col_in(mtx->M(), 1, reinterpret_cast<void*> (signal), hwMatrix::COMPLEX);
+                    hwMatrix col_out(fftSize, 1, reinterpret_cast<void*> (response), hwMatrix::COMPLEX);
+                    status = Fft(col_in, col_out, fftSize);
+                    signal += mtx->M();
+                    response += fftSize;
+                }
             }
         }
         else if (dim == 2)

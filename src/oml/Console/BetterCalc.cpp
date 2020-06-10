@@ -19,12 +19,14 @@
 #include "../Runtime/CurrencyDisplay.h"
 #include "../Runtime/Interpreter.h"
 #include "../Runtime/EvaluatorDebug.h"
+#include "../Runtime/BuiltInFuncsSystem.h"
 #include "../Runtime/BuiltInFuncsUtils.h"
-#include "../Runtime/StructData.h"	// hml2 for now 
+#include "../Runtime/StructData.h"
 
 #include <cassert>
 #include <clocale>
 #include <fstream>
+#include <iostream>
 #include <memory>
 
 #include "BetterCalc.h"
@@ -33,12 +35,11 @@
 #include "OmlServer.h"
 
 // Shows new prompt on console
-// \param interpWrapper Interpreter wrapper
-// \param license       License
-void CallNewConsolePrompting(ConsoleWrapper* wrapper);
+// \param Interpreter wrapper
+void CallNewConsolePrompting(ConsoleWrapper*);
 
 // global variables
-Interpreter*    interp  = NULL;
+Interpreter*    interp  = nullptr;
 ConsoleWrapper* wrapper = nullptr;
 std::string     dummyFilename;
 bool            ClearCommandString = false;
@@ -66,6 +67,10 @@ void OnControlKeyDown(int controlType);
 //------------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
+#ifdef OS_WIN  // Disables sync with printf - speed improvement
+    std::ios_base::sync_with_stdio(false);
+#endif
+
     interp = new Interpreter;
     char* cdir = getenv("OML_APPDIR");
     if (cdir)
@@ -73,14 +78,14 @@ int main(int argc, char* argv[])
         interp->SetApplicationDir(std::string(cdir));
     }
 
-    bool paginateVal = CurrencyDisplay::GetPaginate();
-    CurrencyDisplay::SetPaginate(0);  // Disable pagination
+    CurrencyDisplay::PAGINATE paginateVal = CurrencyDisplay::GetPaginate();
+    CurrencyDisplay::SetPaginate(CurrencyDisplay::PAGINATE_OFF);  // Disable pagination
 
-    std::setlocale(LC_ALL, "");
+    char* clocale = std::setlocale(LC_ALL, "");
     std::setlocale(LC_NUMERIC, "C");
 
     // Flags for command line arguments
-
+    bool bannerprinted = false;
 	bool continueAfterScript = false; // Needed if commands/files are in cmd line
     bool continueRequired    = false; // Needed if commands/files are in cmd line	  
 	bool toolbox_load        = false; // True if toolboxes need to be loaded
@@ -89,7 +94,8 @@ int main(int argc, char* argv[])
 #endif 
 
     std::string port;
-    bool nextIsPort = false, isServer = false;
+    bool nextIsPort = false;
+    bool isServer = false;
 
     // File to execute, if specified
 	std::string scriptPath;
@@ -208,8 +214,13 @@ int main(int argc, char* argv[])
 		}
 		else if(e_argument_flag)
 		{
-			// process the argument as a oml command
-			interp->DoString(arg);
+            // process the argument as a oml command
+            if (!bannerprinted)
+            {
+                PrintBanner();
+                bannerprinted = true;
+            }
+            interp->DoString(arg);
 			continueRequired = true;
 		}
 		else if (lower_str == "-f")
@@ -249,10 +260,13 @@ int main(int argc, char* argv[])
     }
     else
     {
+	    std::setlocale(LC_ALL, "");
+	    std::setlocale(LC_NUMERIC, "C");
 
         if(!scriptPath.empty())
 	    {
 		    Currency output = interp->DoFile(scriptPath);	
+            std::cout << std::flush;
 		    continueRequired = true;
 	    }
 	
@@ -265,7 +279,11 @@ int main(int argc, char* argv[])
 
         // Start of interactive mode
         CurrencyDisplay::SetPaginate(paginateVal);  // Reset pagination value
-        PrintBanner();  
+        wrapper->InitCommandWindowInfo();
+        if (!bannerprinted)
+        {
+            PrintBanner();
+        }
         SignalHandler* handler = static_cast<SignalHandler*>(interp->GetSignalHandler());
         if (handler)
         {
@@ -279,6 +297,8 @@ int main(int argc, char* argv[])
     }
 
     delete wrapper;
+    wrapper = nullptr;
+
 	delete interp;
 
 	return 0;
@@ -290,7 +310,6 @@ void CallNewConsolePrompting(ConsoleWrapper* wrapper)
 {
     assert(interp);
     assert(wrapper);
-    wrapper->SetPaginationVariables();
 
     int  hearbeatcounter = 1;
 	while (1)
@@ -313,6 +332,11 @@ void CallNewConsolePrompting(ConsoleWrapper* wrapper)
         wrapper->PrintNewPrompt();
         
         std::string strCommand = GetInputCommand(wrapper);
+        if (!CurrencyDisplay::IsPaginateOff())
+        {
+            wrapper->SetWindowSize(true);
+        }
+
         Currency    output = interp->DoString(strCommand);
     }
 }
@@ -333,8 +357,11 @@ std::string GetInputCommand(ConsoleWrapper* wrapper)
 			std::cin.clear();
 		}
 
-    	if (!strCommand.empty())
+        if (!strCommand.empty())
+        {
             wrapper->PrintToStdout("??>");
+            std::cout << std::flush;
+        }
 
         std::string partialCommand;
 		std::getline(std::cin, partialCommand);
@@ -345,9 +372,7 @@ std::string GetInputCommand(ConsoleWrapper* wrapper)
         strCommand += partialCommand;
 
         if (!strCommand.empty())
-        {
             strCommand += "\r\n";
-        }
 
         bool isPartialExpression = interp->IsPartialExpression(strCommand);
         if (!isPartialExpression) break;
@@ -386,6 +411,11 @@ void OnControlKeyDown(int controlType)
     // flag instead of calling exit handler which will destroy interpreter
     if (controlType == SIGINT)
         SetUserInterrupt();
+    else if (controlType == SIGHUP)
+    {
+        // Force exit. It may not exit via SIGHUP/KILL in some systems.
+        exit(EXIT_SUCCESS);
+    }
 }
 #endif
 
@@ -454,6 +484,7 @@ void SetUserInterruptHandler()
 	SetConsoleCtrlHandler((PHANDLER_ROUTINE) OnControlKeyDown, TRUE);
 #else
     signal(SIGINT, OnControlKeyDown);
+    signal(SIGHUP, OnControlKeyDown); //Add method to handle terminal close?
 #endif
 }
 //------------------------------------------------------------------------------
@@ -465,9 +496,6 @@ void RegisterBuiltInFuncs()
 
     if (wrapper)
     {
-	    interp->RegisterBuiltInFunction("clc", hml_clc,    
-            FunctionMetaData(0, 1, "CoreMinimalInterpreter")); 
-
         // Override getargc/getargv only if there is a wrapper
         interp->RegisterBuiltInFunction("getargc", OmlGetArgC,
             FunctionMetaData(1, 0, "CoreMinimalInterpreter"));

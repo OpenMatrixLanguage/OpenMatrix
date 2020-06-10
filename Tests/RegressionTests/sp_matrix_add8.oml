@@ -1,0 +1,4 @@
+a1 = sparse(zeros(3,3)) + sparse(reshape([1:9],[3,3]))
+a2 = sparse(reshape([1:9],[3,3])) + sparse(zeros(3,3))
+a3 = sparse(zeros(3,0)) + sparse(zeros(3,0))
+size(a3)

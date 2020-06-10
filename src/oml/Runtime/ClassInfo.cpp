@@ -49,6 +49,10 @@ FunctionInfo* ClassInfo::GetFunctionInfo(const std::string& name) const
     if (itr != _methods.end()) 
         return itr->second;
 
+	std::map<std::string, FunctionInfo*>::const_iterator stat_itr = _static_methods.find(name);
+	if (stat_itr != _static_methods.end())
+		return stat_itr->second;
+
 	for (int j=0; j<_baseclass.size(); ++j)
 	{
 		FunctionInfo* fi = _baseclass[j]->GetFunctionInfo(name);
@@ -102,6 +106,17 @@ void ClassInfo::AddClassMethod(const std::string& name, FunctionInfo* fi)
         _methods[name] = fi;
 }
 //------------------------------------------------------------------------------
+//! Adds class method
+//! \param[in] name Name of the method in the language
+//! \param[in] fi   Function info
+//------------------------------------------------------------------------------
+void ClassInfo::AddStaticClassMethod(const std::string& name, FunctionInfo* fi)
+{
+	if (!name.empty())
+		_static_methods[name] = fi;
+}
+
+//------------------------------------------------------------------------------
 //! Returns true if given function pointer is a method - used only in language
 //! \param[in] fi Given function pointer
 //------------------------------------------------------------------------------
@@ -125,6 +140,35 @@ bool ClassInfo::IsClassMethod(FunctionInfo* fi) const
 	for (int j=0; j<_baseclass.size(); ++j)
 	{
 		if (_baseclass[j]->IsClassMethod(fi))
+			return true;
+	}
+
+	return false;
+}
+//------------------------------------------------------------------------------
+//! Returns true if given function pointer is a static method
+//! \param[in] fi Given function pointer
+//------------------------------------------------------------------------------
+bool ClassInfo::IsStaticClassMethod(FunctionInfo* fi) const
+{
+	if (!fi) return false;
+
+	if (fi->IsConstructor())
+	{
+		if (fi->FunctionName() == _class_name)
+			return true;
+	}
+
+	std::map<std::string, FunctionInfo*>::const_iterator iter = _static_methods.begin();
+	for (; iter != _static_methods.end(); ++iter)
+	{
+		if (iter->second == fi)
+			return true;
+	}
+
+	for (int j = 0; j < _baseclass.size(); ++j)
+	{
+		if (_baseclass[j]->IsStaticClassMethod(fi))
 			return true;
 	}
 

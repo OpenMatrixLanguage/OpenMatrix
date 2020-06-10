@@ -1,0 +1,8 @@
+ans = sparse [3 x 1], nnz = 3
+[1,1] 1
+[2,1] 5
+[3,1] 9
+ans = sparse [2 x 1], nnz = 2
+[1,1] 1
+[2,1] 2
+Error: index exceeds dimension at line number 7 in file sparse_index_logical.oml

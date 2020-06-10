@@ -1,7 +1,7 @@
 /**
 * @file CurrencyDisplay.h
 * @date January 2016
-* Copyright (C) 2016-2019 Altair Engineering, Inc.  
+* Copyright (C) 2016-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -40,6 +40,16 @@ public:
     virtual ~CurrencyDisplay() {}
 
     //!
+    //! \enum PAGINATE
+    //!
+    enum PAGINATE
+    {
+        PAGINATE_OFF = 0,              //!< No pagination
+        PAGINATE_ON,                   //!< Paginate
+        PAGINATE_INTERACTIVE           //!< Interactive pagination
+    };
+
+    //!
     //! Sets maximum columns for display
     //! \param val Max columns, should be greater than or equal to 0
     //!
@@ -63,16 +73,27 @@ public:
     //! \param display Given display
     //!
     static void DeleteDisplay(CurrencyDisplay* display);
-
     //!
-    //! True if pagination is enabled
+    //! Gets pagination mode
     //!
-    static bool GetPaginate() { return m_paginate; }
+    static CurrencyDisplay::PAGINATE GetPaginate() { return m_paginate; }
     //!
-    //! Enables/disables pagination
-    //! \param val True if pagination is enabled
+    //! Sets pagination mode
+    //! \param Pagination mode
     //!
-    static void SetPaginate(bool val) { m_paginate = val; }
+    static void SetPaginate(CurrencyDisplay::PAGINATE val) { m_paginate = val; }
+    //!
+    //! Returns true if pagination is off
+    //!
+    static bool IsPaginateOff() { return (m_paginate == CurrencyDisplay::PAGINATE_OFF); }
+    //!
+    //! Returns true if pagination is on
+    //!
+    static bool IsPaginateOn() { return (m_paginate == CurrencyDisplay::PAGINATE_ON); }
+    //!
+    //! Returns true if pagination is interactive
+    //!
+    static bool IsPaginateInteractive() { return (m_paginate == CurrencyDisplay::PAGINATE_INTERACTIVE); }
     //!
     //! True if given currency can paginate
     //! \param cur Given currency
@@ -227,6 +248,26 @@ public:
     //! \param val True if first line in client needs to be deleted before printing
     //!
     void SetDeleteLine(bool val) { m_deleteLine = val;}
+
+    //!
+    //! Return estimated length of formatted string for value
+    //! \param Format specification
+    //! \param Value
+    //!
+    static size_t GetFormattedStringLength(const char*, 
+                                           double);
+    //!
+    //! Return formatted string for value
+    //! \param Format specification
+    //! \param Value
+    //!
+    static std::string GetFormattedString(const char*,
+                                          double);
+    //!
+    //! Sets mode data for interactive pagination
+    //!
+    void SetPaginateOnModeData();
+
 protected:  
     //!
     //! \enum DisplayFormat
@@ -241,7 +282,7 @@ protected:
     static int m_maxCols;              //!< Max columns (chars) for display        
     static int m_maxRows;              //!< Max rows (lines) for display
     static int m_linesPrinted;         //!< of lines displayed
-    static bool m_paginate;            //!< True if pagination is enabled
+    static PAGINATE m_paginate;        //!< Pagination mode
     
     mutable int m_colBegin;            //!< 0-based index of first column displayed
     mutable int m_colEnd;              //!< 0-based index of last  column displayed

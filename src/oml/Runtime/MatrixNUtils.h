@@ -70,6 +70,14 @@ bool oml_MatrixNVecs(EvaluatorInterface eval, const std::vector<Currency>& input
 bool oml_MatrixN_VecProd(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs,
                          const OML_func1 oml_func, int vecLength);
 
+// ND support for sum function
+bool oml_MatrixN_sum(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs,
+                     int dimArg = 0);
+
+// ND support for cumsum function
+bool oml_MatrixN_cumsum(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs,
+                        int dimArg = 0);
+
 // ND support for diff function
 bool oml_MatrixN_diff(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs,
                       const OML_func1 oml_func);

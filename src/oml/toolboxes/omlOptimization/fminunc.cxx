@@ -216,7 +216,7 @@ bool OmlFminunc(EvaluatorInterface           eval,
     {
         FMINUNC_oml_bool_stack.push_back(false);
 
-        if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr))
+        if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr, nullptr))
         {
             throw OML_Error(OML_ERR_FUNCNAME, 1);
         }

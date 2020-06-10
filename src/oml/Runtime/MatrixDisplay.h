@@ -277,6 +277,13 @@ private:
     //! Returns true if matrix is paginating
     //!
     bool IsPaginating()  const;
+    //!
+    //! Returns formatted string length
+    //! \param value
+    //! \param display format type
+    //!
+    size_t GetFormattedStringLength(double, DisplayFormat) const;
+
 };
 
 #endif

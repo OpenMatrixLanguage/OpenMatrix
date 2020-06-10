@@ -1,1 +1,1 @@
-Error: invalid file stream id: -1 in call to function fclose at line number 1 in file filetest96.oml
+Error: invalid file stream id [-1] specified in argument 1 in call to function fclose at line number 1 in file filetest96.oml

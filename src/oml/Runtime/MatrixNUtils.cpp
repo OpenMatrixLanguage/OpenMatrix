@@ -782,6 +782,381 @@ bool oml_MatrixN_VecProd(EvaluatorInterface eval, const std::vector<Currency>& i
     return true;
 }
 
+// ND support for sum function
+bool oml_MatrixN_sum(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs,
+                     int dimArg)
+{
+    size_t nargin = inputs.size();
+    size_t nargout = eval.GetNargoutValue();
+
+    if (nargin < 1 || nargin > 2)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    if (!inputs[0].IsNDMatrix())
+    {
+        // throw OML_Error(OML_ERR_NDMATRIX, 1, OML_STR_VARIABLE);
+    }
+
+    const hwMatrixN* matrix = inputs[0].MatrixN();
+    const std::vector<int>& dims = matrix->Dimensions();
+    int numDim = static_cast<int>(dims.size());
+    int dim = 0;
+
+    if (!dimArg)
+    {
+        for (int i = 0; i < numDim; ++i)
+        {
+            if (dims[i] != 1)
+            {
+                dim = i;
+                break;
+            }
+        }
+    }
+    else if (dimArg > 0)
+    {
+        if (inputs[dimArg - 1].IsPositiveInteger())
+        {
+            dim = static_cast<int>(inputs[dimArg - 1].Scalar()) - 1;
+        }
+        else if (inputs[dimArg - 1].IsMatrix())
+        {
+            if (inputs[dimArg - 1].Matrix()->M() || inputs[dimArg - 1].Matrix()->N())
+            {
+                throw OML_Error(OML_ERR_POSINTEGER, dimArg, OML_VAR_VARIABLE);
+            }
+
+            for (int i = 0; i < numDim; ++i)
+            {
+                if (dims[i] != 1)
+                {
+                    dim = i;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, dimArg, OML_VAR_VARIABLE);
+        }
+    }
+
+    if (dim >= dims.size())
+    {
+        outputs.push_back(inputs[0]);
+        return true;
+    }
+
+    // dimension output
+    std::vector<int> sliceDims(dims);
+    sliceDims[dim] = 1;
+
+    hwMatrixN* sum = new hwMatrixN(sliceDims, matrix->Type());
+
+    if (dims[dim] == 0)
+    {
+        sum->SetElements(0.0);
+        outputs.push_back(sum);
+        return true;
+    }
+
+    if (dim == 0)
+    {
+        // sum each vector in dimension 1
+        int numVecs = matrix->Size() / dims[0];
+        std::vector<int> rhsMatrixIndex(numDim);
+
+        for (int i = 0; i < numVecs; ++i)
+        {
+            // set the rhsMatrix indices to the first index in each slice
+            int start = matrix->Index(rhsMatrixIndex);
+
+            if (matrix->IsReal())
+            {
+                const double* real = matrix->GetRealData() + start;
+                double sumVec = 0.0;
+
+                for (int k = 0; k < dims[dim]; ++k)
+                    sumVec += *real++;
+
+                (*sum)(i) = sumVec;
+            }
+            else
+            {
+                const hwComplex* cmplx = matrix->GetComplexData() + start;
+                hwComplex sumVec(0.0, 0.0);
+
+                for (int k = 0; k < dims[dim]; ++k)
+                    sumVec += *cmplx++;
+
+                sum->z(i) = sumVec;
+            }
+
+            // advance slice indices
+            for (int j = 1; j < numDim; ++j)
+            {
+                // increment index j if possible
+                if (rhsMatrixIndex[j] < static_cast<int> (dims[j]) - 1)
+                {
+                    ++rhsMatrixIndex[j];
+                    break;
+                }
+
+                // index j is maxed out, so reset and continue to j+1
+                rhsMatrixIndex[j] = 0;
+            }
+        }
+    }
+    else
+    {
+        sum->SetElements(0.0);
+
+        // sum each dimension 1 vector into in specified dimension
+        int numVecs = matrix->Size() / dims[0];
+        std::vector<int> rhsMatrixIndex(numDim);
+
+        for (int i = 0; i < numVecs; ++i)
+        {
+            // set the rhsMatrix indices to the first index in each slice
+            int start1 = matrix->Index(rhsMatrixIndex);
+            int temp = rhsMatrixIndex[dim];
+            rhsMatrixIndex[dim] = 0;
+            int start2 = sum->Index(rhsMatrixIndex);
+            rhsMatrixIndex[dim] = temp;
+
+            if (matrix->IsReal())
+            {
+                const double* realD = matrix->GetRealData() + start1;
+                const double* realS = sum->GetRealData() + start2;
+                hwMatrix dataVec(dims[0], 1, (void*)realD, hwMatrix::REAL);
+                hwMatrix sumVec(dims[0], 1, (void*)realS, hwMatrix::REAL);
+
+                sumVec += dataVec;
+            }
+            else
+            {
+                const hwComplex* realD = matrix->GetComplexData() + start1;
+                const hwComplex* realS = sum->GetComplexData() + start2;
+                hwMatrix dataVec(dims[0], 1, (void*)realD, hwMatrix::COMPLEX);
+                hwMatrix sumVec(dims[0], 1, (void*)realS, hwMatrix::COMPLEX);
+
+                sumVec += dataVec;
+            }
+
+            // advance slice indices
+            for (int j = 1; j < numDim; ++j)
+            {
+                // increment index j if possible
+                if (rhsMatrixIndex[j] < static_cast<int> (dims[j]) - 1)
+                {
+                    ++rhsMatrixIndex[j];
+                    break;
+                }
+
+                // index j is maxed out, so reset and continue to j+1
+                rhsMatrixIndex[j] = 0;
+            }
+        }
+    }
+
+    outputs.push_back(sum);
+
+    return true;
+}
+
+// ND support for cumsum function
+bool oml_MatrixN_cumsum(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs,
+                        int dimArg)
+{
+    size_t nargin = inputs.size();
+    size_t nargout = eval.GetNargoutValue();
+
+    if (nargin < 1 || nargin > 2)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    if (!inputs[0].IsNDMatrix())
+    {
+        // throw OML_Error(OML_ERR_NDMATRIX, 1, OML_STR_VARIABLE);
+    }
+
+    const hwMatrixN* matrix = inputs[0].MatrixN();
+    const std::vector<int>& dims = matrix->Dimensions();
+    int numDim = static_cast<int>(dims.size());
+    int dim = 0;
+
+    if (!dimArg)
+    {
+        for (int i = 0; i < numDim; ++i)
+        {
+            if (dims[i] != 1)
+            {
+                dim = i;
+                break;
+            }
+        }
+    }
+    else if (dimArg > 0)
+    {
+        if (inputs[dimArg - 1].IsPositiveInteger())
+        {
+            dim = static_cast<int>(inputs[dimArg - 1].Scalar()) - 1;
+        }
+        else if (inputs[dimArg - 1].IsMatrix())
+        {
+            if (inputs[dimArg - 1].Matrix()->M() || inputs[dimArg - 1].Matrix()->N())
+            {
+                throw OML_Error(OML_ERR_POSINTEGER, dimArg, OML_VAR_VARIABLE);
+            }
+
+            for (int i = 0; i < numDim; ++i)
+            {
+                if (dims[i] != 1)
+                {
+                    dim = i;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, dimArg, OML_VAR_VARIABLE);
+        }
+    }
+
+    if (dim >= dims.size())
+    {
+        outputs.push_back(inputs[0]);
+        return true;
+    }
+
+    // dimension output
+    std::vector<int> sliceDims(dims);
+    hwMatrixN* cumsum = nullptr;
+
+    if (dim == 0)
+    {
+        cumsum = new hwMatrixN(sliceDims, matrix->Type());
+
+        if (dims[dim] == 0)
+        {
+            outputs.push_back(cumsum);
+            return true;
+        }
+
+        // cumsum each vector in dimension 1
+        int numVecs = matrix->Size() / dims[0];
+        std::vector<int> rhsMatrixIndex(numDim);
+
+        for (int i = 0; i < numVecs; ++i)
+        {
+            // set the rhsMatrix indices to the first index in each slice
+            int start = matrix->Index(rhsMatrixIndex);
+
+            if (matrix->IsReal())
+            {
+                const double* real = matrix->GetRealData() + start;
+                double* result = cumsum->GetRealData() + start;
+                double sum = 0.0;
+
+                for (int k = 0; k < dims[0]; ++k)
+                {
+                    sum += *(real++);
+                    *(result++) = sum;
+                }
+            }
+            else
+            {
+                const hwComplex* cmplx = matrix->GetComplexData() + start;
+                hwComplex* result = cumsum->GetComplexData() + start;
+                hwComplex sum;
+
+                for (int k = 0; k < dims[0]; ++k)
+                {
+                    sum += *(cmplx++);
+                    *(result++) = sum;
+                }
+            }
+
+            // advance slice indices
+            for (int j = 1; j < numDim; ++j)
+            {
+                // increment index j if possible
+                if (rhsMatrixIndex[j] < static_cast<int> (dims[j]) - 1)
+                {
+                    ++rhsMatrixIndex[j];
+                    break;
+                }
+
+                // index j is maxed out, so reset and continue to j+1
+                rhsMatrixIndex[j] = 0;
+            }
+        }
+    }
+    else
+    {
+        cumsum = new hwMatrixN(*matrix);
+
+        if (dims[dim] == 0)
+        {
+            outputs.push_back(cumsum);
+            return true;
+        }
+
+        // cumsum each dimension 1 vector into in specified dimension
+        int numVecs = matrix->Size() / dims[0];
+        std::vector<int> rhsMatrixIndex(numDim);
+        const double* realR = cumsum->GetRealData();
+        const hwComplex* cmplxR = cumsum->GetComplexData();
+
+        for (int i = 0; i < numVecs; ++i)
+        {
+            // set the rhsMatrix indices to the first index in each slice
+            int start1 = matrix->Index(rhsMatrixIndex);
+            int index = rhsMatrixIndex[dim];
+
+            if (index != 0)
+            {
+                rhsMatrixIndex[dim] = index - 1;
+                int start2 = cumsum->Index(rhsMatrixIndex);
+                rhsMatrixIndex[dim] = index;
+
+                if (matrix->IsReal())
+                {
+                    hwMatrix cumsumVec1(dims[0], 1, (void*)(realR + start1), hwMatrix::REAL);
+                    hwMatrix cumsumVec2(dims[0], 1, (void*)(realR + start2), hwMatrix::REAL);
+
+                    cumsumVec1.AddEquals(cumsumVec2);
+                }
+                else
+                {
+                    hwMatrix cumsumVec1(dims[0], 1, (void*)(cmplxR + start1), hwMatrix::COMPLEX);
+                    hwMatrix cumsumVec2(dims[0], 1, (void*)(cmplxR + start2), hwMatrix::COMPLEX);
+
+                    cumsumVec1.AddEquals(cumsumVec2);
+                }
+            }
+
+            // advance slice indices
+            for (int j = 1; j < numDim; ++j)
+            {
+                // increment index j if possible
+                if (rhsMatrixIndex[j] < static_cast<int> (dims[j]) - 1)
+                {
+                    ++rhsMatrixIndex[j];
+                    break;
+                }
+
+                // index j is maxed out, so reset and continue to j+1
+                rhsMatrixIndex[j] = 0;
+            }
+        }
+    }
+
+    outputs.push_back(cumsum);
+
+    return true;
+}
+
 // ND support for diff function
 bool oml_MatrixN_diff(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs,
                       const OML_func1 oml_func)
@@ -1046,7 +1421,7 @@ Currency oml_MatrixNUtil6(const Currency& op, OML_func2 oml_func)
 // Apply an arithmetic operator function to each element pair from the arguments, with at least one ND matrix.
 Currency oml_MatrixNUtil7(const Currency& op1, const Currency& op2, const OML_func3 oml_func)
 {
-    ExprTreeEvaluator dummy;
+    static ExprTreeEvaluator dummy;
     std::vector<hwSliceArg> sliceArgs;
     sliceArgs.push_back(hwSliceArg());
     hwMatrixN slice;

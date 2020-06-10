@@ -1,7 +1,7 @@
 /**
 * @file OmlPythonBridge.cxx
 * @date December, 2017
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -33,10 +33,10 @@
 #   define _DEBUG 1
 #endif
 /* End change */
+#include <cassert>
 #include <vector>
 #include "StructData.h"
 #include "OmlPythonBridge.h"
-#include "EvaluatorInt.h" 
 #include <iostream>
 #include "BuiltInFuncsUtils.h"
 #include "OmlPythonBridgeCore.h"
@@ -49,11 +49,11 @@
 
 OmlPythonBridge* OmlPythonBridge::_instance = NULL;
 
-OmlPythonBridge* OmlPythonBridge::GetInstance()
+OmlPythonBridge* OmlPythonBridge::GetInstance(EvaluatorInterface eval)
 {
     if (!_instance)
     {
-        _instance = new OmlPythonBridge();
+        _instance = new OmlPythonBridge(eval);
     }
     return _instance;
 }
@@ -62,43 +62,6 @@ void OmlPythonBridge::ReleaseInstance()
 {
     delete _instance;
     _instance = NULL;
-}
-
-//! Constructor
-//! Initialize Python
-OmlPythonBridge::OmlPythonBridge(): _threadState(NULL)
-{
-#ifdef OS_WIN
-    int result_stdin, result_stdout, result_stderr;
-    result_stdin = _setmode(_fileno(stdin), O_TEXT);
-    result_stdout = _setmode(_fileno(stdout), O_TEXT);
-    result_stderr = _setmode(_fileno(stderr), O_TEXT);
-#endif
-
-    char* python_home = getenv("OML_PYTHONHOME");
-    if (python_home)
-    {
-        std::string python_home_str = python_home;
-        static std::wstring widePythonHome = std::wstring(python_home_str.begin(), python_home_str.end());;
-        Py_SetPythonHome  (const_cast <wchar_t*>(widePythonHome.c_str()));
-    }
-
-    Py_Initialize();
-#ifdef OS_WIN
-    if (result_stdin != -1)
-        _setmode(_fileno(stdin), result_stdin);
-    if (result_stdout != -1)
-        _setmode(_fileno(stdout), result_stdout);
-    if (result_stderr != -1)
-        _setmode(_fileno(stderr), result_stderr);
-#endif
-
-    if (Py_IsInitialized())
-    {
-        PyEval_InitThreads();
-        InitNumpy();
-        _threadState = PyEval_SaveThread();
-    }
 }
 
 void* OmlPythonBridge::InitNumpy()
@@ -346,4 +309,89 @@ bool OmlPythonBridge::RunFile(const std::string& python_file, PyObject* globals,
     Py_XDECREF (new__file__);
 
     return success;
+}
+//------------------------------------------------------------------------------
+// Constructor - initializes python and command line arguments
+//------------------------------------------------------------------------------
+OmlPythonBridge::OmlPythonBridge(EvaluatorInterface eval)
+    : _threadState(nullptr)
+{
+#ifdef OS_WIN
+    int result_stdin = _setmode(_fileno(stdin), O_TEXT);
+    int result_stdout = _setmode(_fileno(stdout), O_TEXT);
+    int result_stderr = _setmode(_fileno(stderr), O_TEXT);
+#endif
+
+    char* python_home = getenv("OML_PYTHONHOME");
+    if (python_home)
+    {
+        std::string python_home_str(python_home);
+        static std::wstring widePythonHome = std::wstring(
+            python_home_str.begin(), python_home_str.end());
+        Py_SetPythonHome(const_cast <wchar_t*>(widePythonHome.c_str()));
+    }
+
+    Py_Initialize();
+    InitializeCommandLineArgs(eval);
+#ifdef OS_WIN
+    if (result_stdin != -1)
+        _setmode(_fileno(stdin), result_stdin);
+    if (result_stdout != -1)
+        _setmode(_fileno(stdout), result_stdout);
+    if (result_stderr != -1)
+        _setmode(_fileno(stderr), result_stderr);
+#endif
+
+    if (Py_IsInitialized())
+    {
+        PyEval_InitThreads();
+        InitNumpy();
+        _threadState = PyEval_SaveThread();
+    }
+}
+//------------------------------------------------------------------------------
+// Initializes command line arguments as Py_initialize does not set sys.argv
+//------------------------------------------------------------------------------
+void OmlPythonBridge::InitializeCommandLineArgs(EvaluatorInterface eval)
+{
+    if (!Py_IsInitialized() || !OmlPythonBridgeCore::GetInstance())
+    {
+        return;
+    }
+    std::vector<std::string> args = (
+        OmlPythonBridgeCore::GetInstance()->GetArgv(eval));
+    if (args.empty())
+    {
+        return;
+    }
+
+    //Pass command line arguments to python interpreter.
+    size_t argc = args.size();
+
+    wchar_t** argv = new wchar_t*[argc];
+    assert(argv);
+	
+    if (!argv)
+    {
+        return;
+    }
+	
+	BuiltInFuncsUtils utils;
+	
+    for (int i = 0; i < argc; ++i)
+    {
+        std::wstring wstr = utils.StdString2WString(args[i]);
+        argv[i] = new wchar_t[wstr.size() + 1];
+        wcscpy(argv[i], wstr.c_str());
+    }
+
+    PySys_SetArgvEx(argc, argv, 0);
+    for (int i = 0; i < argc; i++)
+    {
+        delete[] argv[i];
+        argv[i] = nullptr;
+    }
+    delete[] argv;
+    argv = nullptr;
+
 }

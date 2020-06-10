@@ -135,6 +135,7 @@ public:
 	bool            ClearFromGlobals(const std::regex& name);
 	bool            ClearFromVariables(const std::regex& name);
 	void            ClearFunctions();
+	void            ClearFunctionsFromFile(const std::string& filename);
 	void            ClearGlobals();
 	void            ClearVariables();
 	int             RenameVariable(std::string old_name, std::string new_name);
@@ -173,6 +174,8 @@ public:
 	void  RegisterExternalVariableFunction(EXTPTR ep) { ext_var_ptr = ep; }
 	void  ClearTemporaryExternalVariables() { _externals.clear(); }
 
+	void RegisterDLL(void*);
+
 	//! Returns true if successful in registering (swig) bound class
 	//! \param[in] name Bound class name
 	//! \param[in] info Bound class info
@@ -185,6 +188,7 @@ public:
 
 	std::vector<Currency> DoMultiReturnFunctionCall(FunctionInfo* fi, const std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars = nullptr);
 	std::vector<Currency> DoMultiReturnFunctionCall(FUNCPTR fptr, const std::string& func_name, const std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars);
+	std::vector<Currency> DoMultiReturnFunctionCall(ALT_FUNCPTR aptr, const std::string& func_name, const std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars);
 
 	void DoMultiReturnFunctionCall(FUNCPTR fptr, const std::string& func_name, const std::vector<Currency>& param_values, int num_ins, bool suppress_output, OMLTree* out_tree);
 	void DoMultiReturnFunctionCall(ALT_FUNCPTR fptr, const std::string& func_name, const std::vector<Currency>& param_values, int num_ins, bool suppress_output, OMLTree* out_tree);
@@ -192,7 +196,7 @@ public:
 
 	std::vector<Currency> DoAnonymousMultiReturnFunctionCall(FunctionInfo* fi, const std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars = nullptr);
 
-	bool     FindFunctionByName(const std::string&, FunctionInfo**, FUNCPTR*);
+	bool     FindFunctionByName(const std::string&, FunctionInfo**, FUNCPTR*, ALT_FUNCPTR*);
 
 	Currency CallFunction(const std::string&, const std::vector<Currency>&);
 	Currency CallFunction(const std::string*, const std::vector<Currency>&);
@@ -200,7 +204,7 @@ public:
 	Currency CallBuiltinFunction(FUNCPTR, const std::string&, const std::vector<Currency>&);
 	Currency CallBuiltinFunction(ALT_FUNCPTR, const std::string&, const std::vector<Currency>&);
 	Currency CallInternalFunction(FunctionInfo*, const std::vector<Currency>&);
-	Currency CallInternalFunction(FunctionInfo*, const std::vector<Currency>&, const std::string&, const Currency&);
+	Currency CallInternalFunction(FunctionInfo*, const std::vector<Currency>&, bool, const std::string&, const Currency&);
 
 	HML_CELLARRAY* CreateVararginCell(const std::vector<Currency>& params, int start_index);
 
@@ -233,8 +237,8 @@ public:
 	bool                    FindFileInPath(const std::string& file_plus_ext, std::string& filepath) const;
 	void                    RestorePath();
 
-	bool                    IsInPaths(const std::string &str) const;
-	inline const std::vector<std::string>& GetPaths() const { return *paths; }
+	bool                     IsInPaths(const std::string &str) const;
+	std::vector<std::string> GetPaths() const;
 
 	// these assume the index is valid
 	bool					CloseFile(int i);
@@ -411,6 +415,7 @@ public:
 	void     RemoveEnvValue(int, std::string);
 	void     SetEnvValue(int, std::string, const Currency&);
 	void     ImportEnv(int source, int dest);
+	void     DeleteEnv(int source);
 
 	//! Suspend function list updates in language
 	void SuspendFuncListUpdate() { _suspendFunclistUpdate = true; }
@@ -445,6 +450,12 @@ public:
     //! \param funcname Built in function which needs to be locked
     //!
     bool LockBuiltInFunction(const std::string& funcname);
+
+	bool RemoveFunctionsInLibrary(const std::string& library);
+
+	MemoryScopeManager* GetMSM() const { return msm; }
+	
+	int SetNestedFunctionMarker(int new_val);
 
 private:
 	Currency AddOperator(const Currency&, const Currency&);
@@ -492,6 +503,7 @@ private:
 	Currency SwitchCase(OMLTree* tree);
 	Currency WhileLoop(OMLTree* tree);
 	Currency ForLoop(OMLTree* tree);
+	Currency ParforLoop(OMLTree* tree);
 	Currency FunctionDefinition(OMLTree* tree);
 	Currency MatrixCreation(OMLTree* tree);
 	Currency StatementList(OMLTree* tree);
@@ -536,7 +548,7 @@ private:
 
 	Currency  PostFunctionIndexHelper(const Currency& target, OMLTree* tree);
 	
-	MemoryScope* GetCurrentScope() const;		
+	MemoryScope* GetCurrentScope() const;	
 
 	void OpenScope(FunctionInfo* info = NULL);
 	void CloseScope();
@@ -565,7 +577,7 @@ private:
 	std::vector<Currency> DoMultiReturnFunctionCall(FUNCPTR fp, const std::string& func_name, const std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<const std::string*>* out_vars = nullptr);
 	std::vector<Currency> DoAnonymousMultiReturnFunctionCall(FunctionInfo* fi, const std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<const std::string*>* out_vars = nullptr);
 
-	bool FindFunctionByName(const std::string*, FunctionInfo**, FUNCPTR*);
+	bool FindFunctionByName(const std::string*, FunctionInfo**, FUNCPTR*, ALT_FUNCPTR*);
 
 	bool CheckForPreviousTrailingDot(pANTLR3_BASE_TREE tree, pANTLR3_COMMON_TOKEN_STREAM tokens);
 	bool ValidateMatrix(const std::vector<std::vector<Currency>>& currencies, unsigned int*, unsigned int*, bool*);
@@ -596,6 +608,7 @@ private:
 
 
 
+
 private:
 
 	//data members
@@ -605,6 +618,8 @@ private:
 	std::map<std::string, UserFunc*> *functions;
     std::map<std::string, BuiltinFunc> *std_functions;
 	std::vector<std::string> *preregistered_functions;
+	
+	std::vector<void*> loaded_dlls;
 
     std::vector<std::string> *not_found_functions;
 
@@ -615,6 +630,9 @@ private:
     std::map<std::string, BoundClassInfo*> _boundclassinfo; //! Bound classes
 
 	std::map<std::string, ENCRPTR> _decryptors;
+
+	static std::set<void*> ignore_cow_pointers;
+	bool IgnoreCoW(void*) const;
 
     void OnEvaluationEnd( const Currency& currency);
     bool PathMatches(const std::string& s1, const std::string& s2) const;

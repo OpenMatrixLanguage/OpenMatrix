@@ -118,6 +118,15 @@ POLYNOM_DECLS hwMathStatus PolyInt(const hwMatrix& A,
                                    hwMatrix&       I, 
                                    double          k = 0.0);
 //!
+//! Returns the result of a bisection search on a reverse sorted data array
+//! \param data Sorted data array
+//! \param npts Number of points
+//! \param find Value to find
+//!
+int BinarySearchR(const double* data,
+                  int           npts,
+                  double        find);
+//!
 //! Performs linear interpolation and returns status
 //! \param x_old 
 //! \param y_old 
@@ -129,7 +138,8 @@ POLYNOM_DECLS hwMathStatus LinearInterp(const hwMatrix& x_old,
                                         const hwMatrix& y_old,
                                         const hwMatrix& x_new, 
                                         hwMatrix&       y_new, 
-                                        bool            extrap = false);
+                                        bool            requireUniqueX,
+                                        bool            extrap);
 //!
 //! Performs piecewise cubic hermite interpolation and returns status
 //! \param x_old 

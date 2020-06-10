@@ -1,7 +1,7 @@
 ﻿/**
 * @file BuiltInFuncs.cpp
 * @date October 2013
-* Copyright (C) 2013-2019 Altair Engineering, Inc.  
+* Copyright (C) 2013-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -46,6 +46,7 @@
 #include "BuiltInFuncsSystem.h"
 #include "BuiltInFuncsTime.h"
 #include "BuiltInFuncsUtils.h"
+#include "CurrencyDisplay.h"
 #include "MemoryScope.h"
 #include "Interpreter.h"
 #include "FunctionInfo.h"
@@ -168,6 +169,10 @@ void GetRegExpOutput(EvaluatorInterface              eval,
                      const std::vector<OMLREGEXP>&   options,
 	                 const std::vector<std::string>& flags,
                      std::vector<Currency>&          outputs);
+
+// Helper method for file read operations
+template<typename T>
+static void doRead(int, size_t, int, int, std::FILE*, int, int, std::vector<Currency>&);
 
 #ifdef OS_WIN
 static char pathsep = ';';
@@ -471,7 +476,6 @@ void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions)
     (*std_functions)["true"]               = BuiltinFunc(oml_true, FunctionMetaData(-1, 1, CORE));
     (*std_functions)["false"]              = BuiltinFunc(oml_false, FunctionMetaData(-1, 1, CORE));
     (*std_functions)["refcnt"]             = BuiltinFunc(oml_refcnt,FunctionMetaData( 1, 1, CORE));
-    (*std_functions)["clc"]                = BuiltinFunc(DummyVoid, FunctionMetaData(0, 0, CORE));
     (*std_functions)["lasterr"]            = BuiltinFunc(oml_lasterr, FunctionMetaData(1, 1, CORE));
     (*std_functions)["lastwarn"]           = BuiltinFunc(oml_lastwarn, FunctionMetaData(1, 1, CORE));
     (*std_functions)["continue"]           = BuiltinFunc(oml_continue, FunctionMetaData(OML_NO_NARG, OML_NO_NARG, CORE));
@@ -537,6 +541,7 @@ void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions)
     (*std_functions)["addtoolbox"] = BuiltinFunc(BuiltInFuncsCore::AddToolbox,  FunctionMetaData(1, 0, CORE));
     (*std_functions)["addToolbox"] = BuiltinFunc(BuiltInFuncsCore::AddToolbox,  FunctionMetaData(1, 0, CORE));
 	(*std_functions)["addlibrary"] = BuiltinFunc(BuiltInFuncsCore::AddToolbox, FunctionMetaData(1, 0, CORE));
+	(*std_functions)["removelibrary"] = BuiltinFunc(BuiltInFuncsCore::RemoveToolbox, FunctionMetaData(1, 0, CORE));
     (*std_functions)["funccount"]  = BuiltinFunc(BuiltInFuncsCore::Funccount,   FunctionMetaData(0, 1, CORE));
     (*std_functions)["funclist"]   = BuiltinFunc(BuiltInFuncsCore::Funclist,  FunctionMetaData(-1, 0, CORE));
     (*std_functions)["varlist"]    = BuiltinFunc(BuiltInFuncsCore::Varlist,   FunctionMetaData(0, 1, CORE));
@@ -548,6 +553,7 @@ void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions)
     (*std_functions)["sleep"]       = BuiltinFunc(BuiltInFuncsCore::OmlSleep, FunctionMetaData(1, 0, TIME));
     (*std_functions)["errormsgonly"] = BuiltinFunc(oml_erromsgonly, FunctionMetaData(-2, 0, CORE));
     (*std_functions)["warningmsgonly"] = BuiltinFunc(oml_warningmsgonly, FunctionMetaData(-1, 0, CORE));
+    (*std_functions)["clc"]            = BuiltinFunc(BuiltInFuncsCore::Clc, FunctionMetaData(0, 0, CORE));
 
     // Data structures
     (*std_functions)["cat"]       = BuiltinFunc(oml_cat, FunctionMetaData(-2, 1, DATA));
@@ -651,6 +657,11 @@ void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions)
     (*std_functions)["getargc"] = BuiltinFunc(oml_getargc, FunctionMetaData(0, 1, CORE));
     (*std_functions)["getargv"] = BuiltinFunc(oml_getargv, FunctionMetaData(1, 1, CORE));
 
+    // MKL control parameter settings (hidden)
+    BuiltinFunc mklsdpt = BuiltinFunc(oml_mkl_sdpt, FunctionMetaData(1, 0, CORE));
+    mklsdpt.Lock();
+    (*std_functions)["mklsdpt"] = mklsdpt;
+
 	bool experimental = true;
 
 #if !defined(_DEBUG)
@@ -682,7 +693,7 @@ bool oml_ferror(EvaluatorInterface           eval,
         throw OML_Error(HW_ERROR_2NDARGONLYCLR);
 
     int fileID = getFileFromInput(eval, inputs[0]);
-    checkFileIndex(eval, fileID, true);
+    BuiltInFuncsUtils::CheckFileIndex(eval, fileID, 1, true);
     FILE* f = eval.GetFile(fileID);
     
     int err = ferror(f);
@@ -1995,7 +2006,7 @@ bool oml_nargin(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
     {
         FUNCPTR fptr = nullptr;
         std::string fname = readString(inputs[0]);
-        if (!eval.FindFunctionByName(fname, &fi, &fptr))
+        if (!eval.FindFunctionByName(fname, &fi, &fptr, NULL))
             throw OML_Error(HW_ERROR_INVFUNCNAME);
 
         if (fptr)
@@ -2061,7 +2072,7 @@ bool oml_nargout(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
     {
         FUNCPTR fptr = nullptr;
         std::string fname = readString(inputs[0]);
-        if (!eval.FindFunctionByName(fname, &fi, &fptr))
+        if (!eval.FindFunctionByName(fname, &fi, &fptr, NULL))
             throw OML_Error(HW_ERROR_INVFUNCNAME);
 
         if (fptr)
@@ -2478,7 +2489,7 @@ bool oml_iscell(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
 //------------------------------------------------------------------------------
 bool oml_isfinite(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
 {
-    return allowComplexToLogical(inputs, outputs, &::checkisfinite, true);
+    return allowComplexToLogical(inputs, outputs, &::isfinite, true);
 }
 //------------------------------------------------------------------------------
 // Unary plus sign [uplus]
@@ -2488,7 +2499,11 @@ bool oml_uplus(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
     if (inputs.size() != 1)
         throw OML_Error(OML_ERR_NUMARGIN);
 
-    outputs.push_back(inputs[0]);
+	Currency temp = inputs[0];
+	temp.SetMask(Currency::MASK_DOUBLE);
+
+    outputs.push_back(temp);
+
     return true;
 }
 //------------------------------------------------------------------------------
@@ -2768,7 +2783,32 @@ bool oml_linsolve(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
 //------------------------------------------------------------------------------
 bool oml_pinv(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
 {
-    return oneMatrixCaller(eval, inputs, outputs, &hwMatrix::Pinv);
+    size_t nargin = inputs.size();
+
+    if (nargin != 1 && nargin != 2)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar() && !inputs[0].IsComplex())
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_VARIABLE);
+
+    double tol = -999.0;
+
+    if (nargin == 2)
+    {
+        if (!inputs[1].IsScalar())
+            throw OML_Error(OML_ERR_NONNEGATIVE_SCALAR, 2, OML_VAR_VARIABLE);
+
+        tol = inputs[1].Scalar();
+
+        if (tol < 0.0)
+            throw OML_Error(OML_ERR_NONNEGATIVE_SCALAR, 2, OML_VAR_VARIABLE);
+    }
+
+    const hwMatrix* mtx = inputs[0].ConvertToMatrix();
+    hwMatrix* result = EvaluatorInterface::allocateMatrix();
+    BuiltInFuncsUtils::CheckMathStatus(eval, (result->Pinv)(*mtx, tol));
+    outputs.push_back(result);
+    return true;
 }
 //------------------------------------------------------------------------------
 // Normalizes vectors [normalize]
@@ -2935,7 +2975,7 @@ bool oml_mkdir(EvaluatorInterface           eval,
         BuiltInFuncsUtils::Normpath(parentdir + "/" + newdir) : newdir;
 
     // Use the system command to make recursive directories
-    std::string strcmd ("mkdir -p " + fullpath + " > /dev/null");
+    std::string strcmd ("mkdir -p \"" + fullpath + "\" > /dev/null");
     int result = system(strcmd.c_str());
     if (result != 0)
     {
@@ -2973,7 +3013,9 @@ bool oml_setenv(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
 #else
     if (setenv(varname.c_str(), value.c_str(), 1))
 #endif
+    {
         throw OML_Error(HW_ERROR_ENVVARFAIL);
+    }
     return true;
 }
 //------------------------------------------------------------------------------
@@ -3173,14 +3215,80 @@ bool oml_all(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
 
     if (!anyall(eval, inputs, outputs, &all, true))
     {
-        if (nargin == 1)
-        {
-            oml_MatrixNUtil3(eval, inputs, outputs, oml_all);
-        }
-        else
-        {
-            oml_MatrixNUtil3(eval, inputs, outputs, oml_all, 2);
-        }
+		if (inputs[0].IsNDMatrix())
+		{
+			if (nargin == 1)
+			{
+				oml_MatrixNUtil3(eval, inputs, outputs, oml_all);
+			}
+			else
+			{
+				oml_MatrixNUtil3(eval, inputs, outputs, oml_all, 2);
+			}
+		}
+		else if (inputs[0].IsSparse())
+		{
+			const hwMatrixS* spm = inputs[0].MatrixS();
+			int dim;
+
+			if (nargin > 1)
+			{
+				if (!inputs[1].IsPositiveInteger())
+					throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_VALUE);
+
+				dim = static_cast<int> (inputs[1].Scalar());
+			}
+			else
+			{
+				dim = spm->M() == 1 ? 2 : 1;
+			}
+
+			if (dim == 1)
+			{
+				MKL_INT* pb = const_cast<MKL_INT*> (spm->pointerB());
+				MKL_INT* pe = const_cast<MKL_INT*> (spm->pointerE());
+				std::vector<int> ivec;
+				std::vector<int> jvec;
+				hwMatrix V;
+				hwMatrixS* ret = new hwMatrixS(ivec, jvec, V, 1, spm->N());
+
+				for (int i = 0; i < spm->N(); ++i)
+				{
+					if (pe[i] - pb[i] == spm->M())
+						(*ret)(0, i) = 1.0;
+				}
+
+				outputs.push_back(ret);
+			}
+			else if (dim == 2)
+			{
+				MKL_INT* pr = const_cast<MKL_INT*> (spm->rows());
+				std::vector<int> ivec;
+				std::vector<int> jvec;
+				hwMatrix V;
+				hwMatrixS* ret = new hwMatrixS(ivec, jvec, V, spm->M(), 1);
+				std::vector<int> count(spm->M());
+
+				for (int i = 0; i < spm->NNZ(); ++i)
+				{
+					count[pr[i]]++;
+				}
+
+				for (int i = 0; i < spm->M(); ++i)
+				{
+					if (count[i] == spm->N())
+						(*ret)(i, 0) = 1.0;
+				}
+
+				outputs.push_back(ret);
+			}
+			else
+			{
+				std::vector<Currency> inputs2;
+				inputs2.push_back(inputs[0]);
+				oml_spones(eval, inputs2, outputs);
+			}
+		}
 
         outputs[0].SetMask(Currency::MASK_LOGICAL);
         return true;
@@ -3218,14 +3326,76 @@ bool oml_any(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
 
     if (!anyall(eval, inputs, outputs, &any, false))
     {
-        if (nargin == 1)
-        {
-            oml_MatrixNUtil3(eval, inputs, outputs, oml_any);
-        }
-        else
-        {
-            oml_MatrixNUtil3(eval, inputs, outputs, oml_any, 2);
-        }
+		if (inputs[0].IsNDMatrix())
+		{
+			if (nargin == 1)
+			{
+				oml_MatrixNUtil3(eval, inputs, outputs, oml_any);
+			}
+			else
+			{
+				oml_MatrixNUtil3(eval, inputs, outputs, oml_any, 2);
+			}
+		}
+		else if (inputs[0].IsSparse())
+		{
+			const hwMatrixS* spm = inputs[0].MatrixS();
+			int dim;
+
+			if (nargin > 1)
+			{
+				if (!inputs[1].IsPositiveInteger())
+					throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_VALUE);
+
+				dim = static_cast<int> (inputs[1].Scalar());
+			}
+			else
+			{
+				dim = spm->M() == 1 ? 2 : 1;
+			}
+
+			if (dim == 1)
+			{
+				MKL_INT* pb = const_cast<MKL_INT*> (spm->pointerB());
+				MKL_INT* pe = const_cast<MKL_INT*> (spm->pointerE());
+				std::vector<int> ivec;
+				std::vector<int> jvec;
+				hwMatrix V;
+				hwMatrixS* ret = new hwMatrixS(ivec, jvec, V, 1, spm->N());
+
+				for (int i = 0; i < spm->N(); ++i)
+				{
+					if (pe[i] != pb[i])
+						(*ret)(0, i) = 1.0;
+				}
+
+				outputs.push_back(ret);
+			}
+			else if (dim == 2)
+			{
+				MKL_INT* pr = const_cast<MKL_INT*> (spm->rows());
+				std::vector<int> ivec;
+				std::vector<int> jvec;
+				hwMatrix V;
+				hwMatrixS* ret = new hwMatrixS(ivec, jvec, V, spm->M(), 1);
+
+				for (int i = 0; i < spm->NNZ(); ++i)
+				{
+					(*ret)(pr[i], 0) = 1.0;
+
+					if (ret->NNZ() == ret->M())
+						break;
+				}
+
+				outputs.push_back(ret);
+			}
+			else
+			{
+				std::vector<Currency> inputs2;
+				inputs2.push_back(inputs[0]);
+				oml_spones(eval, inputs2, outputs);
+			}
+		}
 
         outputs[0].SetMask(Currency::MASK_LOGICAL);
         return true;
@@ -4977,11 +5147,14 @@ bool oml_str2func(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
 
     FunctionInfo *fi   = nullptr;
     FUNCPTR       fptr = nullptr;
+	ALT_FUNCPTR   aptr = nullptr;
 
-    if (eval.FindFunctionByName(funcName, &fi, &fptr))
+    if (eval.FindFunctionByName(funcName, &fi, &fptr, &aptr))
     {
 		if (fptr)
 			fi = new FunctionInfo(funcName, fptr);
+		else if (aptr)
+			fi = new FunctionInfo(funcName, aptr);
 		else
 			fi->IncrRefCount();
 
@@ -6678,8 +6851,7 @@ bool oml_fprintf(EvaluatorInterface           eval,
         {
             throw OML_Error(OML_ERR_NUMARGIN);
         }
-
-        checkFileIndex(eval, fileid, true);
+        BuiltInFuncsUtils::CheckFileIndex(eval, fileid, 1, true);
         file = eval.GetFile(fileid);
     }
 
@@ -6739,45 +6911,82 @@ bool oml_printf(EvaluatorInterface           eval,
 bool oml_str2num(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
 {
     if (inputs.size() != 1)
+    {
         throw OML_Error(OML_ERR_NUMARGIN);
+    }
 
-    const Currency &input = inputs[0];
+    const Currency& input = inputs[0];
     if (!input.IsString())
-        throw OML_Error(HW_ERROR_INPUTSTRING);
+    {
+        throw OML_Error(OML_ERR_STRING, 1);
+    }
 
-    Interpreter interp(eval);
-    std::string todo = readString(input);
+    if (!input.IsMultilineString()) // Try with strod before evaluating
+    {
+        std::string str(input.StringVal()); 
+        if (str.empty())
+        {
+            outputs.push_back(EvaluatorInterface::allocateMatrix());
+            outputs.push_back(true);
+            return true;
+        }
 
-    // trim left spaces
-    size_t start = todo.find_first_not_of(' ');
-    if (start != std::string::npos)
-        todo.erase(todo.begin(), todo.begin() + start);
+        double rval     = 0;
+        double ival     = 0;
+        bool   isscalar = true;
+        BuiltInFuncsString funcs;
+        if (funcs.Str2Num(str, rval, ival, isscalar))
+        {
+            if (isscalar)
+            {
+                outputs.push_back(rval);
+            }
+            else
+            {
+                outputs.push_back(hwComplex(rval, ival));
+            }
+            outputs.push_back(true);  // Status
+            return true;
+        }
+    }
 
-    if (todo.length() && todo[0] != '{')
+    // Read line by line, so input.StringVal() cannot be used below
+    std::string todo(readString(input)); 
+
+    BuiltInFuncsUtils utils;
+    todo = utils.LTrim(todo);  // Trim left space
+
+    if (!todo.empty() && todo[0] != '{')
+    {
         todo = '[' + todo + ']';
-    Currency first = interp.DoString(todo);
+    }
+
+    Interpreter __interp(eval);
+    Currency first = __interp.DoString(todo);
     if (first.IsCellArray())
     {
 		// Make sure this is a copy.  Otherwise 'first' and 'outcur' will be holding the
 		// same pointer and crash.
         HML_CELLARRAY *out = EvaluatorInterface::allocateCellArray(first.CellArray());
         Currency outcur(out);
-        int m = out->M(), n = out->N();
-        for (int i = 1; i < input.Matrix()->M(); i++)
+        int m = out->M();
+        int n = out->N();
+        for (int i = 1; i < input.Matrix()->M(); ++i) // Multiline strings
         {
-            Currency result = interp.DoString(readString(input, i));
+            Currency result = __interp.DoString(readString(input, i));
             if (result.IsCellArray())
             {
                 HML_CELLARRAY *cell = result.CellArray();
                 if (n != cell->N())
                 {
                     outputs.push_back(EvaluatorInterface::allocateMatrix());
+                    outputs.push_back(false);
                     return true;
                 }
-                BuiltInFuncsUtils::CheckMathStatus(eval, out->Resize(m + 1 + cell->M(), n));
-                for (int j = 0; j < cell->M(); j++)
+                utils.CheckMathStatus(eval, out->Resize(m + 1 + cell->M(), n));
+                for (int j = 0; j < cell->M(); ++j)
                 {
-                    for (int k = 0; k < n; k++)
+                    for (int k = 0; k < n; ++k)
                     {
                         (*out)(j + m++, k) = (*cell)(j, k);
                     }
@@ -6786,22 +6995,18 @@ bool oml_str2num(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
             else
             {
                 outputs.push_back(EvaluatorInterface::allocateMatrix());
-                Currency status(0.0);
-                status.SetMask(Currency::MASK_LOGICAL);
-                outputs.push_back(status);
+                outputs.push_back(false);
                 return true;
             }
         }
 
         outputs.push_back(outcur);
-        Currency status(1.0);
-        status.SetMask(Currency::MASK_LOGICAL);
-        outputs.push_back(status);
+        outputs.push_back(true);
         return true;
     }
     else
     {
-        hwMatrix *out;
+        hwMatrix* out = nullptr;
         if (first.IsScalar())
             out = EvaluatorInterface::allocateMatrix(1, 1, first.Scalar());
         else if (first.IsComplex())
@@ -6811,9 +7016,7 @@ bool oml_str2num(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
         else
         {
             outputs.push_back(EvaluatorInterface::allocateMatrix());
-            Currency status(0.0);
-            status.SetMask(Currency::MASK_LOGICAL);
-            outputs.push_back(status);
+            outputs.push_back(false);
             return true;
         }
 
@@ -6821,15 +7024,16 @@ bool oml_str2num(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
         int outn = out->N();
         Currency outcur(out);
 
-        for (int i = 1; i < input.Matrix()->M(); i++)
+        for (int i = 1; i < input.Matrix()->M(); ++i)
         {
             std::string todo = '[' + readString(input, i) + ']';
-            Currency result = interp.DoString(todo);
+            Currency result = __interp.DoString(todo);
             if (result.IsScalar()|| result.IsComplex())
             {
                 if (outn != 1)
                 {
                     outputs.push_back(EvaluatorInterface::allocateMatrix());
+                    outputs.push_back(false);
                     return true;
                 }
                 BuiltInFuncsUtils::CheckMathStatus(eval, out->Resize(out->M() + 1, 1));
@@ -6844,30 +7048,28 @@ bool oml_str2num(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
                 if (outn != mtx->N())
                 {
                     outputs.push_back(EvaluatorInterface::allocateMatrix());
+                    outputs.push_back(false);
                     return true;
                 }
-                BuiltInFuncsUtils::CheckMathStatus(eval, out->Resize(currentrow + 1 + mtx->M(), outn));
-                for (int j = 0; j < mtx->M(); j++)
+                utils.CheckMathStatus(eval, out->Resize(currentrow + 1 + mtx->M(), outn));
+                for (int j = 0; j < mtx->M(); ++j)
                 {
                     hwMatrix *row = readRow(eval, mtx, j);
-                    BuiltInFuncsUtils::CheckMathStatus(eval, out->WriteRow(++currentrow, *row));
+                    utils.CheckMathStatus(eval, out->WriteRow(++currentrow, *row));
+                    // Memory leak if row is invalid
                     delete row;
                 }
             }
             else
             {
                 outputs.push_back(EvaluatorInterface::allocateMatrix());
-                Currency status(0.0);
-                status.SetMask(Currency::MASK_LOGICAL);
-                outputs.push_back(status);
+                outputs.push_back(false);
                 return true;
             }
         }
 
         outputs.push_back(outcur);
-        Currency status(1.0);
-        status.SetMask(Currency::MASK_LOGICAL);
-        outputs.push_back(status);
+        outputs.push_back(true);
         return true;
     }
 }
@@ -6916,14 +7118,18 @@ static double getDoubleForSprintf(std::vector<Currency>::const_iterator &inputIt
     {
         const hwMatrix *m = inputIter->Matrix();
         double val;
-        if (m->IsReal())
-        {
-            val = (*m)((*indexInInput)++);
-        }
-        else
-        {
-            val = m->z((*indexInInput)++).Real();
-        }
+
+		if (!m->IsEmpty())
+		{
+			if (m->IsReal())
+			{
+				val = (*m)((*indexInInput)++);
+			}
+			else
+			{
+				val = m->z((*indexInInput)++).Real();
+			}
+		}
 
         if (*indexInInput >= m->Size())
         {
@@ -7197,14 +7403,14 @@ static std::string dosprintf(EvaluatorInterface& eval, const std::string &tmplt,
     }
 }
 //------------------------------------------------------------------------------
-// 
+// Helper method for printing
 //------------------------------------------------------------------------------
 static std::string dosprintf(EvaluatorInterface& eval, const std::string &tmplt, int *indexInInput, FormatType ft,
     std::vector<Currency>::const_iterator &inputIter)
 {
     size_t bufferSize = tmplt.length() + tryGetBufferIncrement(tmplt);
     std::string writestr;
-    double value;
+    double value = 0;
     switch (ft)
     {
         case String:
@@ -7214,18 +7420,54 @@ static std::string dosprintf(EvaluatorInterface& eval, const std::string &tmplt,
         case Percent:
             return dosprintf(bufferSize, tmplt);
         case Truncate:
-            value = getDoubleForSprintf(inputIter, indexInInput);
-            bufferSize += computeLength(true, value);
-            if (BuiltInFuncsUtils::NeedsSpecialPrintfFormat(value))
-                return BuiltInFuncsUtils::GetSpecialPrintfFormat(tmplt, value);
-            return dosprintf(bufferSize, tmplt, (long long) value);
+        {
+            if (!inputIter->IsEmpty())
+            {
+                value = getDoubleForSprintf(inputIter, indexInInput);
+                if (BuiltInFuncsUtils::NeedsSpecialPrintfFormat(value))
+                    return BuiltInFuncsUtils::GetSpecialPrintfFormat(tmplt, value);
+                bufferSize += computeLength(true, value);
+            }
+            else
+            {
+                bufferSize = 0;
+            }
+            // Check for very large numbers
+            if (fabs(value) > INT_MAX)
+            {
+                if (fabs(value) > LLONG_MAX)
+                {
+                    std::string fmt(tmplt);
+                    size_t pos = fmt.find("d");
+                    if (pos != std::string::npos)
+                    {
+                        fmt.replace(pos, 1, "e");
+                    }
+                    return CurrencyDisplay::GetFormattedString(fmt.c_str(), value);
+                }
+                else
+                {
+                    // Don't apply formatting
+                    return std::to_string(static_cast<long long>(value));
+                }
+            }
+            return dosprintf(bufferSize, tmplt, (long long)value);
+        }
+
         case NoTruncate:
-            value = getDoubleForSprintf(inputIter, indexInInput);
-            bufferSize += computeLength(false, value);
-            if (BuiltInFuncsUtils::NeedsSpecialPrintfFormat(value))
-                return BuiltInFuncsUtils::GetSpecialPrintfFormat(tmplt, value);
-            
-            return dosprintf(bufferSize, tmplt, value);
+			if (!inputIter->IsEmpty())
+			{
+				value = getDoubleForSprintf(inputIter, indexInInput);
+				if (BuiltInFuncsUtils::NeedsSpecialPrintfFormat(value))
+					return BuiltInFuncsUtils::GetSpecialPrintfFormat(tmplt, value);
+                bufferSize += computeLength(false, value);
+			}
+			else
+			{
+				bufferSize = 0;
+			}
+			return dosprintf(bufferSize, tmplt, value);
+
         default:
             throw OML_Error(HW_ERROR_UNSUPFORMTYPE);
     }
@@ -7268,6 +7510,7 @@ bool oml_feval(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
 
     FunctionInfo *fi = nullptr;
     FUNCPTR fptr = nullptr;
+	ALT_FUNCPTR aptr = nullptr;
 
     const Currency &input1 = inputs[0];
     std::vector<Currency> funcInputs(inputs.begin() + 1, inputs.end());
@@ -7281,7 +7524,7 @@ bool oml_feval(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
 
         if (multi)
         {
-            if (!eval.FindFunctionByName(funcName, &fi, &fptr))
+            if (!eval.FindFunctionByName(funcName, &fi, &fptr, &aptr))
                 throw OML_Error("Error: no such function '" + funcName + "'");
         }
         else
@@ -7322,6 +7565,10 @@ bool oml_feval(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
     {
         outputs = eval.DoMultiReturnFunctionCall(fptr, funcInputs, (int)funcInputs.size(), nargout, true);
     }
+	else if (aptr)
+	{
+		throw OML_Error(HW_ERROR_UNSUPOP);
+	}
     else
         throw OML_Error(HW_ERROR_BADFUNCHANDLE);
 
@@ -7398,7 +7645,7 @@ bool oml_path(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
     }
     else if (!nargin)
     {
-        const std::vector<std::string> &paths = eval.GetPaths();
+        std::vector<std::string> paths = eval.GetPaths();
         eval.PrintResult(std::string("Current search path:\n"));
         std::vector<std::string>::const_iterator iter = paths.cbegin();
         while(iter != paths.cend())
@@ -8736,8 +8983,12 @@ bool oml_run(EvaluatorInterface           eval,
 		}
 	}
     Interpreter interp(eval);
+	ExprTreeEvaluator* eval_ptr = interp.GetEvaluator();
 
 	eval.RegisterChildEvaluator(interp.GetEvaluator());
+
+	// This line should be here, but it breaks Activate in combination with some other changes
+	//int old_val = eval_ptr->SetNestedFunctionMarker(0);
 
     try
     {
@@ -8807,7 +9058,7 @@ bool oml_fflush(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
         throw OML_Error(OML_ERR_NUMARGIN);
 
     int fileID = getFileFromInput(eval, inputs[0]);
-    checkFileIndex(eval, fileID, true);
+    BuiltInFuncsUtils::CheckFileIndex(eval, fileID, 1, true);
 
     std::string mode = eval.GetFileMode(fileID);
     if (mode == "rb" || mode == "r")
@@ -8831,7 +9082,7 @@ bool oml_frewind(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
         throw OML_Error(OML_ERR_NUMARGIN);
 
     int fileID = getFileFromInput(eval, inputs[0]);
-    checkFileIndex(eval, fileID, false);
+    BuiltInFuncsUtils::CheckFileIndex(eval, fileID, 1, false);
 
     std::FILE *f = eval.GetFile(fileID);
     rewind(f);
@@ -8960,7 +9211,7 @@ static int doWrite(EvaluatorInterface &eval, const std::vector<Currency> &inputs
     int skip = 0;
     int numItems;
     int fileID = getFileFromInput(eval, inputs[0]);
-    checkFileIndex(eval, fileID, true);
+    BuiltInFuncsUtils::CheckFileIndex(eval, fileID, 1, true);
     std::FILE* file = eval.GetFile(fileID);
 
     if (file == stdin)
@@ -9197,294 +9448,6 @@ bool oml_nan(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
     return createCommonMatrix(eval, inputs, outputs, Currency(std::numeric_limits<double>::quiet_NaN()));
 }
 //------------------------------------------------------------------------------
-// 
-//------------------------------------------------------------------------------
-template<typename T>
-static void doRead(int maxLoops, 
-                   size_t size, 
-                   int blockSize, 
-                   int skip, 
-                   std::FILE* file, 
-                   int nrows, 
-                   int ncols, 
-                   std::vector<Currency>& outputs)
-{
-    if (!(nrows && ncols && blockSize))
-    {
-        outputs.push_back(EvaluatorInterface::allocateMatrix());
-        outputs.push_back(0);
-        return;
-    }
-
-    int count = 0;
-
-    std::vector<T> nums;
-    for (int i = 0; i != maxLoops; i++)
-    {
-        if (feof(file)) break;
-        T *output = new T[blockSize];
-        assert(output);
-        if (!output) break;
-
-        memset(output, 0, blockSize * size);
-        size_t numread = fread(output, size, blockSize, file);
-        if (numread <= 0 || numread > blockSize)
-        {
-            delete [] output;
-            output = NULL;
-            break;
-        }
-
-        count += static_cast<int>(numread);
-        // Case when numread is less than blocksize
-        for (int j = 0; j < numread; ++j) 
-            nums.push_back(output[j]);
-
-        if (skip)
-            fseek(file, skip, SEEK_CUR);
-
-        delete [] output;
-        output = NULL;
-    }
-
-    if (ferror(file))
-    {
-        outputs.push_back(EvaluatorInterface::allocateMatrix());
-        outputs.push_back(-1);
-        return;
-    }
-    
-    // don't create unnecessary columns -- the size won't necessarily be exactly what the user defined in this case
-    if (nrows > -1)
-      ncols = (int)min((double) ncols, ceil((double)(nums.size() / (double) nrows)));
-
-    outputs.push_back(containerToMatrix(nums, nrows, ncols));
-    outputs.push_back(static_cast<int>(count));
-}
-//------------------------------------------------------------------------------
-// Reads from file [fread]
-//------------------------------------------------------------------------------
-bool oml_fread(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
-{
-    if (inputs.empty())
-    {
-        throw OML_Error(OML_ERR_NUMARGIN);
-    }
-
-    size_t nargin = inputs.size();
-    int fileID = BuiltInFuncsUtils::GetFileId(eval, inputs[0], 1);
-    BuiltInFuncsUtils::CheckFileIndex(eval, fileID, 1, true);
-
-    if (nargin > 4)
-    {
-        eval.CloseFile(fileID);
-        throw OML_Error(OML_ERR_NUMARGIN);
-    }
-
-    int skip = 0;
-    int maxLoops = -1; // unlimited
-    int nrows = -1;
-    int ncols = -1;
-    int blockSize = 1;
-    bool signedOutput = false;
-    DataType dtype = Char;
-    size_t size = sizeof(unsigned char);
-
-    std::string origPrec;
-    try
-    {
-        if (nargin > 1)
-        {
-            const Currency &input2 = inputs[1];
-            if (nargin == 2 && input2.IsString())
-            {
-                origPrec = input2.StringVal();
-                Precision p = getPrecision(eval, input2);
-                signedOutput = p.sign;
-                blockSize = p.blockSize;
-                size = p.numBytes;
-                dtype = p.dtype;
-            }
-            else
-            {
-                if (input2.IsScalar())
-                {
-                    double temp = input2.Scalar();
-                    if (temp == std::numeric_limits<double>::infinity())
-                        maxLoops = -1;
-                    else if (temp < 0)
-                        throw OML_Error(OML_ERR_NATURALNUM, 2, OML_VAR_DIM);
-                    else
-                        maxLoops = (int) round(temp);
-                }
-                else if (input2.IsMatrix())
-                {
-                    const hwMatrix *m = input2.Matrix();
-                    if (m->IsReal())
-                    {
-                        if (m->Size() == 2)
-                        {
-                            nrows = (int) round((*m)(0));
-                            ncols = (int) round((*m)(1));
-                            maxLoops = nrows * ncols;
-
-                            if ((*m)(0) == std::numeric_limits<double>::infinity())
-                                maxLoops = nrows = -1;
-                            else if (nrows < 0)
-                                throw OML_Error(OML_ERR_NATURALNUM, 2, OML_VAR_DIM);
-
-                            if ((*m)(1) == std::numeric_limits<double>::infinity())
-                                maxLoops = ncols = -1;
-                            else if (ncols < 0)
-                                throw OML_Error(OML_ERR_NATURALNUM, 2, OML_VAR_DIM);
-                        }
-                        else
-                            throw OML_Error(OML_ERR_VECTOR2, 2);
-                    }
-                    else
-                        throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_VECTOR);
-                }
-                else
-                {
-                    std::string msg ("Error: invalid input in argument 2; must be a positive integer,");
-                    msg += " a vector of positive integers or infinity";
-                    throw OML_Error(msg);
-                }
-            }
-            if (nargin > 2)
-            {
-                const Currency& input3 = inputs[2];
-                origPrec = readOption(eval, unnest(input3));
-                Precision p = getPrecision(eval, input3);
-                signedOutput = p.sign;
-                blockSize = p.blockSize;
-                size = p.numBytes;
-                dtype = p.dtype;
-
-                if (nargin > 3)
-                {
-                    skip = (int) inputs[3].Scalar();
-
-                    if (!IsInteger(inputs[3].Scalar()).IsOk())
-                        throw OML_Error(OML_ERR_NATURALNUM, 4, OML_VAR_SKIPVAL);
-
-                    if (skip && fileID < FIRST_USER_FILE)
-                        throw OML_Error(HW_ERROR_NOTSKIPBUILTINFUNC);
-                }
-            }
-        }
-
-        std::FILE* file = eval.GetFile(fileID);
-
-        if (maxLoops != -1)
-        {
-            assert(blockSize != 0);
-            if (blockSize == 0)
-                blockSize = 1;
-            maxLoops = (int) ceil(maxLoops / (double) blockSize);
-        }
-
-        if (signedOutput)
-        {
-            switch (dtype)
-            {
-            case Double: 
-                doRead<double>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
-                break;
-            case Int:
-                doRead<signed int>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
-                break;
-            case Short:
-                doRead<signed short>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
-                break;
-            case Long:
-                doRead<signed long>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
-                break;
-            case Char:
-                doRead<signed char>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
-                break;
-            case Float:
-                doRead<float>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
-                break;
-            case LongLong:
-                doRead<signed long long>(maxLoops, size, blockSize, skip, file, nrows,
-                    ncols, outputs);
-                break;
-            case Int8:
-                doRead<int8_t>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
-                break;
-            case Int16:
-                doRead<int16_t>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
-                break;
-            case Int32:
-                doRead<int32_t>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
-                break;
-            case Int64:
-                doRead<int64_t>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
-                break;
-            default: throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INTERNALERROR)); break;
-            }
-        }
-        else
-        {
-            switch (dtype)
-            {
-            case Int:
-                doRead<unsigned int>(maxLoops, size, blockSize, skip, file, nrows,
-                    ncols, outputs);
-                break;
-            case Short:
-                doRead<unsigned short>(maxLoops, size, blockSize, skip, file, nrows,
-                    ncols, outputs);
-                break;
-            case Long:
-                doRead<unsigned long>(maxLoops, size, blockSize, skip, file, nrows,
-                    ncols, outputs);
-                break;
-            case Char:
-                doRead<unsigned char>(maxLoops, size, blockSize, skip, file, nrows,
-                    ncols, outputs);
-                break;
-            case LongLong:
-                doRead<unsigned long long>(maxLoops, size, blockSize, skip, file, nrows,
-                    ncols, outputs);
-                break;
-            case Int8:
-                doRead<uint8_t>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
-                break;
-            case Int16:
-                doRead<uint16_t>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
-                break;
-            case Int32:
-                doRead<uint32_t>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
-                break;
-            case Int64:
-                doRead<uint64_t>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
-                break;
-            default:
-				throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INTERNALERROR)); break;
-            }
-        }
-    }
-    catch (const OML_Error& e)
-    {
-        eval.CloseFile(fileID);
-        throw e;
-    }
-
-    if (!origPrec.empty() && !outputs.empty())
-    {
-        std::transform(origPrec.begin(), origPrec.end(), origPrec.begin(), ::tolower);
-        if (origPrec.find("=>char") != std::string::npos)
-        {
-            outputs[0].SetMask(Currency::MASK_STRING);
-        }
-    }
-
-
-    return true;
-}
-//------------------------------------------------------------------------------
 // Returns file ID of standard input stream [stdin]
 //------------------------------------------------------------------------------
 bool oml_stdin(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
@@ -9541,7 +9504,7 @@ bool oml_fseek(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
 
     int fileID = getFileFromInput(eval, input1);
 
-    checkFileIndex(eval, fileID, true);
+    BuiltInFuncsUtils::CheckFileIndex(eval, fileID, 1, true);
     if (fileID < FIRST_USER_FILE)
         throw OML_Error(HW_ERROR_NOTFSEEKONSTDINOUTERR);
 
@@ -9640,7 +9603,8 @@ bool oml_feof(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
         throw OML_Error(OML_ERR_NUMARGIN);
 
     int fileID = getFileFromInput(eval, inputs[0]);
-    checkFileIndex(eval, fileID, true);
+    BuiltInFuncsUtils::CheckFileIndex(eval, fileID, 1, true);
+    bool flushcout = BuiltInFuncsUtils::IsFlushCout(eval, fileID);
     FILE* f = eval.GetFile(fileID);
     if (feof(f))
     {
@@ -9649,6 +9613,10 @@ bool oml_feof(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
     else
     {
         char c = fgetc(f);
+        if (flushcout)
+        {
+            std::cout << std::flush;
+        }
         if (c == EOF)
         {
             outputs.push_back(getTrue());
@@ -9656,6 +9624,10 @@ bool oml_feof(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
         else
         {
             ungetc(c,f);
+            if (flushcout)
+            {
+                std::cout << std::flush;
+            }
             outputs.push_back(getFalse());
         }
     }
@@ -9670,7 +9642,7 @@ bool oml_ftell(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
         throw OML_Error(OML_ERR_NUMARGIN);
 
     int fileID = getFileFromInput(eval, inputs[0]);
-    checkFileIndex(eval, fileID, true);
+    BuiltInFuncsUtils::CheckFileIndex(eval, fileID, 1, true);
 
     if (fileID < FIRST_USER_FILE)
         throw OML_Error(HW_ERROR_NOTFTELLONSTDINOUTERR);
@@ -9721,7 +9693,7 @@ bool oml_fclose(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
     }
 
     int fileID = getFileFromInput(eval, inputs[0]);
-    checkFileIndex(eval, fileID, false);
+    BuiltInFuncsUtils::CheckFileIndex(eval, fileID, 1, false);
     outputs.push_back(eval.CloseFile(fileID) ? 0.0 : 1.0);
     
     return true;
@@ -13481,7 +13453,7 @@ bool oml_eps(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
                 throw OML_Error(OML_ERR_NATURALNUM, j+1, OML_VAR_DIM);
             }
 
-            if (!(::checkisfinite(dim)))
+            if (!(::isfinite(dim)))
                 throw OML_Error(HW_ERROR_DIMFINITE);
 
             if (dim < 0.0)
@@ -15580,23 +15552,23 @@ bool oml_memoryuse(EvaluatorInterface eval, const std::vector<Currency>& inputs,
         (*s_pfnGetProcessMemoryInfo)(hProcess, &pmc, sizeof(pmc)) )
     {
         char temp[64];
-        sprintf(temp, "\tProcessPageFaultCount: %d\n", static_cast<int>(pmc.PageFaultCount));
+        sprintf(temp, "\tProcessPageFaultCount: %d\n", pmc.PageFaultCount);
         memstat += temp;
-        sprintf(temp, "\tProcessPeakWorkingSetSize: %d\n", static_cast<int>(pmc.PeakWorkingSetSize));
+        sprintf(temp, "\tProcessPeakWorkingSetSize: %zu\n", pmc.PeakWorkingSetSize);
         memstat += temp;
-        sprintf(temp, "\tProcessWorkingSetSize: %d\n", static_cast<int>(pmc.WorkingSetSize));
+        sprintf(temp, "\tProcessWorkingSetSize: %zu\n", pmc.WorkingSetSize);
         memstat += temp;
-        sprintf(temp, "\tProcessQuotaPeakPagedPoolUsage: %d\n", static_cast<int>(pmc.QuotaPeakPagedPoolUsage));
+        sprintf(temp, "\tProcessQuotaPeakPagedPoolUsage: %zu\n", pmc.QuotaPeakPagedPoolUsage);
         memstat += temp;
-        sprintf(temp, "\tProcessQuotaPagedPoolUsage: %d\n", static_cast<int>(pmc.QuotaPagedPoolUsage));
+        sprintf(temp, "\tProcessQuotaPagedPoolUsage: %zu\n", pmc.QuotaPagedPoolUsage);
         memstat += temp;
-        sprintf(temp, "\tProcessQuotaPeakNonPagedPoolUsage: %d\n", static_cast<int>(pmc.QuotaPeakNonPagedPoolUsage));
+        sprintf(temp, "\tProcessQuotaPeakNonPagedPoolUsage: %zu\n", pmc.QuotaPeakNonPagedPoolUsage);
         memstat += temp;
-        sprintf(temp, "\tProcessQuotaNonPagedPoolUsage: %d\n", static_cast<int>(pmc.QuotaNonPagedPoolUsage));
+        sprintf(temp, "\tProcessQuotaNonPagedPoolUsage: %zu\n", pmc.QuotaNonPagedPoolUsage);
         memstat += temp;
-        sprintf(temp, "\tProcessPagefileUsage: %d\n", static_cast<int>(pmc.PagefileUsage));
+        sprintf(temp, "\tProcessPagefileUsage: %zu\n", pmc.PagefileUsage);
         memstat += temp;
-        sprintf(temp, "\tProcessPeakPagefileUsage: %d\n", static_cast<int>(pmc.PeakPagefileUsage));
+        sprintf(temp, "\tProcessPeakPagefileUsage: %zu\n", pmc.PeakPagefileUsage);
         memstat += temp;
     }
     CloseHandle(hProcess);
@@ -16951,18 +16923,24 @@ bool oml_prod(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
     const Currency &input1 = inputs[0];
 
     if (input1.IsScalar())
+    {
         outputs.push_back(input1.Scalar());
+    }
     else if (input1.IsComplex())
+    {
         outputs.push_back(input1.Complex());
+    }
     else if (input1.IsMatrix() && !input1.IsString())
     {
         const hwMatrix* mtx = input1.Matrix();
-        hwMatrix* result;
-        if (!mtx->Size())
-            outputs.push_back(Currency(1.0));
+
+        if (mtx->Is0x0())
+        {
+            outputs.push_back(1.0);
+        }
         else if (dim > 2)
         {
-            result = EvaluatorInterface::allocateMatrix(mtx);
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx);
             outputs.push_back(result);
         }
         else
@@ -16971,44 +16949,113 @@ bool oml_prod(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
             if (!dim)
                 dim = (m > 1 ? 1 : 2);
 
-            if (dim == 1)
-                result = EvaluatorInterface::allocateMatrix(1, n, mtx->Type());
-            else if (dim == 2)
-                result = EvaluatorInterface::allocateMatrix(m, 1, mtx->Type());
+            int start = 0;
 
-            if (mtx->IsReal())
+            if ((m == 1 && n != 0 && dim == 2) || (n == 1 && m != 0 && dim == 1))
             {
-                double prod;
-                for (int i = 0; i < (dim == 1 ? n : m); ++i)
+                int size = mtx->Size();
+
+                if (mtx->IsReal())
                 {
-                    prod = 1.0;
-                    for (int j = 0; j < (dim == 1 ? m : n); ++j)
-                    {
-                        if (dim == 1)
-                            prod *= (*mtx)(j, i);
-                        else
-                            prod *= (*mtx)(i, j);
-                    }
-                    result->SetElement(i, prod);
+                    const double* real = mtx->GetRealData();
+                    double prod = 1.0;
+
+                    for (int i = 0; i < size; ++i)
+                        prod *= *(real++);
+
+                    outputs.push_back(prod);
+                }
+                else
+                {
+                    const hwComplex* cmplx = mtx->GetComplexData();
+                    hwComplex prod(1.0, 0.0);
+
+                    for (int i = 0; i < size; ++i)
+                        prod *= *(cmplx++);
+
+                    outputs.push_back(prod);
                 }
             }
-            else
+            else if (dim == 1)
             {
-                hwComplex prod;
-                for (int i = 0; i < (dim == 1 ? n : m); ++i)
+                hwMatrix* result = EvaluatorInterface::allocateMatrix(1, n, mtx->Type());
+
+                if (m == 0)
                 {
-                    prod = hwComplex(1, 0);
-                    for (int j = 0; j < (dim == 1 ? m : n); ++j)
-                    {
-                        if (dim == 1)
-                            prod *= mtx->z(j, i);
-                        else
-                            prod *= mtx->z(i, j);
-                    }
-                    result->SetElement(i, prod);
+                    result->SetElements(1.0);
                 }
+                else
+                {
+                    if (mtx->IsReal())
+                    {
+                        for (int j = 0; j < n; ++j)
+                        {
+                            double prod = 1.0;
+
+                            for (int i = 0; i < m; ++i)
+                                prod *= (*mtx)(start + i);
+
+                            (*result)(j) = prod;
+                            start += m;
+                        }
+                    }
+                    else
+                    {
+                        for (int j = 0; j < n; ++j)
+                        {
+                            hwComplex prod(1.0, 0.0);
+
+                            for (int i = 0; i < m; ++i)
+                                prod *= mtx->z(start + i);
+
+                            result->z(j) = prod;
+                            start += m;
+                        }
+                    }
+                }
+
+                outputs.push_back(result);
             }
-            outputs.push_back(result);
+            else // dim == 2
+            {
+                hwMatrix* result = EvaluatorInterface::allocateMatrix(m, 1, mtx->Type());
+
+                if (n == 0)
+                {
+                    result->SetElements(1.0);
+                }
+                else
+                {
+                    if (mtx->IsReal())
+                    {
+                        for (int i = 0; i < m; ++i)
+                            (*result)(i) = (*mtx)(i);
+
+                        for (int j = 1; j < n; ++j)
+                        {
+                            start += m;
+
+                            for (int i = 0; i < m; ++i)
+                                (*result)(i) *= (*mtx)(start + i);
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < m; ++i)
+                            result->z(i) = mtx->z(i);
+
+                        for (int j = 1; j < n; ++j)
+                        {
+                            start += m;
+
+                            for (int i = 0; i < m; ++i)
+                                result->z(i) *= mtx->z(start + i);
+                        }
+                    }
+                }
+
+                outputs.push_back(result);
+            }
         }
     }
     else if (input1.IsNDMatrix())
@@ -17051,18 +17098,24 @@ bool oml_sum(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
     const Currency &input1 = inputs[0];
 
     if (input1.IsScalar())
+    {
         outputs.push_back(input1.Scalar());
+    }
     else if (input1.IsComplex())
+    {
         outputs.push_back(input1.Complex());
+    }
     else if (input1.IsMatrix() || input1.IsString())
     {
         const hwMatrix* mtx = input1.Matrix();
-        hwMatrix* result;
-        if (!mtx->Size())
-            outputs.push_back(Currency(0.0));
+
+        if (mtx->Is0x0())
+        {
+            outputs.push_back(0.0);
+        }
         else if (dim > 2)
         {
-            result = EvaluatorInterface::allocateMatrix(mtx);
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx);
             outputs.push_back(result);
         }
         else
@@ -17072,55 +17125,124 @@ bool oml_sum(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
             if (!dim)
                 dim = (m > 1 ? 1 : 2);
 
-            if (dim == 1)
-                result = EvaluatorInterface::allocateMatrix(1, n, mtx->Type());
-            else if (dim == 2)
-                result = EvaluatorInterface::allocateMatrix(m, 1, mtx->Type());
+            if ((m == 1 && n != 0 && dim == 2) || (n == 1 && m != 0 && dim == 1))
+            {
+                int size = mtx->Size();
 
-            if (mtx->IsReal())
-            {
-                double sum;
-                for (int i = 0; i < (dim == 1 ? n : m); ++i)
+                if (mtx->IsReal())
                 {
-                    sum = 0.0;
-                    for (int j = 0; j < (dim == 1 ? m : n); ++j)
-                    {
-                        if (dim == 1)
-                            sum += (*mtx)(j, i);
-                        else
-                            sum += (*mtx)(i, j);
-                    }
-                    result->SetElement(i, sum);
+                    const double* real = mtx->GetRealData();
+                    double sum = 0.0;
+
+                    for (int i = 0; i < size; ++i)
+                        sum += *(real++);
+
+                    outputs.push_back(sum);
+                }
+                else
+                {
+                    const hwComplex* cmplx = mtx->GetComplexData();
+                    hwComplex sum;
+
+                    for (int i = 0; i < size; ++i)
+                        sum += *(cmplx++);
+
+                    outputs.push_back(sum);
                 }
             }
-            else
+            else if (dim == 1)
             {
-                hwComplex sum;
-                for (int i = 0; i < (dim == 1 ? n : m); ++i)
+                hwMatrix* result = EvaluatorInterface::allocateMatrix(1, n, mtx->Type());
+
+                if (m == 0)
                 {
-                    sum = hwComplex(0, 0);
-                    for (int j = 0; j < (dim == 1 ? m : n); ++j)
-                    {
-                        if (dim == 1)
-                            sum += mtx->z(j, i);
-                        else
-                            sum += mtx->z(i, j);
-                    }
-                    result->SetElement(i, sum);
+                    result->SetElements(0.0);
                 }
+                else
+                {
+                    if (mtx->IsReal())
+                    {
+                        const double* real = mtx->GetRealData();
+
+                        for (int j = 0; j < n; ++j)
+                        {
+                            double sum = 0.0;
+
+                            for (int i = 0; i < m; ++i)
+                                sum += *(real++);
+
+                            (*result)(j) = sum;
+                        }
+                    }
+                    else
+                    {
+                        const hwComplex* cmplx = mtx->GetComplexData();
+
+                        for (int j = 0; j < n; ++j)
+                        {
+                            hwComplex sum;
+
+                            for (int i = 0; i < m; ++i)
+                                sum += *(cmplx++);
+
+                            result->z(j) = sum;
+                        }
+                    }
+                }
+
+                outputs.push_back(result);
             }
-            outputs.push_back(result);
+            else // dim == 2
+            {
+                hwMatrix* result = EvaluatorInterface::allocateMatrix(m, 1, mtx->Type());
+
+                if (n == 0)
+                {
+                    result->SetElements(0.0);
+                }
+                else
+                {
+                    if (mtx->IsReal())
+                    {
+                        const double* real = mtx->GetRealData();
+                        hwMatrix dataVec(m, 1, (void*)real, hwMatrix::REAL);
+                        *result = dataVec;
+
+                        for (int j = 1; j < n; ++j)
+                        {
+                            real += m;
+                            hwMatrix dataVec(m, 1, (void*)real, hwMatrix::REAL);
+                            *result += dataVec;
+                        }
+                    }
+                    else
+                    {
+                        const hwComplex* cmplx = mtx->GetComplexData();
+                        hwMatrix dataVec(m, 1, (void*)cmplx, hwMatrix::COMPLEX);
+                        *result = dataVec;
+
+                        for (int j = 1; j < n; ++j)
+                        {
+                            cmplx += m;
+                            hwMatrix dataVec(m, 1, (void*)cmplx, hwMatrix::COMPLEX);
+                            *result += dataVec;
+                        }
+                    }
+                }
+
+                outputs.push_back(result);
+            }
         }
     }
     else if (input1.IsNDMatrix())
     {
         if (size == 1)
         {
-            oml_MatrixNUtil3(eval, inputs, outputs, oml_sum);
+            oml_MatrixN_sum(eval, inputs, outputs);
         }
         else
         {
-            oml_MatrixNUtil3(eval, inputs, outputs, oml_sum, 2);
+            oml_MatrixN_sum(eval, inputs, outputs, 2);
         }
     }
     else if (input1.IsSparse())
@@ -17191,7 +17313,9 @@ bool oml_cumsum(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
         const hwMatrix* mtx = input1.Matrix();
         hwMatrix* result;
         if (!mtx->Size())
+        {
             outputs.push_back(EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), hwMatrix::REAL));
+        }
         else if (dim > 2)
         {
             result = EvaluatorInterface::allocateMatrix(mtx);
@@ -17204,50 +17328,105 @@ bool oml_cumsum(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
             if (!dim)
                 dim = (m > 1 ? 1 : 2);
 
-            result = EvaluatorInterface::allocateMatrix(m, n, mtx->Type());
+            if ((m == 1 && n != 0 && dim == 2) || (n == 1 && m != 0 && dim == 1))
+            {
+                result = EvaluatorInterface::allocateMatrix(m, n, mtx->Type());
+                int size = mtx->Size();
 
-            if (mtx->IsReal())
-            {
-                double sum;
-                for (int i = 0; i < (dim == 1 ? n : m); ++i)
+                if (mtx->IsReal())
                 {
-                    sum = 0.0;
-                    for (int j = 0; j < (dim == 1 ? m : n); ++j)
+                    const double* real = mtx->GetRealData();
+                    double* cumsum = result->GetRealData();
+                    double sum = 0.0;
+
+                    for (int i = 0; i < size; ++i)
                     {
-                        if (dim == 1)
+                        sum += *(real++);
+                        *(cumsum++) = sum;
+                    }
+                }
+                else
+                {
+                    const hwComplex* cmplx = mtx->GetComplexData();
+                    hwComplex* cumsum = result->GetComplexData();
+                    hwComplex sum;
+
+                    for (int i = 0; i < size; ++i)
+                    {
+                        sum += *(cmplx++);
+                        *(cumsum++) = sum;
+                    }
+                }
+            }
+            else if (dim == 1)
+            {
+                result = EvaluatorInterface::allocateMatrix(m, n, mtx->Type());
+
+                if (mtx->IsReal())
+                {
+                    const double* real = mtx->GetRealData();
+                    double* cumsum = result->GetRealData();
+
+                    for (int j = 0; j < n; ++j)
+                    {
+                        double sum = 0.0;
+
+                        for (int i = 0; i < m; ++i)
                         {
-                            sum += (*mtx)(j, i);
-                            result->SetElement(j, i, sum);
+                            sum += *(real++);
+                            *(cumsum++) = sum;
                         }
-                        else
+                    }
+                }
+                else
+                {
+                    const hwComplex* cmplx = mtx->GetComplexData();
+                    hwComplex* cumsum = result->GetComplexData();
+
+                    for (int j = 0; j < n; ++j)
+                    {
+                        hwComplex sum;
+
+                        for (int i = 0; i < m; ++i)
                         {
-                            sum += (*mtx)(i, j);
-                            result->SetElement(i, j, sum);
+                            sum += *(cmplx++);
+                            *(cumsum++) = sum;
                         }
                     }
                 }
             }
-            else
+            else    // dim == 2
             {
-                hwComplex sum;
-                for (int i = 0; i < (dim == 1 ? n : m); ++i)
+                result = EvaluatorInterface::allocateMatrix(mtx);
+
+                if (mtx->IsReal())
                 {
-                    sum = hwComplex(0, 0);
-                    for (int j = 0; j < (dim == 1 ? m : n); ++j)
+                    const double* realR = result->GetRealData();
+
+                    for (int j = 1; j < n; ++j)
                     {
-                        if (dim == 1)
-                        {
-                            sum += mtx->z(j, i);
-                            result->SetElement(j, i, sum);
-                        }
-                        else
-                        {
-                            sum += mtx->z(i, j);
-                            result->SetElement(i, j, sum);
-                        }
+                        hwMatrix resultVec1(m, 1, (void*)realR, hwMatrix::REAL);
+                        realR += m;
+                        hwMatrix resultVec2(m, 1, (void*)realR, hwMatrix::REAL);
+
+                        resultVec2.AddEquals(resultVec1);
+                    }
+                }
+                else
+                {
+                    const hwComplex* cmplxR = result->GetComplexData();
+
+                    for (int j = 1; j < n; ++j)
+                    {
+                        hwMatrix resultVec1(m, 1, (void*)cmplxR, hwMatrix::COMPLEX);
+                        cmplxR += m;
+                        hwMatrix resultVec2(m, 1, (void*)cmplxR, hwMatrix::COMPLEX);
+
+                        resultVec2.AddEquals(resultVec1);
                     }
                 }
             }
+
             outputs.push_back(result);
         }
     }
@@ -17255,11 +17434,11 @@ bool oml_cumsum(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
     {
         if (nargin == 1)
         {
-            return oml_MatrixNUtil4(eval, inputs, outputs, oml_cumsum);
+            oml_MatrixN_cumsum(eval, inputs, outputs);
         }
         else
         {
-            return oml_MatrixNUtil4(eval, inputs, outputs, oml_cumsum, 2);
+            oml_MatrixN_cumsum(eval, inputs, outputs, 2);
         }
     }
     else
@@ -17308,7 +17487,9 @@ bool oml_cumprod(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
         const hwMatrix* mtx = input1.Matrix();
         hwMatrix* result;
         if (!mtx->Size())
+        {
             outputs.push_back(EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), hwMatrix::REAL));
+        }
         else if (dim > 2)
         {
             result = EvaluatorInterface::allocateMatrix(mtx);
@@ -17323,48 +17504,102 @@ bool oml_cumprod(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
 
             result = EvaluatorInterface::allocateMatrix(m, n, mtx->Type());
 
-            if (mtx->IsReal())
+            if ((m == 1 && n != 0 && dim == 2) || (n == 1 && m != 0 && dim == 1))
             {
-                double prod;
-                for (int i = 0; i < (dim == 1 ? n : m); ++i)
+                int size = mtx->Size();
+
+                if (mtx->IsReal())
                 {
-                    prod = 1.0;
-                    for (int j = 0; j < (dim == 1 ? m : n); ++j)
+                    const double* real = mtx->GetRealData();
+                    double* cumprod = result->GetRealData();
+                    double prod = 1.0;
+
+                    for (int i = 0; i < size; ++i)
                     {
-                        if (dim == 1)
-                        {
-                            prod *= (*mtx)(j, i);
-                            result->SetElement(j, i, prod);
-                        }
-                        else
-                        {
-                            prod *= (*mtx)(i, j);
-                            result->SetElement(i, j, prod);
-                        }
+                        prod *= *(real++);
+                        *(cumprod++) = prod;
+                    }
+                }
+                else
+                {
+                    const hwComplex* cmplx = mtx->GetComplexData();
+                    hwComplex* cumprod = result->GetComplexData();
+                    hwComplex prod(1.0, 0.0);
+
+                    for (int i = 0; i < size; ++i)
+                    {
+                        prod *= *(cmplx++);
+                        *(cumprod++) = prod;
                     }
                 }
             }
-            else
+            else if (dim == 1)
             {
-                hwComplex prod;
-                for (int i = 0; i < (dim == 1 ? n : m); ++i)
+                int start = 0;
+
+                if (mtx->IsReal())
                 {
-                    prod = hwComplex(1, 0);
-                    for (int j = 0; j < (dim == 1 ? m : n); ++j)
+                    for (int j = 0; j < n; ++j)
                     {
-                        if (dim == 1)
+                        double prod = 1.0;
+
+                        for (int i = 0; i < m; ++i)
                         {
-                            prod *= mtx->z(j, i);
-                            result->SetElement(j, i, prod);
+                            prod *= (*mtx)(start + i);
+                            (*result)(start + i) = prod;
                         }
-                        else
+
+                        start += m;
+                    }
+                }
+                else
+                {
+                    for (int j = 0; j < n; ++j)
+                    {
+                        hwComplex prod(1.0, 0.0);
+
+                        for (int i = 0; i < m; ++i)
                         {
-                            prod *= mtx->z(i, j);
-                            result->SetElement(i, j, prod);
+                            prod *= mtx->z(start + i);
+                            result->z(start + i) = prod;
                         }
+
+                        start += m;
                     }
                 }
             }
+            else    // dim == 2
+            {
+                int start = 0;
+
+                if (mtx->IsReal())
+                {
+                    for (int i = 0; i < m; ++i)
+                        (*result)(i) = (*mtx)(i);
+
+                    for (int j = 1; j < n; ++j)
+                    {
+                        start += m;
+
+                        for (int i = 0; i < m; ++i)
+                            (*result)(start + i) = (*result)(start - m + i) * (*mtx)(start + i);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < m; ++i)
+                        result->z(i) = mtx->z(i);
+
+                    for (int j = 1; j < n; ++j)
+                    {
+                        start += m;
+
+                        for (int i = 0; i < m; ++i)
+                            result->z(start + i) = result->z(start - m + i) * mtx->z(start + i);
+                    }
+                }
+            }
+
             outputs.push_back(result);
         }
     }
@@ -17570,7 +17805,7 @@ bool oml_accumarray(EvaluatorInterface eval, const std::vector<Currency>& inputs
                 funcInfo = cur4.FunctionHandle();
                 anonFunc = true;
             }
-            else if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr))
+            else if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr, NULL))
             {
                 throw OML_Error(OML_ERR_FUNCNAME, 4);
             }
@@ -17587,7 +17822,7 @@ bool oml_accumarray(EvaluatorInterface eval, const std::vector<Currency>& inputs
             if (!empty->Is0x0())
                 throw OML_Error(OML_ERR_EMPTYMATRIX, 4, OML_VAR_TYPE);
 
-            if (!eval.FindFunctionByName("sum", &funcInfo, &funcPntr))
+            if (!eval.FindFunctionByName("sum", &funcInfo, &funcPntr, NULL))
             {
                 throw OML_Error(OML_ERR_FUNCNAME, 4);
             }
@@ -17597,7 +17832,7 @@ bool oml_accumarray(EvaluatorInterface eval, const std::vector<Currency>& inputs
             throw OML_Error(OML_ERR_HANDLE, 4, OML_VAR_TYPE);
         }
     }
-    else if (!eval.FindFunctionByName("sum", &funcInfo, &funcPntr))
+    else if (!eval.FindFunctionByName("sum", &funcInfo, &funcPntr, NULL))
     {
         throw OML_Error(OML_ERR_FUNCNAME, 4);
     }
@@ -18987,15 +19222,15 @@ bool oml_meshgrid(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
 
         if (nargin == 2)
         {
-            Currency x_cur = inputs[0];
-            Currency y_cur = inputs[1];
+            const Currency& x_cur = inputs[0];
+            const Currency& y_cur = inputs[1];
 
             x = x_cur.ConvertToMatrix();
             y = y_cur.ConvertToMatrix();
         }
         else if (nargin == 1)
         {
-            Currency x_cur = inputs[0];
+            const Currency& x_cur = inputs[0];
 
             x = x_cur.ConvertToMatrix();
             y = x_cur.ConvertToMatrix();
@@ -19148,15 +19383,15 @@ bool oml_ndgrid(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
 
         if (nargin == 2)
         {
-            Currency x_cur = inputs[0];
-            Currency y_cur = inputs[1];
+            const Currency& x_cur = inputs[0];
+            const Currency& y_cur = inputs[1];
 
             x = x_cur.ConvertToMatrix();
             y = y_cur.ConvertToMatrix();
         }
         else if (nargin == 1)
         {
-            Currency x_cur = inputs[0];
+            const Currency& x_cur = inputs[0];
 
             x = x_cur.ConvertToMatrix();
             y = x_cur.ConvertToMatrix();
@@ -19676,9 +19911,10 @@ bool oml_ast(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
 
 	FunctionInfo* fi   = NULL;
 	FUNCPTR       fptr = NULL;
+	ALT_FUNCPTR   aptr = NULL;
 
 	if (input.IsString())
-		eval.FindFunctionByName(input.StringVal(), &fi, &fptr);
+		eval.FindFunctionByName(input.StringVal(), &fi, &fptr, &aptr);
 	else if (input.IsFunctionHandle())
 		fi = input.FunctionHandle();
 
@@ -19691,7 +19927,7 @@ bool oml_ast(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
 		else
 			outputs.push_back(fi->GetAST());
 	}
-	else if (fptr)
+	else if (fptr || aptr)
 	{
 		outputs.push_back("builtin function");
 	}
@@ -19739,7 +19975,7 @@ void analyze_helper(EvaluatorInterface eval, const std::vector<std::string>& tar
 
 			FunctionInfo* fi = NULL;
 
-			eval.FindFunctionByName(target, &fi, NULL);
+			eval.FindFunctionByName(target, &fi, NULL, NULL);
 
 			if (fi)
 				new_targets.push_back(fi->FileName());
@@ -19889,7 +20125,7 @@ bool oml_help(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
 	{
 		FunctionInfo* fi = nullptr;
 		FUNCPTR       fp = nullptr;
-		eval.FindFunctionByName(inputs[0].StringVal(), &fi, &fp);
+		eval.FindFunctionByName(inputs[0].StringVal(), &fi, &fp, NULL);
 
 		if (fi)
 		{
@@ -19913,6 +20149,7 @@ bool oml_help(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
 		std::string base = c;
 		std::string helpdir;
 		helpdir = intBase.GetHelpDirectory(inputs[0].StringVal());
+
 		// DIRECTORY_DELIM
 		//if(helpdir.find_last_of("/\\") !=  string::npos)
 		if (helpdir.find_last_of(DIRECTORY_DELIM) != string::npos)
@@ -20492,7 +20729,7 @@ bool createCommonMatrix(EvaluatorInterface& eval, const std::vector<Currency>& i
             throw OML_Error(OML_ERR_UNSUPPORTDIM);
         }
 
-        if (!(::checkisfinite(m) && ::checkisfinite(n)))
+        if (!(::isfinite(m) && ::isfinite(n)))
             throw OML_Error(HW_ERROR_DIMFINITE);
 
         // take care of negative inputs
@@ -20534,7 +20771,7 @@ bool createCommonMatrix(EvaluatorInterface& eval, const std::vector<Currency>& i
             {
                 dim = realval(dimens, j);
 
-                if (!(::checkisfinite(dim)))
+                if (!(::isfinite(dim)))
                     throw OML_Error(HW_ERROR_DIMFINITE);
 
                 if (dim < 0.0)
@@ -20560,7 +20797,7 @@ bool createCommonMatrix(EvaluatorInterface& eval, const std::vector<Currency>& i
                     throw OML_Error(OML_ERR_NATURALNUM, j+1, OML_VAR_DIM);
                 }
 
-                if (!(::checkisfinite(dim)))
+                if (!(::isfinite(dim)))
                     throw OML_Error(HW_ERROR_DIMFINITE);
 
                 if (dim < 0.0)
@@ -20683,7 +20920,7 @@ bool limitFunc(EvaluatorInterface& eval, const std::vector<Currency> &inputs, st
                 throw OML_Error(OML_ERR_NATURALNUM, j+1, OML_VAR_DIM);
             }
 
-            if (!(::checkisfinite(dim)))
+            if (!(::isfinite(dim)))
                 throw OML_Error(HW_ERROR_DIMFINITE);
 
             if (dim < 0.0)
@@ -21246,7 +21483,11 @@ bool anyall(EvaluatorInterface& eval, const std::vector<Currency>& inputs, std::
     {
         return false;   // ND case is handled upon return
     }
-    else if (!(in1.IsScalar() || in1.IsComplex() || in1.IsMatrix() || in1.IsString()))
+	else if (in1.IsSparse())
+	{
+		return false;   // sparse case is handled upon return
+	}
+	else if (!(in1.IsScalar() || in1.IsComplex() || in1.IsMatrix() || in1.IsString()))
     {
         outputs.push_back(getFalse());
         return true;
@@ -21656,7 +21897,7 @@ double signum(double x)
 //------------------------------------------------------------------------------
 double doubleMod(double a, double b)
 {
-    return a - b * (int) (a / b);
+    return a - b * (long long) (a / b);
 }
 //------------------------------------------------------------------------------
 // calculated via Euclidean algorithm
@@ -21932,12 +22173,29 @@ bool rowVecLessThan(const hwMatrix *mtx1, const hwMatrix *mtx2)
     }
     else
     {
-        for (int i = 0; i < mtx1->Size(); i++)
+		double d1;
+		double d2;
+
+		int size = mtx1->Size();
+
+		if (mtx2->Size() > size)
+			size = mtx2->Size();
+
+        for (int i = 0; i < size; i++)
         {
-            double d1 = (*mtx1)(i), d2 = (*mtx2)(i);
+			if (i < mtx1->Size())
+				d1 = (*mtx1)(i);
+			else
+				return true;
+			
+			if (i < mtx2->Size())
+				d2 = (*mtx2)(i);
+			else
+				return false;
+
             if (d1 == d2)
                 continue;
-            if ((*mtx1)(i) < (*mtx2)(i))
+            if (d1 < d2)
                 return true;
             return false;
         }
@@ -22896,9 +23154,10 @@ bool dofgets(EvaluatorInterface&          eval,
     // Get the file name or file id
     const Currency &input1 = inputs[0];  
     int fid = getFileFromInput(eval, input1);
-
-    checkFileIndex(eval, fid, true);
+    BuiltInFuncsUtils::CheckFileIndex(eval, fid, 1, true);
     std::FILE *file = eval.GetFile(fid);
+
+    bool flushcout = BuiltInFuncsUtils::IsFlushCout(eval, fid);
 
     if (nargin > 1)  // Reads specified number of characters
     {
@@ -22924,10 +23183,17 @@ bool dofgets(EvaluatorInterface&          eval,
         if (fgets(data, len + 1, file) == nullptr)
         {
             delete [] data;
+            if (flushcout)
+            {
+                std::cout << std::flush;
+            }
             return false;
         }
         readline = std::string(data);
-
+        if (flushcout)
+        {
+            std::cout << std::flush;
+        }
         delete [] data;
         return true;
     }
@@ -22936,6 +23202,11 @@ bool dofgets(EvaluatorInterface&          eval,
     while (1)
     {
         int c = fgetc (file);
+        if (flushcout)
+        {
+            std::cout << std::flush;
+        }
+
         if (c == EOF) break;  
 
         if (c == '\n')                     // First newline character
@@ -22947,7 +23218,13 @@ bool dofgets(EvaluatorInterface&          eval,
         else if (c == '\r')               // First carriage return
         {
             readline += c;
+
             int nextch = fgetc (file);
+            if (flushcout)
+            {
+                std::cout << std::flush;
+            }
+
             if (nextch == EOF) break;
             else if (nextch == '\n')     // '\r\n'
             {
@@ -22963,6 +23240,7 @@ bool dofgets(EvaluatorInterface&          eval,
         else
             readline += c;
     }
+
     return (!readline.empty());
 }
 //------------------------------------------------------------------------------
@@ -23272,24 +23550,6 @@ bool twoMatrixCaller(EvaluatorInterface& eval, const std::vector<Currency>& inpu
     outputs.push_back(out);
     return true;
 }
-//------------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
-bool oneMatrixCaller(EvaluatorInterface& eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs, hwMathStatus(hwMatrix::*func)(const hwMatrix&))
-{
-    if (inputs.size() != 1)
-        throw OML_Error(OML_ERR_NUMARGIN);
-
-    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
-        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_VARIABLE);
-
-    const hwMatrix* mtx = inputs[0].ConvertToMatrix();
-    hwMatrix* result = EvaluatorInterface::allocateMatrix();
-    Currency out(result);
-    BuiltInFuncsUtils::CheckMathStatus(eval, (result->*func)(*mtx));
-    outputs.push_back(out);
-    return true;
-}
 
 // general common helpers
 //------------------------------------------------------------------------------
@@ -23459,11 +23719,19 @@ bool checkIsDirectory(EvaluatorInterface& eval, std::string &str, bool throwErro
     return false;
 }
 //------------------------------------------------------------------------------
-//
+// Returns true if given path is a directory
 //------------------------------------------------------------------------------
 bool isDirectory(std::string& str, std::string* errmsg)
 {
+#ifndef OS_WIN
+    if (str == "/")  // Handle root drive on Linux
+    {
+        return true;
+    }
+#endif
+
     BuiltInFuncsUtils::StripTrailingSlash(str);
+
     struct stat st;
 #if OS_WIN
     // handle root drives
@@ -23753,7 +24021,7 @@ void getDimensionsFromInput(const std::vector<Currency> &inputs, int *m, int *n)
         throw OML_Error(OML_ERR_UNSUPPORTDIM, 1);
     }
 
-    if (!(::checkisfinite(dbm) && ::checkisfinite(dbn)))
+    if (!(::isfinite(dbm) && ::isfinite(dbn)))
         throw OML_Error(HW_ERROR_DIMFINITE);
 
     *m = (int) dbm;
@@ -24905,19 +25173,6 @@ std::vector<std::string> separatePathNames(EvaluatorInterface& eval, Currency cu
     return pathlist;
 }
 //------------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
-void checkFileIndex(EvaluatorInterface &eval, int i, bool checkStdStreams)
-{
-    if (i < (checkStdStreams ? 0 : FIRST_USER_FILE) || i >= eval.GetNumFiles()
-        || nullptr == eval.GetFile(i))
-    {
-        std::stringstream str;
-        str << "Error: invalid file stream id: " << i;
-        throw OML_Error(str.str().c_str());
-    }
-}
-//------------------------------------------------------------------------------
 // helper for oml_factor
 // assumes primes and multiplics have same size and indices for each value are lined up
 //------------------------------------------------------------------------------
@@ -26031,6 +26286,10 @@ std::vector<Currency> DoRegExp(EvaluatorInterface&             eval,
     std::string str (search);
     std::string pat (pattern);
     std::vector<Currency> outputs;
+	// To cache regex, in Linux regex compilation at runtime is very costly
+    static std::string previous_pat;
+    static std::regex  reg(previous_pat, std::regex_constants::ECMAScript);
+    static std::regex_constants::syntax_option_type  previous_syntaxflag = std::regex_constants::ECMAScript;
 
     // std::regex_search does not seem to work with '<' in pattern. So, for now remove it
     if (pattern.find("<") != std::string::npos)
@@ -26143,8 +26402,14 @@ std::vector<Currency> DoRegExp(EvaluatorInterface&             eval,
 			std::find(flags.begin(), flags.end(), "once") != flags.end());
 
 		int index = 0;
-        std::regex reg(pat, syntaxflag);
         std::smatch mtch;
+		// To cache regex, in Linux regex compilation at runtime is very costly
+        if ((0 != previous_pat.compare(pat)) || (previous_syntaxflag != syntaxflag))
+        {
+            reg.assign(pat, syntaxflag);
+            previous_pat = pat;
+            previous_syntaxflag = syntaxflag;
+        }
 
         if (pat.length())
         {
@@ -27393,48 +27658,176 @@ bool oml_now(EvaluatorInterface           eval,
 // These functions reside here temporarily to avoid propogating an MKL header
 // dependency to all /kernel clients. They may be moved to /math/sparse in
 // a future release.
-
 #include "mkl_spblas.h"
-#include "mkl_dss.h"
+#include "mkl_pardiso.h"
+//------------------------------------------------------------------------------
+// Add two sparse matrices, sum = A + B
+//------------------------------------------------------------------------------
+void SparseAdd(const hwMatrixS& A, const hwMatrixS& B, hwMatrixS& sum)
+{
+	// get dimensions info
+	MKL_INT m = A.M();
+	MKL_INT n = A.N();
+	hwMathStatus status;
 
+	if (B.M() != m || B.N() != n)
+        throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
+
+    if (A.NNZ() == 0)
+    {
+        sum = B;
+        return;
+    }
+    else if (B.NNZ() == 0)
+    {
+        sum = A;
+        return;
+    }
+
+    MKL_INT* prA = const_cast<MKL_INT*> (A.rows());
+	MKL_INT* pbA = const_cast<MKL_INT*> (A.pointerB());
+	MKL_INT* peA = const_cast<MKL_INT*> (A.pointerE());
+	MKL_INT* prB = const_cast<MKL_INT*> (B.rows());
+	MKL_INT* pbB = const_cast<MKL_INT*> (B.pointerB());
+	MKL_INT* peB = const_cast<MKL_INT*> (B.pointerE());
+
+	MKL_INT* prC = nullptr;
+	MKL_INT* pbC = nullptr;
+	MKL_INT* peC = nullptr;
+
+	// MKL matrix and description
+	sparse_matrix_t A_MKL;
+	sparse_matrix_t B_MKL;
+	sparse_matrix_t C_MKL;
+	struct matrix_descr DSC;
+	DSC.type = SPARSE_MATRIX_TYPE_GENERAL;
+	sparse_status_t mkl_status;
+
+	if (A.IsReal() && B.IsReal())
+	{
+		double* pVA = const_cast<double*> (A.GetRealData());
+		double* pVB = const_cast<double*> (B.GetRealData());
+		double* pVC = nullptr;
+
+		mkl_status = mkl_sparse_d_create_csr(&A_MKL, SPARSE_INDEX_BASE_ZERO,
+			n, m, pbA, peA, prA, pVA);
+
+		if (mkl_status != SPARSE_STATUS_SUCCESS)
+			throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+		mkl_status = mkl_sparse_d_create_csr(&B_MKL, SPARSE_INDEX_BASE_ZERO,
+			n, m, pbB, peB, prB, pVB);
+
+		if (mkl_status != SPARSE_STATUS_SUCCESS)
+			throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+		mkl_status = mkl_sparse_d_add(SPARSE_OPERATION_NON_TRANSPOSE, A_MKL, 1.0, B_MKL, &C_MKL);
+
+		if (mkl_status != SPARSE_STATUS_SUCCESS)
+			throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+		sparse_index_base_t indexing = SPARSE_INDEX_BASE_ZERO;
+
+		mkl_status = mkl_sparse_d_export_csr(C_MKL, &indexing, &n, &m, &pbC, &peC, &prC, &pVC);
+
+		if (mkl_status != SPARSE_STATUS_SUCCESS)
+			throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+		sum = hwMatrixS(m, n, pbC, peC, prC, pVC);
+	}
+	else if (!A.IsReal() && !B.IsReal())
+	{
+		hwComplex* pVA = const_cast<hwComplex*> (A.GetComplexData());
+		hwComplex* pVB = const_cast<hwComplex*> (B.GetComplexData());
+		hwComplex* pVC = nullptr;
+		struct _MKL_Complex16 one;
+
+		one.real = 1.0;
+		one.imag = 0.0;
+
+		mkl_status = mkl_sparse_z_create_csr(&A_MKL, SPARSE_INDEX_BASE_ZERO,
+			n, m, pbA, peA, prA, reinterpret_cast<MKL_Complex16*> (pVA));
+
+		if (mkl_status != SPARSE_STATUS_SUCCESS)
+			throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+		mkl_status = mkl_sparse_z_create_csr(&B_MKL, SPARSE_INDEX_BASE_ZERO,
+			n, m, pbB, peB, prB, reinterpret_cast<MKL_Complex16*> (pVB));
+
+		if (mkl_status != SPARSE_STATUS_SUCCESS)
+			throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+		mkl_status = mkl_sparse_z_add(SPARSE_OPERATION_NON_TRANSPOSE, A_MKL, one, B_MKL, &C_MKL);
+
+		if (mkl_status != SPARSE_STATUS_SUCCESS)
+			throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+		sparse_index_base_t indexing = SPARSE_INDEX_BASE_ZERO;
+
+		mkl_status = mkl_sparse_z_export_csr(C_MKL, &indexing, &n, &m, &pbC, &peC, &prC,
+			reinterpret_cast<MKL_Complex16**> (&pVC));
+
+		if (mkl_status != SPARSE_STATUS_SUCCESS)
+			throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+		sum = hwMatrixS(m, n, pbC, peC, prC, pVC);
+	}
+	else if (!A.IsReal())
+	{
+		hwMatrixS BC;
+		BC.PackComplex(B);
+		return SparseAdd(A, BC, sum);
+	}
+	else    // !B.IsReal()
+	{
+		hwMatrixS AC;
+		AC.PackComplex(A);
+		return SparseAdd(AC, B, sum);
+	}
+}
 //------------------------------------------------------------------------------
 // Multiply a sparse matrix by a full matrix, prod = A * B
 //------------------------------------------------------------------------------
 void SparseMult(const hwMatrixS& A, const hwMatrix& B, hwMatrix& prod)
 {
     // get dimensions info
-    int m = A.M();
-    int n = B.N();
-    int k = A.N();
+    MKL_INT m = A.M();
+    MKL_INT n = A.N();
+    MKL_INT k = B.N();
     hwMathStatus status;
 
-    if (B.M() != k)
+    if (B.M() != n)
         throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
 
-    int* pr = const_cast<int*> (A.rows());
-    int* pb = const_cast<int*> (A.pointerB());
-    int* pe = const_cast<int*> (A.pointerE());
+    if (A.NNZ() == 0 || B.IsEmpty())
+    {
+        status = prod.Dimension(m, k, hwMatrix::REAL);
+        prod.SetElements(0.0);
+        return;
+    }
+
+    MKL_INT* pr = const_cast<MKL_INT*> (A.rows());
+    MKL_INT* pb = const_cast<MKL_INT*> (A.pointerB());
+    MKL_INT* pe = const_cast<MKL_INT*> (A.pointerE());
 
     // MKL matrix and description
     sparse_matrix_t A_MKL;
     struct matrix_descr DSC;
     DSC.type = SPARSE_MATRIX_TYPE_GENERAL;
     sparse_status_t mkl_status;
-    int nRows = A.M();
-    int nCols = A.N();
 
     if (A.IsReal() && B.IsReal())
     {
-        status = prod.Dimension(A.M(), B.N(), hwMatrix::REAL);
+        status = prod.Dimension(m, k, hwMatrix::REAL);
 
         // perform MKL operations
         double* pV = const_cast<double*> (A.GetRealData());
 
-        if (n == 1)
+        if (k == 1)
         {
             // populate MKL matrix
             mkl_status = mkl_sparse_d_create_csc(&A_MKL, SPARSE_INDEX_BASE_ZERO,
-                nRows, nCols, pb, pe, pr, pV);
+                m, n, pb, pe, pr, pV);
 
             if (mkl_status != SPARSE_STATUS_SUCCESS)
                 throw hwMathException(HW_MATH_ERR_UNKNOWN);
@@ -27447,11 +27840,11 @@ void SparseMult(const hwMatrixS& A, const hwMatrix& B, hwMatrix& prod)
             // SPARSE_INDEX_BASE_ZERO is not supported in MKL for this
             // function, so convert to SPARSE_INDEX_BASE_ONE
             int nnz = A.NNZ();
-            MKL_INT* pb1 = new MKL_INT[nCols];
-            MKL_INT* pe1 = new MKL_INT[nCols];
+            MKL_INT* pb1 = new MKL_INT[n];
+            MKL_INT* pe1 = new MKL_INT[n];
             MKL_INT* pr1 = new MKL_INT[nnz];
 
-            for (int i = 0; i < nCols; ++i)
+            for (int i = 0; i < n; ++i)
             {
                 pb1[i] = pb[i] + 1;
                 pe1[i] = pe[i] + 1;
@@ -27462,14 +27855,14 @@ void SparseMult(const hwMatrixS& A, const hwMatrix& B, hwMatrix& prod)
 
             // populate MKL matrix
             mkl_status = mkl_sparse_d_create_csc(&A_MKL, SPARSE_INDEX_BASE_ONE,
-                nRows, nCols, pb1, pe1, pr1, pV);
+                m, n, pb1, pe1, pr1, pV);
 
             if (mkl_status != SPARSE_STATUS_SUCCESS)
                 throw hwMathException(HW_MATH_ERR_UNKNOWN);
 
             mkl_status = mkl_sparse_d_mm(SPARSE_OPERATION_NON_TRANSPOSE,
                 1.0, A_MKL, DSC, SPARSE_LAYOUT_COLUMN_MAJOR,
-                B.GetRealData(), n, nCols, 0.0, prod.GetRealData(), m);
+                B.GetRealData(), k, n, 0.0, prod.GetRealData(), m);
 
             delete [] pb1;
             delete [] pe1;
@@ -27478,7 +27871,7 @@ void SparseMult(const hwMatrixS& A, const hwMatrix& B, hwMatrix& prod)
     }
     else if (!A.IsReal() && !B.IsReal())
     {
-        status = prod.Dimension(A.M(), B.N(), hwMatrix::COMPLEX);
+        status = prod.Dimension(m, k, hwMatrix::COMPLEX);
 
         // perform MKL operations
         hwComplex* pV = const_cast<hwComplex*> (A.GetComplexData());
@@ -27492,11 +27885,11 @@ void SparseMult(const hwMatrixS& A, const hwMatrix& B, hwMatrix& prod)
         zero.real = 0.0;
         zero.imag = 0.0;
 
-        if (n == 1)
+        if (k == 1)
         {
             // populate MKL matrix
             mkl_status = mkl_sparse_z_create_csc(&A_MKL, SPARSE_INDEX_BASE_ZERO,
-                nRows, nCols, pb, pe, pr, reinterpret_cast<MKL_Complex16*> (pV));
+                m, n, pb, pe, pr, reinterpret_cast<MKL_Complex16*> (pV));
 
             if (mkl_status != SPARSE_STATUS_SUCCESS)
                 throw hwMathException(HW_MATH_ERR_UNKNOWN);
@@ -27509,11 +27902,11 @@ void SparseMult(const hwMatrixS& A, const hwMatrix& B, hwMatrix& prod)
             // SPARSE_INDEX_BASE_ZERO is not supported in MKL for this
             // function, so convert to SPARSE_INDEX_BASE_ONE
             int nnz = A.NNZ();
-            MKL_INT* pb1 = new MKL_INT[nCols];
-            MKL_INT* pe1 = new MKL_INT[nCols];
+            MKL_INT* pb1 = new MKL_INT[n];
+            MKL_INT* pe1 = new MKL_INT[n];
             MKL_INT* pr1 = new MKL_INT[nnz];
 
-            for (int i = 0; i < nCols; ++i)
+            for (int i = 0; i < n; ++i)
             {
                 pb1[i] = pb[i] + 1;
                 pe1[i] = pe[i] + 1;
@@ -27524,14 +27917,14 @@ void SparseMult(const hwMatrixS& A, const hwMatrix& B, hwMatrix& prod)
 
             // populate MKL matrix
             mkl_status = mkl_sparse_z_create_csc(&A_MKL, SPARSE_INDEX_BASE_ONE,
-                nRows, nCols, pb1, pe1, pr1, reinterpret_cast<MKL_Complex16*> (pV));
+                m, n, pb1, pe1, pr1, reinterpret_cast<MKL_Complex16*> (pV));
 
             if (mkl_status != SPARSE_STATUS_SUCCESS)
                 throw hwMathException(HW_MATH_ERR_UNKNOWN);
 
             mkl_status = mkl_sparse_z_mm(SPARSE_OPERATION_NON_TRANSPOSE,
                 one, A_MKL, DSC, SPARSE_LAYOUT_COLUMN_MAJOR,
-                reinterpret_cast<MKL_Complex16*> (pB), n, nCols, zero, pP, m);
+                reinterpret_cast<MKL_Complex16*> (pB), k, n, zero, pP, m);
 
             delete [] pb1;
             delete [] pe1;
@@ -27554,7 +27947,280 @@ void SparseMult(const hwMatrixS& A, const hwMatrix& B, hwMatrix& prod)
     if (mkl_status != SPARSE_STATUS_SUCCESS)
         throw hwMathException(HW_MATH_ERR_UNKNOWN);
 }
+//------------------------------------------------------------------------------
+// Multiply a full matrix by a sparse matrix, Y = X * A
+//------------------------------------------------------------------------------
+void SparseMult(const hwMatrix& X, const hwMatrixS& A, hwMatrix& Y)
+{
+    // Y = X * A will be computed using trans(Y) = trans(A) * trans(X)
+    // while interpreting Y and X as having row major storage
+    // Variable names have been changed from the prototype to match MKL
 
+    // X: row major matrix
+    MKL_INT rows_X = X.N();
+    MKL_INT cols_X = X.M();
+
+    // A: column major sparse matrix
+    MKL_INT rows_A = A.M();
+    MKL_INT cols_A = A.N();
+
+    if (rows_A != rows_X)
+        throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
+
+    // Y: row major matrix
+    MKL_INT rows_Y = cols_A;
+    MKL_INT cols_Y = cols_X;
+
+    if (A.NNZ() == 0 || X.IsEmpty())
+    {
+        hwMathStatus status = Y.Dimension(cols_Y, rows_Y, hwMatrix::REAL);
+        Y.SetElements(0.0);
+        return;
+    }
+
+    // compute Y
+    MKL_INT* pr = const_cast<MKL_INT*> (A.rows());
+    MKL_INT* pb = const_cast<MKL_INT*> (A.pointerB());
+    MKL_INT* pe = const_cast<MKL_INT*> (A.pointerE());
+    sparse_matrix_t A_MKL;
+    struct matrix_descr DSC;
+    DSC.type = SPARSE_MATRIX_TYPE_GENERAL;
+    sparse_status_t mkl_status;
+
+    MKL_INT columns = cols_Y;
+    MKL_INT ldx     = cols_X;
+    MKL_INT ldy     = cols_Y;
+
+    if (X.IsReal() && A.IsReal())
+    {
+        hwMathStatus status = Y.Dimension(cols_Y, rows_Y, hwMatrix::REAL);
+
+        // populate MKL matrix and compute
+        double* pV = const_cast<double*> (A.GetRealData());
+
+        mkl_status = mkl_sparse_d_create_csc(&A_MKL, SPARSE_INDEX_BASE_ZERO,
+            rows_A, cols_A, pb, pe, pr, pV);
+
+        if (mkl_status != SPARSE_STATUS_SUCCESS)
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+        double alpha = 1.0;
+        double beta  = 0.0;
+
+        if (cols_X == 1)
+        {
+            mkl_status = mkl_sparse_d_mv(SPARSE_OPERATION_TRANSPOSE,
+                alpha, A_MKL, DSC, X.GetRealData(), 0.0, Y.GetRealData());
+        }
+        else
+        {
+            mkl_status = mkl_sparse_d_mm(SPARSE_OPERATION_TRANSPOSE,
+                alpha, A_MKL, DSC, SPARSE_LAYOUT_ROW_MAJOR,
+                X.GetRealData(), columns, ldx, 0.0, Y.GetRealData(), ldy);
+        }
+    }
+    else if (!X.IsReal() && !A.IsReal())
+    {
+        hwMathStatus status = Y.Dimension(cols_Y, rows_Y, hwMatrix::COMPLEX);
+
+        // populate MKL matrix and compute
+        hwComplex* pV = const_cast<hwComplex*> (A.GetComplexData());
+        hwTComplex<double>* pB = const_cast<hwComplex*> (X.GetComplexData());
+        MKL_Complex16* pP = reinterpret_cast<MKL_Complex16*> (Y.GetComplexData());
+
+        // populate MKL matrix
+        mkl_status = mkl_sparse_z_create_csc(&A_MKL, SPARSE_INDEX_BASE_ZERO,
+            rows_A, cols_A, pb, pe, pr, reinterpret_cast<MKL_Complex16*> (pV));
+
+        if (mkl_status != SPARSE_STATUS_SUCCESS)
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+        struct _MKL_Complex16 alpha;
+        struct _MKL_Complex16 beta;
+
+        alpha.real = 1.0;
+        alpha.imag = 0.0;
+        beta.real  = 0.0;
+        beta.imag  = 0.0;
+
+        if (cols_X == 1)
+        {
+            mkl_status = mkl_sparse_z_mv(SPARSE_OPERATION_TRANSPOSE,
+                alpha, A_MKL, DSC, reinterpret_cast<MKL_Complex16*> (pB), beta, pP);
+        }
+        else
+        {
+            mkl_status = mkl_sparse_z_mm(SPARSE_OPERATION_TRANSPOSE,
+                alpha, A_MKL, DSC, SPARSE_LAYOUT_ROW_MAJOR,
+                reinterpret_cast<MKL_Complex16*> (pB), columns, ldx, beta, pP, ldy);
+        }
+    }
+    else if (!X.IsReal())
+    {
+        hwMatrixS AC;
+        AC.PackComplex(A);
+        return SparseMult(X, AC, Y);
+    }
+    else    // !A.IsReal()
+    {
+        hwMatrix XC;
+        XC.PackComplex(X);
+        return SparseMult(XC, A, Y);
+    }
+
+    if (mkl_status != SPARSE_STATUS_SUCCESS)
+        throw hwMathException(HW_MATH_ERR_UNKNOWN);
+}
+//------------------------------------------------------------------------------
+// Multiply a sparse matrix by a sparse matrix, prod = A * B
+//------------------------------------------------------------------------------
+void SparseMult(const hwMatrixS& A, const hwMatrixS& B, hwMatrixS& prod)
+{
+    // get dimensions info
+    MKL_INT m = A.M();
+    MKL_INT n = A.N();
+    MKL_INT k = B.N();
+    hwMathStatus status;
+
+    if (B.M() != n)
+        throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
+
+    if (A.NNZ() == 0 || B.NNZ() == 0)
+    {
+        std::vector<int> ivec;
+        std::vector<int> jvec;
+        hwMatrix vals;
+        prod = hwMatrixS(ivec, jvec, vals, m, k);
+        return;
+    }
+
+    MKL_INT* prA = const_cast<MKL_INT*> (A.rows());
+    MKL_INT* pbA = const_cast<MKL_INT*> (A.pointerB());
+    MKL_INT* peA = const_cast<MKL_INT*> (A.pointerE());
+    MKL_INT* prB = const_cast<MKL_INT*> (B.rows());
+    MKL_INT* pbB = const_cast<MKL_INT*> (B.pointerB());
+    MKL_INT* peB = const_cast<MKL_INT*> (B.pointerE());
+
+    MKL_INT* prC = nullptr;
+    MKL_INT* pbC = nullptr;
+    MKL_INT* peC = nullptr;
+
+    // MKL matrix and description
+    sparse_matrix_t A_MKL;
+    sparse_matrix_t B_MKL;
+    sparse_matrix_t C_MKL;
+    struct matrix_descr DSC;
+    DSC.type = SPARSE_MATRIX_TYPE_GENERAL;
+    sparse_status_t mkl_status;
+
+    if (A.IsReal() && B.IsReal())
+    {
+        double* pVA = const_cast<double*> (A.GetRealData());
+        double* pVB = const_cast<double*> (B.GetRealData());
+        double* pVC = nullptr;
+
+        mkl_status = mkl_sparse_d_create_csc(&A_MKL, SPARSE_INDEX_BASE_ZERO,
+            m, n, pbA, peA, prA, pVA);
+
+        if (mkl_status != SPARSE_STATUS_SUCCESS)
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+        mkl_status = mkl_sparse_d_create_csc(&B_MKL, SPARSE_INDEX_BASE_ZERO,
+            n, k, pbB, peB, prB, pVB);
+
+        if (mkl_status != SPARSE_STATUS_SUCCESS)
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+        mkl_status = mkl_sparse_spmm(SPARSE_OPERATION_NON_TRANSPOSE, A_MKL, B_MKL, &C_MKL);
+
+        if (mkl_status != SPARSE_STATUS_SUCCESS)
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+        sparse_index_base_t indexing = SPARSE_INDEX_BASE_ZERO;
+
+        mkl_status = mkl_sparse_d_export_csc(C_MKL, &indexing, &n, &k, &pbC, &peC, &prC, &pVC);
+
+        if (mkl_status != SPARSE_STATUS_SUCCESS)
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+        prod = hwMatrixS(n, k, pbC, peC, prC, pVC);
+    }
+    else if (!A.IsReal() && !B.IsReal())
+    {
+        hwComplex* pVA = const_cast<hwComplex*> (A.GetComplexData());
+        hwComplex* pVB = const_cast<hwComplex*> (B.GetComplexData());
+        hwComplex* pVC = nullptr;
+
+        mkl_status = mkl_sparse_z_create_csc(&A_MKL, SPARSE_INDEX_BASE_ZERO,
+            m, n, pbA, peA, prA, reinterpret_cast<MKL_Complex16*> (pVA));
+
+        if (mkl_status != SPARSE_STATUS_SUCCESS)
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+        mkl_status = mkl_sparse_z_create_csc(&B_MKL, SPARSE_INDEX_BASE_ZERO,
+            n, k, pbB, peB, prB, reinterpret_cast<MKL_Complex16*> (pVB));
+
+        if (mkl_status != SPARSE_STATUS_SUCCESS)
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+        mkl_status = mkl_sparse_spmm(SPARSE_OPERATION_NON_TRANSPOSE, A_MKL, B_MKL, &C_MKL);
+
+        if (mkl_status != SPARSE_STATUS_SUCCESS)
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+        sparse_index_base_t indexing = SPARSE_INDEX_BASE_ZERO;
+
+        mkl_status = mkl_sparse_z_export_csc(C_MKL, &indexing, &n, &k, &pbC, &peC, &prC,
+                                             reinterpret_cast<MKL_Complex16**> (&pVC));
+
+        if (mkl_status != SPARSE_STATUS_SUCCESS)
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+        prod = hwMatrixS(n, k, pbC, peC, prC, pVC);
+    }
+    else if (!A.IsReal())
+    {
+        hwMatrixS BC;
+        BC.PackComplex(B);
+        return SparseMult(A, BC, prod);
+    }
+    else    // !B.IsReal()
+    {
+        hwMatrixS AC;
+        AC.PackComplex(A);
+        return SparseMult(AC, B, prod);
+    }
+}
+//------------------------------------------------------------------------------
+// Set pivot threshold for MKL sparse matrix division
+//------------------------------------------------------------------------------
+static int iparm9 = 13;
+
+bool oml_mkl_sdpt(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+    if (inputs.size() == 0)
+    {
+        outputs.push_back(iparm9);
+    }
+    else if (inputs.size() == 1)
+    {
+        if (!inputs[0].IsPositiveInteger())
+            throw OML_Error(OML_ERR_NUMARGIN);
+
+        MKL_INT val = static_cast<MKL_INT> (inputs[0].Scalar());
+
+        if (val < 13)
+            return false;
+
+        iparm9 = val;
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    return true;
+}
 //------------------------------------------------------------------------------
 // Divide a full matrix by a sparse matrix on the left side, Q = A \ B
 //------------------------------------------------------------------------------
@@ -27570,84 +28236,216 @@ void SparseDivideLeft(const hwMatrixS& A, const hwMatrix& B, hwMatrix& Q)
     if (nRows != B.M())
         throw hwMathException(HW_MATH_ERR_ARRAYSIZE, 1, 2);
 
-    // create MKL handle and option arguments
-    _INTEGER_t error;
-    _MKL_DSS_HANDLE_t handle;
-    MKL_INT base  = MKL_DSS_MSG_LVL_WARNING + MKL_DSS_TERM_LVL_ERROR + MKL_DSS_ZERO_BASED_INDEXING;
-    MKL_INT perm  = MKL_DSS_AUTO_ORDER;
-    MKL_INT solve = MKL_DSS_TRANSPOSE_SOLVE;    // column storage, but row storage solver
-    MKL_INT sym   = MKL_DSS_NON_SYMMETRIC;
-    MKL_INT type  = MKL_DSS_INDEFINITE;
+    if (B.IsEmpty())
+    {
+        hwMathStatus status = Q.Dimension(nCols, n, hwMatrix::REAL);
+        Q.SetElements(0.0);
+        return;
+    }
+    
+    if (A.NNZ() == 0)
+    {
+        throw hwMathException(HW_MATH_ERR_SINGMATRIX);
+    }
 
-    // initialize the solver
-    error = dss_create(handle, base);
+    // Internal solver memory pointer pt,
+    // 32-bit: int pt[64]; 64-bit: long int pt[64]
+    // or void *pt[64] should be OK on both architectures
+    void* pt[64];
+    // Pardiso control parameters.
+    MKL_INT iparm[64];
 
-    if (error != MKL_DSS_SUCCESS)
-        throw hwMathException(HW_MATH_ERR_UNKNOWN);
+    // Setup Pardiso control parameters
+    for (MKL_INT i = 0; i < 64; i++)
+    {
+        iparm[i] = 0;
+    }
+    iparm[0]  = 1;        // No solver default
+    iparm[1]  = 2;        // Fill-in reordering from METIS
+    iparm[3]  = 0;        // No iterative-direct algorithm
+    iparm[4]  = 0;        // No user fill-in reducing permutation
+    iparm[5]  = 0;        // Write solution into x
+    iparm[6]  = 0;        // Not in use
+    iparm[7]  = 2;        // Max numbers of iterative refinement steps
+    iparm[8]  = 0;        // Not in use
+    iparm[9]  = iparm9;   // Perturb the pivot elements with 1E-13
+    iparm[10] = 1;        // Use nonsymmetric permutation and scaling MPS
+    iparm[11] = 2;        // Transpose solve for systems in CSC format
+    iparm[12] = 1;        // Maximum weighted matching algorithm is switched-on (default for non-symmetric)
+    iparm[13] = 0;        // Output: Number of perturbed pivots
+    iparm[14] = 0;        // Not in use
+    iparm[15] = 0;        // Not in use
+    iparm[16] = 0;        // Not in use
+    iparm[17] = 0;        // Output: Number of nonzeros in the factor LU (default: -1)
+    iparm[18] = 0;        // Output: Mflops for LU factorization (default: -1)
+    iparm[19] = 0;        // Output: Numbers of CG Iterations
+    iparm[34] = 1;        // Zero based indexing
+
+    MKL_INT maxfct = 1;   // Maximum number of numerical factorizations.
+    MKL_INT mnum   = 1;   // Which factorization to use.
+    MKL_INT msglvl = 0;   // Do not print statistical information in file
+    MKL_INT error  = 0;   // Initialize error flag
+    MKL_INT phase;
+    double ddum;          // Auxiliary double dummy
+    MKL_INT idum;         // Auxiliary integer dummy
+
+    // Initialize the internal solver memory pointer. This is only
+    // necessary for the FIRST call of the PARDISO solver.
+    for (MKL_INT i = 0; i < 64; i++)
+    {
+        pt[i] = 0;
+    }
 
     // define the non-zero structure of the matrix
     int* pr = const_cast<int*> (A.rows());
     int* pe = const_cast<int*> (A.pointerE());
-    int nnz = A.NNZ();
 
-    std::vector<int> colcount;  // TODO: rework, merging pointerB and pointerE
-    colcount.push_back(0);
+    std::vector<int> colCount(nCols + 1);  // TODO: rework, merging pointerB and pointerE
 
     for (int ii = 0; ii < nCols; ++ii)
-        colcount.push_back(pe[ii]);
+        colCount[ii + 1] = pe[ii];
 
-    int* pcc = colcount.data();
-
-    error = dss_define_structure(handle, sym, pcc, nRows, nCols, pr, nnz);
-
-    if (error != MKL_DSS_SUCCESS)
-        throw hwMathException(HW_MATH_ERR_UNKNOWN);
-
-    // reorder the matrix
-    error = dss_reorder(handle, perm, 0);
-
-    if (error != MKL_DSS_SUCCESS)
-        throw hwMathException(HW_MATH_ERR_SINGMATRIX);
+    MKL_INT* ia = colCount.data();
+    MKL_INT* ja = pr;
 
     // choose matrix case
     if (A.IsReal() && B.IsReal())
     {
+        MKL_INT mtype = 11;   // Real unsymmetric matrix
+
         hwMathStatus status = Q.Dimension(nCols, n, hwMatrix::REAL);
 
         if (!status.IsOk())
             throw hwMathException(status.GetMsgCode());
 
-        // factor the matrix
-        error = dss_factor_real(handle, type, A.GetRealData());
+        double* a = const_cast<double*> (A.GetRealData());
+        double* b = const_cast<double*> (B.GetRealData());
+        double* x = Q.GetRealData();
 
-        if (error != MKL_DSS_SUCCESS)
-            throw hwMathException(HW_MATH_ERR_SINGMATRIX);
+        // Reordering and Symbolic Factorization. This step also allocates
+        // all memory that is necessary for the factorization
+        phase = 11;
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+            &nRows, a, ia, ja, &idum, &n, iparm, &msglvl, &ddum, &ddum, &error);
 
-        // solve system
-        error = dss_solve_real(handle, solve, B.GetRealData(), n, Q.GetRealData());
+        if (error != 0)
+        {
+            phase = -1;
+            PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+                &nRows, &ddum, ia, ja, &idum, &n,
+                iparm, &msglvl, &ddum, &ddum, &error);
 
-        if (error != MKL_DSS_SUCCESS)
-            throw hwMathException(HW_MATH_ERR_SINGMATRIX);
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+            // printf("\nERROR during symbolic factorization: %d", error);
+        }
+
+        // Numerical factorization
+        phase = 22;
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+            &nRows, a, ia, ja, &idum, &n, iparm, &msglvl, &ddum, &ddum, &error);
+
+        if (error != 0)
+        {
+            phase = -1;
+            PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+                &nRows, &ddum, ia, ja, &idum, &n,
+                iparm, &msglvl, &ddum, &ddum, &error);
+
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+            // printf("\nERROR during numerical factorization: %d", error);
+        }
+
+        // Solution phase
+        phase = 33;
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+            &nRows, a, ia, ja, &idum, &n, iparm, &msglvl, b, x, &error);
+
+        if (error != 0)
+        {
+            phase = -1;
+            PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+                &nRows, &ddum, ia, ja, &idum, &n,
+                iparm, &msglvl, &ddum, &ddum, &error);
+
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+            // printf("\nERROR during solution: %d", error);
+        }
+
+        // Termination and release of memory
+        phase = -1;
+
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+            &nRows, &ddum, ia, ja, &idum, &n,
+            iparm, &msglvl, &ddum, &ddum, &error);
     }
     else if (!A.IsReal() && !B.IsReal())
     {
+        MKL_INT mtype = 13;   // Complex unsymmetric matrix
+
         hwMathStatus status = Q.Dimension(nCols, n, hwMatrix::COMPLEX);
 
         if (!status.IsOk())
             throw hwMathException(status.GetMsgCode());
 
-        // factor the matrix
-        error = dss_factor_complex(handle, type, A.GetComplexData());
+        hwComplex* a = const_cast<hwComplex*> (A.GetComplexData());
+        hwComplex* b = const_cast<hwComplex*> (B.GetComplexData());
+        hwComplex* x = Q.GetComplexData();
 
-        if (error != MKL_DSS_SUCCESS)
-            throw hwMathException(HW_MATH_ERR_SINGMATRIX);
+        // Reordering and Symbolic Factorization. This step also allocates
+        // all memory that is necessary for the factorization
+        phase = 11;
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+            &nRows, a, ia, ja, &idum, &n, iparm, &msglvl, &ddum, &ddum, &error);
 
-        // solve system
-        error = dss_solve_complex(handle, solve, B.GetComplexData(), n,
-            Q.GetComplexData());
+        if (error != 0)
+        {
+            phase = -1;
+            PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+                &nRows, &ddum, ia, ja, &idum, &n,
+                iparm, &msglvl, &ddum, &ddum, &error);
 
-        if (error != MKL_DSS_SUCCESS)
-            throw hwMathException(HW_MATH_ERR_SINGMATRIX);
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+            // printf("\nERROR during symbolic factorization: %d", error);
+        }
+
+        // Numerical factorization
+        phase = 22;
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+            &nRows, a, ia, ja, &idum, &n, iparm, &msglvl, &ddum, &ddum, &error);
+
+        if (error != 0)
+        {
+            phase = -1;
+            PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+                &nRows, &ddum, ia, ja, &idum, &n,
+                iparm, &msglvl, &ddum, &ddum, &error);
+
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+            // printf("\nERROR during numerical factorization: %d", error);
+        }
+
+        // Solution phase
+        phase = 33;
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+            &nRows, a, ia, ja, &idum, &n, iparm, &msglvl, b, x, &error);
+
+        if (error != 0)
+        {
+            phase = -1;
+            PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+                &nRows, &ddum, ia, ja, &idum, &n,
+                iparm, &msglvl, &ddum, &ddum, &error);
+
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+            // printf("\nERROR during solution: %d", error);
+        }
+
+        // Termination and release of memory
+        phase = -1;
+
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+            &nRows, &ddum, ia, ja, &idum, &n,
+            iparm, &msglvl, &ddum, &ddum, &error);
     }
     else if (!A.IsReal())
     {
@@ -27661,10 +28459,636 @@ void SparseDivideLeft(const hwMatrixS& A, const hwMatrix& B, hwMatrix& Q)
         C.PackComplex(A);
         return SparseDivideLeft(C, B, Q);
     }
+}
+//------------------------------------------------------------------------------
+// Divide a full matrix by a sparse matrix on the right side, Q = A / B
+//------------------------------------------------------------------------------
+void SparseDivideRight(const hwMatrix& A, const hwMatrixS& B, hwMatrix& Q)
+{
+    int nRows = B.M();
+    int nCols = B.N();
+    int m = A.M();
 
-    // deallocate solver storage
-    error = dss_delete(handle, base);
+    if (nRows != nCols)
+        throw hwMathException(HW_MATH_ERR_MTXNOTSQUARE, 1);
 
-    if (error != MKL_DSS_SUCCESS)
-        throw hwMathException(HW_MATH_ERR_UNKNOWN);
+    if (nCols != A.N())
+        throw hwMathException(HW_MATH_ERR_ARRAYSIZE, 1, 2);
+
+    if (A.IsEmpty())
+    {
+        hwMathStatus status = Q.Dimension(m, nRows, hwMatrix::REAL);
+        Q.SetElements(0.0);
+        return;
+    }
+
+    if (B.NNZ() == 0)
+    {
+        throw hwMathException(HW_MATH_ERR_SINGMATRIX);
+    }
+
+    // Internal solver memory pointer pt,
+    // 32-bit: int pt[64]; 64-bit: long int pt[64]
+    // or void *pt[64] should be OK on both architectures
+    void* pt[64];
+    // Pardiso control parameters.
+    MKL_INT iparm[64];
+
+    // Setup Pardiso control parameters
+    for (MKL_INT i = 0; i < 64; i++)
+    {
+        iparm[i] = 0;
+    }
+    iparm[0] = 1;        // No solver default
+    iparm[1] = 2;        // Fill-in reordering from METIS
+    iparm[3] = 0;        // No iterative-direct algorithm
+    iparm[4] = 0;        // No user fill-in reducing permutation
+    iparm[5] = 0;        // Write solution into x
+    iparm[6] = 0;        // Not in use
+    iparm[7] = 2;        // Max numbers of iterative refinement steps
+    iparm[8] = 0;        // Not in use
+    iparm[9] = iparm9;   // Perturb the pivot elements with 1E-13
+    iparm[10] = 1;       // Use nonsymmetric permutation and scaling MPS
+    iparm[11] = 0;       // Non-transpose solve for systems in CSC format
+    iparm[12] = 1;       // Maximum weighted matching algorithm is switched-on (default for non-symmetric)
+    iparm[13] = 0;       // Output: Number of perturbed pivots
+    iparm[14] = 0;       // Not in use
+    iparm[15] = 0;       // Not in use
+    iparm[16] = 0;       // Not in use
+    iparm[17] = 0;       // Output: Number of nonzeros in the factor LU (default: -1)
+    iparm[18] = 0;       // Output: Mflops for LU factorization (default: -1)
+    iparm[19] = 0;       // Output: Numbers of CG Iterations
+    iparm[34] = 1;       // Zero based indexing
+
+    MKL_INT maxfct = 1;  // Maximum number of numerical factorizations.
+    MKL_INT mnum = 1;    // Which factorization to use.
+    MKL_INT msglvl = 0;  // Do not print statistical information in file
+    MKL_INT error = 0;   // Initialize error flag
+    MKL_INT phase;
+    double ddum;         // Auxiliary double dummy
+    MKL_INT idum;        // Auxiliary integer dummy
+
+    // Initialize the internal solver memory pointer. This is only
+    // necessary for the FIRST call of the PARDISO solver.
+    for (MKL_INT i = 0; i < 64; i++)
+    {
+        pt[i] = 0;
+    }
+
+    // define the non-zero structure of the matrix
+    int* pr = const_cast<int*> (B.rows());
+    int* pe = const_cast<int*> (B.pointerE());
+
+    std::vector<int> colCount(nCols + 1);  // TODO: rework, merging pointerB and pointerE
+
+    for (int ii = 0; ii < nCols; ++ii)
+        colCount[ii + 1] = pe[ii];
+
+    MKL_INT* ia = colCount.data();
+    MKL_INT* ja = pr;
+
+    hwMatrix AT;
+
+    hwMathStatus status = AT.Transpose(A);
+
+    // choose matrix case
+    if (A.IsReal() && B.IsReal())
+    {
+        MKL_INT mtype = 11;   // Real unsymmetric matrix
+
+        hwMathStatus status = Q.Dimension(nRows, m, hwMatrix::REAL);
+
+        if (!status.IsOk())
+            throw hwMathException(status.GetMsgCode());
+
+        double* a = const_cast<double*> (B.GetRealData());
+        double* b = const_cast<double*> (AT.GetRealData());
+        double* x = Q.GetRealData();
+
+        // Reordering and Symbolic Factorization. This step also allocates
+        // all memory that is necessary for the factorization
+        phase = 11;
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+            &nRows, a, ia, ja, &idum, &m, iparm, &msglvl, &ddum, &ddum, &error);
+
+        if (error != 0)
+        {
+            phase = -1;
+            PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+                &nRows, &ddum, ia, ja, &idum, &m,
+                iparm, &msglvl, &ddum, &ddum, &error);
+
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+            // printf("\nERROR during symbolic factorization: %d", error);
+        }
+
+        // Numerical factorization
+        phase = 22;
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+            &nRows, a, ia, ja, &idum, &m, iparm, &msglvl, &ddum, &ddum, &error);
+
+        if (error != 0)
+        {
+            phase = -1;
+            PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+                &nRows, &ddum, ia, ja, &idum, &m,
+                iparm, &msglvl, &ddum, &ddum, &error);
+
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+            // printf("\nERROR during numerical factorization: %d", error);
+        }
+
+        // Solution phase
+        phase = 33;
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+            &nRows, a, ia, ja, &idum, &m, iparm, &msglvl, b, x, &error);
+
+        if (error != 0)
+        {
+            phase = -1;
+            PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+                &nRows, &ddum, ia, ja, &idum, &m,
+                iparm, &msglvl, &ddum, &ddum, &error);
+
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+            // printf("\nERROR during solution: %d", error);
+        }
+
+        status = Q.Transpose();
+
+        // Termination and release of memory
+        phase = -1;
+
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+            &nRows, &ddum, ia, ja, &idum, &m,
+            iparm, &msglvl, &ddum, &ddum, &error);
+    }
+    else if (!A.IsReal() && !B.IsReal())
+    {
+        MKL_INT mtype = 13;   // Complex unsymmetric matrix
+
+        hwMathStatus status = Q.Dimension(nRows, m, hwMatrix::COMPLEX);
+
+        if (!status.IsOk())
+            throw hwMathException(status.GetMsgCode());
+
+        hwComplex* a = const_cast<hwComplex*> (B.GetComplexData());
+        hwComplex* b = const_cast<hwComplex*> (AT.GetComplexData());
+        hwComplex* x = Q.GetComplexData();
+
+        // Reordering and Symbolic Factorization. This step also allocates
+        // all memory that is necessary for the factorization
+        phase = 11;
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+            &nRows, a, ia, ja, &idum, &m, iparm, &msglvl, &ddum, &ddum, &error);
+
+        if (error != 0)
+        {
+            phase = -1;
+            PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+                &nRows, &ddum, ia, ja, &idum, &m,
+                iparm, &msglvl, &ddum, &ddum, &error);
+
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+            // printf("\nERROR during symbolic factorization: %d", error);
+        }
+
+        // Numerical factorization
+        phase = 22;
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+            &nRows, a, ia, ja, &idum, &m, iparm, &msglvl, &ddum, &ddum, &error);
+
+        if (error != 0)
+        {
+            phase = -1;
+            PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+                &nRows, &ddum, ia, ja, &idum, &m,
+                iparm, &msglvl, &ddum, &ddum, &error);
+
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+            // printf("\nERROR during numerical factorization: %d", error);
+        }
+
+        // Solution phase
+        phase = 33;
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+            &nRows, a, ia, ja, &idum, &m, iparm, &msglvl, b, x, &error);
+
+        if (error != 0)
+        {
+            phase = -1;
+            PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+                &nRows, &ddum, ia, ja, &idum, &m,
+                iparm, &msglvl, &ddum, &ddum, &error);
+
+            throw hwMathException(HW_MATH_ERR_UNKNOWN);
+            // printf("\nERROR during solution: %d", error);
+        }
+
+        status = Q.Transpose();
+
+        // Termination and release of memory
+        phase = -1;
+
+        PARDISO(pt, &maxfct, &mnum, &mtype, &phase,
+            &nRows, &ddum, ia, ja, &idum, &m,
+            iparm, &msglvl, &ddum, &ddum, &error);
+    }
+    else if (!A.IsReal())
+    {
+        hwMatrixS C;
+        C.PackComplex(B);
+        return SparseDivideRight(A, C, Q);
+    }
+    else    // !B.IsReal()
+    {
+        hwMatrix C;
+        C.PackComplex(A);
+        return SparseDivideRight(C, B, Q);
+    }
+}
+//------------------------------------------------------------------------------
+// Helper method for file read operations
+//------------------------------------------------------------------------------
+template<typename T>
+static void doRead(int maxLoops,
+    size_t size,
+    int blockSize,
+    int skip,
+    std::FILE* file,
+    int nrows,
+    int ncols,
+    std::vector<Currency>& outputs)
+{
+    assert(nrows);
+    assert(ncols);
+    assert(blockSize);
+    assert(file);
+
+    int count = 0;
+    int origncols = ncols;
+
+    // If size is not specified, everything will be pushed to a 
+    // column vector and it will be reshaped/resized later, based on the data
+    std::unique_ptr<hwMatrix> mtx(EvaluatorInterface::allocateMatrix(
+        1, 1, hwMatrix::REAL));
+    bool reshape = (nrows < 0 || ncols < 0);
+    if (!reshape)
+    {
+        mtx.reset(EvaluatorInterface::allocateMatrix(
+            nrows, ncols, hwMatrix::REAL));
+    }
+    mtx->SetElements(0);
+
+    BuiltInFuncsUtils utils;
+    int mtxidx = 0;
+    int mtxsize = mtx->Size();
+    T* output = new T[blockSize];
+
+
+    for (int i = 0; i != maxLoops && !feof(file); ++i)
+    {
+        memset(output, 0, blockSize * size);
+
+        size_t numread = fread(output, size, blockSize, file);
+        if (numread <= 0 || numread > blockSize)
+        {
+            break;
+        }
+
+        count += static_cast<int>(numread);
+
+        if (reshape && mtxsize < count)
+        {
+            hwMathStatus stat = mtx->Resize(count, 1, true);
+            if (!stat.IsOk() && !stat.IsWarning())
+            {
+                delete[] output;
+                output = nullptr;
+                throw OML_Error(stat);
+            }
+            mtxsize = mtx->Size();
+        }
+
+        for (size_t index = 0; index < numread && mtxidx < mtxsize; ++index)
+        {
+            mtx->SetElement(mtxidx++, static_cast<double>(output[index]));
+        }
+
+        if (skip)
+        {
+            fseek(file, skip, SEEK_CUR);
+        }
+    }
+
+    delete[] output;
+    output = nullptr;
+
+    outputs.reserve(2);
+    if (ferror(file))
+    {
+        outputs.push_back(EvaluatorInterface::allocateMatrix());
+        outputs.push_back(-1);
+        return;
+    }
+
+    if (reshape)
+    {
+        if (nrows > 0)
+        {
+            ncols = static_cast<int>(ceil(count / static_cast<double>(nrows)));
+        }
+        else if (origncols > 0)
+        {
+            nrows = static_cast<int>(ceil(count / static_cast<double>(origncols)));
+        }
+        mtx->Reshape(nrows, ncols);
+    }
+
+    // Prevents unnecessary columns from being created if data does not fill
+    // all columns specified by user
+    if (nrows > -1)
+    {
+        ncols = (int)min((double)origncols, ceil((double)(count / (double)nrows)));
+    }
+    if (ncols < origncols && ncols > 0)
+    {
+        mtx->Resize(mtx->M(), ncols, true);
+    }
+
+    if (count > 0)
+    {
+        outputs.push_back(mtx.release());
+    }
+    else
+    {
+        outputs.push_back(EvaluatorInterface::allocateMatrix());
+    }
+
+    outputs.push_back(count);
+}
+//------------------------------------------------------------------------------
+// Reads from file [fread]
+//------------------------------------------------------------------------------
+bool oml_fread(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+    if (inputs.empty())
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    BuiltInFuncsUtils utils;
+    int fileID = utils.GetFileId(eval, inputs[0], 1);
+    utils.CheckFileIndex(eval, fileID, 1, true);
+
+    int blockSize = 1;
+    int maxLoops = -1; // unlimited
+    int nrows = -1;
+    int ncols = -1;
+    int skip = 0;
+
+    bool        signedOutput = false;
+    DataType    dtype = Char;
+    size_t      size = sizeof(unsigned char);
+    size_t      nargin = inputs.size();
+    std::string origPrec;
+
+    try
+    {
+        if (nargin > 1)
+        {
+            const Currency& input2 = inputs[1];
+            if (nargin == 2 && input2.IsString())
+            {
+                origPrec = input2.StringVal();
+                Precision p = getPrecision(eval, input2);
+                signedOutput = p.sign;
+                blockSize = p.blockSize;
+                size = p.numBytes;
+                dtype = p.dtype;
+            }
+            else
+            {
+                if (input2.IsScalar())
+                {
+                    double temp = input2.Scalar();
+                    if (temp == std::numeric_limits<double>::infinity())
+                        maxLoops = -1;
+                    else if (temp < 0)
+                        throw OML_Error(OML_ERR_NATURALNUM, 2, OML_VAR_DIM);
+                    else
+                        maxLoops = (int)round(temp);
+                }
+                else if (input2.IsMatrix())
+                {
+                    const hwMatrix* m = input2.Matrix();
+                    if (m->IsReal())
+                    {
+                        if (m->Size() == 2)
+                        {
+                            nrows = (int)round((*m)(0));
+                            ncols = (int)round((*m)(1));
+                            maxLoops = nrows * ncols;
+
+                            if ((*m)(0) == std::numeric_limits<double>::infinity())
+                                maxLoops = nrows = -1;
+                            else if (nrows < 0)
+                                throw OML_Error(OML_ERR_NATURALNUM, 2, OML_VAR_DIM);
+
+                            if ((*m)(1) == std::numeric_limits<double>::infinity())
+                                maxLoops = ncols = -1;
+                            else if (ncols < 0)
+                                throw OML_Error(OML_ERR_NATURALNUM, 2, OML_VAR_DIM);
+                        }
+                        else
+                            throw OML_Error(OML_ERR_VECTOR2, 2);
+                    }
+                    else
+                        throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_VECTOR);
+                }
+                else
+                {
+                    std::string msg("Error: invalid input in argument 2; must be a positive integer,");
+                    msg += " a vector of positive integers or infinity";
+                    throw OML_Error(msg);
+                }
+            }
+            if (nargin > 2)
+            {
+                const Currency& input3 = inputs[2];
+                origPrec = readOption(eval, unnest(input3));
+                Precision p = getPrecision(eval, input3);
+                signedOutput = p.sign;
+                blockSize = p.blockSize;
+                size = p.numBytes;
+                dtype = p.dtype;
+
+                if (nargin > 3)
+                {
+                    skip = (int)inputs[3].Scalar();
+
+                    if (!IsInteger(inputs[3].Scalar()).IsOk())
+                        throw OML_Error(OML_ERR_NATURALNUM, 4, OML_VAR_SKIPVAL);
+
+                    if (skip && fileID < FIRST_USER_FILE)
+                        throw OML_Error(HW_ERROR_NOTSKIPBUILTINFUNC);
+                }
+            }
+        }
+
+        std::FILE* file = eval.GetFile(fileID);
+
+        if (maxLoops != -1)
+        {
+            assert(blockSize != 0);
+            if (blockSize == 0)
+                blockSize = 1;
+            maxLoops = (int)ceil(maxLoops / (double)blockSize);
+        }
+
+        if (!nrows || !ncols || !blockSize || !file)
+        {
+            outputs.push_back(EvaluatorInterface::allocateMatrix());
+            outputs.push_back(0);
+            return true;
+        }
+        switch (dtype)
+        {
+        case Double:
+            doRead<double>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
+            break;
+
+        case Int:
+            if (signedOutput)
+            {
+                doRead<signed int>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
+            }
+            else
+            {
+                doRead<unsigned int>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
+            }
+            break;
+
+        case Short:
+            if (signedOutput)
+            {
+                doRead<signed short>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
+            }
+            else
+            {
+                doRead<unsigned short>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
+            }
+            break;
+
+        case Long:
+            if (signedOutput)
+            {
+                doRead<signed long>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
+            }
+            else
+            {
+                doRead<unsigned long>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
+            }
+            break;
+
+        case Char:
+            if (signedOutput)
+            {
+                doRead<signed char>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
+            }
+            else
+            {
+                doRead<unsigned char>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
+            }
+            break;
+
+        case Float:
+            doRead<float>(maxLoops, size, blockSize, skip, file, nrows, ncols, outputs);
+            break;
+
+        case LongLong:
+            if (signedOutput)
+            {
+                doRead<signed long long>(maxLoops, size, blockSize, skip, file, nrows,
+                    ncols, outputs);
+            }
+            else
+            {
+                doRead<unsigned long long>(maxLoops, size, blockSize, skip, file, nrows,
+                    ncols, outputs);
+            }
+            break;
+
+        case Int8:
+            if (signedOutput)
+            {
+                doRead<int8_t>(maxLoops, size, blockSize, skip, file, nrows,
+                    ncols, outputs);
+            }
+            else
+            {
+                doRead<uint8_t>(maxLoops, size, blockSize, skip, file, nrows,
+                    ncols, outputs);
+            }
+            break;
+
+        case Int16:
+            if (signedOutput)
+            {
+                doRead<int16_t>(maxLoops, size, blockSize, skip, file, nrows,
+                    ncols, outputs);
+            }
+            else
+            {
+                doRead<uint16_t>(maxLoops, size, blockSize, skip, file, nrows,
+                    ncols, outputs);
+            }
+            break;
+
+        case Int32:
+            if (signedOutput)
+            {
+                doRead<int32_t>(maxLoops, size, blockSize, skip, file, nrows,
+                    ncols, outputs);
+            }
+            else
+            {
+                doRead<uint32_t>(maxLoops, size, blockSize, skip, file, nrows,
+                    ncols, outputs);
+            }
+            break;
+
+        case Int64:
+            if (signedOutput)
+            {
+                doRead<int64_t>(maxLoops, size, blockSize, skip, file, nrows,
+                    ncols, outputs);
+            }
+            else
+            {
+                doRead<uint64_t>(maxLoops, size, blockSize, skip, file, nrows,
+                    ncols, outputs);
+            }
+            break;
+
+        default:
+            throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_INTERNALERROR)); break;
+        }
+    }
+    catch (const OML_Error & e)
+    {
+        eval.CloseFile(fileID);  // \todo: Should not be closing files
+        throw e;
+    }
+
+    if (!origPrec.empty() && !outputs.empty())
+    {
+        std::transform(origPrec.begin(), origPrec.end(), origPrec.begin(), ::tolower);
+        if (origPrec.find("=>char") != std::string::npos)
+        {
+            outputs[0].SetMask(Currency::MASK_STRING);
+        }
+    }
+
+    return true;
 }

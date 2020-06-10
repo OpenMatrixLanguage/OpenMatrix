@@ -44,15 +44,17 @@ public:
     //! Gets the function info corresponding to the method name in the language
     //! \param[in] name Name of the method in the language
     FunctionInfo* GetFunctionInfo( const std::string& name) const;
+
     //! Adds class method
     //! \param[in] name Name of the method in the language
     //! \param[in] fi   Function info
     void AddClassMethod( const std::string& name,
                          FunctionInfo*      fi);
+	void AddStaticClassMethod(const std::string& name, FunctionInfo* fi);
     //! Returns true if given function pointer is a method - used only in language
     //! \param[in] fi Given function pointer
 	bool IsClassMethod( FunctionInfo* fi) const;
-
+	bool IsStaticClassMethod(FunctionInfo* fi) const;
     //! Adds a base class
     //! \param[in] name Given base class name
     void AddBaseClass( const ClassInfo* base_class);
@@ -82,11 +84,12 @@ public:
 	Currency CreateEmpty() const;
 
 private:
-	std::string                          _class_name;   //! External class name
-    std::vector<PropertyInfo*>           _properties;   //! Properties
-    std::vector<const ClassInfo*>        _baseclass;    //! Base classes
-    std::map<std::string, FunctionInfo*> _methods;      //! Methods in language
-	std::map<std::string, Currency>      _defaults;      //! Methods in language
+	std::string                          _class_name;     //! External class name
+    std::vector<PropertyInfo*>           _properties;     //! Properties
+    std::vector<const ClassInfo*>        _baseclass;      //! Base classes
+    std::map<std::string, FunctionInfo*> _methods;        //! Methods in language
+	std::map<std::string, FunctionInfo*> _static_methods; //! Static methods in language
+	std::map<std::string, Currency>      _defaults;       //! Methods in language
 }; 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------

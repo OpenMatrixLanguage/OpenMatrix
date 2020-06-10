@@ -80,6 +80,8 @@
 #define HW_MATH_MSG_NONPOSINT       "Error: invalid value; must be positive integer"
 #define HW_MATH_MSG_NONNONNEGINT    "Error: invalid value; must be nonnegative integer(s)"
 #define HW_MATH_MSG_NONINCREASE     "Error: invalid data; must be strictly increasing"
+#define HW_MATH_MSG_NONUNIQUE       "Error: invalid data; must contain all unique values"
+#define HW_MATH_MSG_CONSECUTIVE3    "Error: invalid data; must contain at most 2 consecutive identical values"
 #define HW_MATH_MSG_MINMAXVALUES    "Error: invalid values; maximum must be >= minimum"
 #define HW_MATH_MSG_BADRANGE        "Error: invalid data; value is out of range"
 #define HW_MATH_MSG_ZERORANGE       "Error: invalid data; has a range of zero"
@@ -280,6 +282,8 @@ std::string GetHMathErrMsg(hwMathMsgCode code)
             case HW_MATH_ERR_NONPOSINT:             retStr = HW_MATH_MSG_NONPOSINT;         break;
             case HW_MATH_ERR_NONNONNEGINT:          retStr = HW_MATH_MSG_NONNONNEGINT;      break;
             case HW_MATH_ERR_NONINCREASE:           retStr = HW_MATH_MSG_NONINCREASE;       break;
+            case HW_MATH_ERR_NONUNIQUE:             retStr = HW_MATH_MSG_NONUNIQUE;         break;
+            case HW_MATH_ERR_CONSECUTIVE3:          retStr = HW_MATH_MSG_CONSECUTIVE3;      break;
             case HW_MATH_ERR_MINMAXVALUES:          retStr = HW_MATH_MSG_MINMAXVALUES;      break;
             case HW_MATH_ERR_BADRANGE:              retStr = HW_MATH_MSG_BADRANGE;          break;
             case HW_MATH_ERR_ZERORANGE:             retStr = HW_MATH_MSG_ZERORANGE;         break;

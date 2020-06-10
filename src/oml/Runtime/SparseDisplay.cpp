@@ -168,7 +168,7 @@ std::string SparseDisplay::GetOutputNoPagination(const OutputFormat* fmt) const
 
     for (int i = 0; i < nnz; ++i)
     {
-        output += "\n" + myindent;
+        output += '\n' + myindent;
         GetOutput(i, isreal, isrealdata, output);
     }
     _formatvars.Reset();
@@ -353,33 +353,45 @@ std::string SparseDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
         return "";
     }
 
-    int maxlines = std::max(GetNumRowsToFit() - 1, 1); // Add pagination msg
-    if (m_linesPrinted >= m_maxRows - 1)
+    int maxlines = 1;
+    int nnz      = mtx->NNZ();
+
+    if (IsPaginateOn())
     {
-        m_linesPrinted = m_maxRows - 2;  // Force print 1 line
+         maxlines = std::max(m_maxRows, 1);
+    }
+    else
+    {
+        maxlines = std::max(GetNumRowsToFit() - 1, 1); // Add pagination msg
+        if (m_linesPrinted >= m_maxRows - 1)
+        {
+            m_linesPrinted = m_maxRows - 2;  // Force print 1 line
+        }
     }
 
-    int nnz = mtx->NNZ();
     int startrow = (m_rowBegin >= 0) ? m_rowBegin : 0;
     int totalrows = std::min(nnz, startrow + maxlines);
 
-    if (nnz - totalrows == 1)  // Print the last line too instead of paginating
+    if (IsPaginateInteractive())
     {
-        totalrows += 1;
-    }
-
-    // If there is only one row left, print instead of paginating
-    if (m_parentDisplay)
-    {
-        if (totalrows == nnz - 1)
+        if (nnz - totalrows == 1)  // Print the last line too instead of paginating
         {
-            maxlines += 1;
             totalrows += 1;
         }
-        else if (totalrows == nnz - 2)
+
+        // If there is only one row left, print instead of paginating
+        if (m_parentDisplay)
         {
-            maxlines += 2;
-            totalrows += 2;
+            if (totalrows == nnz - 1)
+            {
+                maxlines += 1;
+                totalrows += 1;
+            }
+            else if (totalrows == nnz - 2)
+            {
+                maxlines += 2;
+                totalrows += 2;
+            }
         }
     }
 
@@ -394,7 +406,7 @@ std::string SparseDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
 
     for (int i = m_rowBegin; i < totalrows && i < nnz; ++i)
     {
-        output += "\n" + myindent;
+        output += '\n' + myindent;
         GetOutput(i, isreal, isrealdata, output);
         m_linesPrinted++;
         m_rowEnd = i;
@@ -431,7 +443,7 @@ std::string SparseDisplay::GetOutputBackPagination(const OutputFormat* fmt) cons
     m_rowEnd = endrow;
     for (int i = endrow; i >= 0 && m_linesPrinted <= linestofit; --i)
     {
-        std::string rowdata("\n" + myindent);
+        std::string rowdata('\n' + myindent);
         GetOutput(i, isreal, isrealdata, rowdata);
         m_linesPrinted++;
         m_rowBegin = i;

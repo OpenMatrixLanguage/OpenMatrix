@@ -1,7 +1,7 @@
 /**
 * @file ConsoleWrapper.cpp
 * @date June 2015
-* Copyright (C) 2015-2019 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -24,31 +24,27 @@
 #include <cassert>
 #include <sstream>
 
-#include "Runtime/BuiltInFuncsUtils.h"
-#include "Runtime/CurrencyDisplay.h"
-#include "Runtime/Interpreter.h"
-#include "Runtime/OutputFormat.h"
-
-#ifdef OS_WIN
-#   include <Windows.h>
-#else
+#ifndef OS_WIN
 #   include <sys/ioctl.h>
 #   include <termios.h>
 #   include <unistd.h>
 #endif
 
+#include "Runtime/BuiltInFuncsUtils.h"
+#include "Runtime/BuiltInFuncsCore.h"
+#include "Runtime/CurrencyDisplay.h"
+#include "Runtime/Interpreter.h"
+#include "Runtime/OutputFormat.h"
+
 //# define CONSOLEWRAPPER_DBG 1  // Uncomment to print debug info
 #ifdef CONSOLERWRAPPER_DBG
 #    define CONSOLEWRAPPER_PRINT(m) { std::cout << m; }
-#    define CONSOLEWRAPPER_PRINT_PAGINATEINFO(rows, cols) {  \
-            std::cout << "Rows (" << rows << ") Cols (" << cols << ")"; \
-            std::cout << std::endl; }
 #else
 #    define CONSOLEWRAPPER_PRINT(m) 0
-#    define CONSOLEWRAPPER_PRINT_PAGINATEINFO(rows, cols) 0
 #endif
 
 int maxcols = 0;
+const size_t g_buffsize = 256 * 1024;
 // End defines/includes
 
 //------------------------------------------------------------------------------
@@ -58,13 +54,18 @@ ConsoleWrapper::ConsoleWrapper(Interpreter* interp)
     : WrapperBase(interp)
     , _appendOutput     (false)
     , _addnewline       (false)
+    , _getWindowSize    (false)
 {
+	char buf[g_buffsize + 1];
+    std::cout.rdbuf()->pubsetbuf(buf, g_buffsize);
+    std::cin.tie(nullptr);
 }
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
 ConsoleWrapper::~ConsoleWrapper()
 {
+    std::cout.rdbuf()->pubsetbuf(nullptr, 0);
 }
 //------------------------------------------------------------------------------
 // Slot called when printing result to console
@@ -78,23 +79,22 @@ void ConsoleWrapper::HandleOnPrintResult(const Currency& cur)
 //------------------------------------------------------------------------------
 // Gets visible rows and columns from command window screen size
 //------------------------------------------------------------------------------
-void ConsoleWrapper::GetCommandWindowInfo() const
+void ConsoleWrapper::GetCommandWindowInfo()
 {
+    if (!_getWindowSize)
+    {
+        return;
+    }
     int rows = 0;
     int cols = 0;
 
     maxcols = 0;
 #ifdef OS_WIN  // Windows specific code
-    HANDLE hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_SCREEN_BUFFER_INFO srBuffInfo;
-    BOOL result = GetConsoleScreenBufferInfo(hConsoleOutput, &srBuffInfo);
-    if (result)
-    {
-        // Lines and columns use the screen size and not the buffer size
-        rows = abs(srBuffInfo.srWindow.Top   - srBuffInfo.srWindow.Bottom);
-        cols = abs(srBuffInfo.srWindow.Right - srBuffInfo.srWindow.Left);
-
-    }
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(_outhandle, &csbi);
+    // Lines and columns use the screen size and not the buffer size
+    rows = csbi.srWindow.Bottom - csbi.srWindow.Top;
+    cols = csbi.srWindow.Right  - csbi.srWindow.Left;
 #else
     struct winsize w;
     ioctl(0, TIOCGWINSZ, &w);
@@ -105,7 +105,7 @@ void ConsoleWrapper::GetCommandWindowInfo() const
     maxcols = cols;
     CurrencyDisplay::SetMaxCols(cols);
 	CurrencyDisplay::SetMaxRows(rows);
-    CONSOLEWRAPPER_PRINT_PAGINATEINFO(rows, cols);
+    _getWindowSize = false;
 }
 //------------------------------------------------------------------------------
 // Print currency. Return false if this currency could not be printed and 
@@ -116,29 +116,30 @@ bool ConsoleWrapper::PrintResult(const Currency& cur)
     assert(_interp);
     const OutputFormat* format = _interp->GetOutputFormat();
 
-    // Check the pagination environment variable and get command window info
-    SetPaginationVariables();  
-
-    bool canPaginate = CurrencyDisplay::CanPaginate(cur);
-    if (!CurrencyDisplay::IsValidDisplaySize()) // No window size available so just print
+    if (!_displayStack.empty())
     {
-        PrintToConsole(cur.GetOutputString(format), cur.IsPrintfOutput());
-        return true;
+        return false;  // Can't print yet as display stack is not empty
     }
 
-    if (!_displayStack.empty()) return false;  // Can't print yet as display stack is not empty
-
+    bool canPaginate = CurrencyDisplay::CanPaginate(cur);
+    bool forceflush = (cur.IsPrintfOutput() || cur.IsDispOutput() || cur.IsError());
     if (!canPaginate)
-    {               
+    {
         // There is no print in progress, so don't need to worry
-        PrintToConsole(cur.GetOutputString(format), cur.IsPrintfOutput());
+        PrintToConsole(cur.GetOutputString(format), cur.IsPrintfOutput(), forceflush);
+        return true;
+    }
+    GetCommandWindowInfo();
+    if (!CurrencyDisplay::IsValidDisplaySize()) // No window size available so just print
+    {
+        PrintToConsole(cur.GetOutputString(format), cur.IsPrintfOutput(), forceflush);
         return true;
     }
 
     // At this point, the currency that can paginate. Cache if possible
     CacheDisplay(cur);
     bool wasPaginating = false;
-    
+   
     if (_interp->IsInterrupt())  // Check if there has been an interrupt
     {
         PrintPaginationMessage();
@@ -148,7 +149,7 @@ bool ConsoleWrapper::PrintResult(const Currency& cur)
 
     CurrencyDisplay* display = GetCurrentDisplay();
     assert(display);
-    PrintToConsole(cur.GetOutputString(format), cur.IsPrintfOutput());
+    PrintToConsole(cur.GetOutputString(format), cur.IsPrintfOutput(), forceflush);
 
     CurrencyDisplay* topdisplay = GetCurrentDisplay();
     assert(topdisplay);
@@ -194,26 +195,23 @@ bool ConsoleWrapper::PrintResult(const Currency& cur)
 //------------------------------------------------------------------------------
 void ConsoleWrapper::PrintPaginationMessage(bool showColControl)
 {
+    if (CurrencyDisplay::IsPaginateInteractive())
+    {
 #ifdef OS_WIN
-    HANDLE hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-	if (hConsoleOutput == INVALID_HANDLE_VALUE) return;
+        // Gray background with white letters
+        SetConsoleTextAttribute(_outhandle, BACKGROUND_INTENSITY |
+            FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 
-	CONSOLE_SCREEN_BUFFER_INFO csbiInfo; 
-	if (!GetConsoleScreenBufferInfo(hConsoleOutput, &csbiInfo)) return;
-
-	WORD oldColorAttrs = csbiInfo.wAttributes; // Cache color info
-
-    // Gray background with white letters
-	SetConsoleTextAttribute(hConsoleOutput, BACKGROUND_INTENSITY |
-        FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-    std::cout << "-- (f)orward, (b)ack, (q)uit, (e)xit, (\x18), (\x19)";
-    if (showColControl)
-        std::cout << ", (\x1a), (\x1b)";
-	SetConsoleTextAttribute(hConsoleOutput, oldColorAttrs); // Reset color info
+        std::cout << "-- (f)orward, (b)ack, (q)uit, (e)xit, (up), (down)";
+        if (showColControl)
+            std::cout << ", (left), (right)";
+        SetConsoleTextAttribute(_outhandle, _defaultWinAttr); // Reset color info
 #else
 
-    std::cout << "-- (f)orward, (b)ack, (q)uit, (e)xit";
+        std::cout << "-- (f)orward, (b)ack, (q)uit, (e)xit";
 #endif
+    }
+    std::cout << std::flush;
 }
 //------------------------------------------------------------------------------
 // Prints end of pagination message
@@ -221,48 +219,69 @@ void ConsoleWrapper::PrintPaginationMessage(bool showColControl)
 void ConsoleWrapper::PrintPaginationMessage()
 {
     CurrencyDisplay* display = GetCurrentDisplay();
-    if (!display) return;
-
-    std::string strmsg;
-    display->GetPaginationEndMsg(strmsg);
-    if (!strmsg.empty())
-        std::cout << strmsg << std::endl;
+    if (display)
+    {
+        std::string strmsg;
+        display->GetPaginationEndMsg(strmsg);
+        if (!strmsg.empty())
+        {
+            std::cout << strmsg << std::endl;;
+        }
+    }
 }
 //------------------------------------------------------------------------------
 // Prints string to console
 //------------------------------------------------------------------------------
 void ConsoleWrapper::PrintToConsole(const std::string& result,
-                                    bool               isprintoutput)
+                                    bool               isprintoutput,
+                                    bool               forceflush)
 {	
-    if (result.empty()) return;
-
-    if (!_appendOutput && _addnewline)
-        std::cout << std::endl;
-    else if (!isprintoutput && _appendOutput)
-        std::cout << std::endl;
-
-    bool hasTrailingNewline = (result[result.length()-1] == '\n');
-    if (!isprintoutput)
+    if (!result.empty())
     {
-        std::cout << result;
+        std::string msg;
+        if ((!_appendOutput && _addnewline) || (!isprintoutput && _appendOutput))
+        {
+            msg += '\n';
+        }
+
+        bool hasTrailingNewline = (result.back() == '\n');
+        if (!isprintoutput)
+        {
+            msg += result;
+            if (!hasTrailingNewline)
+            {
+                msg += '\n';
+            }
+            _appendOutput = false;
+            _addnewline   = false;
+            PrintToStdout(msg);
+            if (forceflush)
+            {
+                std::cout << std::flush;
+            }
+
+            return;
+        }
+
         if (!hasTrailingNewline)
-            std::cout << std::endl;
+        {
+            msg += result;
+        }
+        else
+        {
+            std::string tmp(result);
+            tmp.pop_back();
+            msg += tmp;
+            _addnewline = true;
+        }
+        PrintToStdout(msg);
+        if (forceflush)
+        {
+            std::cout << std::flush;
+        }
 
-        _appendOutput = false;
-        _addnewline   = false;
-        return;
+        _appendOutput = !hasTrailingNewline;
     }
-    
-    if (!hasTrailingNewline)
-        std::cout << result;
-    else
-    {
-        std::string msg = result.substr(0, result.length()-1);
-        std::cout << msg;
-        _addnewline = true;
-    }
-
-    _appendOutput = !hasTrailingNewline;   
 }
 //------------------------------------------------------------------------------
 // Clears results and pagination related to data
@@ -289,7 +308,10 @@ void ConsoleWrapper::ProcessPagination()
 
     if (display->GetMode() == CurrencyDisplay::DISPLAYMODE_EXIT)
     {
-        std::cout << "\r" << std::endl;
+        if (CurrencyDisplay::IsPaginateInteractive())
+        {
+            std::cout << '\r' << '\n';
+        }
         HandleOnClearResults();   // Quit all printing
     }
     else
@@ -298,24 +320,28 @@ void ConsoleWrapper::ProcessPagination()
         if (display->GetMode() != CurrencyDisplay::DISPLAYMODE_QUIT)
         {
 	        // Print to console
-	        GetCommandWindowInfo();
             display->SetModeData();
 
             const Currency& curBeingPrinted = display->GetCurrency();
             const_cast<Currency&>(curBeingPrinted).SetDisplay(display);
 
             std::string out = curBeingPrinted.GetOutputString(_interp->GetOutputFormat());
-            if (display->GetDeleteLine())
+            if (CurrencyDisplay::IsPaginateInteractive())
             {
-                std::cout << "\r";
-                display->SetDeleteLine(false);
-            }
-            else
-            {
-                std::cout << std::endl;
+                if (display->GetDeleteLine())
+                {
+                    std::cout << '\r';
+                    display->SetDeleteLine(false);
+                }
+                else
+                {
+                    std::cout << '\n';
+                }
             }
             bool isPrintOutput = curBeingPrinted.IsPrintfOutput();
-
+            bool forceflush = (curBeingPrinted.IsDispOutput() || 
+                               curBeingPrinted.IsError()      || 
+                               curBeingPrinted.IsPrintfOutput());
             // Reget display as there could be nested pagination
             CurrencyDisplay* topdisplay = GetCurrentDisplay();
             assert(topdisplay);
@@ -323,10 +349,9 @@ void ConsoleWrapper::ProcessPagination()
             {
                 Currency newcur = const_cast<Currency&>(topdisplay->GetCurrency());
                 newcur.SetDisplay(topdisplay);
-                isPrintOutput = newcur.IsPrintfOutput();
             }
 
-            PrintToConsole(out, isPrintOutput);
+            PrintToConsole(out, isPrintOutput, forceflush);
 	        if (topdisplay->IsPaginatingCols() || topdisplay->IsPaginatingRows()) 
             {
                 PrintPaginationMessage(topdisplay->CanPaginateColumns());
@@ -335,11 +360,13 @@ void ConsoleWrapper::ProcessPagination()
         }
         else
         {
-            std::cout << "\r" << std::endl;
-            display->SetDeleteLine(false);
+            if (CurrencyDisplay::IsPaginateInteractive())
+            {
+                std::cout << '\r' << '\n';
+                display->SetDeleteLine(false);
+            }
             printmsg = false;
         }
-
         EndPagination(printmsg);  // Done with pagination
 
         if (!_displayStack.empty())
@@ -359,7 +386,11 @@ void ConsoleWrapper::ProcessPagination()
             
                 std::string out = curBeingPrinted.GetOutputString(_interp->GetOutputFormat());
                 bool        isprintoutput = curBeingPrinted.IsPrintfOutput();
-                PrintToConsole(out, isprintoutput);
+                bool forceflush = (curBeingPrinted.IsDispOutput() ||
+                    curBeingPrinted.IsError() ||
+                    curBeingPrinted.IsPrintfOutput());
+
+                PrintToConsole(out, isprintoutput, forceflush);
 
                 CurrencyDisplay* topdisplay = GetCurrentDisplay();
                 assert(topdisplay);
@@ -409,98 +440,102 @@ void ConsoleWrapper::Paginate()
     assert(!_displayStack.empty());
 
 #ifdef OS_WIN
-	HANDLE consoleInput = GetStdHandle(STD_INPUT_HANDLE); // Console input buffer
-    if (consoleInput == INVALID_HANDLE_VALUE)             // Something is wrong
-    {
-        CONSOLEWRAPPER_PRINT("Error getting console input\n");
-        HandleOnClearResults();
-        return;
-    }
-
     // Go in a loop till we either get the pagination controls or a quit
     while(1)
     {   
-        DWORD        charToRead = 1;  // Num chars to read
-        DWORD        numEvents  = 0;  // Num events read
-        INPUT_RECORD input;	          // Input buffer data
-   
-		// Stop from echoing.
-		FlushConsoleInputBuffer(consoleInput);
-	    BOOL read = ReadConsoleInput(consoleInput, &input, charToRead, &numEvents);
-        if (!read)
-		{
-			CONSOLEWRAPPER_PRINT("Error reading console input\n");
-			HandleOnClearResults();
-			return;
-		}
-
-        if (_interp->IsInterrupt()) return;
-
-		if (input.EventType != KEY_EVENT || !input.Event.KeyEvent.bKeyDown)  
-			continue; // Not a key event with key down
-
         CurrencyDisplay* display = _displayStack.top();
-        assert(display);
-        bool canPaginateCols = display->CanPaginateColumns();
+        bool canPaginateCols = display ? display->CanPaginateColumns() : false;
 
-        WORD key = input.Event.KeyEvent.wVirtualKeyCode;
-
-		if (key == 0x46 || key == 0x66)      // (f)orward pagination
-			display->SetMode(CurrencyDisplay::DISPLAYMODE_FORWARD);
-		
-		else if (key == 0x51 || key == 0x71)      // (q)uit
+        if (CurrencyDisplay::IsPaginateInteractive())
         {
-            DeleteChainedDisplays(display);
-			display->SetMode(CurrencyDisplay::DISPLAYMODE_QUIT);
-        }
+            DWORD        charToRead = 1;  // Num chars to read
+            DWORD        numEvents = 0;  // Num events read
+            INPUT_RECORD input;	          // Input buffer data
 
-		else if (key == 0x42 || key == 0x62)      // (b)ack pagination
-			display->SetMode(CurrencyDisplay::DISPLAYMODE_BACK);
-
-		else if (key == VK_RIGHT)                // right pagination
-        {
-            if (canPaginateCols)
+            // Stop from echoing.
+            FlushConsoleInputBuffer(_inhandle);
+            BOOL read = ReadConsoleInput(_inhandle, &input, charToRead, &numEvents);
+            if (!read)
             {
-		        display->SetMode(CurrencyDisplay::DISPLAYMODE_RIGHT);
+                CONSOLEWRAPPER_PRINT("Error reading console input\n");
+                HandleOnClearResults();
+                return;
             }
-            else
-            {
+
+            if (_interp->IsInterrupt()) return;
+
+            if (input.EventType != KEY_EVENT || !input.Event.KeyEvent.bKeyDown)
+                continue; // Not a key event with key down
+
+            WORD key = input.Event.KeyEvent.wVirtualKeyCode;
+
+            if (key == 0x46 || key == 0x66 || key == 0x0D)      // (f)orward pagination
                 display->SetMode(CurrencyDisplay::DISPLAYMODE_FORWARD);
-            }
-        }
-		else if (key == VK_LEFT)                // left pagination
-        {
-            if (canPaginateCols)
+
+            else if (key == 0x51 || key == 0x71)      // (q)uit
             {
-		        display->SetMode(CurrencyDisplay::DISPLAYMODE_LEFT);
+                DeleteChainedDisplays(display);
+                display->SetMode(CurrencyDisplay::DISPLAYMODE_QUIT);
             }
+
+            else if (key == 0x42 || key == 0x62)      // (b)ack pagination
+                display->SetMode(CurrencyDisplay::DISPLAYMODE_BACK);
+
+            else if (key == VK_RIGHT)                // right pagination
+            {
+                if (canPaginateCols)
+                {
+                    display->SetMode(CurrencyDisplay::DISPLAYMODE_RIGHT);
+                }
+                else
+                {
+                    display->SetMode(CurrencyDisplay::DISPLAYMODE_FORWARD);
+                }
+            }
+            else if (key == VK_LEFT)                // left pagination
+            {
+                if (canPaginateCols)
+                {
+                    display->SetMode(CurrencyDisplay::DISPLAYMODE_LEFT);
+                }
+                else
+                {
+                    display->SetMode(CurrencyDisplay::DISPLAYMODE_BACK);
+                }
+                break;
+            }
+
+            else if (key == VK_UP)                // Up pagination
+                display->SetMode(CurrencyDisplay::DISPLAYMODE_UP);
+
+            else if (key == VK_DOWN)                // Down pagination
+                display->SetMode(CurrencyDisplay::DISPLAYMODE_DOWN);
+
+            else if (key == 0x45 || key == 0x65)    // (e)xit
+            {
+                DeleteChainedDisplays(display);
+                display->SetMode(CurrencyDisplay::DISPLAYMODE_EXIT);
+            }
+
             else
             {
-                display->SetMode(CurrencyDisplay::DISPLAYMODE_BACK);
+                // Treat any other key as a quit command
+                DeleteChainedDisplays(display);
+                display->SetMode(CurrencyDisplay::DISPLAYMODE_QUIT);
             }
-            break;
+
+            // Delete the last line has the pagination message
+            std::string deletedline("\r");
+            for (int i = 1; i < maxcols - 1; ++i)
+            {
+                deletedline += " ";
+            }
+            std::cout << deletedline;
         }
-
-		else if (key == VK_UP)                // Up pagination
-			display->SetMode(CurrencyDisplay::DISPLAYMODE_UP);
-
-		else if (key == VK_DOWN)                // Down pagination
-			display->SetMode(CurrencyDisplay::DISPLAYMODE_DOWN);
-
-	    else if (key == 0x45 || key == 0x65)    // (e)xit
+        else
         {
-            DeleteChainedDisplays(display);
-		    display->SetMode(CurrencyDisplay::DISPLAYMODE_EXIT);
+            display->SetMode(CurrencyDisplay::DISPLAYMODE_FORWARD);
         }
-
-        // Delete the last line has the pagination message
-        std::string deletedline ("\r");
-        for (int i = 1; i < maxcols - 1; ++i)
-        {
-            deletedline += " ";
-        }
-        std::cout << deletedline;
-		
 		ProcessPagination();
         bool isPaginating = IsPaginating();
         if (!isPaginating) 
@@ -526,23 +561,30 @@ void ConsoleWrapper::Paginate()
         assert(display);
         if (!display) break;
 
-        int key=getchar();
-        if (key == EOF)
-            break;
+        if (CurrencyDisplay::IsPaginateInteractive())
+        {
+            int key = getchar();
+            if (key == EOF)
+                break;
 
-		if (key == 0x46 || key == 0x66)           // (f)orward pagination
-			display->SetMode(CurrencyDisplay::DISPLAYMODE_FORWARD);
-		
-		else if (key == 0x51 || key == 0x71)      // (q)uit
-			display->SetMode(CurrencyDisplay::DISPLAYMODE_QUIT);
+            if (key == 0x46 || key == 0x66)           // (f)orward pagination
+                display->SetMode(CurrencyDisplay::DISPLAYMODE_FORWARD);
 
-		else if (key == 0x42 || key == 0x62)      // (b)ack pagination
-			display->SetMode(CurrencyDisplay::DISPLAYMODE_BACK);
+            else if (key == 0x51 || key == 0x71)      // (q)uit
+                display->SetMode(CurrencyDisplay::DISPLAYMODE_QUIT);
 
-	    else if (key == 0x45 || key == 0x65)    // (e)xit
-		    display->SetMode(CurrencyDisplay::DISPLAYMODE_EXIT);
+            else if (key == 0x42 || key == 0x62)      // (b)ack pagination
+                display->SetMode(CurrencyDisplay::DISPLAYMODE_BACK);
 
-		else continue;
+            else if (key == 0x45 || key == 0x65)    // (e)xit
+                display->SetMode(CurrencyDisplay::DISPLAYMODE_EXIT);
+
+            else continue;
+        }
+        else
+        {
+            display->SetMode(CurrencyDisplay::DISPLAYMODE_FORWARD);
+        }
 		
 		ProcessPagination();
 
@@ -562,8 +604,7 @@ void ConsoleWrapper::HandleOnSaveOnExit()
 
     delete _interp;
     _interp = NULL;
-    exit(EXIT_SUCCESS);
-	
+    exit(EXIT_SUCCESS);	
 }
 //------------------------------------------------------------------------------
 // Slot which displays a prompt and gets user input
@@ -584,9 +625,10 @@ void ConsoleWrapper::HandleOnGetUserInput(const std::string& prompt,
         break;  // Nothing pending at this point
     }
     if (waspaginating)
-        PrintToStdout(">>>");   
+    {
+        std::cout << ">>>";
+    }
 
-    fflush(stdout);
     std::cout << prompt;
     std::getline(std::cin, userInput);
 
@@ -594,22 +636,6 @@ void ConsoleWrapper::HandleOnGetUserInput(const std::string& prompt,
     {
         userInput += "'";
         userInput.insert(0, "'");
-    }
-}
-//------------------------------------------------------------------------------
-// Sets pagination variables
-//------------------------------------------------------------------------------
-void ConsoleWrapper::SetPaginationVariables()
-{
-    // Environment variable takes precedence
-    if (BuiltInFuncsUtils::IsPaginationEnvEnabled())
-    {
-        GetCommandWindowInfo();
-    }
-    else
-    {
-        CurrencyDisplay::SetMaxCols(0);
-        CurrencyDisplay::SetMaxRows(0);
     }
 }
 //------------------------------------------------------------------------------
@@ -709,14 +735,6 @@ void ConsoleWrapper::HandleOnPauseStart(const std::string& msg, bool wait)
     }
 
 #ifdef OS_WIN
-	HANDLE consoleInput = GetStdHandle(STD_INPUT_HANDLE); // Console input buffer
-    if (consoleInput == INVALID_HANDLE_VALUE)             // Something is wrong
-    {
-        CONSOLEWRAPPER_PRINT("Error getting console input\n");
-        HandleOnClearResults();
-        return;
-    }
-
     // Go in a loop till we either get the pagination controls or a quit
     while(1)
     {        
@@ -725,8 +743,8 @@ void ConsoleWrapper::HandleOnPauseStart(const std::string& msg, bool wait)
         INPUT_RECORD input;	          // Input buffer data
    
 		// Stop from echoing.
-		FlushConsoleInputBuffer(consoleInput);
-	    BOOL read = ReadConsoleInput(consoleInput, &input, charToRead, &numEvents);
+		FlushConsoleInputBuffer(_inhandle);
+	    BOOL read = ReadConsoleInput(_inhandle, &input, charToRead, &numEvents);
         if (!read)
 		{
 			CONSOLEWRAPPER_PRINT("Error reading console input\n");
@@ -771,54 +789,56 @@ void ConsoleWrapper::EndPagination(bool printMsg)
 void ConsoleWrapper::PrintInfoToOmlWindow(const std::string& msg)
 {
 #ifdef OS_WIN
-    HANDLE hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-    WORD   oldColorAttrs;
-    bool   setColorAttrs = false;
-	if (hConsoleOutput != INVALID_HANDLE_VALUE)
-    {
-	    CONSOLE_SCREEN_BUFFER_INFO csbiInfo; 
-	    if (GetConsoleScreenBufferInfo(hConsoleOutput, &csbiInfo))
-        {
-            setColorAttrs = true;
-    	    oldColorAttrs = csbiInfo.wAttributes; // Cache color info
+    // Gray background with black letters
+    SetConsoleTextAttribute(_outhandle, BACKGROUND_INTENSITY | 0);
 
-            // Gray background with black letters
-            SetConsoleTextAttribute(hConsoleOutput, BACKGROUND_INTENSITY | 0);
-        }
-    }
     std::cout << msg;
-
-    if (setColorAttrs)
-	    SetConsoleTextAttribute(hConsoleOutput, oldColorAttrs); // Reset color info
-    std::cout << std::endl;
+    SetConsoleTextAttribute(_outhandle, _defaultWinAttr); // Reset color info
 #else
-    std::cout << msg << std::endl;
+    std::cout << msg;
 #endif
+
+    std::cout << std::endl;
 }
 //------------------------------------------------------------------------------
 // Prints info message
 //------------------------------------------------------------------------------
 void ConsoleWrapper::PrintToStdout(const std::string& msg)
 {
-    std::cout << msg;
+    size_t len = msg.size();
+    if (len < g_buffsize)
+    {
+        std::cout << msg;
+        return;
+    }
+
+    size_t numprinted = 0;
+    while (numprinted < len)
+    {
+        std::cout << msg.substr(numprinted, g_buffsize) << std::flush;
+        numprinted += g_buffsize;
+    }
 }
 //------------------------------------------------------------------------------
 // Prints new prompt, resets append flags
 //------------------------------------------------------------------------------
 void ConsoleWrapper::PrintNewPrompt()
 {
+    std::cout << std::flush;
+
+    std::string msg;
     if (_appendOutput)
     {
-        std::cout << std::endl;    // Add newline, in case there was a printf
+        msg = '\n';    // Add newline, in case there was a printf
         _appendOutput = false;     // Reset printf output
     }
     else if (_addnewline)
     {
-        std::cout << std::endl;    // Printf with newline
+        msg = '\n';    // Printf with newline
         _addnewline = false;
     }
-
-    PrintToStdout(">>>");        // New prompt
+    msg += ">>>";
+    std::cout << msg << std::flush;        // New prompt
 }
 //------------------------------------------------------------------------------
 // Gets argv at the given index
@@ -863,4 +883,19 @@ void ConsoleWrapper::DeleteChainedDisplays(CurrencyDisplay* display)
             ++itr;
         }
     }
+}
+//------------------------------------------------------------------------------
+// Initializes command window screen buffer for interactive mode
+//------------------------------------------------------------------------------
+void ConsoleWrapper::InitCommandWindowInfo()
+{
+#ifdef OS_WIN
+    _inhandle  = GetStdHandle(STD_INPUT_HANDLE); 
+    _outhandle = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+    GetConsoleScreenBufferInfo(_outhandle, &csbiInfo);
+    _defaultWinAttr = csbiInfo.wAttributes; // Cache color info
+
+#endif
 }

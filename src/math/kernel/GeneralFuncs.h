@@ -204,12 +204,24 @@ template < typename T >
 T CustomPow(T base, T exp)
 {
 	if (base != base)
-		return base;     // base is a NaN
+		return base;    // base is NaN
 
 	if (exp != exp)
-		return exp;     // exponent is a NaN
+		return exp;     // exponent is NaN
 
-	return pow(base, exp);
+    if (exp == static_cast<T>(2))
+        return base * base;
+
+    if (exp == static_cast<T>(-2))
+        return static_cast<T>(1) / (base * base);
+
+    if (exp == static_cast<T>(1) / static_cast<T>(2))
+        return sqrt(base);
+
+    if (base > static_cast<T>(0) && exp == static_cast<T>(-1) / static_cast<T>(2))
+        return static_cast<T>(1) / sqrt(base);
+
+    return pow(base, exp);
 }
 
 #endif // _GeneralFuncs_h

@@ -1,0 +1,5 @@
+ans = [Matrix] 1 x 5
+0  1  0  0  0
+ans = sparse [1 x 5], nnz = 1
+[1,2] 1
+ans = 1
