@@ -24,6 +24,7 @@
 #include <array>
 #include <regex>
 #include <deque>
+#include <cmath>
 #include "EvaluatorInt.h"
 #include "Currency.h"
 #include "ErrorInfo.h"
