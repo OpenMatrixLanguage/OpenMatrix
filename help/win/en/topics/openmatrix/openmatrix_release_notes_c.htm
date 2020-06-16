@@ -31,7 +31,7 @@
       
       <div class="p">
         <ul class="ul" id="reference_qw4_vch_fw__ul_wdb_r5n_rlb">
-          <li class="li">OML performance improvements.</li>
+          <li class="li"><span class="keyword">OML</span> performance improvements.</li>
 
           <li class="li">Support for sparse matrices.</li>
 
@@ -62,144 +62,129 @@
               operations, creation, and extraction.</dd>
 
           
+          
+            <dt class="dt dlterm">Enhancements</dt>
+
+            <dd class="dd">OML language performance enhancements when executing large scripts (parsing).</dd>
+
+          
+          
+            <dt class="dt dlterm">Functions</dt>
+
+            <dd class="dd">The following functions have been <strong class="ph b"><em class="ph i">improved</em></strong> for <span class="keyword">OpenMatrix</span>
+              <span class="keyword">1.0.4</span>:<ul class="ul" id="reference_qw4_vch_fw__ul_gtw_vpl_1mb">
+                <li class="li"><span class="ph filepath">num2cell</span> extension</li>
+
+                <li class="li">Enhanced <span class="ph filepath">diary</span></li>
+
+                <li class="li"><span class="ph filepath">odeset</span> supports an option to set the maximum step</li>
+
+                <li class="li">Enhanced <span class="ph filepath">rand</span> functionality</li>
+
+              </ul>
+</dd>
+
+            <dd class="dd ddexpand">The following functions have been <strong class="ph b"><em class="ph i">added</em></strong> to <span class="keyword">OpenMatrix</span>
+              <span class="keyword">1.0.4</span>:<ul class="ul" id="reference_qw4_vch_fw__ul_xkq_qvn_rlb">
+                <li class="li"><span class="ph filepath">addlibrary()</span></li>
+
+                <li class="li"><span class="ph filepath">factorial</span></li>
+
+                <li class="li"><span class="ph filepath">keywordlist</span> (returns the supported keywords in OML)</li>
+
+                <li class="li"><span class="ph filepath">squeeze()</span></li>
+
+              </ul>
+</dd>
+
+          
+          
+            <dt class="dt dlterm">Other improvements</dt>
+
+            <dd class="dd">
+              <ul class="ul" id="reference_qw4_vch_fw__ul_enn_srl_1mb">
+                <li class="li">Direct creation of a cell object.</li>
+
+                <li class="li">Default property of class is supported.</li>
+
+                <li class="li">Handle arithmetic operations with singleton dimensions.</li>
+
+                <li class="li">Improved the creation of a new dimension in a cell object.</li>
+
+              </ul>
+
+            </dd>
+
+          
         </dl>
 
       </div>
-
-      <p class="p">OML language performance enhancements when executing large scripts (parsing).</p>
-
-      <div class="p">The following functions have been added to <span class="keyword">OpenMatrix</span>
-        <span class="keyword">1.0.4</span>:<ul class="ul" id="reference_qw4_vch_fw__ul_xkq_qvn_rlb">
-          <li class="li"><span class="keyword cmdname">accumarray</span></li>
-
-          <li class="li"><span class="keyword cmdname">bi2de</span>, <span class="keyword cmdname">de2bi</span></li>
-
-          <li class="li"><span class="keyword cmdname">deconv</span></li>
-
-          <li class="li"><span class="keyword cmdname">dlmread</span></li>
-
-          <li class="li"><span class="keyword cmdname">isrow</span>, <span class="keyword cmdname">iscolumn</span></li>
-
-          <li class="li"><span class="keyword cmdname">mscohere</span></li>
-
-          <li class="li"><span class="keyword cmdname">rat</span></li>
-
-          <li class="li"><span class="keyword cmdname">shiftdim</span></li>
-
-          <li class="li"><span class="keyword cmdname">tfestimate</span></li>
-
-          <li class="li"><span class="keyword cmdname">vec2mat</span></li>
-
-        </ul>
-</div>
-
-      <div class="p">The following functions have been improved or extended in <span class="keyword">OpenMatrix</span>
-        <span class="keyword">1.0.4</span>:<ul class="ul" id="reference_qw4_vch_fw__ul_bjj_wvn_rlb">
-          <li class="li"><span class="keyword cmdname">fprintf</span></li>
-
-          <li class="li"><span class="keyword cmdname">rmdir</span></li>
-
-          <li class="li"><span class="keyword cmdname">textread</span></li>
-
-          <li class="li"><span class="keyword cmdname">textscan</span></li>
-
-        </ul>
-</div>
-
-      <p class="p">Support for <span class="keyword cmdname">regexp</span> on <span class="keyword">Linux</span> is improved.</p>
-
-      <p class="p">File handling.</p>
 
     </section>
 
     <section class="section" id="reference_qw4_vch_fw__section_bqk_1n2_thb"><h2 class="title sectiontitle">Resolved Issues</h2>
       
       <div class="p">
-        <ul class="ul" id="reference_qw4_vch_fw__ul_hcx_fwn_rlb">
-          <li class="li">Matrix extraction limitation.</li>
+        <ul class="ul" id="reference_qw4_vch_fw__ul_l1y_xrl_1mb">
+          <li class="li">Deleting multiple cell elements at once was not working; this is now supported.</li>
 
-          <li class="li">Unable to modify matrix inside of cell.</li>
+          <li class="li">Possible crash with <span class="ph filepath">circshift</span>.</li>
 
-          <li class="li"><span class="keyword cmdname">save</span> and <span class="keyword cmdname">load</span> issues.</li>
+          <li class="li">Error when adding one element to a cell.</li>
 
-          <li class="li">Indexing orientation bug.</li>
+          <li class="li"><span class="ph filepath">fullfile</span> issue with network paths.</li>
 
-          <li class="li">Issue when indexing a string literal value.</li>
+          <li class="li">Crash when using an empty matrix as cell array indices.</li>
 
-          <li class="li"><span class="keyword cmdname">cpsd</span> bug</li>
+          <li class="li">Issue when missing end statement.</li>
 
-          <li class="li">Syntax error when indexing a cell element in a struct.</li>
+          <li class="li">Application crashes when running <span class="ph filepath">ctime()</span> with a large input
+            argument.</li>
 
-          <li class="li">Struct assignment issue.</li>
+          <li class="li">Format error when running <span class="ph filepath">month('jun2019','mmmyyyy')</span>.</li>
 
-          <li class="li"><span class="keyword cmdname">textread</span> output incorrect with float delimiter and newline.</li>
+          <li class="li">Parsing issue with .<span class="ph filepath">*</span> operator.</li>
 
-          <li class="li">Issue when executing <span class="keyword cmdname">pwelch</span>.</li>
+          <li class="li"><span class="ph filepath">type</span> should not show variable name in between quotes.</li>
 
-          <li class="li">Get plotting properties crashes <span class="keyword">OpenMatrix</span>.</li>
+          <li class="li">Possible strings or variables missing when loading .<span class="ph filepath">mat</span>
+            files.</li>
 
-          <li class="li">Writing two columns with cell arrays in a file.</li>
+          <li class="li"><span class="ph filepath">isa</span> function bugs.</li>
 
-          <li class="li">Issue while trying to create cell array with the same string n-times.</li>
+          <li class="li"><span class="ph filepath">dlmread</span> raises an error when reading the same file in a for
+            loop.</li>
 
-          <li class="li">Issue in updating/deleting mat files.</li>
+          <li class="li">Invalid values when computing file size.</li>
 
-          <li class="li">Empty matrix assignment should not change matrix dimension.</li>
+          <li class="li"><span class="ph filepath">lcm</span>(<var class="keyword varname">-1.5</var>) should raise an error.</li>
 
-          <li class="li">Matrix extraction limitation.</li>
+          <li class="li"><span class="ph filepath">sortrows</span> issue with second argument (descending order).</li>
 
-          <li class="li">Unable to modify matrix inside of cell.</li>
+          <li class="li">Crash with <span class="ph filepath">matrix</span> indexing.</li>
 
-          <li class="li"><span class="keyword cmdname">regexp</span> function does not work properly on <span class="keyword">Linux</span> platforms.</li>
+          <li class="li">Crash using <span class="ph filepath">dot</span> operator.</li>
 
-          <li class="li"><span class="keyword cmdname">sscanf</span> does not corrrectly parse 'N%d'.</li>
+          <li class="li">On Linux, <span class="ph filepath">system</span> command doesn't work properly.</li>
 
-          <li class="li">Clamped spline issue.</li>
+          <li class="li">Memory leak with <span class="ph filepath">dot</span> product operation.</li>
 
-          <li class="li"><span class="ph synph">rat (<span class="ph var">realmin</span>)</span> freezes <span class="keyword">OpenMatrix</span>.</li>
+          <li class="li">Application crashes when indexing cell with <span class="ph filepath">end</span>.</li>
 
-          <li class="li">Crash when using <span class="keyword cmdname">switch</span> with empty otherwise.</li>
+          <li class="li">Error with class inheritance.</li>
 
-          <li class="li">Performance on assigning matrix elements.</li>
+          <li class="li">Error in format specified for <span class="ph filepath">textscan</span>.</li>
 
-          <li class="li"><span class="keyword cmdname">flipud</span> issue.</li>
+          <li class="li"><span class="ph filepath">whos</span> not working for a sparse matrix.</li>
 
-          <li class="li"><span class="ph synph">accumarray(<span class="ph var">1</span>,<span class="ph var">1</span>)</span> crashes <span class="keyword">OpenMatrix</span>.</li>
+          <li class="li">Set <span class="ph filepath">class</span> as logical.</li>
 
-          <li class="li">Issue with multiple return values.</li>
+          <li class="li">Crash from <span class="ph filepath">sprintf</span> command.</li>
 
-          <li class="li">Indexing orientation bug.</li>
+          <li class="li"><span class="ph filepath">rmdir</span> should work for directories with Unicode characters.</li>
 
-          <li class="li"><span class="keyword cmdname">max</span> function crash.</li>
-
-          <li class="li">Issue when index a string literal value.</li>
-
-          <li class="li">Issue when initialize a string matrix.</li>
-
-          <li class="li">Performance issue on <span class="keyword cmdname">textread</span>.</li>
-
-          <li class="li">Bug with <span class="keyword cmdname">mat2str</span>.</li>
-
-          <li class="li">Correct threshold of near-singular square matrix division.</li>
-
-          <li class="li">concat struct array does not work.</li>
-
-          <li class="li"><span class="keyword cmdname">save</span> does not work when saving a function handle.</li>
-
-          <li class="li">Issue in <span class="keyword cmdname">accumarray</span> when specifying the size of output matrix.</li>
-
-          <li class="li"><span class="keyword cmdname">textread</span> with '\n' delimiter on <span class="keyword">Linux</span>.</li>
-
-          <li class="li"><span class="keyword cmdname">zlabel</span> issue.</li>
-
-          <li class="li"><span class="keyword cmdname">fliplr</span> does not work with ND matrices.</li>
-
-          <li class="li"><span class="keyword cmdname">accumarray</span> should return an error when index matrix contains float
-            numbers.</li>
-
-          <li class="li"><span class="keyword cmdname">textscan</span> output incorrect with float delimiter and newline.</li>
-
-          <li class="li">Error message is not constructed properly in some cases.</li>
+          <li class="li"><span class="ph filepath">mkdir</span> does not work properly when the input is not an English
+            name.</li>
 
         </ul>
 
