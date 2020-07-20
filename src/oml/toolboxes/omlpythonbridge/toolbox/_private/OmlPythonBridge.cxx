@@ -70,6 +70,7 @@ void* OmlPythonBridge::InitNumpy()
     {
         import_array();
     }
+    return NULL;
 }
 
 //! Destructor

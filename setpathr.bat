@@ -9,9 +9,9 @@ set path=%OML_ROOT%\src\bin\win64;%path%
 set OML_ROOT=%OML_ROOT:\=/%
 set OML_DEBUG=
 rem set to local python installation directory 
-set OML_PYTHONHOME=c:/Python36
-set OML_PYTHONVERSION=python36
-set OML_PYTHON_NUMPYDIR=%OML_PYTHONHOME%/Lib/site-packages/numpy/core/include/numpy
+rem set OML_PYTHONHOME=
+rem set OML_PYTHONVERSION=
+rem set OML_PYTHON_NUMPYDIR=
 @echo off
 
 @echo on

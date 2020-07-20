@@ -94,4 +94,4 @@ private:
     void* _threadState;
 };
 
-#endif  OML_PYTHON_BRIDGE_H__
+#endif
