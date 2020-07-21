@@ -1,5 +1,0 @@
-fname = 'FileManipulation/EmptyFile.txt'
-fid = fopen(fname, 'w')
-w=fwrite(fid, 'test string', ['c';'h';'a';'r'])
-fclose(fid)
-
