@@ -1,2 +1,0 @@
-fid = fopen('FileManipulation\numbers.txt','r');
-M = fscanf(fid,'%.5f')
