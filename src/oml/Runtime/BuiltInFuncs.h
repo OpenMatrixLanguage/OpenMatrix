@@ -24,11 +24,6 @@
 #include <array>
 #include <regex>
 #include <deque>
-#include <cmath>
-#ifndef _GLIBCXX_USE_C99_MATH
-	#define _GLIBCXX_USE_C99_MATH
-#endif
-#include <math.h>
 #include "EvaluatorInt.h"
 #include "Currency.h"
 #include "ErrorInfo.h"

@@ -39,7 +39,7 @@ run_test omlMathUtils
 run_test omlMatio
 run_test omlOptimization
 run_test omlPolynom
-run_test omlpythonbridge
+#run_test omlpythonbridge
 run_test omlSignals
 run_test omlStatistics
 

@@ -4,8 +4,9 @@ export PATH=$PWD/src/bin/linux64:$PATH
 export OML_THIRDPARTY=~/oss/third_party_os66
 export OML_ROOT=$PWD
 export OML_HELP=$PWD/help/win/en/topics/reference/oml_language/
-export OML_PYTHONHOME=/usr
+
 #Set python environment variables
+#export OML_PYTHONHOME=
 #export OML_PYTHONVERSION=
 #export OML_PYTHON_NUMPYDIR=
 
