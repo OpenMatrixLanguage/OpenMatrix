@@ -1,0 +1,158 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Multidimensional Matrices" /><meta name="abstract" content="OML supports multidimensional matrices." /><meta name="description" content="OML supports multidimensional matrices." /><meta name="indexterms" content="multidimensional matrices" /><meta name="DC.subject" content="multidimensional matrices" /><meta name="keywords" content="multidimensional matrices" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/data_types_header_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/structures_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/collections_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/indexing_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_d3t_3mm_vt" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Multidimensional Matrices</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_d3t_3mm_vt">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language.">Scripting Guide for OpenMatrix Language</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/data_types_header_r.htm" title="Data types are items that are constant throughout the life of the application and are built into the OpenMatrix language.">Data Types</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../topics/language_guides/data_types_header_r.htm" title="Data types are items that are constant throughout the life of the application and are built into the OpenMatrix language."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Data Types</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">Multidimensional Matrices</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc"><span class="keyword">OML</span> supports multidimensional matrices.</p>
+
+    <section class="section">
+      <p class="p">This is an extension of the 2D matrices (see <a class="xref" href="collections_r.htm#reference_xxs_3qv_tt" title="A collection is an ordered grouping of elements (which may be literals or other collections).">Collections</a>), where data can be
+        added and extracted across multiple dimensions.</p>
+
+      <div class="p">There is no limit to the number of dimensions, apart from the maximum 32-bit integer size
+        and the machine memory required to store the
+        matrix.<pre class="pre codeblock"><code>b = ones(2);  ==&gt;  b is a 2x2 matrix
+
+b(:,:,3) = [5,6;7,8] ==&gt; b is now a 2x2x3 matrix as follows:
+
+slice(:, :, 1) = 
+[Matrix] 2 x 2
+1  1
+1  1
+slice(:, :, 2) = 
+[Matrix] 2 x 2
+0  0
+0  0
+slice(:, :, 3) = 
+[Matrix] 2 x 2
+5  6
+7  8
+</code></pre></div>
+
+      <p class="p">All rules that apply to accessing elements of a 2D matrix also apply to multidimensional
+        matrices.</p>
+
+      <div class="p">For example, running this
+        script:<pre class="pre codeblock"><code>m3m = ones(2,2);
+m3m(:,:,2) = [5,6;7,8];
+m3m(:)
+m3m(:,:,:)
+m3m(1)
+m3m(:,1,:)
+m3m(1,:,2)</code></pre></div>
+
+      <div class="p">produces this
+        output:<pre class="pre codeblock"><code>ans = [Matrix] 8 x 1
+1
+1
+1
+1
+5
+7
+6
+8
+ans = 
+slice(:, :, 1) = 
+[Matrix] 2 x 2
+1  1
+1  1
+
+slice(:, :, 2) = 
+[Matrix] 2 x 2
+5  6
+7  8
+
+ans = 1
+ans = 
+slice(:, :, 1) = 
+[Matrix] 2 x 1
+1
+1
+
+slice(:, :, 2) = 
+[Matrix] 2 x 1
+5
+7
+
+ans = [Matrix] 1 x 2
+5  6</code></pre></div>
+
+      <div class="p">The colon operator provides considerable flexibility in how data can be assigned to a
+        matrix. Consider this example:<pre class="pre codeblock"><code>m(2,:,:) = [1,2;3,4]</code></pre>The left-hand side
+        is expecting to assign data in dimensions 2 and 3, but the right-hand side has data in
+        dimensions 1 and 2. Strictly, this might be regarded as an error. However, it is useful to
+        allow an implicit assignment of the two right-hand side dimensions to the two colon
+        dimensions on the left to produce the following
+        result:<pre class="pre codeblock"><code>m =
+slice(:, :, 1) =
+[Matrix] 2 x 2
+0  0
+1  3
+
+slice(:, :, 2) =
+[Matrix] 2 x 2
+0  0
+2  4</code></pre>By
+        allowing both <code class="ph codeph">m(:,:,2)</code> and <code class="ph codeph">m(2,:,:)</code> on the left-hand side,
+        you can interpret the dimensions of <code class="ph codeph">m</code> as either (row, col, page) or (page,
+        row, col). This kind of flexibility applies to all numbers of dimensions and colons.</div>
+
+      <div class="p">Similarly, to 2D matrices, setting one value of an element defines the size. For
+        example:<pre class="pre codeblock"><code>m3m(2,2,2) = 1
+m3m = 
+slice(:, :, 1) = 
+[Matrix] 2 x 2
+0  0
+0  0
+
+slice(:, :, 2) = 
+[Matrix] 2 x 2
+0  0
+0  1</code></pre></div>
+
+      <div class="p">Many functions do not operate on multidimensional matrices (for example, matrix inversion).
+        However, it can often be useful to extract data two dimensions at a time and reformat them
+        into a two-dimensional matrix using the <span class="keyword cmdname">squeeze</span> or
+          <span class="keyword cmdname">reshape</span> functions. Consider this sequence that creates a
+        two-dimensional matrix b from dimensions 1 and 3 of
+        m.<pre class="pre codeblock"><code>m(2,:,:) = [1,2;3,4];
+b = m(:,1,:)  ==&gt; here b is a 2x1x2 matrix
+b = squeeze(b)  ==&gt; here b is now a 2x2 matrix</code></pre></div>
+
+      <div class="p">A matrix can also be reduced to a 2D matrix by deleting higher dimensions. For
+        example:<pre class="pre codeblock"><code>b = ones(2,2)
+b(:,:,2) = [5,6;7,8];  ==&gt; here b is a 2x2x2 matrix
+b(:,:,2) = [];  ==&gt; here b is now a 2x2 matrix</code></pre></div>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/structures_r.htm" title="Structures are a data type similar to cells. However, where cells use numeric indices to refer to specific pieces of data, structures use strings.">Structures</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/collections_r.htm" title="A collection is an ordered grouping of elements (which may be literals or other collections).">Collections</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/indexing_r.htm" title="Indexing is used to retrieve one or more specific values out of a collection.">Indexing</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../topics/language_guides/data_types_header_r.htm" title="Data types are items that are constant throughout the life of the application and are built into the OpenMatrix language."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Data Types</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

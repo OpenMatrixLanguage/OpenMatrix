@@ -1,0 +1,122 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="rmdir" /><meta name="abstract" content="Removes the directory dir." /><meta name="description" content="Removes the directory dir." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="System Commands" /><meta name="indexterms" content="rmdir" /><meta name="DC.subject" content="rmdir" /><meta name="keywords" content="rmdir" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/System/system_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/System/mkdir.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/pwd.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>rmdir</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/System/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/System/system_commands.htm" title="System Commands">System Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/System/system_commands.htm" title="System Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">System Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">rmdir</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Removes the directory <var class="keyword varname">dir</var>.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">rmdir dir</span></p>
+
+      <p class="p"><span class="ph synph">rmdir<span class="ph var">(dir)</span></span></p>
+
+      <p class="p"><span class="ph synph">rmdir<span class="ph var">(dir, 's')</span></span></p>
+
+      <p class="p"><span class="ph synph">[status, msg1, msg2] = rmdir<span class="ph var">(dir)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">dir</var></dt>
+
+          <dd class="dd pd">Name of the directory to be removed. It needs to be empty if option
+              <var class="keyword varname">s</var> is not specified.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">s</var></dt>
+
+          <dd class="dd pd">Additional option which specifies if the files and sub-directories under
+              <var class="keyword varname">dir</var> should be deleted.</dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">status</span></dt>
+
+          <dd class="dd pd">Returns <samp class="ph systemoutput">1</samp> if successful; returns
+              <samp class="ph systemoutput">0</samp> if not successful.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">msg1</span></dt>
+
+          <dd class="dd pd">If status is <samp class="ph systemoutput">1</samp> (successful), <span class="ph synph">msg1</span> is
+            empty. If status is <samp class="ph systemoutput">0</samp> (unsuccessful), <span class="ph synph">msg1</span>
+            contains an error mesage.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">msg2</span></dt>
+
+          <dd class="dd pd">If status is <samp class="ph systemoutput">1</samp> (successful), <span class="ph synph">msg2</span> is
+            empty. If status is <samp class="ph systemoutput">0</samp> (unsuccessful), <span class="ph synph">msg2</span>
+            returns the command name '<span class="keyword cmdname">rmdir'</span>.</dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">Simple <span class="keyword cmdname">rmdir</span> successful
+        example:<pre class="pre codeblock"><code>rmdir('C:/testdirectory')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">ans = 1</code></code></pre></div>
+
+      <div class="p">Simple <span class="keyword cmdname">rmdir</span> unsuccessful example with fail
+        outputs:<pre class="pre codeblock"><code>[status, msg1, msg2] = rmdir('C:/testdirectory')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">status = 0
+msg1 = Problem removing directory
+msg2 = rmdir</code></code></pre></div>
+
+      <div class="p">Remove a non-empty directory, along with all contents:
+        <pre class="pre codeblock"><code>rmdir('C:/nonempty_testdirectory', 's')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">ans = 1</code></code></pre></div>
+
+    </section>
+
+    <section class="section">
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/System/mkdir.htm" title="Creates the directory newdir in the current working directory by default.">mkdir</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/pwd.htm" title="Returns the current working directory.">pwd</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/System/system_commands.htm" title="System Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">System Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

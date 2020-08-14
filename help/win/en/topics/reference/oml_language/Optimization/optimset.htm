@@ -1,0 +1,189 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="optimset" /><meta name="abstract" content="Specify optimization function options." /><meta name="description" content="Specify optimization function options." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Optimization Commands" /><meta name="indexterms" content="optimset" /><meta name="DC.subject" content="optimset" /><meta name="keywords" content="optimset" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/optimization_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/fminunc.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/fsolve.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/lsqcurvefit.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/fminsearch.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>optimset</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/optimization_commands.htm" title="Optimization Commands">Optimization Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Optimization/optimization_commands.htm" title="Optimization Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Optimization Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">optimset</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Specify optimization function options.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      <p class="p"><span class="ph synph">options = optimset<span class="ph var">('option1', value1, 'option2', value2, ...)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">optionN</var></dt>
+
+          <dd class="dd pd">The name of option N.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">valueN</var></dt>
+
+          <dd class="dd pd">The value of option N.  </dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">options</span></dt>
+
+          <dd class="dd pd">A struct containing the options.</dd>
+
+          <dd class="dd pd ddexpand">The available options are as follows: <ul class="ul" id="reference_wpv_kyv_pr__ul_exm_lq3_ws">
+              <li class="li"><span class="keyword option">MaxIter</span>: The maximum number of iterations allowed.</li>
+
+              <li class="li"><span class="keyword option">MaxFunEvals</span>: The maximum number of function evaluations allowed.</li>
+
+              <li class="li"><span class="keyword option">TolFun</span>: The termination tolerance on the objective function convergence.</li>
+
+              <li class="li"><span class="keyword option">TolX</span>: The termination tolerance on the parameter convergence.</li>
+
+              <li class="li"><span class="keyword option">TolCon</span>: The constraint violation allowance, as a percent.</li>
+
+              <li class="li"><span class="keyword option">TolKKT</span>: The termination tolerance on the Karush-Kuhn-Tucker conditions.</li>
+
+              <li class="li"><span class="keyword option">GradObj</span>: An 'on'/'off' flag to indicate whether the objective
+                function will return the gradient as an optional second return value. (Only for
+                  <span class="keyword cmdname">fminunc</span>). The function signature is as follows:
+                  <span class="ph synph">function [sys, grad] = System(x)</span>, where <var class="keyword varname">sys</var> and
+                  <var class="keyword varname">grad</var> contain the system function and its gradient.</li>
+
+              <li class="li"><span class="keyword option">GradConstr</span>: An 'on'/'off' flag to indicate whether the non-linear
+                constraint function will return the gradients as the optional third and fourth
+                return value. If a non-linear constraint is used, then <span class="keyword option">GradConstr</span>
+                must be set the same as <span class="keyword option">GradObj</span>.  The function signature is as follows:
+                  <span class="ph synph">function [c, ceq, cj, ceqj] = ConFunc(x)</span>, where
+                  <var class="keyword varname">c</var> and <var class="keyword varname">ceq</var> contain inequality and equality
+                contraints, respectively, and <var class="keyword varname">cj</var> and <var class="keyword varname">ceqj</var>
+                contain their Jacobians. The inequality constraints are assumed to have upper bounds
+                of 0.</li>
+
+              <li class="li"><span class="keyword option">Jacobian</span>: An 'on'/'off' flag to indicate whether the objective
+                function will return the Jacobian as an optional second return value (Only for
+                  <span class="keyword cmdname">fsolve</span>, <span class="keyword cmdname">lsqcurvefit</span>). The function signature
+                is as follows: <span class="ph synph">function [res, jac] = System(x)</span>, where
+                  <var class="keyword varname">res</var> and <var class="keyword varname">jac</var> contain the residuals vector of
+                the system function and its Jacobian.</li>
+
+              <li class="li"><span class="keyword option">Display</span>: An 'iter'/'off' flag to indicate whether objective
+                function results will be displayed at each iteration. For more extensive iteration
+                information, see the <var class="keyword varname">output</var> return argument of the
+                  <span class="keyword cmdname">optimization</span> function</li>
+
+            </ul>
+</dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+      
+      <p class="p">Set options to control the number of iterations and display intermediate data:</p>
+
+      <pre class="pre codeblock"><code>options = optimset('MaxIter', 200, 'Display', 'iter')</code></pre>
+      <pre class="pre codeblock"><code><code class="ph codeph">options = struct [
+Display: iter
+MaxIter: 200
+]</code></code></pre>
+      <div class="p">Set options to specify that the analytical Jacobian function name is returned by the
+        objective
+        function:<pre class="pre codeblock"><code>options = optimset('Jacobian', 'on')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">options = struct [
+Jacobian: on
+]</code></code></pre></div>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p">For <span class="keyword cmdname">fminbnd</span>, the only available tolerance option is:
+          <span class="keyword option">TolX</span>.</p>
+
+      
+      <p class="p">For <span class="keyword cmdname">fminunc</span>, the available tolerance options are:
+          <span class="keyword option">TolFun</span> and <span class="keyword option">TolX</span>.</p>
+
+      <p class="p">For <span class="keyword cmdname">fminsearch</span>, the only available tolerance option is:
+          <span class="keyword option">TolX</span>.</p>
+
+      <p class="p">For <span class="keyword cmdname">fsolve</span>, the available tolerance options are: <span class="keyword option">TolFun</span>
+        and <span class="keyword option">TolX</span>.</p>
+
+      <p class="p">For <span class="keyword cmdname">fzero</span>, the only available tolerance option is:
+        <span class="keyword option">TolX</span>.</p>
+
+      <p class="p">For <span class="keyword cmdname">lsqcurvefit</span>, the available tolerance options are:
+          <span class="keyword option">TolFun</span> and <span class="keyword option">TolX</span>.</p>
+
+      <p class="p">The solver functions will terminate the first time that any of the convergence tolerance
+        criteria are met.</p>
+
+      <p class="p">The default value for <span class="keyword option">MaxIter</span> is 100.</p>
+
+      <p class="p">The default value for <span class="keyword option">MaxFunEvals</span> is 400.</p>
+
+      <p class="p">The default value for <span class="keyword option">TolFun</span> is 1.0e-7.</p>
+
+      <p class="p">The default value for <span class="keyword option">TolX</span> is  1.0e-7 .</p>
+
+      <p class="p">The default value for <span class="keyword option">TolCon</span> is 0.5.</p>
+
+      <p class="p">The default value for <span class="keyword option">TolKKT</span> is 1.0e-4.</p>
+
+      <p class="p"> For all other functions, <span class="keyword option">TolX</span> sets the convergence
+        criteria relative to the design variable magnitudes.</p>
+
+      
+      <p class="p"><span class="keyword option">TolKKT</span> sets the convergence criterion for the optimal relationship between
+        the gradients of the objective and constraint functions, which is an equation involving
+        Lagrange multipliers.</p>
+
+    </section>
+
+    <section class="section">
+      
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/fminunc.htm" title="Find the unconstrained minimum of a real function.">fminunc</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/fsolve.htm" title="Find a solution of a system of real nonlinear equations.">fsolve</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/lsqcurvefit.htm" title="Find the equation parameters that produce the least squares best fit to a data set.">lsqcurvefit</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Optimization/fminsearch.htm" title="Find the unconstrained minimum of a real function using the Nelder-Mead simplex algorithm.">fminsearch</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Optimization/optimization_commands.htm" title="Optimization Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Optimization Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

@@ -1,0 +1,96 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Numerics" /><meta name="abstract" content="Numeric literals come in the form of a scalar, integer, decimal, or scientific notation (exponential)." /><meta name="description" content="Numeric literals come in the form of a scalar, integer, decimal, or scientific notation (exponential)." /><meta name="indexterms" content="numerics" /><meta name="DC.subject" content="numerics" /><meta name="keywords" content="numerics" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/literals_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/literals_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_chq_5mv_tt" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Numerics</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_chq_5mv_tt">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language.">Scripting Guide for OpenMatrix Language</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/literals_r.htm" title="Literals are items that are constant throughout the life of the application. Literals include numeric, imaginary, characters, strings, logicals, and Other (NaN/Inf).">Literals</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../topics/language_guides/literals_r.htm" title="Literals are items that are constant throughout the life of the application. Literals include numeric, imaginary, characters, strings, logicals, and Other (NaN/Inf)."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Literals</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">Numerics</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Numeric literals come in the form of a scalar, integer, decimal, or scientific notation
+    (exponential).</p>
+
+    <section class="section">
+      <div class="p">A more specific form is:  <pre class="pre codeblock"><code>[+-]iDigits.fDigits [EXP[+-] eDigits]</code></pre></div>
+
+      <p class="p">iDigits, fDigits and eDigits are numeral(s) from 0 to 9, inclusive. Either iDigits or
+        fDigits must exist. If fDigits are specified, the decimal point is required. If no sign is
+        specified for iDigits or eDigits, they are assumed to be positive. Bracketed items are
+        optional.</p>
+
+      <p class="p">If iDigits begins with one or more zeros, this is a valid literal, but the zeros are
+        ultimately ignored. EXP can be any of the following characters: dDeE. If EXP is included,
+        eDigits must also be included.</p>
+
+      <p class="p">Examples of valid decimal numeric literals include:</p>
+
+      <ul class="ul" id="reference_chq_5mv_tt__ul_frs_gnv_tt">
+        <li class="li">3</li>
+
+        <li class="li">3.</li>
+
+        <li class="li">.3</li>
+
+        <li class="li">3.3</li>
+
+        <li class="li">33</li>
+
+        <li class="li">3E3</li>
+
+        <li class="li">3.3e3</li>
+
+        <li class="li">-3</li>
+
+        <li class="li">3.3e-3</li>
+
+        <li class="li">003</li>
+
+        <li class="li">3d3</li>
+
+        <li class="li">3D-3</li>
+
+      </ul>
+
+      <p class="p">Examples of invalid decimal numeric literals:</p>
+
+      <ul class="ul" id="reference_chq_5mv_tt__ul_u21_nnv_tt">
+        <li class="li">. (either fDigits or iDigits must be specified)</li>
+
+        <li class="li">3.3.3 (only one decimal point is allowed)</li>
+
+        <li class="li">3E (if EXP is included, eDigits must also be included)</li>
+
+        <li class="li">E3 (either fDigits or iDigits must be specified)</li>
+
+        <li class="li">3E3.3 (eDigits must be digits only)</li>
+
+        <li class="li">4z (iDigits are 0 through 9 inclusive)</li>
+
+      </ul>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/literals_r.htm" title="Literals are items that are constant throughout the life of the application. Literals include numeric, imaginary, characters, strings, logicals, and Other (NaN/Inf).">Literals</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../topics/language_guides/literals_r.htm" title="Literals are items that are constant throughout the life of the application. Literals include numeric, imaginary, characters, strings, logicals, and Other (NaN/Inf)."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Literals</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

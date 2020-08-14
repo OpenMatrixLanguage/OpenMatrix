@@ -1,0 +1,189 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="fwrite" /><meta name="abstract" content="Writes binary data to the file ID." /><meta name="description" content="Writes binary data to the file ID." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="File I/O Commands" /><meta name="indexterms" content="fwrite" /><meta name="DC.subject" content="fwrite" /><meta name="keywords" content="fwrite" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>fwrite</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" title="File I/O Commands">File I/O Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" title="File I/O Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">File I/O Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">fwrite</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Writes binary data to the file ID.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      <p class="p"><span class="ph synph">R = fwrite<span class="ph var">(fileID, data, precision, skip)</span></span></p>
+<?STOP?></section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">fileID</var></dt>
+
+          <dd class="dd pd">File ID returned from earlier call to <span class="keyword cmdname">fopen()</span>.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">data</var></dt>
+
+          <dd class="dd pd">Matrix of values to be written.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer | char | string | logical | struct | cell</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector | matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">precision</var></dt>
+
+          <dd class="dd pd">String specifying the type of data to write.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">char | string</span></dd>
+
+          <dd class="dd pd ddexpand">Valid precision types: <ul class="sl simple">
+              <li class="sli">'char' or 'char*1' or 'schar' or 'signed char' for a single character.</li>
+
+              <li class="sli">'uchar' or 'unsigned char' for unsigned character.</li>
+
+              <li class="sli">'ulong' or 'unsigned long' for platform dependent unsigned long integer.</li>
+
+              <li class="sli">'uint' or'unsigned int' for platform dependent unsigned integer.</li>
+
+              <li class="sli">'ushort' or 'unsigned short' for platform dependent unsigned short integer.</li>
+
+              <li class="sli"></li>
+
+              <li class="sli">'long' for platform dependent long integer.</li>
+
+              <li class="sli">'int' for platform dependent integer.</li>
+
+              <li class="sli">'short for platform dependent short integer.</li>
+
+              <li class="sli">'uint64' for 64 bit unsigned integer.</li>
+
+              <li class="sli">'uint32' for 32 bit unsigned integer.</li>
+
+              <li class="sli">'uint16' for 16 bit unsigned integer.</li>
+
+              <li class="sli">'uint8' for 8 bit unsigned integer.</li>
+
+              <li class="sli"></li>
+
+              <li class="sli">'int8' or 'integer*1' for 8 bit signed integer.</li>
+
+              <li class="sli">'int16' or 'integer*2' for 16 bit signed integer.</li>
+
+              <li class="sli">'int32' or 'integer*4' for 32 bit signed integer.</li>
+
+              <li class="sli">'int64' or 'integer*8' for 64 bit signed integer.</li>
+
+              <li class="sli"></li>
+
+              <li class="sli">'float' for platform dependent single precision floating point number.</li>
+
+              <li class="sli">'double' or 'float64' or 'real*8' for 64 bit floating point number.</li>
+
+              <li class="sli">'single' or 'float32' or 'real*4' for 32 bit floating point number.</li>
+
+            </ul>
+</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">skip</var> (optional)</dt>
+
+          <dd class="dd pd">Argument specifying the number of bytes to skip after writing each value. If
+            unspecified, the value is 0.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+          <dd class="dd pd">Number of values written to the file.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer</span></dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+      <div class="p">Read example using <span class="keyword cmdname">fwrite</span> and <span class="keyword cmdname">fread</span>
+        functions:<pre class="pre codeblock"><code>% open file using 'w+'
+fileID = fopen('testfile', 'w+')
+% create a matrix
+M = [ 1923.71288  4023.03575  9768.82832  9195.83701  104.13143  4261.35201   ];
+% write matrix to file
+fwrite_result = fwrite(fileID, M, 'double')
+fflush_result = fflush(fileID)
+printf('\n')
+% return as much as possible in a column vector
+frewind_result = frewind(fileID);
+R1 = fread(fileID, inf, 'double');
+printf('Matrix dimensions: columns %2d  rows %2d\n', size(R1)(2), size(R1)(1));
+
+% return 2 values in a column vector
+frewind_result = frewind(fileID);
+R2 = fread(fileID, 2, 'double');
+printf('Matrix dimensions: columns %2d  rows %2d\n', size(R2)(2), size(R2)(1));
+
+% return as much as possible in 2 rows
+frewind_result = frewind(fileID);
+R3 = fread(fileID, [2, inf], 'double');
+printf('Matrix dimensions: columns %2d  rows %2d\n', size(R3)(2), size(R3)(1));
+
+% return 2 entries in 1 row
+frewind_result = frewind(fileID);
+R4 = fread(fileID, [1, 2], 'double');
+printf('Matrix dimensions: columns %2d  rows %2d\n', size(R4)(2), size(R4)(1));
+
+fclose_result = fclose(fileID)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">fileID = 5
+fwrite_result = 6
+fflush_result = 0
+ 
+Matrix dimensions: columns  1  rows  6
+Matrix dimensions: columns  1  rows  2
+Matrix dimensions: columns  3  rows  2
+Matrix dimensions: columns  2  rows  1
+fclose_result = 0</code></code></pre></div>
+
+    </section>
+
+    <section class="section">
+      
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links"></nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" title="File I/O Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">File I/O Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+               
+        </div>
+    </div></footer></body>
+</html>
