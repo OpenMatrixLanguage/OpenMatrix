@@ -1,7 +1,7 @@
 /**
 * @file CoreMain.cxx
 * @date May 2018
-* Copyright (C) 2018 Altair Engineering, Inc.  
+* Copyright (C) 2018-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -244,16 +244,20 @@ namespace omlplot{
         return _T_2D_PLOT<Semilogy>(ldVec);
     }
 
-    void CoreMain::set(unique_ptr<SetData> &data){
+    void CoreMain::set(unique_ptr<SetData> &data, vector<string>& notSupported)
+	{
         vector<double> hs =data->handles;
         vector<double>::iterator it = hs.begin();
-        for ( ; it != hs.end(); ++it){
+        for ( ; it != hs.end(); ++it)
+		{
             double handle = *it;
             Object *po = getObject(handle);
             int propCount = data->properties.size();
-            for (int index = 0; index < propCount; index++){
-                po->setPropertyValue(data->properties[index],
-                                     data->values[index]);
+            for (int index = 0; index < propCount; index++)
+			{
+                bool ret = po->setPropertyValue(data->properties[index], data->values[index]);
+				if (!ret)
+					notSupported.push_back(data->properties[index]);
             }
         }
         root->update();

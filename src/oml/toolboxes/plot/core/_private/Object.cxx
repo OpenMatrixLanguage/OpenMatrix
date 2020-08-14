@@ -1,7 +1,7 @@
 /**
 * @file Object.cxx
 * @date May 2018
-* Copyright (C) 2018 Altair Engineering, Inc.  
+* Copyright (C) 2018-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -79,13 +79,16 @@ namespace omlplot{
         return names;
     }
 
-    void Object::setPropertyValue(const string& name, VALUETYPE value){
+    bool Object::setPropertyValue(const string& name, VALUETYPE value){
         Property &p = getProperty(name);
+		if (p.getType() == UNSUPPORTED)
+			return false;
         if (name == "color" ||
             name == "xcolor" ||
             name == "ycolor" ||
             name == "zcolor" ||
-            name == "facecolor"){
+            name == "facecolor" || 
+			name == "markerfacecolor"){
             if (value.isCurrency()){
                 Currency c = value.getCurrency();
                 Color clr(c);
@@ -96,6 +99,7 @@ namespace omlplot{
         } else {
             p.setValue(value);
         }
+		return true;
     }
 
     Property &Object::getProperty(const string& name){
@@ -300,6 +304,13 @@ namespace omlplot{
         m_out->setWindowId(handle);
         m_out->printf("clear\n");
         m_out->flush();
+
+		// not yet supported properties		
+		m_ps.push_back(Property("colormap", string("colormap"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("toplabel", string("toplabel"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("bottomlabel", string("bottomlabel"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("leftlabel", string("leftlabel"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("rightlabel", string("rightlabel"), PropertyType::UNSUPPORTED));
     }
 
     Figure::~Figure(){
@@ -438,6 +449,26 @@ namespace omlplot{
 
         m_objectMap[handle] = this;
         m_title->setParent(this);
+
+		// not yet supported properties
+		m_ps.push_back(Property("colormap", string("colormap"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("colororder", string("colororder"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("xtick", string("xtick"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("ytick", string("ytick"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("ztick", string("ztick"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("fontangle", string("fontangle"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("fontname", string("fontname"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("fontsize", string("fontsize"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("fontweight", string("fontweight"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("mouseclickcallback", string("mouseclickcallback"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("contourlevels", string("contourlevels"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("polarmethod", string("polarmethod"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("polartiptotail", string("polartiptotail"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("contourtype", string("contourtype"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("xcategories", string("xcategories"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("ycategories", string("ycategories"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("secondaryyaxis", string("secondaryyaxis"), PropertyType::UNSUPPORTED));
+
     }
 
     void Axes::clear(){
@@ -743,6 +774,10 @@ namespace omlplot{
         m_ps.push_back(Property("markerfacecolor", Color(string("blue")), PropertyType::COLOR));
         m_ps.push_back(Property("markersize", double(1), PropertyType::DOUBLE));
         m_ps.push_back(Property("basevalue", double(0), PropertyType::DOUBLE));
+
+		// not yet supported properties
+		m_ps.push_back(Property("visible", string("visible"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("tiptotail", string("tiptotail"), PropertyType::UNSUPPORTED));
     }
 
     void Line::init(const LineData &ld){
@@ -1091,6 +1126,12 @@ namespace omlplot{
 
     Surface::Surface(){
         m_ps.push_back(Property("type", string("surface"), PropertyType::STRING) );
+
+		// not yet supported properties
+		m_ps.push_back(Property("meshlines", string("meshlines"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("color", string("color"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("visible", string("visible"), PropertyType::UNSUPPORTED));
+		
     }
 
     string Surface::getUsingClause(){
@@ -1258,6 +1299,12 @@ namespace omlplot{
         m_ps.push_back(Property("z", double(0), PropertyType::DOUBLE));
 
         m_objectMap[handle] = this;
+
+		// not yet supported properties
+		m_ps.push_back(Property("horizontalalignment", string("horizontalalignment"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("verticalalignment", string("verticalalignment"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("borderwidth", string("borderwidth"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("offset", string("offset"), PropertyType::UNSUPPORTED));
     }
 
     void Text::update(GnuplotOutput *out){

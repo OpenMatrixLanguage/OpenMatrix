@@ -1,7 +1,7 @@
 /**
 * @file CoreMain.h
 * @date May 2017
-* Copyright (C) 2017-2018 Altair Engineering, Inc.  
+* Copyright (C) 2017-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -37,24 +37,14 @@ namespace omlplot{
         bool isAxes(double);
         template <typename T>
         bool isObjectPropertyName(string name){
-            bool res = false;
             unique_ptr<T> obj(new T);
             vector<string> names = obj->getPropertyNames();
 
             transform(name.begin(), name.end(),
                       name.begin(), ::tolower); // ignore the case
             int count = 0;
-            vector<string>::iterator it = names.begin();
-            for (; it != names.end(); ++it){
-                string n = *it;
-                if (n.compare(0, name.length(), name) == 0){
-                    ++count;
-                }
-            }
-            if (count == 1){
-                res = true;
-            }
-            return res;
+			vector<string>::iterator it = std::find(names.begin(), names.end(), name);
+            return it != names.cend();
         }        
 
         Object *getObject(double);
@@ -152,7 +142,7 @@ namespace omlplot{
         double figure(unique_ptr<FigureData> &);
         double axes(unique_ptr<AxesData> &);
         double subplot(int, int, int);
-        void set(unique_ptr<SetData> &);
+        void set(unique_ptr<SetData> &, vector<string>& );
         double gcf();
         double gca();
         void close(int);

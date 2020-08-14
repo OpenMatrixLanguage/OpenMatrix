@@ -1,7 +1,7 @@
 /**
 * @file LineStyle.cxx
 * @date May 2018
-* Copyright (C) 2018 Altair Engineering, Inc.  
+* Copyright (C) 2018-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -45,80 +45,92 @@ namespace omlplot{
     };
 	static const int COLORCOUNT = sizeof(InitColor) / sizeof(InitColor[0]);
 
-    LineStyle::LineStyle(const LineData &ld)
-    try {
-        const string &fmt = ld.style;
-        string style, legend;
-        SplitFormat(fmt, style, legend);
-        m_lineStyle = "";
-        m_lineColor = InitColor[ld.index % COLORCOUNT];
-        m_lineWidth = 1;
-        m_markerStyle = "";
-        m_markerColor = InitColor[ld.index % COLORCOUNT];
-        m_markerSize = 1;
-        m_legend = legend;
+	LineStyle::LineStyle(const LineData& ld) {
+		try {
+			const string& fmt = ld.style;
+			string style, legend;
+			SplitFormat(fmt, style, legend);
+			m_lineStyle = "";
+			m_lineColor = InitColor[ld.index % COLORCOUNT];
+			m_lineWidth = 1;
+			m_markerStyle = "";
+			m_markerColor = InitColor[ld.index % COLORCOUNT];
+			m_markerSize = 1;
+			m_legend = legend;
 
-        if (style == "square"){ // full name marker or color
-            m_markerStyle = "s";
-        } else if (style == "diamond"){
-            m_markerStyle = "d";
-        } else if (style == "red" || style == "green" ||
-                   style == "blue" || style == "cyan" ||
-                   style == "magenta" || style == "yellow" ||
-                   style == "white" || style == "black") {
-            m_lineColor = Color(style);
-        } else {                // abbreviated style
-            size_t pos = 0;
-            size_t size = style.size();
-            char cc[2];
-            cc[1] = 0;
-            char &c = cc[0];
-            while (pos < size){
-                c = style[pos];
-                if (isAbbrColor(c)){
-                    m_lineColor = Color(string(&c));
-                    pos++;
-                } else if (isAbbrLine(c)){
-                    if ('-' == style[pos]){
-                        if ((pos + 1) < size) {
-                            if ('-' == style[pos + 1]){
-                                m_lineStyle = "--";
-                                pos += 2;
-                            } else if ('.' == style[pos + 1]){
-                                m_lineStyle = "-.";
-                                pos += 2;
-                            } else {
-                                m_lineStyle = string(&c);
-                                pos++;
-                            }
-                        } else {
-                            m_lineStyle = string(&c);
-                            pos++;
-                        }
-                    } else {
-                        m_lineStyle = string(&c);
-                        pos++;
-                    }
-                } else if (isAbbrMarker(c)){
-                    m_markerStyle = string(&c);
-                    pos++;
-                } else {
-                    throw OML_Error(OML_ERR_OPTION);
-                }
-            }
-        }
-        if ((m_markerStyle == "") &&
-            (m_lineStyle == "") ){
-            m_lineStyle = "-";
-        }
-        if (m_legend == ""){
-            char buf[10];
-            sprintf(buf, "Curve %d", ld.index + 1);
-            m_legend = string(buf);
-        }
-    } catch (...){
-        throw OML_Error(OML_ERR_OPTION);
-    }
+			if (style == "square") { // full name marker or color
+				m_markerStyle = "s";
+			}
+			else if (style == "diamond") {
+				m_markerStyle = "d";
+			}
+			else if (style == "red" || style == "green" ||
+				style == "blue" || style == "cyan" ||
+				style == "magenta" || style == "yellow" ||
+				style == "white" || style == "black") {
+				m_lineColor = Color(style);
+			}
+			else {                // abbreviated style
+				size_t pos = 0;
+				size_t size = style.size();
+				char cc[2];
+				cc[1] = 0;
+				char& c = cc[0];
+				while (pos < size) {
+					c = style[pos];
+					if (isAbbrColor(c)) {
+						m_lineColor = Color(string(&c));
+						pos++;
+					}
+					else if (isAbbrLine(c)) {
+						if ('-' == style[pos]) {
+							if ((pos + 1) < size) {
+								if ('-' == style[pos + 1]) {
+									m_lineStyle = "--";
+									pos += 2;
+								}
+								else if ('.' == style[pos + 1]) {
+									m_lineStyle = "-.";
+									pos += 2;
+								}
+								else {
+									m_lineStyle = string(&c);
+									pos++;
+								}
+							}
+							else {
+								m_lineStyle = string(&c);
+								pos++;
+							}
+						}
+						else {
+							m_lineStyle = string(&c);
+							pos++;
+						}
+					}
+					else if (isAbbrMarker(c)) {
+						m_markerStyle = string(&c);
+						pos++;
+					}
+					else {
+						throw OML_Error(OML_ERR_OPTION);
+					}
+				}
+			}
+			if ((m_markerStyle == "") &&
+				(m_lineStyle == "")) {
+				m_lineStyle = "-";
+			}
+			if (m_legend == "") {
+				char buf[10];
+				sprintf(buf, "Curve %d", ld.index + 1);
+				m_legend = string(buf);
+			}
+		}
+		catch (...) {
+			throw OML_Error(OML_ERR_OPTION);
+		}
+	}
 
     void LineStyle::SplitFormat(const string fmt, string &style, string &legend){
         string delim = ";";
