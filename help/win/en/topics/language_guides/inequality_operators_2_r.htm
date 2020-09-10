@@ -1,0 +1,150 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Inequality Operators" /><meta name="abstract" content="All inequality operators return logical values (either 0/false or 1/true)." /><meta name="description" content="All inequality operators return logical values (either 0/false or 1/true)." /><meta name="indexterms" content="operator description inequality operators" /><meta name="DC.subject" content="operator description inequality operators" /><meta name="keywords" content="operator description inequality operators" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/operator_descriptions_tables_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/operators_header_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/operator_descriptions_tables_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/inequality_operators_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_bms_nkv_fv" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Inequality Operators</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_bms_nkv_fv">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language.">Scripting Guide for OpenMatrix Language</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator.">Operator Descriptions (tables)</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Operator Descriptions (tables)</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">Inequality Operators</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">All inequality operators return logical values (either 0/false or 1/true).</p>
+
+    <section class="section" id="reference_bms_nkv_fv__section_lgk_tnz_qlb">
+      <p class="p">The magnitude of complex operands is used by all inequality operators.</p>
+
+      
+<div class="tablenoborder"><table cellpadding="4" cellspacing="0" summary="" id="reference_bms_nkv_fv__table_hm1_c4w_xv" class="table" frame="border" border="1" rules="all"><colgroup><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /></colgroup><thead class="thead" style="text-align:left;">
+            <tr>
+              <th class="entry cellrowborder" id="d5692e47">&lt;, &lt;=, &gt;, &gt;=, ~=, ==</th>
+
+              <th class="entry cellrowborder" id="d5692e50">Scalar</th>
+
+              <th class="entry cellrowborder" id="d5692e53">Row Vector</th>
+
+              <th class="entry cellrowborder" id="d5692e56">Column Vector</th>
+
+              <th class="entry cellrowborder" id="d5692e59">Matrix</th>
+
+            </tr>
+
+          </thead>
+<tbody class="tbody">
+            <tr>
+              <td class="entry cellrowborder" headers="d5692e47 ">Real Scalar</td>
+
+              <td class="entry cellrowborder" headers="d5692e50 ">Returns a true or false value (1 or 0) based on whether the inequality is true
+                or false.</td>
+
+              <td class="entry cellrowborder" headers="d5692e53 ">Returns a vector the same size as the row vector, populated with true or false
+                (1 or 0) values based on whether the inequality is true or false for each entity in
+                the vector.</td>
+
+              <td class="entry cellrowborder" headers="d5692e56 ">Returns a vector the same size as the column vector, populated with true or
+                false (1 or 0) values based on whether the inequality is true or false for each
+                entity in the vector.</td>
+
+              <td class="entry cellrowborder" headers="d5692e59 ">Returns a matrix the same size as the matrix, populated with true or false
+                values (1 or 0) based on whether the inequality is true or false for each entity in
+                the matrix.</td>
+
+            </tr>
+
+            <tr>
+              <td class="entry cellrowborder" headers="d5692e47 ">Row Vector</td>
+
+              <td class="entry cellrowborder" headers="d5692e50 ">Returns a vector the same size as the row vector, populated with true or false
+                values (1 or 0) based on whether the inequality is true or false for each entity in
+                the vector.</td>
+
+              <td class="entry cellrowborder" headers="d5692e53 ">Requires the vectors to be the same size. Returns a vector the same size as the
+                vectors, populated with true or false (1 or 0) values. The values are based on an
+                entity-wise comparison. </td>
+
+              <td class="entry cellrowborder" headers="d5692e56 "> </td>
+
+              <td class="entry cellrowborder" headers="d5692e59 "> </td>
+
+            </tr>
+
+            <tr>
+              <td class="entry cellrowborder" headers="d5692e47 ">Column Vector</td>
+
+              <td class="entry cellrowborder" headers="d5692e50 ">Returns a vector the same size as the column vector, populated with true or
+                false (1 or 0) values based on whether the inequality is true or false for each
+                entity in the vector.</td>
+
+              <td class="entry cellrowborder" headers="d5692e53 "> </td>
+
+              <td class="entry cellrowborder" headers="d5692e56 ">Requires the vectors to be the same size. Returns a vector the same size as the
+                vectors, populated with true or false values (1 or 0). The values are based on an
+                entity-wise comparison. </td>
+
+              <td class="entry cellrowborder" headers="d5692e59 "> </td>
+
+            </tr>
+
+            <tr>
+              <td class="entry cellrowborder" headers="d5692e47 ">Matrix</td>
+
+              <td class="entry cellrowborder" headers="d5692e50 ">Returns a vector the same size as the matrix, populated with true or false
+                values (1 or 0) based on whether the inequality is true or false for each entity in
+                the matrix.</td>
+
+              <td class="entry cellrowborder" headers="d5692e53 "> </td>
+
+              <td class="entry cellrowborder" headers="d5692e56 "> </td>
+
+              <td class="entry cellrowborder" headers="d5692e59 ">Requires the matrices to be the same size. Returns a matrix the same size as
+                the matrices, populated with true or false values (1 or 0). The values are based on
+                an entity-wise comparison. </td>
+
+            </tr>
+
+          </tbody>
+</table>
+</div>
+
+    </section>
+
+    <section class="section" id="reference_bms_nkv_fv__section_mgk_tnz_qlb"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">
+        <pre class="pre codeblock"><code>2 &lt; 4
+ans = 1
+[4 5 7]&gt;=[6 4 2]
+ans = [0 1 1]
+[5 7; 3 2] ~= [5 2; 6 3]
+ans = [0 1; 1 1]</code></pre>
+      </div>
+
+      <div class="p">Invalid examples:<pre class="pre codeblock"><code>[3 5 7] &lt;= [4; 7; 2]
+[4 3; 6 4] == [3 4]</code></pre></div>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/operators_header_r.htm" title="Operators are used to combine operands.">Operators</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator.">Operator Descriptions (tables)</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/inequality_operators_r.htm" title="Inequality operators include greater than, less than, or equal to, for example.">Inequality Operators</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Operator Descriptions (tables)</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

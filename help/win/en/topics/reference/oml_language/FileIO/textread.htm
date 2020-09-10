@@ -1,0 +1,193 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="textread" /><meta name="abstract" content="Returns result R after reading a formatted data from a file, f, specified by an optional template, t." /><meta name="description" content="Returns result R after reading a formatted data from a file, f, specified by an optional template, t." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="File I/O Commands" /><meta name="indexterms" content="textread" /><meta name="DC.subject" content="textread" /><meta name="keywords" content="textread" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fscanf.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>textread</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" title="File I/O Commands">File I/O Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" title="File I/O Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">File I/O Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">textread</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Returns result <span class="ph synph">R</span> after reading a formatted data from a file,
+      <var class="keyword varname">f</var>, specified by an optional template, <var class="keyword varname">t</var>. </p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">[R, ...] = textread<span class="ph var">(f,...)</span></span></p>
+
+      <p class="p"><span class="ph synph">[R, ...] = textread<span class="ph var">(f, t, ...)</span></span></p>
+
+      <p class="p"><span class="ph synph">[R, ...] = textread<span class="ph var">(f, t, 'headerlines', linestoskip, ...)</span></span></p>
+
+      <p class="p"><span class="ph synph">[R, ...] = textread<span class="ph var">(f, t, 'headerlines', linestoskip, 'delimiter', delim)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">f</var></dt>
+
+          <dd class="dd pd">Any file name or a valid file stream.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string | int</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">t</var></dt>
+
+          <dd class="dd pd">Template to read formatted data from <var class="keyword varname">s</var>. Valid
+            formats are '%d', '%f', '%g and '%s'.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+            
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">linestoskip</var> (optional)</dt>
+
+          <dd class="dd pd">Name-value pair which the number of lines to skip since the start of the file
+              <var class="keyword varname">f</var>. Valid values are finite, positive integers.</dd>
+
+          <dd class="dd pd ddexpand">Type: Finite, positive <span class="keyword">integer</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">delim</var> (optional)</dt>
+
+          <dd class="dd pd">Name-value pair which specifies the delimiter. If nothing is specified, whitespace is
+            used as the delimiter.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+          <dd class="dd pd">Type: <span class="keyword">cell</span></dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+      
+      <p class="p">Reads all (float) data from the given file. Data in the file is
+        1 2 3
+        4 5 6
+        7 8 9</p>
+
+      <pre class="pre codeblock"><code>[A, B, C] = textread('Filemanipulation/textreadFile.txt')
+
+<code class="ph codeph">
+  A = [Matrix] 3 x 1
+  1
+  4
+  7
+  B = [Matrix] 3 x 1
+  2
+  5
+  8
+  C = [Matrix] 3 x 1
+  3
+  6
+  9</code></code></pre>
+      <p class="p">Specifies header lines while reading formatted data. Data in the file is % names of the
+        columns A B C year1 100 200 300 year22 44 55 66 year333 7 8 9:</p>
+
+      <pre class="pre codeblock"><code>[A, B, C, D] = textread('Filemanipulation/textreadFile2.txt','%s %f %f %f','headerlines',1)
+
+<code class="ph codeph">
+  A =
+  {
+  [1,1] year1
+  [2,1] year22
+  [3,1] year333
+  }
+  B = [Matrix] 3 x 1
+  100
+   44
+    7
+  C = [Matrix] 3 x 1
+  200
+   55
+    8
+  D = [Matrix] 3 x 1
+  300
+   66
+    9</code></code></pre>
+      <p class="p">Specifies header lines and delimiter while reading formatted data. Data in the file is %
+        names of the columns A B C year1,100,200,300 year22,44,55,66 year333,7,8,9:</p>
+
+      <pre class="pre codeblock"><code>[A, B, C, D] = textread('Filemanipulation/textreadFile3.txt','%s %f %f %f', 'delimiter', ',', 'headerlines', 1)
+       
+<code class="ph codeph">
+  A =
+  {
+  [1,1] year1
+  [2,1] year22
+  [3,1] year333
+  }
+  B = [Matrix] 3 x 1
+  100
+   44
+    7
+  C = [Matrix] 3 x 1
+  200
+   55
+    8
+  D = [Matrix] 3 x 1
+  300
+   66
+    9</code></code></pre>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p">If no templates are specified, the data read will be of type <var class="keyword varname">float</var>. The
+        optional name-value pair <var class="keyword varname">'headerlines'</var>, <var class="keyword varname">linestoskip</var>,
+        can specify the number of lines to skip from the start of the file. The optional name-value
+        pair <var class="keyword varname">'delimiter'</var>, <var class="keyword varname">delim</var>, can specify delimiter while
+        reading the data. If no delimiters are specified, whitespace is used as the default
+        delimiter.</p>
+
+    </section>
+
+    <section class="section">
+      
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/fscanf.htm" title="Returns result R after reading a formatted data from file handle, f, specified by template t.">fscanf</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" title="File I/O Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">File I/O Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

@@ -1,0 +1,104 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Collections" /><meta name="abstract" content="A collection is an ordered grouping of elements (which may be literals or other collections)." /><meta name="description" content="A collection is an ordered grouping of elements (which may be literals or other collections)." /><meta name="indexterms" content="collections" /><meta name="DC.subject" content="collections" /><meta name="keywords" content="collections" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/literals_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/cell_arrays_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/structures_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/indexing_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/multidimensional_matrices_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_xxs_3qv_tt" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Collections</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_xxs_3qv_tt">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language.">Scripting Guide for OpenMatrix Language</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/literals_r.htm" title="Literals are items that are constant throughout the life of the application. Literals include numeric, imaginary, characters, strings, logicals, and Other (NaN/Inf).">Literals</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../topics/language_guides/literals_r.htm" title="Literals are items that are constant throughout the life of the application. Literals include numeric, imaginary, characters, strings, logicals, and Other (NaN/Inf)."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Literals</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">Collections</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">A collection is an ordered grouping of elements (which may be literals or other
+    collections).</p>
+
+    <section class="section">
+      <p class="p">The [ and ] characters are used to specify the beginning and end of a collection. The main
+        type of collection is a two-dimensional matrix, which is composed of rows and columns. An
+        individual element in a matrix is uniquely identified by its row and column. The , character
+        is used to separate elements within a row. Spaces are also a valid delimiter between
+        elements within a row, but commas are preferred for clarity (see below). The ; character is
+        used to separate rows.</p>
+
+      <p class="p">Example:</p>
+
+      <pre class="pre codeblock"><code>[1,2,3;4,5,6]</code></pre>
+      <p class="p">is a matrix having 2 rows and 3 columns. The first element (1) is located in the first row
+        and first column, or the 1,1 position. </p>
+
+      <p class="p">A row vector is a matrix that has only one row. A column vector is a matrix that has only
+        one column. Collections can be composed of other collections. For example:</p>
+
+      <pre class="pre codeblock"><code>[[1,2,3];[4,5,6]]</code></pre>
+      <p class="p">is equivalent to the above example.</p>
+
+      <div class="p">When creating collections of collections, the dimensions of all entities must agree. In the
+        previous example, both collections were 1x3 vectors, so it is valid.
+        <pre class="pre codeblock"><code>[[1,2; 3,4]; [5,6]] </code></pre>is a valid collection because all rows have the
+        same number of columns.</div>
+
+      <pre class="pre codeblock"><code>[[1,2; 3,4];5] </code></pre>
+      <p class="p">is not a valid collection because the dimensions do not agree.</p>
+
+      <div class="p">Collections may contain strings as well:<pre class="pre codeblock"><code>['hello’;’world']</code></pre></div>
+
+      <p class="p">However, since strings are collections of characters, each row must have the same number of
+        characters in order to form a valid matrix.</p>
+
+      <div class="p">Invalid Example:<pre class="pre codeblock"><code>['hi';'hello']</code></pre></div>
+
+      <p class="p">is not valid.</p>
+
+      <div class="p">But <pre class="pre codeblock"><code>['hi';'he']</code></pre>  or <pre class="pre codeblock"><code>['hi','hello']</code></pre> are valid.
+        The first one creates a matrix (2x2), the second one creates a 1x7 matrix (concatenated the
+        2 strings).</div>
+
+      <p class="p">A single numeric value (a scalar) can always be treated as a collection of 1 row and 1
+        column.A matrix may be empty as well. To create an empty matrix, use the [] characters with
+        nothing between them. Empty matrices are valid entities in most circumstances, depending on
+        context.</p>
+
+      <div class="p">The <span class="keyword cmdname">size</span> function can be used to determine the number of rows and
+        columns in a collection. It returns a vector containing the number of rows and columns of
+        the element passed to it. <pre class="pre codeblock"><code>size([1,2,3;4,5,6]) =&gt; [2,3]</code></pre></div>
+
+      <div class="p">Any leading or trailing ,’s or ;’s used in the creation of a collection are ignored, but it
+        is not considered good programming practice to have
+        this.<pre class="pre codeblock"><code>[,1,2;3,4;,] =&gt; [1,2;3,4]</code></pre></div>
+
+      <div class="p">Note that a single element, or scalar, behaves like a collection of size
+        1x1.<pre class="pre codeblock"><code>size(3) =&gt; [ 1 1]</code></pre></div>
+
+      <p class="p">If spaces are used to separate elements within a row, there are special rules that apply to
+        the + and – characters.</p>
+
+      <p class="p">In addition to the collections described above, <span class="keyword">OML language</span> supports
+        Multidimensional Matrices.</p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/cell_arrays_r.htm" title="Cell arrays are generic data containers.">Cell Arrays</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/structures_r.htm" title="Structures are a data type similar to cells. However, where cells use numeric indices to refer to specific pieces of data, structures use strings.">Structures</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/indexing_r.htm" title="Indexing is used to retrieve one or more specific values out of a collection.">Indexing</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/multidimensional_matrices_r.htm" title="OML supports multidimensional matrices.">Multidimensional Matrices</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../topics/language_guides/literals_r.htm" title="Literals are items that are constant throughout the life of the application. Literals include numeric, imaginary, characters, strings, logicals, and Other (NaN/Inf)."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Literals</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

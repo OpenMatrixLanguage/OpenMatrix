@@ -1,0 +1,172 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="isa" /><meta name="abstract" content="Returns result R if the input, v, belongs to the class, class." /><meta name="description" content="Returns result R if the input, v, belongs to the class, class." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Core Minimal Intepreter Commands" /><meta name="indexterms" content="isa" /><meta name="DC.subject" content="isa" /><meta name="keywords" content="isa" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CoreMinimalInterpreter/coreminimalinterpreter_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CoreMinimalInterpreter/class.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CoreMinimalInterpreter/isnumeric.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CoreMinimalInterpreter/isscalar.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CoreMinimalInterpreter/type.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>isa</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/coreminimalinterpreter_commands.htm" title="Core Minimal Interpreter Commands">Core Minimal Interpreter Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/coreminimalinterpreter_commands.htm" title="Core Minimal Interpreter Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Core Minimal Interpreter Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">isa</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Returns result <var class="keyword varname">R</var> if the input, <var class="keyword varname">v</var>, belongs to the
+    class, <var class="keyword varname">class</var>.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">R = isa<span class="ph var">(v, class)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">v</var></dt>
+
+          <dd class="dd pd">Given input variable.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">class</var></dt>
+
+          <dd class="dd pd">Class name to check for. In addition to specific class names, <var class="keyword varname">class</var>
+            can also have the following values:<dl class="dl table">
+              
+                <dt class="dt dlterm"><span class="ph synph">'integer'</span></dt>
+
+                <dd class="dd">Returns <samp class="ph systemoutput">true</samp> if <var class="keyword varname">v</var> is an
+                  integer.</dd>
+
+              
+              
+                <dt class="dt dlterm"><span class="ph synph">'float'</span></dt>
+
+                <dd class="dd">Returns <samp class="ph systemoutput">true</samp> if <var class="keyword varname">v</var> is a
+                  scalar.</dd>
+
+              
+              
+                <dt class="dt dlterm"><span class="ph synph">'double'</span></dt>
+
+                <dd class="dd">Returns <samp class="ph systemoutput">true</samp> if <var class="keyword varname">v</var> is a
+                  scalar.</dd>
+
+              
+              
+                <dt class="dt dlterm"><span class="ph synph">'numeric'</span></dt>
+
+                <dd class="dd">Returns <samp class="ph systemoutput">true</samp> if <var class="keyword varname">v</var> is an integer
+                  or a scalar.</dd>
+
+              
+            </dl>
+</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string | cell</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+          <dd class="dd pd"><var class="keyword varname">R</var> is <samp class="ph systemoutput">true</samp> if <var class="keyword varname">v</var>
+            belongs to <var class="keyword varname">class</var>. If <var class="keyword varname">class</var> is of type <span class="keyword">cell</span>, <var class="keyword varname">R</var> will also be of type <span class="keyword">cell</span>,
+            with the same size as <var class="keyword varname">R</var> and each element containing the result of the
+              <span class="keyword cmdname">isa</span> command.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">logical | cell</span></dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">Logical output example, checking for
+        subclass:<pre class="pre codeblock"><code>classdef shape
+    properties
+        color
+    end
+    methods
+        function s=shape(color1)
+          s.color = color1;
+        end
+        function disp(s)
+            fprintf('The shape has color %s\n',     s.color);
+        end
+    end
+end
+
+classdef circle &lt; shape
+	properties
+		r
+	end
+
+	methods
+		function c = circle(radius, color)
+			c = c@shape(color); % Special construct for instantiating the superclass
+			c.r = radius;
+		end
+
+		function disp(c)
+			disp@shape(c); % Call the superclass display first (optional)
+			fprintf('Radius = %f\n',c.r);
+		end
+	end
+end
+c = circle(3,'blue');
+R1 = isa(c, 'circle')
+R2 = isa(c, 'shape')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R1 = 1
+R2 = 1</code></code></pre></div>
+
+      <div class="p">Cell output example:
+        <pre class="pre codeblock"><code>R = isa([1;2;3], {'double', 'float', 'integer', 'numeric', 'foo'})</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R =
+{
+  [1,1] 1
+  [1,2] 1
+  [1,3] 0
+  [1,4] 1
+  [1,5] 0
+}</code></code></pre></div>
+
+    </section>
+
+    <section class="section">
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/class.htm" title="Retrieves the class type of the given input, x.">class</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/isnumeric.htm" title="Tests if a value is numeric.">isnumeric</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/isscalar.htm" title="Tests if a value is a scalar.">isscalar</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/type.htm" title="Displays the type of input given.">type</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/CoreMinimalInterpreter/coreminimalinterpreter_commands.htm" title="Core Minimal Interpreter Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Core Minimal Interpreter Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

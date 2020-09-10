@@ -1,0 +1,109 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="pathsep" /><meta name="abstract" content="Displays or sets the character used to separate directories in the path." /><meta name="description" content="Displays or sets the character used to separate directories in the path." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="File I/O Commands" /><meta name="indexterms" content="pathsep" /><meta name="DC.subject" content="pathsep" /><meta name="keywords" content="pathsep" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>pathsep</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" title="File I/O Commands">File I/O Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" title="File I/O Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">File I/O Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">pathsep</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Displays or sets the character used to separate directories in the path.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      <p class="p"><span class="ph synph">R = pathsep<span class="ph var">()</span></span></p>
+
+        <p class="p"><span class="ph synph">R = pathsep<span class="ph var">(newsep)</span></span></p>
+<?STOP?></section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">newsep</var></dt>
+
+          <dd class="dd pd">If <span class="keyword cmdname">nargin</span> is 0, the current character used to separate directories
+            is returned.</dd>
+
+         <dd class="dd pd ddexpand">If <span class="keyword cmdname">nargin</span> is 1, the argument must be a single character. This new
+            character will be used to separate characters in the path.</dd>
+
+         <dd class="dd pd ddexpand">The original path separation character is returned.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">char</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+          <dd class="dd pd">When <span class="keyword cmdname">nargin</span> is 0, the current character used to separate
+            directories in the path is returned.</dd>
+
+         <dd class="dd pd ddexpand">If <span class="keyword cmdname">nargin</span> is 1, the original character used to separate characters
+            in the path is returned.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">char</span></dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+      <pre class="pre codeblock"><code>printf('\nshow the original path separator character\n')
+pathsep()
+
+printf('\n\nshow the path using this separator character\n')
+R = path()
+
+printf('\n\nset the path separator to a new character, returns the original character\n')
+pathsep('*')
+
+printf('\n\nshow the path using the new separator character\n')
+R = path()</code></pre>
+      <pre class="pre codeblock"><code><code class="ph codeph">show the original path separator character
+ans = ;
+
+show the path using this separator character
+R = C:/Program Files/Example/scripts;C:/Program Files/Example/scripts/oml
+
+set the path separator to a new character, returns the original character
+ans = ;
+
+show the path using the new separator character
+R = C:/Program Files/Example/scripts*C:/Program Files/Example/scripts/oml</code></code></pre>
+    </section>
+
+    <section class="section">
+      
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links"></nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" title="File I/O Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">File I/O Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

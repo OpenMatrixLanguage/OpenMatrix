@@ -1,0 +1,70 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Clear" /><meta name="abstract" content="Variables can be unassigned using the clear function." /><meta name="description" content="Variables can be unassigned using the clear function." /><meta name="indexterms" content="clear" /><meta name="DC.subject" content="clear" /><meta name="keywords" content="clear" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/variables_and_assignments_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/variables_and_assignments_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/variables_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_pcl_5y2_vt" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Clear</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_pcl_5y2_vt">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language.">Scripting Guide for OpenMatrix Language</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/variables_and_assignments_r.htm" title="OML language scripts manipulate data through variables. Variables are referred to by their name (alphanumeric) and can be created (assigned) and deleted as described in this section.">Variables and Assignments</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../topics/language_guides/variables_and_assignments_r.htm" title="OML language scripts manipulate data through variables. Variables are referred to by their name (alphanumeric) and can be created (assigned) and deleted as described in this section."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Variables and Assignments</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">Clear</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Variables can be unassigned using the <span class="keyword cmdname">clear</span> function.</p>
+
+    <section class="section">
+      <div class="p">The <span class="keyword cmdname">clear</span> function alone clears all variables in the workspace. All that
+        is entered in the command window is <code class="ph codeph">clear</code>. There are no inputs or outputs.
+        <pre class="pre codeblock"><code>clear</code></pre></div>
+
+      <div class="p">The <span class="keyword cmdname">clear variables</span> function clears all the variables in the current
+        workspace (see Workspace and Scoping Rules).<pre class="pre codeblock"><code>clear variables</code></pre></div>
+
+      <div class="p">The <span class="keyword cmdname">clear global</span> function clears all global
+        variables.<pre class="pre codeblock"><code>clear global</code></pre></div>
+
+      <div class="p">The <span class="keyword cmdname">clear functions</span> function clears all functions except those
+        locked.<pre class="pre codeblock"><code>clear functions</code></pre></div>
+
+      <div class="p">The <span class="keyword cmdname">clear all</span> function clears all variables, global variables, and
+        functions. <pre class="pre codeblock"><code>clear all</code></pre></div>
+
+      <div class="p">The <span class="keyword cmdname">clear</span> function followed by a name of a variable or function clears
+        the input function or variable. <pre class="pre codeblock"><code>clear a
+clear makeSin</code></pre></div>
+
+      <div class="p">The <span class="keyword cmdname">clear *</span> function clears all variables that begin with anything
+        before the * in the input after the clear.<pre class="pre codeblock"><code>clear ma*</code></pre></div>
+
+      <div class="p">The <span class="keyword cmdname">clear</span> function can also be used to erase specific variables passed
+        to it:<pre class="pre codeblock"><code>clear('name')
+clear('makeSin')</code></pre></div>
+
+      <p class="p">All <span class="keyword cmdname">clear</span> functions clear those that they are designed to clear except
+        functions, variables, and so on, that are locked. There are functions that can be used to
+        unlock and lock those functions and variables .</p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/variables_and_assignments_r.htm" title="OML language scripts manipulate data through variables. Variables are referred to by their name (alphanumeric) and can be created (assigned) and deleted as described in this section.">Variables and Assignments</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/variables_r.htm" title="Variables have values that can change during the life of the application.">Variables</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../topics/language_guides/variables_and_assignments_r.htm" title="OML language scripts manipulate data through variables. Variables are referred to by their name (alphanumeric) and can be created (assigned) and deleted as described in this section."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Variables and Assignments</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+               
+        </div>
+    </div></footer></body>
+</html>
