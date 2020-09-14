@@ -18,9 +18,14 @@
   <div class="body refbody"><p class="shortdesc">Creates a textbox at coordinate <var class="keyword varname">x,y</var> with text
       <var class="keyword varname">'t'</var>.</p>
 
-    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
-      <p class="p"><span class="ph synph">text<span class="ph var">(x, y, t)</span></span></p>
-<?STOP?></section>
+    <section class="section" id="reference_wpv_kyv_pr__section_tz5_cpn_flb"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">h = text<span class="ph var">(x, y, t)</span></span></p>
+
+      <p class="p"><span class="ph synph">h = text<span class="ph var">(..., property, value, ...)</span></span></p>
+
+      <?STOP?>
+    </section>
 
     <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
       
@@ -45,25 +50,83 @@
           <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
 
         
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">property</var></dt>
+
+          <dd class="dd pd"><span class="keyword">Properties that control the appearance or behavior of the graphics object.</span></dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">value</var></dt>
+
+          <dd class="dd pd"><span class="keyword">Value of the properties.</span></dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer | string</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
       </dl>
 <?STOPINP?>
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Example</h2>
+    <section class="section" id="reference_wpv_kyv_pr__section_vqy_4pn_flb"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
       
-      <p class="p">Simple <span class="keyword cmdname">textbox</span> example.</p>
-
-      <pre class="pre codeblock"><code>clf
-text(1,1,'hello world')</code></pre>
-      <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_fvl_jnr_bt">
+      <dl class="dl parml">
         
-        <br /><img class="image" src="../../../../images/math_solutions/plots/text.PNG" height="433" width="330" /><br />
-      <span class="figcap"><span class="fig--title-label">Figure 1. </span>Simple text example</span></figure>
+          <dt class="dt pt dlterm"><span class="ph synph">h</span></dt>
 
-      
+          <dd class="dd pd">Handle of the text graphics object.</dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
     </section>
 
-    <section class="section">
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+      <div class="p">Simple <span class="keyword cmdname">textbox</span> example:
+          <pre class="pre codeblock"><code>clf
+text(1,1,'hello world')</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_bz5_pct_hlb">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_cz5_pct_hlb" src="../../../../images/math_solutions/plots/text.PNG" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 1. </span>Simple text example</span></figure>
+</div>
+
+      <div class="p"><span class="keyword cmdname">text</span> example with alignment
+          properties:<pre class="pre codeblock"><code>clf;
+scatter(1, 1);
+t = text(1,1,'hello world', 'horizontalalignment','center', 'verticalalignment', 'top');</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_osy_vct_hlb">
+          
+          <img class="image" id="reference_wpv_kyv_pr__image_psy_vct_hlb" src="../../../../images/math_solutions/plots/textAlignment.png" />
+        <span class="figcap"><span class="fig--title-label">Figure 2. </span>Text with horizontal and vertical alignment properties set</span></figure>
+</div>
+
+      <div class="p"><span class="keyword cmdname">text</span> example in a 3D plot:
+          <pre class="pre codeblock"><code>clf;
+x=[0:0.2:2*pi];
+y=x;
+z=sin(x')*cos(y);
+s=surf(x, y, z);
+t = text(10,90,'hello world');</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_tfb_kdt_hlb">
+          
+          <img class="image" id="reference_wpv_kyv_pr__image_ufb_kdt_hlb" src="../../../../images/math_solutions/plots/text3d.PNG" />
+        <span class="figcap"><span class="fig--title-label">Figure 3. </span>Text in 3d plot</span></figure>
+</div>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p">In 3D plots, the <var class="keyword varname">x</var> and <var class="keyword varname">y</var> coordinates are window
+        coordinates (a percentage of the window width and height). The reference point is the bottom
+        left corner of the window.</p>
+
       
       
     </section>

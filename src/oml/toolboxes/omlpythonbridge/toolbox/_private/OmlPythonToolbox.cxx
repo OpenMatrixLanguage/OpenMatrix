@@ -1,7 +1,7 @@
 /**
 * @file OmlPythonToolbox.cxx
 * @date December, 2017
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -20,7 +20,7 @@
 #include "OmlPythonBridge.h"
 #include "EvaluatorInt.h" 
 #include "OML_Error.h"
-#define TBOXVERSION 2019.0
+#define TBOXVERSION 2020
 // End defines/includes
 
 bool Oml_EvalPythonFile(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
@@ -34,10 +34,10 @@ bool Oml_EvalPythonFile(EvaluatorInterface eval, const std::vector<Currency>& in
     if (!(inputs[0].IsString()))
         throw OML_Error("File name must be string.");
 
-    if(OmlPythonBridge::GetInstance())
+    if(OmlPythonBridge::GetInstance(eval))
     {
-        OmlPythonBridge::GetInstance()->SetLastErrorMessage("");
-        results = OmlPythonBridge::GetInstance()->EvalPythonFile(inputs[0].StringVal());
+        OmlPythonBridge::GetInstance(eval)->SetLastErrorMessage("");
+        results = OmlPythonBridge::GetInstance(eval)->EvalPythonFile(inputs[0].StringVal());
         if (results)
 		{
 			outputs.push_back(1);
@@ -46,7 +46,7 @@ bool Oml_EvalPythonFile(EvaluatorInterface eval, const std::vector<Currency>& in
 		{
 			outputs.push_back(0);
 		}
-		outputs.push_back(OmlPythonBridge::GetInstance()->GetLastErrorMessage());
+		outputs.push_back(OmlPythonBridge::GetInstance(eval)->GetLastErrorMessage());
     }
     else
     {
@@ -67,10 +67,10 @@ bool Oml_EvalPythonScript(EvaluatorInterface eval, const std::vector<Currency>& 
     if (!(inputs[0].IsString()))
         throw OML_Error("Script must be string.");
 
-    if(OmlPythonBridge::GetInstance())
+    if(OmlPythonBridge::GetInstance(eval))
     {
-        OmlPythonBridge::GetInstance()->SetLastErrorMessage("");
-        results = OmlPythonBridge::GetInstance()->EvalPythonScript(inputs[0].StringVal());
+        OmlPythonBridge::GetInstance(eval)->SetLastErrorMessage("");
+        results = OmlPythonBridge::GetInstance(eval)->EvalPythonScript(inputs[0].StringVal());
         if (results)
 		{
 			outputs.push_back(1);
@@ -79,7 +79,7 @@ bool Oml_EvalPythonScript(EvaluatorInterface eval, const std::vector<Currency>& 
 		{
 			outputs.push_back(0);
 		}
-		outputs.push_back(OmlPythonBridge::GetInstance()->GetLastErrorMessage());
+		outputs.push_back(OmlPythonBridge::GetInstance(eval)->GetLastErrorMessage());
     }
     else
     {
@@ -103,10 +103,10 @@ bool Oml_GetPythonVariable(EvaluatorInterface eval, const std::vector<Currency>&
     if (!(inputs[0].IsString()))
         throw OML_Error("Python variable name must be string.");
     
-    if(OmlPythonBridge::GetInstance())
+    if(OmlPythonBridge::GetInstance(eval))
     {
-        OmlPythonBridge::GetInstance()->SetLastErrorMessage("");
-        results = OmlPythonBridge::GetInstance()->GetPythonVariable(inputs[0].StringVal(),outputs);
+        OmlPythonBridge::GetInstance(eval)->SetLastErrorMessage("");
+        results = OmlPythonBridge::GetInstance(eval)->GetPythonVariable(inputs[0].StringVal(),outputs);
         if (results)
 		{
 			outputs.push_back(1);
@@ -116,7 +116,7 @@ bool Oml_GetPythonVariable(EvaluatorInterface eval, const std::vector<Currency>&
 			outputs.push_back("");
 			outputs.push_back(0);
 		}
-		outputs.push_back(OmlPythonBridge::GetInstance()->GetLastErrorMessage());
+		outputs.push_back(OmlPythonBridge::GetInstance(eval)->GetLastErrorMessage());
     }
     else
     {
@@ -147,10 +147,10 @@ bool Oml_SetPythonVariable(EvaluatorInterface eval, const std::vector<Currency>&
     if (!(inputs[1].IsString()))
         throw OML_Error("Python variable name must be string.");
     
-    if(OmlPythonBridge::GetInstance())
+    if(OmlPythonBridge::GetInstance(eval))
     {
-        OmlPythonBridge::GetInstance()->SetLastErrorMessage("");
-        results = OmlPythonBridge::GetInstance()->SetPythonVariable(inputs[1].StringVal(),inputs[0]);
+        OmlPythonBridge::GetInstance(eval)->SetLastErrorMessage("");
+        results = OmlPythonBridge::GetInstance(eval)->SetPythonVariable(inputs[1].StringVal(),inputs[0]);
         if (results)
 		{
 			outputs.push_back(1);
@@ -159,7 +159,7 @@ bool Oml_SetPythonVariable(EvaluatorInterface eval, const std::vector<Currency>&
 		{
 			outputs.push_back(0);
 		}
-		outputs.push_back(OmlPythonBridge::GetInstance()->GetLastErrorMessage());
+		outputs.push_back(OmlPythonBridge::GetInstance(eval)->GetLastErrorMessage());
     }
     else
     {

@@ -1,0 +1,25 @@
+﻿classdef some_class
+  methods
+    function obj = some_class()
+      disp ('New instance created.');
+    end
+
+    function disp(obj)
+      disp ('Here is some_class.');
+    end
+  end
+
+  methods (Access = public)
+    function r = func(obj, r)
+      r = 2 * r;
+    end
+  end
+
+  methods (Static = true)
+    function c = circumference(radius)
+      c = 2 * pi() .* radius;
+    end
+  end
+end
+
+some_class.circumference(4)

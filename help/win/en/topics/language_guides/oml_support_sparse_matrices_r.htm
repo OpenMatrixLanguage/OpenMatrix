@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Sparse Matrices" /><meta name="abstract" content="Sparse matrices are a special case of the 2D matrices, where only non-zero elements are stored and displayed for efficiency. A sparse matrix typically has a high percentage of zero elements." /><meta name="description" content="Sparse matrices are a special case of the 2D matrices, where only non-zero elements are stored and displayed for efficiency. A sparse matrix typically has a high percentage of zero elements." /><meta name="indexterms" content="Sparse Matrices" /><meta name="DC.subject" content="Sparse Matrices" /><meta name="keywords" content="Sparse Matrices" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/data_types_header_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/collections_r.htm" /><meta name="prodname" content="OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="oml_support_sparse_matrices_r" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Sparse Matrices</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Sparse Matrices" /><meta name="abstract" content="Sparse matrices are a special case of 2D matrices, where only non-zero elements are stored and displayed for efficiency. A sparse matrix typically has a high percentage of zero elements." /><meta name="description" content="Sparse matrices are a special case of 2D matrices, where only non-zero elements are stored and displayed for efficiency. A sparse matrix typically has a high percentage of zero elements." /><meta name="indexterms" content="Sparse Matrices" /><meta name="DC.subject" content="Sparse Matrices" /><meta name="keywords" content="Sparse Matrices" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/data_types_header_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/collections_r.htm" /><meta name="prodname" content="OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="oml_support_sparse_matrices_r" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Sparse Matrices</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../index.htm";
           
@@ -15,23 +15,23 @@
 
     
     
-    <div class="body refbody"><p class="shortdesc">Sparse matrices are a special case of the 2D matrices, where only non-zero elements
-        are stored and displayed for efficiency. A sparse matrix typically has a high percentage of
-        zero elements.</p>
+    <div class="body refbody"><p class="shortdesc">Sparse matrices are a special case of 2D matrices, where only non-zero elements are
+        stored and displayed for efficiency. A sparse matrix typically has a high percentage of zero
+        elements.</p>
 
         <section class="section" id="oml_support_sparse_matrices_r__section_whf_fmd_hjb">
             
-            <p class="p">All rules that apply to access elements of a 2D matrix apply to sparse matrices.</p>
+            <p class="p">All rules that apply to accessing elements of a 2D matrix also apply to sparse
+                matrices.</p>
 
             <div class="p">For example, running this
                 script:<pre class="pre codeblock"><code>s = sparse([1,2,3,4,3],[4,2,3,1,2],[30,40,50,60,70])
 col2 = s(:,2)
 s(3,:) = [10,0,0,80]</code></pre></div>
 
-            <p class="p">produces this output:</p>
-
-            <div class="p">
-                <pre class="pre codeblock"><code>s = sparse [4 x 4], nnz = 5
+            <div class="p">produces this output, showing the row, column, and value for each non-zero element in
+                the same order as they are stored in
+                memory:<pre class="pre codeblock"><code>s = sparse [4 x 4], nnz = 5
 [4,1] 60
 [2,2] 40
 [3,2] 70
@@ -47,13 +47,20 @@ s = sparse [4 x 4], nnz = 5
 [4,1] 60
 [2,2] 40
 [1,4] 30
-[3,4] 80 </code></pre>
-            </div>
+[3,4] 80</code></pre></div>
 
             <div class="p">
                 <div class="note note"><span class="notetitle">Note:</span> The output of a slice operation is also a sparse matrix.</div>
 
             </div>
+
+        </section>
+
+        <section class="section" id="oml_support_sparse_matrices_r__section_wgv_3ry_qlb"><h2 class="title sectiontitle">Comments</h2>
+            
+            <p class="p">Support for sparse matrices in functions and arithmetic operators is currently only
+                partial. Please consult the specific documentation to see the available support for
+                arithmetic operators.</p>
 
         </section>
 

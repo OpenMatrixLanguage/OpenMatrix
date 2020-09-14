@@ -1,7 +1,7 @@
 /**
 * @file BetterCalc.h
 * @date June 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -41,15 +41,6 @@ void PrintBanner();
 //! \param interpwrapper Oml interp wrapper
 //!
 std::string GetInputCommand(ConsoleWrapper* interpwrapper);
-//!
-//! Clears command window (clc command)
-//! \param eval    Evaluator interface
-//! \param inputs  Vector of inputs
-//! \param outputs Vector of outputs
-//!
-bool hml_clc(EvaluatorInterface           eval, 
-             const std::vector<Currency>& inputs, 
-             std::vector<Currency>&       outputs);
 //!
 //! Encrypts given file (encrypt command)
 //! \param eval    Evaluator interface

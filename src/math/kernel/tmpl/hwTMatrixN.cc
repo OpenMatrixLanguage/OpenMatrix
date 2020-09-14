@@ -231,7 +231,7 @@ void hwTMatrixN<T1, T2>::ConvertNDto2D(hwTMatrix<T1, T2>& target) const
 
 //! Convert hwTMatrix to hwTMatrixN
 template<typename T1, typename T2>
-void hwTMatrixN<T1, T2>::Convert2DtoND(const hwTMatrix<T1, T2>& source)
+void hwTMatrixN<T1, T2>::Convert2DtoND(const hwTMatrix<T1, T2>& source, bool copyData)
 {
     if (!IsEmpty())
         MakeEmpty();
@@ -239,17 +239,30 @@ void hwTMatrixN<T1, T2>::Convert2DtoND(const hwTMatrix<T1, T2>& source)
     m_dim[0] = source.M();
     m_dim[1] = source.N();
 
-    if (source.IsReal())
-        Dimension(m_dim, REAL);
-    else
-        Dimension(m_dim, COMPLEX);
-
-    if (m_size > 0)
+    if (copyData)
     {
-        if (m_real)
-            CopyData(m_real, m_size, source.GetRealData(), m_size);
-        else if (m_complex)
-            CopyData(m_complex, m_size, source.GetComplexData(), m_size);
+        if (source.IsReal())
+            Dimension(m_dim, REAL);
+        else
+            Dimension(m_dim, COMPLEX);
+
+        if (m_size > 0)
+        {
+            if (m_real)
+                CopyData(m_real, m_size, source.GetRealData(), m_size);
+            else if (m_complex)
+                CopyData(m_complex, m_size, source.GetComplexData(), m_size);
+        }
+    }
+    else    // borrow data
+    {
+        OwnData(false);
+        ComputeSize();
+
+        if (source.IsReal())
+            m_real = const_cast<T1*> (source.GetRealData());
+        else
+            m_complex = const_cast<T2*> (source.GetComplexData());
     }
 }
 
@@ -1642,6 +1655,50 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
     if (size == 0)
         return;
 
+    // set the rhsMatrix indices to the first index in each slice
+    m_rhsMatrixIndex.resize(numSlices);
+
+    for (i = 0; i < numSlices; ++i)
+    {
+        if (sliceArg[i].IsScalar())
+            m_rhsMatrixIndex[i] = sliceArg[i].Scalar();
+        else if (sliceArg[i].IsColon())
+            m_rhsMatrixIndex[i] = 0;
+        else if (sliceArg[i].IsVector())
+            m_rhsMatrixIndex[i] = sliceArg[i].Vector()[0];
+    }
+
+    // handle equally spaced memory case
+    int numScalars = 0;
+    int dim = -1;
+
+    for (i = 0; i < numSlices; ++i)
+    {
+        if (sliceArg[i].IsScalar())
+            ++numScalars;
+        else if (sliceArg[i].IsColon())
+            dim = i;
+    }
+
+    if (dim > 0 && numScalars == numSlices - 1)
+    {
+        int start = Index(m_rhsMatrixIndex);
+        ++m_rhsMatrixIndex[dim];
+        int stride = Index(m_rhsMatrixIndex) - start;
+
+        for (i = 0; i < m_dim[dim]; ++i)
+        {
+            if (IsReal())
+                lhsMatrix(i) = (*this)(start);
+            else
+                lhsMatrix.z(i) = this->z(start);
+
+            start += stride;
+        }
+
+        return;
+    }
+ 
     // determine slice at which discontiguity occurs
     int discontiguity = numSlices;
 
@@ -1665,17 +1722,22 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
         }
     }
 
-    // set the rhsMatrix indices to the first index in each slice
-    m_rhsMatrixIndex.resize(numSlices);
+    // check for contiguous first slice argument
+    bool contigFirstVec = true;
 
-    for (i = 0; i < numSlices; ++i)
+    if (discontiguity == 0 && sliceArg[0].IsVector())
     {
-        if (sliceArg[i].IsScalar())
-            m_rhsMatrixIndex[i] = sliceArg[i].Scalar();
-        else if (sliceArg[i].IsColon())
-            m_rhsMatrixIndex[i] = 0;
-        else if (sliceArg[i].IsVector())
-            m_rhsMatrixIndex[i] = sliceArg[i].Vector()[0];
+        int vecLength = static_cast<int> (sliceArg[0].Vector().size());
+        int indx = sliceArg[0].Vector()[0];
+
+        for (int i = 1; i < vecLength; ++i)
+        {
+            if (sliceArg[0].Vector()[i] != ++indx)
+            {
+                contigFirstVec = false;
+                break;
+            }
+        }
     }
 
     // simulate nested loops to iterate over the lhsMatrix elements
@@ -1685,23 +1747,79 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
 
     for (i = 0; i < size; ++i)
     {
+        int nextSliceArg;
+
         // copy data up to discontguity
         if (discontiguity == 0)
         {
-            if (lhsMatrix.IsReal())
-                lhsMatrix(i) = (*this)(m_rhsMatrixIndex);
-            else
-                lhsMatrix.z(i) = this->z(m_rhsMatrixIndex);
+            if (sliceArg[0].IsScalar())
+            {
+                if (lhsMatrix.IsReal())
+                    lhsMatrix(i) = (*this)(m_rhsMatrixIndex);
+                else
+                    lhsMatrix.z(i) = this->z(m_rhsMatrixIndex);
+            }
+            else if (sliceArg[0].IsVector())
+            {
+                int vecLen = static_cast<int> (sliceArg[0].Vector().size());
+
+                if (contigFirstVec)
+                {
+                    int start = Index(m_rhsMatrixIndex);
+
+                    if (IsReal())
+                    {
+                        const T1* rhsData = GetRealData() + start;
+                        T1* lhsData = lhsMatrix.GetRealData() + i;
+                        hwTMatrix<T1, T2> rhsVec(vecLen, 1, (void*)rhsData, hwTMatrix<T1, T2>::REAL);
+                        hwTMatrix<T1, T2> lhsVec(vecLen, 1, (void*)lhsData, hwTMatrix<T1, T2>::REAL);
+
+                        lhsVec = rhsVec;
+                    }
+                    else
+                    {
+                        const T2* rhsData = GetComplexData() + i;
+                        T2* lhsData = lhsMatrix.GetComplexData() + start;
+                        hwTMatrix<T1, T2> rhsVec(vecLen, 1, (void*)rhsData, hwTMatrix<T1, T2>::COMPLEX);
+                        hwTMatrix<T1, T2> lhsVec(vecLen, 1, (void*)lhsData, hwTMatrix<T1, T2>::COMPLEX);
+
+                        lhsVec = rhsVec;
+                    }
+                }
+                else
+                {
+                    m_rhsMatrixIndex[0] = 0;
+                    int start = Index(m_rhsMatrixIndex);
+                    int k = i;
+
+                    for (int j = 0; j < vecLen; ++j)
+                    {
+                        int pos = start + sliceArg[0].Vector()[j];
+
+                        if (IsReal())
+                            lhsMatrix(k++) = (*this)(pos);
+                        else
+                            lhsMatrix.z(k++) = this->z(pos);
+                    }
+
+                    m_rhsMatrixIndex[0] = sliceArg[0].Vector()[0];
+                }
+
+                i += vecLen - 1;
+            }
+
+            nextSliceArg = 1;
         }
-        else
+        else    // if (sliceArg[0].IsColon())
         {
             SetMemoryPosition(m_rhsMatrixIndex);    // update m_pos
             CopyBlockRHS(i, discontiguity, lhsMatrix);
             --i;
+            nextSliceArg = discontiguity;
         }
 
         // advance lhs matrix indices
-        for (j = discontiguity; j < numSlices; ++j)
+        for (j = nextSliceArg; j < numSlices; ++j)
         {
             if (sliceArg[j].IsScalar())
             {
@@ -1746,6 +1864,17 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
 {
     if (sliceArg.size() == 0)
         throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
+
+    if (IsReal() && !rhsMatrix.IsReal())
+    {
+        MakeComplex();
+    }
+    else if (!IsReal() && rhsMatrix.IsReal())
+    {
+        hwTMatrixN<T1, T2> temp;
+        temp.PackComplex(rhsMatrix, nullptr);
+        return SliceLHS(sliceArg, temp);
+    }
 
     // handle empty rhsMatrix
     if (rhsMatrix.m_dim.size() == 2 && rhsMatrix.m_dim[0] == 0 && rhsMatrix.m_dim[1] == 0)
@@ -2028,6 +2157,58 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
             throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
     }
 
+    int size = rhsMatrix.Size();
+
+    if (size == 0)
+        return;
+
+    if (m_size < size)
+        throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
+
+    // set the lhsMatrix indices to the first index in each slice
+    m_lhsMatrixIndex.resize(numSlices);
+
+    for (int i = 0; i < numSlices; ++i)
+    {
+        if (sliceArg[i].IsScalar())
+            m_lhsMatrixIndex[i] = sliceArg[i].Scalar();
+        else if (sliceArg[i].IsColon())
+            m_lhsMatrixIndex[i] = 0;
+        else if (sliceArg[i].IsVector())
+            m_lhsMatrixIndex[i] = sliceArg[i].Vector()[0];
+    }
+
+    // handle equally spaced memory case
+    int numScalars = 0;
+    int dim = -1;
+
+    for (int i = 0; i < numSlices; ++i)
+    {
+        if (sliceArg[i].IsScalar())
+            ++numScalars;
+        else if (sliceArg[i].IsColon())
+            dim = i;
+    }
+
+    if (dim > 0 && numScalars == numSlices - 1)
+    {
+        int start = Index(m_lhsMatrixIndex);
+        ++m_lhsMatrixIndex[dim];
+        int stride = Index(m_lhsMatrixIndex) - start;
+
+        for (int i = 0; i < m_dim[dim]; ++i)
+        {
+            if (IsReal())
+                (*this)(start) = rhsMatrix(i);
+            else
+                this->z(start) = rhsMatrix.z(i);
+
+            start += stride;
+        }
+
+        return;
+    }
+
     // determine slice at which discontiguity occurs
     int discontiguity = numSlices;
 
@@ -2051,56 +2232,104 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
         }
     }
 
-    // set the lhsMatrix indices to the first index in each slice
-    m_lhsMatrixIndex.resize(numSlices);
+    // check for contiguous first slice argument
+    bool contigFirstVec = true;
 
-    for (int i = 0; i < numSlices; ++i)
+    if (discontiguity == 0 && sliceArg[0].IsVector())
     {
-        if (sliceArg[i].IsScalar())
-            m_lhsMatrixIndex[i] = sliceArg[i].Scalar();
-        else if (sliceArg[i].IsColon())
-            m_lhsMatrixIndex[i] = 0;
-        else if (sliceArg[i].IsVector())
-            m_lhsMatrixIndex[i] = sliceArg[i].Vector()[0];
+        int vecLength = static_cast<int> (sliceArg[0].Vector().size());
+        int indx = sliceArg[0].Vector()[0];
+
+        for (int i = 1; i < vecLength; ++i)
+        {
+            if (sliceArg[0].Vector()[i] != ++indx)
+            {
+                contigFirstVec = false;
+                break;
+            }
+        }
     }
 
     // simulate nested loops to iterate over the rhsMatrix elements
     // in order of contiguous memory location, copying blocks where possible
-    int size = rhsMatrix.Size();
-
     m_rhsMatrixIndex.clear();
     m_rhsMatrixIndex.resize(numSlices);
 
-    if (m_size < size)
-        throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
-
-    if (size == 0)
-        return;
-
-    if (!IsReal() && rhsMatrix.IsReal())
-        discontiguity = 0;   // need dcopy to manage this
-
     for (int i = 0; i < size; ++i)
     {
+        int nextSliceArg;
+
         // copy data up to discontguity
         if (discontiguity == 0)
         {
-            if (IsReal())
-                (*this)(m_lhsMatrixIndex) = rhsMatrix(i);
-            else if (rhsMatrix.IsReal())
-                this->z(m_lhsMatrixIndex) = rhsMatrix(i);
-            else
-                this->z(m_lhsMatrixIndex) = rhsMatrix.z(i);
+            if (sliceArg[0].IsScalar())
+            {
+                if (IsReal())
+                    (*this)(m_lhsMatrixIndex) = rhsMatrix(i);
+                else
+                    this->z(m_lhsMatrixIndex) = rhsMatrix.z(i);
+            }
+            else if (sliceArg[0].IsVector())
+            {
+                int vecLen = static_cast<int> (sliceArg[0].Vector().size());
+
+                if (contigFirstVec)
+                {
+                    int start = Index(m_lhsMatrixIndex);
+
+                    if (IsReal())
+                    {
+                        const T1* rhsData = rhsMatrix.GetRealData() + i;
+                        T1* lhsData = GetRealData() + start;
+                        hwTMatrix<T1, T2> rhsVec(vecLen, 1, (void*)rhsData, hwTMatrix<T1, T2>::REAL);
+                        hwTMatrix<T1, T2> lhsVec(vecLen, 1, (void*)lhsData, hwTMatrix<T1, T2>::REAL);
+
+                        lhsVec = rhsVec;
+                    }
+                    else
+                    {
+                        const T2* rhsData = rhsMatrix.GetComplexData() + i;
+                        T2* lhsData = GetComplexData() + start;
+                        hwTMatrix<T1, T2> rhsVec(vecLen, 1, (void*)rhsData, hwTMatrix<T1, T2>::COMPLEX);
+                        hwTMatrix<T1, T2> lhsVec(vecLen, 1, (void*)lhsData, hwTMatrix<T1, T2>::COMPLEX);
+
+                        lhsVec = rhsVec;
+                    }
+                }
+                else
+                {
+                    m_lhsMatrixIndex[0] = 0;
+                    int start = Index(m_lhsMatrixIndex);
+                    int k = i;
+
+                    for (int j = 0; j < vecLen; ++j)
+                    {
+                        int pos = start + sliceArg[0].Vector()[j];
+
+                        if (IsReal())
+                            (*this)(pos) = rhsMatrix(k++);
+                        else
+                            this->z(pos) = rhsMatrix.z(k++);
+                    }
+
+                    m_lhsMatrixIndex[0] = sliceArg[0].Vector()[0];
+                }
+
+                i += vecLen - 1;
+            }
+
+            nextSliceArg = 1;
         }
-        else
+        else    // if (sliceArg[0].IsColon())
         {
             SetMemoryPosition(m_lhsMatrixIndex);    // update m_pos
             CopyBlockLHS(i, discontiguity, rhsMatrix);
             --i;
+            nextSliceArg = discontiguity;
         }
 
         // advance rhs matrix indices
-        for (int j = discontiguity; j < numSlices; ++j)
+        for (int j = nextSliceArg; j < numSlices; ++j)
         {
             if (sliceArg[j].IsScalar())
             {
@@ -2291,6 +2520,51 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
         }
     }
 
+    // set the lhsMatrix indices to the first index
+    // in each slice, then assign the first rhs matrix element
+    m_lhsMatrixIndex.resize(numSlices);
+
+    for (i = 0; i < numSlices; ++i)
+    {
+        if (sliceArg[i].IsScalar())
+            m_lhsMatrixIndex[i] = sliceArg[i].Scalar();
+        else if (sliceArg[i].IsColon())
+            m_lhsMatrixIndex[i] = 0;
+        else if (sliceArg[i].IsVector())
+            m_lhsMatrixIndex[i] = sliceArg[i].Vector()[0];
+    }
+
+    // handle equally spaced memory case
+    int numScalars = 0;
+    int dim = -1;
+
+    for (int i = 0; i < numSlices; ++i)
+    {
+        if (sliceArg[i].IsScalar())
+            ++numScalars;
+        else if (sliceArg[i].IsColon())
+            dim = i;
+    }
+
+    if (dim > 0 && numScalars == numSlices - 1)
+    {
+        int start = Index(m_lhsMatrixIndex);
+        ++m_lhsMatrixIndex[dim];
+        int stride = Index(m_lhsMatrixIndex) - start;
+
+        for (int i = 0; i < m_dim[dim]; ++i)
+        {
+            if (IsReal())
+                (*this)(start) = real;
+            else
+                this->z(start) = real;
+
+            start += stride;
+        }
+
+        return;
+    }
+
     // determine slice at which discontiguity occurs
     int discontiguity = numSlices;
 
@@ -2312,20 +2586,6 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
             discontiguity = j;
             break;
         }
-    }
-
-    // set the lhsMatrix indices to the first index
-    // in each slice, then assign the first rhs matrix element
-    m_lhsMatrixIndex.resize(numSlices);
-
-    for (i = 0; i < numSlices; ++i)
-    {
-        if (sliceArg[i].IsScalar())
-            m_lhsMatrixIndex[i] = sliceArg[i].Scalar();
-        else if (sliceArg[i].IsColon())
-            m_lhsMatrixIndex[i] = 0;
-        else if (sliceArg[i].IsVector())
-            m_lhsMatrixIndex[i] = sliceArg[i].Vector()[0];
     }
 
     // simulate nested loops to iterate over the rhsMatrix elements
@@ -2560,6 +2820,47 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
         }
     }
 
+    // set the lhsMatrix indices to the first index
+    // in each slice, then assign the first rhs matrix element
+    m_lhsMatrixIndex.resize(numSlices);
+
+    for (i = 0; i < numSlices; ++i)
+    {
+        if (sliceArg[i].IsScalar())
+            m_lhsMatrixIndex[i] = sliceArg[i].Scalar();
+        else if (sliceArg[i].IsColon())
+            m_lhsMatrixIndex[i] = 0;
+        else if (sliceArg[i].IsVector())
+            m_lhsMatrixIndex[i] = sliceArg[i].Vector()[0];
+    }
+
+    // handle equally spaced memory case
+    int numScalars = 0;
+    int dim = -1;
+
+    for (int i = 0; i < numSlices; ++i)
+    {
+        if (sliceArg[i].IsScalar())
+            ++numScalars;
+        else if (sliceArg[i].IsColon())
+            dim = i;
+    }
+
+    if (dim > 0 && numScalars == numSlices - 1)
+    {
+        int start = Index(m_lhsMatrixIndex);
+        ++m_lhsMatrixIndex[dim];
+        int stride = Index(m_lhsMatrixIndex) - start;
+
+        for (int i = 0; i < m_dim[dim]; ++i)
+        {
+            this->z(start) = cmplx;
+            start += stride;
+        }
+
+        return;
+    }
+
     // determine slice at which discontiguity occurs
     int discontiguity = numSlices;
 
@@ -2581,20 +2882,6 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
             discontiguity = j;
             break;
         }
-    }
-
-    // set the lhsMatrix indices to the first index
-    // in each slice, then assign the first rhs matrix element
-    m_lhsMatrixIndex.resize(numSlices);
-
-    for (i = 0; i < numSlices; ++i)
-    {
-        if (sliceArg[i].IsScalar())
-            m_lhsMatrixIndex[i] = sliceArg[i].Scalar();
-        else if (sliceArg[i].IsColon())
-            m_lhsMatrixIndex[i] = 0;
-        else if (sliceArg[i].IsVector())
-            m_lhsMatrixIndex[i] = sliceArg[i].Vector()[0];
     }
 
     // simulate nested loops to iterate over the rhsMatrix elements
@@ -3194,8 +3481,6 @@ void hwTMatrixN<T1, T2>::CopyBlockRHS(int& pos, int sliceArg, hwTMatrixN<T1, T2>
 
     pos += numVals;
 }
-
-
 
 //! Write a contiguous block to the calling object, as if the calling
 //! object is being sliced on the left hand side of an equals sign

@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsFile.cpp
 * @date March 2016
-* Copyright (C) 2016-2019 Altair Engineering, Inc.  
+* Copyright (C) 2016-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -817,7 +817,7 @@ bool BuiltInFuncsFile::Importdata(EvaluatorInterface           eval,
     {
         FunctionInfo* fi      = nullptr;
         FUNCPTR       funcptr = nullptr;
-        eval.FindFunctionByName("load", &fi, &funcptr);
+        eval.FindFunctionByName("load", &fi, &funcptr, NULL);
         if (funcptr)
         {
             outputs = eval.DoMultiReturnFunctionCall(funcptr, funcInputs, 
@@ -835,7 +835,7 @@ bool BuiltInFuncsFile::Importdata(EvaluatorInterface           eval,
     {
         // Try reading non-textfiles using xlsread
         FunctionInfo* fi = nullptr;
-        eval.FindFunctionByName("xlsread", &fi, &xlsfuncptr);
+        eval.FindFunctionByName("xlsread", &fi, &xlsfuncptr, NULL);
         if (!istxtfile)
         {
             if (xlsfuncptr)
@@ -859,7 +859,7 @@ bool BuiltInFuncsFile::Importdata(EvaluatorInterface           eval,
             {
                 FunctionInfo* fi      = nullptr;
                 FUNCPTR       funcptr = nullptr;
-                eval.FindFunctionByName("load", &fi, &funcptr);
+                eval.FindFunctionByName("load", &fi, &funcptr, NULL);
                 if (funcptr)
                 {
                     outputs = eval.DoMultiReturnFunctionCall(funcptr, funcInputs, 
@@ -875,7 +875,7 @@ bool BuiltInFuncsFile::Importdata(EvaluatorInterface           eval,
     {
         FunctionInfo* fi   = nullptr;
         FUNCPTR       fptr = nullptr;
-        eval.FindFunctionByName("textread", &fi, &fptr);
+        eval.FindFunctionByName("textread", &fi, &fptr, NULL);
         if (fptr)
         {
             outputs = eval.DoMultiReturnFunctionCall(fptr, funcInputs, 
@@ -2276,165 +2276,182 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
 
     BuiltInFuncsUtils utils;
     std::string       filename;
-    std::FILE*        fptr   = nullptr;
     int               fileid = -1;
+    
     if (!isString)
     {
         fileid = utils.GetFileId(eval, inputs[0], 1);
         utils.CheckFileIndex(eval, fileid, 1, false); // Don't read std streams
 
-        fptr     = eval.GetFile(fileid);
         filename = eval.GetFileName(fileid);
     }
     else
     {
         filename = inputs[0].StringVal();
-        if (!BuiltInFuncsUtils::FileExists(filename)) 
+        if (!utils.FileExists(filename)) 
         {
             throw OML_Error(OML_ERR_FILE_NOTFOUND, 1);
         }
-        fptr = fopen(filename.c_str(), "rb");
     }
 
-    if (!fptr)
+    std::unique_ptr<hwMatrix> mtx = nullptr;
+
+    double emptyval = 0;
+
+    std::string delim;
+    std::string strrange;
+
+    int startrow = -1;
+    int startcol = -1;
+    int endrow   = -1;
+    int endcol   = -1;
+    int nargin   = static_cast<int>(inputs.size());
+    for (int i = 1; i < nargin; ++i)
+    {
+        const Currency& cur = inputs[i];
+        if (cur.IsString())  // Could be separator/range/emptyval
+        {
+            std::string val (cur.StringVal());
+            if (val.empty())
+            {
+                throw OML_Error(OML_ERR_NONEMPTY_STR, i + 1, OML_VAR_VALUE);
+            } 
+            std::string lower(val);
+            std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+            if (lower == "emptyvalue")
+            {
+                ++i;
+                if (i >= nargin)
+                {
+                    throw OML_Error(OML_ERR_NUMARGIN);
+                }
+                if (!inputs[i].IsScalar())
+                {
+                    throw OML_Error(OML_ERR_SCALAR, i + 1, OML_VAR_TYPE);
+                }
+                emptyval = inputs[i].Scalar();
+                continue;
+            }
+            bool hasalpha = false;
+            bool hassep   = false;
+            if (strstr(val.c_str(), ":") || strstr(val.c_str(), ".."))
+            {
+                hassep = true;
+            }
+            size_t strsize = val.size();
+            for (size_t j = 0; j < strsize; ++j)
+            {
+                if (isalpha(val[j]))
+                {
+                    hasalpha = true;
+                    break;
+                }
+            }
+            if (hasalpha && hassep)
+            {
+                BuiltInFuncsFile funcs;
+                std::vector<int> range = funcs.String2VectorRange(val, i);
+                assert(range.size() == 4);
+                startrow = range[0];
+                startcol = range[1];
+                endrow   = range[2];
+                endcol   = range[3];
+            }
+            else
+            {
+                delim = val;
+            }
+        }
+        else if (cur.IsInteger())
+        {
+            int val = static_cast<int>(cur.Scalar());
+            if (val < 0)
+            {
+                throw OML_Error(OML_ERR_NATURALNUM, i + 1, OML_VAR_VALUE);
+            }
+            if (startrow == -1)
+            {
+                startrow = val;
+            }
+            else
+            {
+                startcol = val;
+            }
+        }
+        else if (cur.IsVector())
+        {
+            std::vector<double> dvec (cur.Vector());
+            if (dvec.size() != 4)
+            {
+                std::string msg ("Error: invalid input; must be a 4-element vector");
+                msg += " in argument " + 
+                        std::to_string(static_cast<long long>(i + 1));
+                throw OML_Error(msg);
+            }
+            for (int j = 0; j < 4; ++j)
+            {
+                double tmp = dvec[j];
+                if (tmp < 0 || !utils.IsInt(tmp) || IsNegInf_T(tmp) ||
+                    IsInf_T(tmp) || IsNaN_T(tmp))
+                {
+                    std::string msg ("Error: invalid input; vector must contain");
+                    msg += "non-negative, finite integers in argument " + 
+                            std::to_string(static_cast<long long>(i + 1));
+                    throw OML_Error(msg);
+                }
+            }
+            startrow = static_cast<int>(dvec[0]);
+            startcol = static_cast<int>(dvec[1]);
+            endrow   = static_cast<int>(dvec[2]);
+            endcol   = static_cast<int>(dvec[3]);
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_SCALAR_VECTOR_STRING, i + 1, OML_VAR_TYPE);
+        }
+    }
+
+    std::ifstream ifs;
+    ifs.open(filename, std::ios_base::in | std::ios::binary);
+    if (!ifs)
     {
         throw OML_Error(OML_ERR_FILE_CANNOTOPEN, 1);
     }
 
-    std::unique_ptr<hwMatrix> mtx = nullptr;
-    try
+    // Start reading the data
+    if (delim.empty())
     {
-        std::string delim;
-        std::string strrange;
-
-        double emptyval = 0;
-        int startrow = -1;
-        int startcol = -1;
-        int endrow   = -1;
-        int endcol   = -1;
-        int nargin   = static_cast<int>(inputs.size());
-        for (int i = 1; i < nargin; ++i)
+        std::string ext(utils.GetFileExtension(filename));
+        if (!ext.empty())
         {
-            const Currency& cur = inputs[i];
-            if (cur.IsString())  // Could be separator/range/emptyval
+            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+            if (ext == "csv")
             {
-                std::string val (cur.StringVal());
-                if (val.empty())
-                {
-                    throw OML_Error(OML_ERR_NONEMPTY_STR, i + 1, OML_VAR_VALUE);
-                } 
-                std::string lower(val);
-                std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
-                if (lower == "emptyvalue")
-                {
-                    ++i;
-                    if (i >= nargin)
-                    {
-                        throw OML_Error(OML_ERR_NUMARGIN);
-                    }
-                    if (!inputs[i].IsScalar())
-                    {
-                        throw OML_Error(OML_ERR_SCALAR, i + 1, OML_VAR_TYPE);
-                    }
-                    emptyval = inputs[i].Scalar();
-                    continue;
-                }
-                bool hasalpha = false;
-                bool hassep   = false;
-                if (strstr(val.c_str(), ":") || strstr(val.c_str(), ".."))
-                {
-                    hassep = true;
-                }
-                size_t strsize = val.size();
-                for (size_t j = 0; j < strsize; ++j)
-                {
-                    if (isalpha(val[j]))
-                    {
-                        hasalpha = true;
-                        break;
-                    }
-                }
-                if (hasalpha && hassep)
-                {
-                    BuiltInFuncsFile funcs;
-                    std::vector<int> range = funcs.String2VectorRange(val, i);
-                    assert(range.size() == 4);
-                    startrow = range[0];
-                    startcol = range[1];
-                    endrow   = range[2];
-                    endcol   = range[3];
-                }
-                else
-                {
-                    delim = val;
-                }
-            }
-            else if (cur.IsInteger())
-            {
-                int val = static_cast<int>(cur.Scalar());
-                if (val < 0)
-                {
-                    throw OML_Error(OML_ERR_NATURALNUM, i + 1, OML_VAR_VALUE);
-                }
-                if (startrow == -1)
-                {
-                    startrow = val;
-                }
-                else
-                {
-                    startcol = val;
-                }
-            }
-            else if (cur.IsVector())
-            {
-                std::vector<double> dvec (cur.Vector());
-                if (dvec.size() != 4)
-                {
-                    std::string msg ("Error: invalid input; must be a 4-element vector");
-                    msg += " in argument " + 
-                           std::to_string(static_cast<long long>(i + 1));
-                    throw OML_Error(msg);
-                }
-                for (int j = 0; j < 4; ++j)
-                {
-                    double tmp = dvec[j];
-                    if (tmp < 0 || !utils.IsInt(tmp) || IsNegInf_T(tmp) ||
-                        IsInf_T(tmp) || IsNaN_T(tmp))
-                    {
-                        std::string msg ("Error: invalid input; vector must contain");
-                        msg += "non-negative, finite integers in argument " + 
-                               std::to_string(static_cast<long long>(i + 1));
-                        throw OML_Error(msg);
-                    }
-                }
-                startrow = static_cast<int>(dvec[0]);
-                startcol = static_cast<int>(dvec[1]);
-                endrow   = static_cast<int>(dvec[2]);
-                endcol   = static_cast<int>(dvec[3]);
-            }
-            else
-            {
-                throw OML_Error(OML_ERR_SCALAR_VECTOR_STRING, i + 1, OML_VAR_TYPE);
+                delim = ",";
             }
         }
+    }
 
-        // Start reading the data
+    try
+    {
+        bool quitLoop    = false;
+        int  currentrow  = 0;
+        int  m           = 0;
+        int  n           = 0;
+        int  maxn        = 0;
+        int  rowcapacity = 1000;
+        int  colcapacity = 1000;
+
+        // Cannot directly push data into matrix as for large matrices, resizing
+        // is very slow
+        std::vector< std::vector<double> > data;
+        data.reserve(rowcapacity);
 
         // Read the data
-        bool quitLoop = false;
-        int  currentrow  = 0;
-        char lineC [2048];
-        int m = 0;
-        while (!quitLoop && !eval.IsInterrupt())
+        while (!quitLoop && !eval.IsInterrupt() && !ifs.eof())
         {
             std::string line;
-            memset(lineC, 0, sizeof(lineC));
-            if (fgets(lineC, sizeof(lineC), fptr) == nullptr)
-            {
-                quitLoop = true;
-                break;
-            }
-            line = lineC;
+            std::getline(ifs, line);
 
 		    if (startrow != -1 && currentrow < startrow || line.empty())
             {
@@ -2449,23 +2466,6 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
             {
                 break;
 		    }
-
-            if (!strstr(lineC, "\n") && !strstr(lineC, "\r"))
-            {
-                while(1)
-                {
-                    memset(lineC, 0, sizeof(lineC));
-                    if (fgets(lineC, sizeof(lineC), fptr) == nullptr)
-                    {
-                        break;
-                    }
-                    line += lineC;
-                    if (strstr(lineC, "\n") || strstr(lineC, "\r"))
-                    {
-                        break;
-                    }
-                }
-            }
 
             if (line[line.size() - 1] == '\n')
             {
@@ -2490,13 +2490,13 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
             // Start of line parsing
             double dval = emptyval;
             int currentcol = 0;
-            int n = 0;
+            n = 0;
             int used = 0;
             int result = 0;
 
             if (delim.empty())
             {
-                if (std::any_of(line.begin(), line.end(), ::isdigit))
+                if (std::any_of(line.begin(), line.end(), ::isdigit)) //hema
                 {    
                     sscanf(line.c_str(), "%lf%n", &dval, &used);
                 }
@@ -2523,7 +2523,11 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
                 throw OML_Error("Error: cannot determine delimter to process file in argument 1");
             }
 
+            std::vector<double> thiscol;
+            thiscol.reserve(colcapacity);
+
             char* tok = strtok((char *)line.c_str(), delim.c_str());
+
             while (tok)
             {
                 if (currentcol < startcol)
@@ -2538,46 +2542,66 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
                 }
 
                 double val = emptyval;
-                std::string data(tok);
-
-                if (std::any_of(data.begin(), data.end(), ::isdigit))
+                if (sscanf(tok, "%lf", &val) <= 0)
                 {
-                    int result = sscanf(data.c_str(), "%lf", &val);
-                    if (result <= 0)
-                    {
-                        val = emptyval;
-                    }
+                    val = emptyval;
                 }
-                if (!mtx)
+                if (!thiscol.empty() && thiscol.size() >= colcapacity)
                 {
-                    mtx.reset(EvaluatorInterface::allocateMatrix(1, 1, val));
+                    colcapacity *= 2;
+                    thiscol.reserve(colcapacity);
                 }
-                else
-                {
-                    int newn = std::max(mtx->N(), n + 1);
-                    utils.CheckMathStatus(eval, mtx->Resize(m + 1, newn, true));
-                    (*mtx)(m, n) = val;
-                }
+                thiscol.push_back(val);
                 tok = strtok(nullptr, delim.c_str());
                 n++;
                 currentcol++;
             }
+
+            if (!data.empty() && data.size() >= rowcapacity)
+            {
+                rowcapacity *= 2;
+                data.reserve(rowcapacity);
+            }          
+            maxn = std::max(maxn, static_cast<int>(thiscol.size()));
+            data.push_back(thiscol);
             m++;
             currentrow++;
+        }
+
+        ifs.close();
+        mtx.reset(EvaluatorInterface::allocateMatrix(m, maxn, emptyval));
+
+        for (int i = 0; i < m; ++i)
+        {
+            if (data[i].size() != maxn)
+            {
+                data[i].reserve(maxn);
+                data[i].resize(maxn, emptyval);
+            }
+            std::unique_ptr<hwMatrix> row(EvaluatorInterface::allocateMatrix(
+                1, maxn, data[i].data(), hwMatrix::REAL));
+            utils.CheckMathStatus(eval, mtx->WriteRow(i, *(row.get())));
         }
     }
     catch (const OML_Error& e)
     {
-        if (isString)
+        if (ifs.is_open())
         {
-            fclose(fptr);
+            ifs.close();
         }
         throw e;
     }
-
-    if (isString)
+    catch (...)
     {
-        fclose(fptr);
+        if (ifs.is_open())
+        {
+            ifs.close();
+        }
+        throw OML_Error(OML_ERR_INTERNAL);
+    }
+    if (ifs.is_open())
+    {
+        ifs.close();
     }
     outputs.push_back(mtx.release());
     return true;

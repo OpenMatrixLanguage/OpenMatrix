@@ -122,7 +122,7 @@ bool OmlOde113(EvaluatorInterface           eval,
     {
         funcInfo = inputs[0].FunctionHandle();
     }
-    else if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr))
+    else if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr, nullptr))
     {
         throw OML_Error(OML_ERR_FUNCNAME, 1);
     }

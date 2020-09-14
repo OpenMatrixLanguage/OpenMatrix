@@ -155,6 +155,7 @@ public:
 	void     SetEnvValue(int, std::string, const Currency&);
 	void     ImportEnv(int source, int dest);
 	void     ClearEnv(MemoryScope*);
+	void     ClearEnv(int source);
 
 private:
 	std::vector<MemoryScope*> memory_stack;
@@ -162,6 +163,7 @@ private:
 
 	std::map<int, MemoryScope*> _envs;
 	std::map<MemoryScope*, int> _rev_envs;
+	std::vector<MemoryScope*> _allocated_envs;
 	static int _env_counter;
 
 	int first_scope_with_nested;

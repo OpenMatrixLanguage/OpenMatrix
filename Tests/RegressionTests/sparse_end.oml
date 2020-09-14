@@ -1,0 +1,2 @@
+﻿S = speye(10);
+S1 = S(end-1:end)

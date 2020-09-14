@@ -17,82 +17,77 @@
   
   <div class="body refbody"><p class="shortdesc">Matrix Multiplication is defined as the multiplication of two matrices.</p>
 
-    <section class="section">
+    <section class="section" id="reference_bms_nkv_fv__section_k5h_lkz_qlb">
       <p class="p">It requires the number of columns in the first matrix to equal the number of rows in the
         second matrix. The resulting matrix will have the same number of rows as the first matrix,
-        and the same number of columns as the second matrix. To multiply, take the dot product of
-        the corresponding rows and columns. For example, dot product the first row of the first
-        matrix with the first column of the second matrix. To dot product, add together the
-        multiplication of each entity of the first matrix’s first row with each entity of the second
-        matrix’s first column. Put the resulting answer in the first row, first column of the new
-        matrix. Continue this process with all the rows and columns. </p>
+        and the same number of columns as the second matrix.</p>
 
       
 <div class="tablenoborder"><table cellpadding="4" cellspacing="0" summary="" id="reference_bms_nkv_fv__table_zt5_ttw_xv" class="table" frame="border" border="1" rules="all"><colgroup><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /></colgroup><thead class="thead" style="text-align:left;">
             <tr>
-              <th class="entry cellrowborder" id="d8627e47">*</th>
+              <th class="entry cellrowborder" id="d8742e47">*</th>
 
-              <th class="entry cellrowborder" id="d8627e50">Scalar</th>
+              <th class="entry cellrowborder" id="d8742e50">Scalar</th>
 
-              <th class="entry cellrowborder" id="d8627e53">Row Vector</th>
+              <th class="entry cellrowborder" id="d8742e53">Row Vector</th>
 
-              <th class="entry cellrowborder" id="d8627e56">Column Vector</th>
+              <th class="entry cellrowborder" id="d8742e56">Column Vector</th>
 
-              <th class="entry cellrowborder" id="d8627e59">Matrix</th>
+              <th class="entry cellrowborder" id="d8742e59">Matrix</th>
 
             </tr>
 
           </thead>
 <tbody class="tbody">
             <tr>
-              <td class="entry cellrowborder" headers="d8627e47 ">Scalar</td>
+              <td class="entry cellrowborder" headers="d8742e47 ">Scalar</td>
 
-              <td class="entry cellrowborder" headers="d8627e50 ">Multiplies the two scalar values.</td>
+              <td class="entry cellrowborder" headers="d8742e50 ">Multiplies the two scalar values.</td>
 
-              <td class="entry cellrowborder" headers="d8627e53 ">Multiplies the scalar with each element in the row vector.</td>
+              <td class="entry cellrowborder" headers="d8742e53 ">Multiplies the scalar with each element in the row vector.</td>
 
-              <td class="entry cellrowborder" headers="d8627e56 ">Multiplies the scalar with each element in the column vector.</td>
+              <td class="entry cellrowborder" headers="d8742e56 ">Multiplies the scalar with each element in the column vector.</td>
 
-              <td class="entry cellrowborder" headers="d8627e59 ">Multiplies the scalar with each element in the matrix.</td>
-
-            </tr>
-
-            <tr>
-              <td class="entry cellrowborder" headers="d8627e47 ">Row Vector</td>
-
-              <td class="entry cellrowborder" headers="d8627e50 ">Multiplies the scalar with each element in the column vector.</td>
-
-              <td class="entry cellrowborder" headers="d8627e53 "> </td>
-
-              <td class="entry cellrowborder" headers="d8627e56 ">Use matrix multiplication.</td>
-
-              <td class="entry cellrowborder" headers="d8627e59 ">Use matrix multiplication.</td>
+              <td class="entry cellrowborder" headers="d8742e59 ">Multiplies the scalar with each element in the matrix.</td>
 
             </tr>
 
             <tr>
-              <td class="entry cellrowborder" headers="d8627e47 ">Column Vector</td>
+              <td class="entry cellrowborder" headers="d8742e47 ">Row Vector</td>
 
-              <td class="entry cellrowborder" headers="d8627e50 ">Multiplies the scalar with each element in the column vector.</td>
+              <td class="entry cellrowborder" headers="d8742e50 ">Multiplies the scalar with each element in the column vector.</td>
 
-              <td class="entry cellrowborder" headers="d8627e53 ">Use matrix multiplication.</td>
+              <td class="entry cellrowborder" headers="d8742e53 "> </td>
 
-              <td class="entry cellrowborder" headers="d8627e56 "> </td>
+              <td class="entry cellrowborder" headers="d8742e56 ">Use matrix multiplication.</td>
 
-              <td class="entry cellrowborder" headers="d8627e59 ">Use matrix multiplication.</td>
+              <td class="entry cellrowborder" headers="d8742e59 ">Use matrix multiplication.</td>
 
             </tr>
 
             <tr>
-              <td class="entry cellrowborder" headers="d8627e47 ">Matrix</td>
+              <td class="entry cellrowborder" headers="d8742e47 ">Column Vector</td>
 
-              <td class="entry cellrowborder" headers="d8627e50 ">Multiplies the scalar with each element in the matrix.</td>
+              <td class="entry cellrowborder" headers="d8742e50 ">Multiplies the scalar with each element in the column vector.</td>
 
-              <td class="entry cellrowborder" headers="d8627e53 ">Use matrix multiplication.</td>
+              <td class="entry cellrowborder" headers="d8742e53 ">Use matrix multiplication.</td>
 
-              <td class="entry cellrowborder" headers="d8627e56 ">Use matrix multiplication.</td>
+              <td class="entry cellrowborder" headers="d8742e56 "> </td>
 
-              <td class="entry cellrowborder" headers="d8627e59 ">Use matrix multiplication.</td>
+              <td class="entry cellrowborder" headers="d8742e59 ">Use matrix multiplication.</td>
+
+            </tr>
+
+            <tr>
+              <td class="entry cellrowborder" headers="d8742e47 ">Matrix</td>
+
+              <td class="entry cellrowborder" headers="d8742e50 ">Multiplies the scalar with each element in the matrix.</td>
+
+              <td class="entry cellrowborder" headers="d8742e53 ">Use matrix multiplication.</td>
+
+              <td class="entry cellrowborder" headers="d8742e56 ">Use matrix multiplication.</td>
+
+              <td class="entry cellrowborder" headers="d8742e59 ">Use matrix multiplication.</td>
 
             </tr>
 
@@ -100,20 +95,24 @@
 </table>
 </div>
 
-      <p class="p">Examples</p>
+    </section>
 
-      <pre class="pre codeblock"><code>3*3
+    <section class="section" id="reference_bms_nkv_fv__section_l5h_lkz_qlb"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">
+        <pre class="pre codeblock"><code>3 * 3
 ans = 9 
 
-[1 5 4]* [3; 5; 7]
+[1 5 4] * [3; 5; 7]
 ans = 56
   
-[3 4; 5 8]*[4; 7]
+[3 4; 5 8] * [4; 7]
 ans = [40 ; 76]</code></pre>
-      <p class="p">Invalid Examples</p>
+      </div>
 
-      <pre class="pre codeblock"><code>[3 5 4]*[3 6 7]
-[3 4]*[1 4;3 6; 10 2]</code></pre>
+      <div class="p">Invalid examples:<pre class="pre codeblock"><code>[3 5 4] * [3 6 7]
+[3 4] * [1 4;3 6; 10 2]</code></pre></div>
+
       
     </section>
 
@@ -124,7 +123,7 @@ ans = [40 ; 76]</code></pre>
 
 <div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/logical_operators_r.htm" title="Logical operators include and, or, and not, for example.">Logical Operators</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/arithmetic_operators_r.htm" title="Arithmetic operators include addition, subtraction, and multiplication, for example.">Arithmetic Operators</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/multiplication_r.htm" title="This type of multiplication is different from Matrix Multiplication in that the multiplication is done through each corresponding element.">Multiplication</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/multiplication_r.htm" title="This type of multiplication is different from Matrix Multiplication in that the multiplication is performed on each pair of corresponding elements.">Multiplication</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/operators_header_r.htm" title="Operators are used to combine operands.">Operators</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator.">Operator Descriptions (tables)</a></div></div>
 </nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->

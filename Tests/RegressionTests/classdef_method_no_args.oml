@@ -1,0 +1,16 @@
+﻿classdef myClass
+    properties
+	   a
+	end
+	methods 
+	   function z=myClass(a)
+	       z.a = a;
+	   end
+	   function z=A(self)
+	      z = self.a;
+	   end
+	end
+end
+
+m = myClass(3);
+m.A

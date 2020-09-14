@@ -189,13 +189,13 @@ Currency BuiltInFuncsConvert::Hex2DecHelper(const std::string& hexstr)
         }
     }
 
-    int val = 0;
+    long long val = 0;
 
     std::stringstream ss;
     ss << std::hex << hexstr;
     ss >> val;
 
-    return Currency(val);
+    return Currency((double)val);
 }
 //------------------------------------------------------------------------------
 //! Returns currency (column matrix) for given input

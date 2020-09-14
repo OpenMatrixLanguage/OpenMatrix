@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsUtils.cpp
 * @date November 2015
-* Copyright (C) 2015-2019 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -53,6 +53,7 @@
 #include "Evaluator.h"
 #include "MatrixNDisplay.h"
 #include "OML_Error.h"
+#include "SignalHandlerBase.h"
 #include "utf8utils.h"
 
 #include <hwMatrix.h>
@@ -1008,7 +1009,7 @@ bool BuiltInFuncsUtils::IsToolboxFunction(EvaluatorInterface eval,
 
     FunctionInfo *fi   = nullptr;
     FUNCPTR       fptr = nullptr;
-    eval.FindFunctionByName(name, &fi, &fptr);
+    eval.FindFunctionByName(name, &fi, &fptr, NULL);
 
     if (fptr)
         return true;
@@ -1222,31 +1223,6 @@ void BuiltInFuncsUtils::StripTrailingNewline(std::string& str)
             break;  // Reached the end
         }
     }
-}
-//------------------------------------------------------------------------------
-// True if pagination environment is enabled
-//------------------------------------------------------------------------------
-bool BuiltInFuncsUtils::IsPaginationEnvEnabled()
-{
-    const char* paginationEnv = getenv("OML_PAGINATE");
-    if (!paginationEnv) 
-    {
-        return true;  // By default it is enabled
-    }
-
-    if (paginationEnv == "0") 
-    {
-        return false;
-    }
-
-    std::string strEnv (paginationEnv);
-    std::transform(strEnv.begin(), strEnv.end(), strEnv.begin(), ::tolower);
-
-    if (strEnv == "false" || strEnv == "0") 
-    {
-        return false;
-    }
-    return true;
 }
 //------------------------------------------------------------------------------
 // Returns true after parsing input and gets formats
@@ -1492,13 +1468,12 @@ std::wstring BuiltInFuncsUtils::StripTrailingNewlineW(const std::wstring& in)
 //------------------------------------------------------------------------------
 bool BuiltInFuncsUtils::DoesPathExistW(const std::wstring& path)
 {
-    if (path.empty())
+    if (!path.empty())
     {
-        return false;
+        int result = _waccess(path.c_str(), 0);
+        return (result == 0);
     }
-
-    int result = _waccess(path.c_str(), 0);
-    return (result == 0);
+    return false;
 }
 //------------------------------------------------------------------------------
 // Adds trailing slash, supports Unicode
@@ -1657,8 +1632,6 @@ std::wstring BuiltInFuncsUtils::StdString2WString(const std::string& input)
     }
 
 #ifdef OS_WIN
-
-#if 0 // Pre C++ 11 way of converting //\todo: Delete
     int len = MultiByteToWideChar(CP_UTF8, 0, input.c_str(), -1, NULL, 0);
 
     assert(len != 0);
@@ -1673,10 +1646,6 @@ std::wstring BuiltInFuncsUtils::StdString2WString(const std::string& input)
 
     delete[] widestr;
     widestr = nullptr;
-#endif
-
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    std::wstring out = converter.from_bytes(input);
 #else
     std::wstring out(input.begin(), input.end());
 #endif
@@ -1694,17 +1663,11 @@ std::string BuiltInFuncsUtils::WString2StdString(const std::wstring& in)
     }
 
 #ifdef OS_WIN
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    std::string out = converter.to_bytes(in);
-
-#if 0 // Pre C++ 11 way of converting //\todo: Delete
     int wlen = static_cast<int>(in.size());
     int len = WideCharToMultiByte(CP_UTF8, 0, &in[0], wlen, NULL, 0, NULL, NULL);
     assert(len);
     std::string out(len, 0);
     WideCharToMultiByte(CP_UTF8, 0, &in[0], wlen, &out[0], len, NULL, NULL);
-#endif 
-
 #else
     std::string out(in.begin(), in.end());
 #endif
@@ -1828,4 +1791,79 @@ bool BuiltInFuncsUtils::HasWideChars(const std::string& str)
     }
 
     return false;
+}
+//------------------------------------------------------------------------------
+// Returns extension for a given file name
+//------------------------------------------------------------------------------
+std::wstring BuiltInFuncsUtils::GetFileExtensionW(const std::wstring& filename)
+{
+    if (!filename.empty())
+    {
+        size_t pos = filename.find_last_of(L".");
+        if (pos != std::wstring::npos)
+        {
+            return filename.substr(pos + 1);
+        }
+    }
+    return std::wstring();
+}
+//------------------------------------------------------------------------------
+// Returns true if std::cout buffer needs to be flushed
+//------------------------------------------------------------------------------
+bool BuiltInFuncsUtils::IsFlushCout(EvaluatorInterface eval, int fid)
+{
+    if (fid != 1)
+    {
+        return false;  // Flush only std::cout
+    }
+    SignalHandlerBase* handler = eval.GetSignalHandler();
+    return (!handler || (handler && !handler->IsInGuiMode()));
+}
+//------------------------------------------------------------------------------
+// Sets pagination mode with boolean for compatibility with previous versions
+//------------------------------------------------------------------------------
+void BuiltInFuncsUtils::SetPaginate(bool val)
+{
+    (val) ? CurrencyDisplay::SetPaginate(CurrencyDisplay::PAGINATE_ON) :
+        CurrencyDisplay::SetPaginate(CurrencyDisplay::PAGINATE_OFF);
+}
+//------------------------------------------------------------------------------
+// Sets pagination mode with string value
+//------------------------------------------------------------------------------
+void BuiltInFuncsUtils::SetPaginate(const std::string& val)
+{
+    if (!val.empty())
+    {
+        std::string tmp(val);
+        std::transform(tmp.begin(), tmp.end(), tmp.begin(), ::tolower);
+        if (tmp == "on" || tmp == "1" || tmp == "true")
+        {
+            CurrencyDisplay::SetPaginate(CurrencyDisplay::PAGINATE_ON);
+        }
+        else if (tmp == "off" || tmp == "0" || tmp == "false")
+        {
+            CurrencyDisplay::SetPaginate(CurrencyDisplay::PAGINATE_OFF);
+        }
+        else if (tmp == "interactive")
+        {
+            CurrencyDisplay::SetPaginate(CurrencyDisplay::PAGINATE_INTERACTIVE);
+        }
+    }
+}
+//------------------------------------------------------------------------------
+// Gets pagination mode
+//------------------------------------------------------------------------------
+std::string BuiltInFuncsUtils::GetPaginate() const
+{
+    CurrencyDisplay::PAGINATE val = CurrencyDisplay::GetPaginate();
+    if (val == CurrencyDisplay::PAGINATE_INTERACTIVE)
+    {
+        return "interactive";
+    }
+    else if (val == CurrencyDisplay::PAGINATE_OFF)
+    {
+        return "off";
+    }
+
+    return "on";
 }

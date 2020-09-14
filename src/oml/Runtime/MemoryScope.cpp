@@ -571,7 +571,7 @@ MemoryScope* MemoryScopeManager::GetParentScope() const
 void MemoryScopeManager::OpenScope(FunctionInfo*fi)
 {
 #if _DEBUG
-	#define MAX_VAL 42
+	#define MAX_VAL 40
 #else
 	#define MAX_VAL 100
 #endif
@@ -982,6 +982,8 @@ int MemoryScopeManager::GetNewEnvHandle()
 	_envs[-1*_env_counter] = temp;
 	_rev_envs[temp]        = -1*_env_counter;
 
+	_allocated_envs.push_back(temp);
+
 	return -1*_env_counter;
 }
 
@@ -1050,6 +1052,19 @@ void MemoryScopeManager::ImportEnv(int source, int dest)
 	}
 }
 
+void MemoryScopeManager::ClearEnv(int source)
+{
+	std::map<int, MemoryScope*>::const_iterator temp;
+	temp = _envs.find(source);
+
+	if (temp == _envs.end())
+		throw OML_Error("Invalid environment handle");
+
+	MemoryScope* source_ms = temp->second;
+
+	ClearEnv(source_ms);
+}
+
 void MemoryScopeManager::ClearEnv(MemoryScope* ms)
 {
 	std::map<MemoryScope*, int>::const_iterator temp;	
@@ -1064,6 +1079,13 @@ void MemoryScopeManager::ClearEnv(MemoryScope* ms)
 		std::map<int, MemoryScope*>::const_iterator temp2;
 		temp2 = _envs.find(idx);
 		_envs.erase(temp2);
+
+		std::vector<MemoryScope*>::iterator iter = std::find(_allocated_envs.begin(), _allocated_envs.end(), ms);
+		if (iter != _allocated_envs.end())
+		{
+			_allocated_envs.erase(iter);
+			delete temp->first;
+		}
 	}
 }
 

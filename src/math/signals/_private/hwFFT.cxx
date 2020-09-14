@@ -18,34 +18,69 @@
 #include <math.h>
 #include "hwMatrix.h"
 
-bool initializedFFTW = false;
-fftw_plan file_plan = NULL;     // store plan for faster recreation when reused
+// store FFTW plans and info for reuse
+bool initializedFFTW    = false;
+fftw_plan file_planR2C  = NULL;
+fftw_plan file_planC2R  = NULL;
+fftw_plan file_planC2C  = NULL;
 FFT_TYPE file_plan_type = FFT_NOTSET;
+int file_plan_fftsize   = -1;
+unsigned file_plan_dir  = 0;
 
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-hwFFTW::hwFFTW(const unsigned& direction, int fftSize)
+hwFFTW::hwFFTW(unsigned direction, int fftSize)
     : m_type          (FFT_NOTSET)
-    , m_plan          (nullptr)
     , m_realInput     (nullptr)
     , m_realOutput    (nullptr)
     , m_complexInput  (nullptr)
     , m_complexOutput (nullptr)
     , m_fftSize       (-1)
-{ 
-    if (direction == FFTW_FORWARD || direction == FFTW_BACKWARD)
+{
+    if (fftSize != file_plan_fftsize)
     {
-        m_direction = direction;
+        if (file_planR2C)
+        {
+            fftw_destroy_plan(file_planR2C);
+            file_planR2C = NULL;
+            file_plan_type = FFT_NOTSET;
+        }
+
+        if (file_planC2R)
+        {
+            fftw_destroy_plan(file_planC2R);
+            file_planC2R = NULL;
+            file_plan_type = FFT_NOTSET;
+        }
+
+        if (file_planC2C)
+        {
+            fftw_destroy_plan(file_planC2C);
+            file_planC2C = NULL;
+            file_plan_type = FFT_NOTSET;
+        }
 
         if (fftSize < 0)
         {
             m_status(HW_MATH_ERR_NONNONNEGINT, 2);
         }
-        else
+
+        file_plan_fftsize = fftSize;
+    }
+
+    m_fftSize = fftSize;
+
+    if (file_plan_dir != direction)
+    {
+        if (file_planC2C)
         {
-            m_fftSize = fftSize;
+            fftw_destroy_plan(file_planC2C);
+            file_planC2C = NULL;
+            file_plan_type = FFT_NOTSET;
         }
+
+        file_plan_dir = direction;
     }
 
     if (!initializedFFTW)
@@ -85,7 +120,7 @@ hwFFTW::~hwFFTW()
     }
     else if (m_type == FFT_C2C)
     {
-        if (m_direction == FFTW_FORWARD)
+        if (file_plan_dir == FFTW_FORWARD)
         {
             if (m_fftSize > m_dataSize)
             {
@@ -105,11 +140,6 @@ hwFFTW::~hwFFTW()
                 }
             }
         }
-    }
-
-    if (m_plan)
-    {
-        fftw_destroy_plan(m_plan);
     }
 }
 //------------------------------------------------------------------------------
@@ -154,7 +184,7 @@ void hwFFTW::SetupFFT(const hwMatrix& input)
         // only m_direction == FFTW_BACKWARD for now
         if (m_fftSize != m_dataSize)
         {
-            int n2 = m_fftSize/2 + 1;
+            int n2 = m_fftSize /2 + 1;
 
             try
             {
@@ -169,7 +199,7 @@ void hwFFTW::SetupFFT(const hwMatrix& input)
     }
     else if (m_type == FFT_C2C)
     {
-        if (m_direction == FFTW_FORWARD)
+        if (file_plan_dir == FFTW_FORWARD)
         {
             if (m_fftSize > m_dataSize)
             {
@@ -365,11 +395,6 @@ hwMathStatus hwFFTW::Compute(hwMatrix&       input,
         return m_status;
     }
 
-    if (m_plan)
-    {
-        fftw_destroy_plan(m_plan);
-    }
-
     // prepare FFTW plan based on the data type
     if (m_type == FFT_R2C)
     {
@@ -393,22 +418,15 @@ hwMathStatus hwFFTW::Compute(hwMatrix&       input,
 
         m_complexOutput = (fftw_complex*) output.GetComplexData();
 
-        if (file_plan_type == FFT_NOTSET)
+        if (file_plan_type != FFT_R2C)
         {
-            file_plan = fftw_plan_dft_r2c_1d(m_fftSize, m_realInput, m_complexOutput, options);
-            file_plan_type = FFT_R2C;
-        }
-        else if (file_plan_type != FFT_R2C)
-        {
-            if (file_plan)
-            {
-                fftw_destroy_plan(file_plan);
-            }
-            file_plan = fftw_plan_dft_r2c_1d(m_fftSize, m_realInput, m_complexOutput, options);
+            if (!file_planR2C)
+                file_planR2C = fftw_plan_dft_r2c_1d(m_fftSize, m_realInput, m_complexOutput, options);
+
             file_plan_type = FFT_R2C;
         }
 
-        m_plan = fftw_plan_dft_r2c_1d(m_fftSize, m_realInput, m_complexOutput, options);
+        fftw_execute_dft_r2c(file_planR2C, m_realInput, m_complexOutput);
     }
     else if (m_type == FFT_C2R)
     {
@@ -477,22 +495,15 @@ hwMathStatus hwFFTW::Compute(hwMatrix&       input,
 
         m_realOutput = output.GetRealData();
 
-        if (file_plan_type == FFT_NOTSET)
+        if (file_plan_type != FFT_C2R)
         {
-            file_plan = fftw_plan_dft_c2r_1d(m_fftSize, m_complexInput, m_realOutput, options);
-            file_plan_type = FFT_C2R;
-        }
-        else if (file_plan_type != FFT_C2R)
-        {
-            if (file_plan)
-            {
-                fftw_destroy_plan(file_plan);
-            }
-            file_plan = fftw_plan_dft_c2r_1d(m_fftSize, m_complexInput, m_realOutput, options);
+            if (!file_planC2R)
+                file_planC2R = fftw_plan_dft_c2r_1d(m_fftSize, m_complexInput, m_realOutput, options);
+
             file_plan_type = FFT_C2R;
         }
 
-        m_plan = fftw_plan_dft_c2r_1d(m_fftSize, m_complexInput, m_realOutput, options);
+        fftw_execute_dft_c2r(file_planC2R, m_complexInput, m_realOutput);
     }
     else if (m_type == FFT_C2C)
     {
@@ -500,7 +511,7 @@ hwMathStatus hwFFTW::Compute(hwMatrix&       input,
         {
             return m_status(HW_MATH_ERR_ARRAYTYPE, 1);
         }
-        if (m_direction == FFTW_FORWARD)
+        if (file_plan_dir == FFTW_FORWARD)
         {
             if (m_fftSize <= m_dataSize)
             {
@@ -592,27 +603,17 @@ hwMathStatus hwFFTW::Compute(hwMatrix&       input,
             m_complexOutput = (fftw_complex*) output.GetComplexData();
         }
 
-        if (file_plan_type == FFT_NOTSET)
+        if (file_plan_type != FFT_C2C)
         {
-            file_plan = fftw_plan_dft_1d(m_fftSize, m_complexInput, m_complexOutput, m_direction, options);
-            file_plan_type = FFT_C2C;
-        }
-        else if (file_plan_type != FFT_C2C)
-        {
-            if (file_plan)
-            {
-                fftw_destroy_plan(file_plan);
-            }
-            file_plan = fftw_plan_dft_1d(m_fftSize, m_complexInput, m_complexOutput, m_direction, options);
+            if (!file_planC2C)
+                file_planC2C = fftw_plan_dft_1d(m_fftSize, m_complexInput, m_complexOutput, file_plan_dir, options);
+
             file_plan_type = FFT_C2C;
         }
 
-        m_plan = fftw_plan_dft_1d(m_fftSize, m_complexInput, m_complexOutput, m_direction, options);
+        fftw_execute_dft(file_planC2C, m_complexInput, m_complexOutput);
     }
 
-    // execute FFTW plan
-    fftw_execute(m_plan);
-    
     // prepare output
     if (m_type == FFT_R2C)
     {
@@ -636,11 +637,11 @@ hwMathStatus hwFFTW::Compute(hwMatrix&       input,
     }
     else if (m_type == FFT_C2C)
     {
-        if (m_direction == FFTW_FORWARD)
+        if (file_plan_dir == FFTW_FORWARD)
         {
             // nothing to do
         }
-        else if (m_direction == FFTW_BACKWARD)
+        else if (file_plan_dir == FFTW_BACKWARD)
         {
             double value = 1.0 / (double) m_dataSize;
 

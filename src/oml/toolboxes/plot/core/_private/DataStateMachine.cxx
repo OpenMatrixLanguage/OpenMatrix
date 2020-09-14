@@ -1292,8 +1292,9 @@ namespace omlplot{
     vector<double> DataStateMachine::MatrixToVector(const hwMatrix * const mat){
         vector<double> v;
         int count = mat->Size();
+		bool isReal = mat->IsReal();
         for (int i = 0; i < count; i++){
-            v.push_back((*mat)(i));
+            v.push_back(isReal?(*mat)(i):mat->z(i).Real());
         }
         return v;
     }

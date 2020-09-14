@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Welcome to OpenMatrix" /><meta name="abstract" content="" /><meta name="description" content="OpenMatrix is an open source project. To learn more about the OpenMatrix project, please visit https://www.openmatrix.org/ . OpenMatrix 1.0.4 includes the following new features and enhancements. ..." /><meta name="indexterms" content="release notes" /><meta name="DC.subject" content="release notes, OpenMatrix" /><meta name="keywords" content="release notes, OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_qw4_vch_fw" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Welcome to OpenMatrix</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Welcome to OpenMatrix" /><meta name="abstract" content="" /><meta name="description" content="OpenMatrix is an open source project. To learn more about the OpenMatrix project, please visit https://www.openmatrix.org/ . OpenMatrix 1.0.5 includes the following new features and enhancements. ..." /><meta name="indexterms" content="release notes" /><meta name="DC.subject" content="release notes, OpenMatrix" /><meta name="keywords" content="release notes, OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_qw4_vch_fw" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Welcome to OpenMatrix</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../index.htm";
           
@@ -18,19 +18,18 @@
   <div class="body refbody"><p class="shortdesc"></p>
 
     <section class="section">
-      <p class="p"><span class="keyword">OpenMatrix</span> is an open source project. To learn
-        more about the <span class="keyword">OpenMatrix</span> project, please visit
-          <a class="xref" href="https://www.openmatrix.org/" target="_blank">https://www.openmatrix.org/</a>.</p>
+      <p class="p"><span class="keyword">OpenMatrix</span> is an open source project. To learn more about the
+          <span class="keyword">OpenMatrix</span> project, please visit <a class="xref" href="https://www.openmatrix.org/" target="_blank">https://www.openmatrix.org/</a>.</p>
 
       <p class="p"><span class="keyword">OpenMatrix</span>
-        <span class="keyword">1.0.4</span> includes the following new features and enhancements.</p>
+        <span class="keyword">1.0.5</span> includes the following new features and enhancements.</p>
 
     </section>
 
     <section class="section" id="reference_qw4_vch_fw__section_wpq_y32_thb"><h2 class="title sectiontitle">Highlights</h2>
       
       <div class="p">
-        <ul class="ul" id="reference_qw4_vch_fw__ul_wdb_r5n_rlb">
+        <ul class="ul" id="reference_qw4_vch_fw__ul_hbx_jmq_qmb">
           <li class="li"><span class="keyword">OML</span> performance improvements.</li>
 
           <li class="li">Support for sparse matrices.</li>
@@ -45,21 +44,26 @@
 
     </section>
 
-    <section class="section" id="reference_qw4_vch_fw__section_fjr_cvn_rlb"><h2 class="title sectiontitle"><span class="keyword">OML</span> Improvements</h2>
+    <section class="section" id="reference_qw4_vch_fw__section_byr_nj2_thb"><h2 class="title sectiontitle"><span class="keyword">OML</span> Improvements</h2>
       
       <div class="p">
         <dl class="dl">
           
             <dt class="dt dlterm">Class Support</dt>
 
-            <dd class="dd">Class support is extended and exposed in <span class="keyword">OML</span>.</dd>
+            <dd class="dd">Implemented a == operator for class objects.</dd>
+
+            <dd class="dd ddexpand">Support for static functions inside a class.</dd>
 
           
           
             <dt class="dt dlterm">Sparse Support</dt>
 
-            <dd class="dd">Support for sparse matrices is added to <span class="keyword">OML</span>, with arithmetic
-              operations, creation, and extraction.</dd>
+            <dd class="dd">Sparse matrices supported in the MAT files (MATIO feature).</dd>
+
+            <dd class="dd ddexpand">Sparse LHS slicing supports RHS sparse matrices.</dd>
+
+            <dd class="dd ddexpand">Sparse LHS slicing speed improved when RHS is zero.</dd>
 
           
           
@@ -67,124 +71,110 @@
 
             <dd class="dd">OML language performance enhancements when executing large scripts (parsing).</dd>
 
-          
-          
-            <dt class="dt dlterm">Functions</dt>
+      <p class="p">Support Unicode filenames in <span class="ph filepath">fopen</span>.</p>
 
-            <dd class="dd">The following functions have been <strong class="ph b"><em class="ph i">improved</em></strong> for <span class="keyword">OpenMatrix</span>
-              <span class="keyword">1.0.4</span>:<ul class="ul" id="reference_qw4_vch_fw__ul_gtw_vpl_1mb">
-                <li class="li"><span class="ph filepath">num2cell</span> extension</li>
+      <p class="p"><span class="keyword">OML</span> language performance enhancements when executing large scripts
+        (parsing).</p>
 
-                <li class="li">Enhanced <span class="ph filepath">diary</span></li>
+      <div class="p">The following functions have been added to <span class="keyword">OpenMatrix</span>
+        <span class="keyword">1.0.5</span>:<ul class="ul" id="reference_qw4_vch_fw__ul_okv_vmq_qmb">
+          <li class="li"><span class="ph filepath">removelibrary</span>, removes and unloads a library added by the
+              <span class="ph filepath">addlibrary</span> command.</li>
 
-                <li class="li"><span class="ph filepath">odeset</span> supports an option to set the maximum step</li>
+          <li class="li"><span class="ph filepath">strip</span></li>
 
-                <li class="li">Enhanced <span class="ph filepath">rand</span> functionality</li>
+        </ul>
+</div>
 
-              </ul>
-</dd>
+      <div class="p">The following functions have been improved or extended in <span class="keyword">OpenMatrix</span>
+        <span class="keyword">1.0.5</span>:<ul class="ul" id="reference_qw4_vch_fw__ul_gw2_ymq_qmb">
+          <li class="li"><span class="ph filepath">classdef</span></li>
 
-            <dd class="dd ddexpand">The following functions have been <strong class="ph b"><em class="ph i">added</em></strong> to <span class="keyword">OpenMatrix</span>
-              <span class="keyword">1.0.4</span>:<ul class="ul" id="reference_qw4_vch_fw__ul_xkq_qvn_rlb">
-                <li class="li"><span class="ph filepath">addlibrary()</span></li>
+          <li class="li"><span class="ph filepath">dlmread</span></li>
 
-                <li class="li"><span class="ph filepath">factorial</span></li>
+          <li class="li"><span class="ph filepath">sparse</span></li>
 
-                <li class="li"><span class="ph filepath">keywordlist</span> (returns the supported keywords in OML)</li>
+          <li class="li"><span class="ph filepath">hex2dec</span></li>
 
-                <li class="li"><span class="ph filepath">squeeze()</span></li>
+          <li class="li"><span class="ph filepath">any</span></li>
 
-              </ul>
-</dd>
+          <li class="li"><span class="ph filepath">findpeaks</span></li>
 
-          
-          
-            <dt class="dt dlterm">Other improvements</dt>
+          <li class="li"><span class="ph filepath">nargout</span></li>
 
-            <dd class="dd">
-              <ul class="ul" id="reference_qw4_vch_fw__ul_enn_srl_1mb">
-                <li class="li">Direct creation of a cell object.</li>
+          <li class="li"><span class="ph filepath">func2str</span></li>
 
-                <li class="li">Default property of class is supported.</li>
-
-                <li class="li">Handle arithmetic operations with singleton dimensions.</li>
-
-                <li class="li">Improved the creation of a new dimension in a cell object.</li>
+          <li class="li"><span class="ph filepath">pinv</span></li>
 
               </ul>
-
-            </dd>
-
-          
-        </dl>
-
-      </div>
 
     </section>
 
     <section class="section" id="reference_qw4_vch_fw__section_bqk_1n2_thb"><h2 class="title sectiontitle">Resolved Issues</h2>
       
       <div class="p">
-        <ul class="ul" id="reference_qw4_vch_fw__ul_l1y_xrl_1mb">
-          <li class="li">Deleting multiple cell elements at once was not working; this is now supported.</li>
+        <ul class="ul" id="reference_qw4_vch_fw__ul_czz_dnq_qmb">
+          <li class="li">Unable to declare a static method in a classdef.</li>
 
-          <li class="li">Possible crash with <span class="ph filepath">circshift</span>.</li>
+          <li class="li">Last line of TXT or CSV file is lost when using <span class="ph filepath">dlmread</span>.</li>
 
-          <li class="li">Error when adding one element to a cell.</li>
+          <li class="li">Error when defining class method with multiple outputs.</li>
 
-          <li class="li"><span class="ph filepath">fullfile</span> issue with network paths.</li>
+          <li class="li"><span class="ph filepath">str2num</span> causes crash.</li>
 
-          <li class="li">Crash when using an empty matrix as cell array indices.</li>
+          <li class="li">Cyclic-order dependence when editing function definitions.</li>
 
-          <li class="li">Issue when missing end statement.</li>
+          <li class="li">Junk character in console with multi-line input.</li>
 
-          <li class="li">Application crashes when running <span class="ph filepath">ctime()</span> with a large input
-            argument.</li>
+          <li class="li"><span class="ph filepath">system</span> command does not allow double quotes in <span class="keyword">Linux</span> command.</li>
 
-          <li class="li">Format error when running <span class="ph filepath">month('jun2019','mmmyyyy')</span>.</li>
+          <li class="li">Sparse matrix indexing issue.</li>
 
-          <li class="li">Parsing issue with .<span class="ph filepath">*</span> operator.</li>
+          <li class="li">Matrix addition is slow for large sparse matrices.</li>
 
-          <li class="li"><span class="ph filepath">type</span> should not show variable name in between quotes.</li>
+          <li class="li"><span class="ph filepath">sparse</span>(<var class="keyword varname">row</var>, <var class="keyword varname">col</var>,
+              <var class="keyword varname">v</var>) is slow for large matrices.</li>
 
-          <li class="li">Possible strings or variables missing when loading .<span class="ph filepath">mat</span>
-            files.</li>
+          <li class="li"><span class="ph filepath">hex2dec</span> fails on large numbers.</li>
 
-          <li class="li"><span class="ph filepath">isa</span> function bugs.</li>
+          <li class="li">Wrong output in <span class="ph filepath">rem</span> function when the value is greater than
+            1E10.</li>
 
-          <li class="li"><span class="ph filepath">dlmread</span> raises an error when reading the same file in a for
-            loop.</li>
+          <li class="li">colon operator, :, for strings not working.</li>
 
-          <li class="li">Invalid values when computing file size.</li>
+          <li class="li">Slow command to process long strings.</li>
 
-          <li class="li"><span class="ph filepath">lcm</span>(<var class="keyword varname">-1.5</var>) should raise an error.</li>
+          <li class="li">Error in matrix multiplication between sparse and full matrices.</li>
 
-          <li class="li"><span class="ph filepath">sortrows</span> issue with second argument (descending order).</li>
+          <li class="li"><span class="ph filepath">any</span> function not working properly for sparse matrices.</li>
 
-          <li class="li">Crash with <span class="ph filepath">matrix</span> indexing.</li>
+          <li class="li"><span class="ph filepath">findpeaks</span> not working for curves without positive values.</li>
 
-          <li class="li">Crash using <span class="ph filepath">dot</span> operator.</li>
+          <li class="li"><span class="ph filepath">clear</span>(<var class="keyword varname">all</var>) doesn't clear the memory of a
+            sparse matrix.</li>
 
-          <li class="li">On Linux, <span class="ph filepath">system</span> command doesn't work properly.</li>
+          <li class="li"><span class="ph filepath">system</span> function executes the <span class="ph filepath">system</span> command,
+            but doesn't handle trailing space correctly.</li>
 
-          <li class="li">Memory leak with <span class="ph filepath">dot</span> product operation.</li>
+          <li class="li"><span class="ph filepath">system</span> function does not handle double quotes in the command
+            string correctly.</li>
 
-          <li class="li">Application crashes when indexing cell with <span class="ph filepath">end</span>.</li>
+          <li class="li">Wrong cell extraction (nested).</li>
 
-          <li class="li">Error with class inheritance.</li>
+          <li class="li">On <span class="keyword">Linux</span> platforms, unable to go (cd) to the root
+            directory.</li>
 
-          <li class="li">Error in format specified for <span class="ph filepath">textscan</span>.</li>
+          <li class="li">Indexing a UTF-8 string issue.</li>
 
-          <li class="li"><span class="ph filepath">whos</span> not working for a sparse matrix.</li>
+          <li class="li">Comments interfere with statements.</li>
 
-          <li class="li">Set <span class="ph filepath">class</span> as logical.</li>
+          <li class="li">Naming issue (case sensitive) for ABCD matrix in state space.</li>
 
-          <li class="li">Crash from <span class="ph filepath">sprintf</span> command.</li>
+          <li class="li">nan value in <span class="ph filepath">textscan</span> issue.</li>
 
-          <li class="li"><span class="ph filepath">rmdir</span> should work for directories with Unicode characters.</li>
+          <li class="li"><span class="ph filepath">func2str</span> does not properly handle an anonymous function.</li>
 
-          <li class="li"><span class="ph filepath">mkdir</span> does not work properly when the input is not an English
-            name.</li>
+          <li class="li"><span class="ph filepath">pinv</span> does not work with two inputs.</li>
 
         </ul>
 

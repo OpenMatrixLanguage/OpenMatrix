@@ -2130,9 +2130,9 @@ int BinarySearch(const double *data,
     }
 
     int num_points = npts;
-    int temp_idx   = num_points/2;
-    int max_idx    = num_points - 1;
-    int min_idx    = 0;
+    int temp_idx = num_points / 2;
+    int max_idx = num_points - 1;
+    int min_idx = 0;
 
     if (find > data[max_idx])
     {
@@ -2143,7 +2143,14 @@ int BinarySearch(const double *data,
     {
         if (data[temp_idx] == find)
         {
-            return temp_idx;
+            if (temp_idx - 1 >= min_idx && data[temp_idx - 1] == find)
+            {
+                return temp_idx - 1;
+            }
+            else
+            {
+                return temp_idx;
+            }
         }
         else if (data[temp_idx] < find)
         {
@@ -2174,6 +2181,7 @@ int BinarySearch(const double *data,
             {
                 return temp_idx - 1;
             }
+
             max_idx = temp_idx;
         }
 

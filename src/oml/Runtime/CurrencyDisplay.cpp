@@ -1,7 +1,7 @@
 /**
 * @file CurrencyDisplay.cpp
 * @date January 2016
-* Copyright (C) 2016-2019 Altair Engineering, Inc.  
+* Copyright (C) 2016-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -18,9 +18,10 @@
 
 #include <cassert>
 #include <cmath>
-#include <limits.h>
-#include <math.h>
 #include <iomanip>
+#include <limits>
+#include <memory>
+#include <climits>
 
 #include "BuiltInFuncsUtils.h"
 #include "Interpreter.h"
@@ -35,7 +36,7 @@
 int CurrencyDisplay::m_maxRows      = 0;
 int CurrencyDisplay::m_maxCols      = 0;
 int CurrencyDisplay::m_linesPrinted = 0;
-bool CurrencyDisplay::m_paginate    = true;
+CurrencyDisplay::PAGINATE CurrencyDisplay::m_paginate = CurrencyDisplay::PAGINATE_ON;
 
 //# define CURRENCYDISPLAY_DBG 1  // Uncomment to print debug info
 #ifdef CURRENCYDISPLAY_DBG
@@ -66,24 +67,22 @@ void CurrencyDisplay::SetMaxRows(int val)
 //------------------------------------------------------------------------------
 bool CurrencyDisplay::CanPaginate(const Currency& cur)
 {
-    if (cur.IsCellArray())
+    if (cur.IsScalar() || cur.IsComplex())
+    {
+        return false;
+    }
+    else if (cur.IsCellArray())
     {
         HML_CELLARRAY* cells = cur.CellArray();
-        if (!cells) return false;
-
-        return (cells->M() > 0 && cells->N() > 0);
+        return (cells && cells->M() > 0 && cells->N() > 0);
     }
     else if (cur.IsMatrix())
     {
-        if (!cur.Matrix()) return false;
-
-        return (cur.Matrix()->Size() > 1); 
+        return (cur.Matrix() && cur.Matrix()->Size() > 1);
     }
     else if (cur.IsStruct())
     {
-        if (!cur.Struct()) return false;
-
-        return (cur.Struct()->Size() == 1); // Paginates only if size is 1
+        return (cur.Struct() && cur.Struct()->Size() == 1); // Paginates only if size is 1
     }
     else if (cur.IsNDMatrix())
     {
@@ -236,6 +235,11 @@ void CurrencyDisplay::Initialize(const OutputFormat* fmt,
 //------------------------------------------------------------------------------
 int CurrencyDisplay::GetNumRowsToFit() const
 {
+    if (m_parentDisplay && CurrencyDisplay::IsPaginateOn())
+    {
+        m_linesPrinted = 0;
+       // return m_maxRows;
+    }
     int numrows = m_maxRows - m_linesPrinted;
     if (numrows < 1)
     {
@@ -832,7 +836,7 @@ std::string CurrencyDisplay::GetFormattedValue(double val,
 //------------------------------------------------------------------------------
 bool CurrencyDisplay::IsValidDisplaySize()
 {
-    if (!m_paginate)
+    if (m_paginate == CurrencyDisplay::PAGINATE_OFF)
     {
         return false;
     }
@@ -854,9 +858,14 @@ bool CurrencyDisplay::CanPrintRows() const
 //------------------------------------------------------------------------------
 bool CurrencyDisplay::CanPaginate(const std::string& str)
 {
-    if (str.find("\n") != std::string::npos)
+    if (!str.empty())
     {
-        return true;
+        size_t pos = str.find("\n");
+        if (pos != std::string::npos && pos < str.length() - 1)
+        {
+            // Paginate only if new line found is not the last character
+            return true;
+        }
     }
     return false;
 }
@@ -896,4 +905,57 @@ bool CurrencyDisplay::IsHeaderPrinted() const
         return false;
     }
     return true;
+}
+//------------------------------------------------------------------------------
+// Return estimated length of formatted string for given value
+//------------------------------------------------------------------------------
+size_t CurrencyDisplay::GetFormattedStringLength(const char* fmt, double val)
+{
+    size_t len = 0;
+    if (!fmt)
+    {
+        return len;
+    }
+    try
+    {
+        len = snprintf(nullptr, 0, fmt, val) + 1; // Extra space for '\0'
+        if (len > 0)
+        {
+            return (len - 1);  // Don't include '\0'
+        }
+    }
+    catch (...)
+    {
+        return 0;
+    }
+    return len;
+}
+//------------------------------------------------------------------------------
+// Return formatted string for value
+//------------------------------------------------------------------------------
+std::string CurrencyDisplay::GetFormattedString(const char* fmt, double val)
+{
+    size_t len = GetFormattedStringLength(fmt, val);
+    if (len > 0)
+    {
+        try
+        {
+            std::unique_ptr<char[]> buf(new char[len + 1]);  // Include '\0'
+            snprintf(buf.get(), len + 1, fmt, val);
+            return std::string(buf.get(), buf.get() + len); 
+        }
+        catch (...)
+        {
+            return "";
+        }
+    }
+    return "";
+}
+//------------------------------------------------------------------------------
+// Sets mode data for interactive pagination
+//------------------------------------------------------------------------------
+void CurrencyDisplay::SetPaginateOnModeData()
+{
+    SetMode(DISPLAYMODE_FORWARD);
+    SetModeData();
 }

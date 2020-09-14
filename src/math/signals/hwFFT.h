@@ -49,6 +49,7 @@ public:
     //! Returns size
     //!
     int Size() const { return m_fftSize; }
+
     //!
     //! Returns status
     //!
@@ -70,18 +71,16 @@ public:
                          hwMatrix& output);
 
 protected:
-    hwFFTW(const unsigned& direction, int fftSize = 0);
+    hwFFTW(unsigned direction, int fftSize = 0);
     virtual ~hwFFTW();
 
     FFT_TYPE m_type;
     int m_dataSize;
     int m_fftSize;
-    unsigned m_direction;
     double* m_realInput;
     double* m_realOutput;
     fftw_complex* m_complexInput;
     fftw_complex* m_complexOutput;
-    fftw_plan m_plan;
     hwMathStatus m_status;
 
     virtual void DetermineType(const hwMatrix& input) = 0;

@@ -153,6 +153,10 @@ public:
 	Currency CallFunction(const std::string&           funcname, 
                            const std::vector<Currency>& inputs);
 
+	//! Function callback
+	Currency CallFunctionInCurrentScope(FunctionInfo* finfo,
+		const std::vector<Currency>& inputs);
+
     Currency CallFunction(FunctionInfo*                  finfo, 
                            const std::vector<Currency>& inputs);
     //! Function callback
@@ -247,6 +251,7 @@ Currency InterpreterImpl::DoFile(const std::string& filename)
 
 	_eval.SetInterrupt(false);
 	_eval.Mark();
+	_eval.ClearFunctionsFromFile(filename);
 
 	try 
 	{
@@ -497,6 +502,38 @@ Currency InterpreterImpl::CallFunction(FunctionInfo* finfo, const std::vector<Cu
 }
 
 //------------------------------------------------------------------------------
+//! Function callback
+Currency InterpreterImpl::CallFunctionInCurrentScope(FunctionInfo* finfo, const std::vector<Currency>& inputs)
+{
+	//   return _eval.CallInternalFunction(finfo, inputs);
+	GetOutputCurrencyList(true); // clear any outputs this may have generated
+
+	_eval.Mark();
+
+	// Need a try-catch block to close scopes properly in case of any error
+	try
+	{
+		Currency ret = _eval.CallInternalFunction(finfo, inputs, false, "", Currency());
+		GetOutputCurrencyList(true); // clear any outputs this may have generated
+		return ret;
+	}
+	catch (OML_Error & error)
+	{
+		std::string error_str = error.GetFormatMessage() ?
+			_eval.FormatErrorMessage(error.GetErrorMessage()) : error.GetErrorMessage();
+		_eval.SetLastErrorMessage(error.GetErrorMessage());
+		Currency cur(-1.0, error_str);
+
+		_eval.PushResult(cur);
+		_eval.Restore();
+
+		return cur;
+	}
+
+	return Currency(); // keep compiler happy
+}
+
+//------------------------------------------------------------------------------
 //! True if expression is partial
 //------------------------------------------------------------------------------
 bool InterpreterImpl::IsPartialExpression(const std::string& expr)
@@ -584,8 +621,13 @@ bool InterpreterImpl::IsPartialExpression(const std::string& expr)
                     pANTLR3_COMMON_TOKEN tok = (pANTLR3_COMMON_TOKEN)vec->get(vec, j);
                     int                  tok_type = tok->getType(tok);
 
-                    if (tok_type == LBRACKET)
+                    if ((tok_type == LBRACKET) || (tok_type == LCURLY))
                     {
+						int exit_token = RBRACKET;
+
+						if (tok_type == LCURLY)
+							exit_token = RCURLY;
+
 						bool fake_partial = false;
 
 						for (unsigned int k=(unsigned int)parser->pParser->rec->state->exception->index; k<vec->size(vec); k++)
@@ -593,12 +635,12 @@ bool InterpreterImpl::IsPartialExpression(const std::string& expr)
 							pANTLR3_COMMON_TOKEN tok2      = (pANTLR3_COMMON_TOKEN)vec->get(vec, k);
 							int                  tok_type2 = tok2->getType(tok2);
 
-							if (tok_type2 == RBRACKET)
+							if (tok_type2 == exit_token)
 							{
 								fake_partial = true;
 								break;
 							}
-							else if (tok_type2 == NEWLINE)
+							else if ((tok_type2 == NEWLINE) || (tok_type2 == DUMMY))
 							{
 								break;
 							}
@@ -607,10 +649,11 @@ bool InterpreterImpl::IsPartialExpression(const std::string& expr)
                         is_partial = !fake_partial;
                         break;
                     }
-                    else if (tok_type == RBRACKET)
+                    else if ((tok_type == RBRACKET) || (tok_type == RCURLY))
                     {
                         break;
                     }
+
                 }
             }
         }
@@ -654,8 +697,9 @@ FunctionInfo* InterpreterImpl::FunctionInfoFromName(const std::string& funcName)
 {
     FunctionInfo *fi   = nullptr;
     FUNCPTR       fptr = nullptr;
+	ALT_FUNCPTR   aptr = nullptr; // ignore this for now
 
-    _eval.FindFunctionByName(funcName, &fi, &fptr);
+    _eval.FindFunctionByName(funcName, &fi, &fptr, &aptr);
 
 	if (!fi && fptr)
 		return new FunctionInfo(funcName, fptr);
@@ -906,6 +950,14 @@ Currency Interpreter::CallFunction(const std::string&           funcname,
                                        const std::vector<Currency>& inputs)
 {
 	return _impl->CallFunction(funcname, inputs);
+}
+
+//------------------------------------------------------------------------------
+//! Function callback
+Currency Interpreter::CallFunctionInCurrentScope(FunctionInfo* finfo,
+	const std::vector<Currency>& inputs)
+{
+	return _impl->CallFunctionInCurrentScope(finfo, inputs);
 }
 //------------------------------------------------------------------------------
 //! Function callback

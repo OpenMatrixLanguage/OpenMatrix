@@ -639,12 +639,95 @@ hwMathStatus PolyInt(const hwMatrix& D,
     return status;
 }
 //------------------------------------------------------------------------------
+// Performs a bisection search on a reverse sorted data array and returns status
+//------------------------------------------------------------------------------
+int BinarySearchR(const double* data,
+                  int           npts,
+                  double        find)
+{
+    if (!data)
+    {
+        return 0;
+    }
+
+    if (find > data[0])
+    {
+        return -1;
+    }
+
+    int num_points = npts;
+    int temp_idx = num_points / 2;
+    int max_idx = num_points - 1;
+    int min_idx = 0;
+
+    if (find < data[max_idx])
+    {
+        return max_idx;
+    }
+
+    for (int cnt = 0; cnt < num_points; cnt++)  // allow for bail-out
+    {
+        if (data[temp_idx] == find)
+        {
+            //if (temp_idx + 1 <= max_idx && data[temp_idx + 1] == find)
+            //{
+            //    return temp_idx + 1;
+            //}
+            if (temp_idx - 1 >= min_idx && data[temp_idx - 1] == find)
+            {
+                return temp_idx - 1;
+            }
+            else
+            {
+                return temp_idx;
+            }
+        }
+        else if (data[temp_idx] > find)
+        {
+            if (temp_idx == max_idx)
+            {
+                return temp_idx;
+            }
+
+            if (data[temp_idx + 1] < find)
+            {
+                return temp_idx;
+            }
+            else if (data[temp_idx + 1] == find)
+            {
+                return temp_idx + 1;
+            }
+
+            min_idx = temp_idx;
+        }
+        else
+        {
+            if (temp_idx == min_idx)
+            {
+                return temp_idx;
+            }
+
+            if (data[temp_idx - 1] > find)
+            {
+                return temp_idx - 1;
+            }
+
+            max_idx = temp_idx;
+        }
+
+        temp_idx = (max_idx + min_idx) / 2;
+    }
+
+    return 0; // bail-out case
+}
+//------------------------------------------------------------------------------
 // Performs linear interpolation and returns status
 //------------------------------------------------------------------------------
 hwMathStatus LinearInterp(const hwMatrix& x_old,
                           const hwMatrix& y_old,
                           const hwMatrix& x_new,
                           hwMatrix&       y_new,
+                          bool            requireUniqueX,
                           bool            extrap)
 {
     hwMathStatus status;
@@ -689,43 +772,83 @@ hwMathStatus LinearInterp(const hwMatrix& x_old,
     int n = x_old.Size();
     int nn = x_new.Size();
     long idx;
+    bool ascendingX;
+
+    if (x_old(0) < x_old(n - 1))
+        ascendingX = true;
+    else
+        ascendingX = false;
+
+    // check for multiple x_old values
+    for (i = 0; i < n - 2; i++)
+    {
+        if (requireUniqueX && x_old(i) == x_old(i + 1))
+            return status(HW_MATH_ERR_NONUNIQUE, 1);
+
+        if (x_old(i) == x_old(i+2))
+            return status(HW_MATH_ERR_CONSECUTIVE3, 1);
+    }
+
+    if (requireUniqueX && n > 1 && x_old(n - 2) == x_old(n - 1))
+        return status(HW_MATH_ERR_NONUNIQUE, 1);
 
     if (extrap)
     {
         for (i = 0; i < nn; i++)
         {
-            idx = BinarySearch(x_old.GetRealData(), n, x_new(i));
+            if (ascendingX)
+                idx = BinarySearch(x_old.GetRealData(), n, x_new(i));
+            else
+                idx = BinarySearchR(x_old.GetRealData(), n, x_new(i));
 
             if (idx < 0)
                 idx = 0;
             else if (idx >= n - 1)
                 idx = n - 2;
 
-            y_new(i) = (x_new(i) - x_old(idx)) / (x_old(idx+1) - x_old(idx)) *
-                       (y_old(idx+1) - y_old(idx)) + y_old(idx);
+            if (x_old(idx) == x_old(idx + 1))
+            {
+                if (requireUniqueX)
+                    return status(HW_MATH_ERR_NONUNIQUE, 1);
+
+                y_new(i) = y_old(idx + 1);
+            }
+            else
+            {
+                y_new(i) = (y_old(idx + 1) - y_old(idx)) / (x_old(idx + 1) - x_old(idx)) *
+                           (x_new(i) - x_old(idx)) + y_old(idx);
+            }
         }
     }
     else
     {
         for (i = 0; i < nn; i++)
         {
-            idx = BinarySearch(x_old.GetRealData(), n, x_new(i));
+            if (ascendingX)
+                idx = BinarySearch(x_old.GetRealData(), n, x_new(i));
+            else
+                idx = BinarySearchR(x_old.GetRealData(), n, x_new(i));
 
             if (idx < 0)
+            {
                 return status(HW_MATH_ERR_BADRANGE, 3);
+            }
             else if (idx == n - 1)
             {
                 if (fabs(x_new(i) - x_old(idx)) < 1.0e-10)
-                {
                     y_new(i) = y_old(idx);
-                    continue;
-                }
                 else
                     return status(HW_MATH_ERR_BADRANGE, 3);
             }
-
-            y_new(i) = (x_new(i) - x_old(idx)) / (x_old(idx+1) - x_old(idx)) *
-                       (y_old(idx+1) - y_old(idx)) + y_old(idx);
+            else if (x_old(idx) == x_old(idx + 1))
+            {
+                y_new(i) = y_old(idx + 1);
+            }
+            else
+            {
+                y_new(i) = (y_old(idx + 1) - y_old(idx)) / (x_old(idx + 1) - x_old(idx)) *
+                    (x_new(i) - x_old(idx)) + y_old(idx);
+            }
         }
     }
 

@@ -80,13 +80,13 @@
       <?STOPOUT?>
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+    <section class="section" id="reference_wpv_kyv_pr__section_zq1_vgm_hlb"><h2 class="title sectiontitle">Examples</h2>
       
-      <div class="p">Trims both the leading and trailing characters from a string:
-        <pre class="pre codeblock"><code>R = strip(',,,this is a test**********????***', 'both', ',*?')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = this is a test</code></code></pre></div>
+      <div class="p">Trims both leading and trailing characters from a string:
+        <pre class="pre codeblock"><code>R = strip(',,,this is a test,,', 'both', ',')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = this is a test</code></code></pre></div>
 
       <div class="p">Trims leading characters from a cell array of strings:
-        <pre class="pre codeblock"><code>R = strip({',,,this is a test**********????***','foo2*'}, 'right', {',', ' ', '?', '*'})</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R =
+        <pre class="pre codeblock"><code>R = strip({',,,this is a test****0123******????***','foo2*'}, 'right', {',', ' ', '?', '*', '0123'})</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R =
   [1,1] ,,,this is a test
   [1,2] foo2
 }</code></code></pre></div>

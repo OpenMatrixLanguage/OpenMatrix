@@ -17,7 +17,7 @@
   
   <div class="body refbody"><p class="shortdesc">The table below describes the Addition operator.</p>
 
-    <section class="section">
+    <section class="section" id="reference_bms_nkv_fv__section_r2m_2ry_qlb">
       
 <div class="tablenoborder"><table cellpadding="4" cellspacing="0" summary="" id="reference_bms_nkv_fv__table_ihd_qg5_xv" class="table" frame="border" border="1" rules="all"><colgroup><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /></colgroup><thead class="thead" style="text-align:left;">
             <tr>
@@ -61,9 +61,11 @@
                 corresponding element in operand 2. The resulting vector is the same size as the
                 original vectors.</td>
 
-              <td class="entry cellrowborder" headers="d80e53 "> </td>
+              <td class="entry cellrowborder" headers="d80e53 ">Each row/column vector is implicitly replicated until the two arguments have
+                the same dimensions. Regular matrix addition is then performed.</td>
 
-              <td class="entry cellrowborder" headers="d80e56 "> </td>
+              <td class="entry cellrowborder" headers="d80e56 ">The row vector is implicitly replicated until the two arguments have the same
+                number of rows. Regular matrix addition is then performed.</td>
 
             </tr>
 
@@ -73,13 +75,15 @@
               <td class="entry cellrowborder" headers="d80e47 ">Adds the scalar to each element in the column vector. The resulting vector is
                 the same size as the original vector.</td>
 
-              <td class="entry cellrowborder" headers="d80e50 "> </td>
+              <td class="entry cellrowborder" headers="d80e50 ">Each row/column is implicitly replicated until the two arguments have the same
+                dimensions. Regular matrix addition is then performed.</td>
 
               <td class="entry cellrowborder" headers="d80e53 ">Requires vectors to be the same size. Adds each element in operand 1 to the
                 corresponding element in operand 2. The resulting vector is the same size as the
                 original vectors.</td>
 
-              <td class="entry cellrowborder" headers="d80e56 "> </td>
+              <td class="entry cellrowborder" headers="d80e56 ">The column vector is implicitly replicated until the two arguments have the
+                same number of columns. Regular matrix addition is then performed.</td>
 
             </tr>
 
@@ -89,9 +93,11 @@
               <td class="entry cellrowborder" headers="d80e47 ">Adds the scalar to each element in the matrix. The resulting vector is the same
                 size as the original matrix.</td>
 
-              <td class="entry cellrowborder" headers="d80e50 "> </td>
+              <td class="entry cellrowborder" headers="d80e50 ">The row vector is implicitly replicated until the two arguments have the same
+                number of rows. Regular matrix addition is then performed.</td>
 
-              <td class="entry cellrowborder" headers="d80e53 "> </td>
+              <td class="entry cellrowborder" headers="d80e53 ">The column vector is implicitly replicated until the two arguments have the
+                same number of columns. Regular matrix addition is then performed.</td>
 
               <td class="entry cellrowborder" headers="d80e56 ">Requires matrices to be the same size. Adds each element in operand 1 to the
                 corresponding element in operand 2. The resulting vector is the same size as the
@@ -103,17 +109,32 @@
 </table>
 </div>
 
-      <p class="p">Examples</p>
+    </section>
 
-      <pre class="pre codeblock"><code>1+1
+    <section class="section" id="reference_bms_nkv_fv__section_s2m_2ry_qlb"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">
+        <pre class="pre codeblock"><code>1 + 1
 ans = 2 
 3 + [2 5 2]
 ans = [5 8 5] 
 [2 5; 6 2] + [8 3; 6 7]
 ans = [10 8; 12 9]</code></pre>
-      <p class="p">Invalid Example:</p>
+      </div>
 
-      <pre class="pre codeblock"><code>[5 4 2] + [4 3]</code></pre>
+      <div class="p">Invalid examples:<pre class="pre codeblock"><code>[5 4 2] + [4 3]</code></pre></div>
+
+    </section>
+
+    <section class="section" id="reference_bms_nkv_fv__section_zzk_fry_qlb"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p">Sparse matrices are supported for this operation. The sum of two sparse matrices will also
+        be sparse. The sum of a sparse matrix and a full matrix will be a full matrix.</p>
+
+      <p class="p">The implicit replication of a vector to fill other dimensions is a generalization of
+        operating on a scalar/vector pair. This capability is not yet available for multidimensional
+        and sparse matrices.</p>
+
       
     </section>
 
@@ -125,7 +146,7 @@ ans = [10 8; 12 9]</code></pre>
 <div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/operators_header_r.htm" title="Operators are used to combine operands.">Operators</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator.">Operator Descriptions (tables)</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/arithmetic_operators_r.htm" title="Arithmetic operators include addition, subtraction, and multiplication, for example.">Arithmetic Operators</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/subtraction_r.htm" title="The transpose of a matrix is also a matrix. The rows of the transpose are the columns of the original matrix and vice-versa.">Subtraction</a></div></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/subtraction_r.htm" title="The table below describes the Subtraction operator.">Subtraction</a></div></div>
 </nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
 <span class="navparent"><a class="link" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Operator Descriptions (tables)</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         

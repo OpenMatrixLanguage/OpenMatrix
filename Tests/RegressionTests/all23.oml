@@ -1,0 +1,7 @@
+m = [ 1,  2,  0,  4,  5];
+
+all(m)
+m = sparse(m); 
+all(m)
+islogical(ans)
+

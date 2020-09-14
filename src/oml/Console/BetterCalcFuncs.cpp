@@ -1,7 +1,7 @@
 /**
 * @file BetterCalcFuncs.cpp
 * @date June 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -29,10 +29,6 @@
 
 #include <cassert>
 
-#if OS_WIN
-#include <Windows.h>
-#endif
-
 extern Interpreter*    interp;
 extern ConsoleWrapper* wrapper;
 
@@ -40,61 +36,6 @@ extern ConsoleWrapper* wrapper;
 #include "OpenMatrix_Version.h"
 // End defines/includes
 
-#if OS_WIN
-void WindowsClear()
-{
-    COORD topLeft  = { 0, 0 };
-    HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_SCREEN_BUFFER_INFO screen;
-    DWORD written;
-
-	GetConsoleScreenBufferInfo(console, &screen);
-    FillConsoleOutputCharacterA(
-        console, ' ', screen.dwSize.X * screen.dwSize.Y, topLeft, &written
-    );
-    FillConsoleOutputAttribute(
-        console, FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE,
-        screen.dwSize.X * screen.dwSize.Y, topLeft, &written
-    );
-    SetConsoleCursorPosition(console, topLeft);
-}
-#endif
-//------------------------------------------------------------------------------
-// Clears screen (clc command)
-//------------------------------------------------------------------------------
-bool hml_clc(EvaluatorInterface           eval, 
-             const std::vector<Currency>& inputs, 
-             std::vector<Currency>&       outputs)
-{
-    CurrencyDisplay::ClearLineCount();
-
-#if OS_WIN
-    // Avoid using cls command as it prints junk characters if output is 
-    // redirected to a file
-    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-
-    // Get the number of cells in the current buffer
-    CONSOLE_SCREEN_BUFFER_INFO info;
-    GetConsoleScreenBufferInfo(handle, &info);
-
-    DWORD consolesize = info.dwSize.X * info.dwSize.Y;
-    DWORD count;
-    COORD start = { 0, 0 };
-
-    // Fill the entire buffer with spaces
-    FillConsoleOutputCharacter(handle, (TCHAR) ' ', consolesize, start, &count);
-
-    // Fill the entire buffer with the current colors and attributes
-    FillConsoleOutputAttribute(handle, info.wAttributes, consolesize, start, &count);
-
-    // Move the cursor to start position
-    SetConsoleCursorPosition(handle, start);
-#else
-	system("clear");
-#endif
-
-    return true;
-}
 //------------------------------------------------------------------------------
 // Prints help
 //------------------------------------------------------------------------------

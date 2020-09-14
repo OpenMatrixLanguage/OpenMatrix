@@ -1,7 +1,7 @@
 /**
 * @file SignalHandler.cpp
 * @date June 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -24,7 +24,7 @@
 // End defines/includes
 
 //------------------------------------------------------------------------------
-//! Copy constructor
+// Copy constructor
 //------------------------------------------------------------------------------
 SignalHandler::SignalHandler(const SignalHandler* src) 
     : _src (src)
@@ -36,26 +36,26 @@ SignalHandler::SignalHandler(const SignalHandler* src)
     {
         _wrapper = _src->_wrapper;
         _batchmode = _src->_batchmode;
-    }
+	}
 }
 //------------------------------------------------------------------------------
-//! Clone signal handler
+// Clone signal handler
 //------------------------------------------------------------------------------
 SignalHandlerBase* SignalHandler::CreateClone()
 {
     return (new SignalHandler(this));
 }
 //------------------------------------------------------------------------------
-//! Emits signal to clear results
+// Emits signal to clear results
 //------------------------------------------------------------------------------
 void SignalHandler::OnClearResultsHandler()
 {
-    //! Clear results only once, in the signal handler which is not cloned
+    // Clear results only once, in the signal handler which is not cloned
     if (!_src && _wrapper)  
         _wrapper->HandleOnClearResults();
 }
 //------------------------------------------------------------------------------
-//! Prints prompt for save on exit
+// Prints prompt for save on exit
 //------------------------------------------------------------------------------
 void SignalHandler::OnSaveOnExitHandler()
 {
@@ -63,9 +63,7 @@ void SignalHandler::OnSaveOnExitHandler()
         _wrapper->HandleOnSaveOnExit();
 }
 //------------------------------------------------------------------------------
-//! Start pause
-//! \param[in] msg  User message to display
-//! \param[in] wait True if waiting for a keystroke input from user
+// Start pause
 //------------------------------------------------------------------------------
 void SignalHandler::OnPauseStartHandler(const std::string& msg, bool wait)
 {
@@ -73,10 +71,7 @@ void SignalHandler::OnPauseStartHandler(const std::string& msg, bool wait)
         _wrapper->HandleOnPauseStart(msg, wait);
 }
 //------------------------------------------------------------------------------
-//! Get user input
-//! \param[in]  prompt Prompt to display to user
-//! \param[in]  type   Type, if specified
-//! \param[out] input  Input from user
+// Get user input
 //------------------------------------------------------------------------------
 void SignalHandler::OnUserInputHandler(const std::string& prompt,
                                        const std::string& type,
@@ -86,8 +81,7 @@ void SignalHandler::OnUserInputHandler(const std::string& prompt,
         _wrapper->HandleOnGetUserInput(prompt, type, input);
 }
 //------------------------------------------------------------------------------
-//! Print result
-//! \param[in] cur Result to print
+// Print result
 //------------------------------------------------------------------------------
 void SignalHandler::OnPrintResultHandler(const Currency& cur)
 {
@@ -96,13 +90,11 @@ void SignalHandler::OnPrintResultHandler(const Currency& cur)
         _wrapper->HandleOnPrintResult(cur);
 }
 //------------------------------------------------------------------------------
-//! Add nested display
-//! \param[in] display Nested display to add
+// Add nested display
 //------------------------------------------------------------------------------
 void SignalHandler::OnAddDisplayHandler(CurrencyDisplay* display)
 {
      if (!_src && _wrapper)  
         _wrapper->HandleOnAddDisplay(display);
 }
-
 // End of file:

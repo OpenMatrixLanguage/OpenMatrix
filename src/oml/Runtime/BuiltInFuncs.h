@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncs.h
 * @date October 2013
-* Copyright (C) 2013-2019 Altair Engineering, Inc.  
+* Copyright (C) 2013-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -588,7 +588,6 @@ bool isempty(const Currency &input);
 HML2DLL_DECLS std::string strrep(EvaluatorInterface& eval, const std::string &search, const std::string &pattern, const std::string &replace, bool overlap);
 HML2DLL_DECLS std::vector<Currency> mtxFun(EvaluatorInterface& eval, const std::vector<Currency>& inputs, int numOutputs, std::vector<Currency> (*method)(EvaluatorInterface&, const std::vector<Currency>&), const std::vector<Currency>& extras = std::vector<Currency>());
 bool twoMatrixCaller(EvaluatorInterface& eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs, hwMathStatus(hwMatrix::*func)(const hwMatrix&, const hwMatrix&));
-bool oneMatrixCaller(EvaluatorInterface& eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs, hwMathStatus(hwMatrix::*func)(const hwMatrix&));
 
 HML2DLL_DECLS bool checkMakeComplex(EvaluatorInterface& eval, hwMatrix *mtx1, hwMatrix *mtx2);
 inline bool checkMakeComplex(EvaluatorInterface& eval, HML_CELLARRAY* cell1, HML_CELLARRAY* cell2) { return false; }
@@ -674,9 +673,6 @@ void checkAddPath(EvaluatorInterface& eval,
 std::string getPathString(EvaluatorInterface& eval, 
                           char                pathSep);
 std::vector<std::string> separatePathNames(EvaluatorInterface& eval, Currency cur);
-
-// File IO helpers
-void checkFileIndex(EvaluatorInterface &eval, int i, bool checkStdStreams);
 
 // unique helpers
 // factor
@@ -849,10 +845,25 @@ void UniqueHelperFuncCell( EvaluatorInterface&    eval,
 // dependency to all /kernel clients. They may be moved to /math/sparse in
 // a future release.
 
+// Add two sparse matrices, sum = A + B
+void SparseAdd(const hwMatrixS& A, const hwMatrixS& B, hwMatrixS& sum);
+
 // Multiply a sparse matrix by a full matrix, prod = A * B
 void SparseMult(const hwMatrixS& A, const hwMatrix& B, hwMatrix& prod);
 
+// Multiply a full matrix by a sparse matrix, prod = A * B
+void SparseMult(const hwMatrix& A, const hwMatrixS& B, hwMatrix& prod);
+
+// Multiply a sparse matrix by a sparse matrix, prod = A * B
+void SparseMult(const hwMatrixS& A, const hwMatrixS& B, hwMatrixS& prod);
+
 // Divide a full matrix by a sparse matrix on the left side, Q = A \ B
 void SparseDivideLeft(const hwMatrixS& A, const hwMatrix& B, hwMatrix& Q);
+
+// Divide a full matrix by a sparse matrix on the right side, Q = A / B
+void SparseDivideRight(const hwMatrix& A, const hwMatrixS& B, hwMatrix& Q);
+
+// Set pivot threshold for MKL sparse matrix division
+bool oml_mkl_sdpt(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 
 #endif

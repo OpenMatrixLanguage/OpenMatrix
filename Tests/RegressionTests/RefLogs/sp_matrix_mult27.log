@@ -1,0 +1,37 @@
+m11 = [Matrix] 4 x 2
+0  0
+0  0
+0  0
+0  0
+m12 = [Matrix] 2 x 4
+0  0  0  0
+0  0  0  0
+m13 = [Matrix] 3 x 0
+m14 = [Matrix] 3 x 3
+0  0  0
+0  0  0
+0  0  0
+m15 = [Matrix] 0 x 3
+m21 = [Matrix] 2 x 4
+0  0  0  0
+0  0  0  0
+m22 = [Matrix] 4 x 2
+0  0
+0  0
+0  0
+0  0
+m23 = [Matrix] 0 x 3
+m24 = [Matrix] 3 x 3
+0  0  0
+0  0  0
+0  0  0
+m25 = [Matrix] 3 x 0
+m31 = sparse [4 x 2], nnz = 0
+m32 = sparse [2 x 4], nnz = 0
+m33 = sparse [ ]
+ans = [Matrix] 1 x 2
+3  0
+m34 = sparse [3 x 3], nnz = 0
+m35 = sparse [ ]
+ans = [Matrix] 1 x 2
+0  3

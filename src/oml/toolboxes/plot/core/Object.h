@@ -1,7 +1,7 @@
 /**
 * @file Object.h
 * @date May 2017
-* Copyright (C) 2017-2018 Altair Engineering, Inc.  
+* Copyright (C) 2017-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -44,7 +44,8 @@ namespace omlplot{
         MATRIX = 0x10,
         POINTER = 0x20,
         VEC_DOUBLE = 0x40,
-        COLOR = 0x80
+        COLOR = 0x80,
+		UNSUPPORTED = 0x100 //Helper for identifying properties that are not supported in OM yet
     };
 
     template <typename T1 = string, typename T2 = Currency,
@@ -118,7 +119,7 @@ namespace omlplot{
         vector<string> getPropertyNames();
         Property &getProperty(const string&);
         VALUETYPE getPropertyValue(const string&);
-        void setPropertyValue(const string& , VALUETYPE);
+        bool setPropertyValue(const string& , VALUETYPE);
 
         double getHandle();
         string getType();

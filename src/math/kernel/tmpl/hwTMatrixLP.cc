@@ -202,6 +202,914 @@ inline void hwTMatrix<double>::CopyData(void* dest, int arraySize, const void* s
         zcopy_((int*) &count, (complexD*) src, &inc, (complexD*) dest, &inc);
 }
 
+//! Real Singular Value Decomposition
+template<>
+inline hwMathStatus hwTMatrix<double>::RealSVD(const SVDtype& type, hwTMatrix<double>*U,
+                                               hwTMatrix<double>& S, hwTMatrix<double>* VT) const
+{
+    if (this == U)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
+    if (this == &S)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
+    if (this == VT)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
+
+    const hwTMatrix<double>& A = (*this);
+    hwMathStatus status;
+    int m = A.m_nRows;
+    int n = A.m_nCols;
+
+    if (!A.IsReal())
+        return status(HW_MATH_ERR_COMPLEX, 0);
+
+    hwTMatrix<double> Acopy(A);
+    char JOBU;
+    char JOBVT;
+    double* u;
+    double* vt;
+
+    if (U)
+    {
+        if (type == SVD_STD_FLAG)
+        {
+            JOBU = 'A';
+            status = U->Dimension(m, m, REAL);
+        }
+        else
+        {
+            JOBU = 'S';
+            status = U->Dimension(m, _min(m, n), REAL);
+        }
+
+        if (!status.IsOk())
+        {
+            if (status.GetArg1() == 0)
+                status.SetArg1(2);
+            else
+                status.ResetArgs();
+
+            return status;
+        }
+
+        u = U->m_real;
+    }
+    else
+    {
+        JOBU = 'N';
+        u = NULL;
+    }
+
+    status = S.Dimension(_min(m, n), REAL);
+
+    if (!status.IsOk())
+    {
+        if (status.GetArg1() == 0)
+            status.SetArg1(3);
+        else
+            status.ResetArgs();
+
+        return status;
+    }
+
+    if (VT)
+    {
+        status = VT->Dimension(n, n, REAL);
+        JOBVT = 'A';
+
+        if (!status.IsOk())
+        {
+            if (status.GetArg1() == 0)
+                status.SetArg1(4);
+            else
+                status.ResetArgs();
+
+            return status;
+        }
+
+        vt = VT->m_real;
+    }
+    else
+    {
+        JOBVT = 'N';
+        vt = NULL;
+    }
+
+    if (A.Size() != 0)
+    {
+        double* a = Acopy.m_real;
+        double* s = S.m_real;
+
+        // define the arguments
+        int lda = m;
+        int ldu = m;
+        int ldvt = n;
+        int info = 0;
+        int lwork = -1;
+        double* work = NULL;
+
+        try
+        {
+            work = new double[1];
+        }
+        catch (std::bad_alloc&) 
+        {
+            return status(HW_MATH_ERR_ALLOCFAILED);
+        }
+        work[0] = 0.;
+
+        // workspace query
+        dgesvd_(&JOBU, &JOBVT, &m, &n, a, &lda, s, u, &ldu, vt, &ldvt, work, &lwork, &info);
+
+        lwork = static_cast<int>(work[0]);
+        delete [] work;
+
+        try
+        {
+            work = new double[lwork];
+        }
+        catch (std::bad_alloc&) 
+        {
+            return status(HW_MATH_ERR_ALLOCFAILED);
+        }
+
+        // decompose the matrix
+        dgesvd_(&JOBU, &JOBVT, &m, &n, a, &lda, s, u, &ldu, vt, &ldvt, work, &lwork, &info);
+
+        delete [] work;
+
+        if (info != 0)
+            return status(HW_MATH_ERR_NOTCONVERGE);
+    }
+    else
+    {
+        if (U)
+            U->Identity();
+
+        if (VT)
+            VT->Identity();
+    }
+
+    if (VT)
+    {
+        // transpose result for compatibility
+        status = VT->Transpose();
+
+        if (type == SVD_ECON_FLAG)
+        {
+            int nrows = A.m_nCols;
+            int ncols = A.m_nRows;
+            int mindim = (nrows < ncols) ? nrows : ncols;
+            int idx = VT->m_nRows - mindim;
+            if (idx > 0)
+            {
+                status = VT->DeleteColumns(mindim, idx);
+                if (!status.IsOk())
+                {
+                    status.ResetArgs();
+                    return status;
+                }
+            }
+        }
+    }
+
+    return status;
+}
+
+//! Complex Singular Value Decomposition
+template<>
+inline hwMathStatus hwTMatrix<double>::ComplexSVD(const SVDtype& type, hwTMatrix<double>* U,
+                                                  hwTMatrix<double>& S, hwTMatrix<double>* VT) const
+{
+    if (this == U)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
+    if (this == &S)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
+    if (this == VT)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
+
+    const hwTMatrix<double>& A = (*this);
+    hwTMatrix<double> Acopy(A);
+    hwMathStatus status;
+    int m = A.m_nRows;
+    int n = A.m_nCols;
+    char JOBU;
+    char JOBVT;
+    complexD* u = NULL;
+    complexD* vt = NULL;
+
+    if (U)
+    {
+        if (type == SVD_STD_FLAG)
+        {
+            JOBU = 'A';
+            status = U->Dimension(m, m, COMPLEX);
+        }
+        else
+        {
+            JOBU = 'S';
+            status = U->Dimension(m, _min(m, n), COMPLEX);
+        }
+
+        if (!status.IsOk())
+        {
+            if (status.GetArg1() == 0)
+                status.SetArg1(2);
+            else
+                status.ResetArgs();
+
+            return status;
+        }
+
+        u = (complexD*) U->m_complex;
+    }
+    else
+    {
+        JOBU = 'N';
+        u = NULL;
+    }
+
+    status = S.Dimension(_min(m, n), REAL);
+
+    if (!status.IsOk())
+    {
+        if (status.GetArg1() == 0)
+            status.SetArg1(3);
+        else
+            status.ResetArgs();
+
+        return status;
+    }
+
+    if (VT)
+    {
+        JOBVT = 'A';
+        status = VT->Dimension(n, n, COMPLEX);
+
+        if (!status.IsOk())
+        {
+            if (status.GetArg1() == 0)
+                status.SetArg1(4);
+            else
+                status.ResetArgs();
+
+            return status;
+        }
+
+        vt = (complexD*) VT->m_complex;
+    }
+    else
+    {
+        JOBVT = 'N';
+        vt = NULL;
+    }
+
+    if (A.Size() != 0)
+    {
+        complexD* a = (complexD*) Acopy.m_complex;
+        double* s = S.m_real;
+
+        // define the arguments
+        int LDA = m;
+        int LDU = m;
+        int LDVT = n;
+        int INFO = 0;
+        int LWORK = -1;
+        int nrows = A.m_nCols;
+        int ncols = A.m_nRows;
+        int mindim = (nrows < ncols) ? nrows : ncols;
+        hwTMatrix<double> RWORK(5 * mindim, 1, REAL);
+        double *drwork = RWORK.m_real;
+        complexD *WORKC = NULL;
+
+        try
+        {
+            // 2 is minimal size
+            // LWORK >=  MAX(1,2*MIN(M,N)+MAX(M,N))
+            WORKC = new complexD[2];
+        }
+        catch (std::bad_alloc&) 
+        {
+            return status(HW_MATH_ERR_ALLOCFAILED);
+        }
+
+        // workspace query
+        zgesvd_(&JOBU, &JOBVT, &m, &n, a, &LDA, s, u, &LDU, vt, &LDVT, WORKC,  &LWORK, drwork, &INFO);
+
+        LWORK = static_cast<int>(WORKC[0].real());
+        delete [] WORKC;
+        if (INFO < 0)
+            return status(HW_MATH_ERR_NOTCONVERGE);
+
+        try
+        {
+            WORKC = new complexD[LWORK * 2];
+        }
+        catch (std::bad_alloc&) 
+        {
+            return status(HW_MATH_ERR_ALLOCFAILED);
+        }
+
+        // decompose the matrix
+        zgesvd_(&JOBU, &JOBVT, &m, &n, a, &LDA, s, u, &LDU, vt, &LDVT, WORKC,  &LWORK, drwork, &INFO);
+        delete [] WORKC;
+        
+        if (INFO != 0)
+            return status(HW_MATH_ERR_NOTCONVERGE);
+    }
+    else
+    {
+        U->Identity();
+        VT->Identity();
+    }
+
+    if (VT)
+    {
+        // hermitian result for compatibility
+        VT->Conjugate();
+        status = VT->Transpose();
+
+        if (type == SVD_ECON_FLAG)
+        {
+            int nrows = A.m_nCols;
+            int ncols = A.m_nRows;
+            int mindim = (nrows < ncols) ? nrows : ncols;
+            int idx = VT->m_nRows - mindim;
+            if (idx > 0)
+            {
+                status = VT->DeleteColumns(*VT, mindim, idx);
+                if (!status.IsOk())
+                {
+                    status.ResetArgs();
+                    return status;
+                }
+            }
+        }
+    }
+
+    return status;
+}
+
+//! Singular Value Decomposition
+template<>
+inline hwMathStatus hwTMatrix<double>::SVD(int flagSvd, hwTMatrix<double>*U, hwTMatrix<double>& S, hwTMatrix<double>* V) const
+{
+    SVDtype type;
+    hwMathStatus status;
+
+    switch (flagSvd)
+    {
+    case 0:
+        type = SVD_STD_FLAG;
+        break;
+    case 1:
+        type = SVD_ECON_FLAG;
+        break;
+    case 2:
+        type = SVD_ECON_0_FLAG;
+        break;
+    default:
+        return status(HW_MATH_ERR_INVALIDINPUT, 1);
+        break;
+    }
+
+    if (!IsFinite())
+        return hwMathStatus(HW_MATH_ERR_NONFINITEDATA, 0);
+
+    if (IsReal())
+        status = RealSVD(type, U, S, V);
+    else
+        status = ComplexSVD(type, U, S, V);
+
+    return status;
+}
+
+//! L2 vector norm
+template<>
+inline hwMathStatus hwTMatrix<double>::L2Norm(double& norm) const
+{
+    hwMathStatus status;
+
+    if (IsReal())
+    {
+        if (!m_real)
+        {
+            norm = 0.0;
+            return status;
+        }
+
+        int n = Size();
+        int inc = 1;
+
+        norm = dnrm2_(&n, m_real, &inc);
+    }
+    else
+    {
+        status = L2NormSq(norm);
+
+        if (status.IsOk())
+            norm = sqrt(norm);
+    }
+
+    return status;
+}
+
+//! Matrix p norm
+template<>
+inline hwMathStatus hwTMatrix<double>::Norm(double& norm, int p) const
+{
+    hwMathStatus status;
+
+    if (p == 1)
+    {
+        char NORM;
+        double* Work = NULL;
+        int m, n;
+
+        if (IsEmpty())
+        {
+            norm = 0.0;
+            return status;
+        }
+
+        if (IsVector())
+        {
+            NORM = '1';
+            m = Size();
+            n = 1;
+        }
+        else    //matrix
+        {
+            NORM = '1';
+            m = m_nRows;
+            n = m_nCols;
+        }
+
+        if (IsReal())
+            norm = dlange_(&NORM, &m, &n, m_real, &m, Work);
+        else
+            norm = zlange_(&NORM, &m, &n, (complexD*) m_complex, &m, Work);
+    }
+    else if (p == 2)
+    {
+        if (IsVector())
+        {
+            status = L2Norm(norm);
+        }
+        else    //matrix
+        {
+            if (IsEmpty())
+            {
+                norm = 0.0;
+                return status;
+            }
+
+            hwTMatrix<double> S;
+
+            status = SVD(0, NULL, S, NULL);
+
+            if (!status.IsOk())
+                return status;
+
+             norm = S(0);
+        }
+    }
+    else if (p > 2)
+    {
+        if (IsEmpty())
+        {
+            norm = 0.0;
+            return status;
+        }
+
+        if (!IsVector())
+        {
+            status(HW_MATH_ERR_INVALIDINPUT, 2);
+            return status;
+        }
+            
+        int count = Size();
+        norm = 0.0;
+
+        if (IsReal())
+        {
+            double* a_r = m_real;
+
+            while (count--)
+                norm += CustomPow(fabs(*a_r++), (double) p);
+        }
+        else
+        {
+            hwComplex* a_c = m_complex;
+
+            while (count--)
+                norm += CustomPow((a_c++)->Mag(), (double) p);
+        }
+
+        norm = CustomPow(norm, 1.0 / p);
+    }
+    else
+    {
+        status(HW_MATH_ERR_INVALIDINPUT, 2);
+    }
+
+    return status;
+}
+
+//! Matrix norm - Frobenius or inf
+template<>
+inline hwMathStatus hwTMatrix<double>::Norm(double& norm, const char* type) const
+{
+    hwMathStatus status;
+
+    if (!type)
+        return status(HW_MATH_ERR_NOTSTRING, 2);
+
+    if (!strcmp(type, "-inf"))
+    {
+        if (!IsVector())
+            return status(HW_MATH_ERR_INVALIDINPUT, 2);
+
+        int count = Size();
+
+        if (IsReal())
+        {
+            if (!m_real)
+            {
+                norm = 0.0;
+                return status;
+            }
+
+            double* a_r = m_real;
+
+            norm = fabs(*a_r++);
+            count--;
+
+            while (count--)
+            {
+                if (fabs(*a_r) < norm)
+                    norm = fabs(*a_r);
+
+                ++a_r;
+            }
+        }
+        else
+        {
+            hwComplex* a_c = m_complex;
+
+            norm = (a_c++)->Mag();
+            count--;
+
+            while (count--)
+            {
+                double mag = a_c->Mag();
+
+                if (mag < norm)
+                    norm = mag;
+
+                ++a_c;
+            }
+        }
+
+        return status;
+    }
+
+    int m, n;
+    char NORM;
+    double* Work = NULL;
+
+    if (IsVector())
+    {
+        m = Size();
+        n = 1;
+    }
+    else
+    {
+        m = m_nRows;
+        n = m_nCols;
+    }
+
+    if (!strcmp(type, "inf"))
+    {
+        NORM = 'I';
+
+        try
+        {
+            Work = new double[m];
+        }
+        catch (std::bad_alloc&) 
+        {
+            return status(HW_MATH_ERR_ALLOCFAILED);
+        }
+    }
+    else if (!strcmp(type, "fro"))
+        NORM = 'F';
+    else
+        return status(HW_MATH_ERR_INVALIDINPUT, 2);
+
+    if (IsEmpty())
+    {
+        norm = 0.0;
+        return status;
+    }
+
+    if (IsReal())
+        norm = dlange_(&NORM, &m, &n, m_real, &m, Work);
+    else    // complex
+        norm = zlange_(&NORM, &m, &n, (complexD*) m_complex, &m, Work);
+
+    if (Work)
+        delete [] Work;
+
+    return status;
+}
+
+//! Normalize the object vector
+template<>
+inline hwMathStatus hwTMatrix<double>::Normalize()
+{
+    int count = Size();
+    double norm;
+    hwMathStatus status;
+
+    if (!IsVector())
+        return status(HW_MATH_ERR_VECTOR, 0);
+
+    status = Norm(norm, 2);
+
+    if (!status.IsOk())
+        return status;
+
+    double* v = m_real;
+
+    while (count--)
+        v[count] /= norm;
+
+    return hwMathStatus();
+}
+
+//! Real matrix pseudo-inversion (Moore-Penrose)
+template<>
+inline hwMathStatus hwTMatrix<double>::RealPinv(const hwTMatrix<double>& source,
+                                                double                   tol)
+{
+    if (this == &source)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
+
+    hwTMatrix<double>& pinv = (*this);
+    hwMathStatus status;
+
+    if (source.IsEmpty())
+    {
+        status = pinv.Dimension(source.m_nCols, source.m_nRows, REAL);
+        return status;
+    }
+
+    if (!source.IsReal())
+        return status(HW_MATH_ERR_COMPLEX, 1);
+
+    int m = source.m_nRows;
+    int n = source.m_nCols;
+    int nu = _min(m, n);
+    int lda = m;
+    int nrhs = m;
+    int ldb = _max(m, n);
+    int rank;
+    int info;
+    double* s;
+
+    try
+    {
+        s = new double[nu];
+    }
+    catch (std::bad_alloc&) 
+    {
+        return status(HW_MATH_ERR_ALLOCFAILED);
+    }
+
+    hwTMatrix<double> Acopy(source);
+
+    status = pinv.Dimension(ldb, m, REAL);
+
+    if (!status.IsOk())
+    {
+        status.ResetArgs();
+        return status;
+    }
+
+    pinv.SetElements(0.0);
+
+    for (int i = 0; i < m; ++i)
+        pinv(i, i) = 1.0;
+
+    double* a_r = Acopy.m_real;
+    double* b_r = pinv.m_real;
+
+    // workspace query
+    double* work;
+
+    try
+    {
+        work = new double[1];
+    }
+    catch (std::bad_alloc&) 
+    {
+        if (s)
+            delete [] s;
+
+        return status(HW_MATH_ERR_ALLOCFAILED);
+    }
+
+    int lwork = -1;
+
+    dgelss_(&m, &n, &nrhs, a_r, &lda, b_r, &ldb, s, &tol, &rank,
+            work, &lwork, &info);
+
+    lwork = static_cast<int>(work[0]);
+    delete [] work;
+
+    try
+    {
+        work = new double[lwork];
+    }
+    catch (std::bad_alloc&) 
+    {
+        if (s)
+            delete [] s;
+
+        return status(HW_MATH_ERR_ALLOCFAILED);
+    }
+
+    // decompose the matrix and the solve system
+    dgelss_(&m, &n, &nrhs, a_r, &lda, b_r, &ldb, s, &tol, &rank,
+            work, &lwork, &info);
+
+    delete [] s;
+    delete [] work;
+
+    if (info != 0)
+    {
+        status(HW_MATH_ERR_NOTCONVERGE);
+        return status;
+    }
+
+    status = pinv.Resize(n, m, false);
+
+    if (!status.IsOk())
+    {
+        status.ResetArgs();
+        return status;
+    }
+
+    return status;
+}
+
+//! Complex matrix pseudo-inversion (Moore-Penrose)
+template<>
+inline hwMathStatus hwTMatrix<double>::ComplexPinv(const hwTMatrix<double>& source,
+                                                   double                   tol) 
+{
+    if (this == &source)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
+
+    hwTMatrix<double>& pinv = (*this);
+    hwMathStatus status;
+
+    if (source.IsEmpty())
+    {
+        status = pinv.Dimension(source.m_nCols, source.m_nRows, REAL);
+        return status;
+    }
+
+    if (source.IsReal())
+        return status(HW_MATH_ERR_NEEDCOMPLEX, 1);
+
+    int m = source.m_nRows;
+    int n = source.m_nCols;
+    int nu = _min(m, n);
+    int lda = m;
+    int nrhs = m;
+    int ldb = _max(m, n);
+    int rank;
+    int info;
+    double* s;
+
+    try
+    {
+        s = new double[nu];
+    }
+    catch (std::bad_alloc&) 
+    {
+        return status(HW_MATH_ERR_ALLOCFAILED);
+    }
+
+    hwTMatrix<double> Acopy(source);
+
+    status = pinv.Dimension(ldb, m, COMPLEX);
+
+    if (!status.IsOk())
+    {
+        status.ResetArgs();
+        return status;
+    }
+
+    pinv.SetElements(0.0);
+
+    for (int i = 0; i < m; ++i)
+        pinv.z(i, i) = 1.0;
+
+    complexD* a_r = (complexD*) Acopy.m_complex;
+    complexD* b_r = (complexD*) pinv.m_complex;
+
+    // workspace query
+    double* rwork;
+    complexD* work;
+
+    try
+    {
+        rwork = new double[5*static_cast<long int>(nu)];
+        work  = new complexD[1];
+    }
+    catch (std::bad_alloc&) 
+    {
+        if (s)
+            delete [] s;
+
+        return status(HW_MATH_ERR_ALLOCFAILED);
+    }
+
+    int lwork = -1;
+
+    zgelss_(&m, &n, &nrhs, a_r, &lda, b_r, &ldb, s, &tol, &rank,
+            work, &lwork, rwork, &info);
+
+    lwork = static_cast<int>(work[0].real());
+    delete [] work;
+
+    try
+    {
+        work = new complexD[lwork];
+    }
+    catch (std::bad_alloc&) 
+    {
+        if (s)
+            delete [] s;
+
+        return status(HW_MATH_ERR_ALLOCFAILED);
+    }
+
+    // decompose the matrix and the solve system
+    zgelss_(&m, &n, &nrhs, a_r, &lda, b_r, &ldb, s, &tol, &rank,
+            work, &lwork, rwork, &info);
+
+    delete [] s;
+    delete [] work;
+
+    if (info != 0)
+    {
+        status(HW_MATH_ERR_NOTCONVERGE);
+        return status;
+    }
+
+    status = pinv.Resize(n, m, false);
+
+    if (!status.IsOk())
+    {
+        status.ResetArgs();
+        return status;
+    }
+
+    return status;
+}
+
+//! Matrix pseudo-inversion (Moore-Penrose)
+template<>
+inline hwMathStatus hwTMatrix<double>::Pinv(const hwTMatrix<double>& source, double tol)
+{
+    if (tol > 0.0)
+    {
+        double norm;
+        hwMathStatus status = source.Norm(norm, 2);
+
+        if (!status.IsOk())
+            return status;
+
+        tol /= norm;
+    }
+    else if (tol == -999.0)    // default
+    {
+        tol = _max(source.m_nRows, source.m_nCols) * MACHEP2;
+    }
+    else if (tol < 0.0)
+    {
+        return hwMathStatus(HW_MATH_ERR_NONPOSITIVE, 2);
+    }
+
+    if (source.IsReal())
+        return RealPinv(source, tol);
+    else
+        return ComplexPinv(source, tol);
+}
+
 //! Real LU decomposition (PA = LU)
 template<>
 inline hwMathStatus hwTMatrix<double>::RealLU(hwTMatrix<double>& L, hwTMatrix<double>& U, hwTMatrix<int>& P ) const
@@ -1136,8 +2044,6 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompComplex(const hwTMa
         hwMathStatus statusSet;
         complexD r = dALPHA[i] / dBETA[i];
         D.z(i).Set(r.real(), r.imag());
-
-        r.real();
     }
 
     return status;
@@ -1268,353 +2174,6 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompComplexHermitian(co
 
     if (INFO > n)
         status(HW_MATH_ERR_DECOMPFAIL);
-
-    return status;
-}
-
-//! Real Singular Value Decomposition
-template<>
-inline hwMathStatus hwTMatrix<double>::RealSVD(const SVDtype& type, hwTMatrix<double>*U,
-                                               hwTMatrix<double>& S, hwTMatrix<double>* VT) const
-{
-    if (this == U)
-        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
-    if (this == &S)
-        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
-    if (this == VT)
-        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
-
-    const hwTMatrix<double>& A = (*this);
-    hwMathStatus status;
-    int m = A.m_nRows;
-    int n = A.m_nCols;
-
-    if (!A.IsReal())
-        return status(HW_MATH_ERR_COMPLEX, 0);
-
-    hwTMatrix<double> Acopy(A);
-    char JOBU;
-    char JOBVT;
-    double* u;
-    double* vt;
-
-    if (U)
-    {
-        if (type == SVD_STD_FLAG)
-        {
-            JOBU = 'A';
-            status = U->Dimension(m, m, REAL);
-        }
-        else
-        {
-            JOBU = 'S';
-            status = U->Dimension(m, _min(m, n), REAL);
-        }
-
-        if (!status.IsOk())
-        {
-            if (status.GetArg1() == 0)
-                status.SetArg1(2);
-            else
-                status.ResetArgs();
-
-            return status;
-        }
-
-        u = U->m_real;
-    }
-    else
-    {
-        JOBU = 'N';
-        u = NULL;
-    }
-
-    status = S.Dimension(_min(m, n), REAL);
-
-    if (!status.IsOk())
-    {
-        if (status.GetArg1() == 0)
-            status.SetArg1(3);
-        else
-            status.ResetArgs();
-
-        return status;
-    }
-
-    if (VT)
-    {
-        status = VT->Dimension(n, n, REAL);
-        JOBVT = 'A';
-
-        if (!status.IsOk())
-        {
-            if (status.GetArg1() == 0)
-                status.SetArg1(4);
-            else
-                status.ResetArgs();
-
-            return status;
-        }
-
-        vt = VT->m_real;
-    }
-    else
-    {
-        JOBVT = 'N';
-        vt = NULL;
-    }
-
-    if (A.Size() != 0)
-    {
-        double* a = Acopy.m_real;
-        double* s = S.m_real;
-
-        // define the arguments
-        int lda = m;
-        int ldu = m;
-        int ldvt = n;
-        int info = 0;
-        int lwork = -1;
-        double* work = NULL;
-
-        try
-        {
-            work = new double[1];
-        }
-        catch (std::bad_alloc&) 
-        {
-            return status(HW_MATH_ERR_ALLOCFAILED);
-        }
-        work[0] = 0.;
-
-        // workspace query
-        dgesvd_(&JOBU, &JOBVT, &m, &n, a, &lda, s, u, &ldu, vt, &ldvt, work, &lwork, &info);
-
-        lwork = static_cast<int>(work[0]);
-        delete [] work;
-
-        try
-        {
-            work = new double[lwork];
-        }
-        catch (std::bad_alloc&) 
-        {
-            return status(HW_MATH_ERR_ALLOCFAILED);
-        }
-
-        // decompose the matrix
-        dgesvd_(&JOBU, &JOBVT, &m, &n, a, &lda, s, u, &ldu, vt, &ldvt, work, &lwork, &info);
-
-        delete [] work;
-
-        if (info != 0)
-            return status(HW_MATH_ERR_NOTCONVERGE);
-    }
-    else
-    {
-        if (U)
-            U->Identity();
-
-        if (VT)
-            VT->Identity();
-    }
-
-    if (VT)
-    {
-        // transpose result for compatibility
-        status = VT->Transpose();
-
-        if (type == SVD_ECON_FLAG)
-        {
-            int nrows = A.m_nCols;
-            int ncols = A.m_nRows;
-            int mindim = (nrows < ncols) ? nrows : ncols;
-            int idx = VT->m_nRows - mindim;
-            if (idx > 0)
-            {
-                status = VT->DeleteColumns(mindim, idx);
-                if (!status.IsOk())
-                {
-                    status.ResetArgs();
-                    return status;
-                }
-            }
-        }
-    }
-
-    return status;
-}
-
-//! Complex Singular Value Decomposition
-template<>
-inline hwMathStatus hwTMatrix<double>::ComplexSVD(const SVDtype& type, hwTMatrix<double>* U,
-                                                  hwTMatrix<double>& S, hwTMatrix<double>* VT) const
-{
-    if (this == U)
-        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
-    if (this == &S)
-        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
-    if (this == VT)
-        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
-
-    const hwTMatrix<double>& A = (*this);
-    hwTMatrix<double> Acopy(A);
-    hwMathStatus status;
-    int m = A.m_nRows;
-    int n = A.m_nCols;
-    char JOBU;
-    char JOBVT;
-    complexD* u = NULL;
-    complexD* vt = NULL;
-
-    if (U)
-    {
-        if (type == SVD_STD_FLAG)
-        {
-            JOBU = 'A';
-            status = U->Dimension(m, m, COMPLEX);
-        }
-        else
-        {
-            JOBU = 'S';
-            status = U->Dimension(m, _min(m, n), COMPLEX);
-        }
-
-        if (!status.IsOk())
-        {
-            if (status.GetArg1() == 0)
-                status.SetArg1(2);
-            else
-                status.ResetArgs();
-
-            return status;
-        }
-
-        u = (complexD*) U->m_complex;
-    }
-    else
-    {
-        JOBU = 'N';
-        u = NULL;
-    }
-
-    status = S.Dimension(_min(m, n), REAL);
-
-    if (!status.IsOk())
-    {
-        if (status.GetArg1() == 0)
-            status.SetArg1(3);
-        else
-            status.ResetArgs();
-
-        return status;
-    }
-
-    if (VT)
-    {
-        JOBVT = 'A';
-        status = VT->Dimension(n, n, COMPLEX);
-
-        if (!status.IsOk())
-        {
-            if (status.GetArg1() == 0)
-                status.SetArg1(4);
-            else
-                status.ResetArgs();
-
-            return status;
-        }
-
-        vt = (complexD*) VT->m_complex;
-    }
-    else
-    {
-        JOBVT = 'N';
-        vt = NULL;
-    }
-
-    if (A.Size() != 0)
-    {
-        complexD* a = (complexD*) Acopy.m_complex;
-        double* s = S.m_real;
-
-        // define the arguments
-        int LDA = m;
-        int LDU = m;
-        int LDVT = n;
-        int INFO = 0;
-        int LWORK = -1;
-        int nrows = A.m_nCols;
-        int ncols = A.m_nRows;
-        int mindim = (nrows < ncols) ? nrows : ncols;
-        hwTMatrix<double> RWORK(5 * mindim, 1, REAL);
-        double *drwork = RWORK.m_real;
-        complexD *WORKC = NULL;
-
-        try
-        {
-            // 2 is minimal size
-            // LWORK >=  MAX(1,2*MIN(M,N)+MAX(M,N))
-            WORKC = new complexD[2];
-        }
-        catch (std::bad_alloc&) 
-        {
-            return status(HW_MATH_ERR_ALLOCFAILED);
-        }
-
-        // workspace query
-        zgesvd_(&JOBU, &JOBVT, &m, &n, a, &LDA, s, u, &LDU, vt, &LDVT, WORKC,  &LWORK, drwork, &INFO);
-
-        LWORK = static_cast<int>(WORKC[0].real());
-        delete [] WORKC;
-        if (INFO < 0)
-            return status(HW_MATH_ERR_NOTCONVERGE);
-
-        try
-        {
-            WORKC = new complexD[LWORK * 2];
-        }
-        catch (std::bad_alloc&) 
-        {
-            return status(HW_MATH_ERR_ALLOCFAILED);
-        }
-
-        // decompose the matrix
-        zgesvd_(&JOBU, &JOBVT, &m, &n, a, &LDA, s, u, &LDU, vt, &LDVT, WORKC,  &LWORK, drwork, &INFO);
-        delete [] WORKC;
-        
-        if (INFO != 0)
-            return status(HW_MATH_ERR_NOTCONVERGE);
-    }
-    else
-    {
-        U->Identity();
-        VT->Identity();
-    }
-
-    if (VT)
-    {
-        // hermitian result for compatibility
-        VT->Conjugate();
-        status = VT->Transpose();
-
-        if (type == SVD_ECON_FLAG)
-        {
-            int nrows = A.m_nCols;
-            int ncols = A.m_nRows;
-            int mindim = (nrows < ncols) ? nrows : ncols;
-            int idx = VT->m_nRows - mindim;
-            if (idx > 0)
-            {
-                status = VT->DeleteColumns(*VT, mindim, idx);
-                if (!status.IsOk())
-                {
-                    status.ResetArgs();
-                    return status;
-                }
-            }
-        }
-    }
 
     return status;
 }
@@ -1921,250 +2480,6 @@ inline hwMathStatus hwTMatrix<double>::ComplexQR(hwTMatrix<double>& Q, hwTMatrix
     }
 
     return status;
-}
-
-//! Real matrix pseudo-inversion (Moore-Penrose)
-template<>
-inline hwMathStatus hwTMatrix<double>::RealPinv(const hwTMatrix<double>& source)
-{
-    if (this == &source)
-        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
-
-    hwTMatrix<double>& pinv = (*this);
-    hwMathStatus status;
-
-    if (source.IsEmpty())
-    {
-        status = pinv.Dimension(source.m_nCols, source.m_nRows, REAL);
-        return status;
-    }
-
-    if (!source.IsReal())
-        return status(HW_MATH_ERR_COMPLEX, 1);
-
-    int m = source.m_nRows;
-    int n = source.m_nCols;
-    int nu = _min(m, n);
-    int lda = m;
-    int nrhs = m;
-    int ldb = _max(m, n);
-    int rank;
-    int info;
-    double rcond = _max(m, n) * MACHEP2;
-    double* s;
-
-    try
-    {
-        s = new double[nu];
-    }
-    catch (std::bad_alloc&) 
-    {
-        return status(HW_MATH_ERR_ALLOCFAILED);
-    }
-
-    hwTMatrix<double> Acopy(source);
-
-    status = pinv.Dimension(ldb, m, REAL);
-
-    if (!status.IsOk())
-    {
-        status.ResetArgs();
-        return status;
-    }
-
-    pinv.SetElements(0.0);
-
-    for (int i = 0; i < m; ++i)
-        pinv(i, i) = 1.0;
-
-    double* a_r = Acopy.m_real;
-    double* b_r = pinv.m_real;
-
-    // workspace query
-    double* work;
-
-    try
-    {
-        work = new double[1];
-    }
-    catch (std::bad_alloc&) 
-    {
-        if (s)
-            delete [] s;
-
-        return status(HW_MATH_ERR_ALLOCFAILED);
-    }
-
-    int lwork = -1;
-
-    dgelss_(&m, &n, &nrhs, a_r, &lda, b_r, &ldb, s, &rcond, &rank,
-            work, &lwork, &info);
-
-    lwork = static_cast<int>(work[0]);
-    delete [] work;
-
-    try
-    {
-        work = new double[lwork];
-    }
-    catch (std::bad_alloc&) 
-    {
-        if (s)
-            delete [] s;
-
-        return status(HW_MATH_ERR_ALLOCFAILED);
-    }
-
-    // decompose the matrix and the solve system
-    dgelss_(&m, &n, &nrhs, a_r, &lda, b_r, &ldb, s, &rcond, &rank,
-            work, &lwork, &info);
-
-    delete [] s;
-    delete [] work;
-
-    if (info != 0)
-    {
-        status(HW_MATH_ERR_NOTCONVERGE);
-        return status;
-    }
-
-    status = pinv.Resize(n, m, false);
-
-    if (!status.IsOk())
-    {
-        status.ResetArgs();
-        return status;
-    }
-
-    return status;
-}
-
-//! Complex matrix pseudo-inversion (Moore-Penrose)
-template<>
-inline hwMathStatus hwTMatrix<double>::ComplexPinv(const hwTMatrix<double>& source)
-{
-    if (this == &source)
-        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
-
-    hwTMatrix<double>& pinv = (*this);
-    hwMathStatus status;
-
-    if (source.IsEmpty())
-    {
-        status = pinv.Dimension(source.m_nCols, source.m_nRows, REAL);
-        return status;
-    }
-
-    if (source.IsReal())
-        return status(HW_MATH_ERR_NEEDCOMPLEX, 1);
-
-    int m = source.m_nRows;
-    int n = source.m_nCols;
-    int nu = _min(m, n);
-    int lda = m;
-    int nrhs = m;
-    int ldb = _max(m, n);
-    int rank;
-    int info;
-    double rcond = _max(m, n) * MACHEP2;
-    double* s;
-
-    try
-    {
-        s = new double[nu];
-    }
-    catch (std::bad_alloc&) 
-    {
-        return status(HW_MATH_ERR_ALLOCFAILED);
-    }
-
-    hwTMatrix<double> Acopy(source);
-
-    status = pinv.Dimension(ldb, m, COMPLEX);
-
-    if (!status.IsOk())
-    {
-        status.ResetArgs();
-        return status;
-    }
-
-    pinv.SetElements(0.0);
-
-    for (int i = 0; i < m; ++i)
-        pinv.z(i, i) = 1.0;
-
-    complexD* a_r = (complexD*) Acopy.m_complex;
-    complexD* b_r = (complexD*) pinv.m_complex;
-
-    // workspace query
-    double* rwork;
-    complexD* work;
-
-    try
-    {
-        rwork = new double[5*static_cast<long int>(nu)];
-        work  = new complexD[1];
-    }
-    catch (std::bad_alloc&) 
-    {
-        if (s)
-            delete [] s;
-
-        return status(HW_MATH_ERR_ALLOCFAILED);
-    }
-
-    int lwork = -1;
-
-    zgelss_(&m, &n, &nrhs, a_r, &lda, b_r, &ldb, s, &rcond, &rank,
-            work, &lwork, rwork, &info);
-
-    lwork = static_cast<int>(work[0].real());
-    delete [] work;
-
-    try
-    {
-        work = new complexD[lwork];
-    }
-    catch (std::bad_alloc&) 
-    {
-        if (s)
-            delete [] s;
-
-        return status(HW_MATH_ERR_ALLOCFAILED);
-    }
-
-    // decompose the matrix and the solve system
-    zgelss_(&m, &n, &nrhs, a_r, &lda, b_r, &ldb, s, &rcond, &rank,
-            work, &lwork, rwork, &info);
-
-    delete [] s;
-    delete [] work;
-
-    if (info != 0)
-    {
-        status(HW_MATH_ERR_NOTCONVERGE);
-        return status;
-    }
-
-    status = pinv.Resize(n, m, false);
-
-    if (!status.IsOk())
-    {
-        status.ResetArgs();
-        return status;
-    }
-
-    return status;
-}
-
-//! Matrix pseudo-inversion (Moore-Penrose)
-template<>
-inline hwMathStatus hwTMatrix<double>::Pinv(const hwTMatrix<double>& source)
-{
-    if (source.IsReal())
-        return RealPinv(source);
-    else
-        return ComplexPinv(source);
 }
 
 //! Real Schur Decomposition
@@ -3507,6 +3822,152 @@ inline hwMathStatus hwTMatrix<double>::MultEquals(const hwTComplex<double>& z)
     return status;
 }
 
+//! Solve real linear system AX=B with SVD, where X = *this
+template<>
+inline hwMathStatus hwTMatrix<double>::SVDSolve(const hwTMatrix<double>& A, const hwTMatrix<double>& B)
+{
+    hwMathStatus status;
+
+    if (this == &A)
+        return status(HW_MATH_ERR_NOTIMPLEMENT);
+
+    if (this == &B)
+        return status(HW_MATH_ERR_NOTIMPLEMENT);
+
+    hwTMatrix<double>& X = (*this);
+
+    if (!A.IsReal())
+        return status(HW_MATH_ERR_COMPLEX, 1);
+
+    if (!B.IsReal())
+        return status(HW_MATH_ERR_COMPLEX, 2);
+
+    int m = A.m_nRows;
+    int n = A.m_nCols;
+
+    if (B.m_nRows != m)
+        return status(HW_MATH_ERR_ARRAYSIZE, 1, 2);
+
+    int nu = _min(m, n);
+    int lda = m;
+    int nrhs = B.m_nCols;
+    int ldb = _max(m, n);
+    int rank;
+    int info;
+    double rcond = 1.0e-12;
+    double* s;
+
+    try
+    {
+        s = new double[nu];
+    }
+    catch (std::bad_alloc&) 
+    {
+        return status(HW_MATH_ERR_ALLOCFAILED);
+    }
+
+    hwTMatrix<double> Acopy(A);
+    hwTMatrix<double> Bcopy(B);
+
+    status = Bcopy.Resize(ldb, nrhs, true);
+
+    if (!status.IsOk())
+    {
+        status.ResetArgs();
+        return status;
+    }
+
+    status = X.Dimension(n, nrhs, REAL);
+
+    if (!status.IsOk())
+    {
+        status.ResetArgs();
+        return status;
+    }
+
+    if (A.IsEmpty() || X.IsEmpty())
+        return status;
+
+    double* a_r = Acopy.m_real;
+    double* b_r = Bcopy.m_real;
+
+    // workspace query
+    double* work;
+    int lwork = -1;
+
+    try
+    {
+        work = new double[1];
+    }
+    catch (std::bad_alloc&) 
+    {
+        if (s)
+            delete [] s;
+
+        return status(HW_MATH_ERR_ALLOCFAILED);
+    }
+
+    dgelss_(&m, &n, &nrhs, a_r, &lda, b_r, &ldb, s, &rcond, &rank,
+            work, &lwork, &info);
+
+    lwork = static_cast<int>(work[0]);
+    delete [] work;
+
+    try
+    {
+        work = new double[lwork];
+    }
+    catch (std::bad_alloc&) 
+    {
+        if (s)
+            delete [] s;
+
+        return status(HW_MATH_ERR_ALLOCFAILED);
+    }
+
+    // decompose the matrix and the solve system
+    dgelss_(&m, &n, &nrhs, a_r, &lda, b_r, &ldb, s, &rcond, &rank,
+            work, &lwork, &info);
+
+    if (info != 0)
+    {
+        delete [] s;
+        delete [] work;
+
+        status(HW_MATH_ERR_NOTCONVERGE);
+        return status;
+    }
+
+    int i, j;
+    double thresh = 1.0e-9;
+    double min = thresh * s[0];
+
+    for (i = 0; i < nu; ++i)
+    {
+        if (s[i] < min)
+            s[i] = 0.0;
+    }
+
+    if (s[nu-1] == 0.0)
+    {
+        if (m > n)
+            status(HW_MATH_WARN_MATRIXDEPENDCOL);
+        else
+            status(HW_MATH_WARN_MTXNOTFULLRANK);
+    }
+
+    for (i = 0; i < n; ++i)
+    {
+        for (j = 0; j < nrhs; ++j)
+            X(i, j) = Bcopy(i, j);
+    }
+
+    delete [] s;
+    delete [] work;
+
+    return status;
+}
+
 //! Divide a matrix by a matrix so that (*this) = A \ B, or A(*this) = B
 template<>
 inline hwMathStatus hwTMatrix<double>::DivideLeft(const hwTMatrix<double>& A, const hwTMatrix<double>& B)
@@ -3519,22 +3980,35 @@ inline hwMathStatus hwTMatrix<double>::DivideLeft(const hwTMatrix<double>& A, co
             return Dimension(B.m_nRows, B.m_nCols, hwTMatrix<double>::REAL);
 
         status = LSolve(A, B);
+
+        if (status == HW_MATH_WARN_SINGMATRIXDIV)
+        {
+            static int option = 1;
+
+            if (option == 1)
+            {
+                // status = SVDSolve(A, B);     - this will fail if B contains NaN
+                hwTMatrix<double> P;
+                hwMathStatus status2 = P.Pinv(A);
+
+                if (!status2.IsOk())
+                    return status2;
+
+                (*this) = P * B;
+            }
+            else if (option == 2)
+            {
+                status = QRSolve(A, B);
+            }
+            else
+            {
+                status = SVDSolve(A, B);     // this will fail if B contains NaN
+            }
+        }
     }
     else
     {
         status = QRSolve(A, B);
-    }
-
-    if (status == HW_MATH_WARN_MTXNOTFULLRANK || status == HW_MATH_WARN_SINGMATRIXDIV)
-    {
-        // status = SVDSolve(A, B);     - this will fail if B contains NaN
-        hwTMatrix<double> P;
-        hwMathStatus status2 = P.Pinv(A);
-
-        if (!status2.IsOk())
-            return status2;
-
-        (*this) = P * B;
     }
 
     return status;
@@ -3564,14 +4038,6 @@ inline hwMathStatus hwTMatrix<double>::DivideRight(const hwTMatrix<double>& B, c
     }
 
     status = BT.Transpose(B);
-
-    if (!status.IsOk())
-    {
-        status.ResetArgs();
-        return status;
-    }
-
-    status = XT.Transpose(X);
 
     if (!status.IsOk())
     {
@@ -4400,152 +4866,6 @@ inline hwMathStatus hwTMatrix<double>::LSolveSI(const hwTMatrix<double>& A, cons
     return status;
 }
 
-//! Solve real linear system AX=B with SVD, where X = *this
-template<>
-inline hwMathStatus hwTMatrix<double>::SVDSolve(const hwTMatrix<double>& A, const hwTMatrix<double>& B)
-{
-    hwMathStatus status;
-
-    if (this == &A)
-        return status(HW_MATH_ERR_NOTIMPLEMENT);
-
-    if (this == &B)
-        return status(HW_MATH_ERR_NOTIMPLEMENT);
-
-    hwTMatrix<double>& X = (*this);
-
-    if (!A.IsReal())
-        return status(HW_MATH_ERR_COMPLEX, 1);
-
-    if (!B.IsReal())
-        return status(HW_MATH_ERR_COMPLEX, 2);
-
-    int m = A.m_nRows;
-    int n = A.m_nCols;
-
-    if (B.m_nRows != m)
-        return status(HW_MATH_ERR_ARRAYSIZE, 1, 2);
-
-    int nu = _min(m, n);
-    int lda = m;
-    int nrhs = B.m_nCols;
-    int ldb = _max(m, n);
-    int rank;
-    int info;
-    double rcond = 1.0e-12;
-    double* s;
-
-    try
-    {
-        s = new double[nu];
-    }
-    catch (std::bad_alloc&) 
-    {
-        return status(HW_MATH_ERR_ALLOCFAILED);
-    }
-
-    hwTMatrix<double> Acopy(A);
-    hwTMatrix<double> Bcopy(B);
-
-    status = Bcopy.Resize(ldb, nrhs, true);
-
-    if (!status.IsOk())
-    {
-        status.ResetArgs();
-        return status;
-    }
-
-    status = X.Dimension(n, nrhs, REAL);
-
-    if (!status.IsOk())
-    {
-        status.ResetArgs();
-        return status;
-    }
-
-    if (A.IsEmpty() || X.IsEmpty())
-        return status;
-
-    double* a_r = Acopy.m_real;
-    double* b_r = Bcopy.m_real;
-
-    // workspace query
-    double* work;
-    int lwork = -1;
-
-    try
-    {
-        work = new double[1];
-    }
-    catch (std::bad_alloc&) 
-    {
-        if (s)
-            delete [] s;
-
-        return status(HW_MATH_ERR_ALLOCFAILED);
-    }
-
-    dgelss_(&m, &n, &nrhs, a_r, &lda, b_r, &ldb, s, &rcond, &rank,
-            work, &lwork, &info);
-
-    lwork = static_cast<int>(work[0]);
-    delete [] work;
-
-    try
-    {
-        work = new double[lwork];
-    }
-    catch (std::bad_alloc&) 
-    {
-        if (s)
-            delete [] s;
-
-        return status(HW_MATH_ERR_ALLOCFAILED);
-    }
-
-    // decompose the matrix and the solve system
-    dgelss_(&m, &n, &nrhs, a_r, &lda, b_r, &ldb, s, &rcond, &rank,
-            work, &lwork, &info);
-
-    if (info != 0)
-    {
-        delete [] s;
-        delete [] work;
-
-        status(HW_MATH_ERR_NOTCONVERGE);
-        return status;
-    }
-
-    int i, j;
-    double thresh = 1.0e-9;
-    double min = thresh * s[0];
-
-    for (i = 0; i < nu; ++i)
-    {
-        if (s[i] < min)
-            s[i] = 0.0;
-    }
-
-    if (s[nu-1] == 0.0)
-    {
-        if (m > n)
-            status(HW_MATH_WARN_MATRIXDEPENDCOL);
-        else
-            status(HW_MATH_WARN_MTXNOTFULLRANK);
-    }
-
-    for (i = 0; i < n; ++i)
-    {
-        for (j = 0; j < nrhs; ++j)
-            X(i, j) = Bcopy(i, j);
-    }
-
-    delete [] s;
-    delete [] work;
-
-    return status;
-}
-
 //! LU decomposition (PA=LU, where A = *this and P is a permutation matrix)
 template<>
 inline hwMathStatus hwTMatrix<double>::LU(hwTMatrix<int>& P, hwTMatrix<double>& L, hwTMatrix<double>& U) const
@@ -5069,40 +5389,6 @@ enum SVDtype
     SVD_ECON_0_FLAG // economy size with S returned as a vector
 };
 
-//! Singular Value Decomposition
-template<>
-inline hwMathStatus hwTMatrix<double>::SVD(int flagSvd, hwTMatrix<double>*U, hwTMatrix<double>& S, hwTMatrix<double>* V) const
-{
-    SVDtype type;
-    hwMathStatus status;
-
-    switch (flagSvd)
-    {
-    case 0:
-        type = SVD_STD_FLAG;
-        break;
-    case 1:
-        type = SVD_ECON_FLAG;
-        break;
-    case 2:
-        type = SVD_ECON_0_FLAG;
-        break;
-    default:
-        return status(HW_MATH_ERR_INVALIDINPUT, 1);
-        break;
-    }
-
-    if (!IsFinite())
-        return hwMathStatus(HW_MATH_ERR_NONFINITEDATA, 0);
-
-    if (IsReal())
-        status = RealSVD(type, U, S, V);
-    else
-        status = ComplexSVD(type, U, S, V);
-
-    return status;
-}
-
 // Schur decomposition
 template<>
 inline hwMathStatus hwTMatrix<double>::Schur(bool real, hwTMatrix<double>& U, hwTMatrix<double>& T) const
@@ -5237,270 +5523,6 @@ inline hwMathStatus hwTMatrix<double>::Rank(double tol, int& rank) const
     }
 
     return status;
-}
-
-//! L2 vector norm
-template<>
-inline hwMathStatus hwTMatrix<double>::L2Norm(double& norm) const
-{
-    hwMathStatus status;
-
-    if (IsReal())
-    {
-        if (!m_real)
-        {
-            norm = 0.0;
-            return status;
-        }
-
-        int n = Size();
-        int inc = 1;
-
-        norm = dnrm2_(&n, m_real, &inc);
-    }
-    else
-    {
-        status = L2NormSq(norm);
-
-        if (status.IsOk())
-            norm = sqrt(norm);
-    }
-
-    return status;
-}
-
-//! Matrix p norm
-template<>
-inline hwMathStatus hwTMatrix<double>::Norm(double& norm, int p) const
-{
-    hwMathStatus status;
-
-    if (p == 1)
-    {
-        char NORM;
-        double* Work = NULL;
-        int m, n;
-
-        if (IsEmpty())
-        {
-            norm = 0.0;
-            return status;
-        }
-
-        if (IsVector())
-        {
-            NORM = '1';
-            m = Size();
-            n = 1;
-        }
-        else    //matrix
-        {
-            NORM = '1';
-            m = m_nRows;
-            n = m_nCols;
-        }
-
-        if (IsReal())
-            norm = dlange_(&NORM, &m, &n, m_real, &m, Work);
-        else
-            norm = zlange_(&NORM, &m, &n, (complexD*) m_complex, &m, Work);
-    }
-    else if (p == 2)
-    {
-        if (IsVector())
-        {
-            status = L2Norm(norm);
-        }
-        else    //matrix
-        {
-            if (IsEmpty())
-            {
-                norm = 0.0;
-                return status;
-            }
-
-            hwTMatrix<double> S;
-
-            status = SVD(0, NULL, S, NULL);
-
-            if (!status.IsOk())
-                return status;
-
-             norm = S(0);
-        }
-    }
-    else if (p > 2)
-    {
-        if (IsEmpty())
-        {
-            norm = 0.0;
-            return status;
-        }
-
-        if (!IsVector())
-        {
-            status(HW_MATH_ERR_INVALIDINPUT, 2);
-            return status;
-        }
-            
-        int count = Size();
-        norm = 0.0;
-
-        if (IsReal())
-        {
-            double* a_r = m_real;
-
-            while (count--)
-                norm += CustomPow(fabs(*a_r++), (double) p);
-        }
-        else
-        {
-            hwComplex* a_c = m_complex;
-
-            while (count--)
-                norm += CustomPow((a_c++)->Mag(), (double) p);
-        }
-
-        norm = CustomPow(norm, 1.0 / p);
-    }
-    else
-    {
-        status(HW_MATH_ERR_INVALIDINPUT, 2);
-    }
-
-    return status;
-}
-
-//! Matrix norm - Frobenius or inf
-template<>
-inline hwMathStatus hwTMatrix<double>::Norm(double& norm, const char* type) const
-{
-    hwMathStatus status;
-
-    if (!type)
-        return status(HW_MATH_ERR_NOTSTRING, 2);
-
-    if (!strcmp(type, "-inf"))
-    {
-        if (!IsVector())
-            return status(HW_MATH_ERR_INVALIDINPUT, 2);
-
-        int count = Size();
-
-        if (IsReal())
-        {
-            if (!m_real)
-            {
-                norm = 0.0;
-                return status;
-            }
-
-            double* a_r = m_real;
-
-            norm = fabs(*a_r++);
-            count--;
-
-            while (count--)
-            {
-                if (fabs(*a_r) < norm)
-                    norm = fabs(*a_r);
-
-                ++a_r;
-            }
-        }
-        else
-        {
-            hwComplex* a_c = m_complex;
-
-            norm = (a_c++)->Mag();
-            count--;
-
-            while (count--)
-            {
-                double mag = a_c->Mag();
-
-                if (mag < norm)
-                    norm = mag;
-
-                ++a_c;
-            }
-        }
-
-        return status;
-    }
-
-    int m, n;
-    char NORM;
-    double* Work = NULL;
-
-    if (IsVector())
-    {
-        m = Size();
-        n = 1;
-    }
-    else
-    {
-        m = m_nRows;
-        n = m_nCols;
-    }
-
-    if (!strcmp(type, "inf"))
-    {
-        NORM = 'I';
-
-        try
-        {
-            Work = new double[m];
-        }
-        catch (std::bad_alloc&) 
-        {
-            return status(HW_MATH_ERR_ALLOCFAILED);
-        }
-    }
-    else if (!strcmp(type, "fro"))
-        NORM = 'F';
-    else
-        return status(HW_MATH_ERR_INVALIDINPUT, 2);
-
-    if (IsEmpty())
-    {
-        norm = 0.0;
-        return status;
-    }
-
-    if (IsReal())
-        norm = dlange_(&NORM, &m, &n, m_real, &m, Work);
-    else    // complex
-        norm = zlange_(&NORM, &m, &n, (complexD*) m_complex, &m, Work);
-
-    if (Work)
-        delete [] Work;
-
-    return status;
-}
-
-//! Normalize the object vector
-template<>
-inline hwMathStatus hwTMatrix<double>::Normalize()
-{
-    int count = Size();
-    double norm;
-    hwMathStatus status;
-
-    if (!IsVector())
-        return status(HW_MATH_ERR_VECTOR, 0);
-
-    status = Norm(norm, 2);
-
-    if (!status.IsOk())
-        return status;
-
-    double* v = m_real;
-
-    while (count--)
-        v[count] /= norm;
-
-    return hwMathStatus();
 }
 
 //! Dot product of two real vectors

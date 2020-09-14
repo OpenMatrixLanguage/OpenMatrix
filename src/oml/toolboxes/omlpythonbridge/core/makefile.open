@@ -17,7 +17,7 @@ UNAME := $(shell uname)
 ifneq (,$(findstring NT,$(UNAME)))
    TARGET = $(BINDIR)/$(PROJ).lib
 else
-   TARGET = $(BINDIR)/lib$(PROJ).a
+   TARGET = $(BINDIR)/lib$(PROJ).so
 endif
 
 include ../makeomlpythonbridge.cfg

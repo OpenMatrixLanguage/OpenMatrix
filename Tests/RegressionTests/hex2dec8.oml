@@ -1,0 +1,2 @@
+﻿a=dec2hex(1e12);
+hex2dec(a)

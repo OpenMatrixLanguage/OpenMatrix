@@ -26,4 +26,8 @@ unsigned char* utf8_increment_pointer(unsigned char* ptr);
 size_t utf8_strlen(unsigned char* ptr);
 size_t utf8_byte_position_from_index(unsigned char* ptr, size_t index);
 
+size_t utf8_get_char_size(const double* ptr);
+const double* utf8_increment_pointer(const double* ptr);
+size_t utf8_strlen(const double* ptr);
+size_t utf8_byte_position_from_index(const double* ptr, size_t index);
 #endif

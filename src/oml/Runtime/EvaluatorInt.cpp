@@ -1,7 +1,7 @@
 /**
 * @file EvaluatorInt.cpp
 * @date June 2014
-* Copyright (C) 2014-2018 Altair Engineering, Inc.  
+* Copyright (C) 2014-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -83,9 +83,9 @@ const Currency& EvaluatorInterface::GetGlobalValue(std::string varname) const
     return eval->GetGlobalValue(varname);
 }
 
-bool EvaluatorInterface::FindFunctionByName(const std::string& func_name, FunctionInfo** fi, FUNCPTR* fptr)
+bool EvaluatorInterface::FindFunctionByName(const std::string& func_name, FunctionInfo** fi, FUNCPTR* fptr, ALT_FUNCPTR* aptr)
 {
-    return eval->FindFunctionByName(func_name, fi, fptr);
+    return eval->FindFunctionByName(func_name, fi, fptr, aptr);
 }
 
 bool EvaluatorInterface::SetValue(std::string varname, const Currency& value)
@@ -156,6 +156,11 @@ HML_CELLARRAY* EvaluatorInterface::CreateVararginCell(const std::vector<Currency
 bool EvaluatorInterface::RemovePath(std::string &pathname)
 {
     return eval->RemovePath(pathname);
+}
+
+bool EvaluatorInterface::RemoveLibrary(const std::string& lib_name)
+{
+	return eval->RemoveFunctionsInLibrary(lib_name);
 }
 
 void EvaluatorInterface::ClearPath()
@@ -312,7 +317,7 @@ void EvaluatorInterface::AddPath2(const std::string& pathname, const std::vector
 	eval->AddPath2(pathname, funcs);
 }
 
-const std::vector<std::string>& EvaluatorInterface::GetPaths() const
+std::vector<std::string> EvaluatorInterface::GetPaths() const
 {
     return eval->GetPaths();
 }
@@ -692,6 +697,11 @@ void EvaluatorInterface::ImportEnv(int handle1, int handle2)
 {
 	eval->ImportEnv(handle1, handle2);
 }
+
+void EvaluatorInterface::DeleteEnv(int handle1)
+{
+	eval->DeleteEnv(handle1);
+}
 //------------------------------------------------------------------------------
 //! Returns true if evaluator is in experimental mode
 //------------------------------------------------------------------------------
@@ -800,6 +810,10 @@ void EvaluatorInterface::RegisterOMLDecryptor(const std::string& extension, ENCR
 {
     eval->RegisterOMLDecryptor(extension, ptr);
 }
+void EvaluatorInterface::RegisterDLL(void* handle)
+{
+	eval->RegisterDLL(handle);
+}
 //------------------------------------------------------------------------------
 //! Gets the application directory
 //------------------------------------------------------------------------------
@@ -880,4 +894,8 @@ void EvaluatorInterface::RegisterChildEvaluator(ExprTreeEvaluator* child)
 void EvaluatorInterface::RemoveChildEvaluator()
 {
 	eval->RemoveChildEvaluator();
+}
+bool EvaluatorInterface::LockBuiltInFunction(const std::string& fname)
+{
+    return eval->LockBuiltInFunction(fname);
 }

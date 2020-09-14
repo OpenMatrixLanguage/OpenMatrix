@@ -17,92 +17,92 @@
   
   <div class="body refbody"><p class="shortdesc">All inequality operators return logical values (either 0/false or 1/true).</p>
 
-    <section class="section">
+    <section class="section" id="reference_bms_nkv_fv__section_lgk_tnz_qlb">
       <p class="p">The magnitude of complex operands is used by all inequality operators.</p>
 
       
 <div class="tablenoborder"><table cellpadding="4" cellspacing="0" summary="" id="reference_bms_nkv_fv__table_hm1_c4w_xv" class="table" frame="border" border="1" rules="all"><colgroup><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /></colgroup><thead class="thead" style="text-align:left;">
             <tr>
-              <th class="entry cellrowborder" id="d5644e47">&lt;, &lt;=, &gt;, &gt;=, ~=, ==</th>
+              <th class="entry cellrowborder" id="d5692e47">&lt;, &lt;=, &gt;, &gt;=, ~=, ==</th>
 
-              <th class="entry cellrowborder" id="d5644e50">Scalar</th>
+              <th class="entry cellrowborder" id="d5692e50">Scalar</th>
 
-              <th class="entry cellrowborder" id="d5644e53">Row Vector</th>
+              <th class="entry cellrowborder" id="d5692e53">Row Vector</th>
 
-              <th class="entry cellrowborder" id="d5644e56">Column Vector</th>
+              <th class="entry cellrowborder" id="d5692e56">Column Vector</th>
 
-              <th class="entry cellrowborder" id="d5644e59">Matrix</th>
+              <th class="entry cellrowborder" id="d5692e59">Matrix</th>
 
             </tr>
 
           </thead>
 <tbody class="tbody">
             <tr>
-              <td class="entry cellrowborder" headers="d5644e47 ">Real Scalar</td>
+              <td class="entry cellrowborder" headers="d5692e47 ">Real Scalar</td>
 
-              <td class="entry cellrowborder" headers="d5644e50 ">Returns a true or false value (1 or 0) based on whether the inequality is true
+              <td class="entry cellrowborder" headers="d5692e50 ">Returns a true or false value (1 or 0) based on whether the inequality is true
                 or false.</td>
 
-              <td class="entry cellrowborder" headers="d5644e53 ">Returns a vector the same size as the row vector, populated with true or false
+              <td class="entry cellrowborder" headers="d5692e53 ">Returns a vector the same size as the row vector, populated with true or false
                 (1 or 0) values based on whether the inequality is true or false for each entity in
                 the vector.</td>
 
-              <td class="entry cellrowborder" headers="d5644e56 ">Returns a vector the same size as the column vector, populated with true or
+              <td class="entry cellrowborder" headers="d5692e56 ">Returns a vector the same size as the column vector, populated with true or
                 false (1 or 0) values based on whether the inequality is true or false for each
                 entity in the vector.</td>
 
-              <td class="entry cellrowborder" headers="d5644e59 ">Returns a matrix the same size as the matrix, populated with true or false
+              <td class="entry cellrowborder" headers="d5692e59 ">Returns a matrix the same size as the matrix, populated with true or false
                 values (1 or 0) based on whether the inequality is true or false for each entity in
                 the matrix.</td>
 
             </tr>
 
             <tr>
-              <td class="entry cellrowborder" headers="d5644e47 ">Row Vector</td>
+              <td class="entry cellrowborder" headers="d5692e47 ">Row Vector</td>
 
-              <td class="entry cellrowborder" headers="d5644e50 ">Returns a vector the same size as the row vector, populated with true or false
+              <td class="entry cellrowborder" headers="d5692e50 ">Returns a vector the same size as the row vector, populated with true or false
                 values (1 or 0) based on whether the inequality is true or false for each entity in
                 the vector.</td>
 
-              <td class="entry cellrowborder" headers="d5644e53 ">Requires the vectors to be the same size. Returns a vector the same size as the
+              <td class="entry cellrowborder" headers="d5692e53 ">Requires the vectors to be the same size. Returns a vector the same size as the
                 vectors, populated with true or false (1 or 0) values. The values are based on an
                 entity-wise comparison. </td>
 
-              <td class="entry cellrowborder" headers="d5644e56 "> </td>
+              <td class="entry cellrowborder" headers="d5692e56 "> </td>
 
-              <td class="entry cellrowborder" headers="d5644e59 "> </td>
+              <td class="entry cellrowborder" headers="d5692e59 "> </td>
 
             </tr>
 
             <tr>
-              <td class="entry cellrowborder" headers="d5644e47 ">Column Vector</td>
+              <td class="entry cellrowborder" headers="d5692e47 ">Column Vector</td>
 
-              <td class="entry cellrowborder" headers="d5644e50 ">Returns a vector the same size as the column vector, populated with true or
+              <td class="entry cellrowborder" headers="d5692e50 ">Returns a vector the same size as the column vector, populated with true or
                 false (1 or 0) values based on whether the inequality is true or false for each
                 entity in the vector.</td>
 
-              <td class="entry cellrowborder" headers="d5644e53 "> </td>
+              <td class="entry cellrowborder" headers="d5692e53 "> </td>
 
-              <td class="entry cellrowborder" headers="d5644e56 ">Requires the vectors to be the same size. Returns a vector the same size as the
+              <td class="entry cellrowborder" headers="d5692e56 ">Requires the vectors to be the same size. Returns a vector the same size as the
                 vectors, populated with true or false values (1 or 0). The values are based on an
                 entity-wise comparison. </td>
 
-              <td class="entry cellrowborder" headers="d5644e59 "> </td>
+              <td class="entry cellrowborder" headers="d5692e59 "> </td>
 
             </tr>
 
             <tr>
-              <td class="entry cellrowborder" headers="d5644e47 ">Matrix</td>
+              <td class="entry cellrowborder" headers="d5692e47 ">Matrix</td>
 
-              <td class="entry cellrowborder" headers="d5644e50 ">Returns a vector the same size as the matrix, populated with true or false
+              <td class="entry cellrowborder" headers="d5692e50 ">Returns a vector the same size as the matrix, populated with true or false
                 values (1 or 0) based on whether the inequality is true or false for each entity in
                 the matrix.</td>
 
-              <td class="entry cellrowborder" headers="d5644e53 "> </td>
+              <td class="entry cellrowborder" headers="d5692e53 "> </td>
 
-              <td class="entry cellrowborder" headers="d5644e56 "> </td>
+              <td class="entry cellrowborder" headers="d5692e56 "> </td>
 
-              <td class="entry cellrowborder" headers="d5644e59 ">Requires the matrices to be the same size. Returns a matrix the same size as
+              <td class="entry cellrowborder" headers="d5692e59 ">Requires the matrices to be the same size. Returns a matrix the same size as
                 the matrices, populated with true or false values (1 or 0). The values are based on
                 an entity-wise comparison. </td>
 
@@ -112,18 +112,22 @@
 </table>
 </div>
 
-      <p class="p">Examples</p>
+    </section>
 
-      <pre class="pre codeblock"><code>2 &lt; 4
+    <section class="section" id="reference_bms_nkv_fv__section_mgk_tnz_qlb"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">
+        <pre class="pre codeblock"><code>2 &lt; 4
 ans = 1
 [4 5 7]&gt;=[6 4 2]
 ans = [0 1 1]
 [5 7; 3 2] ~= [5 2; 6 3]
 ans = [0 1; 1 1]</code></pre>
-      <p class="p">Invalid Examples</p>
+      </div>
 
-      <pre class="pre codeblock"><code>[3 5 7] &lt;= [4; 7; 2]
-[4 3; 6 4] == [3 4]</code></pre>
+      <div class="p">Invalid examples:<pre class="pre codeblock"><code>[3 5 7] &lt;= [4; 7; 2]
+[4 3; 6 4] == [3 4]</code></pre></div>
+
       
     </section>
 

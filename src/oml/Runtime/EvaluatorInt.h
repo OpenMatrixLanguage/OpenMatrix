@@ -1,7 +1,7 @@
 /**
 * @file EvaluatorInt.h
 * @date June 2014
-* Copyright (C) 2014-2018 Altair Engineering, Inc.  
+* Copyright (C) 2014-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -62,7 +62,7 @@ public:
 
     std::vector<std::string> GetKeywords() const;
     const OutputFormat* GetOutputFormat() const;
-    bool FindFunctionByName(const std::string& func_name, FunctionInfo** fi, FUNCPTR* fptr);
+    bool FindFunctionByName(const std::string& func_name, FunctionInfo** fi, FUNCPTR* fptr, ALT_FUNCPTR* aptr);
     
     const Currency& GetValue(std::string varname) const;
 	const Currency& GetGlobalValue(std::string varname) const;
@@ -81,6 +81,7 @@ public:
     Currency CallFunction(const std::string& func_name, const std::vector<Currency>& params);
     Currency CallInternalFunction(FunctionInfo* fi, const std::vector<Currency>& param_values);
     std::vector<Currency> DoMultiReturnFunctionCall(FUNCPTR fptr, std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars = nullptr);
+	std::vector<Currency> DoMultiReturnFunctionCall(ALT_FUNCPTR aptr, std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars = nullptr);
     std::vector<Currency> DoMultiReturnFunctionCall(FunctionInfo* fi, std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars = nullptr);
     HML_CELLARRAY* CreateVararginCell(const std::vector<Currency>& params, int start_index);
 
@@ -94,7 +95,7 @@ public:
     void AddPath(std::string pathname, bool end);
 	void AddHiddenPath(std::string pathname);
 	void AddPath2(const std::string& pathname, const std::vector<std::string> funcs);
-    const std::vector<std::string>& GetPaths() const;
+    std::vector<std::string> GetPaths() const;
     void ResetFuncSearchCache();
     
     std::FILE* GetFile(int i);
@@ -120,6 +121,8 @@ public:
     void ClearFunctions();
     void ClearGlobals();
     void ClearVariables();
+
+	bool RemoveLibrary(const std::string& lib_name);
 
     int GetContextEndValue() const;
 	int GetNargoutValue() const;
@@ -185,6 +188,7 @@ public:
     void Unlock(const std::string& fname);
     bool IsCurrentLocked() const;
     bool IsLocked(const std::string& fname) const;
+    bool LockBuiltInFunction(const std::string& fname);
 
     std::string GetCurrentFilename() const;
 
@@ -257,6 +261,7 @@ public:
 	void     SetEnvValue(int handle, std::string varname, const Currency& new_val);
 	void     RemoveEnvValue(int handle, std::string varname);	
 	void     ImportEnv(int handle1, int handle2);
+	void     DeleteEnv(int handle1);
 
     //! Updates function list in language
     void OnUpdateFuncList();
@@ -269,6 +274,8 @@ public:
     bool IsInterrupt() const;
 
 	void RegisterOMLDecryptor(const std::string& extension, ENCRPTR ptr);
+
+	void RegisterDLL(void*);
 
     //! Gets the application directory
     std::string GetApplicationDir() const;

@@ -25,6 +25,11 @@
 #include <hwMathException.h>
 #include <hwSliceArg.h>
 #include <tmpl/hwTComplex.h>
+
+// Functions that use the headers below temporarily reside
+// in /oml/BuiltInFuncs.*. The may be relocated to /math/sparse
+// in order to avoid propagating the MKL header dependencies
+// to all clients.
 // #include "mkl_dss.h"
 // #include "mkl_spblas.h"
 
@@ -118,11 +123,25 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const hwTMatrix<T1, T2>& A)
     }
 }
 
-// Comparison function to stable_sort pairs using only first elements
-template<typename T>
-bool compare(const std::pair<long long int, T>& a, const std::pair<long long int, T>& b)
+// Comparison function to stable_sort pairs using first elements
+template<typename T1, typename T2>
+bool compare(const std::pair<T1, T2>& a, const std::pair<T1, T2>& b)
 {
     return a.first < b.first;
+}
+
+// Comparison function to sort pairs using fabs(first elements)
+template<typename T1, typename T2>
+bool compare2(const std::pair<T1, T2>& a, const std::pair<T1, T2>& b)
+{
+	return fabs(a.first) > fabs(b.first);
+}
+
+// Comparison function to sort pairs using second elements
+template<typename T1, typename T2>
+bool compare3(const std::pair<T1, T2>& a, const std::pair<T1, T2>& b)
+{
+	return a.second < b.second;
 }
 
 //! Construct sparse from vector representation
@@ -208,10 +227,10 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
 
     m_pointerB[0] = 0;
     m_pointerE[0] = 0;
-    int col;
     long long int index_prev = -1;
-    int col_prev   = -1;
-    int nDuplicates = 0;
+    int col_prev = -1;
+	int nDistinctIndices = 0;
+	std::vector<int> colNum(nnz);
 
     nz = 0;
 
@@ -238,7 +257,7 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
             }
         }
 
-        stable_sort(pairs.begin(), pairs.end(), compare<T1>);
+        stable_sort(pairs.begin(), pairs.end(), compare<long long int, T1>);
 
         for (int i = 0; i < nnz; ++i)
         {
@@ -246,22 +265,22 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
 
             if (index == index_prev)
             {
-                ++nDuplicates;
                 if (option && !strcmp(option, "unique"))
                 {
-                    m_values(i - nDuplicates) = pairs[i].second;
-                }
+					m_values(nDistinctIndices - 1) = pairs[i].second;
+				}
                 else
                 {
-                    m_values(i - nDuplicates) += pairs[i].second;
-                }
+					m_values(nDistinctIndices - 1) += pairs[i].second;
+				}
             }
             else
             {
-                m_values(i - nDuplicates) = pairs[i].second;
-                m_rows[i - nDuplicates] = static_cast<int> (index % m_nRows);
+				m_values(nDistinctIndices) = pairs[i].second;
+				m_rows[nDistinctIndices] = static_cast<MKL_INT> (index% m_nRows);
                 index_prev = index;
-                col = static_cast<int> (index / m_nRows);
+                int col = static_cast<int> (index / m_nRows);
+				colNum[nDistinctIndices] = col;
 
                 if (col != col_prev)
                 {
@@ -274,8 +293,9 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
                     col_prev = col;
                 }
 
-                ++m_pointerE[col];
-            }
+				++m_pointerE[col];
+				++nDistinctIndices;
+			}
         }
     }
     else   // complex V
@@ -295,7 +315,7 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
             }
         }
 
-        stable_sort(pairs.begin(), pairs.end(), compare<T2>);
+        stable_sort(pairs.begin(), pairs.end(), compare<long long int, T2>);
 
         for (int i = 0; i < nnz; ++i)
         {
@@ -303,22 +323,22 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
 
             if (index == index_prev)
             {
-                ++nDuplicates;
                 if (option && !strcmp(option, "unique"))
                 {
-                    m_values.z(i - nDuplicates) = pairs[i].second;
-                }
-                else
-                {
-                    m_values.z(i - nDuplicates) += pairs[i].second;
-                }
+					m_values.z(nDistinctIndices - 1) = pairs[i].second;
+				}
+				else
+				{
+					m_values.z(nDistinctIndices - 1) += pairs[i].second;
+				}
             }
             else
             {
-                m_values.z(i - nDuplicates) = pairs[i].second;
-                m_rows[i - nDuplicates] = static_cast<int> (index % m_nRows);
+                m_values.z(nDistinctIndices) = pairs[i].second;
+                m_rows[nDistinctIndices] = static_cast<int> (index % m_nRows);
                 index_prev = index;
-                col = static_cast<int> (index / m_nRows);
+                int col = static_cast<int> (index / m_nRows);
+				colNum[nDistinctIndices] = col;
 
                 if (col != col_prev)
                 {
@@ -331,54 +351,397 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
                     col_prev = col;
                 }
 
-                ++m_pointerE[col];
-            }
+				++m_pointerE[col];
+				++nDistinctIndices;
+			}
         }
     }
 
-    if (nDuplicates)
+    if (nDistinctIndices != nnz && (option == nullptr || strcmp(option, "unique")))
     {
-        nnz   -= nDuplicates;
-        status = m_values.Resize(nnz);
-        m_rows.resize(nnz);
+		// rebuild matrix, removing zero values
+		std::vector<MKL_INT> nzCol(m_nCols);
+		hwMatrix copyV(m_values);
+		std::vector<MKL_INT> copyR = m_rows;
+		m_rows.clear();
+		m_rows.resize(nDistinctIndices);
+		MKL_INT* srcR  = copyR.data();
+		MKL_INT* destR = m_rows.data();
+		int prevZero   = -1;
 
-        if (V.IsReal())
-        {
-            for (int ii = 0; ii < nnz; ++ii)
-            {
-                int row;
-                int col;
-                T1 value;
-    
-                NZinfo(ii, row, col, value);
-    
-                if (value == 0.0)
-                {
-                    ZeroElement(row, col);
-                    --nnz;
-                    --ii;
-                }
-            }
-        }
-        else
-        {
-            for (int ii = 0; ii < nnz; ++ii)
-            {
-                int row;
-                int col;
-                T2 value;
+		nz = 0;
 
-                NZinfo(ii, row, col, value);
+		if (m_values.IsReal())
+		{
+			T1* srcV = copyV.GetRealData();
+			hwMathStatus status = m_values.Dimension(nDistinctIndices, 1, hwMatrix::REAL);
+			T1* destV = m_values.GetRealData();
 
-                if (value == 0.0)
-                {
-                    ZeroElement(row, col);
-                    --nnz;
-                    --ii;
-                }
-            }
-        }
+			for (int ii = 0; ii < nDistinctIndices; ++ii)
+			{
+				if (srcV[ii] == 0.0)
+				{
+					// copy data values between stored zeros
+					std::size_t count = ii - prevZero - 1;
+					std::size_t numBytes = count * sizeof(T1);
+
+					if (count)
+					{
+						memcpy_s(destV, numBytes, srcV + prevZero + 1, numBytes);
+						destV += count;
+					}
+
+					// copy row numbers between stored zeros
+					numBytes = count * sizeof(MKL_INT);
+
+					if (count)
+					{
+						memcpy_s(destR, numBytes, srcR + prevZero + 1, numBytes);
+						destR += count;
+					}
+
+					// count stored zeros per column
+					++nzCol[colNum[ii]];
+
+					prevZero = ii;
+					++nz;
+				}
+			}
+
+			// copy remaining data values
+			status = m_values.Resize(nDistinctIndices - nz, 1);
+			std::size_t count = nDistinctIndices - 1 - prevZero;
+			std::size_t numBytes = count * sizeof(T1);
+
+			if (count)
+				memcpy_s(destV, numBytes, srcV + prevZero + 1, numBytes);
+
+			// copy remaining row numbers
+			m_rows.resize(nDistinctIndices - nz);
+			numBytes = count * sizeof(MKL_INT);
+
+			if (count)
+				memcpy_s(destR, numBytes, srcR + prevZero + 1, numBytes);
+		}
+		else
+		{
+			T2* srcV = copyV.GetComplexData();
+			hwMathStatus status = m_values.Dimension(nDistinctIndices, 1, hwMatrix::COMPLEX);
+			T2* destV = m_values.GetComplexData();
+
+			for (int ii = 0; ii < nDistinctIndices; ++ii)
+			{
+				if (srcV[ii] == 0.0)
+				{
+					// copy data values between stored zeros
+					std::size_t count = ii - prevZero - 1;
+					std::size_t numBytes = count * sizeof(T2);
+
+					if (count)
+					{
+						memcpy_s(destV, numBytes, srcV + prevZero + 1, numBytes);
+						destV += count;
+					}
+
+					// copy row numbers between stored zeros
+					numBytes = count * sizeof(MKL_INT);
+
+					if (count)
+					{
+						memcpy_s(destR, numBytes, srcR + prevZero + 1, numBytes);
+						destR += count;
+					}
+
+					// count stored zeros per column
+					++nzCol[colNum[ii]];
+
+					prevZero = ii;
+					++nz;
+				}
+			}
+
+			// copy remaining data values
+			status = m_values.Resize(nDistinctIndices - nz, 1);
+			std::size_t count = nDistinctIndices - 1 - prevZero;
+			std::size_t numBytes = count * sizeof(T2);
+
+			if (count)
+				memcpy_s(destV, numBytes, srcV + prevZero + 1, numBytes);
+
+			// copy remaining row numbers
+			m_rows.resize(nDistinctIndices - nz);
+			numBytes = count * sizeof(MKL_INT);
+
+			if (count)
+				memcpy_s(destR, numBytes, srcR + prevZero + 1, numBytes);
+		}
+
+		// adjust column counts
+		for (int ii = 1; ii < m_nCols; ++ii)	// make zero count cumulative
+			nzCol[ii] += nzCol[ii - 1];
+
+		for (int ii = 1; ii < m_nCols; ++ii)
+			m_pointerB[ii] -= nzCol[ii - 1];
+
+		for (int ii = 0; ii < m_nCols; ++ii)
+			m_pointerE[ii] -= nzCol[ii];
+
+/*		// sort, prune, unsort (alternate method, leave for now)
+		std::vector<std::pair<T1, long long int>> pairs(nDistinctIndices);
+
+		for (int i = 0; i < nDistinctIndices; ++i)
+		{
+			pairs[i].first = m_values(i);
+			pairs[i].second = colNum[i] * static_cast<long long int> (m_nRows) + m_rows[i];
+		}
+
+		sort(pairs.begin(), pairs.end(), compare2<T1, long long int>);
+
+		int firstZero = -1;
+
+		for (int i = nDistinctIndices - 1; i > -1; --i)
+		{
+			if (pairs[i].first != 0.0)
+			{
+				firstZero = i + 1;
+				break;
+			}
+		}
+
+		std::vector<int> nzCol(m_nCols);
+
+		for (int i = firstZero; i < nDistinctIndices; ++i)
+		{
+			long long int index = pairs[i].second;
+			int col = static_cast<int> (index / m_nRows);
+			++nzCol[col];
+		}
+
+		pairs.resize(firstZero);
+		sort(pairs.begin(), pairs.end(), compare3<T1, long long int>);
+
+		hwMathStatus status = m_values.Dimension(firstZero, 1, hwMatrix::REAL);
+		m_rows.clear();
+		m_rows.resize(firstZero);
+
+		for (int i = 0; i < firstZero; ++i)
+		{
+			long long int index = pairs[i].second;
+			m_values(i) = pairs[i].first;
+			m_rows[i] = static_cast<int> (index % m_nRows);
+		}
+
+		for (int ii = 1; ii < m_nCols; ++ii)	// make zero count cumulative
+			nzCol[ii] += nzCol[ii - 1];
+
+		// adjust column counts
+		for (int ii = 1; ii < m_nCols; ++ii)
+			m_pointerB[ii] -= nzCol[ii];
+
+		for (int ii = 0; ii < m_nCols; ++ii)
+			m_pointerE[ii] -= nzCol[ii];
+*/
     }
+}
+
+//! Construct real sparse from MKL representation
+template<typename T1, typename T2>
+hwTMatrixS<T1, T2>::hwTMatrixS(int            nRows,
+                               int            nCols,
+                               const MKL_INT* pBeginCount,
+                               const MKL_INT* pEndCount,
+                               const MKL_INT* pRowNum,
+                               const T1*      pValues)
+{
+    m_nRows = nRows;
+    m_nCols = nCols;
+    m_pointerB.resize(nCols);
+    m_pointerE.resize(nCols);
+    int nnz = *(pEndCount + nCols - 1);		// number of stored values
+
+	// Note: MKL allows computed zero values to remain in the
+	// output, but we exclude them for consistency with Octave.
+
+	// Note: MKL does not guarantee that row numbers are sorted
+	// within each column, but we do. It is possibile that Octave
+	// only sorts row numbers when displayed. This issue needs to
+	// be revisited.
+
+	// count stored zeros
+	std::vector<MKL_INT> nzCol(m_nCols);	// number of stored zeros in each column
+	int nz = 0;								// total number of stored zeros
+	int col = 0;
+
+	for (int i = 0; i < nnz; ++i)
+	{
+		if (pValues[i] == 0.0)
+		{
+			for ( ; col < m_nCols; ++col)
+			{
+				if (i < pEndCount[col])
+				{
+					++nzCol[col];
+					break;
+				}
+			}
+
+			++nz;
+		}
+	}
+
+	nnz -= nz;
+	nz = 0;
+
+	// populate data and sorted row vectors, removing stored zeros
+    m_rows.resize(nnz);
+    hwMathStatus status = m_values.Dimension(nnz, hwTMatrix<T1, T2>::REAL);
+
+    for (int i = 0; i < nCols; ++i)
+    {
+        int start = *(pBeginCount + i);
+        int nnzCol = *(pEndCount + i) - start;	// stored values per column
+		int nz_col = 0;		// counter for stored zeros per column
+
+        std::vector<std::pair<int, T1>> pairs(nnzCol - nzCol[i]);
+
+        for (int j = 0; j < nnzCol; ++j)
+        {
+			if (pValues[start + j] != 0.0)
+			{
+				pairs[j - nz_col].first = pRowNum[start + j];
+				pairs[j - nz_col].second = pValues[start + j];
+			}
+			else
+			{
+				++nz_col;
+			}
+        }
+
+        sort(pairs.begin(), pairs.end(), compare<int, T1>);
+		nnzCol -= nz_col;
+
+        for (int j = 0; j < nnzCol; ++j)
+        {
+            m_rows[start + j - nz] = pairs[j].first;
+            m_values(start + j - nz) = pairs[j].second;
+        }
+
+		nz += nz_col;
+    }
+
+	// populate column counter vectors
+	std::size_t count = m_nCols * sizeof(MKL_INT);
+	memcpy_s(m_pointerB.data(), count, pBeginCount, count);
+	memcpy_s(m_pointerE.data(), count, pEndCount, count);
+
+	for (int ii = 1; ii < m_nCols; ++ii)	// make zero count cumulative
+		nzCol[ii] += nzCol[ii - 1];
+
+	for (int ii = 1; ii < m_nCols; ++ii)
+		m_pointerB[ii] -= nzCol[ii - 1];
+
+	for (int ii = 0; ii < m_nCols; ++ii)
+		m_pointerE[ii] -= nzCol[ii];
+}
+
+//! Construct complex sparse from MKL representation
+template<typename T1, typename T2>
+hwTMatrixS<T1, T2>::hwTMatrixS(int            nRows,
+                               int            nCols,
+                               const MKL_INT* pBeginCount,
+                               const MKL_INT* pEndCount,
+                               const MKL_INT* pRowNum,
+                               const T2*      pValues)
+{
+	m_nRows = nRows;
+	m_nCols = nCols;
+	m_pointerB.resize(nCols);
+	m_pointerE.resize(nCols);
+	int nnz = *(pEndCount + nCols - 1);		// number of stored values
+
+	// Note: MKL allows computed zero values to remain in the output, but
+	// we exclude them for consistency with Octave.
+
+	// Note: MKL does not guarantee that row numbers are sorted
+	// within each column, but we do. It is possibile that Octave
+	// only sorts row numbers when displayed. This issue needs to
+	// be revisited.
+
+	// count stored zeros
+	std::vector<MKL_INT> nzCol(m_nCols);	// number of stored zeros in each column
+	int nz = 0;								// total number of stored zeros
+	int col = 0;
+
+	for (int i = 0; i < nnz; ++i)
+	{
+		if (pValues[i] == 0.0)
+		{
+			for (; col < m_nCols; ++col)
+			{
+				if (i < pEndCount[col])
+				{
+					++nzCol[col];
+					break;
+				}
+			}
+
+			++nz;
+		}
+	}
+
+	nnz -= nz;
+	nz = 0;
+
+	// populate data and sorted row vectors, removing stored zeros
+	m_rows.resize(nnz);
+	hwMathStatus status = m_values.Dimension(nnz, hwTMatrix<T1, T2>::COMPLEX);
+
+	for (int i = 0; i < nCols; ++i)
+	{
+		int start = *(pBeginCount + i);
+		int nnzCol = *(pEndCount + i) - start;	// stored values per column
+		int nz_col = 0;		// counter for stored zeros per column
+
+		std::vector<std::pair<int, T2>> pairs(nnzCol - nzCol[i]);
+
+		for (int j = 0; j < nnzCol; ++j)
+		{
+			if (pValues[start + j] != 0.0)
+			{
+				pairs[j - nz_col].first = pRowNum[start + j];
+				pairs[j - nz_col].second = pValues[start + j];
+			}
+			else
+			{
+				++nz_col;
+			}
+		}
+
+		sort(pairs.begin(), pairs.end(), compare<int, T2>);
+		nnzCol -= nz_col;
+
+		for (int j = 0; j < nnzCol; ++j)
+		{
+			m_rows[start + j - nz] = pairs[j].first;
+			m_values.z(start + j - nz) = pairs[j].second;
+		}
+
+		nz += nz_col;
+	}
+
+	// populate column counter vectors
+	std::size_t count = m_nCols * sizeof(MKL_INT);
+	memcpy_s(m_pointerB.data(), count, pBeginCount, count);
+	memcpy_s(m_pointerE.data(), count, pEndCount, count);
+
+	for (int ii = 1; ii < m_nCols; ++ii)	// make zero count cumulative
+		nzCol[ii] += nzCol[ii - 1];
+
+	for (int ii = 1; ii < m_nCols; ++ii)
+		m_pointerB[ii] -= nzCol[ii - 1];
+
+	for (int ii = 0; ii < m_nCols; ++ii)
+		m_pointerE[ii] -= nzCol[ii];
 }
 
 //! Copy constructor
@@ -1080,7 +1443,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
             }
 
             hwMathStatus status = lhsMatrix.m_values.Dimension(1, m_values.Type());
-            lhsMatrix.m_rows.empty();
+            lhsMatrix.m_rows.clear();
             lhsMatrix.m_pointerB.resize(lhsMatrix.m_nCols);
             lhsMatrix.m_pointerE.resize(lhsMatrix.m_nCols);
             lhsMatrix.m_pointerB[0] = 0;
@@ -1119,7 +1482,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                     }
                 }
 
-                lhsMatrix.m_pointerE[ii] = col_nnz;    // not cummulative
+                lhsMatrix.m_pointerE[ii] = col_nnz;    // not cumulative
             }
 
             for (int ii = 1; ii < lhsMatrix.m_nCols; ++ii)
@@ -1153,7 +1516,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                 lhsMatrix.m_nRows = 1;
                 lhsMatrix.m_nCols = m_nCols;
                 hwMathStatus status = lhsMatrix.m_values.Dimension(1, m_values.Type());
-                lhsMatrix.m_rows.empty();
+                lhsMatrix.m_rows.clear();
                 lhsMatrix.m_pointerB.resize(m_nCols);
                 lhsMatrix.m_pointerE.resize(m_nCols);
                 lhsMatrix.m_pointerB[0] = 0;
@@ -1185,7 +1548,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                             lhsMatrix.m_values.z(nnz - 1) = m_values.z(k);
                         }
 
-                        lhsMatrix.m_pointerE[col] = col_nnz;    // not cummulative
+                        lhsMatrix.m_pointerE[col] = col_nnz;    // not cumulative
                     }
                 }
 
@@ -1199,7 +1562,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                 lhsMatrix.m_nRows = 1;
                 lhsMatrix.m_nCols = static_cast<int> (sliceArg[1].Vector().size());
                 hwMathStatus status = lhsMatrix.m_values.Dimension(1, m_values.Type());
-                lhsMatrix.m_rows.empty();
+                lhsMatrix.m_rows.clear();
                 lhsMatrix.m_pointerB.resize(lhsMatrix.m_nCols);
                 lhsMatrix.m_pointerE.resize(lhsMatrix.m_nCols);
                 lhsMatrix.m_pointerB[0] = 0;
@@ -1236,7 +1599,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                         }
                     }
 
-                    lhsMatrix.m_pointerE[index] = col_nnz;    // not cummulative
+                    lhsMatrix.m_pointerE[index] = col_nnz;    // not cumulative
                 }
 
                 if (!nnz)
@@ -1299,7 +1662,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                 lhsMatrix.m_nRows = m_nRows;
                 lhsMatrix.m_nCols = static_cast<int> (sliceArg[1].Vector().size());
                 hwMathStatus status = lhsMatrix.m_values.Dimension(1, m_values.Type());
-                lhsMatrix.m_rows.empty();
+                lhsMatrix.m_rows.clear();
                 lhsMatrix.m_pointerB.resize(lhsMatrix.m_nCols);
                 lhsMatrix.m_pointerE.resize(lhsMatrix.m_nCols);
                 lhsMatrix.m_pointerB[0] = 0;
@@ -1328,7 +1691,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                         }
                     }
 
-                    lhsMatrix.m_pointerE[index] = m_pointerE[col] - m_pointerB[col];    // not cummulative
+                    lhsMatrix.m_pointerE[index] = m_pointerE[col] - m_pointerB[col];    // not cumulative
                 }
 
                 for (int ii = 1; ii < lhsMatrix.m_nCols; ++ii)
@@ -1351,7 +1714,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                 lhsMatrix.m_nRows = static_cast<int> (sliceArg[0].Vector().size());
                 lhsMatrix.m_nCols = 1;
                 hwMathStatus status = lhsMatrix.m_values.Dimension(1, m_values.Type());
-                lhsMatrix.m_rows.empty();
+                lhsMatrix.m_rows.clear();
                 lhsMatrix.m_pointerB.resize(1);
                 lhsMatrix.m_pointerE.resize(1);
                 lhsMatrix.m_pointerB[0] = 0;
@@ -1402,7 +1765,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                 lhsMatrix.m_nRows = static_cast<int> (sliceArg[0].Vector().size());
                 lhsMatrix.m_nCols = m_nCols;
                 hwMathStatus status = lhsMatrix.m_values.Dimension(1, m_values.Type());
-                lhsMatrix.m_rows.empty();
+                lhsMatrix.m_rows.clear();
                 lhsMatrix.m_pointerB.resize(m_nCols);
                 lhsMatrix.m_pointerE.resize(m_nCols);
                 lhsMatrix.m_pointerB[0] = 0;
@@ -1440,7 +1803,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                         }
                     }
 
-                    lhsMatrix.m_pointerE[col] = col_nnz;    // not cummulative
+                    lhsMatrix.m_pointerE[col] = col_nnz;    // not cumulative
                 }
 
                 for (int ii = 1; ii < m_nCols; ++ii)
@@ -1459,7 +1822,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                 lhsMatrix.m_nRows = static_cast<int> (sliceArg[0].Vector().size());
                 lhsMatrix.m_nCols = static_cast<int> (sliceArg[1].Vector().size());
                 hwMathStatus status = lhsMatrix.m_values.Dimension(1, m_values.Type());
-                lhsMatrix.m_rows.empty();
+                lhsMatrix.m_rows.clear();
                 lhsMatrix.m_pointerB.resize(lhsMatrix.m_nCols);
                 lhsMatrix.m_pointerE.resize(lhsMatrix.m_nCols);
                 lhsMatrix.m_pointerB[0] = 0;
@@ -1504,7 +1867,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                         }
                     }
 
-                    lhsMatrix.m_pointerE[colIndex] = col_nnz;    // not cummulative
+                    lhsMatrix.m_pointerE[colIndex] = col_nnz;    // not cumulative
                 }
 
                 for (int ii = 1; ii < lhsMatrix.m_nCols; ++ii)
@@ -1565,22 +1928,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                             m_pointerB[ii + 1] = m_pointerE[ii];
                     }
 
-                    if (IsReal())
-                    {
-                        for (int ii = 0; ii < size; ++ii)
-                        {
-                            if (m_values(ii) == 0.0)
-                                ZeroElement(ii);
-                        }
-                    }
-                    else
-                    {
-                        for (int ii = 0; ii < size; ++ii)
-                        {
-                            if (m_values.z(ii) == 0.0)
-                                ZeroElement(ii);
-                        }
-                    }
+                    RemoveStoredZeros();
                 }
                 else
                 {
@@ -1592,7 +1940,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                 m_nRows = 0;
                 m_nCols = 0;
                 m_values.Dimension(0, hwTMatrix<T1, T2>::REAL);
-                m_rows.empty();
+                m_rows.clear();
                 m_pointerB.resize(0);
                 m_pointerE.resize(0);
             }
@@ -1608,6 +1956,8 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
             if (rhsMatrix.IsVector() && rhsMatrix.Size() == vecSize)
             {
                 int size = Size();
+                bool removeZeros = false;
+                const hwTMatrixS<T1, T2>* const_this = this;
 
                 for (int ii = 0; ii < vecSize; ++ii)
                 {
@@ -1618,21 +1968,40 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
 
                     if (rhsMatrix.IsReal())
                     {
-                        if (rhsMatrix(ii) == 0.0)
-                            ZeroElement(index);
+                        if (rhsMatrix(ii) != static_cast<T1> (0))
+                        {
+                            if (IsReal())
+                                operator()(index) = rhsMatrix(ii);
+                            else
+                                z(index) = rhsMatrix(ii);
+                        }
                         else if (IsReal())
-                            operator()(index) = rhsMatrix(ii);
-                        else
-                            z(index) = rhsMatrix(ii);
+                        {
+                            if (const_this->operator()(index) != static_cast<T1> (0))
+                            {
+                                operator()(index) = static_cast<T1> (0);
+                                removeZeros = true;
+                            }
+                        }
+                        else if (const_this->z(index) != static_cast<T1> (0))
+                        {
+                            z(index) = static_cast<T1> (0);
+                            removeZeros = true;
+                        }
                     }
-                    else
+                    else if (rhsMatrix.z(ii) != static_cast<T1> (0))
                     {
-                        if (rhsMatrix.z(ii) == 0.0)
-                            ZeroElement(index);
-                        else
-                            z(index) = rhsMatrix.z(ii);
+                        z(index) = rhsMatrix.z(ii);
+                    }
+                    else if (const_this->z(index) != static_cast<T1> (0))
+                    {
+                        z(index) = static_cast<T1> (0);
+                        removeZeros = true;
                     }
                 }
+
+                if (removeZeros)
+                    RemoveStoredZeros();
             }
             else
             {
@@ -1660,25 +2029,47 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                 {
                     if (m_nCols == rhsMatrix.M() || m_nCols == rhsMatrix.N())
                     {
+                        bool removeZeros = false;
+                        const hwTMatrixS<T1, T2>* const_this = this;
+
                         for (int ii = 0; ii < m_nCols; ++ii)
                         {
                             if (rhsMatrix.IsReal())
                             {
-                                if (rhsMatrix(ii) == 0.0)
-                                    ZeroElement(row, ii);
+                                if (rhsMatrix(ii) != static_cast<T1> (0))
+                                {
+                                    if (IsReal())
+                                        operator()(row, ii) = rhsMatrix(ii);
+                                    else
+                                        z(row, ii) = rhsMatrix(ii);
+                                }
                                 else if (IsReal())
-                                    operator()(row, ii) = rhsMatrix(ii);
-                                else
-                                    z(row, ii) = rhsMatrix(ii);
+                                {
+                                    if (const_this->operator()(row, ii) != static_cast<T1> (0))
+                                    {
+                                        operator()(row, ii) = static_cast<T1> (0);
+                                        removeZeros = true;
+                                    }
+                                }
+                                else if (const_this->z(row, ii) != static_cast<T1> (0))
+                                {
+                                    z(row, ii) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
                             }
-                            else
+                            else if (rhsMatrix.z(ii) != static_cast<T1> (0))
                             {
-                                if (rhsMatrix.z(ii) == 0.0)
-                                    ZeroElement(row, ii);
-                                else
-                                    z(row, ii) = rhsMatrix.z(ii);
+                                z(row, ii) = rhsMatrix.z(ii);
+                            }
+                            else if (const_this->z(row, ii) != static_cast<T1> (0))
+                            {
+                                z(row, ii) = static_cast<T1> (0);
+                                removeZeros = true;
                             }
                         }
+
+                        if (removeZeros)
+                            RemoveStoredZeros();
                     }
                     else
                     {
@@ -1726,6 +2117,9 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                 {
                     if (sliceArg[1].Vector().size() == rhsMatrix.Size())
                     {
+                        bool removeZeros = false;
+                        const hwTMatrixS<T1, T2>* const_this = this;
+
                         for (int colIndex = 0; colIndex < rhsMatrix.Size(); ++colIndex)
                         {
                             int col = sliceArg[1].Vector()[colIndex];
@@ -1735,21 +2129,43 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
 
                             if (rhsMatrix.IsReal())
                             {
-                                if (rhsMatrix(colIndex) == 0.0)
-                                    ZeroElement(row, col);
+                                if (rhsMatrix(colIndex) != static_cast<T1> (0))
+                                {
+                                    if (IsReal())
+                                        operator()(row, col) = rhsMatrix(colIndex);
+                                    else
+                                        z(row, col) = rhsMatrix(colIndex);
+                                }
                                 else if (IsReal())
-                                    operator()(row, col) = rhsMatrix(colIndex);
-                                else
-                                    z(row, col) = rhsMatrix(colIndex);
+                                {
+                                    if (const_this->operator()(row, col) != static_cast<T1> (0))
+                                    {
+                                        operator()(row, col) = static_cast<T1> (0);
+                                        removeZeros = true;
+                                    }
+                                }
+                                else if (const_this->z(row, col) != static_cast<T1> (0))
+                                {
+                                    z(row, col) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
                             }
                             else
                             {
-                                if (rhsMatrix.z(colIndex) == 0.0)
-                                    ZeroElement(row, col);
-                                else
+                                if (rhsMatrix.z(colIndex) != static_cast<T1> (0))
+                                {
                                     z(row, col) = rhsMatrix.z(colIndex);
+                                }
+                                else if (const_this->z(row, col) != static_cast<T1> (0))
+                                {
+                                    z(row, col) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
                             }
                         }
+
+                        if (removeZeros)
+                            RemoveStoredZeros();
                     }
                     else
                     {
@@ -1775,24 +2191,49 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                 {
                     if (m_nRows == rhsMatrix.M() || m_nRows == rhsMatrix.N())
                     {
+                        bool removeZeros = false;
+                        const hwTMatrixS<T1, T2>* const_this = this;
+
                         for (int ii = 0; ii < m_nRows; ++ii)
                         {
                             if (rhsMatrix.IsReal())
                             {
-                                if (rhsMatrix(ii) == 0.0)
-                                    ZeroElement(ii, col);
+                                if (rhsMatrix(ii) != static_cast<T1> (0))
+                                {
+                                    if (IsReal())
+                                        operator()(ii, col) = rhsMatrix(ii);
+                                    else
+                                        z(ii, col) = rhsMatrix(ii);
+                                }
                                 else if (IsReal())
-                                    operator()(ii, col) = rhsMatrix(ii);
-                                else
-                                    z(ii, col) = rhsMatrix(ii);
+                                {
+                                    if (const_this->operator()(ii, col) != static_cast<T1> (0))
+                                    {
+                                        operator()(ii, col) = static_cast<T1> (0);
+                                        removeZeros = true;
+                                    }
+                                }
+                                else if (const_this->z(ii, col) != static_cast<T1> (0))
+                                {
+                                    z(ii, col) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
                             }
                             else
                             {
-                                if (rhsMatrix.z(ii) == 0.0)
-                                    ZeroElement(ii, col);
-                                else
-                                    z(ii, col) = rhsMatrix.z(ii);
+                                if (rhsMatrix.z(ii) != static_cast<T1> (0))
+                                {
+                                    z(ii, col) = rhsMatrix(ii);
+                                }
+                                else if (const_this->z(ii, col) != static_cast<T1> (0))
+                                {
+                                    z(ii, col) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
                             }
+
+                            if (removeZeros)
+                                RemoveStoredZeros();
                         }
                     }
                 }
@@ -1827,35 +2268,57 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
             {
                 if (rhsMatrix.M() == m_nRows && rhsMatrix.N() == m_nCols)
                 {
+                    bool removeZeros = false;
+                    const hwTMatrixS<T1, T2>* const_this = this;
+
                     for (int jj = 0; jj < m_nCols; ++jj)
                     {
                         for (int ii = 0; ii < m_nRows; ++ii)
                         {
                             if (rhsMatrix.IsReal())
                             {
-                                if (rhsMatrix(ii, jj) == 0.0)
-                                    ZeroElement(ii, jj);
+                                if (rhsMatrix(ii, jj) != static_cast<T1> (0))
+                                {
+                                    if (IsReal())
+                                        operator()(ii, jj) = rhsMatrix(ii, jj);
+                                    else
+                                        z(ii, jj) = rhsMatrix(ii, jj);
+                                }
                                 else if (IsReal())
-                                    operator()(ii, jj) = rhsMatrix(ii, jj);
-                                else
-                                    z(ii, jj) = rhsMatrix(ii, jj);
+                                {
+                                    if (const_this->operator()(ii, jj) != static_cast<T1> (0))
+                                    {
+                                        operator()(ii, jj) = static_cast<T1> (0);
+                                        removeZeros = true;
+                                    }
+                                }
+                                else if (const_this->z(ii, jj) != static_cast<T1> (0))
+                                {
+                                    z(ii, jj) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
                             }
-                            else
+                            else if (rhsMatrix.z(ii, jj) != static_cast<T1> (0))
                             {
-                                if (rhsMatrix.z(ii, jj) == 0.0)
-                                    ZeroElement(ii, jj);
-                                else
-                                    z(ii, jj) = rhsMatrix.z(ii, jj);
+                                z(ii, jj) = rhsMatrix.z(ii, jj);
+                            }
+                            else if (const_this->z(ii, jj) != static_cast<T1> (0))
+                            {
+                                z(ii, jj) = static_cast<T1> (0);
+                                removeZeros = true;
                             }
                         }
                     }
+
+                    if (removeZeros)
+                        RemoveStoredZeros();
                 }
                 else if (rhsMatrix.Is0x0())
                 {
                     m_nRows = 0;
                     m_nCols = 0;
                     m_values.Dimension(0, hwTMatrix<T1, T2>::REAL);
-                    m_rows.empty();
+                    m_rows.clear();
                     m_pointerB.resize(0);
                     m_pointerE.resize(0);
                 }
@@ -1868,6 +2331,9 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
             {
                 if (rhsMatrix.M() == m_nRows && rhsMatrix.N() == sliceArg[1].Vector().size())
                 {
+                    bool removeZeros = false;
+                    const hwTMatrixS<T1, T2>* const_this = this;
+
                     for (int jj = 0; jj < rhsMatrix.N(); ++jj)
                     {
                         int col = sliceArg[1].Vector()[jj];
@@ -1879,22 +2345,41 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                         {
                             if (rhsMatrix.IsReal())
                             {
-                                if (rhsMatrix(ii, jj) == 0.0)
-                                    ZeroElement(ii, col);
+                                if (rhsMatrix(ii, jj) != static_cast<T1> (0))
+                                {
+                                    if (IsReal())
+                                        operator()(ii, col) = rhsMatrix(ii, jj);
+                                    else
+                                        z(ii, col) = rhsMatrix(ii, jj);
+                                }
                                 else if (IsReal())
-                                    operator()(ii, col) = rhsMatrix(ii, jj);
-                                else
-                                    z(ii, col) = rhsMatrix(ii, jj);
+                                {
+                                    if (const_this->operator()(ii, col) != static_cast<T1> (0))
+                                    {
+                                        operator()(ii, col) = static_cast<T1> (0);
+                                        removeZeros = true;
+                                    }
+                                }
+                                else if (const_this->z(ii, col) != static_cast<T1> (0))
+                                {
+                                    z(ii, col) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
                             }
-                            else
+                            else if (rhsMatrix.z(ii, jj) != static_cast<T1> (0))
                             {
-                                if (rhsMatrix.z(ii, jj) == 0.0)
-                                    ZeroElement(ii, col);
-                                else
-                                    z(ii, col) = rhsMatrix.z(ii, jj);
+                                z(ii, col) = rhsMatrix.z(ii, jj);
+                            }
+                            else if (const_this->z(ii, col) != static_cast<T1> (0))
+                            {
+                                z(ii, col) = static_cast<T1> (0);
+                                removeZeros = true;
                             }
                         }
                     }
+
+                    if (removeZeros)
+                        RemoveStoredZeros();
                 }
                 else if (rhsMatrix.Is0x0())
                 {
@@ -1945,6 +2430,9 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                 {
                     if (sliceArg[0].Vector().size() == rhsMatrix.Size())
                     {
+                        bool removeZeros = false;
+                        const hwTMatrixS<T1, T2>* const_this = this;
+
                         for (int rowIndex = 0; rowIndex < rhsMatrix.Size(); ++rowIndex)
                         {
                             int row = sliceArg[0].Vector()[rowIndex];
@@ -1954,21 +2442,40 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
 
                             if (rhsMatrix.IsReal())
                             {
-                                if (rhsMatrix(rowIndex) == 0.0)
-                                    ZeroElement(row, col);
+                                if (rhsMatrix(rowIndex) != static_cast<T1> (0))
+                                {
+                                    if (IsReal())
+                                        operator()(row, col) = rhsMatrix(rowIndex);
+                                    else
+                                        z(row, col) = rhsMatrix(rowIndex);
+                                }
                                 else if (IsReal())
-                                    operator()(row, col) = rhsMatrix(rowIndex);
-                                else
-                                    z(row, col) = rhsMatrix(rowIndex);
+                                {
+                                    if (const_this->operator()(row, col) != static_cast<T1> (0))
+                                    {
+                                        operator()(row, col) = static_cast<T1> (0);
+                                        removeZeros = true;
+                                    }
+                                }
+                                else if (const_this->z(row, col) != static_cast<T1> (0))
+                                {
+                                    z(row, col) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
                             }
-                            else
+                            else if (rhsMatrix.z(rowIndex) != static_cast<T1> (0))
                             {
-                                if (rhsMatrix.z(rowIndex) == 0.0)
-                                    ZeroElement(row, col);
-                                else
-                                    z(row, col) = rhsMatrix.z(rowIndex);
+                                z(row, col) = rhsMatrix.z(rowIndex);
+                            }
+                            else if (const_this->z(row, col) != static_cast<T1> (0))
+                            {
+                                z(row, col) = static_cast<T1> (0);
+                                removeZeros = true;
                             }
                         }
+
+                        if (removeZeros)
+                            RemoveStoredZeros();
                     }
                     else
                     {
@@ -1984,6 +2491,9 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
             {
                 if (rhsMatrix.M() == sliceArg[0].Vector().size() && rhsMatrix.N() == m_nCols)
                 {
+                    bool removeZeros = false;
+                    const hwTMatrixS<T1, T2>* const_this = this;
+
                     for (int jj = 0; jj < m_nCols; ++jj)
                     {
                         for (int ii = 0; ii < rhsMatrix.M(); ++ii)
@@ -1995,22 +2505,41 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
 
                             if (rhsMatrix.IsReal())
                             {
-                                if (rhsMatrix(ii, jj) == 0.0)
-                                    ZeroElement(row, jj);
+                                if (rhsMatrix(ii, jj) != static_cast<T1> (0))
+                                {
+                                    if (IsReal())
+                                        operator()(row, jj) = rhsMatrix(ii, jj);
+                                    else
+                                        z(row, jj) = rhsMatrix(ii, jj);
+                                }
                                 else if (IsReal())
-                                    operator()(row, jj) = rhsMatrix(ii, jj);
-                                else
-                                    z(row, jj) = rhsMatrix(ii, jj);
+                                {
+                                    if (const_this->operator()(row, jj) != static_cast<T1> (0))
+                                    {
+                                        operator()(row, jj) = static_cast<T1> (0);
+                                        removeZeros = true;
+                                    }
+                                }
+                                else if (const_this->z(row, jj) != static_cast<T1> (0))
+                                {
+                                    z(row, jj) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
                             }
-                            else
+                            else if (rhsMatrix.z(ii, jj) != static_cast<T1> (0))
                             {
-                                if (rhsMatrix.z(ii, jj) == 0.0)
-                                    ZeroElement(row, jj);
-                                else
-                                    z(row, jj) = rhsMatrix.z(ii, jj);
+                                z(row, jj) = rhsMatrix.z(ii, jj);
+                            }
+                            else if (const_this->z(row, jj) != static_cast<T1> (0))
+                            {
+                                z(row, jj) = static_cast<T1> (0);
+                                removeZeros = true;
                             }
                         }
                     }
+
+                    if (removeZeros)
+                        RemoveStoredZeros();
                 }
                 else if (rhsMatrix.Is0x0())
                 {
@@ -2062,6 +2591,9 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
             {
                 if (rhsMatrix.M() == sliceArg[0].Vector().size() && rhsMatrix.N() == sliceArg[1].Vector().size())
                 {
+                    bool removeZeros = false;
+                    const hwTMatrixS<T1, T2>* const_this = this;
+
                     for (int jj = 0; jj < rhsMatrix.N(); ++jj)
                     {
                         int col = sliceArg[1].Vector()[jj];
@@ -2078,22 +2610,835 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
 
                             if (rhsMatrix.IsReal())
                             {
-                                if (rhsMatrix(ii, jj) == 0.0)
-                                    ZeroElement(row, col);
+                                if (rhsMatrix(ii, jj) != static_cast<T1> (0))
+                                {
+                                    if (IsReal())
+                                        operator()(row, col) = rhsMatrix(ii, jj);
+                                    else
+                                        z(row, col) = rhsMatrix(ii, jj);
+                                }
                                 else if (IsReal())
-                                    operator()(row, col) = rhsMatrix(ii, jj);
-                                else
-                                    z(row, col) = rhsMatrix(ii, jj);
+                                {
+                                    if (const_this->operator()(row, col) != static_cast<T1> (0))
+                                    {
+                                        operator()(row, col) = static_cast<T1> (0);
+                                        removeZeros = true;
+                                    }
+                                }
+                                else if (const_this->z(row, col) != static_cast<T1> (0))
+                                {
+                                    z(row, col) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
                             }
-                            else
+                            else if (rhsMatrix.z(ii, jj) != static_cast<T1> (0))
                             {
-                                if (rhsMatrix.z(ii, jj) == 0.0)
-                                    ZeroElement(row, col);
-                                else
-                                    z(row, col) = rhsMatrix.z(ii, jj);
+                                z(row, col) = rhsMatrix.z(ii, jj);
+                            }
+                            else if (const_this->z(row, col) != static_cast<T1> (0))
+                            {
+                                z(row, col) = static_cast<T1> (0);
+                                removeZeros = true;
                             }
                         }
                     }
+
+                    if (removeZeros)
+                        RemoveStoredZeros();
+                }
+                else
+                {
+                    throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
+                }
+            }
+        }
+    }
+    else
+    {
+        throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
+    }
+}
+
+//! Write to a matrix slice of the calling object, as if the calling object is being
+//! sliced on the left hand side of an equals sign
+//! matrix(slice args) = rhs_matrix
+template<typename T1, typename T2>
+void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
+                                  const hwTMatrixS<T1, T2>& rhsMatrix)
+{
+    if (!rhsMatrix.IsReal())
+        MakeComplex();
+
+    if (sliceArg.size() == 1)
+    {
+        if (sliceArg[0].IsScalar())
+        {
+            // int index = sliceArg[0].Scalar();
+            throw hwMathException(HW_MATH_ERR_NOTIMPLEMENT);
+        }
+        else if (sliceArg[0].IsColon())
+        {
+            if (rhsMatrix.IsVector())
+            {
+                int size = Size();
+
+                if (rhsMatrix.Size() == size)
+                {
+                    m_values = rhsMatrix.m_values;
+                    m_rows.resize(NNZ());
+                    m_pointerB.clear();
+                    m_pointerE.clear();
+                    m_pointerB.resize(m_nCols);
+                    m_pointerE.resize(m_nCols);
+
+                    int skip = 0;
+
+                    for (int ii = 0; ii < size; ++ii)
+                    {
+                        if (IsReal())
+                        {
+                            if (rhsMatrix(ii) != static_cast<T1> (0))
+                            {
+                                m_rows[ii - skip] = ii % m_nRows;
+                                ++m_pointerE[ii / m_nRows];
+                            }
+                            else
+                            {
+                                ++skip;
+                            }
+                        }
+                        else if (rhsMatrix.z(ii) != static_cast<T1> (0))
+                        {
+                            m_rows[ii - skip] = ii % m_nRows;
+                            ++m_pointerE[ii / m_nRows];
+                        }
+                        else
+                        {
+                            ++skip;
+                        }
+                    }
+
+                    for (int ii = 1; ii < m_nCols; ++ii)
+                    {
+                        m_pointerB[ii]  = m_pointerE[ii - 1];
+                        m_pointerE[ii] += m_pointerE[ii - 1];
+                    }
+                }
+                else
+                {
+                    throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
+                }
+            }
+            else if (rhsMatrix.Is0x0())
+            {
+                m_nRows = 0;
+                m_nCols = 0;
+                m_values.Dimension(0, hwTMatrix<T1, T2>::REAL);
+                m_rows.clear();
+                m_pointerB.resize(0);
+                m_pointerE.resize(0);
+            }
+            else
+            {
+                throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
+            }
+        }
+        else if (sliceArg[0].IsVector())
+        {
+            int vecSize = static_cast<int> (sliceArg[0].Vector().size());
+
+            if (rhsMatrix.IsVector() && rhsMatrix.Size() == vecSize)
+            {
+                int size = Size();
+                bool removeZeros = false;
+                const hwTMatrixS<T1, T2>* const_this = this;
+
+                for (int ii = 0; ii < vecSize; ++ii)
+                {
+                    int index = sliceArg[0].Vector()[ii];
+
+                    if (index < 0 || index >= size)
+                        throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+                    if (rhsMatrix.IsReal())
+                    {
+                        if (rhsMatrix(ii) != static_cast<T1> (0))
+                        {
+                            if (IsReal())
+                                operator()(index) = rhsMatrix(ii);
+                            else
+                                z(index) = rhsMatrix(ii);
+                        }
+                        else if (IsReal())
+                        {
+                            if (const_this->operator()(index) != static_cast<T1> (0))
+                            {
+                                operator()(index) = static_cast<T1> (0);
+                                removeZeros = true;
+                            }
+                        }
+                        else if (const_this->z(index) != static_cast<T1> (0))
+                        {
+                            z(index) = static_cast<T1> (0);
+                            removeZeros = true;
+                        }
+                    }
+                    else if (rhsMatrix.z(ii) != static_cast<T1> (0))
+                    {
+                        z(index) = rhsMatrix.z(ii);
+                    }
+                    else if (const_this->z(index) != static_cast<T1> (0))
+                    {
+                        z(index) = static_cast<T1> (0);
+                        removeZeros = true;
+                    }
+                }
+
+                if (removeZeros)
+                    RemoveStoredZeros();
+            }
+            else
+            {
+                throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
+            }
+        }
+    }
+    else if (sliceArg.size() == 2)
+    {
+        if (sliceArg[0].IsScalar())
+        {
+            int row = sliceArg[0].Scalar();
+
+            if (row < 0 || row >= m_nRows)
+                throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+            if (sliceArg[1].IsScalar())
+            {
+                // int col = sliceArg[1].Scalar();
+                throw hwMathException(HW_MATH_ERR_NOTIMPLEMENT);
+            }
+            else if (sliceArg[1].IsColon())
+            {
+                if (rhsMatrix.IsVector())
+                {
+                    if (m_nCols == rhsMatrix.M() || m_nCols == rhsMatrix.N())
+                    {
+                        bool removeZeros = false;
+                        const hwTMatrixS<T1, T2>* const_this = this;
+
+                        for (int ii = 0; ii < m_nCols; ++ii)
+                        {
+                            if (rhsMatrix.IsReal())
+                            {
+                                if (rhsMatrix(ii) != static_cast<T1> (0))
+                                {
+                                    if (IsReal())
+                                        operator()(row, ii) = rhsMatrix(ii);
+                                    else
+                                        z(row, ii) = rhsMatrix(ii);
+                                }
+                                else if (IsReal())
+                                {
+                                    if (const_this->operator()(row, ii) != static_cast<T1> (0))
+                                    {
+                                        operator()(row, ii) = static_cast<T1> (0);
+                                        removeZeros = true;
+                                    }
+                                }
+                                else if (const_this->z(row, ii) != static_cast<T1> (0))
+                                {
+                                    z(row, ii) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
+                            }
+                            else if (rhsMatrix.z(ii) != static_cast<T1> (0))
+                            {
+                                z(row, ii) = rhsMatrix.z(ii);
+                            }
+                            else if (const_this->z(row, ii) != static_cast<T1> (0))
+                            {
+                                z(row, ii) = static_cast<T1> (0);
+                                removeZeros = true;
+                            }
+                        }
+
+                        if (removeZeros)
+                            RemoveStoredZeros();
+                    }
+                    else
+                    {
+                        throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
+                    }
+                }
+                else if (rhsMatrix.Is0x0())
+                {
+                    for (int col = 0; col < m_nCols; ++col)
+                    {
+                        for (int k = m_pointerB[col]; k < m_pointerE[col]; ++k)
+                        {
+                            if (m_rows[k] < row)
+                                continue;
+
+                            if (m_rows[k] > row)
+                            {
+                                --m_rows[k];
+                                continue;
+                            }
+
+                            m_values.DeleteElements(k);
+                            m_rows.erase(m_rows.begin() + k);
+
+                            for (int jj = col + 1; jj < m_nCols; ++jj)
+                                --m_pointerB[jj];
+
+                            for (int jj = col; jj < m_nCols; ++jj)
+                                --m_pointerE[jj];
+
+                            --k;
+                        }
+                    }
+
+                    --m_nRows;
+                }
+                else
+                {
+                    throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
+                }
+            }
+            else if (sliceArg[1].IsVector())
+            {
+                if (rhsMatrix.IsVector())
+                {
+                    if (sliceArg[1].Vector().size() == rhsMatrix.Size())
+                    {
+                        bool removeZeros = false;
+                        const hwTMatrixS<T1, T2>* const_this = this;
+
+                        for (int colIndex = 0; colIndex < rhsMatrix.Size(); ++colIndex)
+                        {
+                            int col = sliceArg[1].Vector()[colIndex];
+
+                            if (col < 0 || col >= m_nCols)
+                                throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+                            if (rhsMatrix.IsReal())
+                            {
+                                if (rhsMatrix(colIndex) != static_cast<T1> (0))
+                                {
+                                    if (IsReal())
+                                        operator()(row, col) = rhsMatrix(colIndex);
+                                    else
+                                        z(row, col) = rhsMatrix(colIndex);
+                                }
+                                else if (IsReal())
+                                {
+                                    if (const_this->operator()(row, col) != static_cast<T1> (0))
+                                    {
+                                        operator()(row, col) = static_cast<T1> (0);
+                                        removeZeros = true;
+                                    }
+                                }
+                                else if (const_this->z(row, col) != static_cast<T1> (0))
+                                {
+                                    z(row, col) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
+                            }
+                            else
+                            {
+                                if (rhsMatrix.z(colIndex) != static_cast<T1> (0))
+                                {
+                                    z(row, col) = rhsMatrix.z(colIndex);
+                                }
+                                else if (const_this->z(row, col) != static_cast<T1> (0))
+                                {
+                                    z(row, col) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
+                            }
+                        }
+
+                        if (removeZeros)
+                            RemoveStoredZeros();
+                    }
+                    else
+                    {
+                        throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
+                    }
+                }
+                else
+                {
+                    throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
+                }
+            }
+        }
+        else if (sliceArg[0].IsColon())
+        {
+            if (sliceArg[1].IsScalar())
+            {
+                int col = sliceArg[1].Scalar();
+
+                if (col < 0 || col >= m_nCols)
+                    throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+                if (rhsMatrix.IsVector())
+                {
+                    if (m_nRows == rhsMatrix.M() || m_nRows == rhsMatrix.N())
+                    {
+                        bool removeZeros = false;
+                        const hwTMatrixS<T1, T2>* const_this = this;
+
+                        for (int ii = 0; ii < m_nRows; ++ii)
+                        {
+                            if (rhsMatrix.IsReal())
+                            {
+                                if (rhsMatrix(ii) != static_cast<T1> (0))
+                                {
+                                    if (IsReal())
+                                        operator()(ii, col) = rhsMatrix(ii);
+                                    else
+                                        z(ii, col) = rhsMatrix(ii);
+                                }
+                                else if (IsReal())
+                                {
+                                    if (const_this->operator()(ii, col) != static_cast<T1> (0))
+                                    {
+                                        operator()(ii, col) = static_cast<T1> (0);
+                                        removeZeros = true;
+                                    }
+                                }
+                                else if (const_this->z(ii, col) != static_cast<T1> (0))
+                                {
+                                    z(ii, col) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
+                            }
+                            else
+                            {
+                                if (rhsMatrix.z(ii) != static_cast<T1> (0))
+                                {
+                                    z(ii, col) = rhsMatrix(ii);
+                                }
+                                else if (const_this->z(ii, col) != static_cast<T1> (0))
+                                {
+                                    z(ii, col) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
+                            }
+
+                            if (removeZeros)
+                                RemoveStoredZeros();
+                        }
+                    }
+                }
+                else if (rhsMatrix.Is0x0())
+                {
+                    int nnzCol = m_pointerE[col] - m_pointerB[col];
+
+                    for (int k = m_pointerB[col]; k < m_pointerE[col]; ++k)
+                    {
+                        m_values.DeleteElements(k);
+                        m_rows.erase(m_rows.begin() + k);
+                        --m_pointerE[col];
+                        --k;
+                    }
+
+                    m_pointerB.erase(m_pointerB.begin() + col);
+                    m_pointerE.erase(m_pointerE.begin() + col);
+                    --m_nCols;
+
+                    for (int k = col; k < m_nCols; ++k)
+                    {
+                        m_pointerB[col] -= nnzCol;
+                        m_pointerE[col] -= nnzCol;
+                    }
+                }
+                else
+                {
+                    throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
+                }
+            }
+            else if (sliceArg[1].IsColon())
+            {
+                if (rhsMatrix.M() == m_nRows && rhsMatrix.N() == m_nCols)
+                {
+                    bool removeZeros = false;
+                    const hwTMatrixS<T1, T2>* const_this = this;
+
+                    for (int jj = 0; jj < m_nCols; ++jj)
+                    {
+                        for (int ii = 0; ii < m_nRows; ++ii)
+                        {
+                            if (rhsMatrix.IsReal())
+                            {
+                                if (rhsMatrix(ii, jj) != static_cast<T1> (0))
+                                {
+                                    if (IsReal())
+                                        operator()(ii, jj) = rhsMatrix(ii, jj);
+                                    else
+                                        z(ii, jj) = rhsMatrix(ii, jj);
+                                }
+                                else if (IsReal())
+                                {
+                                    if (const_this->operator()(ii, jj) != static_cast<T1> (0))
+                                    {
+                                        operator()(ii, jj) = static_cast<T1> (0);
+                                        removeZeros = true;
+                                    }
+                                }
+                                else if (const_this->z(ii, jj) != static_cast<T1> (0))
+                                {
+                                    z(ii, jj) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
+                            }
+                            else if (rhsMatrix.z(ii, jj) != static_cast<T1> (0))
+                            {
+                                z(ii, jj) = rhsMatrix.z(ii, jj);
+                            }
+                            else if (const_this->z(ii, jj) != static_cast<T1> (0))
+                            {
+                                z(ii, jj) = static_cast<T1> (0);
+                                removeZeros = true;
+                            }
+                        }
+                    }
+
+                    if (removeZeros)
+                        RemoveStoredZeros();
+                }
+                else if (rhsMatrix.Is0x0())
+                {
+                    m_nRows = 0;
+                    m_nCols = 0;
+                    m_values.Dimension(0, hwTMatrix<T1, T2>::REAL);
+                    m_rows.clear();
+                    m_pointerB.resize(0);
+                    m_pointerE.resize(0);
+                }
+                else
+                {
+                    throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
+                }
+            }
+            else if (sliceArg[1].IsVector())
+            {
+                if (rhsMatrix.M() == m_nRows && rhsMatrix.N() == sliceArg[1].Vector().size())
+                {
+                    bool removeZeros = false;
+                    const hwTMatrixS<T1, T2>* const_this = this;
+
+                    for (int jj = 0; jj < rhsMatrix.N(); ++jj)
+                    {
+                        int col = sliceArg[1].Vector()[jj];
+
+                        if (col < 0 || col >= m_nCols)
+                            throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+                        for (int ii = 0; ii < m_nRows; ++ii)
+                        {
+                            if (rhsMatrix.IsReal())
+                            {
+                                if (rhsMatrix(ii, jj) != static_cast<T1> (0))
+                                {
+                                    if (IsReal())
+                                        operator()(ii, col) = rhsMatrix(ii, jj);
+                                    else
+                                        z(ii, col) = rhsMatrix(ii, jj);
+                                }
+                                else if (IsReal())
+                                {
+                                    if (const_this->operator()(ii, col) != static_cast<T1> (0))
+                                    {
+                                        operator()(ii, col) = static_cast<T1> (0);
+                                        removeZeros = true;
+                                    }
+                                }
+                                else if (const_this->z(ii, col) != static_cast<T1> (0))
+                                {
+                                    z(ii, col) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
+                            }
+                            else if (rhsMatrix.z(ii, jj) != static_cast<T1> (0))
+                            {
+                                z(ii, col) = rhsMatrix.z(ii, jj);
+                            }
+                            else if (const_this->z(ii, col) != static_cast<T1> (0))
+                            {
+                                z(ii, col) = static_cast<T1> (0);
+                                removeZeros = true;
+                            }
+                        }
+                    }
+
+                    if (removeZeros)
+                        RemoveStoredZeros();
+                }
+                else if (rhsMatrix.Is0x0())
+                {
+                    std::vector<int> cols = sliceArg[1].Vector();
+                    std::sort(cols.begin(), cols.end());
+
+                    for (int jj = 0; jj < cols.size(); ++jj)
+                    {
+                        int col = cols[jj] - jj;
+
+                        if (col < 0 || col >= m_nCols)
+                            throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+                        int nnzCol = m_pointerE[col] - m_pointerB[col];
+
+                        for (int k = m_pointerB[col]; k < m_pointerE[col]; ++k)
+                        {
+                            m_values.DeleteElements(k);
+                            m_rows.erase(m_rows.begin() + k);
+                            --m_pointerE[col];
+                            --k;
+                        }
+
+                        m_pointerB.erase(m_pointerB.begin() + col);
+                        m_pointerE.erase(m_pointerE.begin() + col);
+                        --m_nCols;
+
+                        for (int k = col; k < m_nCols; ++k)
+                        {
+                            m_pointerB[k] -= nnzCol;
+                            m_pointerE[k] -= nnzCol;
+                        }
+                    }
+                }
+                else
+                {
+                    throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
+                }
+            }
+        }
+        else if (sliceArg[0].IsVector())
+        {
+            if (sliceArg[1].IsScalar())
+            {
+                int col = sliceArg[1].Scalar();
+
+                if (rhsMatrix.IsVector())
+                {
+                    if (sliceArg[0].Vector().size() == rhsMatrix.Size())
+                    {
+                        bool removeZeros = false;
+                        const hwTMatrixS<T1, T2>* const_this = this;
+
+                        for (int rowIndex = 0; rowIndex < rhsMatrix.Size(); ++rowIndex)
+                        {
+                            int row = sliceArg[0].Vector()[rowIndex];
+
+                            if (row < 0 || row >= m_nRows)
+                                throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+                            if (rhsMatrix.IsReal())
+                            {
+                                if (rhsMatrix(rowIndex) != static_cast<T1> (0))
+                                {
+                                    if (IsReal())
+                                        operator()(row, col) = rhsMatrix(rowIndex);
+                                    else
+                                        z(row, col) = rhsMatrix(rowIndex);
+                                }
+                                else if (IsReal())
+                                {
+                                    if (const_this->operator()(row, col) != static_cast<T1> (0))
+                                    {
+                                        operator()(row, col) = static_cast<T1> (0);
+                                        removeZeros = true;
+                                    }
+                                }
+                                else if (const_this->z(row, col) != static_cast<T1> (0))
+                                {
+                                    z(row, col) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
+                            }
+                            else if (rhsMatrix.z(rowIndex) != static_cast<T1> (0))
+                            {
+                                z(row, col) = rhsMatrix.z(rowIndex);
+                            }
+                            else if (const_this->z(row, col) != static_cast<T1> (0))
+                            {
+                                z(row, col) = static_cast<T1> (0);
+                                removeZeros = true;
+                            }
+                        }
+
+                        if (removeZeros)
+                            RemoveStoredZeros();
+                    }
+                    else
+                    {
+                        throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
+                    }
+                }
+                else
+                {
+                    throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
+                }
+            }
+            else if (sliceArg[1].IsColon())
+            {
+                if (rhsMatrix.M() == sliceArg[0].Vector().size() && rhsMatrix.N() == m_nCols)
+                {
+                    bool removeZeros = false;
+                    const hwTMatrixS<T1, T2>* const_this = this;
+
+                    for (int jj = 0; jj < m_nCols; ++jj)
+                    {
+                        for (int ii = 0; ii < rhsMatrix.M(); ++ii)
+                        {
+                            int row = sliceArg[0].Vector()[ii];
+
+                            if (row < 0 || row >= m_nRows)
+                                throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+                            if (rhsMatrix.IsReal())
+                            {
+                                if (rhsMatrix(ii, jj) != static_cast<T1> (0))
+                                {
+                                    if (IsReal())
+                                        operator()(row, jj) = rhsMatrix(ii, jj);
+                                    else
+                                        z(row, jj) = rhsMatrix(ii, jj);
+                                }
+                                else if (IsReal())
+                                {
+                                    if (const_this->operator()(row, jj) != static_cast<T1> (0))
+                                    {
+                                        operator()(row, jj) = static_cast<T1> (0);
+                                        removeZeros = true;
+                                    }
+                                }
+                                else if (const_this->z(row, jj) != static_cast<T1> (0))
+                                {
+                                    z(row, jj) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
+                            }
+                            else if (rhsMatrix.z(ii, jj) != static_cast<T1> (0))
+                            {
+                                z(row, jj) = rhsMatrix.z(ii, jj);
+                            }
+                            else if (const_this->z(row, jj) != static_cast<T1> (0))
+                            {
+                                z(row, jj) = static_cast<T1> (0);
+                                removeZeros = true;
+                            }
+                        }
+                    }
+
+                    if (removeZeros)
+                        RemoveStoredZeros();
+                }
+                else if (rhsMatrix.Is0x0())
+                {
+                    std::vector<int> rows = sliceArg[0].Vector();
+                    std::sort(rows.begin(), rows.end());
+
+                    for (int ii = 0; ii < rows.size(); ++ii)
+                    {
+                        int row = rows[ii] - ii;
+
+                        if (row < 0 || row >= m_nRows)
+                            throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+                        for (int col = 0; col < m_nCols; ++col)
+                        {
+                            for (int k = m_pointerB[col]; k < m_pointerE[col]; ++k)
+                            {
+                                if (m_rows[k] < row)
+                                    continue;
+
+                                if (m_rows[k] > row)
+                                {
+                                    --m_rows[k];
+                                    continue;
+                                }
+
+                                m_values.DeleteElements(k);
+                                m_rows.erase(m_rows.begin() + k);
+
+                                for (int jj = col + 1; jj < m_nCols; ++jj)
+                                    --m_pointerB[jj];
+
+                                for (int jj = col; jj < m_nCols; ++jj)
+                                    --m_pointerE[jj];
+
+                                --k;
+                            }
+                        }
+
+                        --m_nRows;
+                    }
+                }
+                else
+                {
+                    throw hwMathException(HW_MATH_ERR_ARRAYSIZE);
+                }
+            }
+            else if (sliceArg[1].IsVector())
+            {
+                if (rhsMatrix.M() == sliceArg[0].Vector().size() && rhsMatrix.N() == sliceArg[1].Vector().size())
+                {
+                    bool removeZeros = false;
+                    const hwTMatrixS<T1, T2>* const_this = this;
+
+                    for (int jj = 0; jj < rhsMatrix.N(); ++jj)
+                    {
+                        int col = sliceArg[1].Vector()[jj];
+
+                        if (col < 0 || col >= m_nCols)
+                            throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+                        for (int ii = 0; ii < rhsMatrix.M(); ++ii)
+                        {
+                            int row = sliceArg[0].Vector()[ii];
+
+                            if (row < 0 || row >= m_nRows)
+                                throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+                            if (rhsMatrix.IsReal())
+                            {
+                                if (rhsMatrix(ii, jj) != static_cast<T1> (0))
+                                {
+                                    if (IsReal())
+                                        operator()(row, col) = rhsMatrix(ii, jj);
+                                    else
+                                        z(row, col) = rhsMatrix(ii, jj);
+                                }
+                                else if (IsReal())
+                                {
+                                    if (const_this->operator()(row, col) != static_cast<T1> (0))
+                                    {
+                                        operator()(row, col) = static_cast<T1> (0);
+                                        removeZeros = true;
+                                    }
+                                }
+                                else if (const_this->z(row, col) != static_cast<T1> (0))
+                                {
+                                    z(row, col) = static_cast<T1> (0);
+                                    removeZeros = true;
+                                }
+                            }
+                            else if (rhsMatrix.z(ii, jj) != static_cast<T1> (0))
+                            {
+                                z(row, col) = rhsMatrix.z(ii, jj);
+                            }
+                            else if (const_this->z(row, col) != static_cast<T1> (0))
+                            {
+                                z(row, col) = static_cast<T1> (0);
+                                removeZeros = true;
+                            }
+                        }
+                    }
+
+                    if (removeZeros)
+                        RemoveStoredZeros();
                 }
                 else
                 {
@@ -2168,6 +3513,8 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
         {
             int vecSize = static_cast<int> (sliceArg[0].Vector().size());
             int size = Size();
+            bool removeZeros = false;
+            const hwTMatrixS<T1, T2>* const_this = this;
 
             for (int ii = 0; ii < vecSize; ++ii)
             {
@@ -2177,10 +3524,18 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
                     throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                 if (real != static_cast<T1> (0))
+                {
                     operator()(index) = real;
-                else
-                    ZeroElement(index);
+                }
+                else if (const_this->operator()(index) != static_cast<T1> (0))
+                {
+                    operator()(index) = static_cast<T1> (0);
+                    removeZeros = true;
+                }
             }
+
+            if (removeZeros)
+                RemoveStoredZeros();
         }
     }
     else if (sliceArg.size() == 2)
@@ -2203,16 +3558,34 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
             }
             else if (sliceArg[1].IsColon())
             {
-                for (int ii = 0; ii < m_nCols; ++ii)
+                if (real != static_cast<T1> (0))
                 {
-                    if (real != static_cast<T1> (0))
-                        operator()(row, ii) = real;
-                    else
-                        ZeroElement(row, ii);
+                    for (int jj = 0; jj < m_nCols; ++jj)
+                        operator()(row, jj) = real;
+                }
+                else
+                {
+                    bool removeZeros = false;
+                    const hwTMatrixS<T1, T2>* const_this = this;
+
+                    for (int jj = 0; jj < m_nCols; ++jj)
+                    {
+                        if (const_this->operator()(row, jj) != static_cast<T1> (0))
+                        {
+                            operator()(row, jj) = static_cast<T1> (0);
+                            removeZeros = true;
+                        }
+                    }
+
+                    if (removeZeros)
+                        RemoveStoredZeros();
                 }
             }
             else if (sliceArg[1].IsVector())
             {
+                bool removeZeros = false;
+                const hwTMatrixS<T1, T2>* const_this = this;
+
                 for (int colIndex = 0; colIndex < sliceArg[1].Vector().size(); ++colIndex)
                 {
                     int col = sliceArg[1].Vector()[colIndex];
@@ -2221,10 +3594,18 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
                         throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                     if (real != static_cast<T1> (0))
+                    {
                         operator()(row, col) = real;
-                    else
-                        ZeroElement(row, col);
+                    }
+                    else if (const_this->operator()(row, col) != static_cast<T1> (0))
+                    {
+                        operator()(row, col) = static_cast<T1> (0);
+                        removeZeros = true;
+                    }
                 }
+
+                if (removeZeros)
+                    RemoveStoredZeros();
             }
         }
         else if (sliceArg[0].IsColon())
@@ -2236,12 +3617,27 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
                 if (col < 0 || col >= m_nCols)
                     throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
-                for (int ii = 0; ii < m_nCols; ++ii)
+                if (real != static_cast<T1> (0))
                 {
-                    if (real != static_cast<T1> (0))
+                    for (int ii = 0; ii < m_nRows; ++ii)
                         operator()(ii, col) = real;
-                    else
-                        ZeroElement(ii, col);
+                }
+                else
+                {
+                    bool removeZeros = false;
+                    const hwTMatrixS<T1, T2>* const_this = this;
+
+                    for (int ii = 0; ii < m_nRows; ++ii)
+                    {
+                        if (const_this->operator()(ii, col) != static_cast<T1> (0))
+                        {
+                            operator()(ii, col) = static_cast<T1> (0);
+                            removeZeros = true;
+                        }
+                    }
+
+                    if (removeZeros)
+                        RemoveStoredZeros();
                 }
             }
             else if (sliceArg[1].IsColon())
@@ -2251,9 +3647,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
                     if (real != static_cast<T1> (0))
                     {
                         for (int ii = 0; ii < m_nRows; ++ii)
-                        {
                             operator()(ii, jj) = real;
-                        }
                     }
                     else
                     {
@@ -2272,20 +3666,43 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
             }
             else if (sliceArg[1].IsVector())
             {
-                for (int jj = 0; jj < sliceArg[1].Vector().size(); ++jj)
+                if (real != static_cast<T1> (0))
                 {
-                    int col = sliceArg[1].Vector()[jj];
-
-                    if (col < 0 || col >= m_nCols)
-                        throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
-
-                    for (int ii = 0; ii < m_nRows; ++ii)
+                    for (int jj = 0; jj < sliceArg[1].Vector().size(); ++jj)
                     {
-                        if (real != static_cast<T1> (0))
+                        int col = sliceArg[1].Vector()[jj];
+
+                        if (col < 0 || col >= m_nCols)
+                            throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+                        for (int ii = 0; ii < m_nRows; ++ii)
                             operator()(ii, col) = real;
-                        else
-                            ZeroElement(ii, col);
                     }
+                }
+                else
+                {
+                    bool removeZeros = false;
+                    const hwTMatrixS<T1, T2>* const_this = this;
+
+                    for (int jj = 0; jj < sliceArg[1].Vector().size(); ++jj)
+                    {
+                        int col = sliceArg[1].Vector()[jj];
+
+                        if (col < 0 || col >= m_nCols)
+                            throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+                        for (int ii = 0; ii < m_nRows; ++ii)
+                        {
+                            if (const_this->operator()(ii, col) != static_cast<T1> (0))
+                            {
+                                operator()(ii, col) = static_cast<T1> (0);
+                                removeZeros = true;
+                            }
+                        }
+                    }
+
+                    if (removeZeros)
+                        RemoveStoredZeros();
                 }
             }
         }
@@ -2294,6 +3711,8 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
             if (sliceArg[1].IsScalar())
             {
                 int col = sliceArg[1].Scalar();
+                bool removeZeros = false;
+                const hwTMatrixS<T1, T2>* const_this = this;
 
                 for (int rowIndex = 0; rowIndex < sliceArg[0].Vector().size(); ++rowIndex)
                 {
@@ -2303,31 +3722,67 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
                         throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                     if (real != static_cast<T1> (0))
+                    {
                         operator()(row, col) = real;
-                    else
-                        ZeroElement(row, col);
+                    }
+                    else if (const_this->operator()(row, col) != static_cast<T1> (0))
+                    {
+                        operator()(row, col) = static_cast<T1> (0);
+                        removeZeros = true;
+                    }
                 }
+
+                if (removeZeros)
+                    RemoveStoredZeros();
             }
             else if (sliceArg[1].IsColon())
             {
-                for (int jj = 0; jj < m_nCols; ++jj)
+                if (real != static_cast<T1> (0))
                 {
-                    for (int ii = 0; ii < sliceArg[0].Vector().size(); ++ii)
+                    for (int jj = 0; jj < m_nCols; ++jj)
                     {
-                        int row = sliceArg[0].Vector()[ii];
+                        for (int ii = 0; ii < sliceArg[0].Vector().size(); ++ii)
+                        {
+                            int row = sliceArg[0].Vector()[ii];
 
-                        if (row < 0 || row >= m_nRows)
-                            throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+                            if (row < 0 || row >= m_nRows)
+                                throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
-                        if (real != static_cast<T1> (0))
                             operator()(row, jj) = real;
-                        else
-                            ZeroElement(row, jj);
+                        }
                     }
+                }
+                else
+                {
+                    bool removeZeros = false;
+                    const hwTMatrixS<T1, T2>* const_this = this;
+
+                    for (int jj = 0; jj < m_nCols; ++jj)
+                    {
+                        for (int ii = 0; ii < sliceArg[0].Vector().size(); ++ii)
+                        {
+                            int row = sliceArg[0].Vector()[ii];
+
+                            if (row < 0 || row >= m_nRows)
+                                throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+                            if (const_this->operator()(row, jj) != static_cast<T1> (0))
+                            {
+                                operator()(row, jj) = static_cast<T1> (0);
+                                removeZeros = true;
+                            }
+                        }
+                    }
+
+                    if (removeZeros)
+                        RemoveStoredZeros();
                 }
             }
             else if (sliceArg[1].IsVector())
             {
+                bool removeZeros = false;
+                const hwTMatrixS<T1, T2>* const_this = this;
+
                 for (int jj = 0; jj < sliceArg[1].Vector().size(); ++jj)
                 {
                     int col = sliceArg[1].Vector()[jj];
@@ -2343,10 +3798,17 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
                             throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                         if (real != static_cast<T1> (0))
+                        {
                             operator()(row, col) = real;
-                        else
-                            ZeroElement(row, col);
+                        }
+                        else if (const_this->operator()(row, col) != static_cast<T1> (0))
+                        {
+                            operator()(row, col) = static_cast<T1> (0);
+                            removeZeros = true;
+                        }
                     }
+                    if (removeZeros)
+                        RemoveStoredZeros();
                 }
             }
         }
@@ -2377,32 +3839,53 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
         if (sliceArg[0].IsScalar())
         {
             int index = sliceArg[0].Scalar();
-            z(index) = cmplx;
+
+            if (cmplx != static_cast<T1> (0))
+                z(index) = cmplx;
+            else
+                ZeroElement(index);
         }
         else if (sliceArg[0].IsColon())
         {
-            int size = Size();
-
-            hwMathStatus status = m_values.Dimension(size, 1, hwTMatrix<T1, T2>::COMPLEX);
-            m_rows.resize(size);
-
-            m_values.SetElements(cmplx);
-
-            for (int ii = 0; ii < size; ++ii)
-                m_rows[ii] = ii % m_nRows;
-
-            for (int ii = 0; ii < m_nCols; ++ii)
+            if (cmplx != static_cast<T1> (0))
             {
-                m_pointerE[ii] = m_nRows * (ii + 1);
+                int size = Size();
+                hwMathStatus status = m_values.Dimension(size, 1, hwTMatrix<T1, T2>::COMPLEX);
+                m_rows.resize(size);
 
-                if (ii < m_nCols - 1)
-                    m_pointerB[ii + 1] = m_pointerE[ii];
+                m_values.SetElements(cmplx);
+
+                for (int ii = 0; ii < size; ++ii)
+                    m_rows[ii] = ii % m_nRows;
+
+                for (int ii = 0; ii < m_nCols; ++ii)
+                {
+                    m_pointerE[ii] = m_nRows * (ii + 1);
+
+                    if (ii < m_nCols - 1)
+                        m_pointerB[ii + 1] = m_pointerE[ii];
+                }
+            }
+            else
+            {
+                hwMathStatus status = m_values.Dimension(0, 0, hwTMatrix<T1, T2>::REAL);
+                m_rows.clear();
+
+                for (int ii = 0; ii < m_nCols; ++ii)
+                {
+                    m_pointerE[ii] = 0;
+
+                    if (ii < m_nCols - 1)
+                        m_pointerB[ii + 1] = m_pointerE[ii];
+                }
             }
         }
         else if (sliceArg[0].IsVector())
         {
             int vecSize = static_cast<int> (sliceArg[0].Vector().size());
             int size = Size();
+            bool removeZeros = false;
+            const hwTMatrixS<T1, T2>* const_this = this;
 
             for (int ii = 0; ii < vecSize; ++ii)
             {
@@ -2411,8 +3894,19 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
                 if (index < 0 || index >= size)
                     throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
-                z(index) = cmplx;
+                if (cmplx != static_cast<T1> (0))
+                {
+                    z(index) = cmplx;
+                }
+                else if (const_this->z(index) != static_cast<T1> (0))
+                {
+                    z(index) = static_cast<T1> (0);
+                    removeZeros = true;
+                }
             }
+
+            if (removeZeros)
+                RemoveStoredZeros();
         }
     }
     else if (sliceArg.size() == 2)
@@ -2427,17 +3921,42 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
             if (sliceArg[1].IsScalar())
             {
                 int col = sliceArg[1].Scalar();
-                z(row, col) = cmplx;
+
+                if (cmplx != static_cast<T1> (0))
+                    z(row, col) = cmplx;
+                else
+                    ZeroElement(row, col);
             }
             else if (sliceArg[1].IsColon())
             {
-                for (int ii = 0; ii < m_nCols; ++ii)
+                if (cmplx != static_cast<T1> (0))
                 {
-                    z(row, ii) = cmplx;
+                    for (int jj = 0; jj < m_nCols; ++jj)
+                        z(row, jj) = cmplx;
+                }
+                else
+                {
+                    bool removeZeros = false;
+                    const hwTMatrixS<T1, T2>* const_this = this;
+
+                    for (int jj = 0; jj < m_nCols; ++jj)
+                    {
+                        if (const_this->z(row, jj) != static_cast<T1> (0))
+                        {
+                            z(row, jj) = static_cast<T1> (0);
+                            removeZeros = true;
+                        }
+                    }
+
+                    if (removeZeros)
+                        RemoveStoredZeros();
                 }
             }
             else if (sliceArg[1].IsVector())
             {
+                bool removeZeros = false;
+                const hwTMatrixS<T1, T2>* const_this = this;
+
                 for (int colIndex = 0; colIndex < sliceArg[1].Vector().size(); ++colIndex)
                 {
                     int col = sliceArg[1].Vector()[colIndex];
@@ -2445,8 +3964,19 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
                     if (col < 0 || col >= m_nCols)
                         throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
-                    z(row, col) = cmplx;
+                    if (cmplx != static_cast<T1> (0))
+                    {
+                        z(row, col) = cmplx;
+                    }
+                    else if (const_this->z(row, col) != static_cast<T1> (0))
+                    {
+                        z(row, col) = static_cast<T1> (0);
+                        removeZeros = true;
+                    }
                 }
+
+                if (removeZeros)
+                    RemoveStoredZeros();
             }
         }
         else if (sliceArg[0].IsColon())
@@ -2458,34 +3988,92 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
                 if (col < 0 || col >= m_nCols)
                     throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
-                for (int ii = 0; ii < m_nCols; ++ii)
+                if (cmplx != static_cast<T1> (0))
                 {
-                    z(col, ii) = cmplx;
+                    for (int ii = 0; ii < m_nRows; ++ii)
+                        z(ii, col) = cmplx;
+                }
+                else
+                {
+                    bool removeZeros = false;
+                    const hwTMatrixS<T1, T2>* const_this = this;
+
+                    for (int ii = 0; ii < m_nRows; ++ii)
+                    {
+                        if (const_this->z(ii, col) != static_cast<T1> (0))
+                        {
+                            z(ii, col) = static_cast<T1> (0);
+                            removeZeros = true;
+                        }
+                    }
+
+                    if (removeZeros)
+                        RemoveStoredZeros();
                 }
             }
             else if (sliceArg[1].IsColon())
             {
                 for (int jj = 0; jj < m_nCols; ++jj)
                 {
-                    for (int ii = 0; ii < m_nRows; ++ii)
+                    if (cmplx != static_cast<T1> (0))
                     {
-                        z(ii, jj) = cmplx;
+                        for (int ii = 0; ii < m_nRows; ++ii)
+                            z(ii, jj) = cmplx;
+                    }
+                    else
+                    {
+                        hwMathStatus status = m_values.Dimension(0, 0, hwTMatrix<T1, T2>::REAL);
+                        m_rows.clear();
+
+                        for (int ii = 0; ii < m_nCols; ++ii)
+                        {
+                            m_pointerE[ii] = 0;
+
+                            if (ii < m_nCols - 1)
+                                m_pointerB[ii + 1] = m_pointerE[ii];
+                        }
                     }
                 }
             }
             else if (sliceArg[1].IsVector())
             {
-                for (int jj = 0; jj < sliceArg[1].Vector().size(); ++jj)
+                if (cmplx != static_cast<T1> (0))
                 {
-                    int col = sliceArg[1].Vector()[jj];
-
-                    if (col < 0 || col >= m_nCols)
-                        throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
-
-                    for (int ii = 0; ii < m_nRows; ++ii)
+                    for (int jj = 0; jj < sliceArg[1].Vector().size(); ++jj)
                     {
-                        z(ii, col) = cmplx;
+                        int col = sliceArg[1].Vector()[jj];
+
+                        if (col < 0 || col >= m_nCols)
+                            throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+                        for (int ii = 0; ii < m_nRows; ++ii)
+                            z(ii, col) = cmplx;
                     }
+                }
+                else
+                {
+                    bool removeZeros = false;
+                    const hwTMatrixS<T1, T2>* const_this = this;
+
+                    for (int jj = 0; jj < sliceArg[1].Vector().size(); ++jj)
+                    {
+                        int col = sliceArg[1].Vector()[jj];
+
+                        if (col < 0 || col >= m_nCols)
+                            throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+                        for (int ii = 0; ii < m_nRows; ++ii)
+                        {
+                            if (const_this->z(ii, col) != static_cast<T1> (0))
+                            {
+                                z(ii, col) = static_cast<T1> (0);
+                                removeZeros = true;
+                            }
+                        }
+                    }
+
+                    if (removeZeros)
+                        RemoveStoredZeros();
                 }
             }
         }
@@ -2494,6 +4082,8 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
             if (sliceArg[1].IsScalar())
             {
                 int col = sliceArg[1].Scalar();
+                bool removeZeros = false;
+                const hwTMatrixS<T1, T2>* const_this = this;
 
                 for (int rowIndex = 0; rowIndex < sliceArg[0].Vector().size(); ++rowIndex)
                 {
@@ -2502,26 +4092,68 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
                     if (row < 0 || row >= m_nRows)
                         throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
-                    z(row, col) = cmplx;
+                    if (cmplx != static_cast<T1> (0))
+                    {
+                        z(row, col) = cmplx;
+                    }
+                    else if (const_this->z(row, col) != static_cast<T1> (0))
+                    {
+                        z(row, col) = static_cast<T1> (0);
+                        removeZeros = true;
+                    }
                 }
+
+                if (removeZeros)
+                    RemoveStoredZeros();
             }
             else if (sliceArg[1].IsColon())
             {
-                for (int jj = 0; jj < m_nCols; ++jj)
+                if (cmplx != static_cast<T1> (0))
                 {
-                    for (int ii = 0; ii < sliceArg[0].Vector().size(); ++ii)
+                    for (int jj = 0; jj < m_nCols; ++jj)
                     {
-                        int row = sliceArg[0].Vector()[ii];
+                        for (int ii = 0; ii < sliceArg[0].Vector().size(); ++ii)
+                        {
+                            int row = sliceArg[0].Vector()[ii];
 
-                        if (row < 0 || row >= m_nRows)
-                            throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+                            if (row < 0 || row >= m_nRows)
+                                throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
-                        z(row, jj) = cmplx;
+                            z(row, jj) = cmplx;
+                        }
                     }
+                }
+                else
+                {
+                    bool removeZeros = false;
+                    const hwTMatrixS<T1, T2>* const_this = this;
+
+                    for (int jj = 0; jj < m_nCols; ++jj)
+                    {
+                        for (int ii = 0; ii < sliceArg[0].Vector().size(); ++ii)
+                        {
+                            int row = sliceArg[0].Vector()[ii];
+
+                            if (row < 0 || row >= m_nRows)
+                                throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+                            if (const_this->z(row, jj) != static_cast<T1> (0))
+                            {
+                                z(row, jj) = static_cast<T1> (0);
+                                removeZeros = true;
+                            }
+                        }
+                    }
+
+                    if (removeZeros)
+                        RemoveStoredZeros();
                 }
             }
             else if (sliceArg[1].IsVector())
             {
+                bool removeZeros = false;
+                const hwTMatrixS<T1, T2>* const_this = this;
+
                 for (int jj = 0; jj < sliceArg[1].Vector().size(); ++jj)
                 {
                     int col = sliceArg[1].Vector()[jj];
@@ -2536,8 +4168,19 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
                         if (row < 0 || row >= m_nRows)
                             throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
-                        z(row, col) = cmplx;
+                        if (cmplx != static_cast<T1> (0))
+                        {
+                            z(row, col) = cmplx;
+                        }
+                        else if (const_this->z(row, col) != static_cast<T1> (0))
+                        {
+                            z(row, col) = static_cast<T1> (0);
+                            removeZeros = true;
+                        }
                     }
+
+                    if (removeZeros)
+                        RemoveStoredZeros();
                 }
             }
         }
@@ -3552,113 +5195,6 @@ void hwTMatrixS<T1, T2>::Subtr(const hwTMatrixS<T1, T2>& A, const hwTMatrixS<T1,
     return Add(A, C);
 }
 
-/*
-// This function temporarily resides in /oml/BuiltInFuncs.* to avoid propogating
-// the MKL header #includes into all client projects.
-// Multiply a sparse matrix by a full matrix, prod = A * B
-template<>
-inline void hwTMatrixS<double>::Mult(const hwTMatrix<double>& B, hwTMatrix<double>& prod) const
-{
-    hwTMatrixS<double>& A = const_cast<hwTMatrixS<double>&> (*this);
-
-    // get dimensions info
-    int m = A.m_nRows;
-    int n = B.N();
-    int k = A.m_nCols;
-    hwMathStatus status;
-
-    if (B.M() != k)
-        throw hwMathException(HW_MATH_ERR_ARRAYSIZE, 0, 1);
-
-    int* pr = const_cast<int*> (A.rows());
-    int* pb = const_cast<int*> (A.pointerB());
-    int* pe = const_cast<int*> (A.pointerE());
-
-    // MKL matrix and description
-    sparse_matrix_t A_MKL;
-    struct matrix_descr DSC;
-    DSC.type = SPARSE_MATRIX_TYPE_GENERAL;
-    sparse_status_t mkl_status;
-
-    if (A.IsReal() && B.IsReal())
-    {
-        status = prod.Dimension(A.m_nRows, B.N(), hwTMatrix<double>::REAL);
-
-        double* pV = const_cast<double*> (A.GetRealData());
-
-        // populate MKL matrix
-        mkl_status = mkl_sparse_d_create_csc(&A_MKL, SPARSE_INDEX_BASE_ZERO,
-            m_nRows, m_nCols, pb, pe, pr, pV);
-
-        if (mkl_status != SPARSE_STATUS_SUCCESS)
-            throw hwMathException(HW_MATH_ERR_UNKNOWN);
-
-        // perform MKL operation
-        if (n == 1)
-        {
-            mkl_status = mkl_sparse_d_mv(SPARSE_OPERATION_NON_TRANSPOSE,
-                1.0, A_MKL, DSC, B.GetRealData(), 0.0, prod.GetRealData());
-        }
-        else
-        {
-            mkl_status = mkl_sparse_d_mm(SPARSE_OPERATION_NON_TRANSPOSE,
-                1.0, A_MKL, DSC, SPARSE_LAYOUT_COLUMN_MAJOR,
-                B.GetRealData(), n, m, 0.0, prod.GetRealData(), m);
-        }
-    }
-    else if (!A.IsReal() && !B.IsReal())
-    {
-        status = prod.Dimension(A.m_nRows, B.N(), hwTMatrix<double>::COMPLEX);
-
-        hwTComplex<double>* pV = const_cast<hwTComplex<double>*> (A.GetComplexData());
-
-        // populate MKL matrix
-        mkl_status = mkl_sparse_z_create_csc(&A_MKL, SPARSE_INDEX_BASE_ZERO,
-            m_nRows, m_nCols, pb, pe, pr, reinterpret_cast<MKL_Complex16*> (pV));
-
-        if (mkl_status != SPARSE_STATUS_SUCCESS)
-            throw hwMathException(HW_MATH_ERR_UNKNOWN);
-
-        // perform MKL operation
-        hwTComplex<double>* pB = const_cast<hwTComplex<double>*> (B.GetComplexData());
-        MKL_Complex16*      pP = reinterpret_cast<MKL_Complex16*> (prod.GetComplexData());
-        struct _MKL_Complex16 one;
-        struct _MKL_Complex16 zero;
-
-        one.real = 1.0;
-        one.imag = 0.0;
-        zero.real = 0.0;
-        zero.imag = 0.0;
-
-        if (n == 1)
-        {
-            mkl_status = mkl_sparse_z_mv(SPARSE_OPERATION_NON_TRANSPOSE,
-                one, A_MKL, DSC, reinterpret_cast<MKL_Complex16*> (pB), zero, pP);
-        }
-        else
-        {
-            mkl_status = mkl_sparse_z_mm(SPARSE_OPERATION_NON_TRANSPOSE,
-                one, A_MKL, DSC, SPARSE_LAYOUT_COLUMN_MAJOR,
-                reinterpret_cast<MKL_Complex16*> (pB), n, m, zero, pP, m);
-        }
-    }
-    else if (!A.IsReal())
-    {
-        hwTMatrix<double> C;
-        C.PackComplex(B);
-        return Mult(C, prod);
-    }
-    else    // !B.IsReal()
-    {
-        hwTMatrixS<double> C;
-        C.PackComplex(A);
-        return C.Mult(B, prod);
-    }
-
-    if (mkl_status != SPARSE_STATUS_SUCCESS)
-        throw hwMathException(HW_MATH_ERR_UNKNOWN);
-}
-*/
 //! Multiply a matrix and a real number
 template<typename T1, typename T2>
 void hwTMatrixS<T1, T2>::Mult(const hwTMatrixS<T1, T2>& A, T1 real)
@@ -3716,128 +5252,7 @@ void hwTMatrixS<T1, T2>::Mult(const hwTMatrixS<T1, T2>& A, const T2& cmplx)
     if (!status.IsOk())
         throw hwMathException(status.GetMsgCode());
 }
-/*
-// This function temporarily resides in /oml/BuiltInFuncs.* to avoid propogating
-// the MKL header #includes into all client projects.
-// Divide a full matrix by a sparse matrix on the left side, Q = (*this) \ B
-template<>
-inline void hwTMatrixS<double>::DivideLeft(const hwTMatrix<double>& B, hwTMatrix<double>& Q) const
-{
-    const hwTMatrixS<double>& A = (*this);
-    hwMathStatus status;
 
-    if (A.m_nRows != A.m_nCols)
-        throw hwMathException(HW_MATH_ERR_MTXNOTSQUARE, 0);
-
-    if (A.m_nRows != B.M())
-        throw hwMathException(HW_MATH_ERR_ARRAYSIZE, 0, 1);
-
-    // get dimensions info
-    // MKL matrix and description
-    _MKL_DSS_HANDLE_t handle;
-    _INTEGER_t error;
-    MKL_INT opt = MKL_DSS_DEFAULTS;
-//    MKL_INT opt = MKL_DSS_ZERO_BASED_INDEXING;
-    MKL_INT sym = MKL_DSS_NON_SYMMETRIC;
-    MKL_INT type = MKL_DSS_INDEFINITE;
-
-    // initialize the solver
-    error = dss_create(handle, opt);
-
-    if (error != MKL_DSS_SUCCESS)
-        throw hwMathException(HW_MATH_ERR_UNKNOWN);
-
-    // define the non-zero structure of the matrix
-    hwTMatrixS<double> AT;
-    AT.Transpose(A);
-
-    int* pr = const_cast<int*> (AT.rows());
-    int* pb = const_cast<int*> (AT.pointerB());
-    int* pe = const_cast<int*> (AT.pointerE());
-    int nnz = NNZ();
-
-    std::vector<int> colcount;
-    std::vector<int> newrows;
-    int base = 1;
-    colcount.push_back(base);
-
-    for (int ii = 0; ii < m_nCols; ++ii)
-        colcount.push_back(pe[ii] + base);
-
-    for (int ii = 0; ii < nnz; ++ii)
-        newrows.push_back(pr[ii] + base);
-
-    int* pcc = colcount.data();
-    int* prr = newrows.data();
-
-    error = dss_define_structure(handle, sym, pcc, m_nRows, m_nCols, prr, nnz);
-
-    if (error != MKL_DSS_SUCCESS)
-        throw hwMathException(HW_MATH_ERR_UNKNOWN);
-
-    // reorder the matrix
-    error = dss_reorder(handle, opt, 0);
-
-    if (error != MKL_DSS_SUCCESS)
-        throw hwMathException(HW_MATH_ERR_UNKNOWN);
-
-    if (A.IsReal() && B.IsReal())
-    {
-        status = Q.Dimension(A.m_nCols, B.N(), hwTMatrix<double>::REAL);
-
-        // factor the matrix
-        error = dss_factor_real(handle, type, AT.GetRealData());
-
-        if (error != MKL_DSS_SUCCESS)
-            throw hwMathException(HW_MATH_ERR_UNKNOWN);
-
-        // solve system
-        int n = B.N();
-
-        error = dss_solve_real(handle, opt, B.GetRealData(), n, Q.GetRealData());
-
-        if (error != MKL_DSS_SUCCESS)
-            throw hwMathException(HW_MATH_ERR_UNKNOWN);
-    }
-    else if (!A.IsReal() && !B.IsReal())
-    {
-        status = Q.Dimension(A.m_nCols, B.N(), hwTMatrix<double>::COMPLEX);
-
-        // factor the matrix
-        error = dss_factor_complex(handle, type, AT.GetComplexData());
-
-        if (error != MKL_DSS_SUCCESS)
-            throw hwMathException(HW_MATH_ERR_UNKNOWN);
-
-        // solve system
-        int n = B.N();
-
-        error = dss_solve_complex(handle, opt, B.GetComplexData(), n,
-            Q.GetComplexData());
-
-        if (error != MKL_DSS_SUCCESS)
-            throw hwMathException(HW_MATH_ERR_UNKNOWN);
-    }
-    else if (!A.IsReal())
-    {
-        hwTMatrix<double> C;
-        C.PackComplex(B);
-        return DivideLeft(C, Q);
-    }
-    else    // !B.IsReal()
-    {
-        hwTMatrixS<double> C;
-        C.PackComplex(A);
-        return C.DivideLeft(B, Q);
-    }
-
-    // deallocate solver storage
-    error = dss_delete(handle, opt);
-
-    if (error != MKL_DSS_SUCCESS)
-        throw hwMathException(HW_MATH_ERR_UNKNOWN);
-}
-*/
 //! Divide a matrix by a real number
 template<typename T1, typename T2>
 void hwTMatrixS<T1, T2>::Divide(const hwTMatrixS<T1, T2>& A, T1 real)
@@ -3885,21 +5300,7 @@ void hwTMatrixS<T1, T2>::Negate(const hwTMatrixS<T1, T2>& A)
     if (!status.IsOk())
         throw hwMathException(status.GetMsgCode());
 }
-/*
-//! Add a sparse matrix and a full matrix, A.Add(B,sum)
-template<typename T1, typename T2>
-void hwTMatrixS<T1, T2>::Add(const hwTMatrix<T1, T2>& B, hwTMatrix<T1, T2>& sum) const
-{
-    return hwMathStatus();
-}
 
-//! Subtract two sparse matrices, sum.Subtr(A,B)
-template<typename T1, typename T2>
-void hwTMatrixS<T1, T2>::Subtr(const hwTMatrixS<T1, T2>& A, const hwTMatrixS<T1, T2>& B)
-{
-    return hwMathStatus();
-}
-*/
 // ****************************************************
 //               Arithmetic Operators
 // ****************************************************
@@ -3934,4 +5335,24 @@ void hwTMatrixS<T1, T2>::MakeEmpty()
     m_pointerE.resize(1);
     m_pointerB[0] = 0;
     m_pointerE[0] = 0;
+}
+
+//! Remove stored zeros
+template<typename T1, typename T2>
+void hwTMatrixS<T1, T2>::RemoveStoredZeros()
+{
+    if (IsReal())
+    {
+        hwTMatrixS<T1, T2> copy(m_nRows, m_nCols, pointerB(), pointerE(), rows(),
+                                GetRealData());
+        MakeEmpty();
+        *this = copy;
+    }
+    else
+    {
+        hwTMatrixS<T1, T2> copy(m_nRows, m_nCols, pointerB(), pointerE(), rows(),
+                                GetComplexData());
+        MakeEmpty();
+        *this = copy;
+    }
 }

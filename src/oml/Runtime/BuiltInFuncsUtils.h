@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsUtils.h
 * @date November 2015
-* Copyright (C) 2015-2019 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -269,7 +269,12 @@ public:
     static int GetFileId( EvaluatorInterface eval,
                           const Currency&    cur,
                           int                idx = 1);
-
+    //!
+    //! Returns true if std::cout buffer needs to be flushed
+    //! \param Evaluator interface
+    //! \param File descriptor
+    static bool IsFlushCout(EvaluatorInterface,
+                            int);
     //!
     //! Returns true after parsing input and gets formats
     //! \param in        Input string
@@ -295,11 +300,6 @@ public:
                     std::vector<std::string>& rawfmts,
                     std::vector<bool>&        usefmts,
                     std::string&              err);
-    //!
-    //! True if pagination environment is enabled
-    //!
-    static bool IsPaginationEnvEnabled();
-
     //!
     //! Returns string trimmed from leading white space(s)
     //! \param in Input string
@@ -361,6 +361,12 @@ public:
     void AddTrailingSlashW(std::wstring& path);
 #endif
     //!
+    //! Returns extension for a given file name
+    //! \param Given file name
+    //!
+    std::wstring GetFileExtensionW(const std::wstring&);
+
+    //!
     //! Converts std::string to std::wstring
     //! \param in Input string
     //!
@@ -413,6 +419,21 @@ public:
     //! \param str Input string
     //!
     size_t GetWidestCharSize(const std::string& str);
+    //!
+    //! Sets pagination mode with boolean for compatibility with previous versions
+    //! \param Boolean value
+    //!
+    void SetPaginate(bool);
+    //!
+    //! Gets pagination mode as a string value
+    //!
+    std::string GetPaginate() const;
+    //!
+    //! Sets pagination mode with string value
+    //! \param String value
+    //!
+    void SetPaginate(const std::string&);
+
 private: 
     //!
     //! Reads formatted input and returns true if successful

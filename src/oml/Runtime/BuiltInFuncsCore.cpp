@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsCore.cpp
 * @date February 2016
-* Copyright (C) 2016-2019 Altair Engineering, Inc.  
+* Copyright (C) 2016-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -25,6 +25,7 @@
 
 #ifdef OS_WIN
 #   include <Windows.h>
+#   include <psapi.h>    // MS SDK header, PPROCESS_MEMORY_COUNTERS
 #else
 #   include <unistd.h>
 #   include <glob.h>
@@ -50,6 +51,7 @@
 #include "OMLInterface.h"
 
 typedef int (*initModuleFP)(EvaluatorInterface);
+typedef void (*exitModuleFP)();
 typedef int (*initAltFP)(OMLInterface*);
 
 //#define BUILTINFUNCSCORE_DBG 1  // Uncomment to print debug info
@@ -61,6 +63,8 @@ typedef int (*initAltFP)(OMLInterface*);
 #    define BUILTINFUNCSCORE_DBG_ERR(s) 0
 #endif   
 // End defines/includes
+
+std::map<std::string, void*> BuiltInFuncsCore::libs;
 
 //------------------------------------------------------------------------------
 // Returns true after getting user input. [input command]
@@ -122,9 +126,11 @@ bool BuiltInFuncsCore::Pause(EvaluatorInterface           eval,
 
         waittime = in.Scalar();
 
-        std::ostringstream os;
-        os << "Execution is paused for " << waittime << " second(s)...";
-        msg += os.str();
+        if (eval.GetVerbose() >= 1)
+        {
+            msg += "Execution is paused for " + std::to_string(
+                static_cast<long long>(waittime)) + " second(s)...";
+        }
         wait = false;
     }
 
@@ -220,7 +226,7 @@ bool BuiltInFuncsCore::Format(EvaluatorInterface           eval,
 //------------------------------------------------------------------------------
 // Gets number of bytes used by Currency
 //------------------------------------------------------------------------------
-int BuiltInFuncsCore::GetsBytesUsed(const Currency& cur) const
+unsigned long long BuiltInFuncsCore::GetsBytesUsed(const Currency& cur) const
 {
     BuiltInFuncsCore funcs;
     if (cur.IsScalar())
@@ -248,7 +254,7 @@ int BuiltInFuncsCore::GetsBytesUsed(const Currency& cur) const
         if (!cell) return 0;
 
         int sz    = cell->Size();
-        int bytes = 0;
+        unsigned long long bytes = 0;
         for (int i = 0; i < sz; ++i)
             bytes += funcs.GetsBytesUsed((*cell)(i));
         
@@ -256,7 +262,7 @@ int BuiltInFuncsCore::GetsBytesUsed(const Currency& cur) const
     }
     else if (cur.IsStruct())
     {
-        int         bytes = 0;
+        unsigned long long  bytes = 0;
         StructData* sd    = cur.Struct();
         if (!sd) return 0;
 
@@ -339,7 +345,7 @@ bool BuiltInFuncsCore::Whos(EvaluatorInterface           eval,
         std::string name (*itr);
         Currency    var      = eval.GetValue(name);
         bool        isreal   = true;
-        int         numbytes = funcs.GetsBytesUsed(var);
+        size_t      numbytes = funcs.GetsBytesUsed(var);
         std::string sz ("1x1");
         std::string cl (funcs.GetCurrencyClass(var));
 
@@ -715,6 +721,19 @@ void BuiltInFuncsCore::DyFreeLibrary(void* handle)
 #endif  // OS_UNIX
 }
 
+void BuiltInFuncsCore::Finalize(void* handle)
+{
+	if (!handle)
+		return;
+
+	void* symbol = DyGetFunction(handle, "Finalize");
+
+	if (symbol)
+	{
+		exitModuleFP fp = (exitModuleFP)symbol;
+		fp();
+	}
+}
 
 //------------------------------------------------------------------------------
 // Returns true after adding a toolbox [addtoolbox command]
@@ -727,7 +746,7 @@ bool BuiltInFuncsCore::AddToolbox(EvaluatorInterface           eval,
 
 	const Currency& in = inputs[0];
 	if (!in.IsString())
-		OML_Error(OML_ERR_STRING, 1);
+		throw OML_Error(OML_ERR_STRING, 1);
 
 	std::string importDll(in.StringVal());
 
@@ -752,6 +771,8 @@ bool BuiltInFuncsCore::AddToolbox(EvaluatorInterface           eval,
         BUILTINFUNCSCORE_DBG_ERR(importDll);
 	    throw OML_Error(OML_ERR_INVALID_DLL);
     }
+
+	libs[importDll] = vResult;
 
     void* symbol = BuiltInFuncsCore::DyGetFunction(vResult, "InitDll");
     if (!symbol)  // Check if this is being loaded using oml wrappers
@@ -779,7 +800,8 @@ bool BuiltInFuncsCore::AddToolbox(EvaluatorInterface           eval,
 			initAltFP fp = (initAltFP)symbol;
 			OMLInterfaceImpl impl(&eval);
 
-			eval.SuspendFuncListUpdate();   
+			eval.SuspendFuncListUpdate();
+			eval.RegisterDLL(vResult);
 #ifdef OS_WIN
 			eval.SetDLLContext(DyGetLibraryPath(vResult));
 #else
@@ -801,7 +823,8 @@ bool BuiltInFuncsCore::AddToolbox(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_INVALID_INITDLL);
     }
     // Suspend updating funcs till all functions in the toolbox are registered
-    eval.SuspendFuncListUpdate();   
+    eval.SuspendFuncListUpdate();  
+	eval.RegisterDLL(vResult);
 
     fp(eval);
 
@@ -809,6 +832,36 @@ bool BuiltInFuncsCore::AddToolbox(EvaluatorInterface           eval,
     eval.UnsuspendFuncListUpdate();
     eval.OnUpdateFuncList();
     return true;
+}
+
+bool BuiltInFuncsCore::RemoveToolbox(EvaluatorInterface eval,
+	const std::vector<Currency>& inputs,
+	std::vector<Currency>& outputs)
+{
+	if (inputs.empty()) throw OML_Error(OML_ERR_NUMARGIN);
+
+	const Currency& in = inputs[0];
+	if (!in.IsString())
+		throw OML_Error(OML_ERR_STRING, 1);
+
+	std::string removeDll = in.StringVal();
+
+	bool success = eval.RemoveLibrary(removeDll);
+
+	if (success)
+	{
+		void* handle = libs[removeDll];
+
+		if (handle)
+			DyFreeLibrary(handle);
+		libs.erase(removeDll);
+	}
+	else
+	{
+		// do we want a warning here?  I'm pretty sure we don't want an error -- JDS
+	}
+
+	return true;
 }
 //------------------------------------------------------------------------------
 // Returns true after displaying a count of functions [funccount command]
@@ -1091,7 +1144,7 @@ bool BuiltInFuncsCore::Exist(EvaluatorInterface           eval,
     if (notype || type == "builtin")
     {
         FUNCPTR fptr = nullptr;
-        eval.FindFunctionByName(name, &fi, &fptr);
+        eval.FindFunctionByName(name, &fi, &fptr, NULL);
         returncode = fptr ? 5 : 0;    // Built-in function
         if (returncode != 0 || !notype)
         {
@@ -1273,6 +1326,7 @@ bool BuiltInFuncsCore::Type(EvaluatorInterface           eval,
                         std::to_string(static_cast<long long>(i + 1)) +
                         "; '" + str + "' is not defined");
                 }
+
 #ifdef OS_WIN
                 BuiltInFuncsUtils utils;
                 std::wstring wtype;
@@ -1315,6 +1369,7 @@ bool BuiltInFuncsCore::Type(EvaluatorInterface           eval,
                     type += thisline;
                 }
                 ifs.close();
+
 #endif
             }
         }
@@ -1339,34 +1394,44 @@ bool BuiltInFuncsCore::Type(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Enables/disables pagination (omlpaginate)
+// Sets pagination mode (omlpaginate)
 //------------------------------------------------------------------------------
-bool BuiltInFuncsCore::OmlPaginate(EvaluatorInterface           eval, 
-                                   const std::vector<Currency>& inputs, 
-                                   std::vector<Currency>&       outputs)
+bool BuiltInFuncsCore::OmlPaginate(EvaluatorInterface           eval,
+    const std::vector<Currency>& inputs,
+    std::vector<Currency>& outputs)
 {
     size_t numargin = inputs.empty() ? 0 : inputs.size();
-	if (numargin != 1)
+    if (numargin != 1)
     {
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
-    Currency cur = inputs[0];    
-    if (!cur.IsLogical() && !cur.IsInteger())  
+    Currency cur = inputs[0];
+    if (cur.IsLogical() || cur.IsInteger())
     {
-        throw OML_Error(OML_ERR_LOGICAL, 1, OML_VAR_TYPE);
+        int tmp = static_cast<int>(cur.Scalar());
+        if (tmp >= CurrencyDisplay::PAGINATE_OFF ||
+            tmp <= CurrencyDisplay::PAGINATE_INTERACTIVE)
+        {
+            CurrencyDisplay::SetPaginate((CurrencyDisplay::PAGINATE)tmp);
+            return true;
+        }
+        throw OML_Error(OML_ERR_BAD_STRING, 1);
     }
-    int tmp = static_cast<int>(cur.Scalar());
-    if (tmp != 0 && tmp != 1)
+    else if (cur.IsString())
     {
-        throw OML_Error(OML_ERR_FLAG_01, 1, OML_VAR_VALUE);
+        std::string tmp(cur.StringVal());
+        if (!tmp.empty())
+        {
+            BuiltInFuncsUtils utils;
+            utils.SetPaginate(tmp);
+            return true;
+        }
+        throw OML_Error(OML_ERR_BAD_STRING, 1);
     }
-
-    bool val = (tmp == 0) ? false : true;
-    CurrencyDisplay::SetPaginate(val);
+    throw OML_Error(OML_ERR_STRING_NATURALNUM, 1);
     return true;
-}
-//------------------------------------------------------------------------------
+}//------------------------------------------------------------------------------
 // Sleeps for the given time period (sleep)
 //------------------------------------------------------------------------------
 bool BuiltInFuncsCore::OmlSleep(EvaluatorInterface           eval, 
@@ -1386,5 +1451,59 @@ bool BuiltInFuncsCore::OmlSleep(EvaluatorInterface           eval,
 
     BuiltInFuncsCore funcs;
     funcs.SleepFunc(cur.Scalar());
+    return true;
+}
+//------------------------------------------------------------------------------
+// Returns true and prints memory usage (memoryuse)
+//------------------------------------------------------------------------------
+bool BuiltInFuncsCore::MemoryUse(EvaluatorInterface           eval,
+                                 const std::vector<Currency>& inputs,
+                                 std::vector<Currency>&       outputs)
+{
+    std::string out;
+
+#ifdef OS_WIN
+    PROCESS_MEMORY_COUNTERS pmc;
+    if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
+    {
+        out += "\tProcessPageFaultCount: " +
+            std::to_string(static_cast<long long>(pmc.PageFaultCount));
+        out += "\n\tProcessPeakWorkingSetSize: " +
+            std::to_string(static_cast<long long>(pmc.PeakWorkingSetSize));
+        out += "\n\tProcessWorkingSetSize: " +
+            std::to_string(static_cast<long long>(pmc.WorkingSetSize));
+        out += "\n\tProcessQuotaPeakPagedPoolUsage: " +
+            std::to_string(static_cast<long long>(pmc.QuotaPeakPagedPoolUsage));
+        out += "\n\tProcessQuotaPagedPoolUsage: " +
+            std::to_string(static_cast<long long>(pmc.QuotaPagedPoolUsage));
+        out += "\n\tProcessQuotaPeakNonPagedPoolUsage: " +
+            std::to_string(static_cast<long long>(pmc.QuotaPeakNonPagedPoolUsage));
+        out += "\n\tProcessQuotaNonPagedPoolUsage: " +
+            std::to_string(static_cast<long long>(pmc.QuotaNonPagedPoolUsage));
+        out += "\n\tProcessPagefileUsage: " +
+            std::to_string(static_cast<long long>(pmc.PagefileUsage));
+        out += "\n\tProcessPeakPagefileUsage: " +
+            std::to_string(static_cast<long long>(pmc.PeakPagefileUsage));
+    }
+#endif
+
+    outputs.push_back(out);
+    return true;
+}
+//------------------------------------------------------------------------------
+// Clears screen (clc command)
+//------------------------------------------------------------------------------
+bool BuiltInFuncsCore::Clc(EvaluatorInterface           eval,
+                           const std::vector<Currency>& inputs,
+                           std::vector<Currency>&       outputs)
+{
+    CurrencyDisplay::ClearLineCount();
+
+#if OS_WIN
+    system("CLS");
+#else
+    system("clear");
+#endif
+
     return true;
 }

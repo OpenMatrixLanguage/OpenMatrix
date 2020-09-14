@@ -1,0 +1,5 @@
+﻿function z=foo(a,b,c,varargin)
+   z=a+b;
+end
+
+foo(1,2)

@@ -1,0 +1,3 @@
+strip('This is a string', 'left', 'This is a')
+
+strip('  This is a string','left',{' ','This'})

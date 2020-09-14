@@ -1,0 +1,6 @@
+﻿a = [];
+temp1.b = 1;
+a(end+1) = temp1;
+a.b
+a.c = 2; % this line causes havoc
+a.b

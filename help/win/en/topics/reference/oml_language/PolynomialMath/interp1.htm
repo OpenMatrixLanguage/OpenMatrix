@@ -58,19 +58,19 @@
 
           <dd class="dd pd">The available options are:<dl class="dl table">
               
-                <dt class="dt dlterm">'linear'</dt>
+                <dt class="dt dlterm">'<span class="keyword option">linear</span>'</dt>
 
                 <dd class="dd">Returns the linear interpolation from the nearest neighbors.</dd>
 
               
               
-                <dt class="dt dlterm">'pchip'</dt>
+                <dt class="dt dlterm">'<span class="keyword option">pchip</span>'</dt>
 
                 <dd class="dd">Returns shape preserving piece-wise cubic Hermite interpolation.</dd>
 
               
               
-                <dt class="dt dlterm">'spline'</dt>
+                <dt class="dt dlterm">'<span class="keyword option">spline</span>'</dt>
 
                 <dd class="dd">Returns the cubic spline interpolation.</dd>
 
@@ -86,13 +86,13 @@
 
           <dd class="dd pd">The available options are:<dl class="dl table">
               
-                <dt class="dt dlterm">'extrap'</dt>
+                <dt class="dt dlterm">'<span class="keyword option">extrap</span>'</dt>
 
                 <dd class="dd">Allows extrapolation beyond the interval.</dd>
 
               
               
-                <dt class="dt dlterm">'noextrap'</dt>
+                <dt class="dt dlterm">'<span class="keyword option">noextrap</span>'</dt>
 
                 <dd class="dd">Does not allow extrapolation (default).</dd>
 
@@ -150,13 +150,21 @@ yi = interp1(x,y,xi,'spline')</code></pre>
 2.25000  6.25000  12.25000  20.25000</code></code></pre>
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+    <section class="section" id="reference_wpv_kyv_pr__section_jqv_sc3_plb"><h2 class="title sectiontitle">Comments</h2>
       
-      <p class="p">The 'spline' method uses the not-a-knot cubic spline.</p>
-
       <p class="p">When <var class="keyword varname">y</var> is a matrix, the function operates along the first dimension,
-        which is the column dimension in the 2D case. This is the opposite convention from
+        which is the column dimension in the 2D case. This convention is the opposite of
           <span class="keyword cmdname">spline</span>.</p>
+
+      <p class="p">For the '<span class="keyword option">linear</span>' method, duplicate <var class="keyword varname">x</var> values are allowed
+        if the vector is sorted, indicating a discontinuous function. The function is treated as
+        right-continuous if <var class="keyword varname">x</var> is in ascending order, and left-continuous if
+        descending. More than two identical <var class="keyword varname">x</var> values are not allowed.</p>
+
+      <p class="p">For methods other than '<span class="keyword option">linear</span>', <var class="keyword varname">x</var> values must be
+        unique.</p>
+
+      <p class="p">The '<span class="keyword option">spline</span>' method uses the not-a-knot cubic spline.</p>
 
     </section>
 

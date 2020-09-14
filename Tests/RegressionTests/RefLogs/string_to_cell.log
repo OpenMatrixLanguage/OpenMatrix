@@ -1,1 +1,4 @@
-Invalid cell assignment at line number 3 in file string_to_cell.oml
+a = 
+{
+  [1,1] goo
+}

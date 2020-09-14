@@ -1,0 +1,5 @@
+str = 'This is a string';
+
+strip(str,'left','This is a')
+strip(str,'left',{'ss','This'})
+

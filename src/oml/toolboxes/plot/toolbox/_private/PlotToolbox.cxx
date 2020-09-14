@@ -1,7 +1,7 @@
 /**
 * @file PlotToolbox.cxx
 * @date March 2017
-* Copyright (C) 2017-2018 Altair Engineering, Inc.  
+* Copyright (C) 2017-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -22,6 +22,7 @@
 #include "core/CoreMain.h"
 #include "core/DataType.h"
 #include "core/Object.h"
+#include <BuiltInFuncsUtils.h>
 #include <memory>
 
 using namespace std;
@@ -199,13 +200,21 @@ namespace omlplot{
             }
             if (props.size() == 1){
                 Property p = cm->getObjectProperty(h, props[0]);
-                outputs.push_back(castValue(p.getValue()));
+				if (p.getType() == UNSUPPORTED)
+				{
+					BuiltInFuncsUtils::SetWarning(eval, "Property ["+props[0]+"] is not supported in OpenMatrix");
+					return false;
+				}
+				outputs.push_back(castValue(p.getValue()));
             } else {
                 StructData *sd = new StructData();
                 vector<string>::iterator it = props.begin();
                 for (; it != props.end(); ++it){
                     string pname = *it;
                     Property p = cm->getObjectProperty(h, pname);
+					if (p.getType() == UNSUPPORTED)
+						continue;
+
                     sd->SetValue(0, 0, pname,
                                  castValue(p.getValue()) );
                 }
@@ -220,7 +229,16 @@ namespace omlplot{
 
     bool set(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs){
         unique_ptr<SetData> data = dsm.getSetData(inputs);
-        cm->set(data);
+		
+		// temp solution for setting a warning for not supported properties
+		vector<string> notSupportedProperties;
+        cm->set(data, notSupportedProperties);
+		if (!notSupportedProperties.empty())
+		{
+			for (vector<string>::const_iterator it = notSupportedProperties.cbegin(); it != notSupportedProperties.cend();++it)
+				BuiltInFuncsUtils::SetWarning(eval, "Property [" + (*it) + "] is not supported in OpenMatrix");
+
+		}
         return true;
     }
 
@@ -734,6 +752,51 @@ namespace omlplot{
         return true;
     }
 
+	bool box(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+		BuiltInFuncsUtils::SetWarning(eval, "Command [box] is not supported in OpenMatrix");
+		return false;
+	}
+
+	bool colorbar(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+		BuiltInFuncsUtils::SetWarning(eval, "Command [colorbar] is not supported in OpenMatrix");
+		return false;
+	}
+
+	bool drawnow(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+		BuiltInFuncsUtils::SetWarning(eval, "Command [drawnow] is not supported in OpenMatrix");
+		return false;
+	}
+
+	bool fanplot(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+		BuiltInFuncsUtils::SetWarning(eval, "Command [fanplot] is not supported in OpenMatrix");
+		return false;
+	}
+
+	bool getmousepos(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+		BuiltInFuncsUtils::SetWarning(eval, "Command [getmousepos] is not supported in OpenMatrix");
+		return false;
+	}
+
+	bool imagesc(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+		BuiltInFuncsUtils::SetWarning(eval, "Command [imagesc] is not supported in OpenMatrix");
+		return false;
+	}
+
+	bool plotyy(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+		BuiltInFuncsUtils::SetWarning(eval, "Command [plotyy] is not supported in OpenMatrix");
+		return false;
+	}
+
+	bool uiresume(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+		BuiltInFuncsUtils::SetWarning(eval, "Command [uiresume] is not supported in OpenMatrix");
+		return false;
+	}
+
+	bool uiwait(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+		BuiltInFuncsUtils::SetWarning(eval, "Command [uiwait] is not supported in OpenMatrix");
+		return false;
+	}
+
 #define TBOXVERSION 2019.0
     extern "C" OMLPLOT_EXPORT
     double GetToolboxVersion(EvaluatorInterface eval){
@@ -791,6 +854,17 @@ namespace omlplot{
             evl.RegisterBuiltInFunction("text", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
             evl.RegisterBuiltInFunction("saveas", oml_doNothing, FunctionMetaData(-1, 0, "Plotting"));
             evl.RegisterBuiltInFunction("view", oml_doNothing, FunctionMetaData(-1, 0, "Plotting"));
+			// Not yet supported commands
+			evl.RegisterBuiltInFunction("box", box, FunctionMetaData(-1, 0, "Plotting"));
+			evl.RegisterBuiltInFunction("colorbar", colorbar, FunctionMetaData(-1, -1, "Plotting"));
+			evl.RegisterBuiltInFunction("drawnow", drawnow, FunctionMetaData(0, 0, "Plotting"));
+			evl.RegisterBuiltInFunction("fanplot", fanplot, FunctionMetaData(3, -1, "Plotting"));
+			evl.RegisterBuiltInFunction("getmousepos", getmousepos, FunctionMetaData(0, 2, "Plotting"));
+			evl.RegisterBuiltInFunction("imagesc", imagesc, FunctionMetaData(-1, 1, "Plotting"));
+			evl.RegisterBuiltInFunction("plotyy", plotyy, FunctionMetaData(-1, 1, "Plotting"));
+			evl.RegisterBuiltInFunction("uiresume", uiresume, FunctionMetaData(-1, 1, "Plotting"));
+			evl.RegisterBuiltInFunction("uiwait", uiwait, FunctionMetaData(-1, 1, "Plotting"));
+
             return 0;
         }
 
@@ -845,6 +919,16 @@ namespace omlplot{
         evl.RegisterBuiltInFunction("dump", dump, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("out", out, FunctionMetaData(-1, 1, "Plotting"));
 #endif
+		// Not yet supported commands
+		evl.RegisterBuiltInFunction("box", box, FunctionMetaData(-1, 0, "Plotting"));
+		evl.RegisterBuiltInFunction("colorbar", colorbar, FunctionMetaData(-1, -1, "Plotting"));
+		evl.RegisterBuiltInFunction("drawnow", drawnow, FunctionMetaData(0, 0, "Plotting"));
+		evl.RegisterBuiltInFunction("fanplot", fanplot, FunctionMetaData(3, -1, "Plotting"));
+		evl.RegisterBuiltInFunction("getmousepos", getmousepos, FunctionMetaData(0, 2, "Plotting"));
+		evl.RegisterBuiltInFunction("imagesc", imagesc, FunctionMetaData(-1, 1, "Plotting"));
+		evl.RegisterBuiltInFunction("plotyy", plotyy, FunctionMetaData(-1, 1, "Plotting"));
+		evl.RegisterBuiltInFunction("uiresume", uiresume, FunctionMetaData(-1, 1, "Plotting"));
+		evl.RegisterBuiltInFunction("uiwait", uiwait, FunctionMetaData(-1, 1, "Plotting"));
         return 0;
     }
 

@@ -9,5 +9,5 @@ ans = [Matrix] 2 x 2
 ans = [Matrix] 2 x 1
   256
 10752
-ans = [Matrix] 2 x 0
+ans = [Matrix] 0 x 0
 ans = 0

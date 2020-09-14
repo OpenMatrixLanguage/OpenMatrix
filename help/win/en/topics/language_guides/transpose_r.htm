@@ -18,34 +18,34 @@
   <div class="body refbody"><p class="shortdesc">The transpose of a matrix is also a matrix. The rows of the transpose are the columns
     of the original matrix and vice-versa.</p>
 
-    <section class="section">
+    <section class="section" id="reference_bms_nkv_fv__section_vtj_2nz_qlb">
       
 <div class="tablenoborder"><table cellpadding="4" cellspacing="0" summary="" id="reference_bms_nkv_fv__table_xxt_wj5_xv" class="table" frame="border" border="1" rules="all"><colgroup><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /></colgroup><thead class="thead" style="text-align:left;">
             <tr>
-              <th class="entry cellrowborder" id="d15731e44">.’</th>
+              <th class="entry cellrowborder" id="d16015e44">.’</th>
 
-              <th class="entry cellrowborder" id="d15731e47">Scalar</th>
+              <th class="entry cellrowborder" id="d16015e47">Scalar</th>
 
-              <th class="entry cellrowborder" id="d15731e50">Row Vector</th>
+              <th class="entry cellrowborder" id="d16015e50">Row Vector</th>
 
-              <th class="entry cellrowborder" id="d15731e53">Column Vector</th>
+              <th class="entry cellrowborder" id="d16015e53">Column Vector</th>
 
-              <th class="entry cellrowborder" id="d15731e56">Matrix</th>
+              <th class="entry cellrowborder" id="d16015e56">Matrix</th>
 
             </tr>
 
           </thead>
 <tbody class="tbody">
             <tr>
-              <td class="entry cellrowborder" headers="d15731e44 "> </td>
+              <td class="entry cellrowborder" headers="d16015e44 "> </td>
 
-              <td class="entry cellrowborder" headers="d15731e47 ">The same scalar entered is returned. </td>
+              <td class="entry cellrowborder" headers="d16015e47 ">The same scalar entered is returned. </td>
 
-              <td class="entry cellrowborder" headers="d15731e50 ">Transposes to a column vector.</td>
+              <td class="entry cellrowborder" headers="d16015e50 ">Transposes to a column vector.</td>
 
-              <td class="entry cellrowborder" headers="d15731e53 ">Transposes to a row vector.</td>
+              <td class="entry cellrowborder" headers="d16015e53 ">Transposes to a row vector.</td>
 
-              <td class="entry cellrowborder" headers="d15731e56 ">Transposes the matrix.</td>
+              <td class="entry cellrowborder" headers="d16015e56 ">Transposes the matrix.</td>
 
             </tr>
 
@@ -53,9 +53,12 @@
 </table>
 </div>
 
-      <p class="p">Examples</p>
+    </section>
 
-      <pre class="pre codeblock"><code>[4 2 1].’
+    <section class="section" id="reference_bms_nkv_fv__section_wtj_2nz_qlb"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">
+        <pre class="pre codeblock"><code>[4 2 1].’
 ans = [4; 2; 1]
  
 3.’
@@ -63,6 +66,14 @@ ans = 3
  
 [6 2; 9 5].’
 ans = [6 9; 2 5]</code></pre>
+      </div>
+
+    </section>
+
+    <section class="section" id="reference_bms_nkv_fv__section_gtg_fnz_qlb"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p">Sparse matrices are supported for this operation.</p>
+
     </section>
 
     <section class="section">
@@ -75,7 +86,7 @@ ans = [6 9; 2 5]</code></pre>
 <div class="linklist linklist"><strong>See Also</strong><br />
 
 <div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/arithmetic_operators_r.htm" title="Arithmetic operators include addition, subtraction, and multiplication, for example.">Arithmetic Operators</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/complex_transpose.htm" title="Complex Transpose is different from transpose in that it takes the conjugate transpose of complex numbers.">Complex Transpose</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/complex_transpose.htm" title="Complex Transpose is different from transpose in that any complex numbers are also conjugated.">Complex Transpose</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/operators_header_r.htm" title="Operators are used to combine operands.">Operators</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator.">Operator Descriptions (tables)</a></div></div>
 </nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->

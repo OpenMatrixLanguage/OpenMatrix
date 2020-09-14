@@ -200,7 +200,7 @@ bool OmlFsolve(EvaluatorInterface           eval,
     {
         FSOLVE_oml_bool_stack.push_back(false);
 
-        if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr))
+        if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr, nullptr))
         {
             throw OML_Error(OML_ERR_FUNCNAME, 1);
         }
@@ -330,7 +330,7 @@ bool OmlFsolve(EvaluatorInterface           eval,
             FunctionInfo* script_func_fi;
             FUNCPTR       dummy;
 
-            if (!eval.FindFunctionByName(script_func, &script_func_fi, &dummy))
+            if (!eval.FindFunctionByName(script_func, &script_func_fi, &dummy, nullptr))
                 throw OML_Error(OML_ERR_FUNCNAME, 1);
 
             FSOLVE_oml_bool_stack.push_back(false); // handle to an inner function

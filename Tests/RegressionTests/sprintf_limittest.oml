@@ -2,4 +2,4 @@ number1 = 2147483647
 sprintf('sprintf works for number 1:  %d', number1)
 disp('number 2 equals number1 plus 1');
 number2 = number1 + 1
-sprintf('sprintf does not work for number 2:  %d', number2)
+sprintf('sprintf works for number 2:  %d', number2)

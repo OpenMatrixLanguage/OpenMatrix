@@ -197,7 +197,7 @@ bool OmlOde15s(EvaluatorInterface           eval,
     {
         funcInfo1 = cur1.FunctionHandle();
     }
-    else if (!eval.FindFunctionByName(funcName, &funcInfo1, &funcPntr1))
+    else if (!eval.FindFunctionByName(funcName, &funcInfo1, &funcPntr1, nullptr))
     {
         throw OML_Error(HW_ERROR_INVFUNCNAME);
     }
@@ -292,7 +292,7 @@ bool OmlOde15s(EvaluatorInterface           eval,
                     }
                     else
                     {
-                        if (!eval.FindFunctionByName(JacFuncName, &funcInfo2, &funcPntr2))
+                        if (!eval.FindFunctionByName(JacFuncName, &funcInfo2, &funcPntr2, nullptr))
                         {
                             throw OML_Error(HW_ERROR_INVFUNCNAME);
                         }

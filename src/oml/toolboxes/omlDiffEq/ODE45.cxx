@@ -124,7 +124,7 @@ bool OmlOde45(EvaluatorInterface           eval,
     {
         funcInfo = cur1.FunctionHandle();
     }
-    else if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr))
+    else if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr, nullptr))
     {
         throw OML_Error(OML_ERR_FUNCNAME, 1);
     }

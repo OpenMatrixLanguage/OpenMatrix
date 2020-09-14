@@ -160,6 +160,15 @@ public:
     static bool ClearEnvVal(EvaluatorInterface           eval, 
                             const std::vector<Currency>& inputs, 
                             std::vector<Currency>&       outputs);
+	//!
+//! Returns true and deletes the specified environment [deleteenv]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+	static bool DeleteEnv(EvaluatorInterface eval,
+		const std::vector<Currency>& inputs,
+		std::vector<Currency>& outputs);
     //!
     //! Returns true after changing current directory [cd]
     //! \param eval    Evaluator interface
@@ -225,6 +234,11 @@ public:
     static bool MakeAbsFilename(EvaluatorInterface           eval,
                                 const std::vector<Currency>& inputs,
                                 std::vector<Currency>&       outputs);
+    //!
+    //! Helper method to correctly quote command that is sent to system
+    //! \param Given input command
+    //!
+    static std::string GetInputForSystemCommand(const std::string&);
 private:
     //!
     //! Constructor

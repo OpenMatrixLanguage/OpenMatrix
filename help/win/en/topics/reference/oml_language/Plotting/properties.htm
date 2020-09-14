@@ -84,6 +84,19 @@
 
         
         
+          <dt class="dt dlterm">bottomlabel</dt>
+
+          <dd class="dd">Handle of the label that is placed on the bottom area of the figure.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> Use the <span class="keyword cmdname">set</span> command to set the contents of the label.</div>
+
+          </dd>
+
+          <dd class="dd ddexpand">Type: <span class="keyword">string | cell</span>.</dd>
+
+        
+        
           <dt class="dt dlterm">children</dt>
 
           <dd class="dd">A vector of axes handles, which are the children of the figure.</dd>
@@ -101,6 +114,19 @@
           <dd class="dd">Handle of the figure object.</dd>
 
           <dd class="dd ddexpand">Integer.</dd>
+
+        
+        
+          <dt class="dt dlterm">leftlabel</dt>
+
+          <dd class="dd">Handle of the label that is placed on the left area of the figure.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> Use the <span class="keyword cmdname">set</span> command to set the contents of the label.</div>
+
+          </dd>
+
+          <dd class="dd ddexpand">Type: <span class="keyword">string | cell</span>.</dd>
 
         
         
@@ -130,6 +156,32 @@
             <span class="keyword option">top</span>
             <span class="keyword option">width</span>
             <span class="keyword option">height</span>]</dd>
+
+        
+        
+          <dt class="dt dlterm">rightlabel</dt>
+
+          <dd class="dd">Handle of the label that is placed on the right area of the figure.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> Use the <span class="keyword cmdname">set</span> command to set the contents of the label.</div>
+
+          </dd>
+
+          <dd class="dd ddexpand">Type: <span class="keyword">string | cell</span>.</dd>
+
+        
+        
+          <dt class="dt dlterm">toplabel</dt>
+
+          <dd class="dd">Handle of the label that is placed on the top area of the figure.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> Use the <span class="keyword cmdname">set</span> command to set the contents of the label.</div>
+
+          </dd>
+
+          <dd class="dd ddexpand">Type: <span class="keyword">string | cell</span>.</dd>
 
         
         
@@ -184,6 +236,23 @@
 
         
         
+          <dt class="dt dlterm">contourlevels</dt>
+
+          <dd class="dd">Number of colors in the color bar. Maximum number of colors is 32.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">contourtype</dt>
+
+          <dd class="dd">Type of contour.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'blended</span>' | '<span class="keyword option">discrete'</span> |
+            '<span class="keyword option">none'</span></dd>
+
+        
+        
           <dt class="dt dlterm">fontangle</dt>
 
           <dd class="dd">Font angle of the axes.</dd>
@@ -224,9 +293,34 @@
 
         
         
+          <dt class="dt dlterm">mouseclickcallback</dt>
+
+          <dd class="dd">Callback function triggered by a mouse click on a 2D plot.</dd>
+
+          <dd class="dd ddexpand">Function handle</dd>
+
+        
+        
           <dt class="dt dlterm">parent</dt>
 
           <dd class="dd">Handle of the parent figure.</dd>
+
+        
+        
+          <dt class="dt dlterm">plottiptotail (polar plot only)</dt>
+
+          <dd class="dd">Enable creation of a tip-to-tail curve.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'off</span>' | '<span class="keyword option">on'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">polarmethod (polar plot only)</dt>
+
+          <dd class="dd">The polar method of the plot.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'phasevsmag</span>' | '<span class="keyword option">vector'</span> |
+            '<span class="keyword option">radar'</span></dd>
 
         
         
@@ -274,6 +368,14 @@
 
         
         
+          <dt class="dt dlterm">xcategories (bar plots only)</dt>
+
+          <dd class="dd">Labels for the x category axis of a bar plot.</dd>
+
+          <dd class="dd ddexpand">Cell</dd>
+
+        
+        
           <dt class="dt dlterm">xcolor</dt>
 
           <dd class="dd">Color of the x axis.</dd>
@@ -318,6 +420,14 @@
           <dd class="dd">Number of tics on the x axis.</dd>
 
           <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">ycategories (3D bar plots only)</dt>
+
+          <dd class="dd">Labels for the y category axis of a 3D bar plot.</dd>
+
+          <dd class="dd ddexpand">Cell</dd>
 
         
         
@@ -631,6 +741,14 @@
 
         
         
+          <dt class="dt dlterm">tiptotail (polar plot only)</dt>
+
+          <dd class="dd">Enables participation of the line in the tip-to-tail curve.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'on'</span> | <span class="keyword option">'off'</span></dd>
+
+        
+        
           <dt class="dt dlterm">type</dt>
 
           <dd class="dd">The type of line object.</dd>
@@ -739,6 +857,14 @@
 
         
         
+          <dt class="dt dlterm">borderwidth</dt>
+
+          <dd class="dd">The width of the text's border line.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
           <dt class="dt dlterm">children</dt>
 
           <dd class="dd">Children of the text object, currently an empty matrix.</dd>
@@ -789,13 +915,33 @@
 
           <dd class="dd">The handle of the text object.</dd>
 
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">horizontalalignment</dt>
+
+          <dd class="dd">The horizontal alignment of the text box relative to the given x,y coordinate.
+            Supported in 2D plots only.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'center</span>' | '<span class="keyword option">left'</span> | '<span class="keyword option">right'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">offset</dt>
+
+          <dd class="dd">The distance between the given x,y coordinate and the text box. Supported in 2D plots
+            only.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
         
         
           <dt class="dt dlterm">parent</dt>
 
           <dd class="dd">The handle of the parent object.</dd>
 
-          <dd class="dd ddexpand">0</dd>
+          <dd class="dd ddexpand">Double</dd>
 
         
         
@@ -818,6 +964,15 @@
           <dd class="dd">The units of measurement.</dd>
 
           <dd class="dd ddexpand"><span class="keyword option">'pixels</span>' | '<span class="keyword option">normalized'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">verticalalignment</dt>
+
+          <dd class="dd">The vertical alignment of the text box relative to the given x,y coordinate. Supported
+            in 2D plots only.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'middle</span>' | '<span class="keyword option">top'</span> | '<span class="keyword option">bottom'</span></dd>
 
         
         
@@ -876,6 +1031,14 @@
           <dd class="dd">The width of the bars.</dd>
 
           <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">imgrid (imagesc plot only)</dt>
+
+          <dd class="dd">Visibility of the image grid.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'off'</span> |<span class="keyword option"> 'on'</span></dd>
 
         
         

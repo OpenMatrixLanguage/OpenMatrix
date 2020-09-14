@@ -18,7 +18,7 @@
   <div class="body refbody"><p class="shortdesc">Power means multiplying something by itself a specific number of times. That is how
     matrix power works as well.</p>
 
-    <section class="section">
+    <section class="section" id="reference_bms_nkv_fv__section_krz_ynz_qlb">
       <p class="p">It takes the matrix and multiplies by itself a specific number of times. For example, A^2
         is like saying A*A (meaning matrix multiplication). However, exponents do not have to be
         integral.</p>
@@ -26,30 +26,30 @@
       
 <div class="tablenoborder"><table cellpadding="4" cellspacing="0" summary="" id="reference_bms_nkv_fv__table_o21_mvw_xv" class="table" frame="border" border="1" rules="all"><colgroup><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /></colgroup><thead class="thead" style="text-align:left;">
             <tr>
-              <th class="entry cellrowborder" id="d9032e47">^</th>
+              <th class="entry cellrowborder" id="d9156e47">^</th>
 
-              <th class="entry cellrowborder" id="d9032e50">Scalar</th>
+              <th class="entry cellrowborder" id="d9156e50">Scalar</th>
 
-              <th class="entry cellrowborder" id="d9032e53">Row Vector</th>
+              <th class="entry cellrowborder" id="d9156e53">Row Vector</th>
 
-              <th class="entry cellrowborder" id="d9032e56">Column Vector</th>
+              <th class="entry cellrowborder" id="d9156e56">Column Vector</th>
 
-              <th class="entry cellrowborder" id="d9032e59">Matrix</th>
+              <th class="entry cellrowborder" id="d9156e59">Matrix</th>
 
             </tr>
 
           </thead>
 <tbody class="tbody">
             <tr>
-              <td class="entry cellrowborder" headers="d9032e47 ">Scalar</td>
+              <td class="entry cellrowborder" headers="d9156e47 ">Scalar</td>
 
-              <td class="entry cellrowborder" headers="d9032e50 ">Raises the first scalar to the power of the second scalar.</td>
+              <td class="entry cellrowborder" headers="d9156e50 ">Raises the first scalar to the power of the second scalar.</td>
 
-              <td class="entry cellrowborder" headers="d9032e53 "> </td>
+              <td class="entry cellrowborder" headers="d9156e53 "> </td>
 
-              <td class="entry cellrowborder" headers="d9032e56 "> </td>
+              <td class="entry cellrowborder" headers="d9156e56 "> </td>
 
-              <td class="entry cellrowborder" headers="d9032e59 ">
+              <td class="entry cellrowborder" headers="d9156e59 ">
                 
                 <p class="p">Uses the formula e^(log(scalar)*matrix)</p>
 
@@ -58,42 +58,42 @@
             </tr>
 
             <tr>
-              <td class="entry cellrowborder" headers="d9032e47 ">Row Vector</td>
+              <td class="entry cellrowborder" headers="d9156e47 ">Row Vector</td>
 
-              <td class="entry cellrowborder" headers="d9032e50 "> </td>
+              <td class="entry cellrowborder" headers="d9156e50 "> </td>
 
-              <td class="entry cellrowborder" headers="d9032e53 "> </td>
+              <td class="entry cellrowborder" headers="d9156e53 "> </td>
 
-              <td class="entry cellrowborder" headers="d9032e56 "> </td>
+              <td class="entry cellrowborder" headers="d9156e56 "> </td>
 
-              <td class="entry cellrowborder" headers="d9032e59 "> </td>
-
-            </tr>
-
-            <tr>
-              <td class="entry cellrowborder" headers="d9032e47 ">Column Vector</td>
-
-              <td class="entry cellrowborder" headers="d9032e50 "> </td>
-
-              <td class="entry cellrowborder" headers="d9032e53 "> </td>
-
-              <td class="entry cellrowborder" headers="d9032e56 "> </td>
-
-              <td class="entry cellrowborder" headers="d9032e59 "> </td>
+              <td class="entry cellrowborder" headers="d9156e59 "> </td>
 
             </tr>
 
             <tr>
-              <td class="entry cellrowborder" headers="d9032e47 ">Matrix</td>
+              <td class="entry cellrowborder" headers="d9156e47 ">Column Vector</td>
 
-              <td class="entry cellrowborder" headers="d9032e50 ">Requires a square matrix. Takes the matrix power of the matrix to the power of
+              <td class="entry cellrowborder" headers="d9156e50 "> </td>
+
+              <td class="entry cellrowborder" headers="d9156e53 "> </td>
+
+              <td class="entry cellrowborder" headers="d9156e56 "> </td>
+
+              <td class="entry cellrowborder" headers="d9156e59 "> </td>
+
+            </tr>
+
+            <tr>
+              <td class="entry cellrowborder" headers="d9156e47 ">Matrix</td>
+
+              <td class="entry cellrowborder" headers="d9156e50 ">Requires a square matrix. Takes the matrix power of the matrix to the power of
                 whatever number the scalar value is. </td>
 
-              <td class="entry cellrowborder" headers="d9032e53 "> </td>
+              <td class="entry cellrowborder" headers="d9156e53 "> </td>
 
-              <td class="entry cellrowborder" headers="d9032e56 "> </td>
+              <td class="entry cellrowborder" headers="d9156e56 "> </td>
 
-              <td class="entry cellrowborder" headers="d9032e59 "> </td>
+              <td class="entry cellrowborder" headers="d9156e59 "> </td>
 
             </tr>
 
@@ -101,9 +101,12 @@
 </table>
 </div>
 
-      <p class="p">Examples</p>
+    </section>
 
-      <pre class="pre codeblock"><code>3 ^ 3
+    <section class="section" id="reference_bms_nkv_fv__section_lrz_ynz_qlb"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">
+        <pre class="pre codeblock"><code>3 ^ 3
 ans = 27
  
 3^[3 4; 6 2]
@@ -111,11 +114,12 @@ ans = [1920.1 1415.9; 2123.8 1566.2]
 
 [3 4; 6 2] ^ 2
 ans = [33 20; 30 28]</code></pre>
-      <p class="p">Invalid Examples</p>
+      </div>
 
-      <pre class="pre codeblock"><code>[3 2] ^ [4 8]
+      <div class="p">Invalid examples:<pre class="pre codeblock"><code>[3 2] ^ [4 8]
 2 ^ [4 6]
-[3 6; 2 8] ^ [3 7]</code></pre>
+[3 6; 2 8] ^ [3 7]</code></pre></div>
+
       
     </section>
 
@@ -126,7 +130,7 @@ ans = [33 20; 30 28]</code></pre>
 
 <div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/arithmetic_operators_r.htm" title="Arithmetic operators include addition, subtraction, and multiplication, for example.">Arithmetic Operators</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/power_r.htm" title="This type of power is different from Matrix Power in that the power (multiplication of something by itself) is done through each corresponding element.">Power</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/multiplication_r.htm" title="This type of multiplication is different from Matrix Multiplication in that the multiplication is done through each corresponding element.">Multiplication</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/multiplication_r.htm" title="This type of multiplication is different from Matrix Multiplication in that the multiplication is performed on each pair of corresponding elements.">Multiplication</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/operators_header_r.htm" title="Operators are used to combine operands.">Operators</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator.">Operator Descriptions (tables)</a></div></div>
 </nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
