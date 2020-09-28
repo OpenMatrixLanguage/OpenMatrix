@@ -186,6 +186,12 @@ namespace omlplot{
 
         void setAxisNeedRepaint(bool);
         bool axisNeedRepaint();
+        void setBorder(bool state);
+        bool getBorder() const;
+        void setColorbarVisible(bool state);
+        bool getColorbarVisible() const;
+        void setColorbarRange(const std::vector<double>& range);
+        std::vector<double> getColorbarRange();
 
     private:
         unique_ptr<Text> m_title;
@@ -193,6 +199,9 @@ namespace omlplot{
         unique_ptr<Text> m_ylabel;
         unique_ptr<Text> m_zlabel;
         bool _axisNeedRepaint;
+        bool _borderOn;
+        bool _colorbarVisible;
+        std::vector<double> _colorbarRange;
     };
 
     class OMLPLOT_EXPORT Drawable : public Object{
@@ -308,6 +317,9 @@ namespace omlplot{
         string getLineStyle(int) override;
         void putData(GnuplotOutput *) override;
         void cleanup(GnuplotOutput *) override;
+        void getMinMaxZ(double& min, double& max);
+    private:
+        double _minZ, _maxZ;
     };
 
     class OMLPLOT_EXPORT Mesh : public Surface{
@@ -354,6 +366,8 @@ namespace omlplot{
         Text();
         void update(GnuplotOutput *) override;
         void update(GnuplotOutput *, const string);
+    private:
+        string getModifiedString(const string& text);
     };
 
     class OMLPLOT_EXPORT HandlePool{

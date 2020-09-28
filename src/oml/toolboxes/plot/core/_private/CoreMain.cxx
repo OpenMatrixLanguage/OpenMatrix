@@ -69,11 +69,11 @@ namespace omlplot{
     }
 
     double CoreMain::figure(unique_ptr<FigureData> &fd){
-        int idCount = fd->fids.size();
+        size_t idCount = fd->fids.size();
 
         // get/alloc the figure first
         Figure *f = nullptr;
-        int fHandle = 0;
+        double fHandle = 0;
         if (idCount == 0){
             f = allocObject<Figure>();
             root->addChild(f);
@@ -103,7 +103,7 @@ namespace omlplot{
 
     double CoreMain::axes(unique_ptr<AxesData> &data){
         Object *figure = getObject(gcf());
-        int count = data->handles.size();
+        size_t count = data->handles.size();
         Axes *a = nullptr;
         if (count == 0){
             a = allocObject<Axes>();
@@ -252,7 +252,7 @@ namespace omlplot{
 		{
             double handle = *it;
             Object *po = getObject(handle);
-            int propCount = data->properties.size();
+            size_t propCount = data->properties.size();
             for (int index = 0; index < propCount; index++)
 			{
                 bool ret = po->setPropertyValue(data->properties[index], data->values[index]);
@@ -264,7 +264,7 @@ namespace omlplot{
     }
 
     double CoreMain::gcf(){
-        int h = 0;
+        double h = 0;
         h = root->getPropertyValue("currentfigure").Scalar();
         if (h == 0) {
             unique_ptr<FigureData> fd(new FigureData);
@@ -304,7 +304,7 @@ namespace omlplot{
         Object *o = getObject(f);
         delete o;
         vector<double> fs = root->getPropertyValue("children").Vector();
-        int count = fs.size();
+        size_t count = fs.size();
         if (count == 0){
             root->setPropertyValue("currentfigure", 0);
         } else {
@@ -318,7 +318,7 @@ namespace omlplot{
         }
         Figure *fig = dynamic_cast<Figure *>(getObject(f));
         fig->clear();
-        return fig->getHandle();
+        return (int)fig->getHandle();
     }
 
     double CoreMain::cla(double a){
@@ -565,7 +565,7 @@ namespace omlplot{
             }
         } else {
             vector<double> children = pAxes->getPropertyValue("children").Vector();
-            int count = min(ls.size(), children.size());
+            int count = min((int)ls.size(), (int)children.size());
             Drawable *pLine = nullptr;
             for (int i = 0; i < count; i++){
                 pLine = dynamic_cast<Drawable *>(getObject(children[i]));
@@ -581,7 +581,7 @@ namespace omlplot{
         vector<double> res;
         Text *pText = nullptr;
 
-        int size = td->xpos.size();
+        size_t size = td->xpos.size();
         for (int i = 0; i < size; i++){
             try {
                 pText = allocObject<Text>();
@@ -617,5 +617,61 @@ namespace omlplot{
     void CoreMain::out(string s){
         Figure *figure = dynamic_cast<Figure*>(getObject(gcf()));
         figure->out(s);
+    }
+
+    void CoreMain::box(double axes)
+    {
+        if (!isAxes(axes)) {
+            throw OML_Error(OML_ERR_PLOT_INVALID_AXES_HANDLE);
+        }
+
+        Axes* pAxes = dynamic_cast<Axes*>(getObject(axes));
+        pAxes->setBorder(!pAxes->getBorder());
+        pAxes->repaint();
+    }
+
+    void CoreMain::box(double axes, string state)
+    {
+        if (!isAxes(axes)) {
+            throw OML_Error(OML_ERR_PLOT_INVALID_AXES_HANDLE);
+        }
+
+        Axes* pAxes = dynamic_cast<Axes*>(getObject(axes));
+        pAxes->setBorder(state == "on");
+        pAxes->repaint();
+    }
+
+    void CoreMain::colorbar(double axes)
+    {
+        if (!isAxes(axes)) {
+            throw OML_Error(OML_ERR_PLOT_INVALID_AXES_HANDLE);
+        }
+
+        Axes* pAxes = dynamic_cast<Axes*>(getObject(axes));
+        pAxes->setColorbarVisible(!pAxes->getColorbarVisible());
+        pAxes->repaint();
+    }
+
+    void CoreMain::colorbar(double axes, std::string state, const std::vector<double>& range)
+    {
+        if (!isAxes(axes)) {
+            throw OML_Error(OML_ERR_PLOT_INVALID_AXES_HANDLE);
+        }
+
+        Axes* pAxes = dynamic_cast<Axes*>(getObject(axes));
+        pAxes->setColorbarVisible(state == "on");
+        if (range.size() == 2)
+            pAxes->setColorbarRange(range);
+        pAxes->repaint();
+    }
+
+    std::vector<double> CoreMain::colorbarRange(double axes)
+    {
+        if (!isAxes(axes)) {
+            throw OML_Error(OML_ERR_PLOT_INVALID_AXES_HANDLE);
+        }
+
+        Axes* pAxes = dynamic_cast<Axes*>(getObject(axes));
+        return pAxes->getColorbarRange();
     }
 }

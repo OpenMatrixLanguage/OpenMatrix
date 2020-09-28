@@ -206,6 +206,15 @@ bool oml_MatrixNUtil3(EvaluatorInterface eval, const std::vector<Currency>& inpu
     int numDim = static_cast<int>(dims.size());
     int dim = 0;
 
+    bool passArg2 = false;
+
+    if (dimArg == 23)
+    {
+        // this is a kludge to tell the function to pass the 2nd argument
+        passArg2 = true;
+        dimArg -= 20;
+    }
+
     if (!dimArg)
     {
         for (int i = 0; i < numDim; ++i)
@@ -299,6 +308,10 @@ bool oml_MatrixNUtil3(EvaluatorInterface eval, const std::vector<Currency>& inpu
         {
             inputs2.push_back(1);
             inputs2.push_back(inputs[2]);
+        }
+        else if (nargin > 1 && passArg2)
+        {
+            inputs2.push_back(inputs[1]);
         }
 
         oml_func(eval, inputs2, outputs2);

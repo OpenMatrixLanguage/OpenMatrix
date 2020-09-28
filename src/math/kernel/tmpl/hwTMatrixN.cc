@@ -1546,9 +1546,6 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
     // ignore high singleton dimensions
     int numSlices = RelevantNumberOfSlices(sliceArg, false);
 
-    if (numSlices > m_dim.size())
-        throw hwMathException(HW_MATH_ERR_SLICE_INDEX);
-
     // perform implicit RHS reshape with reduced slices 
     if (numSlices < m_dim.size())
     {
@@ -1648,9 +1645,6 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
     }
 
     int size = lhsMatrix.Size();
-
-    if (m_size < size)
-        throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
 
     if (size == 0)
         return;

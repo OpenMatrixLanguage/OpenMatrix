@@ -189,6 +189,9 @@ public:
 
     bool LockBuiltInFunction(const std::string& name) { return _eval.LockBuiltInFunction(name); }
 
+    void LogInput(const std::string&); // Logs input  in diary
+    void LogOutput(const Currency&);   // Logs output in diary
+
 	int         syntax_error_line;
 	std::string syntax_error_file;
 
@@ -287,11 +290,13 @@ Currency InterpreterImpl::DoString(const std::string& instring, bool store_suppr
 
 	const std::string* dbg_file_ptr = Currency::pm.GetStringPointer(dbg_file);
 
-	std::string instringcopy = instring;
+	std::string instringcopy (instring);
+#if 0
+    // Commenting this for now, should not be needed
 	instringcopy.erase(std::remove(instringcopy.begin(), instringcopy.end(), '\n'), instringcopy.end());
+#endif
 
-	static bool diary_open = false;
-
+    LogInput(instring);
 	try
 	{
 		_eval.StoreSuppressedResults(store_suppressed);
@@ -301,18 +306,7 @@ Currency InterpreterImpl::DoString(const std::string& instring, bool store_suppr
 		_eval.SetDebugInfo(dbg_file_ptr, dbg_line);
 		_eval.SetInterrupt(false);
 		Currency result = _eval.GetLastResult();
-		if(_eval.IsDiaryOpen())
-		{
-			if (diary_open)
-			{
-				_eval.WriteToDiaryFile("> " + instringcopy + "\n");
-				if(result.GetOutputString(NULL).length())
-					_eval.WriteToDiaryFile(result.GetOutputString(NULL) + "\n");
-			}
-			diary_open = true;
-		} 
-		else 
-			diary_open = false;
+        LogOutput(result);
 		return result;
 	}
 	catch (OML_Error& error)
@@ -324,6 +318,7 @@ Currency InterpreterImpl::DoString(const std::string& instring, bool store_suppr
 		_eval.PushResult(cur);
         _eval.Restore();       
 		_eval.SetInterrupt(false);
+        LogOutput(cur);
 		return cur;
 	}
 
@@ -1352,5 +1347,37 @@ bool Interpreter::LockBuiltInFunction(const std::string& name)
 {
     return _impl->LockBuiltInFunction(name);
 }
+//------------------------------------------------------------------------------
+// Logs input in diary, if open
+//------------------------------------------------------------------------------
+void InterpreterImpl::LogInput(const std::string& in)
+{
+    std::ofstream& ofs = _eval.GetDiary();
+    if (ofs.is_open())
+    {
+        std::string tmp(in);
+        BuiltInFuncsUtils::StripTrailingNewline(tmp);
+        if (!tmp.empty())
+        {
+            ofs << "> " << tmp << std::endl;
+        }
+    }
+}
+//------------------------------------------------------------------------------
+// Logs output in diary, if open
+//------------------------------------------------------------------------------
+void InterpreterImpl::LogOutput(const Currency& cur)
+{
+    std::ofstream& ofs = _eval.GetDiary();
+    if (ofs.is_open())
+    {
+        std::string out(cur.GetOutputString(_eval.GetOutputFormat()));
+        if (!out.empty())
+        {
+            ofs << out << std::endl;
+        }
+    }
+}
+
 
 // End of file:

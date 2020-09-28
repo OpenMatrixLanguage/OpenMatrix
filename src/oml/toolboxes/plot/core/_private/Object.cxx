@@ -406,11 +406,8 @@ namespace omlplot{
     }
 
     Axes::Axes()
-        :m_title(new Text),
-         m_xlabel(new Text),
-         m_ylabel(new Text),
-         m_zlabel(new Text),
-         _axisNeedRepaint(false)
+        :m_title(new Text), m_xlabel(new Text), m_ylabel(new Text), m_zlabel(new Text),
+         _axisNeedRepaint(false), _borderOn(true), _colorbarVisible(true)
     {
         double handle = m_handlePool->allocHandle();
         // all of the properties of axes are added here
@@ -491,6 +488,10 @@ namespace omlplot{
 
         m_title->setPropertyValue("string", string(""));
 
+        _borderOn = true;
+        _colorbarVisible = true;
+        _colorbarRange.clear();
+
         repaint();
     }
 
@@ -517,7 +518,7 @@ namespace omlplot{
         }
 
         string bgcolor = getPropertyValue("color").ColorString();
-        out->printf("set obj 1 rectangle from graph 0,0 to graph 1,1 behind fc rgb '%s'\n", bgcolor.c_str());        
+        out->printf("set obj 1 rectangle from graph 0,0 to graph 1,1 behind fc rgb '%s' fs border rgb '%s'\n", bgcolor.c_str(), bgcolor.c_str());
         string xcolor = getPropertyValue("xcolor").ColorString();
         out->printf("set xtics textcolor rgb '%s'\n", xcolor.c_str());
         string ycolor = getPropertyValue("ycolor").ColorString();
@@ -585,6 +586,11 @@ namespace omlplot{
             out->printf("set key off\n");
         }
 
+        if (_borderOn)
+            out->printf("set border 31\nset xtics mirror\nset ytics mirror\n");
+        else
+            out->printf("set border 3\nset xtics nomirror\nset ytics nomirror\n");
+
         vector<double> children = getPropertyValue("children").Vector();
         Drawable *pChild = nullptr;
         vector<string> linestyle;
@@ -614,13 +620,22 @@ namespace omlplot{
             ++lineId;
         }
 
-        bool is3D = false;
-        if ( (zdata.size() > 0) &&
-             (zdata[0].size() > 0) ){
-            is3D = true;
+        bool is3D = zdata.size() > 0 && zdata[0].size() > 0;
+
+        if (is3D && _colorbarVisible)
+        {
+            out->printf("set colorbox\n");
+            if (_colorbarRange.size() == 2)
+                out->printf("set cbrange [%g:%g]\n", _colorbarRange[0], _colorbarRange[1]);
+            else
+                out->printf("unset cbrange\n");
+        }
+        else
+        {
+            out->printf("unset colorbox\n");
         }
 
-        int lineCount = usingclause.size();
+        size_t lineCount = usingclause.size();
         for (lineId = 0; lineId < lineCount; ++lineId){
             string style = linestyle[lineId];
             out->printf(style);
@@ -653,18 +668,11 @@ namespace omlplot{
                 pChild = dynamic_cast<Drawable *>(getObject(child));
 				if (pChild){
 					pChild->putData(out);
-                    out->printf("e\n");
 				}
             }
         }
-        it = children.begin();
-        for (; it != children.end(); ++it){
-            double child = *it;
-            pChild = dynamic_cast<Drawable *>(getObject(child));
-			if (pChild){
-				pChild->cleanup(out);
-			}
-        }
+
+       
 
         out->printf("set title ''\n");
         out->printf("set xlabel ''\n");
@@ -703,6 +711,69 @@ namespace omlplot{
 
     bool Axes::axisNeedRepaint(){
         return _axisNeedRepaint;
+    }
+
+    void Axes::setBorder(bool state)
+    {
+        _borderOn = state;
+    }
+
+    bool Axes::getBorder() const
+    {
+        return _borderOn;
+    }
+
+    void Axes::setColorbarVisible(bool state)
+    {
+        _colorbarVisible = state;
+    }
+
+    bool Axes::getColorbarVisible() const
+    {
+        return _colorbarVisible;
+    }
+
+    void Axes::setColorbarRange(const std::vector<double>& range)
+    {
+        _colorbarRange.clear();
+        _colorbarRange = range;
+    }
+
+    std::vector<double> Axes::getColorbarRange()
+    {
+        if (_colorbarRange.size() == 2)
+            return _colorbarRange;
+        // else get the values from the curves
+        std::vector<double> ret;
+        vector<double> children = getPropertyValue("children").Vector();
+        for (vector<double>::iterator it = children.begin(); it != children.end(); ++it) 
+        {
+            double child = *it;
+            Surface* pChild = dynamic_cast<Surface*>(getObject(child));
+            if (pChild)
+            {
+                double min, max;
+                pChild->getMinMaxZ(min, max);
+                if (ret.empty())
+                {
+                    ret.push_back(min);
+                    ret.push_back(max);
+                }
+                else
+                {
+                    if (min < ret[0])
+                        ret[0] = min;
+                    if (max > ret[1])
+                        ret[1] = max;
+                }
+            }
+        }
+        if (ret.empty())
+        {
+            ret.push_back(0);
+            ret.push_back(10);
+        }
+        return ret;
     }
 
     Drawable::Drawable(){
@@ -752,17 +823,19 @@ namespace omlplot{
         vector<double> z = getZdata();
 
         if (z.size() == 0){     // 2d data
-            int count = min(x.size(), y.size());
+            size_t count = min(x.size(), y.size());
             for (int j = 0; j < count; j++){
                 out->printf("%g %g\n", x[j], y[j]);
             }
         } else {                // 3d data
-            int count = min(x.size(), y.size());
-            count = min(count, (int)z.size());
+            size_t count = min(x.size(), y.size());
+            count = min((int)count, (int)z.size());
             for (int j = 0; j < count; j++){
                 out->printf("%g %g %g\n", x[j], y[j], z[j]);
             }
         }
+        // end of data
+        out->printf("e\n");
     }
 
     Line::Line(){
@@ -793,7 +866,7 @@ namespace omlplot{
         setPropertyValue("markersize", ls.m_markerSize);
         setPropertyValue("displayname", ls.m_legend);
 
-        int propSize = ld.properties.size();
+        size_t propSize = ld.properties.size();
         for (int i = 0; i < propSize; i++){
             setPropertyValue(ld.properties[i], ld.values[i]);
         }
@@ -906,7 +979,7 @@ namespace omlplot{
         LineStyle ls = LineStyle(ld);
         setPropertyValue("color", ls.m_lineColor);
 
-        int propSize = ld.properties.size();
+        size_t propSize = ld.properties.size();
         for (int i = 0; i < propSize; i++){
             setPropertyValue(ld.properties[i], ld.values[i]);
         }
@@ -994,7 +1067,7 @@ namespace omlplot{
         setPropertyValue("facecolor", ls.m_lineColor);
         setPropertyValue("displayname", ls.m_legend);
 
-        int propSize = ld.properties.size();
+        size_t propSize = ld.properties.size();
         for (int i = 0; i < propSize; i++){
             setPropertyValue(ld.properties[i], ld.values[i]);
         }
@@ -1124,7 +1197,9 @@ namespace omlplot{
         return "'-' using 1:2:3";
     }
 
-    Surface::Surface(){
+    Surface::Surface()
+        :_minZ(0), _maxZ(1)
+    {
         m_ps.push_back(Property("type", string("surface"), PropertyType::STRING) );
 
 		// not yet supported properties
@@ -1149,11 +1224,19 @@ namespace omlplot{
     string Surface::getLineStyle(int line){
         return "set palette defined ( 0 \"blue\", 3 \"green\", 6 \"yellow\", 10 \"red\")\n"
             "set pm3d\n"
-            "unset colorbox\n"
-            "set view 60, 315,1,1\n";
+            //"unset colorbox\n"
+            "set view 60, 315,1,1\n"
+            "unset contour\n"
+            "unset view\n";
     }
 
     void Surface::cleanup(GnuplotOutput *out) {
+    }
+
+    void Surface::getMinMaxZ(double& min, double& max)
+    {
+        min = _minZ;
+        max = _maxZ;
     }
 
     void Surface::putData(GnuplotOutput *out){
@@ -1161,33 +1244,56 @@ namespace omlplot{
         vector<double> y = getYdata();
         vector<double> z = getZdata();
 
+
+        _minZ = 0;
+        _maxZ = 1;
+        if (!z.empty())
+        {
+            _minZ = z[0];
+            _maxZ = z[0];
+        }
+
         if (_xcolcount > 1 && _ycolcount > 1){
-            int xsize = x.size();
-            int ysize = y.size();
-            int zsize = z.size();
+            size_t xsize = x.size();
+            size_t ysize = y.size();
+            size_t zsize = z.size();
             if (! ((xsize == ysize) &&
                    (xsize == zsize)) ){
                 throw;
             }
 
-            int rowcount = zsize / _zcolcount;
+            int rowcount = (int)zsize / _zcolcount;
             for (int i = 0; i < zsize; i++){
+                double zVal = z[i];
                 out->printf("%g %g %g\n",
                             x[i], y[i], z[i]);
                 if ((i + 1) % rowcount == 0){
                     out->printf("\n");
                 }
+                // find min/max for the colorbar
+                if (zVal < _minZ)
+                    _minZ = zVal;
+                if (zVal > _maxZ)
+                    _maxZ = zVal;
             }
         } else {
-            int col = y.size();
+            size_t col = y.size();
             for (int xsub = 0; xsub < x.size(); xsub++){
                 for (int ysub = 0; ysub < col; ysub++){
+                    double zVal = z[xsub * col + ysub];
                     out->printf("%g %g %g\n",
-                                x[xsub], y[ysub], z[xsub * col + ysub]);
+                                x[xsub], y[ysub], zVal);
+                    // find min/max for the colorbar
+                    if (zVal < _minZ)
+                        _minZ = zVal;
+                    if (zVal > _maxZ)
+                        _maxZ = zVal;
                 }
                 out->printf("\n");
             }
         }
+        // end of data
+        out->printf("e\n");
     }
 
     string Mesh::getLineStyle(int line){
@@ -1195,7 +1301,9 @@ namespace omlplot{
             "unset pm3d\n"
             "set surface\n"
             "set isosamples 40, 40; set samples 40, 40\n"
-            "set view 60, 315,1,1\n";
+            "set view 60, 315,1,1\n"
+            "unset contour\n"
+            "unset view\n";
     }
 
     string Line3::getLineStyle(int line){
@@ -1215,9 +1323,10 @@ namespace omlplot{
     string Contour3::getLineStyle(int line){
         return "set contour surface\n"
             "unset surface\n"
-            "set cntrparam levels 10\n";
-            "set view 60, 315,1,1\n";
-            //"set dgrid3d\n";            
+            "unset pm3d\n"
+            "set cntrparam levels 10\n"
+            "set view 60, 315,1,1\n"
+            "unset view\n";
     }
 
     void Contour3::cleanup(GnuplotOutput *out) {
@@ -1233,15 +1342,14 @@ namespace omlplot{
     string Contour::getLineStyle(int line){
         return "set contour base\n"
             "unset surface\n"
+            "unset pm3d\n"
             "set view map\n"
-            //"set dgrid3d\n"
             "set cntrparam levels 10\n";
     }
 
     void Contour::cleanup(GnuplotOutput *out) {
         out->printf("unset contour\n");
         out->printf("unset view\n");
-        //out->printf("unset dgrid3d\n");
     }
 
     string Stem::getWithClause(int lineId){
@@ -1326,7 +1434,7 @@ namespace omlplot{
         if (fontweight == "bold"){
             ss << "{/:Bold ";
         }
-        ss << text;
+        ss << getModifiedString(text);
         if (fontweight == "bold"){
             ss << "}";
         }
@@ -1355,7 +1463,7 @@ namespace omlplot{
         if (fontweight == "bold"){
             ss << "{/:Bold ";
         }
-        ss << text;
+        ss << getModifiedString(text);
         if (fontweight == "bold"){
             ss << "}";
         }
@@ -1367,6 +1475,19 @@ namespace omlplot{
                     type.c_str(), ss.str().c_str(),
                     fontname.c_str(), fontsize,
                     color.c_str());
+    }
+
+    string Text::getModifiedString(const string& text)
+    {
+        stringstream modifiedStr;
+        for (int i = 0; i < text.size(); ++i)
+        {
+            if (text[i] == '{' || text[i] == '}')
+                modifiedStr << "\\\\" << text[i];
+            else
+                modifiedStr << text[i];
+        }
+        return modifiedStr.str();
     }
 
     HandlePool::HandlePool()

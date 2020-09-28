@@ -69,7 +69,7 @@ namespace omlplot{
             vector<LineData>::iterator it = ldVec.begin();
             for (; it != ldVec.end(); ++it){
                 LineData ld = *it;
-                ld.index = axes->getPropertyValue("children").Vector().size();
+                ld.index = (int)axes->getPropertyValue("children").Vector().size();
                 try {
                     pLine = allocObject<T>();
                     pLine->init(ld);
@@ -171,6 +171,11 @@ namespace omlplot{
         void saveas(double, string, string);
         void dump();
         void out(string);
+        void box(double axes);
+        void box(double axes, std::string state);
+        void colorbar(double axes);
+        void colorbar(double axes, std::string state, const std::vector<double>& range);
+        std::vector<double> colorbarRange(double axes);
 
     private:
         CoreMain();

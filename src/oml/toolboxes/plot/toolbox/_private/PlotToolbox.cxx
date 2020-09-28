@@ -250,7 +250,7 @@ namespace omlplot{
     }
 
     bool close(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs){
-        int f = 0;
+        double f = 0;
         if (inputs.size() == 1){
             Currency c = inputs[0];
             if (c.IsScalar()){
@@ -267,7 +267,7 @@ namespace omlplot{
         } else {
             // throw
         }
-        cm->close(f);
+        cm->close((int)f);
         return true;
     }
 
@@ -278,7 +278,7 @@ namespace omlplot{
     }
 
     bool clf(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs){
-        int f = 0;
+        double f = 0;
         if (inputs.size() == 1){
             Currency c = inputs[0];
             if (c.IsScalar()){
@@ -291,7 +291,7 @@ namespace omlplot{
         } else {
             // throw
         }
-        int h = cm->clf(f);
+        int h = cm->clf((int)f);
         outputs.push_back(h);
         return true;
     }
@@ -753,13 +753,85 @@ namespace omlplot{
     }
 
 	bool box(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-		BuiltInFuncsUtils::SetWarning(eval, "Command [box] is not supported in OpenMatrix");
-		return false;
+        if (inputs.size() == 0) {
+            cm->box(cm->gca());
+        }
+        else if (inputs.size() == 1) {
+            if (inputs[0].IsString()) {
+                string state = inputs[0].StringVal();
+                if (state != "on" && state != "off" ) {
+                    throw OML_Error(OML_ERR_FUNCSWITCH);
+                }
+                else {
+                    cm->box(cm->gca(), state);
+                }
+            }
+            else if (inputs[0].IsScalar()) {
+                cm->box(inputs[0].Scalar());
+            }
+            else {
+                throw OML_Error(OML_ERR_OPTIONVAL, 1, OML_VAR_PARAMETER);
+            }
+        }
+        else if (inputs.size() == 2 && inputs[0].IsScalar() && inputs[1].IsString()) {
+            cm->box(inputs[0].Scalar(), inputs[1].StringVal());
+        }
+        else {
+            throw OML_Error(OML_ERR_NUMARGIN);
+        }
+		return true;
 	}
 
-	bool colorbar(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-		BuiltInFuncsUtils::SetWarning(eval, "Command [colorbar] is not supported in OpenMatrix");
-		return false;
+	bool colorbar(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) 
+    {
+        double axesHandle = cm->gca();
+        bool toggle = false;
+        std::string state = "on";
+        std::vector<double> range;
+        if (inputs.size() == 0) {
+            toggle = true;
+        } else if (inputs.size() == 1) {
+            if (inputs[0].IsScalar()) {
+                axesHandle = inputs[0].Scalar();
+            } else if (inputs[0].IsString()) {
+                state = inputs[0].StringVal();
+                if (state != "on" && state != "off") {
+                    throw OML_Error(OML_ERR_FUNCSWITCH);
+                }
+            } else if (inputs[0].IsVector()) {
+                range = inputs[0].Vector();
+            } else {
+                throw OML_Error(OML_ERR_NUMARGIN);
+            }
+        } else if (inputs.size() == 2) {
+            if (inputs[0].IsScalar()) {
+                axesHandle = inputs[0].Scalar();
+                if (inputs[1].IsString()) {
+                    state = inputs[1].StringVal();
+                    if (state != "on" && state != "off") 
+                        throw OML_Error(OML_ERR_FUNCSWITCH);
+                } else if (inputs[1].IsVector()) {
+                    range = inputs[1].Vector();
+                } else {
+                    throw OML_Error(OML_ERR_NUMARGIN);
+                }
+            } else  {
+                throw OML_Error(OML_ERR_NUMARGIN); 
+            }        
+        }
+
+        int nargout = eval.GetNargoutValue();
+        if (toggle && nargout!=2)
+            cm->colorbar(axesHandle);
+        else
+            cm->colorbar(axesHandle, state, range);
+        // get return values
+        if (nargout == 2)
+        {
+            std::vector<double> r = cm->colorbarRange(axesHandle);
+            outputs.insert(outputs.end(), r.begin(), r.end());
+        }
+		return true;
 	}
 
 	bool drawnow(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
@@ -915,13 +987,13 @@ namespace omlplot{
         evl.RegisterBuiltInFunction("text", text, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("saveas", saveas, FunctionMetaData(-1, 0, "Plotting"));
         evl.RegisterBuiltInFunction("view", oml_doNothing, FunctionMetaData(-1, 0, "Plotting"));
+        evl.RegisterBuiltInFunction("box", box, FunctionMetaData(-1, 0, "Plotting"));
+        evl.RegisterBuiltInFunction("colorbar", colorbar, FunctionMetaData(-1, -1, "Plotting"));
 #ifdef _DEBUG
         evl.RegisterBuiltInFunction("dump", dump, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("out", out, FunctionMetaData(-1, 1, "Plotting"));
 #endif
 		// Not yet supported commands
-		evl.RegisterBuiltInFunction("box", box, FunctionMetaData(-1, 0, "Plotting"));
-		evl.RegisterBuiltInFunction("colorbar", colorbar, FunctionMetaData(-1, -1, "Plotting"));
 		evl.RegisterBuiltInFunction("drawnow", drawnow, FunctionMetaData(0, 0, "Plotting"));
 		evl.RegisterBuiltInFunction("fanplot", fanplot, FunctionMetaData(3, -1, "Plotting"));
 		evl.RegisterBuiltInFunction("getmousepos", getmousepos, FunctionMetaData(0, 2, "Plotting"));

@@ -100,6 +100,18 @@ public:
     //!
     static bool CanPaginate(const Currency& cur);
     //!
+    //! Gets limit, after which printing will be done with format being skipped
+    //!
+    static int GetSkipFormat() { return m_skipFormat; }
+    //!
+    //! Sets size, after which printing will be done skipping format of each element
+    //! Value > 1 will result in formatting being checked (traditional printing)
+    //! Value < 1 will result in format of first element applied to matrix (fast printing)
+    //! param Value to set
+    //!
+    static void SetSkipFormat(int);
+
+    //!
     //! True if rows are being processed during pagination
     //!
     bool IsPaginatingRows() const;
@@ -152,7 +164,6 @@ public:
     //! Sets indices and data for mode
     //!
     void SetModeData();
-
     //!
     //! Gets currency
     //!
@@ -174,7 +185,7 @@ public:
     //!
     virtual void Initialize(const OutputFormat* fmt,
                             Interpreter*        interp,
-                           CurrencyDisplay*    parent = 0);
+                            CurrencyDisplay*    parent = 0);
     //!
     //! Gets number of rows and cols in given currency
     //! \param cur   Given cell array/matrix
@@ -283,6 +294,7 @@ protected:
     static int m_maxRows;              //!< Max rows (lines) for display
     static int m_linesPrinted;         //!< of lines displayed
     static PAGINATE m_paginate;        //!< Pagination mode
+    static int m_skipFormat;           //!< Skip format limit
     
     mutable int m_colBegin;            //!< 0-based index of first column displayed
     mutable int m_colEnd;              //!< 0-based index of last  column displayed
@@ -295,7 +307,7 @@ protected:
     DISPLAYMODE        m_mode;           //!< Display mode
     CurrencyDisplay*   m_parentDisplay;  //!< Parent display - for nested currencies
     SignalHandlerBase* m_signalHandler;  //!< Signal handler - for client communication
-    Currency           m_currency;       //!< Currency associated with this display
+    mutable Currency           m_currency;       //!< Currency associated with this display
 
     // Note: Currency is a copy and not a pointer because when results are 
     // displayed, the original currency could have already been destroyed

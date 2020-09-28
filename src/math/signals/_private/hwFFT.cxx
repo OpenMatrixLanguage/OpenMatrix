@@ -17,15 +17,15 @@
 
 #include <math.h>
 #include "hwMatrix.h"
+#include "hwMatrixN.h"
 
 // store FFTW plans and info for reuse
 bool initializedFFTW    = false;
 fftw_plan file_planR2C  = NULL;
 fftw_plan file_planC2R  = NULL;
 fftw_plan file_planC2C  = NULL;
-FFT_TYPE file_plan_type = FFT_NOTSET;
 int file_plan_fftsize   = -1;
-unsigned file_plan_dir  = 0;
+unsigned file_plan_dir  = 0;   // only affects FFT_C2C
 
 //------------------------------------------------------------------------------
 // Constructor
@@ -38,35 +38,9 @@ hwFFTW::hwFFTW(unsigned direction, int fftSize)
     , m_complexOutput (nullptr)
     , m_fftSize       (-1)
 {
-    if (fftSize != file_plan_fftsize)
+    if (fftSize < 0)
     {
-        if (file_planR2C)
-        {
-            fftw_destroy_plan(file_planR2C);
-            file_planR2C = NULL;
-            file_plan_type = FFT_NOTSET;
-        }
-
-        if (file_planC2R)
-        {
-            fftw_destroy_plan(file_planC2R);
-            file_planC2R = NULL;
-            file_plan_type = FFT_NOTSET;
-        }
-
-        if (file_planC2C)
-        {
-            fftw_destroy_plan(file_planC2C);
-            file_planC2C = NULL;
-            file_plan_type = FFT_NOTSET;
-        }
-
-        if (fftSize < 0)
-        {
-            m_status(HW_MATH_ERR_NONNONNEGINT, 2);
-        }
-
-        file_plan_fftsize = fftSize;
+        m_status(HW_MATH_ERR_NONNONNEGINT, 2);
     }
 
     m_fftSize = fftSize;
@@ -77,7 +51,6 @@ hwFFTW::hwFFTW(unsigned direction, int fftSize)
         {
             fftw_destroy_plan(file_planC2C);
             file_planC2C = NULL;
-            file_plan_type = FFT_NOTSET;
         }
 
         file_plan_dir = direction;
@@ -143,6 +116,20 @@ hwFFTW::~hwFFTW()
     }
 }
 //------------------------------------------------------------------------------
+// Determine FFTW plan type
+//------------------------------------------------------------------------------
+void hwFFTW::DetermineType(const hwMatrixN& input)
+{
+    if (input.IsReal())
+    {
+        m_type = FFT_R2C;
+    }
+    else
+    {
+        m_type = FFT_C2C;
+    }
+}
+//------------------------------------------------------------------------------
 // Allocated memory based on FFT type
 //------------------------------------------------------------------------------
 void hwFFTW::SetupFFT(const hwMatrix& input)
@@ -159,6 +146,31 @@ void hwFFTW::SetupFFT(const hwMatrix& input)
     if (m_fftSize == 0)
     {
         m_fftSize = m_dataSize;
+    }
+
+    // validate size of file scope FFTW plans
+    if (file_plan_fftsize != m_fftSize)
+    {
+        if (file_planR2C)
+        {
+            fftw_destroy_plan(file_planR2C);
+            file_planR2C = NULL;
+        }
+
+        if (file_planC2R)
+        {
+            fftw_destroy_plan(file_planC2R);
+            file_planC2R = NULL;
+        }
+
+        if (file_planC2C)
+        {
+            fftw_destroy_plan(file_planC2C);
+            file_planC2C = NULL;
+        }
+
+        fftw_cleanup_threads();
+        file_plan_fftsize = m_fftSize;
     }
 
     DetermineType(input);
@@ -184,7 +196,7 @@ void hwFFTW::SetupFFT(const hwMatrix& input)
         // only m_direction == FFTW_BACKWARD for now
         if (m_fftSize != m_dataSize)
         {
-            int n2 = m_fftSize /2 + 1;
+            int n2 = m_fftSize/2 + 1;
 
             try
             {
@@ -315,6 +327,7 @@ hwMathStatus hwFFTW::Compute(hwMatrix&       input,
         return m_status(HW_MATH_ERR_ARRAYSIZE, 1);
     }
 
+    // dimension output
     if (input.M() == 1)
     {
         switch (m_type)
@@ -418,12 +431,9 @@ hwMathStatus hwFFTW::Compute(hwMatrix&       input,
 
         m_complexOutput = (fftw_complex*) output.GetComplexData();
 
-        if (file_plan_type != FFT_R2C)
+        if (!file_planR2C)
         {
-            if (!file_planR2C)
-                file_planR2C = fftw_plan_dft_r2c_1d(m_fftSize, m_realInput, m_complexOutput, options);
-
-            file_plan_type = FFT_R2C;
+            file_planR2C = fftw_plan_dft_r2c_1d(m_fftSize, m_realInput, m_complexOutput, options);
         }
 
         fftw_execute_dft_r2c(file_planR2C, m_realInput, m_complexOutput);
@@ -495,12 +505,9 @@ hwMathStatus hwFFTW::Compute(hwMatrix&       input,
 
         m_realOutput = output.GetRealData();
 
-        if (file_plan_type != FFT_C2R)
+        if (!file_planC2R)
         {
-            if (!file_planC2R)
-                file_planC2R = fftw_plan_dft_c2r_1d(m_fftSize, m_complexInput, m_realOutput, options);
-
-            file_plan_type = FFT_C2R;
+            file_planC2R = fftw_plan_dft_c2r_1d(m_fftSize, m_complexInput, m_realOutput, options);
         }
 
         fftw_execute_dft_c2r(file_planC2R, m_complexInput, m_realOutput);
@@ -603,12 +610,9 @@ hwMathStatus hwFFTW::Compute(hwMatrix&       input,
             m_complexOutput = (fftw_complex*) output.GetComplexData();
         }
 
-        if (file_plan_type != FFT_C2C)
+        if (!file_planC2C)
         {
-            if (!file_planC2C)
-                file_planC2C = fftw_plan_dft_1d(m_fftSize, m_complexInput, m_complexOutput, file_plan_dir, options);
-
-            file_plan_type = FFT_C2C;
+            file_planC2C = fftw_plan_dft_1d(m_fftSize, m_complexInput, m_complexOutput, file_plan_dir, options);
         }
 
         fftw_execute_dft(file_planC2C, m_complexInput, m_complexOutput);
@@ -654,6 +658,310 @@ hwMathStatus hwFFTW::Compute(hwMatrix&       input,
     }
 
     return m_status;
+}
+//------------------------------------------------------------------------------
+// Call FFTW for a specified dimension for const input and return status
+//------------------------------------------------------------------------------
+hwMathStatus hwFFTW::Compute(const hwMatrix& input, int dim, hwMatrix& output)
+{
+    // clean up
+    if (file_planR2C)
+    {
+        fftw_destroy_plan(file_planR2C);
+        file_planR2C = NULL;
+    }
+
+    if (file_planC2R)
+    {
+        fftw_destroy_plan(file_planC2R);
+        file_planC2R = NULL;
+    }
+
+    if (file_planC2C)
+    {
+        fftw_destroy_plan(file_planC2C);
+        file_planC2C = NULL;
+    }
+
+    fftw_cleanup_threads();
+    file_plan_fftsize = -1;
+    file_plan_dir = 0;
+
+    // start over
+    int rank = 1;
+    int howmany;
+    int stride;
+    int dist;
+    unsigned options = FFTW_ESTIMATE;
+
+    if (dim == 0)       // FFT of columns
+    {
+        stride = 1;
+        howmany = input.N();
+        dist = input.M();
+        m_fftSize = input.M();
+    }
+    else if (dim == 1)  // FFT of rows
+    {
+        stride = input.M();
+        howmany = input.M();
+        dist = 1;
+        m_fftSize = input.N();
+    }
+    else
+    {
+        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 2);
+    }
+
+    m_dataSize = m_fftSize;
+
+    DetermineType(input);
+
+    if (file_plan_dir == FFTW_FORWARD)
+    {
+        DetermineType(input);
+    }
+    else
+    {
+        DetermineType(input, howmany, dist, stride);
+    }
+
+    if (m_type == FFT_R2C)
+    {
+        m_realInput = const_cast<double*> (input.GetRealData());
+        hwMathStatus status = output.Dimension(input.M(), input.N(), hwMatrix::COMPLEX);
+        m_complexOutput = reinterpret_cast<fftw_complex*> (output.GetComplexData());
+
+        file_planR2C = fftw_plan_many_dft_r2c(rank, &m_fftSize, howmany,
+            m_realInput, 0, stride, dist, m_complexOutput, 0, stride, dist, options);
+
+        fftw_execute_dft_r2c(file_planR2C, m_realInput, m_complexOutput);
+
+        // populate conjugate symmetrix half of spectrum
+        int n2 = (m_fftSize + 1) / 2;
+
+        for (int j = 0; j < howmany; ++j)
+        {
+            for (int k = stride; k < n2 * stride; k += stride)
+            {
+                m_complexOutput[stride * m_fftSize - k][0] = m_complexOutput[k][0];
+                m_complexOutput[stride * m_fftSize - k][1] = -m_complexOutput[k][1];
+            }
+
+            m_complexOutput += dist;
+        }
+
+        fftw_destroy_plan(file_planR2C);
+        file_planR2C = NULL;
+    }
+    else if (m_type == FFT_C2R)
+    {
+        m_complexInput = (fftw_complex*)input.GetComplexData();
+        output.Dimension(input.M(), input.N(), hwMatrix::REAL);
+        m_realOutput = output.GetRealData();
+
+        file_planC2R = fftw_plan_many_dft_c2r(rank, &m_fftSize, howmany,
+            m_complexInput, 0, stride, dist, m_realOutput, 0, stride, dist, options);
+
+        fftw_execute_dft_c2r(file_planC2R, m_complexInput, m_realOutput);
+
+        for (int k = 0; k < howmany * m_fftSize; ++k)
+        {
+            m_realOutput[k] /= m_fftSize;
+        }
+
+        fftw_destroy_plan(file_planC2R);
+        file_planC2R = NULL;
+    }
+    else  // m_type == FFT_C2C
+    {
+        m_complexInput = (fftw_complex*)input.GetComplexData();
+        hwMathStatus status = output.Dimension(input.M(), input.N(), hwMatrix::COMPLEX);
+        m_complexOutput = reinterpret_cast<fftw_complex*> (output.GetComplexData());
+
+        file_planC2C = fftw_plan_many_dft(rank, &m_fftSize, howmany,
+            m_complexInput, 0, stride, dist, m_complexOutput, 0, stride, dist, file_plan_dir, options);
+
+        fftw_execute_dft(file_planC2C, m_complexInput, m_complexOutput);
+
+        if (file_plan_dir == FFTW_BACKWARD)
+        {
+            for (int k = 0; k < howmany * m_fftSize; ++k)
+            {
+                m_complexOutput[k][0] /= m_fftSize;
+                m_complexOutput[k][1] /= m_fftSize;
+            }
+        }
+
+        fftw_destroy_plan(file_planC2C);
+        file_planC2C = NULL;
+    }
+
+    fftw_cleanup_threads();
+        
+    return hwMathStatus();
+}
+//------------------------------------------------------------------------------
+// Call FFTW for a specified dimension for const input and return status
+//------------------------------------------------------------------------------
+hwMathStatus hwFFTW::Compute(const hwMatrixN& input, int dim, hwMatrixN& output)
+{
+    // clean up
+    if (file_planR2C)
+    {
+        fftw_destroy_plan(file_planR2C);
+        file_planR2C = NULL;
+    }
+
+    if (file_planC2R)
+    {
+        fftw_destroy_plan(file_planC2R);
+        file_planC2R = NULL;
+    }
+
+    if (file_planC2C)
+    {
+        fftw_destroy_plan(file_planC2C);
+        file_planC2C = NULL;
+    }
+
+    fftw_cleanup_threads();
+    file_plan_fftsize = -1;
+
+    // start over
+    unsigned options = FFTW_ESTIMATE;
+    m_fftSize = input.Dimensions()[dim];
+    std::vector<int> index(input.Dimensions().size());
+    ++index[dim];
+    int stride = input.Index(index);
+    int rank = 1;
+    int howmany;                            // number of vector per stride group
+    int dist;                               // distance between start of stride groups
+    int numVecs = input.Size() / m_fftSize; // number of vectors in the dimension
+    int numGroups;                          // number of stride groups
+
+    if (stride == 1)
+    {
+        numGroups = 1;
+        howmany = numVecs;
+        dist = m_fftSize;
+    }
+    else
+    {
+        numGroups = numVecs / stride;
+        howmany = stride;
+        dist = 1;
+    }
+
+    m_dataSize = m_fftSize;
+
+    if (file_plan_dir == FFTW_FORWARD)
+    {
+        DetermineType(input);
+    }
+    else
+    {
+        DetermineType(input, numGroups, howmany, dist, stride);
+    }
+
+    if (m_type == FFT_R2C)
+    {
+        m_realInput = const_cast<double*> (input.GetRealData());
+        output.Dimension(input.Dimensions(), hwMatrixN::COMPLEX);
+        m_complexOutput = reinterpret_cast<fftw_complex*> (output.GetComplexData());
+
+        file_planR2C = fftw_plan_many_dft_r2c(rank, &m_fftSize, howmany,
+            m_realInput, 0, stride, dist, m_complexOutput, 0, stride, dist, options);
+
+        for (int i = 0; i < numGroups; ++i)
+        {
+            fftw_execute_dft_r2c(file_planR2C, m_realInput, m_complexOutput);
+            m_realInput += stride * m_fftSize;  // advance to next stride group
+            m_complexOutput += stride * m_fftSize;
+        }
+
+        // populate conjugate symmetrix half of spectrum
+        int n2 = (m_fftSize + 1) / 2;
+
+        m_complexOutput = reinterpret_cast<fftw_complex*> (output.GetComplexData());
+
+        for (int i = 0; i < numGroups; ++i)
+        {
+            for (int j = 0; j < howmany; ++j)
+            {
+                for (int k = stride; k < n2 * stride; k += stride)
+                {
+                    m_complexOutput[stride * m_fftSize - k][0] = m_complexOutput[k][0];
+                    m_complexOutput[stride * m_fftSize - k][1] = -m_complexOutput[k][1];
+                }
+
+                m_complexOutput += dist;
+            }
+
+            m_complexOutput += stride * m_fftSize - howmany * dist;
+        }
+
+        fftw_destroy_plan(file_planR2C);
+        file_planR2C = NULL;
+    }
+    else if (m_type == FFT_C2R)
+    {
+        m_complexInput = (fftw_complex*)input.GetComplexData();
+        output.Dimension(input.Dimensions(), hwMatrixN::REAL);
+        m_realOutput = output.GetRealData();
+
+        file_planC2R = fftw_plan_many_dft_c2r(rank, &m_fftSize, howmany,
+            m_complexInput, 0, stride, dist, m_realOutput, 0, stride, dist, options);
+
+        for (int i = 0; i < numGroups; ++i)
+        {
+            fftw_execute_dft_c2r(file_planC2R, m_complexInput, m_realOutput);
+
+            for (int k = 0; k < howmany * m_fftSize; ++k)
+            {
+                m_realOutput[k] /= m_fftSize;
+            }
+
+            m_complexInput += stride * m_fftSize;  // advance to next stride group
+            m_realOutput += stride * m_fftSize;
+        }
+
+        fftw_destroy_plan(file_planC2R);
+        file_planC2R = NULL;
+    }
+    else  // m_type == FFT_C2C
+    {
+        m_complexInput = (fftw_complex*)input.GetComplexData();
+        output.Dimension(input.Dimensions(), hwMatrixN::COMPLEX);
+        m_complexOutput = reinterpret_cast<fftw_complex*> (output.GetComplexData());
+
+        file_planC2C = fftw_plan_many_dft(rank, &m_fftSize, howmany,
+            m_complexInput, 0, stride, dist, m_complexOutput, 0, stride, dist, file_plan_dir, options);
+
+        for (int i = 0; i < numGroups; ++i)
+        {
+            fftw_execute_dft(file_planC2C, m_complexInput, m_complexOutput);
+
+            if (file_plan_dir == FFTW_BACKWARD)
+            {
+                for (int k = 0; k < howmany * m_fftSize; ++k)
+                {
+                    m_complexOutput[k][0] /= m_fftSize;
+                    m_complexOutput[k][1] /= m_fftSize;
+                }
+            }
+
+            m_complexInput += stride * m_fftSize;  // advance to next stride group
+            m_complexOutput += stride * m_fftSize;
+        }
+
+        fftw_destroy_plan(file_planC2C);
+        file_planC2C = NULL;
+    }
+
+    fftw_cleanup_threads();
+
+    return hwMathStatus();
 }
 //------------------------------------------------------------------------------
 // Constructor
@@ -713,13 +1021,11 @@ void hwFFT_r::DetermineType(const hwMatrix& input)
 
     if (!m_assumeSymmetry)
     {
-        hwMatrix* input_NC = (hwMatrix*) &input;    // override const
-
         if (input.IsReal())
         {
             // This section is not in use. It would become case FFT_R2R.
             // The autocorrelation of a real signal could utilize it.
-            double* realInput = input_NC->GetRealData();
+            const double* realInput = input.GetRealData();
 
             for (int i = 1; i < m_dataSize/2; ++i)
             {
@@ -732,7 +1038,7 @@ void hwFFT_r::DetermineType(const hwMatrix& input)
         }
         else
         {
-            hwComplex* complexInput = input_NC->GetComplexData();
+            const hwComplex* complexInput = input.GetComplexData();
 
             if (m_dataSize)
             {
@@ -751,6 +1057,174 @@ void hwFFT_r::DetermineType(const hwMatrix& input)
                         }
                     }
                 }
+            }
+        }
+    }
+
+    if (conjugateSymmetric)
+    {
+        m_type = FFT_C2R;
+    }
+    else
+    {
+        m_type = FFT_C2C;
+    }
+}
+//------------------------------------------------------------------------------
+// Determine FFTW plan type
+//------------------------------------------------------------------------------
+void hwFFT_r::DetermineType(const hwMatrix& input, int howmany,
+                            int dist, int stride)
+{
+    bool conjugateSymmetric = true;
+
+    if (!m_assumeSymmetry)
+    {
+        int n2 = (m_fftSize + 1) / 2;
+
+        if (input.IsReal())
+        {
+            // This section is not in use. It would become case FFT_R2R.
+            // The autocorrelation of a real signal could utilize it.
+            const double* realInput = input.GetRealData();
+
+            for (int j = 0; j < howmany; ++j)
+            {
+                for (int k = stride; k < n2 * stride; k += stride)
+                {
+                    if (realInput[k] != realInput[stride * m_fftSize - k])
+                    {
+                        conjugateSymmetric = false;
+                        break;
+                    }
+                }
+
+                if (!conjugateSymmetric)
+                    break;
+
+                realInput += dist;
+            }
+
+            realInput += stride * m_fftSize - howmany * dist;
+        }
+        else
+        {
+            const hwComplex* complexInput = input.GetComplexData();
+
+            for (int j = 0; j < howmany; ++j)
+            {
+                if (complexInput[0].Imag() != 0.0)
+                {
+                    conjugateSymmetric = false;
+                }
+                else
+                {
+                    for (int k = stride; k < n2 * stride; k += stride)
+                    {
+                        if (complexInput[k] != complexInput[stride * m_fftSize - k].Conjugate())
+                        {
+                            conjugateSymmetric = false;
+                            break;
+                        }
+                    }
+
+                    complexInput += dist;
+                }
+
+                if (!conjugateSymmetric)
+                    break;
+            }
+
+            complexInput += stride * m_fftSize - howmany * dist;
+        }
+    }
+
+    if (conjugateSymmetric)
+    {
+        m_type = FFT_C2R;
+    }
+    else
+    {
+        m_type = FFT_C2C;
+    }
+}
+//------------------------------------------------------------------------------
+// Determine FFTW plan type
+//------------------------------------------------------------------------------
+void hwFFT_r::DetermineType(const hwMatrixN& input, int numGroups, int howmany,
+                            int dist, int stride)
+{
+    bool conjugateSymmetric = true;
+
+    if (!m_assumeSymmetry)
+    {
+        int n2 = (m_fftSize + 1) / 2;
+
+        if (input.IsReal())
+        {
+            // This section is not in use. It would become case FFT_R2R.
+            // The autocorrelation of a real signal could utilize it.
+            const double* realInput = input.GetRealData();
+
+            for (int i = 0; i < numGroups; ++i)
+            {
+                for (int j = 0; j < howmany; ++j)
+                {
+                    for (int k = stride; k < n2 * stride; k += stride)
+                    {
+                        if (realInput[k] != realInput[stride * m_fftSize - k])
+                        {
+                            conjugateSymmetric = false;
+                            break;
+                        }
+                    }
+
+                    if (!conjugateSymmetric)
+                        break;
+
+                    realInput += dist;
+                }
+
+                if (!conjugateSymmetric)
+                    break;
+
+                realInput += stride * m_fftSize - howmany * dist;
+            }
+        }
+        else
+        {
+            const hwComplex* complexInput = input.GetComplexData();
+
+            for (int i = 0; i < numGroups; ++i)
+            {
+                for (int j = 0; j < howmany; ++j)
+                {
+                    if (complexInput[0].Imag() != 0.0)
+                    {
+                        conjugateSymmetric = false;
+                    }
+                    else
+                    {
+                        for (int k = stride; k < n2 * stride; k += stride)
+                        {
+                            if (complexInput[k] != complexInput[stride * m_fftSize - k].Conjugate())
+                            {
+                                conjugateSymmetric = false;
+                                break;
+                            }
+                        }
+
+                        complexInput += dist;
+                    }
+
+                    if (!conjugateSymmetric)
+                        break;
+                }
+
+                if (!conjugateSymmetric)
+                    break;
+
+                complexInput += stride * m_fftSize - howmany * dist;
             }
         }
     }

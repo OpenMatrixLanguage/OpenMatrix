@@ -213,7 +213,9 @@ Currency BuiltInFuncsConvert::Hex2DecHelper(EvaluatorInterface& eval,
         for (int i = 0; i < rows; ++i)
         {
             Currency thisrow = BuiltInFuncsUtils::ReadRow(eval, input, i);
-            hexStr.push_back (thisrow.StringVal());
+			BuiltInFuncsUtils utils;
+			std::string trimmed = utils.RTrim(thisrow.StringVal());
+            hexStr.push_back (trimmed);
         }
     }
     else if (input.IsCellArray())

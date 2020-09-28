@@ -225,7 +225,12 @@ int main(int argc, char* argv[])
 		}
 		else if (lower_str == "-f")
 		{
-			// process arguments following as script files until the next argument which begins with a dash '-'
+            // process the argument as a oml command
+            if (!bannerprinted)
+            {
+                PrintBanner();
+                bannerprinted = true;
+            }
 			f_argument_flag = true;
 			continue;
 		}
@@ -314,6 +319,11 @@ void CallNewConsolePrompting(ConsoleWrapper* wrapper)
     int  hearbeatcounter = 1;
 	while (1)
     {
+        if (std::cin.fail())
+        {
+            std::cin.clear();
+        }
+
         bool breakloop = HandleUserInterrupt(wrapper);
         if (breakloop)
             break;
@@ -390,6 +400,7 @@ std::string GetInputCommand(ConsoleWrapper* wrapper)
 //------------------------------------------------------------------------------
 BOOL OnControlKeyDown(DWORD controlType)
 {
+    fflush(stdout);
     ClearCommandString = true;
 
     // This routine may be called in a separate thread. So, just set interrupt
@@ -405,6 +416,7 @@ BOOL OnControlKeyDown(DWORD controlType)
 //------------------------------------------------------------------------------
 void OnControlKeyDown(int controlType)
 {
+    fflush(stdout);
     ClearCommandString = true;
 
     // This routine may be called in a separate thread. So, just set interrupt
@@ -425,6 +437,17 @@ void OnControlKeyDown(int controlType)
 void PrintBanner()
 {
 #ifndef _DEBUG
+    char* val = getenv("OML_HIDEBANNER");
+    if (val)
+    {
+        std::string tmp(val);
+        std::transform(tmp.begin(), tmp.end(), tmp.begin(), ::tolower);
+        if (tmp == "1" || tmp == "true")
+        {
+            return;
+        }
+    }
+
     std::string line ("//----------------------------------------------------------------------");
 
     std::cout << line << std::endl;
@@ -442,8 +465,14 @@ void SetUserInterrupt()
 
     // First interruption will cause interpreter to interrupt. Subsequent 
     // interrupts will cause application to quit
-    if (g_numUserInterrupts == 1 && interp)
-        interp->TriggerInterrupt();
+    if (interp)
+    {
+        if (g_numUserInterrupts == 1)
+        {
+            interp->TriggerInterrupt();
+        }
+        std::cin.clear();
+    }
 }
 //------------------------------------------------------------------------------
 // Handles user interrupt returns true if application needs to quit
@@ -460,17 +489,36 @@ bool HandleUserInterrupt(ConsoleWrapper* omlWrapper)
     {
         return true;
     }
-
-    std::cout << std::endl;
-    
+   
     if (g_numUserInterrupts == 1)
     {
+        omlWrapper->PrintToStdout("\n");
         omlWrapper->HandleOnClearResults();
         return false;  // Only an interrupt was requested
     }
-    
+    omlWrapper->PrintToStdout("Are you sure you want to exit the application? Press 'C' to cancel...");
+    fflush(stdout);
+
+    std::string userInput;
+    std::cin.clear();
+    std::getline(std::cin, userInput);
+    if (!userInput.empty())
+    {
+        std::transform(userInput.begin(), userInput.end(), userInput.begin(), ::tolower);
+    }
+
+    if (userInput == "c")
+    {
+        g_numUserInterrupts = 0;
+        omlWrapper->HandleOnClearResults();
+        fflush(stdout);
+        return false;  // Ignoring the request to quit the application
+    }
+
+    fflush(stdout);
+    std::cout << std::endl;
     omlWrapper->PrintNewPrompt();
-    omlWrapper->PrintToStdout("Quitting the application...");
+    omlWrapper->PrintToStdout("Exiting the application...");
     omlWrapper->HandleOnSaveOnExit();
 
     return true;

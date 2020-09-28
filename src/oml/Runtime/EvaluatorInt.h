@@ -191,15 +191,13 @@ public:
     bool LockBuiltInFunction(const std::string& fname);
 
     std::string GetCurrentFilename() const;
+	int         GetCurrentLinenumber() const;
 
 	void CacheLineInfomation();
 	void UncacheLineInfomation();
 
-	void SetDiary(bool val);
-	bool IsDiaryOpen();
-	void SetDiary(std::string filename);
-
 	void SetDLLContext(const std::string& dll_name);
+	void SetDLLHierarchy(const std::string& dll_hierarchy);
 
     //! Returns a vector of function names
     std::vector<std::string> GetFunctionNames() const;
@@ -220,7 +218,8 @@ public:
     //! Refreshes directories in client
     void OnRefreshDirs();
 	//! Prompts to save before exiting
-	void OnSaveOnExit();
+    //! \param[in] returnCode Code to exit the application with
+	void OnSaveOnExit(int returnCode);
 	//! Gets user input
 	//! \param[in]  prompt Prompt to display to the user
     //! \param[in]  type   Type, if specified
@@ -291,6 +290,13 @@ public:
 
 	void RegisterChildEvaluator(ExprTreeEvaluator*);
 	void RemoveChildEvaluator();
+
+	void SetNumberOfThreads(int threads);
+
+    //!
+    //! Returns diary filestream
+    //!
+    std::ofstream& GetDiary();
 
 private:
     ExprTreeEvaluator* eval;

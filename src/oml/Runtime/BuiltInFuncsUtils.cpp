@@ -114,15 +114,18 @@ void BuiltInFuncsUtils::CheckMathStatus(EvaluatorInterface& eval,
     SetWarning(eval, mstat.GetMessageString());
 }
 //------------------------------------------------------------------------------
-// Sets warning message \todo: Replace hmlwarning method
+// Sets warning message
 //------------------------------------------------------------------------------
 void BuiltInFuncsUtils::SetWarning(EvaluatorInterface& eval, const std::string& str)
 {
-	std::string warningstr = eval.FormatMessage(str);
-    Currency warn(warningstr);
-    warn.DispOutput();
-    eval.PrintResult(warn);
-    EvaluatorInterface::SetLastWarning(warningstr);
+    if (!str.empty())
+    {
+        std::string warningstr = eval.FormatMessage(str);
+        Currency warn(warningstr);
+        warn.DispOutput();
+        eval.PrintResult(warn);
+        EvaluatorInterface::SetLastWarning(warningstr);
+    }
 }
 //------------------------------------------------------------------------------
 // Returns currency which gives formatted output of strings. Strings will be 
@@ -715,27 +718,26 @@ void BuiltInFuncsUtils::StripTrailingSlash(std::string& path)
 //------------------------------------------------------------------------------
 std::string BuiltInFuncsUtils::GetAbsolutePath(const std::string& path)
 {
-    if (path.empty()) 
+    if (path.empty())
+    {
         return "";
+    }
 
-    char* tmp = NULL;
 #ifdef OS_WIN
-    if (path.length() == 2 && isalpha(path[0]) && path[1] == ':')
-        return path;
-
-    tmp = _fullpath(nullptr, path.c_str(), 0);
-#else    
-    tmp = realpath(path.c_str(), NULL);
-#endif
-   
+    BuiltInFuncsUtils utils;
+    std::wstring abspath(utils.GetAbsolutePathW(utils.StdString2WString(path)));
+    return utils.WString2StdString(abspath);
+#else
+    char* tmp = realpath(path.c_str(), NULL); 
     if (!tmp)
         return "";
 
-    std::string abspath = tmp;
+    std::string abspath(tmp);
     free(tmp);
     tmp = NULL;
 
     return abspath;
+#endif
 }
 //------------------------------------------------------------------------------
 // Returns true if this is the root dir (for windows)
@@ -1060,13 +1062,22 @@ int BuiltInFuncsUtils::GetFileId(EvaluatorInterface eval,
         }
         return -1;
     }
-
-    if (!cur.IsPositiveInteger())
-    {
-        throw OML_Error(OML_ERR_INTEGER, idx, OML_VAR_FILEID);
+    else if (cur.IsScalar())
+    {   // stdin can be 0
+        if (!IsInteger(cur.Scalar()).IsOk())
+        {
+            throw OML_Error(OML_ERR_NATURALNUM, idx, OML_VAR_FILEID);
+        }
+        int id = static_cast<int>(cur.Scalar());
+        if (id < 0) // stdin can be 0
+        {
+            throw OML_Error(OML_ERR_NATURALNUM, idx, OML_VAR_FILEID);
+        }
+		return id;
     }
-    return static_cast<int>(cur.Scalar());
+    throw OML_Error(OML_ERR_STRING_FILESTREAM, idx, OML_VAR_FILEID);
 }
+    
 //------------------------------------------------------------------------------
 // Returns true after parsing input and gets formats
 //------------------------------------------------------------------------------
@@ -1527,22 +1538,25 @@ std::string BuiltInFuncsUtils::LTrim(const std::string& in)
     return in.substr(pos);
 }
 //------------------------------------------------------------------------------
-//  Returns string trimmed from trailing white space(s)
+//  Trims trailing characters
 //------------------------------------------------------------------------------
-std::string BuiltInFuncsUtils::RTrim(const std::string& in)
+std::string BuiltInFuncsUtils::RTrim(const std::string& in, const std::string& trim)
 {
     if (in.empty())
     {
         return std::string();
     }
+    if (trim.empty())
+    {
+        return in;
+    }
 
-    std::string whitespace(" \t");
     std::string out(in);
 
-    size_t pos = out.find_last_not_of(whitespace);
+    size_t pos = out.find_last_not_of(trim);
     if (pos != std::string::npos)
     {
-        out.erase(out.find_last_not_of(whitespace) + 1);
+        out.erase(out.find_last_not_of(trim) + 1);
     }
     return out;
 }
@@ -1866,4 +1880,78 @@ std::string BuiltInFuncsUtils::GetPaginate() const
     }
 
     return "on";
+}
+//------------------------------------------------------------------------------
+// Creates a temporary folder and returns its name
+//------------------------------------------------------------------------------
+std::string BuiltInFuncsUtils::CreateTempFolder()
+{
+    std::string       path;
+    BuiltInFuncsUtils utils;
+
+#ifdef OS_WIN 
+    wchar_t buff[MAX_PATH];
+    if (GetTempPathW(MAX_PATH, buff))
+    {
+        std::wstring wpath = buff;
+        path = utils.WString2StdString(wpath);
+    }   
+#else
+    char* cpath = getenv("TMPDIR");
+    if (cpath)
+    {
+        path = cpath;
+    }
+    else
+    {
+        path = "/tmp";
+    }
+#endif
+    long id = utils.CreateChainedDisplayId();
+    AddTrailingSlash(path);
+    path += "omltmp" + std::to_string(static_cast<long long>(id));
+    Mkdir(path);
+
+    return path;
+}
+//------------------------------------------------------------------------------
+// Creates the directory, if it does not exist
+//------------------------------------------------------------------------------
+void BuiltInFuncsUtils::Mkdir(const std::string& dir)
+{
+    BuiltInFuncsUtils utils;
+    std::string name(utils.Normpath(dir));
+    if (!utils.DoesPathExist(name))
+    {
+#ifdef OS_WIN
+        std::wstring wst = L"mkdir \"";
+        wst += utils.StdString2WString(name);
+        wst += L"\"";
+        _wsystem(wst.c_str());
+#else
+        // Use the system command to make recursive directories
+        std::string strcmd("mkdir -p \"" + name + "\" > /dev/null");
+        int         result = system(strcmd.c_str());
+#endif
+    }
+}
+//------------------------------------------------------------------------------
+// Returns file pointer after opening in given mode, supports Unicode
+//------------------------------------------------------------------------------
+std::FILE* BuiltInFuncsUtils::FileOpen(const std::string& name,
+                                       const std::string& mode)
+{
+    std::FILE* fp = nullptr;
+
+#ifdef OS_WIN
+    std::wstring wfname(StdString2WString(name));
+    std::wstring wmode(StdString2WString(mode));
+
+    fp = _wfopen(wfname.c_str(), wmode.c_str());
+#else
+    fp = fopen(name.c_str(), mode.c_str());
+#endif
+
+    return fp;
+
 }

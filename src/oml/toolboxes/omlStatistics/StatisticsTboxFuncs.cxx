@@ -161,6 +161,7 @@ int InitDll(EvaluatorInterface eval)
 
     eval.RegisterBuiltInFunction("rms",      &OmlRms,      FunctionMetaData(2, 1, STATAN));
     eval.RegisterBuiltInFunction("skewness", &OmlSkewness, FunctionMetaData(3, 1, STATAN));
+    eval.RegisterBuiltInFunction("kurtosis", &OmlKurtosis, FunctionMetaData(3, 1, STATAN));
     eval.RegisterBuiltInFunction("var",      &OmlVariance, FunctionMetaData(2, 1, STATAN));
     eval.RegisterBuiltInFunction("std",      &OmlStd,      FunctionMetaData(2, 1, STATAN));
     eval.RegisterBuiltInFunction("median",   &OmlMedian,   FunctionMetaData(2, 1, STATAN));
@@ -180,7 +181,7 @@ int InitDll(EvaluatorInterface eval)
 }
 
 //------------------------------------------------------------------------------
-// Computess uniform distribution probability density function values 
+// Computes uniform distribution probability density function values 
 //------------------------------------------------------------------------------
 bool OmlUnifpdf(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs,
@@ -397,7 +398,7 @@ bool OmlUnifpdf(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess uniform distribution probability density function values 
+// Computes uniform distribution probability density function values 
 //------------------------------------------------------------------------------
 bool OmlUnifcdf(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs, 
@@ -614,7 +615,7 @@ bool OmlUnifcdf(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess uniform distribution inverse cumulative distribution function values
+// Computes uniform distribution inverse cumulative distribution function values
 //------------------------------------------------------------------------------
 bool OmlUnifinv(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs, 
@@ -937,7 +938,7 @@ bool OmlUnifit(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess normal distribution probability density function values [normpdf]
+// Computes normal distribution probability density function values [normpdf]
 //------------------------------------------------------------------------------
 bool OmlNormpdf(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs, 
@@ -1156,7 +1157,7 @@ bool OmlNormpdf(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess normal distribution cumulative distribution values [normcdf]
+// Computes normal distribution cumulative distribution values [normcdf]
 //------------------------------------------------------------------------------
 bool OmlNormcdf(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs, 
@@ -1373,7 +1374,7 @@ bool OmlNormcdf(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess normal distribution inverse cumulative distribution values [norminv]
+// Computes normal distribution inverse cumulative distribution values [norminv]
 //------------------------------------------------------------------------------
 bool OmlNorminv(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs,  
@@ -1912,7 +1913,7 @@ bool OmlNormfit(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess beta distribution probability distribution function values [betapdf]
+// Computes beta distribution probability distribution function values [betapdf]
 //------------------------------------------------------------------------------
 bool OmlBetapdf(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs, 
@@ -2122,7 +2123,7 @@ bool OmlBetapdf(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess beta distribution cumulative distribution values [betacdf]
+// Computes beta distribution cumulative distribution values [betacdf]
 //------------------------------------------------------------------------------
 bool OmlBetacdf(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs, 
@@ -2329,7 +2330,7 @@ bool OmlBetacdf(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess beta distribution inverse cumulative distribution values [betainv]
+// Computes beta distribution inverse cumulative distribution values [betainv]
 //------------------------------------------------------------------------------
 bool OmlBetainv(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs, 
@@ -3373,7 +3374,7 @@ bool OmlGamfit(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess exponential distribution probability density values[exppdf]
+// Computes exponential distribution probability density values[exppdf]
 //------------------------------------------------------------------------------
 bool OmlExppdf(EvaluatorInterface           eval,
                const std::vector<Currency>& inputs, 
@@ -3480,7 +3481,7 @@ bool OmlExppdf(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess exponential distribution cumulative distribution values [expcdf]
+// Computes exponential distribution cumulative distribution values [expcdf]
 //------------------------------------------------------------------------------
 bool OmlExpcdf(EvaluatorInterface           eval,
                const std::vector<Currency>& inputs, 
@@ -3587,7 +3588,7 @@ bool OmlExpcdf(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess exponential distribution inverse cumulative distribution values [expinv]
+// Computes exponential distribution inverse cumulative distribution values [expinv]
 //------------------------------------------------------------------------------
 bool OmlExpinv(EvaluatorInterface           eval,
                const std::vector<Currency>& inputs, 
@@ -3778,7 +3779,7 @@ bool OmlExpfit(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess chi-squared distribution probability density values [chi2pdf]
+// Computes chi-squared distribution probability density values [chi2pdf]
 //------------------------------------------------------------------------------
 bool OmlChi2pdf(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs, 
@@ -3898,7 +3899,7 @@ bool OmlChi2pdf(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess chi-squared distribution cumulative distribution values [chi2cdf]
+// Computes chi-squared distribution cumulative distribution values [chi2cdf]
 //------------------------------------------------------------------------------
 bool OmlChi2cdf(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs, 
@@ -4019,7 +4020,7 @@ bool OmlChi2cdf(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess chi-squared distribution inverse cumulative distribution values [chi2inv]
+// Computes chi-squared distribution inverse cumulative distribution values [chi2inv]
 //------------------------------------------------------------------------------
 bool OmlChi2inv(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs, 
@@ -4209,7 +4210,7 @@ bool OmlChi2rnd(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess Student t distribution probability density values [tpdf]
+// Computes Student t distribution probability density values [tpdf]
 //------------------------------------------------------------------------------
 bool OmlTpdf(EvaluatorInterface           eval, 
              const std::vector<Currency>& inputs, 
@@ -4330,7 +4331,7 @@ bool OmlTpdf(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess Student t distribution cumulative distribution function values [tcdf]
+// Computes Student t distribution cumulative distribution function values [tcdf]
 //------------------------------------------------------------------------------
 bool OmlTcdf(EvaluatorInterface           eval,
              const std::vector<Currency>& inputs, 
@@ -4451,7 +4452,7 @@ bool OmlTcdf(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess Student t distribution inverse cumulative distribution values [tinv]
+// Computes Student t distribution inverse cumulative distribution values [tinv]
 //------------------------------------------------------------------------------
 bool OmlTinv(EvaluatorInterface           eval,
              const std::vector<Currency>& inputs, 
@@ -5728,7 +5729,7 @@ bool OmlLognpdf(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess lognormal distribution cumulative distribution values [logncdf]
+// Computes lognormal distribution cumulative distribution values [logncdf]
 //------------------------------------------------------------------------------
 bool OmlLogncdf(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs, 
@@ -7524,7 +7525,7 @@ bool OmlRandom(EvaluatorInterface           eval,
     return false;
 }
 //------------------------------------------------------------------------------
-// Computess inverse cumulative distribution function values [icdf]
+// Computes inverse cumulative distribution function values [icdf]
 //------------------------------------------------------------------------------
 bool OmlInvcdf(EvaluatorInterface           eval,
                const std::vector<Currency>& inputs, 
@@ -7576,7 +7577,7 @@ bool OmlInvcdf(EvaluatorInterface           eval,
     return false;
 }
 //------------------------------------------------------------------------------
-// Computess cumulative distribution function values [cdf]
+// Computes cumulative distribution function values [cdf]
 //------------------------------------------------------------------------------
 bool OmlCdf(EvaluatorInterface           eval,
             const std::vector<Currency>& inputs, 
@@ -7628,7 +7629,7 @@ bool OmlCdf(EvaluatorInterface           eval,
     return false;
 }
 //------------------------------------------------------------------------------
-// Computess probability density function values [pdf]
+// Computes probability density function values [pdf]
 //------------------------------------------------------------------------------
 bool OmlPdf(EvaluatorInterface           eval,
             const std::vector<Currency>& inputs, 
@@ -8738,7 +8739,7 @@ void GetDims(EvaluatorInterface&          eval,
         *m = *n = 1;
 }
 //------------------------------------------------------------------------------
-// Computess root mean square values [rms]
+// Computes root mean square values [rms]
 //------------------------------------------------------------------------------
 bool OmlRms(EvaluatorInterface           eval,
             const std::vector<Currency>& inputs, 
@@ -8779,7 +8780,7 @@ bool OmlRms(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess skewness values [skewness]
+// Computes skewness values [skewness]
 //------------------------------------------------------------------------------
 bool OmlSkewness(EvaluatorInterface           eval,
                  const std::vector<Currency>& inputs, 
@@ -8795,7 +8796,7 @@ bool OmlSkewness(EvaluatorInterface           eval,
         if (nargin < 2)
             return oml_MatrixNUtil3(eval, inputs, outputs, OmlSkewness);
         else
-            return oml_MatrixNUtil3(eval, inputs, outputs, OmlSkewness, 3);
+            return oml_MatrixNUtil3(eval, inputs, outputs, OmlSkewness, 23);
     }
 
     if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
@@ -8803,22 +8804,25 @@ bool OmlSkewness(EvaluatorInterface           eval,
 
     const hwMatrix* data = inputs[0].ConvertToMatrix();
     int dim;
-    bool biasCorrected;
+    bool correctBias;
+
+    if (!data->IsReal())
+        throw OML_Error(OML_ERR_REAL, 1, OML_VAR_DATA);
 
     if (nargin > 1)
     {
         if (inputs[1].IsScalar())
         {
             if (inputs[1].Scalar() == 0.0)
-                biasCorrected = true;
+                correctBias = true;
             else if (inputs[1].Scalar() == 1.0)
-                biasCorrected = false;
+                correctBias = false;
             else
                 throw OML_Error(OML_ERR_FLAG_01, 2);
         }
         else if (inputs[1].IsEmpty())
         {
-            biasCorrected = false;  // default is opposite of var and std
+            correctBias = false;  // default is opposite of var and std
         }
         else
         {
@@ -8827,7 +8831,7 @@ bool OmlSkewness(EvaluatorInterface           eval,
     }
     else
     {
-        biasCorrected = false;  // default is opposite of var and std
+        correctBias = false;  // default is opposite of var and std
     }
 
     if (nargin > 2)
@@ -8835,47 +8839,234 @@ bool OmlSkewness(EvaluatorInterface           eval,
         if (!inputs[2].IsPositiveInteger())
             throw OML_Error(OML_ERR_POSINTEGER, 3);
 
-        dim = static_cast<int>(inputs[2].Scalar());
-
-        if (dim !=1 && dim != 2)
-            throw OML_Error(OML_ERR_UNSUPPORTDIM, 3);
+        dim = (int)inputs[2].Scalar();
     }
     else
-        dim = data->M() == 1 ? 2 : 1;
-
-    if (data->IsEmpty())
     {
-        outputs.push_back(!biasCorrected ? 0.0 : std::numeric_limits<double>::quiet_NaN());
-        return true;
+        if (data->IsVector())
+            dim = -1;
+        else
+            dim = 1;
     }
 
-    Currency result = oml_MatrixUtil(eval, data, dim, &callOnVector<&Skewness>);
+    hwMathStatus status;
 
-    if (biasCorrected)
+    if (dim == -1)
     {
-        int n;
+        double skew;
+        status = Skewness(*data, skew, correctBias);
+        outputs.push_back(skew);
+    }
+    else if (dim == 1)
+    {
+        const double* colPtr;
+        hwMatrix* skew;
 
-        if (dim == 1)
-            n = data->M();
-        else if (dim == 2)
-            n = data->N();
-        else
-            n = 1;
+        if (data->M())
+        {
+            skew = new hwMatrix(1, data->N(), hwMatrix::REAL);
 
-        if (n < 2)
-            result.GetWritableMatrix()->SetElements(std::numeric_limits<double>::quiet_NaN());
+            for (int i = 0; i < data->N(); ++i)
+            {
+                colPtr = &((*data)(0, i));
+                hwMatrix col(data->M(), (void*)colPtr, hwMatrix::REAL);
+                status = Skewness(col, (*skew)(0, i), correctBias);
+            }
+        }
         else
         {
-            double coef = sqrt(static_cast<double>(n * (n - 1))) / (n - 2);
-            result.GetWritableMatrix()->MultEquals(coef);
+            if (data->N())
+                skew = new hwMatrix(1, data->N(), hwMatrix::REAL);
+            else
+                skew = new hwMatrix(1, 1, hwMatrix::REAL);
+
+            skew->SetElements(std::numeric_limits<double>::quiet_NaN());
         }
+
+        outputs.push_back(skew);
+    }
+    else if (dim == 2)
+    {
+        hwMatrix row;
+        hwMatrix* skew;
+
+        if (data->N())
+        {
+            skew = new hwMatrix(data->M(), 1, hwMatrix::REAL);
+
+            for (int i = 0; i < data->M(); ++i)
+            {
+                status = data->ReadRow(i, row);
+                status = Skewness(row, (*skew)(i, 0), correctBias);
+            }
+        }
+        else
+        {
+            if (data->M())
+                skew = new hwMatrix(data->M(), 1, hwMatrix::REAL);
+            else
+                skew = new hwMatrix(1, 1, hwMatrix::REAL);
+
+            skew->SetElements(std::numeric_limits<double>::quiet_NaN());
+        }
+
+        outputs.push_back(skew);
+    }
+    else
+    {
+        hwMatrix* skew = new hwMatrix(data->M(), data->N(), hwMatrix::REAL);
+        skew->SetElements(std::numeric_limits<double>::quiet_NaN());
+
+        outputs.push_back(skew);
     }
 
-    outputs.push_back(result);
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess variance values [var]
+// Computes kurtosis values [kurtosis]
+//------------------------------------------------------------------------------
+bool OmlKurtosis(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 3)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    if (inputs[0].IsNDMatrix())
+    {
+        if (nargin < 2)
+            return oml_MatrixNUtil3(eval, inputs, outputs, OmlKurtosis);
+        else
+            return oml_MatrixNUtil3(eval, inputs, outputs, OmlKurtosis, 23);
+    }
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+        throw OML_Error(OML_ERR_REAL, 1, OML_VAR_DATA);
+
+    const hwMatrix* data = inputs[0].ConvertToMatrix();
+    int dim;
+    bool correctBias;
+
+    if (!data->IsReal())
+        throw OML_Error(OML_ERR_REAL, 1, OML_VAR_DATA);
+
+    if (nargin > 1)
+    {
+        if (inputs[1].IsScalar())
+        {
+            if (inputs[1].Scalar() == 0.0)
+                correctBias = true;
+            else if (inputs[1].Scalar() == 1.0)
+                correctBias = false;
+            else
+                throw OML_Error(OML_ERR_FLAG_01, 2);
+        }
+        else if (inputs[1].IsEmpty())
+        {
+            correctBias = false;  // default is opposite of var and std
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_FLAG_01, 2);
+        }
+    }
+    else
+    {
+        correctBias = false;  // default is opposite of var and std
+    }
+
+    if (nargin > 2)
+    {
+        if (!inputs[2].IsPositiveInteger())
+            throw OML_Error(OML_ERR_POSINTEGER, 3);
+
+        dim = (int)inputs[2].Scalar();
+    }
+    else
+    {
+        if (data->IsVector())
+            dim = -1;
+        else
+            dim = 1;
+    }
+
+    hwMathStatus status;
+
+    if (dim == -1)
+    {
+        double kurt;
+        status = Kurtosis(*data, kurt, correctBias);
+        outputs.push_back(kurt);
+    }
+    else if (dim == 1)
+    {
+        const double* colPtr;
+        hwMatrix* kurt;
+
+        if (data->M())
+        {
+            kurt = new hwMatrix(1, data->N(), hwMatrix::REAL);
+
+            for (int i = 0; i < data->N(); ++i)
+            {
+                colPtr = &((*data)(0, i));
+                hwMatrix col(data->M(), (void*)colPtr, hwMatrix::REAL);
+                status = Kurtosis(col, (*kurt)(0, i), correctBias);
+            }
+        }
+        else
+        {
+            if (data->N())
+                kurt = new hwMatrix(1, data->N(), hwMatrix::REAL);
+            else
+                kurt = new hwMatrix(1, 1, hwMatrix::REAL);
+
+            kurt->SetElements(std::numeric_limits<double>::quiet_NaN());
+        }
+
+        outputs.push_back(kurt);
+    }
+    else if (dim == 2)
+    {
+        hwMatrix row;
+        hwMatrix* kurt;
+
+        if (data->N())
+        {
+            kurt = new hwMatrix(data->M(), 1, hwMatrix::REAL);
+
+            for (int i = 0; i < data->M(); ++i)
+            {
+                status = data->ReadRow(i, row);
+                status = Kurtosis(row, (*kurt)(i, 0), correctBias);
+            }
+        }
+        else
+        {
+            if (data->M())
+                kurt = new hwMatrix(data->M(), 1, hwMatrix::REAL);
+            else
+                kurt = new hwMatrix(1, 1, hwMatrix::REAL);
+
+            kurt->SetElements(std::numeric_limits<double>::quiet_NaN());
+        }
+
+        outputs.push_back(kurt);
+    }
+    else
+    {
+        hwMatrix* kurt = new hwMatrix(data->M(), data->N(), hwMatrix::REAL);
+        kurt->SetElements(std::numeric_limits<double>::quiet_NaN());
+
+        outputs.push_back(kurt);
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Computes variance values [var]
 //------------------------------------------------------------------------------
 bool OmlVariance(EvaluatorInterface           eval,
                  const std::vector<Currency>& inputs, 
@@ -8891,7 +9082,7 @@ bool OmlVariance(EvaluatorInterface           eval,
         if (nargin == 1)
             return oml_MatrixNUtil3(eval, inputs, outputs, OmlVariance);
         else
-            return oml_MatrixNUtil3(eval, inputs, outputs, OmlVariance, 3);
+            return oml_MatrixNUtil3(eval, inputs, outputs, OmlVariance, 23);
     }
 
     if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
@@ -9034,7 +9225,7 @@ bool OmlStd(EvaluatorInterface           eval,
         if (nargin < 2)
             return oml_MatrixNUtil3(eval, inputs, outputs, OmlStd);
         else
-            return oml_MatrixNUtil3(eval, inputs, outputs, OmlStd, 3);
+            return oml_MatrixNUtil3(eval, inputs, outputs, OmlStd, 23);
     }
 
     if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
@@ -9161,7 +9352,7 @@ bool OmlStd(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess median values [median]
+// Computes median values [median]
 //------------------------------------------------------------------------------
 bool OmlMedian(EvaluatorInterface           eval,
                const std::vector<Currency>& inputs, 
@@ -9206,7 +9397,7 @@ bool OmlMedian(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess mean absolute deviation values [meandev]
+// Computes mean absolute deviation values [meandev]
 //------------------------------------------------------------------------------
 bool OmlMeandev(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs, 
@@ -9351,7 +9542,7 @@ bool OmlMean(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess covariances [cov]
+// Computes covariances [cov]
 //------------------------------------------------------------------------------
 bool OmlCov(EvaluatorInterface           eval,
             const std::vector<Currency>& inputs, 
@@ -9448,7 +9639,7 @@ bool OmlCov(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Computess correlation coefficients [corr]
+// Computes correlation coefficients [corr]
 //------------------------------------------------------------------------------
 bool OmlCorr(EvaluatorInterface           eval,
              const std::vector<Currency>& inputs, 

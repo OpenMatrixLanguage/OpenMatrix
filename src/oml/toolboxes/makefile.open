@@ -26,4 +26,4 @@ clean:
 	make -C plot            clean -f makefile.open
 	make -C omlMatio        clean -f makefile.open
 	make -C omlGeometry     clean -f makefile.open
-#	make -C omlpythonbridge clean -f makefile.open
+	make -C omlpythonbridge clean -f makefile.open

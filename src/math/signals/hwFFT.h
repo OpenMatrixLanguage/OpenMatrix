@@ -23,7 +23,9 @@
 class hwMathStatus;
 template <typename T> class hwTComplex;
 template <typename T1, typename T2> class hwTMatrix;
+template <typename T1, typename T2> class hwTMatrixN;
 typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
+typedef hwTMatrixN<double, hwTComplex<double> > hwMatrixN;
 
 //!
 //! \enum FFT_TYPE
@@ -69,6 +71,24 @@ public:
     //!
     hwMathStatus Compute(hwMatrix& input, 
                          hwMatrix& output);
+    //!
+    //! Call FFTW for a specified dimension for const input and return status
+    //! \param input
+    //! \param dim
+    //! \param output
+    //!
+    hwMathStatus Compute(const hwMatrix& input,
+                         int dim,
+                         hwMatrix& output);
+    //!
+    //! Call FFTW for a specified dimension for const input and return status
+    //! \param input
+    //! \param dim
+    //! \param output
+    //!
+    hwMathStatus Compute(const hwMatrixN& input,
+                         int              dim,
+                         hwMatrixN&       output);
 
 protected:
     hwFFTW(unsigned direction, int fftSize = 0);
@@ -84,6 +104,11 @@ protected:
     hwMathStatus m_status;
 
     virtual void DetermineType(const hwMatrix& input) = 0;
+    virtual void DetermineType(const hwMatrix& input,
+                               int howmany, int dist, int stride) {}
+    virtual void DetermineType(const hwMatrixN& input);
+    virtual void DetermineType(const hwMatrixN& input, int numGroups,
+                               int howmany, int dist, int stride) {}
 
 private:
     //!
@@ -97,7 +122,6 @@ private:
     //! \param output
     //! \param options
     //!
-
     hwMathStatus Compute(hwMatrix&       input, 
                          hwMatrix&       output, 
                          const unsigned& options);
@@ -122,10 +146,6 @@ public:
     virtual ~hwFFT_f();
 
 protected:
-    //!
-    //! Determines the type
-    //! \param input
-    //!
     void DetermineType(const hwMatrix& input);
 };
 //------------------------------------------------------------------------------
@@ -155,10 +175,33 @@ protected:
     //! \param input
     //!
     void DetermineType(const hwMatrix& input);
+    //!
+    //! Determines the type
+    //! \param input
+    //! \param howmany
+    //! \param dist
+    //! \param stride
+    //!
+    void DetermineType(const hwMatrix& input,
+                       int             howmany,
+                       int             dist,
+                       int             stride);
+    //!
+    //! Determines the type
+    //! \param input
+    //! \param numGroups
+    //! \param howmany
+    //! \param dist
+    //! \param stride
+    //!
+    void DetermineType(const hwMatrixN& input,
+                       int              numGroups,
+                       int              howmany,
+                       int              dist,
+                       int              stride);
 
 private:
     bool m_assumeSymmetry; //!< 
-
 };
 
 #endif // _Signals_FFT_h

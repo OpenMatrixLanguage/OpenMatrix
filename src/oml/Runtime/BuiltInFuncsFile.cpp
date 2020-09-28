@@ -78,12 +78,18 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
     {
 		throw OML_Error(OML_ERR_FILE_NOTFOUND, 1);
     }
+    BuiltInFuncsUtils utils;
 
-     std::FILE* f = fopen(filename.c_str(), "r");
-     if (!f)
-     {
-		 throw OML_Error(OML_ERR_FILE_CANNOTOPEN, 1);
-     }
+    std::string mode("r");
+#ifdef OS_WIN
+    mode += ", ccs=UTF-8";
+#endif
+    
+    std::FILE* f = utils.FileOpen(filename, mode);
+    if (!f)
+    {
+		throw OML_Error(OML_ERR_FILE_CANNOTOPEN, 1);
+    }
 
     // Get input options - which are the second arguments if specified
     // They could be format options specified as '%d %s', 'headerlines' or 'delimiters'
@@ -147,8 +153,7 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
             {
                 if (!cval.IsString()) 
                 {
-                    throw OML_Error(
-                        OML_ERR_STRING, static_cast<int>(index + 1));
+                    throw OML_Error(OML_ERR_STRING, static_cast<int>(index + 1));
                 }
                 delims = cval.StringVal();
             }
@@ -255,37 +260,67 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
     
     // Read the data
     int linenum = 0;      
-    BuiltInFuncsUtils utils;
 
-    char lineC [2048];
+#ifdef OS_WIN
+    wchar_t lineC [2048];
+#else
+    char lineC[2048];
+
+#endif
     bool hasdata = false;
     while (!eval.IsInterrupt())
     {
         memset(lineC, 0, sizeof(lineC));
+        std::string line;
+
+#ifdef OS_WIN
+        if (fgetws(lineC, sizeof(lineC), f) == nullptr)
+        {
+            break;
+        }
+        line = utils.WString2StdString(lineC);
+#else
         if (fgets(lineC, sizeof(lineC), f) == nullptr)
         {
             break;
         }
 
-        std::string line (lineC);
+        line = lineC;
+#endif
 		if (linenum < numheaderlines || line.empty())
         {
 			linenum++;  // Skip the header/empty lines
 			continue; 
 		}
 
+#ifdef OS_WIN
+        if (!wcsstr(lineC, L"\n") && !wcsstr(lineC, L"\r"))
+#else
         if (!strstr(lineC, "\n") && !strstr(lineC, "\r"))
+#endif
         {
             while(1)
             {
                 memset(lineC, 0, sizeof(lineC));
+#ifdef OS_WIN
+                if (fgetws(lineC, sizeof(lineC), f) == nullptr)
+#else
                 if (fgets(lineC, sizeof(lineC), f) == nullptr)
+#endif
                 {
                     break;
                 }
+#ifdef OS_WIN
+                line += utils.WString2StdString(lineC);
+#else
                 line += lineC;
+#endif
 
-                if (strstr(lineC, "\n") || strstr(lineC, "\r"))
+#ifdef OS_WIN
+                if (!wcsstr(lineC, L"\n") && !wcsstr(lineC, L"\r"))
+#else
+                if (!strstr(lineC, "\n") && !strstr(lineC, "\r"))
+#endif
                 {
                     break;
                 }
@@ -443,11 +478,19 @@ bool BuiltInFuncsFile::Dlmwrite(EvaluatorInterface           eval,
     if (!cur1.IsString() && !cur1.IsPositiveInteger())
         throw OML_Error(OML_ERR_STRING_FILESTREAM, 1, OML_VAR_TYPE);
 
-    std::string filename;
     std::FILE*  fp = NULL;
 
+    BuiltInFuncsUtils utils;
+    std::string filename;
+    std::wstring wfilename;
     if (cur1.IsString())
+    {
+#ifdef OS_WIN
+        wfilename = utils.StdString2WString(cur1.StringVal());
+#else
         filename = cur1.StringVal();
+#endif
+    }
     else if (cur1.IsPositiveInteger())
     {
         fp = eval.GetFile(static_cast<int>(cur1.Scalar()));
@@ -600,16 +643,30 @@ bool BuiltInFuncsFile::Dlmwrite(EvaluatorInterface           eval,
     if (append) 
         mode |=std::ios_base::app;
 
-    std::ofstream ofs(filename, mode);
+#ifdef OS_WIN
+    std::wofstream ofs(wfilename, mode);
     if (!ofs) 
     {
         if (append)
-            throw OML_Error("Error: Cannot append to file: " + filename);
+            throw OML_Error(OML_ERR_FILE_CANNOTWRITE, 1);
         else
-            throw OML_Error("Error: Cannot open file: " + filename);
+            throw OML_Error(OML_ERR_FILE_CANNOTOPEN, 1);
+    }
+    ofs << utils.StdString2WString(roffsetstr) << 
+        utils.StdString2WString(vals) << utils.StdString2WString(rdelim);
+    ofs.close();
+#else
+    std::ofstream ofs(filename, mode);
+    if (!ofs)
+    {
+        if (append)
+            throw OML_Error(OML_ERR_FILE_CANNOTWRITE, 1);
+        else
+            throw OML_Error(OML_ERR_FILE_CANNOTOPEN, 1);
     }
     ofs << roffsetstr << vals << rdelim;
     ofs.close();
+#endif
 
     return true;
 }
@@ -648,7 +705,7 @@ int BuiltInFuncsFile::GetIntegerValue(const std::vector<Currency>& inputs,
     return static_cast<int>(cur.Scalar());
 }
 //------------------------------------------------------------------------------
-//! Returns true after copying files/directories (copyfile command)
+//! Returns true after copying files/directories [copyfile]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsFile::Copyfile(EvaluatorInterface           eval, 
                                 const std::vector<Currency>& inputs, 
@@ -656,36 +713,45 @@ bool BuiltInFuncsFile::Copyfile(EvaluatorInterface           eval,
 {
     size_t nargin = inputs.empty() ? 0 : inputs.size();
     if (nargin < 2)
+    {
         throw OML_Error(OML_ERR_NUMARGIN);
-
-    std::string err (HW_ERROR_INVINPVAL);
-    Currency    c1 = inputs[0];
-    if (!c1.IsString())
+    }
+    if (!inputs[0].IsString())
+    {
         throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
-    std::string src (c1.StringVal());
+    }
+    std::string src (inputs[0].StringVal());
     if (src.empty())
     {
-        err += "in argument 1; must be a file or directory";
-        throw OML_Error(err);
+        throw OML_Error(OML_ERR_NONEMPTY_STR, 1);
     }
 
-    Currency c2 = inputs[1];
-    if (!c2.IsString())
+    if (!inputs[1].IsString())
+    {
         throw OML_Error(OML_ERR_STRING, 2, OML_VAR_TYPE);
-    std::string dst (c2.StringVal());
+    }
+    std::string dst (inputs[1].StringVal());
     if (dst.empty())
     {
-        err += "in argument 2; must be a non-empty string";
-        throw OML_Error(err);
+        throw OML_Error(OML_ERR_NONEMPTY_STR, 2);
     }
 
     bool forcecopy = false;
     if (nargin > 2)
     {
         if (!inputs[2].IsString())
+        {
             throw OML_Error(OML_ERR_STRING, 3, OML_VAR_TYPE);
-        if (inputs[2].StringVal() != "f")
+        }
+        std::string opt(inputs[2].StringVal());
+        if (!opt.empty())
+        {
+            std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
+        }
+        if (opt != "f")
+        {
             throw OML_Error(OML_ERR_OPTION, 3, OML_VAR_VALUE);
+        }
         forcecopy = true;
     }
 
@@ -721,26 +787,32 @@ bool BuiltInFuncsFile::Copyfile(EvaluatorInterface           eval,
     }
 
     std::string strcmd;
-
+    int         returncode = 0;
 #ifdef OS_WIN    
-    if (srxexists && !issrcdir && !dst.empty() &&
-        !BuiltInFuncsUtils::FileExists(dst))
+    BuiltInFuncsUtils utils;
+    std::wstring str1(utils.StdString2WString(src));
+    std::wstring wsrc(utils.GetNormpathW(str1));
+    std::wstring str2(utils.StdString2WString(dst));
+    std::wstring wdst(utils.GetNormpathW(str2));
+
+    std::wstring wcmd;
+    if (srxexists && !issrcdir && !wdst.empty() && !utils.DoesPathExistW(wdst))
     {
-        strcmd = "copy \"" + BuiltInFuncsUtils::Normpath(src) + "\" \"" + 
-                 BuiltInFuncsUtils::Normpath(dst) + "\"";
+        wcmd = L"copy \"" + wsrc + L"\" \"" + wdst + L"\"";
     }
     else
     {
-        strcmd = "xcopy \"" + BuiltInFuncsUtils::Normpath(src) + "\" \"" + 
-                 BuiltInFuncsUtils::Normpath(dst) + "\" /I /Q";
+        wcmd = L"xcopy \"" + wsrc + L"\" \"" + wdst + L"\" /I /Q";
         if (issrcdir)
-            strcmd += " /E";
+            wcmd += L" /E";
     }
 
     if (forcecopy)
-        strcmd += " /Y";
+        wcmd += L" /Y";
     else
-        strcmd += " /-Y";
+        wcmd += L" /-Y";
+
+    returncode = _wsystem(wcmd.c_str());
 #else
     // Make sure that the underlying directories exist before copying
     std::string mkdircmd = "mkdir -p " + BuiltInFuncsUtils::GetBaseDir(dst);
@@ -750,8 +822,10 @@ bool BuiltInFuncsFile::Copyfile(EvaluatorInterface           eval,
     if (!forcecopy)
         strcmd += "-n ";
     strcmd +=  src + " " + dst;
+
+    returncode = system(strcmd.c_str());
+
 #endif
-    int returncode = system(strcmd.c_str());
 
     std::string msg;
     int         msgid = 0;
@@ -765,9 +839,15 @@ bool BuiltInFuncsFile::Copyfile(EvaluatorInterface           eval,
         
         if (!msg.empty())
             msg += "\n";
+
+#ifdef OS_WIN
+        msg += "Copy failed from [" + utils.WString2StdString(wsrc);
+        msg += "] to [" + utils.WString2StdString(wdst) + "]";
+
+#else
         msg += "Copy failed from [" + BuiltInFuncsUtils::Normpath(src);
         msg += "] to [" + BuiltInFuncsUtils::Normpath(dst) + "]";
-        
+#endif
         outputs.push_back(0);
         outputs.push_back(msg);
         outputs.push_back(msgid);
@@ -996,6 +1076,7 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
     bool        returnOnError  = true;
     std::string delims;
     size_t      numargin = inputs.size();
+    std::string whitespace(" ");
 
     std::string prefix;
     if (numargin > 1)
@@ -1096,6 +1177,14 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
                 }
                 returnOnError = (tmp == 0) ? false : true;
             }
+            else if (val == "whitespace")
+            {
+                if (!cval.IsString())
+                {
+                    throw OML_Error(OML_ERR_STRING, cIdx + 1);
+                }
+                whitespace = cval.StringVal();
+            }
             else
             {
                 throw OML_Error(OML_ERR_OPTION, static_cast<int>(index + 1));
@@ -1175,6 +1264,15 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
             numcols++;
         }
     }
+    bool hasStringFmt = (std::find(basefmts.begin(), basefmts.end(), "%s") != basefmts.end());
+    if (!hasStringFmt && whitespace.empty())
+    {
+        whitespace = " ";
+    }
+    else if (hasStringFmt && !whitespace.empty() && whitespace.find(" ") == std::string::npos)
+    {
+        whitespace += " ";
+    }
 
     // Set the output cell elements with the correct type
     std::unique_ptr<HML_CELLARRAY> cell (EvaluatorInterface::allocateCellArray(
@@ -1211,6 +1309,7 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
     bool resetcol = true;
     int   cellcol       = 0;
     int   column        = 0;
+    int   outputrow     = 0;
 
     while (!quitLoop && !eval.IsInterrupt())
     {
@@ -1292,9 +1391,11 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
                 else
                 {
                     m = (*cell)(0).CellArray()->M();
+                    outputrow = m;
                     utils.CheckMathStatus(eval, 
                         (*cell)(0).CellArray()->Resize(m + 1, 1));
                 }
+                line = utils.RTrim(line, whitespace); // Trim whitespace
                 (*(*cell)(0).CellArray())(m, 0) = line;
             }
             linenum++;
@@ -1344,6 +1445,8 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
         while (tok || !strToProcess.empty())
         {
             std::string data = (strToProcess.empty()) ? tok : strToProcess;
+            data = utils.RTrim(data, whitespace); // Trim whitespace
+
             if (data.empty())
             {
                 quitLoop = true;
@@ -1438,6 +1541,7 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
                         else
                         {
                             m = (*cell)(cellcol).CellArray()->M();
+                            outputrow = m;
                             utils.CheckMathStatus(eval,
                                 (*cell)(cellcol).CellArray()->Resize(m + 1, 1));
                         }
@@ -1473,6 +1577,7 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
                         else
                         {
                             m = (*cell)(cellcol).CellArray()->M();
+                            outputrow = m;
                             utils.CheckMathStatus(eval,
                                 (*cell)(cellcol).CellArray()->Resize(m + 1, 1));
                         }
@@ -1497,17 +1602,33 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
                 else
                 {
                     std::regex  re(rawfmt);
+
                     std::sregex_iterator next(data.begin(), data.end(), re);
-                    std::sregex_iterator end;
+                    std::sregex_iterator end = std::sregex_iterator();
+
                     while (next != end)
                     {
                         foundregexmatch = true;
 
                         std::smatch match = *next;
+
+                        std::string pre(match.prefix());
+                        if (!pre.empty())
+                        {
+                            strToProcess = match.str();
+                            strToProcess += match.suffix();
+                            break;
+                        }
+
                         matchstr += match.str();
-                        strToProcess = match.prefix();
-                        strToProcess += match.suffix();
                         next++;
+
+                        std::string post(match.suffix());
+                        if (post.empty())
+                        {
+                            matchstr = strToProcess;
+                            strToProcess = "";
+                        }
                     }
                 }
                     
@@ -1524,6 +1645,7 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
                         else
                         {
                             m = (*cell)(cellcol).CellArray()->M();
+                            outputrow = m;
                             utils.CheckMathStatus(eval,
                                 (*cell)(cellcol).CellArray()->Resize(m + 1, 1));
                         }
@@ -1647,9 +1769,16 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
                 {
                     if (!returnOnError)
                     {
-                        std::string msg ("Error: cannot apply specified format in column ");
-                        msg += std::to_string(static_cast<long long>(columnWithErr));
-                        msg += " of row 1 in the output.";
+                        std::string msg(OML_Error(OML_ERR_FORMAT).GetErrorMessage());
+                        msg += " in field ";
+                        msg += std::to_string(static_cast<long long>(columnWithErr + 1));
+                        if (basefmt != "custom")
+                        {
+                            msg += " [" + basefmt + "]";
+                        }
+                        msg += " to row [";
+                        msg += std::to_string(static_cast<long long>(outputrow + 1));
+                        msg += "] of the output";
                         throw OML_Error(msg);
                     }
                     quitLoop = true;
@@ -2080,7 +2209,7 @@ bool BuiltInFuncsFile::Fscanf(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Returns true after renaming a file (rename)
+// Returns true after renaming a file [rename]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsFile::Rename(EvaluatorInterface           eval,
 	                          const std::vector<Currency>& inputs, 
@@ -2091,21 +2220,28 @@ bool BuiltInFuncsFile::Rename(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
-    Currency cur1 = inputs[0];
-    if (!cur1.IsString())
+    if (!inputs[0].IsString())
     {
         throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
     }
-    std::string oldname (cur1.StringVal());
+    std::string oldname(inputs[0].StringVal());
 
-    Currency cur2 = inputs[1];
-    if (!cur2.IsString())
+    if (!inputs[1].IsString())
     {
         throw OML_Error(OML_ERR_STRING, 2, OML_VAR_TYPE);
     }
-    std::string newname (cur2.StringVal());
+    std::string newname (inputs[1].StringVal());
 
-    int result = std::rename(oldname.c_str(), newname.c_str());
+    int result = 0;
+#ifdef OS_WIN
+    BuiltInFuncsUtils utils;
+    std::wstring wold(utils.StdString2WString(oldname));
+    std::wstring wnew(utils.StdString2WString(newname));
+    
+    result = _wrename(wold.c_str(), wnew.c_str());
+#else
+    result = std::rename(oldname.c_str(), newname.c_str());
+#endif
     outputs.push_back(result);
 
     std::string msg = (result == 0) ? "" : std::string(strerror(errno));
@@ -2276,6 +2412,7 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
 
     BuiltInFuncsUtils utils;
     std::string       filename;
+    std::wstring      wfile;
     int               fileid = -1;
     
     if (!isString)
@@ -2284,11 +2421,20 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
         utils.CheckFileIndex(eval, fileid, 1, false); // Don't read std streams
 
         filename = eval.GetFileName(fileid);
+        wfile = utils.StdString2WString(filename);
     }
     else
     {
+        bool exists = false;
+#ifdef OS_WIN
+        wfile = utils.StdString2WString(inputs[0].StringVal());
+        exists = utils.DoesPathExistW(wfile);
+        filename = (exists) ? utils.WString2StdString(wfile) : "";
+#else
         filename = inputs[0].StringVal();
-        if (!utils.FileExists(filename)) 
+        exists = utils.DoesPathExist(filename);
+#endif
+        if (!exists)
         {
             throw OML_Error(OML_ERR_FILE_NOTFOUND, 1);
         }
@@ -2311,55 +2457,58 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
         const Currency& cur = inputs[i];
         if (cur.IsString())  // Could be separator/range/emptyval
         {
-            std::string val (cur.StringVal());
-            if (val.empty())
+            std::string val(cur.StringVal());
+            if (!val.empty())
             {
-                throw OML_Error(OML_ERR_NONEMPTY_STR, i + 1, OML_VAR_VALUE);
-            } 
-            std::string lower(val);
-            std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
-            if (lower == "emptyvalue")
-            {
-                ++i;
-                if (i >= nargin)
+                std::string lower(val);
+                std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+                if (lower == "emptyvalue")
                 {
-                    throw OML_Error(OML_ERR_NUMARGIN);
+                    ++i;
+                    if (i >= nargin)
+                    {
+                        throw OML_Error(OML_ERR_NUMARGIN);
+                    }
+                    if (!inputs[i].IsScalar())
+                    {
+                        throw OML_Error(OML_ERR_SCALAR, i + 1, OML_VAR_TYPE);
+                    }
+                    emptyval = inputs[i].Scalar();
+                    continue;
                 }
-                if (!inputs[i].IsScalar())
+                else if (lower == "linestoskip" || lower == "headerlines")
                 {
-                    throw OML_Error(OML_ERR_SCALAR, i + 1, OML_VAR_TYPE);
+                    throw OML_Error(OML_ERR_BAD_STRING, i + 1);
                 }
-                emptyval = inputs[i].Scalar();
-                continue;
-            }
-            bool hasalpha = false;
-            bool hassep   = false;
-            if (strstr(val.c_str(), ":") || strstr(val.c_str(), ".."))
-            {
-                hassep = true;
-            }
-            size_t strsize = val.size();
-            for (size_t j = 0; j < strsize; ++j)
-            {
-                if (isalpha(val[j]))
+                bool hasalpha = false;
+                bool hassep = false;
+                if (strstr(val.c_str(), ":") || strstr(val.c_str(), ".."))
                 {
-                    hasalpha = true;
-                    break;
+                    hassep = true;
                 }
-            }
-            if (hasalpha && hassep)
-            {
-                BuiltInFuncsFile funcs;
-                std::vector<int> range = funcs.String2VectorRange(val, i);
-                assert(range.size() == 4);
-                startrow = range[0];
-                startcol = range[1];
-                endrow   = range[2];
-                endcol   = range[3];
-            }
-            else
-            {
-                delim = val;
+                size_t strsize = val.size();
+                for (size_t j = 0; j < strsize; ++j)
+                {
+                    if (isalpha(val[j]))
+                    {
+                        hasalpha = true;
+                        break;
+                    }
+                }
+                if (hasalpha && hassep)
+                {
+                    BuiltInFuncsFile funcs;
+                    std::vector<int> range = funcs.String2VectorRange(val, i);
+                    assert(range.size() == 4);
+                    startrow = range[0];
+                    startcol = range[1];
+                    endrow = range[2];
+                    endcol = range[3];
+                }
+                else
+                {
+                    delim = val;
+                }
             }
         }
         else if (cur.IsInteger())
@@ -2411,27 +2560,21 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
         }
     }
 
+#ifdef OS_WIN
+    std::wfstream ifs;
+    ifs.open(wfile, std::ios_base::in | std::ios::binary);
+#else
     std::ifstream ifs;
     ifs.open(filename, std::ios_base::in | std::ios::binary);
+#endif
     if (!ifs)
     {
         throw OML_Error(OML_ERR_FILE_CANNOTOPEN, 1);
     }
 
-    // Start reading the data
-    if (delim.empty())
-    {
-        std::string ext(utils.GetFileExtension(filename));
-        if (!ext.empty())
-        {
-            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-            if (ext == "csv")
-            {
-                delim = ",";
-            }
-        }
-    }
+    SetDefaultDelimiter(filename, delim);
 
+    // Start reading the data
     try
     {
         bool quitLoop    = false;
@@ -2451,7 +2594,13 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
         while (!quitLoop && !eval.IsInterrupt() && !ifs.eof())
         {
             std::string line;
+#ifdef OS_WIN
+            std::wstring wline;
+            std::getline(ifs, wline);
+            line = utils.WString2StdString(wline);
+#else
             std::getline(ifs, line);
+#endif
 
 		    if (startrow != -1 && currentrow < startrow || line.empty())
             {
@@ -2500,7 +2649,7 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
                 {    
                     sscanf(line.c_str(), "%lf%n", &dval, &used);
                 }
-                for (size_t j = used; j < line.size(); ++j)
+                for (size_t j = static_cast<size_t>(used); j < line.size(); ++j)
                 {
                     char ch = line[j];
                     if (isdigit(ch) || ch == '-' || ch == '+' || ch == '.')
@@ -2516,13 +2665,19 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
                         break;
                     }
                 }
+                if (static_cast<size_t>(used) == line.size() && delim.empty())
+                {
+                    delim = " ";
+                }
             }
-         
+            
             if (delim.empty())
             {
                 throw OML_Error("Error: cannot determine delimter to process file in argument 1");
             }
 
+            bool newlinedelim = false;
+            EscapeDelimiters(delim, newlinedelim);
             std::vector<double> thiscol;
             thiscol.reserve(colcapacity);
 
@@ -2714,8 +2869,8 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
  // Returns true and opens a file for read/write [fopen]
  //-----------------------------------------------------------------------------
  bool BuiltInFuncsFile::Fopen(EvaluatorInterface           eval,
-     const std::vector<Currency>& inputs,
-     std::vector<Currency>&       outputs)
+                              const std::vector<Currency>& inputs,
+                              std::vector<Currency>&       outputs)
  {
      if (inputs.empty())
      {
@@ -2820,16 +2975,7 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
          }
      }
 
-     std::FILE* f = nullptr;
-#ifdef OS_WIN
-     std::wstring wfname(utils.StdString2WString(fname));
-     std::wstring wmode(utils.StdString2WString(mode));
-
-     f = _wfopen(wfname.c_str(), wmode.c_str());
-#else
-     f = fopen(fname.c_str(), mode.c_str());
-#endif
-
+     std::FILE* f = utils.FileOpen(fname, mode);
      if (f)
      {
          outputs.push_back(eval.AddFile(f, fname, mode));
@@ -2979,15 +3125,17 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
              return false;
          }
 
-         basefmts.push_back("%" + basefmt);
+         std::string percent = (basefmt != "custom") ? "%" : "";
+         basefmts.push_back(percent + basefmt);
+
          if (firsttoken)
          {
-             rawfmts.push_back(prefix + "%" + rawfmt);
+             rawfmts.push_back(prefix + percent + rawfmt);
              firsttoken = false;
          }
          else
          {
-             rawfmts.push_back("%" + rawfmt);
+             rawfmts.push_back(percent + rawfmt);
          }
          usefmts.push_back(use);
 
@@ -3010,3 +3158,105 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
      }
      return true;
  }
+ //-----------------------------------------------------------------------------
+ // Sets default delimiter for certain file types
+ //-----------------------------------------------------------------------------
+ void BuiltInFuncsFile::SetDefaultDelimiter(const std::string& filename, 
+                                            std::string&       delim)
+ {
+     if (delim.empty())
+     {
+         BuiltInFuncsUtils utils;
+         std::string ext(utils.GetFileExtension(filename));
+         if (!ext.empty())
+         {
+             std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+             if (ext == "csv")
+             {
+                 delim = ",";
+             }
+         }
+     }
+ }
+ //-----------------------------------------------------------------------------
+ // Returns true and reads a comma separated file [csvread]
+ //-----------------------------------------------------------------------------
+ bool BuiltInFuncsFile::Csvread(EvaluatorInterface           eval,
+                                const std::vector<Currency>& inputs,
+                                std::vector<Currency>&       outputs)
+ {
+     if (inputs.empty())
+     {
+         throw OML_Error(OML_ERR_NUMARGIN);
+     }
+
+     std::vector<Currency> in(inputs);
+     in.insert(in.begin() + 1, Currency(","));
+
+     return Dlmread(eval, in, outputs);
+ }
+ //-----------------------------------------------------------------------------
+// Returns true and writes a comma separated file [csvwrite]
+//-----------------------------------------------------------------------------
+ bool BuiltInFuncsFile::Csvwrite(EvaluatorInterface           eval,
+                                 const std::vector<Currency>& inputs,
+                                 std::vector<Currency>& outputs)
+ {
+     if (inputs.empty() || inputs.size() < 2)
+     {
+         throw OML_Error(OML_ERR_NUMARGIN);
+     }
+
+     std::vector<Currency> in(inputs);
+     in.insert(in.begin() + 2, Currency(","));
+
+     return Dlmwrite(eval, in, outputs);
+ }
+ //-----------------------------------------------------------------------------
+ // Escapes delimiters
+ //-----------------------------------------------------------------------------
+ void BuiltInFuncsFile::EscapeDelimiters(std::string& delims, bool& newlinedelim)
+ {
+     newlinedelim = false;
+     if (delims.empty())
+     {
+         delims = " ";
+         return;
+     }
+
+     size_t pos = delims.find("\\t");
+     if (pos != std::string::npos)
+     {
+         delims.replace(pos, 2, "\t");
+     }
+
+     pos = delims.find("\\n");
+     if (pos != std::string::npos)
+     {
+        if (delims == "\\n")
+        {
+            newlinedelim = true;
+        }
+        else
+        {
+            std::string tmp = delims.substr(0, pos);
+            tmp += delims.substr(pos + 2);
+            delims = tmp;
+        }
+    }
+    pos = delims.find("\\r");
+    if (pos != std::string::npos)
+    {
+        if (delims == "\\r")
+        {
+            newlinedelim = true;
+        }
+        else
+        {
+            std::string tmp = delims.substr(0, pos);
+            tmp += delims.substr(pos + 2);
+            delims = tmp;
+        }
+    }
+ }
+

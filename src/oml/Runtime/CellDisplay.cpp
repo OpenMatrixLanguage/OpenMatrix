@@ -1,7 +1,7 @@
 /**
 * @file CellDisplay.cxx
 * @date June 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -39,10 +39,11 @@ CellDisplay::CellDisplay(const Currency& cur)
 void CellDisplay::GetCurrencySize(int& rows, int& cols) const
 {
     HML_CELLARRAY* cells = m_currency.CellArray();
-    if (!cells) return;
-
-    rows = cells->M();
-    cols = cells->N();
+    if (cells)
+    {
+        rows = cells->M();
+        cols = cells->N();
+    }
 }
 //------------------------------------------------------------------------------
 // Gets output - called from Currency::GetOutputString
@@ -76,39 +77,85 @@ std::string CellDisplay::GetOutput(const OutputFormat* fmt,
 std::string CellDisplay::GetOutputNoPagination(const OutputFormat* fmt,
                                                std::ostringstream& os) const
 {
+    bool iscelllist = m_currency.IsCellList();
+    if (iscelllist)
+    {
+        os.str("");
+        os.clear();
+    }
+
     HML_CELLARRAY* cells = m_currency.CellArray();
-    assert(cells);
     
-    int numrows = cells->M();
-    int numcols = cells->N();
-
-    int         cindent     = m_indent + 1;
-    std::string childindent = GetIndentString(cindent);
-    std::string myindent    = GetIndentString(m_indent);
-
-    os << std::endl << myindent << "{" << std::endl;
-
-	for (int i = 0; i < numrows; ++i)
-	{	
-		for (int j = 0; j < numcols; ++j)
-		{
-            Currency         cur     = (*cells)(i,j);
-            CurrencyDisplay* display = cur.GetDisplay();
-            if (display)
-            {
-                display->SetIndent(cindent);
-            }
-
-            os << childindent << "[" << i+1  << "," << j+1 << "] " 
-               << cur.GetOutputString(fmt) << std::endl;
-                        
-            CurrencyDisplay::DeleteDisplay(display);
-            cur.SetDisplay(nullptr);
+    int csize = (cells) ? cells->Size() : 0;
+    if (csize == 0)
+    {
+        if (!iscelllist)
+        {
+            os << "{}";
+            return os.str();
         }
-	}
-    os << myindent << "}";
-    std::string output (os.str());
-	return output;
+        return "";
+    }
+
+    if (!iscelllist)
+    {
+        int numrows = cells->M();
+        int numcols = cells->N();
+        int cindent = m_indent + 1;
+
+        std::string childindent (GetIndentString(cindent));
+        std::string myindent    (GetIndentString(m_indent));
+
+        os << '\n' << myindent << "{\n";
+        for (int i = 0; i < numrows; ++i)
+        {
+            for (int j = 0; j < numcols; ++j)
+            {
+                Currency         cur = (*cells)(i, j);
+                CurrencyDisplay* display = cur.GetDisplay();
+                if (display)
+                {
+                    display->SetParentDisplay(const_cast<CellDisplay*>(this));
+                    display->SetIndent(cindent);
+                }
+                os << childindent << "[" << i + 1 << "," << j + 1 << "] ";
+                os << cur.GetOutputString(fmt) << '\n';
+
+                CurrencyDisplay::DeleteDisplay(display);
+                cur.SetDisplay(nullptr);
+            }
+        }
+        os << myindent << "}";
+        return os.str();
+    }
+
+    // Cell list
+    for (int i = 0; i < csize; ++i)
+    {
+        Currency         cur = (*cells)(i);
+        CurrencyDisplay* display = cur.GetDisplay();
+        if (display)
+        {
+            display->SetParentDisplay(const_cast<CellDisplay*>(this));
+        }
+        if (cur.GetOutputNamePtr()->empty())
+        {
+            cur.SetOutputName("ans");
+        }
+
+        os << cur.GetOutputString(fmt) << '\n';
+
+        CurrencyDisplay::DeleteDisplay(display);
+        cur.SetDisplay(nullptr);
+    }
+
+    std::string out(os.str());
+    if (!out.empty() && out.back() == '\n')
+    {
+        out.pop_back();
+    }
+
+    return out;
 }
 //------------------------------------------------------------------------------
 // Sets data for forward display
@@ -157,6 +204,10 @@ void CellDisplay::SetForwardDisplayData()
 std::string CellDisplay::GetOutputForwardPagination(const OutputFormat* fmt,
                                                     std::ostringstream& os) const
 {
+    if (m_currency.IsCellList())
+    {
+        return GetCellListOutputForwardPagination(fmt);
+    }
     HML_CELLARRAY* cells = m_currency.CellArray();
     assert(cells);
     
@@ -165,8 +216,8 @@ std::string CellDisplay::GetOutputForwardPagination(const OutputFormat* fmt,
     bool printclosebraces = false;
 
     int         cindent     = m_indent + 1;
-    std::string childindent = GetIndentString(cindent);
-    std::string myindent    = GetIndentString(m_indent);
+    std::string childindent (GetIndentString(cindent));
+    std::string myindent    (GetIndentString(m_indent)); 
 
     if (m_colBegin == 0 && m_rowBegin == 0) // Need header only for first row/col
     {
@@ -175,7 +226,8 @@ std::string CellDisplay::GetOutputForwardPagination(const OutputFormat* fmt,
     }
     else
     {
-        os.str("");
+        os.str(std::string());
+        os.clear();
     }
 
     int numrows = cells->M();
@@ -211,10 +263,7 @@ std::string CellDisplay::GetOutputForwardPagination(const OutputFormat* fmt,
 
             std::string tmp (cur.GetOutputString(fmt));
             StripEndline(tmp);
-           // if (!tmp.empty())
-            {
-                os << childindent << "["<< i+1 << ","<< j+1 << "] " << tmp;
-            }
+            os << childindent << "[" << i + 1 << "," << j + 1 << "] " << tmp;
 
             if (!canpaginate)
                 m_linesPrinted++;
@@ -236,14 +285,6 @@ std::string CellDisplay::GetOutputForwardPagination(const OutputFormat* fmt,
             }
             CurrencyDisplay::DeleteDisplay(cur.GetDisplay());
             cur.SetDisplay(NULL);
-
-            // Add trailing '}' for cells
-            //if (cur.IsCellArray())
-            //{
-            //    os << std::endl;
-            //    os << "}";
-            //    m_linesPrinted++;
-            //}
         }
         startcol = 0;  // Reset the columns
 	}
@@ -294,7 +335,11 @@ void CellDisplay::SetBackDisplayData()
 //------------------------------------------------------------------------------
 std::string CellDisplay::GetOutputBackPagination(const OutputFormat* fmt) const
 {
-    HML_CELLARRAY* cells = m_currency.CellArray();
+    if (m_currency.IsCellList())
+    {
+        return GetCellListOutputBackPagination(fmt);
+    }
+    HML_CELLARRAY* cells      = m_currency.CellArray();
     assert(cells);
     
     int numrows = cells->M();
@@ -305,8 +350,8 @@ std::string CellDisplay::GetOutputBackPagination(const OutputFormat* fmt) const
     int linestofit = GetNumRowsToFit();
 
     int         cindent     = m_indent + 1;
-    std::string childindent = GetIndentString(cindent);
-    std::string myindent    = GetIndentString(m_indent);
+    std::string childindent = (GetIndentString(cindent));
+    std::string myindent    = (GetIndentString(m_indent));
 
     std::string output;
 	for (int i = endrow; i >= 0 && m_linesPrinted <= linestofit; --i)
@@ -328,15 +373,12 @@ std::string CellDisplay::GetOutputBackPagination(const OutputFormat* fmt) const
                     disp->SetIndent(cindent);
                 }
             }
+
             std::string tmp(cur.GetOutputString(fmt));
             StripEndline(tmp);
-            if (!tmp.empty())
-            {
-                os << childindent << "["<< i+1 << ","<< j+1 << "] " << tmp;
-            }
-
+            os << childindent << "[" << i + 1 << "," << j + 1 << "] " << tmp;
             if (!(j == endcol && i == endrow))
-                os << std::endl;
+                os << '\n';
 
             if (output.empty())
                 output = os.str();
@@ -373,6 +415,10 @@ std::string CellDisplay::GetOutputBackPagination(const OutputFormat* fmt) const
 //------------------------------------------------------------------------------
 bool CellDisplay::GetPaginationEndMsg(std::string& msg) const
 {
+    if (m_currency.IsCellList())
+    {
+        return false;
+    }
     int totalrows = 0;
     int totalcols = 0;
     GetCurrencySize(totalrows, totalcols);
@@ -439,5 +485,158 @@ std::string CellDisplay::GetValues(const OutputFormat* fmt) const
     std::string output (os.str());
 	return output;
 }
+//------------------------------------------------------------------------------
+// Gets outputfor forward/down pagination for cell list
+//------------------------------------------------------------------------------
+std::string CellDisplay::GetCellListOutputForwardPagination(
+    const OutputFormat* fmt) const
+{
+    HML_CELLARRAY* cells = m_currency.CellArray();
+    assert(cells);
+
+    const_cast<CellDisplay*>(this)->UpdateNumLinesPrinted();
+
+    int numrows = cells->M();
+    int numcols = cells->N();
+
+    int linestofit = GetNumRowsToFit();
+    int totalrows = m_linesPrinted + linestofit;
+    int startcol = m_colBegin;
+
+    std::string out;
+    for (int j = startcol; j < numcols && m_linesPrinted < totalrows; ++j)
+    {
+        m_colEnd = j;
+
+        if (j != startcol)
+            out += '\n';
+
+        for (int i = m_rowBegin; i < numrows && m_linesPrinted < totalrows; ++i)
+        {
+            m_rowEnd = i;
+            if (i != m_rowBegin)
+                out += '\n';
+
+            Currency cur = (*cells)(i, j);
+            if (cur.GetOutputNamePtr()->empty())
+            {
+                cur.SetOutputName("ans");
+            }
+            bool canpaginate = CanPaginate(cur);
+            if (canpaginate)
+            {
+                CurrencyDisplay* disp = cur.GetDisplay();
+                if (disp)
+                {
+                    disp->SetParentDisplay(const_cast<CellDisplay*>(this));
+                }
+            }
+
+            std::string tmp(cur.GetOutputString(fmt));
+            StripEndline(tmp);
+            out += tmp;
+
+            if (!canpaginate)
+                m_linesPrinted++;
+
+            if (canpaginate)
+            {
+                CurrencyDisplay* nesteddisplay = cur.GetDisplay();
+                if (nesteddisplay)
+                {
+                    if (nesteddisplay->IsPaginatingCols() ||
+                        nesteddisplay->IsPaginatingRows())
+                    {
+                        if (m_signalHandler)
+                            m_signalHandler->OnAddDisplayHandler(nesteddisplay);
+                        return out;
+                    }
+                }
+            }
+            CurrencyDisplay::DeleteDisplay(cur.GetDisplay());
+            cur.SetDisplay(NULL);
+        }
+        //startcol = 0;  // Reset the rows
+    }
+
+    return out;
+}
+//------------------------------------------------------------------------------
+//  Gets output for back/up pagination for cell list
+//------------------------------------------------------------------------------
+std::string CellDisplay::GetCellListOutputBackPagination(const OutputFormat* fmt) const
+{
+    HML_CELLARRAY* cells = m_currency.CellArray();
+    assert(cells);
+
+    int numrows = cells->M();
+    int numcols = cells->N();
+
+    int endrow = (m_rowEnd >= 0 && m_rowEnd < numrows) ? m_rowEnd : numrows - 1;
+    int endcol = m_colEnd;
+    int linestofit = GetNumRowsToFit();
+
+    std::string output;
+    for (int j = endcol; j >= 0 && m_linesPrinted <= linestofit; --j)
+    {
+        m_colBegin = j;
+        
+        for (int i = endrow; i >= 0 && m_linesPrinted <= linestofit; --i)
+        {
+            std::ostringstream os;
+            
+            m_rowBegin = i;
+            Currency cur = (*cells)(i, j);
+            bool canpaginate = CanPaginate(cur);
+            if (canpaginate)
+            {
+                CurrencyDisplay* disp = cur.GetDisplay();
+                if (disp)
+                {
+                    disp->SetParentDisplay(const_cast<CellDisplay*>(this));
+                }
+            }
+            if (cur.GetOutputNamePtr()->empty())
+            {
+                cur.SetOutputName("ans");
+            }
+
+            std::string tmp(cur.GetOutputString(fmt));
+            StripEndline(tmp);
+            os << tmp;
+            if (!(j == endcol && i == endrow))
+                os << '\n';
+
+            if (output.empty())
+                output = os.str();
+            else
+                output.insert(0, std::string(os.str()));
+
+            if (canpaginate)
+            {
+                CurrencyDisplay* nesteddisplay = cur.GetDisplay();
+                if (nesteddisplay)
+                {
+                    if (nesteddisplay->IsPaginatingCols() ||
+                        nesteddisplay->IsPaginatingRows())
+                    {
+                        if (m_signalHandler)
+                            m_signalHandler->OnAddDisplayHandler(nesteddisplay);
+                        return output;
+                    }
+                }
+            }
+            else
+                m_linesPrinted++;
+
+            CurrencyDisplay::DeleteDisplay(cur.GetDisplay());
+            cur.SetDisplay(NULL);
+        }
+        //endcol = numcols - 1;
+    }
+
+    return output;
+}
+
 // End of file:
 

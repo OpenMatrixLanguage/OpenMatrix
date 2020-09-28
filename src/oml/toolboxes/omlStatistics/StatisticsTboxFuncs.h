@@ -659,6 +659,15 @@ bool OmlSkewness(EvaluatorInterface           eval,
                  const std::vector<Currency>& inputs, 
                  std::vector<Currency>&       outputs);
 //!
+//! Computes kurtosis values [kurtosis]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlKurtosis(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs);
+//!
 //! Computes variance values [var]
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs

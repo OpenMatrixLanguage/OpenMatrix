@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsData.cpp
 * @date June 2016
-* Copyright (C) 2016-2019 Altair Engineering, Inc.  
+* Copyright (C) 2016-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -38,6 +38,24 @@ typedef hwTMatrix< double,  hwTComplex<double> > hwMatrix;
 bool IsGreaterThan(const std::pair<double, int>& p1,
                    const std::pair<double, int>& p2)
 {
+#ifndef OS_WIN
+    if (IsInf_T(p1.first) || IsNaN_T(p1.first))
+    {
+        return true;
+    }
+    else if (IsInf_T(p2.first) || IsNaN_T(p2.first))
+    {
+        return false;
+    }
+    else if (IsNegInf_T(p1.first))
+    {
+        return false;
+    }
+    else if (IsNegInf_T(p2.first))
+    {
+        return true;
+    }
+#endif
     return (p1.first > p2.first);
 }
 //------------------------------------------------------------------------------
@@ -46,6 +64,24 @@ bool IsGreaterThan(const std::pair<double, int>& p1,
 bool IsLessThan(const std::pair<double, int>& p1,
                 const std::pair<double, int>& p2)
 {
+#ifndef OS_WIN
+    if (IsInf_T(p1.first) || IsNaN_T(p1.first))
+    {
+        return false;
+    }
+    else if (IsInf_T(p2.first) || IsNaN_T(p2.first))
+    {
+        return true;
+    }
+    else if (IsNegInf_T(p1.first))
+    {
+        return true;
+    }
+    else if (IsNegInf_T(p2.first))
+    {
+        return false;
+    }
+#endif
     return (p1.first < p2.first);
 }
 //------------------------------------------------------------------------------

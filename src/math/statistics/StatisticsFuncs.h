@@ -167,7 +167,16 @@ STATISTICS_DECLS hwMathStatus Variance(const hwMatrix& A,
 //! \param skewness Skewness
 //!
 STATISTICS_DECLS hwMathStatus Skewness(const hwMatrix& data,
-                                       double&         skewness);
+                                       double&         skewness,
+                                       bool            correctBias = true);
+//!
+//! Compute the kurtosis of a data vector
+//! \param data     Input
+//! \param skewness Skewness
+//!
+STATISTICS_DECLS hwMathStatus Kurtosis(const hwMatrix&  data,
+                                       double&          kurtosis,
+                                       bool             correctBias = true);
 //!
 //! Compute the root mean square value of a data vector
 //! \param data Input

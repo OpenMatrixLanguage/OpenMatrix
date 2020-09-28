@@ -57,10 +57,10 @@ void SignalHandler::OnClearResultsHandler()
 //------------------------------------------------------------------------------
 // Prints prompt for save on exit
 //------------------------------------------------------------------------------
-void SignalHandler::OnSaveOnExitHandler()
+void SignalHandler::OnSaveOnExitHandler(int returnCode)
 {
     if (_wrapper)  
-        _wrapper->HandleOnSaveOnExit();
+        _wrapper->HandleOnSaveOnExit(returnCode);
 }
 //------------------------------------------------------------------------------
 // Start pause

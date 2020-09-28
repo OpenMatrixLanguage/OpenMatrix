@@ -1,7 +1,7 @@
 /**
 * @file StructDisplay.cpp
 * @date February 2016
-* Copyright (C) 2016-2019 Altair Engineering, Inc.  
+* Copyright (C) 2016-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -77,8 +77,7 @@ std::string StructDisplay::GetOutput(const OutputFormat* fmt,
     {
         return GetOutputForwardPagination(fmt, os);
     }
-
-    if (m_mode == DISPLAYMODE_BACK || m_mode == DISPLAYMODE_UP)
+    else if (m_mode == DISPLAYMODE_BACK || m_mode == DISPLAYMODE_UP)
     {
         return GetOutputBackPagination(fmt);
     }
@@ -91,15 +90,15 @@ std::string StructDisplay::GetOutput(const OutputFormat* fmt,
 std::string StructDisplay::GetOutputNoPagination(const OutputFormat* fmt,
                                                  std::ostringstream& os) const
 {
-    StructData* sd = m_currency.Struct();
-//    assert(sd);
-
 	std::map<std::string, int> fields;
 	
-	if (sd)
-		fields = sd->GetFieldNames();
+    StructData* sd = m_currency.Struct();
+    if (sd)
+    {
+        fields = sd->GetFieldNames();
+    }
 
-    std::string myindent   = GetIndentString(m_indent);
+    std::string myindent (GetIndentString(m_indent));
     bool        isindented = (!myindent.empty());
 
     if (m_currency.IsObject())
@@ -111,15 +110,12 @@ std::string StructDisplay::GetOutputNoPagination(const OutputFormat* fmt,
         os << "struct [";
     }
 
-	int structsize = 0;
-	
-	if (sd)
-		structsize = sd->Size();
+    int structsize = (sd) ? sd->Size() : 0;
 
-    if (fields.empty() && structsize == 0)
+    if (fields.empty() && (structsize == 0 || (sd && sd->IsEmpty())))
     {
         os << " ]";
-        return std::string(os.str());
+        return os.str();
     }
 
     if (structsize != 1 && (!fields.empty() || sd->M() > 0 || sd->N() > 0))
@@ -134,7 +130,7 @@ std::string StructDisplay::GetOutputNoPagination(const OutputFormat* fmt,
          itr != fields.end(); ++itr)
     {
 		if (itr != fields.begin())
-			os << "\n";
+			os << '\n';
 
         std::string name (itr->first);
         os << myindent << name;
@@ -154,7 +150,7 @@ std::string StructDisplay::GetOutputNoPagination(const OutputFormat* fmt,
         cur.SetDisplay(NULL);
 	}
 
-    os << std::endl << myindent << "]";
+    os << '\n' << myindent << "]";
 	return std::string(os.str());
 }
 //------------------------------------------------------------------------------
@@ -318,9 +314,7 @@ std::string StructDisplay::GetOutputBackPagination(const OutputFormat* fmt) cons
     return output;
 }
 //------------------------------------------------------------------------------
-//! Gets data with forward pagination
-//! \param[in] fmt Format
-//! \param[in] os  Output stream
+// Gets data with forward pagination
 //------------------------------------------------------------------------------
 std::string StructDisplay::GetOutputForwardPagination(const OutputFormat* fmt,
                                                       std::ostringstream& os) const
@@ -348,6 +342,11 @@ std::string StructDisplay::GetOutputForwardPagination(const OutputFormat* fmt,
     int numrows = 0;
     GetCurrencySize(numrows, numcols);
 
+    if (CurrencyDisplay::IsPaginateOn())
+    {
+        m_linesPrinted = 0;
+    }
+
     int linestofit = GetNumRowsToFit();
     int totalrows  = m_linesPrinted + linestofit;
     int startcol   = m_colBegin;
@@ -367,10 +366,9 @@ std::string StructDisplay::GetOutputForwardPagination(const OutputFormat* fmt,
         m_colEnd = j;
 
         if (j != startcol)
-            os << std::endl;
+            os << '\n';
 
         std::string field (itr->first);
-
         Currency cur (sd->GetValue(0, 0, field));
         CurrencyDisplay* disp = cur.GetDisplay();
         if (disp && isindented)
@@ -389,8 +387,12 @@ std::string StructDisplay::GetOutputForwardPagination(const OutputFormat* fmt,
         os << myindent << field << ": " << tmp;
 
         if (!canpaginate)
-            m_linesPrinted++;
-
+        {
+            if (!CurrencyDisplay::IsPaginateOn())
+            {
+                m_linesPrinted++;
+            }
+        }
         else // Nested pagination
         {
             CurrencyDisplay* nesteddisplay = cur.GetDisplay();
@@ -413,8 +415,11 @@ std::string StructDisplay::GetOutputForwardPagination(const OutputFormat* fmt,
 
     if (printclosebraces && !IsPaginatingRows() && !IsPaginatingCols())
     {
-        os << std::endl << myindent << "]";
-        m_linesPrinted++;
+        os << '\n' << myindent << "]";
+        if (!CurrencyDisplay::IsPaginateOn())
+        {
+            m_linesPrinted++;
+        }
     }
 
     std::string output (os.str());

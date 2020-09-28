@@ -1225,7 +1225,7 @@ hwMathStatus Variance(const hwMatrix& A, hwMatrix& variance, bool sampleVar)
 //------------------------------------------------------------------------------
 // Compute the skewness of a data vector
 //------------------------------------------------------------------------------
-hwMathStatus Skewness(const hwMatrix& data, double& skewness)
+hwMathStatus Skewness(const hwMatrix& data, double& skewness, bool correctBias)
 {
     if (!data.IsReal())
     {
@@ -1238,17 +1238,18 @@ hwMathStatus Skewness(const hwMatrix& data, double& skewness)
 
     int n = data.Size();
     double x;
-    double data_zero;
     double value;
-    double stdDev;
     double xSum = 0.0;
     double xSqSum = 0.0;
     double xCuSum = 0.0;
 
-    if (n)
+    if (correctBias && n < 3)
     {
-        data_zero = data(0);
+        skewness = std::numeric_limits<double>::quiet_NaN();
+        return hwMathStatus();
     }
+
+    double data_zero = data(0);
 
     for (int i = 1; i < n; i++)
     {
@@ -1261,19 +1262,79 @@ hwMathStatus Skewness(const hwMatrix& data, double& skewness)
         xCuSum += value;
     }
 
-    if (n > 1)
+    double nn = static_cast<double> (n);
+    double mean = xSum / nn;
+    double variance = xSqSum / nn - mean * mean;    // population, not sample
+    double stdDev = sqrt(variance);
+
+    skewness = xCuSum - 3.0 * mean * xSqSum + 2.0 * nn * mean * mean * mean;
+    skewness /= nn * variance * stdDev;
+
+    if (correctBias)
     {
-        double mean = xSum / n;  // shifted mean
-
-        double variance = xSqSum / n - mean * mean;    // MLE, not sample
-        stdDev = sqrt(variance);
-
-        skewness = xCuSum - 3.0 * mean * xSqSum + 2.0 * n * mean * mean * mean;
-        skewness /= n * variance * stdDev;
+        skewness *= sqrt(nn * (nn - 1.0)) / (nn - 2.0);
     }
-    else
+
+    return hwMathStatus();
+}
+//------------------------------------------------------------------------------
+// Compute the kurtosis of a data vector
+//------------------------------------------------------------------------------
+hwMathStatus Kurtosis(const hwMatrix& data, double& kurtosis, bool correctBias)
+{
+    if (!data.IsReal())
     {
-        skewness = std::numeric_limits<double>::quiet_NaN();
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 1);
+    }
+    if (!data.IsEmptyOrVector())
+    {
+        return hwMathStatus(HW_MATH_ERR_VECTOR, 1);
+    }
+
+    int n = data.Size();
+    double x;
+    double value;
+    double xSum = 0.0;
+    double xSqSum = 0.0;
+    double xCuSum = 0.0;
+    double xQdSum = 0.0;
+
+    if (correctBias && n < 4)
+    {
+        kurtosis = std::numeric_limits<double>::quiet_NaN();
+        return hwMathStatus();
+    }
+
+    double data_zero = data(0);
+
+    for (int i = 1; i < n; i++)
+    {
+        x = data(i);
+        x -= data_zero;         // shift data
+        xSum += x;
+        value = x * x;
+        xSqSum += value;
+        value *= x;
+        xCuSum += value;
+        value *= x;
+        xQdSum += value;
+    }
+
+    double nn = static_cast<double> (n);
+    double mean = xSum / nn;  // shifted mean
+    double mean2 = mean * mean;
+    double mean4 = mean2 * mean2;
+    double variance = xSqSum / nn - mean * mean;    // population, not sample
+    double stdDev = sqrt(variance);
+
+    kurtosis = xQdSum - 4.0 * mean * xCuSum + 6.0 * mean2 * xSqSum
+             - 3.0 * nn * mean4;
+    kurtosis /= nn * variance * variance;
+
+    if (correctBias)
+    {
+        kurtosis = (nn + 1.0) * kurtosis - 3.0 * (nn - 1.0);
+        kurtosis = (nn - 1.0) / ((nn - 2.0) * (nn - 3.0)) * kurtosis + 3.0;
     }
 
     return hwMathStatus();

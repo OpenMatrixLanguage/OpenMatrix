@@ -444,3 +444,26 @@ const std::string* OMLTree::GetLeadingIdent()
 
 	return NULL;
 }
+
+const OMLTree* OMLTree::FindParentOf(std::string& ident_name) const
+{
+	for (int j = 0; j < _children.size(); j++)
+	{
+		OMLTree* child = GetChild(j);
+
+		if (child->GetType() == IDENT)
+		{
+			if (child->GetText() == ident_name)
+				return this;
+		}
+		else
+		{
+			const OMLTree* return_val = child->FindParentOf(ident_name);
+
+			if (return_val)
+				return return_val;
+		}
+	}
+	
+	return NULL;
+}

@@ -61,6 +61,8 @@ public:
 
 	std::string GetStringRepresentation() const;
 
+	const OMLTree* FindParentOf(std::string& ident_name) const;
+
 	void*      u; // user data
 	TREE_FPTR  func_ptr;
 

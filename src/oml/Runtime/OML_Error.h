@@ -1,7 +1,7 @@
 /**
 * @file OML_Error.h
 * @date November 2015
-* Copyright (C) 2015-2019 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -53,6 +53,7 @@ enum omlMathErrCode
     OML_ERR_REALVECTOR,                      // must be a real vector
     OML_ERR_NNINTVECTOR,                     // must be nonnegative integer vector
     OML_ERR_POSINTVECTOR,                    // must be positive integer vector
+    OML_ERR_POSINTMATRIX,                    // must be positive integer matrix
     OML_ERR_MATRIX,                          // must be a matrix
     OML_ERR_REALMATRIX,                      // must be a real matrix
     OML_ERR_EMPTYMATRIX,                     // must be empty [] matrix
@@ -140,6 +141,7 @@ enum omlMathErrCode
     OML_ERR_HANDLE_STRING_CELL,              // must be a function handle, string or cell with function details
     OML_ERR_INTERNAL,                        // internal error
     OML_ERR_AUTHENTICATE,                    // authentication failure
+    OML_ERR_UNICODE_FILENAME,                // file name cannot have Unicode characters
 
 	// plot codes
     OML_ERR_PLOT_DIM_NOT_MATCH,              // invalid inputs; data dimensions do not match
@@ -165,7 +167,7 @@ enum omlMathErrCode
     OML_ERR_PLOT_YZ_NOT_MATCH,               // length of y must match the number of rows of z
     OML_ERR_PLOT_X_Z2_NOT_MATCH,             // length of x and z must match
     OML_ERR_PLOT_Y_Z1_NOT_MATCH,             // length of y and z must match
-	OML_ERR_PLOT_CONST_PROPERTY,             // property is read only; cannot be updated
+	OML_ERR_PLOT_CONST_PROPERTY,             // property is read-only; cannot update
     OML_ERR_PLOT_CANNOT_OPEN_IMAGE,          // invalid path; cannot load image
     OML_ERR_PLOT_NEED_NORM_DATA,             // invalid operation; range of normalized value is [0 1]
     OML_ERR_PLOT_NEED_PIXEL_DATA,            // invalid operation; pixel value should be larger than 1
@@ -181,6 +183,22 @@ enum omlMathErrCode
     //HW reader Codes
     OML_ERR_HWREADER_TIMECHANNELS_COMPARE,   // to compare time channels
     OML_ERR_HWREADER_SUBCASE_INVALID_RANGE,  // subcase index out of range
+
+    //HDF5 reader Codes
+    OML_ERR_HDF5_INVALID_FILE,               // not a valid hdf5 file
+    OML_ERR_HDF5_FILE_READ_FAILED,           // failed to read hdf5 file
+    OML_ERR_HDF5_INVALID_GROUP,              // invalid group
+    OML_ERR_HDF5_GROUP_READ_FAILED,          // failed to read group
+    OML_ERR_HDF5_INVALID_DATASET,            // invalid dataset
+    OML_ERR_HDF5_DATASET_READ_FAILED,        // failed to read dataset
+    OML_ERR_HDF5_NEITHER_DATASET_NOR_GROUP,  // location is invalid, location must be a dataset or a group
+    OML_ERR_HDF5_ATTRIBUTE_READ_FAILED,      // failed to read attributes
+    OML_ERR_HDF5_DATATYPE_READ_FAILED,       // failed to read datatype
+    OML_ERR_HDF5_DATASPACE_READ_FAILED,      // failed to read dataspace
+    OML_ERR_HDF5_POINTS_MATRIXDIM_INVALID,   // number of columns in points selection matrix not matching number of dimentions of data
+    OML_ERR_HDF5_POINTS_SELECTION_INVALID,   // selected points are not valid
+    OML_ERR_HDF5_UNSUPPORTDIM,               // data with more than seven dimentions are not supported
+    OML_ERR_HDF5_UNSUPPORT_DATA,             // unsupported data
 
     OML_ERR_END
 };
@@ -213,6 +231,7 @@ enum omlMathVarCode
     OML_VAR_ABSTOL,
     OML_VAR_RELTOL,
     OML_VAR_MAXSTEP,
+    OML_VAR_RANDSEED,
     OML_VAR_TOLX,
     OML_VAR_TOLFUN,
     OML_VAR_TOLFUNABS,
@@ -222,6 +241,8 @@ enum omlMathVarCode
     OML_VAR_MOVELIM,
     OML_VAR_PERTM,
     OML_VAR_PERTV,
+    OML_VAR_POPSIZE,
+    OML_VAR_CRODIST,
     OML_VAR_INITSAMPNTS,
     OML_VAR_MAXFAIL,
     OML_VAR_PNTSPERITER,
@@ -367,7 +388,6 @@ private:
 #define HW_ERROR_POPINITRANGEINCSPEC "Error: 'PopInitRange' is incorrectly specified"
 #define HW_ERROR_INVINITPOPRANGE "Error: invalid initial population range"
 #define HW_ERROR_INITPOPINCSPEC "Error: 'InitialPopulation' is incorrectly specified"
-#define HW_ERROR_POPSIZEINCSPEC "Error: 'PopulationSize' is incorrectly specified"
 #define HW_ERROR_DESVARNOTINIT "Error: design variables could not be initialized"
 #define HW_ERROR_INITSTEMPTOSPECDIM "Error: initial state must be empty to specify dimension"
 #define HW_ERROR_1STAND2NDINPBOTHSCALORBOTHVEC "Error: first and second inputs must be both scalars or both vectors"

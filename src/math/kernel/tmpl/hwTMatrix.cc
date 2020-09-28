@@ -26,6 +26,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <mutex>
 
 #include <Globals.h>
 #include <hwMathStatus.h>
@@ -5837,56 +5838,12 @@ hwMathStatus hwTMatrix<T1, T2>::Toeplitz(const hwTMatrix<T1, T2>& C, const hwTMa
 // ****************************************************
 
 //! Compute memory capacity for the matrix data
-template<>
-inline void hwTMatrix<double>::SetCapacity(DataType dataType)
-{
-    if (m_nCols < 0 || m_nRows < 0)
-    {
-        m_capacity = -1;    // force allocaction failure
-        return;
-    }
-
-    if (!m_nCols || !m_nRows)
-    {
-        m_capacity = 0;
-        return;
-    }
-
-    constexpr size_t maxSize = std::numeric_limits<int>::max();
-
-    if ((size_t) m_nCols > maxSize / (size_t) m_nRows)
-    {
-        m_capacity = -1;    // force allocaction failure
-        return;
-    }
-
-    int size = Size();
-
-    if (size > m_capacity)
-    {
-        if (m_capacity > maxSize - m_capacity)
-        {
-            m_capacity = static_cast<int>(maxSize);
-        }
-        else
-        {
-            m_capacity = _max(2 * m_capacity, size);
-
-            if (dataType == REAL)   // extend for 16-byte alignment
-                m_capacity += 2;
-            else
-                m_capacity++;
-        }
-    }
-}
-
-//! Compute memory capacity for the matrix data
 template<typename T1, typename T2>
 void hwTMatrix<T1, T2>::SetCapacity(DataType dataType)
 {
     if (m_nCols < 0 || m_nRows < 0)
     {
-        m_capacity = -1;    // force allocaction failure
+        m_capacity = -10;   // force allocaction failure
         return;
     }
 
@@ -5900,7 +5857,7 @@ void hwTMatrix<T1, T2>::SetCapacity(DataType dataType)
     
     if ((size_t) m_nCols > maxSize / (size_t) m_nRows)
     {
-        m_capacity = -1;    // force allocaction failure
+        m_capacity = -10;   // force allocaction failure
         return;
     }
 
@@ -5964,14 +5921,14 @@ inline void hwTMatrix<double>::Allocate(DataType dataType)
         if (m_real)
         {
             MakeEmpty();
-            m_capacity = -1;    // force allocaction failure
+            m_capacity = -10;   // force allocaction failure
         }
 
         try
         {
-            m_real_memory = new char[m_capacity * sizeof(double)];
+            m_real_memory = new char[(m_capacity + 8) * sizeof(double)];
             m_real = reinterpret_cast<double*>
-                     ((reinterpret_cast<std::ptrdiff_t> (m_real_memory) + 15) & ~ 0xF);   // 16-byte alignment
+                     ((reinterpret_cast<std::ptrdiff_t> (m_real_memory) + 63) & ~0x3F);   // 64-byte alignment
         }
         catch (std::bad_alloc&)
         {
@@ -5985,14 +5942,14 @@ inline void hwTMatrix<double>::Allocate(DataType dataType)
         if (m_complex)
         {
             MakeEmpty();
-            m_capacity = -1;    // force allocaction failure
+            m_capacity = -10;   // force allocaction failure
         }
 
         try
         {
-            m_complex_memory = new char[m_capacity * sizeof(hwTComplex<double>)];
+            m_complex_memory = new char[(m_capacity + 4) * sizeof(hwTComplex<double>)];
             m_complex = reinterpret_cast<hwTComplex<double>*>
-                        ((reinterpret_cast<std::ptrdiff_t> (m_complex_memory) + 15) & ~ 0xF);   // 16-byte alignment
+                        ((reinterpret_cast<std::ptrdiff_t> (m_complex_memory) + 63) & ~0x3F);   // 64-byte alignment
         }
         catch (std::bad_alloc&)
         {

@@ -1871,7 +1871,8 @@ bool BuiltInFuncsString::Strip(EvaluatorInterface eval,
     HML_CELLARRAY* cell1 = cur1.CellArray();
     if (!cell1 || cell1->Size() == 0)
     {
-        return EvaluatorInterface::allocateCellArray();
+        outputs.push_back(EvaluatorInterface::allocateCellArray());
+        return true;
     }
 
     int m = cell1->M();

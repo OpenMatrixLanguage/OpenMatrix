@@ -95,89 +95,142 @@ bool OmlIfft(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
-    Currency cur = inputs[0];
+    // collect input info
+    const Currency& input1 = inputs[0];
 
-    if (cur.IsMatrix() || cur.IsScalar() || cur.IsComplex())
+    if (!(input1.IsMatrix() || input1.IsNDMatrix() ||
+        input1.IsScalar() || input1.IsComplex()))
     {
-        const hwMatrix* mtx = cur.ConvertToMatrix();
-        std::unique_ptr<hwMatrix> freq(EvaluatorInterface::allocateMatrix());
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
+    }
 
-        int dim = 1;
+    int fftSize = -1;
 
-        if (nargin == 3)
+    if (nargin > 1)
+    {
+        const Currency& input2 = inputs[1];
+
+        if (input2.IsPositiveInteger())
         {
-            if (!inputs[2].IsPositiveInteger())
-            {
-                throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_DIM);
-            }
-            dim = static_cast<int>(inputs[2].Scalar());
+            fftSize = static_cast<int>(input2.Scalar());
+        }
+        else if (input2.IsMatrix())
+        {
+            const hwMatrix* matrix = input2.Matrix();
+
+            if (!matrix->Is0x0())
+                throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_VALUE);
         }
         else
         {
-            dim = (mtx->M() == 1) ? 2 : 1;
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_VALUE);
+        }
+    }
+
+    int dim = -1;
+
+    if (nargin > 2)
+    {
+        const Currency& input3 = inputs[2];
+
+        if (nargin == 3 && !input3.IsPositiveInteger())
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_DIM);
         }
 
-        int fftSize;
-        if (nargin > 1)
+        dim = static_cast<int>(input3.Scalar());
+    }
+
+    if (dim == -1)
+    {
+        if (input1.IsNDMatrix())
         {
-            const Currency &input2 = inputs[1];
-            if (input2.IsPositiveInteger())
+            const hwMatrixN* matrix = input1.MatrixN();
+            const std::vector<int>& dims = matrix->Dimensions();
+
+            // use first non-singleton dimension
+            for (int i = 0; i < dims.size(); ++i)
             {
-                fftSize = static_cast<int>(input2.Scalar());
+                if (dims[i] != 1)
+                {
+                    dim = i + 1;
+                    break;
+                }
             }
-            else if (input2.IsEmpty())
+        }
+        else
+        {
+            const hwMatrix* matrix = input1.ConvertToMatrix();
+
+            if (matrix->M() == 1)
             {
-                if (dim == 1)
-                {
-                    fftSize = mtx->M();
-                }
-                else if (dim == 2)
-                {
-                    fftSize = mtx->N();
-                }
-                else
-                {
-                    throw OML_Error(OML_ERR_UNSUPPORTDIM, 3);
-                }
+                dim = 2;
             }
             else
             {
-                throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_VALUE);
+                dim = 1;
             }
+        }
+    }
+
+    if (fftSize == -1)
+    {
+        if (input1.IsNDMatrix())
+        {
+            const hwMatrixN* matrix = input1.MatrixN();
+            const std::vector<int>& dims = matrix->Dimensions();
+
+            fftSize = dims[dim - 1];
         }
         else
         {
-            fftSize = (mtx->M() == 1) ? mtx->N() : mtx->M();    
-        }
+            const hwMatrix* matrix = input1.ConvertToMatrix();
 
-        if ((dim == 1 && mtx->N() == 1) || (dim == 2 && mtx->M() == 1))
+            if (dim == 1)
+            {
+                fftSize = matrix->M();
+            }
+            else   // dim == 2
+            {
+                fftSize = matrix->N();
+            }
+        }
+    }
+
+    // perform fft ops
+    if (!input1.IsNDMatrix())
+    {
+        const hwMatrix* matrix = input1.ConvertToMatrix();
+        std::unique_ptr<hwMatrix> signal(EvaluatorInterface::allocateMatrix());
+
+        if ((dim == 1 && matrix->N() < 2) || (dim == 2 && matrix->M() < 2))
         {
-            if (mtx->IsReal())
+            if (matrix->IsReal())
             {
                 hwMatrix input;
-                hwMathStatus status = input.PackComplex(*mtx);
+                hwMathStatus status = input.PackComplex(*matrix);
                 BuiltInFuncsUtils::CheckMathStatus(eval, status);
 
-                status = Ifft(input, *freq, fftSize);
+                status = Ifft(input, *signal, fftSize);
                 BuiltInFuncsUtils::CheckMathStatus(eval, status);
             }
             else
             {
-                hwMathStatus status = Ifft(*mtx, *freq, fftSize);
+                hwMathStatus status = Ifft(*matrix, *signal, fftSize);
                 BuiltInFuncsUtils::CheckMathStatus(eval, status);
             }
         }
         else if (dim == 1)
         {
-            freq.reset(EvaluatorInterface::allocateMatrix(
-                fftSize, mtx->N(), hwMatrix::REAL));
+            signal.reset(EvaluatorInterface::allocateMatrix(
+                fftSize, matrix->N(), hwMatrix::REAL));
 
-            std::unique_ptr<hwMatrix> colin (EvaluatorInterface::allocateMatrix());
+            std::unique_ptr<hwMatrix> colin(EvaluatorInterface::allocateMatrix());
             std::unique_ptr<hwMatrix> colout(EvaluatorInterface::allocateMatrix());
 
-            for (int i  = 0; i < mtx->N(); ++i)
+            for (int i = 0; i < matrix->N(); ++i)
             {
-                hwMathStatus stat = mtx->ReadColumn(i, *colin);
+                hwMathStatus stat = matrix->ReadColumn(i, *colin);
                 BuiltInFuncsUtils::CheckMathStatus(eval, stat);
                 if (colin->IsReal())
                 {
@@ -190,20 +243,20 @@ bool OmlIfft(EvaluatorInterface           eval,
                 {
                     colout->Transpose();
                 }
-                stat = freq->WriteColumn(i, *colout);
+                stat = signal->WriteColumn(i, *colout);
                 BuiltInFuncsUtils::CheckMathStatus(eval, stat);
             }
         }
         else if (dim == 2)
         {
-            freq.reset(EvaluatorInterface::allocateMatrix(mtx->M(), fftSize, hwMatrix::REAL));
+            signal.reset(EvaluatorInterface::allocateMatrix(matrix->M(), fftSize, hwMatrix::REAL));
 
-            std::unique_ptr<hwMatrix> rowin (EvaluatorInterface::allocateMatrix());
+            std::unique_ptr<hwMatrix> rowin(EvaluatorInterface::allocateMatrix());
             std::unique_ptr<hwMatrix> rowout(EvaluatorInterface::allocateMatrix());
 
-            for (int i  = 0; i < mtx->M(); i++)
+            for (int i = 0; i < matrix->M(); i++)
             {
-                hwMathStatus stat = mtx->ReadRow(i, *rowin);
+                hwMathStatus stat = matrix->ReadRow(i, *rowin);
                 BuiltInFuncsUtils::CheckMathStatus(eval, stat);
                 if (rowin->IsReal())
                 {
@@ -216,7 +269,7 @@ bool OmlIfft(EvaluatorInterface           eval,
                 {
                     rowout->Transpose();
                 }
-                stat = freq->WriteRow(i, *rowout);
+                stat = signal->WriteRow(i, *rowout);
                 BuiltInFuncsUtils::CheckMathStatus(eval, stat);
             }
         }
@@ -225,11 +278,22 @@ bool OmlIfft(EvaluatorInterface           eval,
             throw OML_Error(OML_ERR_UNSUPPORTDIM, 3);
         }
 
-        outputs.push_back(freq.release());
+        outputs.push_back(signal.release());
     }
-    else if (cur.IsNDMatrix())
+    else        // ND case
     {
-        if (nargin != 3)
+        const hwMatrixN* matrix = input1.MatrixN();
+        const std::vector<int>& dims = matrix->Dimensions();
+
+        if (fftSize == dims[dim - 1])
+        {
+            hwMatrixN* signal = new hwMatrixN;
+
+            hwMathStatus status = Ifft(*matrix, *signal, dim - 1, fftSize);
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+            outputs.push_back(signal);
+        }
+        else if (nargin != 3)
         {
             return oml_MatrixNUtil4(eval, inputs, outputs, OmlIfft);
         }
@@ -238,13 +302,8 @@ bool OmlIfft(EvaluatorInterface           eval,
             return oml_MatrixNUtil4(eval, inputs, outputs, OmlIfft, 3);
         }
     }
-    else
-    {
-        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
-    }
 
     return true;
-
 }
 //------------------------------------------------------------------------------
 // Fast Fourier transform
@@ -260,115 +319,187 @@ bool OmlFft(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
-    Currency inp1 = inputs[0];
+    // collect input info
+    const Currency& input1 = inputs[0];
 
-    if (inp1.IsMatrix() || inp1.IsScalar() || inp1.IsComplex())
+    if (!(input1.IsMatrix() || input1.IsNDMatrix() ||
+          input1.IsScalar() || input1.IsComplex()))
     {
-        const hwMatrix* mtx = inp1.ConvertToMatrix();
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
+    }
 
-        if (nargin == 3 && !inputs[2].IsPositiveInteger())
+    int fftSize = -1;
+
+    if (nargin > 1)
+    {
+        const Currency& input2 = inputs[1];
+
+        if (input2.IsPositiveInteger())
+        {
+            fftSize = static_cast<int>(input2.Scalar());
+        }
+        else if (input2.IsMatrix())
+        {
+            const hwMatrix* matrix = input2.Matrix();
+
+            if (!matrix->Is0x0())
+                throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_VALUE);
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_VALUE);
+        }
+    }
+
+    int dim = -1;
+
+    if (nargin > 2)
+    {
+        const Currency& input3 = inputs[2];
+
+        if (nargin == 3 && !input3.IsPositiveInteger())
         {
             throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_DIM);
         }
-        int dim = 1;
-        if (nargin == 3)
+
+        dim = static_cast<int>(input3.Scalar());
+    }
+
+    if (dim == -1)
+    {
+        if (input1.IsNDMatrix())
         {
-            dim = static_cast<int>(inputs[2].Scalar());
+            const hwMatrixN* matrix = input1.MatrixN();
+            const std::vector<int>& dims = matrix->Dimensions();
+
+            // use first non-singleton dimension
+            for (int i = 0; i < dims.size(); ++i)
+            {
+                if (dims[i] != 1)
+                {
+                    dim = i + 1;
+                    break;
+                }
+            }
         }
         else
         {
-            dim = (mtx->M() == 1) ? 2 : 1;
-        }
+            const hwMatrix* matrix = input1.ConvertToMatrix();
 
-        int fftSize;
-        if (nargin > 1)
-        {
-            const Currency &input2 = inputs[1];
-
-            if (input2.IsPositiveInteger())
+            if (matrix->M() == 1)
             {
-                fftSize = static_cast<int>(input2.Scalar());
-            }
-            else if (input2.IsEmpty())
-            {
-                switch (dim)
-                {
-                case 1:  fftSize = mtx->M(); break;
-                case 2:  fftSize = mtx->N(); break;
-                default: throw OML_Error(OML_ERR_UNSUPPORTDIM, 3); break;
-                }
+                dim = 2;
             }
             else
             {
-                throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_VALUE);
+                dim = 1;
             }
+        }
+    }
+
+    if (fftSize == -1)
+    {
+        if (input1.IsNDMatrix())
+        {
+            const hwMatrixN* matrix = input1.MatrixN();
+            const std::vector<int>& dims = matrix->Dimensions();
+
+            fftSize = dims[dim - 1];
         }
         else
         {
-            fftSize = (mtx->M() == 1) ? mtx->N() : mtx->M();    
-        }
+            const hwMatrix* matrix = input1.ConvertToMatrix();
 
+            if (dim == 1)
+            {
+                fftSize = matrix->M();
+            }
+            else   // dim == 2
+            {
+                fftSize = matrix->N();
+            }
+        }
+    }
+
+    // perform fft ops
+    if (!input1.IsNDMatrix())
+    {
+        const hwMatrix* matrix = input1.ConvertToMatrix();
         std::unique_ptr<hwMatrix> freq(EvaluatorInterface::allocateMatrix());
 
-        if ((dim == 1 && mtx->N() == 1) || (dim == 2 && mtx->M() == 1))
+        if ((dim == 1 && matrix->N() < 2) || (dim == 2 && matrix->M() < 2))
         {
-            hwMathStatus mstat = Fft(*mtx, *freq, fftSize);
-            BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
+            hwMathStatus status = Fft(*matrix, *freq, fftSize);
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
         }
         else if (dim == 1)
         {
-            freq.reset(EvaluatorInterface::allocateMatrix(fftSize, mtx->N(), hwMatrix::COMPLEX));
+            freq.reset(EvaluatorInterface::allocateMatrix(fftSize, matrix->N(), hwMatrix::COMPLEX));
             hwComplex* response = freq->GetComplexData();
             hwMathStatus status;
 
-            if (mtx->IsReal())
+            if (matrix->IsReal())
             {
-                double* signal = const_cast<double*> (mtx->GetRealData());
-
-                for (int i = 0; i < mtx->N(); ++i)
+                if (fftSize == matrix->M())
                 {
-                    hwMatrix col_in(mtx->M(), 1, reinterpret_cast<void*> (signal), hwMatrix::REAL);
-                    hwMatrix col_out(fftSize, 1, reinterpret_cast<void*> (response), hwMatrix::COMPLEX);
-                    status = Fft(col_in, col_out, fftSize);
-                    signal += mtx->M();
-                    response += fftSize;
+                    status = Fft(*matrix, *freq, dim - 1, fftSize);
+                }
+                else
+                {
+                    double* signal = const_cast<double*> (matrix->GetRealData());
+
+                    for (int i = 0; i < matrix->N(); ++i)
+                    {
+                        hwMatrix col_in(matrix->M(), 1, reinterpret_cast<void*> (signal), hwMatrix::REAL);
+                        hwMatrix col_out(fftSize, 1, reinterpret_cast<void*> (response), hwMatrix::COMPLEX);
+                        status = Fft(col_in, col_out, fftSize);
+                        signal += matrix->M();
+                        response += fftSize;
+                    }
                 }
             }
             else
             {
-                hwComplex* signal = const_cast<hwComplex*> (mtx->GetComplexData());
+                hwComplex* signal = const_cast<hwComplex*> (matrix->GetComplexData());
 
-                for (int i = 0; i < mtx->N(); ++i)
+                for (int i = 0; i < matrix->N(); ++i)
                 {
-                    hwMatrix col_in(mtx->M(), 1, reinterpret_cast<void*> (signal), hwMatrix::COMPLEX);
+                    hwMatrix col_in(matrix->M(), 1, reinterpret_cast<void*> (signal), hwMatrix::COMPLEX);
                     hwMatrix col_out(fftSize, 1, reinterpret_cast<void*> (response), hwMatrix::COMPLEX);
                     status = Fft(col_in, col_out, fftSize);
-                    signal += mtx->M();
+                    signal += matrix->M();
                     response += fftSize;
                 }
             }
         }
         else if (dim == 2)
         {
-            freq.reset(EvaluatorInterface::allocateMatrix(mtx->M(), fftSize, 
+            freq.reset(EvaluatorInterface::allocateMatrix(matrix->M(), fftSize,
                 hwMatrix::COMPLEX));
 
-            std::unique_ptr<hwMatrix> rowin (EvaluatorInterface::allocateMatrix());
-            std::unique_ptr<hwMatrix> rowout(EvaluatorInterface::allocateMatrix());
-
-            for (int i  = 0; i < mtx->M(); i++)
+            if (fftSize == matrix->N())
             {
-                hwMathStatus mstat = mtx->ReadRow(i, *rowin);
-                BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
+                hwMathStatus status = Fft(*matrix, *freq, dim - 1, fftSize);
+            }
+            else
+            {
+                std::unique_ptr<hwMatrix> rowin(EvaluatorInterface::allocateMatrix());
+                std::unique_ptr<hwMatrix> rowout(EvaluatorInterface::allocateMatrix());
 
-                mstat = Fft(*rowin, *rowout, fftSize);
-                BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
-                if (rowout->M() != 1)
+                for (int i = 0; i < matrix->M(); i++)
                 {
-                    rowout->Transpose();
+                    hwMathStatus status = matrix->ReadRow(i, *rowin);
+                    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+                    status = Fft(*rowin, *rowout, fftSize);
+                    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+                    if (rowout->M() != 1)
+                    {
+                        rowout->Transpose();
+                    }
+                    status = freq->WriteRow(i, *rowout);
+                    BuiltInFuncsUtils::CheckMathStatus(eval, status);
                 }
-                mstat = freq->WriteRow(i, *rowout);
-                BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
             }
         }
         else
@@ -378,9 +509,20 @@ bool OmlFft(EvaluatorInterface           eval,
 
         outputs.push_back(freq.release());
     }
-    else if (inp1.IsNDMatrix())
+    else        // ND case
     {
-        if (nargin != 3)
+        const hwMatrixN* matrix = input1.MatrixN();
+        const std::vector<int>& dims = matrix->Dimensions();
+
+        if (fftSize == dims[dim - 1])
+        {
+            hwMatrixN* freq = new hwMatrixN;
+
+            hwMathStatus status = Fft(*matrix, *freq, dim - 1, fftSize);
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+            outputs.push_back(freq);
+        }
+        else if (nargin != 3)
         {
             return oml_MatrixNUtil4(eval, inputs, outputs, OmlFft);
         }
@@ -388,10 +530,6 @@ bool OmlFft(EvaluatorInterface           eval,
         {
             return oml_MatrixNUtil4(eval, inputs, outputs, OmlFft, 3);
         }
-    }
-    else
-    {
-        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
     }
 
     return true;

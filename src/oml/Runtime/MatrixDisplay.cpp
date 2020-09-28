@@ -50,6 +50,7 @@ MatrixDisplay::MatrixDisplay(const Currency& cur)
     , _maxdigits      (static_cast<long long>(1e+15))
     , _totaldigits    (12)
     , _delimiter      ("  ")
+    , _skipformatwidth(-1)
 {
 }
 //------------------------------------------------------------------------------
@@ -164,11 +165,13 @@ std::string MatrixDisplay::GetOutputNoPagination(const OutputFormat* fmt,
     if (!m_initialized)
         return "";
 
-    if (_realwidth.empty() || _realwidth.size() != numcols)
-        return ""; // Initialization could have been interrupted
+    if (_skipformatwidth < 0 && (_realwidth.empty() || _realwidth.size() != numcols))
+    {
+        return ""; // Initialization is interrupted or using skipformat
+    }
 
     // Get column widths for pretty outputs
-    if (!isrealdata)
+    if (!isrealdata && _skipformatwidth < 0)
     {
         if (_imagwidth.empty() || _imagwidth.size() != numcols)
             return ""; // Initialization could have been interrupted
@@ -189,8 +192,10 @@ std::string MatrixDisplay::GetOutputNoPagination(const OutputFormat* fmt,
         output += myindent;
 		for (int j = 0; j < numcols; ++j)
 		{
-            int iwidth = isrealdata ? 0 : _imagwidth[j];
-            GetOutput(i, j, _realwidth[j], iwidth, isReal, isrealdata, output);
+            int rwidth = GetRealWidth(j);
+            int iwidth = GetImagWidth(j, isrealdata);
+
+            GetOutput(i, j, rwidth, iwidth, isReal, isrealdata, output);
 
             if (j != numcols -1)
                 output += _delimiter;  // Delimiter between columns
@@ -211,12 +216,6 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
     int  numcols    = datamtx->N();
     bool isReal     = datamtx->IsReal();
     bool isrealdata = datamtx->IsRealData();
-
-    assert(_realwidth.size() == numcols);
-    if (!isrealdata)
-    {
-        assert(_imagwidth.size() == numcols);
-    }
 
     std::string header;
     std::string data;
@@ -276,7 +275,6 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
 	    int startcol  = (m_colBegin >= 0) ? m_colBegin : 0;			
         int maxcols   = GetNumColumnsToFit(startcol, numcols, true, isrealdata);
 
-
 	    int totalrows = std::min(numrows, startrow + maxlines);
         int totalcols = std::min(numcols, startcol + maxcols);
 
@@ -286,7 +284,7 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
             firstcol = startcol;
         }
         // If there is only one row left, print instead of paginating
-        if (m_parentDisplay)
+        if (IsPaginateOn() || m_parentDisplay)
         {
             if (totalrows == numrows - 1 && numrows > 1) 
             {
@@ -299,14 +297,17 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
                 totalrows += 2;
             }
         }
+         
+            
         for (i = startrow; i < totalrows; ++i)
         {
             data += myindent;
             for (j = startcol; j < totalcols; ++j)
 		    {
-                int iwidth = isrealdata ? 0 : _imagwidth[j];
-                GetOutput(i, j, _realwidth[j], iwidth, isReal, isrealdata, data);
-
+                int rwidth = GetRealWidth(j);
+                int iwidth = GetImagWidth(j, isrealdata);
+                GetOutput(i, j, rwidth, iwidth, isReal, isrealdata, data);
+                
                 if (j != maxcols -1)
                 {
                     data += _delimiter;
@@ -476,12 +477,6 @@ std::string MatrixDisplay::GetOutputBackPagination(const OutputFormat* fmt) cons
     bool isReal     = datamtx->IsReal();
     bool isrealdata = datamtx->IsRealData();
 
-    assert(_realwidth.size() == numcols);
-    if (!isrealdata)
-    {
-        assert(_imagwidth.size() == numcols);
-    }
-
     std::string header;
     std::string data;
     std::string output;
@@ -522,6 +517,7 @@ std::string MatrixDisplay::GetOutputBackPagination(const OutputFormat* fmt) cons
 	    int endcol = (m_colEnd > 0 && m_colEnd < numcols) ? m_colEnd : numcols - 1;
 
         int maxcols = GetNumColumnsToFit(endcol, numcols, false, isrealdata);
+
         int startrow = std::max(0, endrow+1 - maxlines);
         int startcol = std::max(0, endcol+1 - maxcols);
 
@@ -531,7 +527,7 @@ std::string MatrixDisplay::GetOutputBackPagination(const OutputFormat* fmt) cons
             lastcol = endcol;
         }
 
-        if (prevstartrow == 0 && prevstartcol == 0) // Quit once ew reach the end
+        if (prevstartrow == 0 && prevstartcol == 0) // Quit once we reach the end
         {
             m_rowBegin = -1;
             m_colBegin = -1;
@@ -545,16 +541,17 @@ std::string MatrixDisplay::GetOutputBackPagination(const OutputFormat* fmt) cons
             data += myindent;
 		    for (j = startcol; j < numcols && j <= endcol; ++j)
 		    {
-                int iwidth = isrealdata ? 0 : _imagwidth[j];
-                GetOutput(i, j, _realwidth[j], iwidth, isReal, isrealdata, data);
-
+                int rwidth = GetRealWidth(j);
+                int iwidth = GetImagWidth(j, isrealdata);
+                GetOutput(i, j, rwidth, iwidth, isReal, isrealdata, data);
+                
                 if (j != maxcols -1)
                 {
                     data += _delimiter;
                 }
                 linesprinted = true;
             }
-            data += "\n";
+            data += '\n';
             m_linesPrinted++;
         }
         m_rowBegin = startrow;
@@ -826,6 +823,15 @@ void MatrixDisplay::SetUpDisplayData()
 //------------------------------------------------------------------------------
 void MatrixDisplay::ResetFormat()
 {
+    if (!_realwidth.empty())
+    {
+        _realwidth.clear();
+        _imagwidth.clear();
+
+        _realwidth.shrink_to_fit();  // Release memory
+        _imagwidth.shrink_to_fit();
+    }
+
     _displayformat = DisplayFormatInt;
     _precision     = OutputFormat::PRECISION_SHORT;
     _haslargeint   = false;
@@ -838,9 +844,6 @@ void MatrixDisplay::ResetFormat()
     _minfloat  = static_cast<long double>(1e-6);
     _maxdigits = static_cast<long long>(1e+15);
     _totaldigits = 12;
-
-    _realwidth.clear();
-    _imagwidth.clear();
 }
 //------------------------------------------------------------------------------
 // Gets output
@@ -915,13 +918,12 @@ int MatrixDisplay::GetNumColumnsToFit(int  refcol,
     {
         for (int i = refcol; i < numcols; ++i)
         {
-            int realwidth = _realwidth[i];
-            int imagwidth = (!isreal) ? _imagwidth[i] : 0;
-
+            int rwidth = GetRealWidth(i);
+            int iwidth = GetImagWidth(i, isreal);
             if (i != refcol)
                 linewidth += colpadsize;
 
-            linewidth += realwidth + signwidth + imagwidth;
+            linewidth += rwidth + signwidth + iwidth;
             if (linewidth > m_maxCols) return colstofit;
 
             colstofit++;
@@ -931,10 +933,10 @@ int MatrixDisplay::GetNumColumnsToFit(int  refcol,
 
     for (int i = refcol; i >= 0; --i)
     {
-        int realwidth = _realwidth[i];
-        int imagwidth = (!isreal) ? _imagwidth[i] : 0;
+        int rwidth = GetRealWidth(i);
+        int iwidth = GetImagWidth(i, isreal);
 
-        linewidth += realwidth + signwidth + imagwidth;
+        linewidth += rwidth + signwidth + iwidth;
         if (i != refcol)
             linewidth += colpadsize;
 
@@ -951,6 +953,22 @@ void MatrixDisplay::SetFormat(const OutputFormat* fmt, Interpreter* interp)
     const hwMatrix* mtx = m_currency.Matrix();
     assert(mtx);
     assert(!mtx->IsEmpty());
+
+    // Scan matrix and set format
+    if (m_skipFormat > 0 && mtx->Size() >= m_skipFormat)
+    {
+        // Flip to short format
+        _formatinteger = 0;
+        _formatdecimal = 0;
+        _totaldigits = 12;
+        _maxdigits = static_cast<long long>(1e+15);
+        _maxint    = static_cast<long long>(1e+12);
+        _maxfloat = 1e+6;
+        _minfloat = 1e-6;
+        _precision = OutputFormat::PRECISION_SHORT;
+        _displayformat = DisplayFormatFloat;
+        return;
+    }
 
     if (fmt)
     {
@@ -1006,7 +1024,7 @@ void MatrixDisplay::SetFormat(const OutputFormat* fmt, Interpreter* interp)
     // Scan matrix and set format
     int  numcols = mtx->N();
     int  numrows = mtx->M();
-    bool isreal  = mtx->IsReal();
+    bool isreal = mtx->IsReal();
 
     for (int j = 0; j < numcols && _displayformat != DisplayFormatScientific; ++j)
     {
@@ -1015,7 +1033,7 @@ void MatrixDisplay::SetFormat(const OutputFormat* fmt, Interpreter* interp)
         for (int i = 0; i < numrows && _displayformat != DisplayFormatScientific; ++i)
         {
             DisplayFormat thisformat = isreal ? GetFormat((*mtx)(i, j)) :
-                                                GetFormat(mtx->z(i, j));        
+                GetFormat(mtx->z(i, j));
             _displayformat = std::max(thisformat, _displayformat);
         }
     }
@@ -1101,7 +1119,7 @@ void MatrixDisplay::Initialize(const OutputFormat* fmt,
         SetWidth(interp);       // Scan matrix and set the width of columns
     }
     
-    CurrencyDisplay::Initialize(fmt, interp, parent);
+    CurrencyDisplay::Initialize(fmt, interp, parent); // Sets parent
 }
 //------------------------------------------------------------------------------
 // Scan matrix and set the width of different columns
@@ -1117,9 +1135,31 @@ void MatrixDisplay::SetWidth(Interpreter* interp)
     bool isreal     = mtx->IsReal();
     bool isrealdata = mtx->IsRealData();
 
+    if (m_skipFormat > 0 && mtx->Size() >= m_skipFormat)
+    {
+        // Flip to fixed width, after examining the first element
+        double      realval = 0.0;
+        double      imagval = 0.0;
+        std::string imagsign;
+
+        if (isreal)
+        {
+            realval = (*mtx)(0, 0);
+        }
+        else
+        {
+            GetComplexNumberVals(mtx->z(0, 0), realval, imagval, imagsign);
+        }
+        _skipformatwidth = static_cast<int>(
+            MatrixDisplay::GetFormattedStringLength(realval, _displayformat)) + 1;
+        return;
+    }
+
     _realwidth.reserve(numcols);
     if (!isrealdata)
+    {
         _imagwidth.reserve(numcols);
+    }
 
     for (int j = 0; j < numcols; ++j)
     {
@@ -1152,9 +1192,9 @@ void MatrixDisplay::SetWidth(Interpreter* interp)
                 + 1);
 
         }
-        _realwidth.push_back(realwidth);
+        _realwidth.emplace_back(realwidth);
         if (!isrealdata)
-            _imagwidth.push_back(imagwidth);
+            _imagwidth.emplace_back(imagwidth);
     }
 }
 //------------------------------------------------------------------------------
@@ -1407,5 +1447,31 @@ size_t MatrixDisplay::GetFormattedStringLength(double val, DisplayFormat type) c
         return CurrencyDisplay::GetFormattedStringLength(os.str().c_str(), val);
     }
     return CurrencyDisplay::GetFormattedStringLength("%.5f", val);
+}
+//------------------------------------------------------------------------------
+// Gets real component width
+//------------------------------------------------------------------------------
+int MatrixDisplay::GetRealWidth(int idx) const
+{
+    if (_skipformatwidth > 0)
+    {
+        return _skipformatwidth;
+    }
+    return _realwidth[idx];
+}
+//------------------------------------------------------------------------------
+// Gets imaginary component width
+//------------------------------------------------------------------------------
+int MatrixDisplay::GetImagWidth(int idx, bool isreal) const
+{
+    if (isreal)
+    {
+        return 0;
+    }
+    else if (_skipformatwidth > 0)
+    {
+        return _skipformatwidth + 2;
+    }
+    return _imagwidth[idx];
 }
 // End of file

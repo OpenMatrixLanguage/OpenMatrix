@@ -45,7 +45,13 @@
 
 int maxcols = 0;
 const size_t g_buffsize = 256 * 1024;
-// End defines/includes
+static char  g_buf[g_buffsize + 1];
+// Utility to flush output buffer
+void FlushStdout()
+{
+    fflush(stdout);
+    memset(g_buf, 0, sizeof(g_buf));
+}
 
 //------------------------------------------------------------------------------
 // Constructor
@@ -56,8 +62,8 @@ ConsoleWrapper::ConsoleWrapper(Interpreter* interp)
     , _addnewline       (false)
     , _getWindowSize    (false)
 {
-	char buf[g_buffsize + 1];
-    std::cout.rdbuf()->pubsetbuf(buf, g_buffsize);
+    memset(g_buf, 0, sizeof(g_buf));
+    std::cout.rdbuf()->pubsetbuf(g_buf, g_buffsize);
     std::cin.tie(nullptr);
 }
 //------------------------------------------------------------------------------
@@ -257,7 +263,7 @@ void ConsoleWrapper::PrintToConsole(const std::string& result,
             PrintToStdout(msg);
             if (forceflush)
             {
-                std::cout << std::flush;
+                FlushStdout();
             }
 
             return;
@@ -277,7 +283,7 @@ void ConsoleWrapper::PrintToConsole(const std::string& result,
         PrintToStdout(msg);
         if (forceflush)
         {
-            std::cout << std::flush;
+            FlushStdout();
         }
 
         _appendOutput = !hasTrailingNewline;
@@ -304,7 +310,15 @@ void ConsoleWrapper::HandleOnClearResults()
 void ConsoleWrapper::ProcessPagination()
 {
     CurrencyDisplay* display = GetCurrentDisplay();
-    assert(display);
+    if (!display)
+    {
+        return;
+    }
+    else if (_interp->IsInterrupt())
+    {
+        HandleOnClearResults();   // Quit all printing
+        return;
+    }
 
     if (display->GetMode() == CurrencyDisplay::DISPLAYMODE_EXIT)
     {
@@ -598,13 +612,13 @@ void ConsoleWrapper::Paginate()
 //------------------------------------------------------------------------------
 // Slot called when interpreter is deleted
 //------------------------------------------------------------------------------
-void ConsoleWrapper::HandleOnSaveOnExit()
+void ConsoleWrapper::HandleOnSaveOnExit(int returnCode)
 {	
     DisconnectOmlSignalHandler();
 
     delete _interp;
     _interp = NULL;
-    exit(EXIT_SUCCESS);	
+    exit(returnCode);
 }
 //------------------------------------------------------------------------------
 // Slot which displays a prompt and gets user input
@@ -627,9 +641,11 @@ void ConsoleWrapper::HandleOnGetUserInput(const std::string& prompt,
     if (waspaginating)
     {
         std::cout << ">>>";
+        FlushStdout();
     }
 
     std::cout << prompt;
+    FlushStdout();
     std::getline(std::cin, userInput);
 
     if (type == "s" || type == "S") 
@@ -727,7 +743,7 @@ void ConsoleWrapper::HandleOnPauseStart(const std::string& msg, bool wait)
         }
         break;  // Nothing pending at this point
     }
-    PrintInfoToOmlWindow(msg);
+    //PrintInfoToOmlWindow(msg); // Printed earlier
     
     if (!wait)
     {
@@ -815,9 +831,20 @@ void ConsoleWrapper::PrintToStdout(const std::string& msg)
     size_t numprinted = 0;
     while (numprinted < len)
     {
-        std::cout << msg.substr(numprinted, g_buffsize) << std::flush;
-        numprinted += g_buffsize;
+        FlushStdout(); // Flush before printing large output
+        if (numprinted + g_buffsize > len)
+        {
+            std::cout << msg.substr(numprinted);
+            break;
+        }
+        else
+        {
+
+            std::cout << msg.substr(numprinted, g_buffsize);
+            numprinted += g_buffsize;
+        }
     }
+    FlushStdout();
 }
 //------------------------------------------------------------------------------
 // Prints new prompt, resets append flags

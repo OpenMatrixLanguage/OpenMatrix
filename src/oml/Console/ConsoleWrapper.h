@@ -84,8 +84,9 @@ public:
     void HandleOnClearResults();
     //!
     //! Handles application exit
+    //! \param returnCode Code to exit the application with
     //!
-	void HandleOnSaveOnExit();
+	void HandleOnSaveOnExit(int returnCode = EXIT_SUCCESS);
     //!
     //! Displays a prompt and gets user input
 	//! \param prompt    Prompt to display to user

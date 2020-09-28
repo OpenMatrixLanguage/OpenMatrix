@@ -447,8 +447,6 @@ std::string MatrixNDisplay::GetOutputBackPagination(const OutputFormat* fmt) con
                 }
             }
         }
-        //else
-        //    m_linesPrinted++;
 
         CurrencyDisplay::DeleteDisplay(cur.GetDisplay());
         cur.SetDisplay(NULL);

@@ -1,7 +1,7 @@
 /**
 * @file OML_Error.cpp
 * @date November 2015
-* Copyright (C) 2015-2019 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -49,6 +49,7 @@
 #define OML_MSG_REALVECTOR    "Error: invalid input; must be a real vector"
 #define OML_MSG_NNINTVECTOR   "Error: invalid input; must be nonnegative integer vector"
 #define OML_MSG_POSINTVECTOR  "Error: invalid input; must be positive integer vector"
+#define OML_MSG_POSINTMATRIX  "Error: invalid input; must be positive integer matrix"
 #define OML_MSG_MATRIX        "Error: invalid input; must be a matrix"
 #define OML_MSG_REALMATRIX    "Error: invalid input; must be a real matrix"
 #define OML_MSG_EMPTYMATRIX   "Error: invalid input; must be empty [] matrix"
@@ -136,6 +137,7 @@
 #define OML_MSG_HANDLE_STRING_CELL          "Error: invalid input: must be a function handle, string or cell with function details"
 #define OML_MSG_INTERNAL                    "Error: internal error"
 #define OML_MSG_AUTHENTICATE                "Error: authentication failure"
+#define OML_MSG_UNICODE_FILENAME            "Error: invalid input: file name cannot have Unicode characters"
 
 // plot messages
 #define OML_MSG_PLOT_DIM_NOT_MATCH              "Error: invalid inputs; data dimensions do not match"
@@ -161,7 +163,7 @@
 #define OML_MSG_PLOT_Y_Z1_NOT_MATCH             "Error: length of y must match the number of rows of z"
 #define OML_MSG_PLOT_XZ_NOT_MATCH               "Error: length of x and z must match"
 #define OML_MSG_PLOT_YZ_NOT_MATCH               "Error: length of y and z must match"
-#define OML_MSG_PLOT_CONST_PROPERTY             "Error: property is read only; cannot be updated"
+#define OML_MSG_PLOT_CONST_PROPERTY             "Error: property is read-only; cannot update"
 #define OML_MSG_PLOT_CANNOT_OPEN_IMAGE          "Error: invalid path; cannot load image"
 #define OML_MSG_PLOT_NEED_NORM_DATA             "Error: invalid operation; range of normalized value is [0 1]"
 #define OML_MSG_PLOT_NEED_PIXEL_DATA            "Error: invalid operation; pixel value should larger than 1"
@@ -179,6 +181,22 @@
 // HW reader messages
 #define OML_MSG_HWREADER_TIMECHANNELS_COMPARE    "Time channels does not match"
 #define OML_MSG_HWREADER_SUBCASE_INVALID_RANGE   "Error: invalid input; subcase index out of range;"
+
+// HDF5 reader messages
+#define OML_MSG_HDF5_INVALID_FILE                "Error: not a valid hdf5 file"
+#define OML_MSG_HDF5_FILE_READ_FAILED            "Error: failed to read hdf5 file"
+#define OML_MSG_HDF5_INVALID_GROUP               "Error: input is not a group"
+#define OML_MSG_HDF5_GROUP_READ_FAILED           "Error: failed to read group"
+#define OML_MSG_HDF5_INVALID_DATASET             "Error: input is not a dataset"
+#define OML_MSG_HDF5_DATASET_READ_FAILED         "Error: failed to read dataset"
+#define OML_MSG_HDF5_NEITHER_DATASET_NOR_GROUP   "Error: location is invalid; location must be a dataset or a group "
+#define OML_MSG_HDF5_ATTRIBUTE_READ_FAILED       "Error: failed to read attributes"
+#define OML_MSG_HDF5_DATATYPE_READ_FAILED        "Error: failed to read datatype"
+#define OML_MSG_HDF5_DATASPACE_READ_FAILED       "Error: failed to read dataspace"
+#define OML_MSG_HDF5_POINTS_MATRIXDIM_INVALID    "Error: number of columns in points selection matrix does not match number of dimensions in data"
+#define OML_MSG_HDF5_POINTS_SELECTION_INVALID    "Error: selected points are out of range"
+#define OML_MSG_HDF5_UNSUPPORTDIM                "Error: data with more than seven dimentions are not supported"
+#define OML_MSG_HDF5_UNSUPPORT_DATA              "Error: unsupported data"
 
 // Variable type definitions
 #define OML_STR_MATRIX          "matrix"
@@ -205,6 +223,7 @@
 #define OML_STR_ABSTOL          "AbsTol"
 #define OML_STR_RELTOL          "RelTol"
 #define OML_STR_MAXSTEP         "MaxStep"
+#define OML_STR_RANDSEED        "Seed"
 #define OML_STR_TOLX            "TolX"
 #define OML_STR_TOLFUN          "TolFun"
 #define OML_STR_TOLFUNABS       "TolFunAbs"
@@ -214,6 +233,8 @@
 #define OML_STR_MOVELIM         "Move Limit Fraction"
 #define OML_STR_PERTM           "Perturbation Method"
 #define OML_STR_PERTV           "Initial Perturbation Value"
+#define OML_STR_POPSIZE         "Population Size"
+#define OML_STR_CRODIST         "Crowding Distance"
 #define OML_STR_INITSAMPNTS     "Number of Initial Sample Points"
 #define OML_STR_MAXFAIL         "Maximum Failed Iterations"
 #define OML_STR_PNTSPERITER     "Points Per Iteration"
@@ -447,6 +468,7 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode errCode) const
     case OML_ERR_REALVECTOR:                    msgStr = OML_MSG_REALVECTOR;                    break;
     case OML_ERR_NNINTVECTOR:                   msgStr = OML_MSG_NNINTVECTOR;                   break;
     case OML_ERR_POSINTVECTOR:                  msgStr = OML_MSG_POSINTVECTOR;                  break;
+    case OML_ERR_POSINTMATRIX:                  msgStr = OML_MSG_POSINTMATRIX;                  break;
     case OML_ERR_MATRIX:                        msgStr = OML_MSG_MATRIX;                        break;
     case OML_ERR_REALMATRIX:                    msgStr = OML_MSG_REALMATRIX;                    break;
     case OML_ERR_EMPTYMATRIX:                   msgStr = OML_MSG_EMPTYMATRIX;                   break;
@@ -534,6 +556,7 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode errCode) const
     case OML_ERR_HANDLE_STRING_CELL:            msgStr = OML_MSG_HANDLE_STRING_CELL; break;
     case OML_ERR_INTERNAL:                      msgStr = OML_MSG_INTERNAL; break;
     case OML_ERR_AUTHENTICATE:                  msgStr = OML_MSG_AUTHENTICATE; break;
+    case OML_ERR_UNICODE_FILENAME:              msgStr = OML_MSG_UNICODE_FILENAME; break;
 
 	// plot error messages:
     case OML_ERR_PLOT_DIM_NOT_MATCH:            msgStr = OML_MSG_PLOT_DIM_NOT_MATCH;            break;
@@ -574,6 +597,23 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode errCode) const
     // HW reader error messages:
     case OML_ERR_HWREADER_TIMECHANNELS_COMPARE: msgStr = OML_MSG_HWREADER_TIMECHANNELS_COMPARE; break;
 	case OML_ERR_HWREADER_SUBCASE_INVALID_RANGE: msgStr = OML_MSG_HWREADER_SUBCASE_INVALID_RANGE; break;
+
+    // HDF5 reader error messages:
+    case OML_ERR_HDF5_INVALID_FILE:              msgStr = OML_MSG_HDF5_INVALID_FILE;              break;
+    case OML_ERR_HDF5_FILE_READ_FAILED:          msgStr = OML_MSG_HDF5_FILE_READ_FAILED;          break;
+    case OML_ERR_HDF5_INVALID_GROUP:             msgStr = OML_MSG_HDF5_INVALID_GROUP;             break;
+    case OML_ERR_HDF5_GROUP_READ_FAILED:         msgStr = OML_MSG_HDF5_GROUP_READ_FAILED;         break;
+    case OML_ERR_HDF5_INVALID_DATASET:           msgStr = OML_MSG_HDF5_INVALID_DATASET;           break;
+    case OML_ERR_HDF5_DATASET_READ_FAILED:       msgStr = OML_MSG_HDF5_DATASET_READ_FAILED;       break;
+    case OML_ERR_HDF5_NEITHER_DATASET_NOR_GROUP: msgStr = OML_MSG_HDF5_NEITHER_DATASET_NOR_GROUP; break;
+    case OML_ERR_HDF5_ATTRIBUTE_READ_FAILED:     msgStr = OML_MSG_HDF5_ATTRIBUTE_READ_FAILED;     break;
+    case OML_ERR_HDF5_DATATYPE_READ_FAILED:      msgStr = OML_MSG_HDF5_DATATYPE_READ_FAILED;      break;
+    case OML_ERR_HDF5_DATASPACE_READ_FAILED:     msgStr = OML_MSG_HDF5_DATASPACE_READ_FAILED;     break;
+    case OML_ERR_HDF5_POINTS_MATRIXDIM_INVALID:  msgStr = OML_MSG_HDF5_POINTS_MATRIXDIM_INVALID;  break;
+    case OML_ERR_HDF5_POINTS_SELECTION_INVALID:  msgStr = OML_MSG_HDF5_POINTS_SELECTION_INVALID;  break;
+    case OML_ERR_HDF5_UNSUPPORTDIM:              msgStr = OML_MSG_HDF5_UNSUPPORTDIM;              break;
+    case OML_ERR_HDF5_UNSUPPORT_DATA:            msgStr = OML_MSG_HDF5_UNSUPPORT_DATA;            break;
+
     default: break;
     }
 
@@ -612,6 +652,7 @@ std::string OML_Error::GetOmlVarStr(omlMathVarCode varCode) const
     case OML_VAR_ABSTOL:       varStr = OML_STR_ABSTOL;       break;
     case OML_VAR_RELTOL:       varStr = OML_STR_RELTOL;       break;
     case OML_VAR_MAXSTEP:      varStr = OML_STR_MAXSTEP;      break;
+    case OML_VAR_RANDSEED:     varStr = OML_STR_RANDSEED;     break;
     case OML_VAR_TOLX:         varStr = OML_STR_TOLX;         break;
     case OML_VAR_TOLFUN:       varStr = OML_STR_TOLFUN;       break;
     case OML_VAR_TOLFUNABS:    varStr = OML_STR_TOLFUNABS;    break;
@@ -621,6 +662,8 @@ std::string OML_Error::GetOmlVarStr(omlMathVarCode varCode) const
     case OML_VAR_MOVELIM:      varStr = OML_STR_MOVELIM;      break;
     case OML_VAR_PERTM:        varStr = OML_STR_PERTM;        break;
     case OML_VAR_PERTV:        varStr = OML_STR_PERTV;        break;
+    case OML_VAR_POPSIZE:      varStr = OML_STR_POPSIZE;      break;
+    case OML_VAR_CRODIST:      varStr = OML_STR_CRODIST;      break;
     case OML_VAR_INITSAMPNTS:  varStr = OML_STR_INITSAMPNTS;  break;
     case OML_VAR_MAXFAIL:      varStr = OML_STR_MAXFAIL;      break;
     case OML_VAR_PNTSPERITER:  varStr = OML_STR_PNTSPERITER;  break;

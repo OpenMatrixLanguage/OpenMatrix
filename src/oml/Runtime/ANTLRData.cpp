@@ -244,22 +244,43 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 				{
 					int q;
 					int paren_count = 1;
+					bool in_string = false;
 
-					for (q=k+1; q<num_tokens; q++)
+					for (q = k + 1; q < num_tokens; q++)
 					{
 						pANTLR3_COMMON_TOKEN tok = (pANTLR3_COMMON_TOKEN)vec->get(vec, q);
 						int token_type = tok->getType(tok);
 
 						if (token_type == LPAREN)
-							paren_count++;
+						{
+							if (!in_string)
+								paren_count++;
+						}
 						else if (token_type == RPAREN)
-							paren_count--;
+						{
+							if (!in_string)
+								paren_count--;
+						}
+						else if (token_type == QUOTE)
+						{
+							pANTLR3_COMMON_TOKEN prev_tok = (pANTLR3_COMMON_TOKEN)vec->get(vec, q - 1);
+
+							if (in_string)
+							{
+								in_string = false;
+							}
+							else
+							{
+								if (prev_tok->getType(prev_tok) != IDENT)
+									in_string = true;
+							}
+						}
 
 						if (paren_count == 0)
 							break;
 					}
 
-					k=q;
+					k = q;
 				}
 				else if ((token_type == LBRACKET) && (exit_type == RBRACKET))
 				{
