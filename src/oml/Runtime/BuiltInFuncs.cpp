@@ -2549,7 +2549,7 @@ bool oml_iscell(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
 //------------------------------------------------------------------------------
 bool oml_isfinite(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
 {
-    return allowComplexToLogical(inputs, outputs, &::isfinite, true);
+    return allowComplexToLogical(inputs, outputs, &::checkisfinite, true);
 }
 //------------------------------------------------------------------------------
 // Unary plus sign [uplus]
@@ -13804,7 +13804,7 @@ bool oml_eps(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
                 throw OML_Error(OML_ERR_NATURALNUM, j+1, OML_VAR_DIM);
             }
 
-            if (!(::isfinite(dim)))
+            if (!(::checkisfinite(dim)))
                 throw OML_Error(HW_ERROR_DIMFINITE);
 
             if (dim < 0.0)
@@ -21016,7 +21016,7 @@ bool createCommonMatrix(EvaluatorInterface& eval, const std::vector<Currency>& i
             throw OML_Error(OML_ERR_UNSUPPORTDIM);
         }
 
-        if (!(::isfinite(m) && ::isfinite(n)))
+        if (!(::checkisfinite(m) && ::checkisfinite(n)))
             throw OML_Error(HW_ERROR_DIMFINITE);
 
         // take care of negative inputs
@@ -21058,7 +21058,7 @@ bool createCommonMatrix(EvaluatorInterface& eval, const std::vector<Currency>& i
             {
                 dim = realval(dimens, j);
 
-                if (!(::isfinite(dim)))
+                if (!(::checkisfinite(dim)))
                     throw OML_Error(HW_ERROR_DIMFINITE);
 
                 if (dim < 0.0)
@@ -21084,7 +21084,7 @@ bool createCommonMatrix(EvaluatorInterface& eval, const std::vector<Currency>& i
                     throw OML_Error(OML_ERR_NATURALNUM, j+1, OML_VAR_DIM);
                 }
 
-                if (!(::isfinite(dim)))
+                if (!(::checkisfinite(dim)))
                     throw OML_Error(HW_ERROR_DIMFINITE);
 
                 if (dim < 0.0)
@@ -21207,7 +21207,7 @@ bool limitFunc(EvaluatorInterface& eval, const std::vector<Currency> &inputs, st
                 throw OML_Error(OML_ERR_NATURALNUM, j+1, OML_VAR_DIM);
             }
 
-            if (!(::isfinite(dim)))
+            if (!(::checkisfinite(dim)))
                 throw OML_Error(HW_ERROR_DIMFINITE);
 
             if (dim < 0.0)
@@ -24308,7 +24308,7 @@ void getDimensionsFromInput(const std::vector<Currency> &inputs, int *m, int *n)
         throw OML_Error(OML_ERR_UNSUPPORTDIM, 1);
     }
 
-    if (!(::isfinite(dbm) && ::isfinite(dbn)))
+    if (!(::checkisfinite(dbm) && ::checkisfinite(dbn)))
         throw OML_Error(HW_ERROR_DIMFINITE);
 
     *m = (int) dbm;
