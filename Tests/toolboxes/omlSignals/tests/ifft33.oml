@@ -17,7 +17,6 @@ t = [0:ts:(n-1)*ts];
 signal = 2.0*cos(omega1*t+phi1) + 4.0*cos(omega2*t+phi2) + 3.0*cos(omega3*t+phi3);
 signal = signal';
 signal2 = [signal, circshift(signal,2), circshift(signal,4), circshift(signal,6)];
-signal2 = reshape(signal2,[n,2,2]);
 
 % analyze signal spectrum
 freqRes = fft(signal2);

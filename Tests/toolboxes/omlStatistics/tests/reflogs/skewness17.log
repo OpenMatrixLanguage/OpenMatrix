@@ -1,1 +1,3 @@
-Error: unsupported dimension in argument 3; matrices with more than 2 dimensions are not currently allowed in call to function skewness at line number 2 in file skewness17.oml
+ans = [Matrix] 2 x 3
+NaN  NaN  NaN
+NaN  NaN  NaN

@@ -1,6 +1,4 @@
 Warning: Rows can be compared only for 2-D matrices; ignoring option 'rows' in call to function unique at line number 1 in file unique28.oml
-a = 
-{
-}
+a = {}
 b = [Matrix] 0 x 0
 c = [Matrix] 0 x 0

@@ -10,4 +10,4 @@ ans =
   }
   [1,3] [Matrix] 0 x 0
 }
-Error: cannot apply specified format in column 2 of row 1 in the output. in call to function textscan at line number 3 in file textscan6.oml
+Error: invalid input; format(s) cannot be applied in field 3 [%f] to row [1] of the output in call to function textscan at line number 3 in file textscan6.oml

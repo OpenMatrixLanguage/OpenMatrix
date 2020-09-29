@@ -1,0 +1,4 @@
+name = 'FileManipulation\fscanf_data1.txt';
+fid = fopen(name, 'rb');
+textscan(fid, '%f', 'delimiter', '\n')
+fclose(fid);

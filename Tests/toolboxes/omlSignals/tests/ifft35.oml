@@ -1,0 +1,25 @@
+addtoolbox omlsignals
+
+% define real signal
+f1 = 62.5;
+f2 = 125;
+f3 = 250;
+omega1 = 2*pi*f1;
+omega2 = 2*pi*f2;
+omega3 = 2*pi*f3;
+phi1 = -pi / 6;
+phi2 = pi / 6;
+phi3 = pi / 3;
+fs = 1000;
+ts = 1/fs;
+n = 16;
+t = [0:ts:(n-1)*ts];
+signal = 2.0*cos(omega1*t+phi1) + 4.0*cos(omega2*t+phi2) + 3.0*cos(omega3*t+phi3);
+signal = signal';
+signal2 = [signal, circshift(signal,1), circshift(signal,2), circshift(signal,3), circshift(signal,4), circshift(signal,5), circshift(signal,6), circshift(signal,7), circshift(signal,8), circshift(signal,9), circshift(signal,10), circshift(signal,11)];
+signal2 = reshape(signal2,[n,3,4]);
+
+% analyze signal spectrum
+freqRes = fft(signal2,[],1);
+signal2 = ifft(freqRes,[],1);
+signal2 = round(100000000 * signal2) / 100000000

@@ -1,0 +1,13 @@
+verbose(1)
+test1()
+pause(0.2)
+test2()
+pause(0.1)
+
+function test1()
+	disp('function test1 called')
+end
+
+function test2()
+	disp('function test2 called')
+end

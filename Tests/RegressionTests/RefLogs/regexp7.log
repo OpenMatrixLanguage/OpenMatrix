@@ -1,14 +1,8 @@
 s = [Matrix] 1 x 0
 e = [Matrix] 1 x 0
-te = 
-{
-}
-m = 
-{
-}
-t = 
-{
-}
+te = {}
+m = {}
+t = {}
 nm = struct [
 FIRST: 
 OUTER: 

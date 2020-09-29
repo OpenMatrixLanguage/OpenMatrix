@@ -1,0 +1,3 @@
+hour('11:01:55 AM','HH:MM:SS PM')
+hour('11:01:55 PM','HH:MM:SS PM')
+hour('12:01:55 PM','HH:MM:SS PM')

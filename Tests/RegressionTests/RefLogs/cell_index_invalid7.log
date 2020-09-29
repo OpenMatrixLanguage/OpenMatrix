@@ -1,4 +1,2 @@
-a = 
-{
-}
+a = {}
 Error: invalid index at line number 2 in file cell_index_invalid7.oml
