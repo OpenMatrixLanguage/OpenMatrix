@@ -17,11 +17,16 @@
   
   <div class="body refbody"><p class="shortdesc">Sets the title of the plot.</p>
 
-    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+    <section class="section" id="reference_wpv_kyv_pr__section_agz_hmk_lmb"><h2 class="title sectiontitle">Syntax</h2>
+      
       <p class="p"><span class="ph synph">h = title<span class="ph var">(str)</span></span></p>
 
       <p class="p"><span class="ph synph">h = title<span class="ph var">(hAxes, str)</span></span></p>
-<?STOP?></section>
+
+      <p class="p"><span class="ph synph">h = title<span class="ph var">(..., property, value, ...)</span></span></p>
+
+      <?STOP?>
+    </section>
 
     <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
       
@@ -46,6 +51,26 @@
           <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
 
         
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">property</var></dt>
+
+          <dd class="dd pd"><span class="keyword">Properties that control the appearance or behavior of the graphics object.</span></dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">value</var></dt>
+
+          <dd class="dd pd"><span class="keyword">Value of the properties.</span></dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer | string</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
       </dl>
 
       <?STOPINP?>
@@ -65,7 +90,7 @@
       <?STOPOUT?>
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Example</h2>
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
       <div class="p">Simple <span class="keyword cmdname">title</span>
           example:<pre class="pre codeblock"><code>clf;
@@ -81,6 +106,14 @@ h = title({'empty axes', 'with multi-line title'});</code></pre><figure class="f
           
           <br /><img class="image" id="reference_wpv_kyv_pr__image_jgx_fng_3kb" src="../../../../images/math_solutions/plots/plotMultiLineTitle.png" /><br />
         <span class="figcap"><span class="fig--title-label">Figure 2. </span>Cell input title example</span></figure>
+</div>
+
+      <div class="p">Optional arguments
+          example:<pre class="pre codeblock"><code>clf;
+h = title('empty axis', 'color', [50 100 250], 'fontangle', 'italic');</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_xfj_x12_4mb">
+          
+          <br /><img class="image" src="../../../../images/math_solutions/plots/plotTitleOptionalArgs.png" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 3. </span>Optional arguments in <span class="keyword cmdname">title</span> command</span></figure>
 </div>
 
     </section>
