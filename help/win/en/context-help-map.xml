@@ -252,8 +252,6 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/clear.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
-               path="topics/reference/oml_language/CoreMinimalInterpreter/composedir.htm"/>
-   <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/continue.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/disp.htm"/>
