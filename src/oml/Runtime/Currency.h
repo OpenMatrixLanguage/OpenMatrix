@@ -207,6 +207,9 @@ public:
 	static StringManager vm;
 	static StringManager pm;
 
+	static std::set<void*> ignore_cow_pointers;
+	static bool IgnoreCoW(void*);
+
     //! Creates, if needed and returns display
     CurrencyDisplay* GetDisplay() const;
     //! Sets matrix display

@@ -563,9 +563,9 @@ std::string EvaluatorInterface::GetCurrentFilename() const
     return eval->GetCurrentFilename();
 }
 
-void EvaluatorInterface::SetDiary(bool val)
+int EvaluatorInterface::GetCurrentLinenumber() const
 {
-	eval->SetDiary(val);
+	return eval->GetCurrentDebugLine();
 }
 
 void EvaluatorInterface::SetDLLContext(const std::string& dll_name)
@@ -573,23 +573,17 @@ void EvaluatorInterface::SetDLLContext(const std::string& dll_name)
 	eval->SetDLLContext(dll_name);
 }
 
-bool EvaluatorInterface::IsDiaryOpen()
+void EvaluatorInterface::SetDLLHierarchy(const std::string& metadata)
 {
-	return eval->IsDiaryOpen();
+	eval->SetDLLHierarchy(metadata);
 }
-
-void EvaluatorInterface::SetDiary(std::string filename)
-{
-	eval->SetDiary(filename);
-}
-
 //------------------------------------------------------------------------------
 //! Prompts to save before exiting
 //------------------------------------------------------------------------------
-void EvaluatorInterface::OnSaveOnExit()
+void EvaluatorInterface::OnSaveOnExit(int returnCode)
 {
     assert(eval);
-    eval->OnSaveOnExit();
+    eval->OnSaveOnExit(returnCode);
 }
 //------------------------------------------------------------------------------
 //! True if evaluator is quitting
@@ -898,4 +892,14 @@ void EvaluatorInterface::RemoveChildEvaluator()
 bool EvaluatorInterface::LockBuiltInFunction(const std::string& fname)
 {
     return eval->LockBuiltInFunction(fname);
+}
+
+void EvaluatorInterface::SetNumberOfThreads(int threads) 
+{
+	eval->SetNumberOfThreads(threads);
+}
+
+std::ofstream& EvaluatorInterface::GetDiary()
+{
+    return eval->GetDiary();
 }

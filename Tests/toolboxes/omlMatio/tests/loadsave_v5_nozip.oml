@@ -21,11 +21,11 @@ save([filepath '/Cell_v5_nozip.mat'],'Cell','-v5', '-nozip');
 R = load('Cell_v5_nozip.mat');
 assert(isequal(R.Cell, Cell));
 
-save([filepath '/Str_v5_nozip.mat'],'Str','-v5', 'nozip');
+save([filepath '/Str_v5_nozip.mat'],'Str','-v5', '-nozip');
 R = load('Str_v5_nozip.mat');
 assert(isequal(R.Str, Str));
 
-save([filepath '/Mat_v5_nozip.mat'],'Mat','-v5', 'nozip');
+save([filepath '/Mat_v5_nozip.mat'],'Mat','-v5', '-nozip');
 R = load('Mat_v5_nozip.mat');
 assert(isequal(R.Mat, Mat));
 
@@ -33,7 +33,7 @@ save([filepath '/Stu_v5_nozip.mat'],'Stu','-v5', '-nozip');
 R = load('Stu_v5_nozip.mat');
 assert(isequal(R.Stu, Stu));
 
-save([filepath '/Comp_v5_nozip.mat'],'Comp','-v5', 'nozip');
+save([filepath '/Comp_v5_nozip.mat'],'Comp','-v5', '-nozip');
 R = load('Comp_v5_nozip.mat');
 assert(isequal(R.Comp, Comp));
 
@@ -41,7 +41,7 @@ save([filepath '/Int_v5_nozip.mat'],'Int','-v5', '-nozip');
 R = load('Int_v5_nozip.mat');
 assert(isequal(R.Int, Int));
 
-save([filepath '/Double_v5_nozip.mat'],'Double','-v5', 'nozip');
+save([filepath '/Double_v5_nozip.mat'],'Double','-v5', '-nozip');
 R = load('Double_v5_nozip.mat');
 assert(isequal(R.Double, Double));
 

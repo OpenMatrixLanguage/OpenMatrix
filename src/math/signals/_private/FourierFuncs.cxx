@@ -584,7 +584,7 @@ hwMathStatus Fft2(const hwMatrix& signal,
     return status;
 }
 //------------------------------------------------------------------------------
-// 2D FFT of a real or complex signal
+// FFT of a real or complex signal
 //------------------------------------------------------------------------------
 hwMathStatus Fft(const hwMatrix& signal,
                  hwMatrix&       freqRes,
@@ -605,6 +605,50 @@ hwMathStatus Fft(const hwMatrix& signal,
     return status;
 }
 //------------------------------------------------------------------------------
+// FFT of a real or complex signal
+//------------------------------------------------------------------------------
+hwMathStatus Fft(const hwMatrix& signal,
+                 hwMatrix&       freqRes,
+                 int             dim,
+                 int             fftSize)   // ignored for now
+{
+    hwFFT_f fft;
+
+    hwMathStatus status = fft.Status();
+
+    if (!status.IsOk())
+    {
+        status.SetArg1(3);
+        return status;
+    }
+
+    status = fft.Compute(signal, dim, freqRes);
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// FFT of a real or complex signal
+//------------------------------------------------------------------------------
+hwMathStatus Fft(const hwMatrixN& signal,
+                 hwMatrixN&       freqRes,
+                 int              dim,
+                 int              fftSize)   // ignored for now
+{
+    hwFFT_f fft;
+
+    hwMathStatus status = fft.Status();
+
+    if (!status.IsOk())
+    {
+        status.SetArg1(3);
+        return status;
+    }
+
+    status = fft.Compute(signal, dim, freqRes);
+
+    return status;
+}
+//------------------------------------------------------------------------------
 // Inverse FFT of a real or complex spectrum
 //------------------------------------------------------------------------------
 hwMathStatus Ifft(const hwMatrix& freqRes,
@@ -621,6 +665,48 @@ hwMathStatus Ifft(const hwMatrix& freqRes,
     }
 
     status = ifft.Compute(freqRes, signal);
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// Inverse FFT of a real or complex spectrum
+//------------------------------------------------------------------------------
+hwMathStatus Ifft(const hwMatrix& freqRes,
+                  hwMatrix&       signal,
+                  int             dim,
+                  int             fftSize)   // ignored for now
+{
+    hwFFT_r ifft(0, false);
+
+    hwMathStatus status = ifft.Status();
+    if (!status.IsOk())
+    {
+        status.SetArg1(3);
+        return status;
+    }
+
+    status = ifft.Compute(freqRes, dim, signal);
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// Inverse FFT of a real or complex spectrum
+//------------------------------------------------------------------------------
+hwMathStatus Ifft(const hwMatrixN& freqRes,
+                  hwMatrixN&       signal,
+                  int              dim,
+                  int              fftSize)   // ignored for now
+{
+    hwFFT_r ifft(0, false);
+
+    hwMathStatus status = ifft.Status();
+    if (!status.IsOk())
+    {
+        status.SetArg1(3);
+        return status;
+    }
+
+    status = ifft.Compute(freqRes, dim, signal);
 
     return status;
 }

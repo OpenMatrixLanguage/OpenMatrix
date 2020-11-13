@@ -1,7 +1,7 @@
 /**
 * @file Currency.h
 * @date August 2013
-* Copyright (C) 2013-2019 Altair Engineering, Inc.  
+* Copyright (C) 2013-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -43,6 +43,8 @@
 
 StringManager Currency::vm;
 StringManager Currency::pm;
+std::set<void*> Currency::ignore_cow_pointers;
+
 bool Currency::_experimental = false;
 
 Currency::Currency(double val): type(TYPE_SCALAR),  mask(MASK_DOUBLE), out_name(NULL), 
@@ -290,8 +292,11 @@ void Currency::Copy(const Currency& cur)
 	{
 		data.mtx = cur.data.mtx;
 
-		if (data.mtx)
-			data.mtx->IncrRefCount();
+		if (!IgnoreCoW(data.mtx))
+		{
+			if (data.mtx)
+				data.mtx->IncrRefCount();
+		}
 	}
 	else if (type == TYPE_ND_MATRIX)
 	{
@@ -315,8 +320,11 @@ void Currency::Copy(const Currency& cur)
 	{
 		data.cells = cur.data.cells;
 
-		if (data.cells)
-			data.cells->IncrRefCount();
+		if (!IgnoreCoW(data.cells))
+		{
+			if (data.cells)
+				data.cells->IncrRefCount();
+		}
 	}
 	else if (type == TYPE_ND_CELLARRAY)
 	{
@@ -394,6 +402,9 @@ void Currency::DeleteMatrix(hwMatrix* matrix)
 {
 	if (matrix)
 	{
+		if (IgnoreCoW(matrix))
+			return;
+
 		if (!matrix->IsMatrixShared())
 		{
 			delete matrix;
@@ -448,6 +459,9 @@ void Currency::DeleteCells(HML_CELLARRAY* cells)
 {
 	if (cells)
 	{
+		if (IgnoreCoW(cells))
+			return;
+
 		if (!cells->IsMatrixShared())
 		{
 			delete cells;
@@ -538,6 +552,7 @@ void Currency::Swap(Currency& cur)
 	std::swap(_display, cur._display);
 	std::swap(classname, cur.classname);
 	std::swap(message, cur.message);
+	std::swap(_is_utf8, cur._is_utf8);
 }
 
 Currency::Currency(Currency&& cur): type(TYPE_MATRIX), mask(MASK_DOUBLE), out_name(NULL)
@@ -700,7 +715,7 @@ std::string Currency::GetTypeString() const
     else if (IsSparse())
     {
         const hwMatrixS* mtx = MatrixS();
-        if (!mtx || mtx->Size() == 0)
+        if (!mtx)
         {
             return "sparse [ ]";
         }
@@ -1193,7 +1208,8 @@ const hwMatrix* Currency::ConvertToMatrix() const
 
 		int size = cells->Size();
 
-		int size_needed = 0;
+		int rows_needed = 0;
+		int cols_needed = 0;
 
 		for (int j=0; j<size; j++)
 		{
@@ -1201,18 +1217,28 @@ const hwMatrix* Currency::ConvertToMatrix() const
 
 			if (temp.IsScalar())
 			{
-				size_needed++;
+				cols_needed++;
 			}
 			else if (temp.IsComplex())
 			{
-				size_needed++;
+				cols_needed++;
 			}
 			else if (temp.IsString())
 			{
 				const hwMatrix* string = temp.Matrix();
-				size_needed += string->N();
+				cols_needed += string->N();
 
 				mask = MASK_STRING;
+			}
+			else if (temp.IsMatrix())
+			{
+				const hwMatrix* inner_mtx = temp.Matrix();
+				if (rows_needed == 0)
+					rows_needed = inner_mtx->M();
+				else if (rows_needed != inner_mtx->M())
+					rows_needed = -1;
+
+				cols_needed += inner_mtx->N();
 			}
 			else
 			{
@@ -1221,8 +1247,14 @@ const hwMatrix* Currency::ConvertToMatrix() const
 			}
 		}
 
-		hwMatrix* mtx = ExprTreeEvaluator::allocateMatrix(1, size_needed, hwMatrix::REAL);
+		if (!rows_needed)
+			rows_needed = 1;
+
+		hwMatrix* mtx = ExprTreeEvaluator::allocateMatrix(rows_needed, cols_needed, hwMatrix::REAL);
 		int count = 0;
+
+		int	row_offset = 0;
+		int col_offset = 0;
 
 		for (int j=0; j<size; j++)
 		{
@@ -1251,6 +1283,14 @@ const hwMatrix* Currency::ConvertToMatrix() const
 					(*mtx)(count) = (*string)(k);
 					count++;
 				}
+			}
+			else if (temp.IsMatrix() && (rows_needed != -1))
+			{
+				const hwMatrix* inner_mtx = temp.Matrix();
+
+				mtx->WriteSubmatrix(row_offset, col_offset, *inner_mtx);
+
+				col_offset += inner_mtx->N();
 			}
 		}
 
@@ -1526,7 +1566,7 @@ std::string Currency::GetOutputString(const OutputFormat* fmt) const
         }
 	}
 	else if (IsMatrix() || IsCellArray() || IsStruct() || IsNDMatrix() ||
-             IsObject() || IsNDCellArray() || IsSparse())
+             IsObject() || IsNDCellArray() || IsSparse() || IsCellList())
 	{
         return (GetDisplay()->GetOutput(fmt, os));
 	}
@@ -1694,6 +1734,17 @@ std::string Currency::GetValuesForDisplay(const OutputFormat* fmt) const
 
     return out;
 } 
+
+bool Currency::IgnoreCoW(void* ptr)
+{
+    if (!Currency::ignore_cow_pointers.empty())
+    {
+        if (Currency::ignore_cow_pointers.find(ptr) != Currency::ignore_cow_pointers.end())
+            return true;
+    }
+
+	return false;
+}
 
 StringManager::~StringManager()
 {

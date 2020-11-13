@@ -33,10 +33,12 @@
 #include "hwMatrixS.h"
 #include "math/kernel/GeneralFuncs.h"
 
+int CurrencyDisplay::m_skipFormat   = 10000;
 int CurrencyDisplay::m_maxRows      = 0;
 int CurrencyDisplay::m_maxCols      = 0;
 int CurrencyDisplay::m_linesPrinted = 0;
 CurrencyDisplay::PAGINATE CurrencyDisplay::m_paginate = CurrencyDisplay::PAGINATE_ON;
+
 
 //# define CURRENCYDISPLAY_DBG 1  // Uncomment to print debug info
 #ifdef CURRENCYDISPLAY_DBG
@@ -271,12 +273,12 @@ bool CurrencyDisplay::GetPaginationEndMsg(std::string& msg) const
 //------------------------------------------------------------------------------
 void CurrencyDisplay::DeleteDisplay(CurrencyDisplay* display)
 {
-    if (!display) return;
-
-    const_cast<Currency&>(display->GetCurrency()).SetDisplay(NULL);
-
-    delete display;
-    display = NULL;
+    if (display)
+    {
+        display->m_currency.SetDisplay(nullptr);
+        delete display;
+        display = nullptr;
+    }
 }
 //------------------------------------------------------------------------------
 // Get formatted output string for scalars
@@ -958,4 +960,20 @@ void CurrencyDisplay::SetPaginateOnModeData()
 {
     SetMode(DISPLAYMODE_FORWARD);
     SetModeData();
+}
+//------------------------------------------------------------------------------
+// Sets size, after which printing will be done skipping format of each element
+// Value > 1 will result in formatting being checked (traditional printing)
+// Value < 1 will result in format of first element applied to matrix (fast printing)
+//------------------------------------------------------------------------------
+void CurrencyDisplay::SetSkipFormat(int val)
+{
+    if (val < 1 || IsNegInf_T(val) || IsInf_T(val) || IsNaN_T(val))
+    {
+        m_skipFormat = -1;
+    }
+    else
+    {
+        m_skipFormat = val;
+    }
 }

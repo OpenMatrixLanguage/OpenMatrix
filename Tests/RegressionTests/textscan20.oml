@@ -1,0 +1,3 @@
+fid = fopen('FileManipulation/textscan20.csv', 'r');
+resource = textscan(fid, '%[^,]%*[^\n]', 'HeaderLines', 1)
+fclose(fid);

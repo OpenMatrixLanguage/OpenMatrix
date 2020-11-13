@@ -31,12 +31,14 @@
 
 #include "matio.h"
 
-#define TBOXVERSION 2020
+#define TBOXVERSION 2020.1
 
+// Utility to add to warning string
+void AddWarning(const std::string&, std::string&);
+
+// Ascii files
 // Returns true after loading file in ascii format
-bool ReadASCIIFile(EvaluatorInterface           eval, 
-                   const std::vector<Currency>& inputs, 
-                   std::vector<Currency>&       outputs);
+bool LoadTxtFile(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 // Returns true after saving file in ascii format
 bool SaveAsciiFile(EvaluatorInterface              eval, 
                    const std::string&              filename,
@@ -60,18 +62,19 @@ Currency HandleInvalidDims(matvar_t*, std::string&);  // Sets warning and return
 Currency HandleInvalidRank(matvar_t*, std::string&);  // Sets warning and returns empty currency
 
 
-// Prints matio version for debugging
-void PrintMatioVersion();
-// Prints mat file version to stdout for debugging
-void PrintMatioFileVersion(mat_t* m);
-// Sets error from the matio library
-void SetMatioMessage(int   level,
-                     char* msg);
+// Debugging
+void PrintMatioFileVersion(mat_t*);    // Prints version to stdout for debugging
+void SetMatioMessage(int, char*);      // Sets error from the matio library
+
 //# define OMLMATIO_DBG 1  // Uncomment to print debug info
 #ifdef OMLMATIO_DBG
+
+
 #    define OMLMATIO_PRINT(str, m) { std::cout << str << m << std::endl; }
+#    define OMLMATIO_SHOWERRORS { Mat_LogInitFunc("OML", SetMatioMessage);// Crash in release with wide strings
 #else
 #    define OMLMATIO_PRINT(str, m) 0
+#    define OMLMATIO_SHOWERRORS()  0
 #endif
 
 //------------------------------------------------------------------------------
@@ -513,7 +516,7 @@ bool OmlLoad(EvaluatorInterface           eval,
             std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
             if (lower == "-ascii")
             {
-                return ReadASCIIFile(eval, inputs, outputs);
+                return LoadTxtFile(eval, inputs, outputs);
             }
         }
 
@@ -539,19 +542,37 @@ bool OmlLoad(EvaluatorInterface           eval,
     {
         out_sd.reset(EvaluatorInterface::allocateStruct());
     }
+    std::string filename(inputs[0].StringVal());
+    BuiltInFuncsUtils utils;
+#ifdef OS_WIN
+    if (utils.HasWideChars(filename))
+    {
+        throw OML_Error(OML_ERR_UNICODE_FILENAME, 1);
+    }
+#endif
 
-    Mat_LogInitFunc("OML", SetMatioMessage);
-
-	std::string filename (inputs[0].StringVal());
-    std::string warn;
+    OMLMATIO_SHOWERRORS(); // Causes a crash in release if there are wide strings
 
 	mat_t* m = Mat_Open(filename.c_str(), MAT_ACC_RDONLY);
     if (!m)
     {
-        throw OML_Error(OML_ERR_FILE_CANNOTREAD, 1);
+        try  // Try reading as an txt before quitting
+        {
+            return LoadTxtFile(eval, inputs, outputs);
+        }
+        catch (const OML_Error& e)
+        {
+            throw e;
+        }
+        catch (...)
+        {
+            throw OML_Error(OML_ERR_FILE_CANNOTREAD, 1);
+        }
 	}
 
     PrintMatioFileVersion(m);  // Prints file version to stdout for debugging
+
+    std::string warn;
 
     bool checktargets = (target_variables.empty()) ? false : true;
     while (1)
@@ -627,17 +648,19 @@ matvar_t* CurrencyToMatVar(const char*     name,
                            mat_ft          version,
                            std::string&    warn)
 {
-    if (cur.IsFunctionHandle())  // No code to read/write function handle in matio
+    if (cur.IsFunctionHandle() || cur.IsBoundObject() || cur.IsObject())
     {
-        if (!warn.empty())
+        std::string type("function handle");
+        if (cur.IsBoundObject())
         {
-            warn += "\n";
+            type = "bound object";
         }
-        warn += "Cannot save function handle";
-        if (name)
+        else if (cur.IsObject())
         {
-            warn += " [" + std::string(name) + "]";
+            type = "class object";
         }
+        AddWarning("Ignoring [" + std::string(name) + "]; " + type + 
+            " cannot be saved", warn);
         return nullptr;
     }
 
@@ -799,21 +822,17 @@ matvar_t* CurrencyToMatVar(const char*     name,
             }
             if (!matvar[j])
             {
-                if (!warn.empty())
-                {
-                    warn += "\n";
-                }
+                std::string msg("Ignoring [" + std::string(name) + "(" +
+                    std::to_string(static_cast<long long>(j + 1)) + ")]; ");
                 if (!isFunctionHandle)
                 {
-                    warn += "Unrecognized data type in ";
-                }
+                    msg += "unrecognized data type";
+                }               
                 else
                 {
-                    warn += "Cannot save function handle in ";
+                    msg += "saving function handles is not supported";
                 }
-                warn += std::string(name) + "("
-                    + std::to_string(static_cast<long long>(j + 1));
-
+                AddWarning(msg, warn);
                 size_t doubledims[2] = { 1, 1 };
                 double dummyval = std::numeric_limits<double>::quiet_NaN();
                 matvar[j] = Mat_VarCreate(elemname.c_str(), MAT_C_DOUBLE,
@@ -879,22 +898,19 @@ matvar_t* CurrencyToMatVar(const char*     name,
                     }
                     if (!temp_var)
                     {
-                        if (!warn.empty())
-                        {
-                            warn += "\n";
-                        }
+                        std::string msg("Ignoring [" + std::string(name) + "(" +
+                            std::to_string(static_cast<long long>(j + 1)) + "," +
+                            std::to_string(static_cast<long long>(k + 1)) + ")" +
+                            "." + field + "]; ");
                         if (!isFunctionHandle)
                         {
-                            warn += "Unrecognized data type in ";
+                            msg += "unrecognized data type";
                         }
                         else
                         {
-                            warn += "Cannot save function handle in ";
-                        } 
-                        warn += std::string(name) + "("
-                            + std::to_string(static_cast<long long>(j + 1)) + ","
-                            + std::to_string(static_cast<long long>(k + 1)) + ")"  
-                            + "." + field;
+                            msg += "saving function handles is not supported";
+                        }
+                        AddWarning(msg, warn);
 
                         size_t doubledims[2] = { 1, 1 };
                         double dummyval = std::numeric_limits<double>::quiet_NaN();
@@ -920,25 +936,34 @@ matvar_t* CurrencyToMatVar(const char*     name,
     return var;
 }
 //------------------------------------------------------------------------------
-// Returns true after saving the given file using MATIO library [save command]
+// Returns true after saving the given file using MATIO library [save]
 //------------------------------------------------------------------------------
 bool OmlSave(EvaluatorInterface           eval, 
              const std::vector<Currency>& inputs, 
              std::vector<Currency>&       outputs)
 {
-    int nargin = (!inputs.empty()) ? static_cast<int>(inputs.size()) : 0;
-    if (nargin < 1) 
+    if (inputs.empty())
     {
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
-    Currency cur1 = inputs[0];
-    if (!cur1.IsString())
+    int nargin = static_cast<int>(inputs.size());
+
+    if (!inputs[0].IsString())
     {
         throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
     }
-    std::string filename (cur1.StringVal());
-    bool        isascii = false;  // Saves as binary files by default
+
+    std::string filename (inputs[0].StringVal());
+    BuiltInFuncsUtils utils;
+
+#ifdef OS_WIN
+    if (utils.HasWideChars(filename))
+    {
+        throw OML_Error(OML_ERR_UNICODE_FILENAME, 1);
+    }
+#endif
+    bool isascii = false;  // Saves as binary files by default
 
     mat_ft            version     = MAT_FT_MAT73;         // Default version
     matio_compression compression = MAT_COMPRESSION_ZLIB; // Default compression
@@ -1003,22 +1028,25 @@ bool OmlSave(EvaluatorInterface           eval,
         return SaveAsciiFile(eval, filename, target_variables);
     }
 		
+    std::string warn;
     if (version != MAT_FT_MAT5 && compression != MAT_COMPRESSION_ZLIB)
     {
-        std::string msg = "Warning: invalid compression specified for version;";
+        std::string msg = "Invalid compression specified for version;";
         msg += " ignoring option in argument " + 
                std::to_string(static_cast<long long>(cmpidx));
-        BuiltInFuncsUtils::SetWarning(eval, msg);
+        AddWarning(msg, warn);
         compression = MAT_COMPRESSION_ZLIB;
     }
 
-    PrintMatioVersion();                     // Prints version - for debugging
-    Mat_LogInitFunc("OML", SetMatioMessage); // Initializes logging functions
+#ifdef _DEBUG // Causes a crash in release if there are wide strings
+    Mat_LogInitFunc("OML", SetMatioMessage);
+#endif
 
     // Creates the file to save
 	mat_t* m = Mat_CreateVer(filename.c_str(), nullptr, version);
 	if (!m)
     {
+        BuiltInFuncsUtils::SetWarning(eval, warn);
         throw OML_Error("Error: invalid value in argument 1; cannot create file ["
             + BuiltInFuncsUtils::Normpath(filename) + "]");
     }
@@ -1027,7 +1055,6 @@ bool OmlSave(EvaluatorInterface           eval,
     bool handle_check = eval.HasBuiltin("ishandle");
     std::vector<std::string> varnames (eval.GetVariableNames());
 
-    std::string warn;
 	for (std::vector<std::string>::const_iterator iter = varnames.begin(); 
          iter != varnames.end(); ++iter)
 	{
@@ -1045,7 +1072,7 @@ bool OmlSave(EvaluatorInterface           eval,
 		Currency cur = eval.GetValue(name);
         if (cur.IsFunctionHandle())
         {
-            BuiltInFuncsUtils::SetWarning(eval, "Warning: ignoring [" + name + "]; saving function handles is not supported");
+            AddWarning("Ignoring [" + name + "]; saving function handles is not supported", warn);
             continue;
         }
         if (handle_check)
@@ -1085,24 +1112,35 @@ bool OmlSave(EvaluatorInterface           eval,
                 Mat_VarFree(var);
             }
             Mat_Close(m);
+            BuiltInFuncsUtils::SetWarning(eval, warn);
             throw(e);
         }
     }
 
 	Mat_Close(m);
 
-    if (!warn.empty())
+    if (hastargets)
     {
-        BuiltInFuncsUtils::SetWarning(eval, "Warning: " + warn);
+        bool hasvars = (!(varnames.empty()));
+        for (std::vector<std::string>::const_iterator itr = target_variables.begin();
+            itr != target_variables.end(); ++itr)
+        {
+            if (!hasvars || 
+                std::find(varnames.begin(), varnames.end(), *itr) == varnames.end())
+            {
+                AddWarning("Ignoring [" + *itr + "]; variable not found", warn);
+            }
+        }
     }
+    BuiltInFuncsUtils::SetWarning(eval, warn);
 	return true;
 }
 //-----------------------------------------------------------------------------
 // Returns true after reading an ascii file
 //-----------------------------------------------------------------------------
-bool ReadASCIIFile(EvaluatorInterface           eval, 
-                   const std::vector<Currency>& inputs, 
-                   std::vector<Currency>&       outputs)
+bool LoadTxtFile(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs, 
+                 std::vector<Currency>&       outputs)
 {
     assert(!inputs.empty());
 	
@@ -1118,8 +1156,7 @@ bool ReadASCIIFile(EvaluatorInterface           eval,
 
 	if (!ifs.good())
     {
-        throw OML_Error("Error: invalid value in argument 1; cannot read file ["
-            + BuiltInFuncsUtils::Normpath(file) + "]");
+        throw OML_Error(OML_ERR_FILE_CANNOTREAD, 1);
     }
 	std::vector<std::vector<double>> elements;
 
@@ -1165,8 +1202,7 @@ bool ReadASCIIFile(EvaluatorInterface           eval,
 				}
 				catch (...)
 				{
-                    throw OML_Error("Error: invalid file in argument 1; cannot read ["
-                        + BuiltInFuncsUtils::Normpath(file) + "]");
+                    throw OML_Error(OML_ERR_FILE_CANNOTREAD, 1);
 				}
 
 				row_elements.push_back(val);
@@ -1184,8 +1220,7 @@ bool ReadASCIIFile(EvaluatorInterface           eval,
 			}
 			catch (...)
 			{
-                throw OML_Error("Error: invalid file in argument 1; cannot read ["
-                    + BuiltInFuncsUtils::Normpath(file) + "]");
+                throw OML_Error(OML_ERR_FILE_CANNOTREAD, 1);
 			}
 
 			row_elements.push_back(val);
@@ -1198,17 +1233,37 @@ bool ReadASCIIFile(EvaluatorInterface           eval,
 	int num_rows = static_cast<int>(elements.size());
 	int num_cols = (num_rows) ? static_cast<int>(elements[0].size()) : 0;
 
-	hwMatrix* result = new hwMatrix(num_rows, num_cols, hwMatrix::REAL);
+    std::unique_ptr<hwMatrix> mtx(EvaluatorInterface::allocateMatrix(
+        num_rows, num_cols, hwMatrix::REAL));
 
 	for (int j=0; j<num_rows; j++)
 	{
 		if (elements[j].size() != num_cols)
-			throw OML_Error(HW_ERROR_INCOMPDIM);
+			throw OML_Error(OML_ERR_PLOT_DIM_NOT_MATCH);
 
 		for (int k=0; k<num_cols; k++)
-			(*result)(j,k) = (elements[j])[k];
+			(*mtx)(j,k) = (elements[j])[k];
 	}
 
+    BuiltInFuncsUtils utils;
+
+    Currency result(mtx.release());
+    std::string name(utils.GetBaseName(file));
+    if (!name.empty())
+    {
+        size_t pos = name.find_last_of(".");
+        if (pos != std::string::npos)
+        {
+            name = name.substr(0, pos);
+        }
+    }
+
+    if (!name.empty())
+    {
+        std::replace(name.begin(), name.end(), ' ', '_');
+    }
+
+    eval.SetValue(name, result);
 	outputs.push_back(result);
 	return true;
 }
@@ -1341,19 +1396,6 @@ double GetToolboxVersion(EvaluatorInterface eval)
     return TBOXVERSION;
 }
 //------------------------------------------------------------------------------
-// Prints matio version for debugging
-//------------------------------------------------------------------------------
-void PrintMatioVersion()
-{
-#ifdef OMLMATIO_DBG
-    int matversion[3];
-    Mat_GetLibraryVersion(matversion, matversion + 1, matversion + 2);
-    OMLMATIO_PRINT("Matio major version: ", matversion[0]);
-    OMLMATIO_PRINT("Matio minor version: ", matversion[1]);
-    OMLMATIO_PRINT("Matio release level: ", matversion[2]);
-#endif
-}
-//------------------------------------------------------------------------------
 // Prints mat file version to stdout for debugging
 //------------------------------------------------------------------------------
 void PrintMatioFileVersion(mat_t* m)
@@ -1379,6 +1421,7 @@ void PrintMatioFileVersion(mat_t* m)
 //------------------------------------------------------------------------------
 void SetMatioMessage(int level, char* msg)
 {
+#ifdef OMLMATIO_DBG
     if (!msg)
     {
         return;
@@ -1405,6 +1448,7 @@ void SetMatioMessage(int level, char* msg)
     {
         OMLMATIO_PRINT("Matio debug; " + strmsg, 0);
     }
+#endif
 }
 //------------------------------------------------------------------------------
 // Gets type description of matvar
@@ -1740,4 +1784,21 @@ matvar_t* Currency2MatSparse(const char* name, const Currency& cur)
     imagvec = nullptr;
 
     return matvar2;
+}
+//------------------------------------------------------------------------------
+// Utility to add to warning string(s)
+//------------------------------------------------------------------------------
+void AddWarning(const std::string& txt, std::string& warn)
+{
+    assert(!txt.empty());
+
+    if (warn.empty())
+    {
+        warn += "Warning: " + txt;
+    }
+    else
+    {
+        warn += '\n';
+        warn += "         " + txt;
+    }
 }

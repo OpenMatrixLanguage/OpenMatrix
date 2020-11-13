@@ -1,2 +1,2 @@
 addToolbox omlstatistics
-skewness([])
+kurtosis(6i+9)

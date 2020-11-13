@@ -243,6 +243,10 @@ public:
     void Hermitian(const hwTMatrixS<T1, T2>& source);
     //! Sum along a direction
     void Sum(const hwTMatrixS<T1, T2>& source, bool cols);
+    //! Find maximum along a direction
+    void Max(hwTMatrixS<T1, T2>& val, hwTMatrix<int, hwTComplex<int>>* rc, bool cols) const;
+    //! Find minimum along a direction
+    void Min(hwTMatrixS<T1, T2>& val, hwTMatrix<int, hwTComplex<int>>* rc, bool cols) const;
 
     // ****************************************************
     //               Arithmetic Operations

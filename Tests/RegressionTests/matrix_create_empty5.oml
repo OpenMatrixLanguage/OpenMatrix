@@ -1,0 +1,3 @@
+﻿a = zeros(1,0);
+N_coefs = 3;
+[a; zeros(N_coefs, 1)]

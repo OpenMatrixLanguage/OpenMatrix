@@ -1,0 +1,2 @@
+str = '234 strbb 123bbb';
+textscan(str, '%s %s %d', 'whitespace', 'b')

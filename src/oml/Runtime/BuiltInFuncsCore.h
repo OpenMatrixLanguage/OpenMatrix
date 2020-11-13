@@ -1,4 +1,4 @@
-/**
+	/**
 * @file BuiltInFuncsCore.h
 * @date February 2016
 * Copyright (C) 2016-2020 Altair Engineering, Inc.  
@@ -38,9 +38,13 @@ public:
     //! \param inputs  Vector of inputs
     //! \param outputs Vector of outputs
     //!
-    static bool AddToolbox( EvaluatorInterface           eval, 
-                            const std::vector<Currency>& inputs, 
-                            std::vector<Currency>&       outputs);
+	static bool AddToolbox(EvaluatorInterface           eval,
+		const std::vector<Currency>& inputs,
+		std::vector<Currency>& outputs);
+
+	static bool RegisterLibrary(EvaluatorInterface           eval,
+			const std::vector<Currency>& inputs,
+			std::vector<Currency>& outputs);
     //!
     //! Returns true after getting class information [class command]
     //! \param eval    Evaluator interface
@@ -146,6 +150,16 @@ public:
     static bool Omlfilename( EvaluatorInterface           eval, 
                              const std::vector<Currency>& inputs, 
                              std::vector<Currency>&       outputs);
+
+	//!
+	//! Returns true after getting current linenumber [omlfilename command]
+	//! \param eval    Evaluator interface
+	//! \param inputs  Vector of inputs
+	//! \param outputs Vector of outputs
+	//!
+	static bool Omllinenumber(EvaluatorInterface           eval,
+		const std::vector<Currency>& inputs,
+		std::vector<Currency>& outputs);
     //!
     //! Returns true after checking if given variable/file/path/function exists [exist command]
     //! \param eval    Evaluator interface
@@ -170,7 +184,7 @@ public:
     //!
     static std::string GetBuildNumber( const std::string& versionfile);
     //!
-    //! Enables/disables pagination (omlpaginate)
+    //! Sets pagination options (omlpaginate)
     //! \param eval    Evaluator interface
     //! \param inputs  Vector of inputs
     //! \param outputs Vector of outputs
@@ -231,6 +245,33 @@ public:
     static bool Clc(EvaluatorInterface, 
                     const std::vector<Currency>&,
                     std::vector<Currency>&);
+    //!
+    //! Sets limit which causes printing without formatting [skipformat]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //!
+    static bool SkipFormat(EvaluatorInterface,
+                           const std::vector<Currency>&,
+                           std::vector<Currency>&);
+    //!
+    //! Displays the currency output [display]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //!
+    static bool Display(EvaluatorInterface,
+                        const std::vector<Currency>&,
+                        std::vector<Currency>&);
+    //!
+    //! Exits the application [exit/quit]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //!
+    static bool Exit(EvaluatorInterface,
+                     const std::vector<Currency>&,
+                     std::vector<Currency>&);
 
 private:
     //!

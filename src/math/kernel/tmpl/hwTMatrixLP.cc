@@ -71,10 +71,12 @@ extern "C" void zgetrf_(int* M, int* N, complexD* A, int* LDA, int* IPIV, int* I
 extern "C" void dgetri_(int* N, double* A, int* LDA, int* IPIV, double* WORK, int* LWORK, int* INFO);
 extern "C" void zgetri_(int* N, complexD* A, int* LDA, int* IPIV, complexD* WORK, int* LWORK, int* INFO);
 // Solve AX=B via LU
-extern "C" void dgesv_(int* N, int* NRHS, double* A, int* LDA, int* IPIV,
-                       double* B, int* LDB, int* INFO);
-extern "C" void zgesv_(int* N, int* NRHS, complexD* A, int* LDA, int* IPIV,
-                       complexD* B, int* LDB, int* INFO);
+//extern "C" void dgesv_(int* N, int* NRHS, double* A, int* LDA, int* IPIV,
+//                       double* B, int* LDB, int* INFO);
+//extern "C" void zgesv_(int* N, int* NRHS, complexD* A, int* LDA, int* IPIV,
+//                       complexD* B, int* LDB, int* INFO);
+extern "C" void dgetrs(char* TRANS, int* N, int* NRHS, double* A, int* LDA, int* IPIV, double* X, int* LDB, int* INFO);
+extern "C" void zgetrs(char* TRANS, int* N, int* NRHS, complexD * A, int* LDA, int* IPIV, complexD * X, int* LDB, int* INFO);
 // Solve AX=B via LU for triangular A
 extern "C" void dgtsv_(int* N, int* NRHS, double* DL, double* D,
                        double* DU, double* B, int* LDB, int* INFO);
@@ -132,8 +134,9 @@ extern "C" void zggev_(char* jobvl, char* jobvr, int* n, complexD* a, int* lda, 
                        int* ldb, complexD* alpha, complexD* beta, complexD* vl, int* ldvl,
                        complexD* vr, int* ldvr, complexD* work, int* lwork, double* rwork,
                        int* info);
-// Cholesky decomposition of SPD matrix
+// Cholesky decomposition
 extern "C" void dpotrf_(char* UPLO, int* N, double* A, int* LDA, int* INFO);
+extern "C" void zpotrf_(char* UPLO, int* N, complexD * A, int* LDA, int* INFO);
 // Singular value decomposition
 extern "C" void dgesvd_(char* JOBU, char* JOBVT, int* M, int* N, double* A, int* LDA, double* S, double* U,
                         int* LDU, double* VT, int* LDVT, double* WORK, int* LWORK, int* INFO);
@@ -1386,6 +1389,174 @@ inline hwMathStatus hwTMatrix<double>::ComplexLU(hwTMatrix<double>& L, hwTMatrix
     return status;
 }
 
+//! Real Cholesky decomposition (A=TT')
+template<>
+inline hwMathStatus hwTMatrix<double>::RealCholeskyDecomp(hwTMatrix<double>& T, bool upper) const
+{
+    hwMathStatus status;
+
+    if (this == &T)
+        return status(HW_MATH_ERR_NOTIMPLEMENT);
+
+    const hwTMatrix<double>& A = (*this);
+    int n = A.m_nCols;
+
+    if (A.m_nRows != n)
+        return status(HW_MATH_ERR_MTXNOTSQUARE, 1);
+
+    if (!A.IsReal())
+        return status(HW_MATH_ERR_COMPLEX, 1);
+
+    if (A.Size() != 0)
+    {
+        T = A;
+
+        double* t = T.m_real;
+
+        if (!t)
+            return status(HW_MATH_ERR_ALLOCFAILED);
+
+        // decompose the matrix
+        int i, j;
+        int lda = n;
+        int info;
+        char UPLO;
+
+        if (upper)
+            UPLO = 'U';
+        else
+            UPLO = 'L';
+
+        dpotrf_(&UPLO, &n, t, &lda, &info);
+
+        if (info != 0)
+        {
+            status(HW_MATH_ERR_MTXNOTSPD, 1);
+
+            if (info > 0)
+            {
+                n = info - 1;
+                hwMathStatus status2 = T.Resize(n, n);
+
+                if (!status2.IsOk())
+                {
+                    status2.ResetArgs();
+                    return status2;
+                }
+            }
+            else
+            {
+                return status;
+            }
+        }
+
+        if (upper)
+        {
+            for (i = 1; i < n; ++i)
+            {
+                for (j = 0; j < i; ++j)
+                    T(i, j) = 0.0;
+            }
+        }
+        else
+        {
+            for (j = 1; j < n; ++j)
+            {
+                for (i = 0; i < j; ++i)
+                    T(i, j) = 0.0;
+            }
+        }
+    }
+    else
+        status = T.Dimension(0, 0, REAL);
+
+    return status;
+}
+
+//! Complex Cholesky decomposition (A=TT')
+template<>
+inline hwMathStatus hwTMatrix<double>::ComplexCholeskyDecomp(hwTMatrix<double>& T, bool upper) const
+{
+    hwMathStatus status;
+
+    if (this == &T)
+        return status(HW_MATH_ERR_NOTIMPLEMENT);
+
+    const hwTMatrix<double>& A = (*this);
+    int n = A.m_nCols;
+
+    if (A.m_nRows != n)
+        return status(HW_MATH_ERR_MTXNOTSQUARE, 1);
+
+    if (!A.IsReal())
+        return status(HW_MATH_ERR_COMPLEX, 1);
+
+    if (A.Size() != 0)
+    {
+        T = A;
+
+        complexD* t = (complexD*)T.m_complex;
+
+        if (!t)
+            return status(HW_MATH_ERR_ALLOCFAILED);
+
+        // decompose the matrix
+        int i, j;
+        int lda = n;
+        int info;
+        char UPLO;
+
+        if (upper)
+            UPLO = 'U';
+        else
+            UPLO = 'L';
+
+        zpotrf_(&UPLO, &n, t, &lda, &info);
+
+        if (info != 0)
+        {
+            status(HW_MATH_ERR_MTXNOTSPD, 1);
+
+            if (info > 0)
+            {
+                n = info - 1;
+                hwMathStatus status2 = T.Resize(n, n);
+
+                if (!status2.IsOk())
+                {
+                    status2.ResetArgs();
+                    return status2;
+                }
+            }
+            else
+            {
+                return status;
+            }
+        }
+
+        if (upper)
+        {
+            for (i = 1; i < n; ++i)
+            {
+                for (j = 0; j < i; ++j)
+                    T.z(i, j) = 0.0;
+            }
+        }
+        else
+        {
+            for (j = 1; j < n; ++j)
+            {
+                for (i = 0; i < j; ++i)
+                    T.z(i, j) = 0.0;
+            }
+        }
+    }
+    else
+        status = T.Dimension(0, 0, REAL);
+
+    return status;
+}
+
 //! Real asymmetric Eigen decomposition with balance option
 template<>
 inline hwMathStatus hwTMatrix<double>::EigenDecompReal(bool balance, hwTMatrix<double>* V, hwTMatrix<double>& D) const
@@ -1896,14 +2067,6 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompReal(const hwTMatri
         return status;
     }
 
-    status = D.Dimension(n, 1, COMPLEX);
-
-    if (!status.IsOk())
-    {
-        status.SetArg1(4);
-        return status;
-    }
-
     double* dA = A1.m_real;
     double* dB = B1.m_real;
     double* dVR = V.m_real;
@@ -1934,10 +2097,82 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompReal(const hwTMatri
     if (INFO < 0)
         return status(HW_MATH_ERR_DECOMPFAIL);
 
+    // format decomposition factors
+    bool bIsComplex = false;
+
     for (int i = 0; i < n; i++)
     {
-        D.z(i).Real() = ALPHAR(i) / BETA(i);
-        D.z(i).Imag() = ALPHAI(i) / BETA(i);
+        if (ALPHAI(i) != 0.0)
+        {
+            bIsComplex = true;
+            break;
+        }
+    }
+
+    if (!bIsComplex)
+    {
+        status = D.Dimension(n, 1, REAL);
+
+        if (!status.IsOk())
+        {
+            status.SetArg1(4);
+            return status;
+        }
+
+        for (int i = 0; i < n; i++)
+        {
+            D(i) = ALPHAR(i) / BETA(i);
+        }
+    }
+    else
+    {
+        status = D.Dimension(n, 1, COMPLEX);
+
+        if (!status.IsOk())
+        {
+            status.SetArg1(4);
+            return status;
+        }
+
+        for (int i = 0; i < n; i++)
+        {
+            D.z(i).Real() = ALPHAR(i) / BETA(i);
+            D.z(i).Imag() = ALPHAI(i) / BETA(i);
+        }
+    }
+
+    if (bIsComplex)
+    {
+        hwTMatrix<double> VC(n, n, COMPLEX);
+        int j = -1;
+
+        while (true)
+        {
+            j++;
+
+            if (j >= n)
+                break;
+
+            if (ALPHAI(j) == 0.0)
+            {
+                // real eigenvalue => v(j) = vr(j)
+                for (int i = 0; i < n; ++i)
+                    VC.z(i, j) = V(i, j);
+            }
+            else
+            {
+                // complex eigenvalue => conjugate pair of eigenvectors:
+                for (int i = 0; i < n; ++i)
+                {
+                    VC.z(i, j).Set(V(i, j), V(i, j + 1));
+                    VC.z(i, j + 1).Set(V(i, j), -V(i, j + 1));
+                }
+
+                j++;
+            }
+        }
+
+        V = VC;
     }
 
     return status;
@@ -2049,9 +2284,9 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompComplex(const hwTMa
     return status;
 }
 
-//! Generalized real symmetric Eigen decomposition
+//! Generalized real symmetric positive definite Eigen decomposition
 template<>
-inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompRealSymmetric(const hwTMatrix<double>& A,
+inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompRealSPD(const hwTMatrix<double>& A,
                                        const hwTMatrix<double>& B, hwTMatrix<double>& V, hwTMatrix<double>& D)
 {
     hwMathStatus status;
@@ -2105,9 +2340,9 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompRealSymmetric(const
     return status;
 }
 
-//! Generalized complex Hermitian Eigen decomposition
+//! Generalized complex Hermitian positive definite Eigen decomposition
 template<>
-inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompComplexHermitian(const hwTMatrix<double>& A,
+inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompComplexHPD(const hwTMatrix<double>& A,
                     const hwTMatrix<double>& B, hwTMatrix<double>& V, hwTMatrix<double>& D)
 {
     hwMathStatus status;
@@ -2657,7 +2892,7 @@ inline hwMathStatus hwTMatrix<double>::ComplexSchur(hwTMatrix<double>& U,
 
 //! Reciprocal condition number estimate of a real matrix
 template<>
-inline hwMathStatus hwTMatrix<double>::RealRCond(double& rCondNum) const
+inline hwMathStatus hwTMatrix<double>::RealRCond(double& rCondNum, hwTMatrix<int>& IPIV)
 {
     hwMathStatus status;
 
@@ -2665,6 +2900,9 @@ inline hwMathStatus hwTMatrix<double>::RealRCond(double& rCondNum) const
     {
         if (IsNaN_T(m_real[i]))
         {
+            for (int j = 0; j < IPIV.Size(); ++j)
+                IPIV(j) = j + 1;
+
             rCondNum = m_real[i];
             return status;
         }
@@ -2681,23 +2919,18 @@ inline hwMathStatus hwTMatrix<double>::RealRCond(double& rCondNum) const
             else
                 rCondNum = 1.0;
 
+            IPIV(0) = 1;
             return status;
         }
     }
 
-    hwTMatrix<double> Ain(*this); // copy matrix
-
-    double* dA = Ain.m_real;
+    double* dA = m_real;
     double Anorm;
     char NORM = '1';
     int m = m_nRows;
     int n = m_nCols;
     int INFO = 0;
-
     Anorm = dlange_(&NORM, &m, &n, dA, &m, NULL);
-
-    hwTMatrix<int> IPIV(_min(m, n), 1, hwTMatrix<int>::REAL);
-
     int* iPiv = IPIV.GetRealData();
 
     if (!dA || !iPiv)
@@ -2728,7 +2961,7 @@ inline hwMathStatus hwTMatrix<double>::RealRCond(double& rCondNum) const
 
 //! Reciprocal condition number estimate of a complex matrix
 template<>
-inline hwMathStatus hwTMatrix<double>::ComplexRCond(double& rCondNum) const
+inline hwMathStatus hwTMatrix<double>::ComplexRCond(double& rCondNum, hwTMatrix<int>& IPIV)
 {
     hwMathStatus status;
     
@@ -2736,12 +2969,18 @@ inline hwMathStatus hwTMatrix<double>::ComplexRCond(double& rCondNum) const
     {
         if (IsNaN_T(m_complex[i].Real()))
         {
+            for (int j = 0; j < IPIV.Size(); ++j)
+                IPIV(j) = j + 1;
+
             rCondNum = m_complex[i].Real();
             return status;
         }
 
         if (IsNaN_T(m_complex[i].Imag()))
         {
+            for (int j = 0; j < IPIV.Size(); ++j)
+                IPIV(j) = j + 1;
+
             rCondNum = m_complex[i].Imag();
             return status;
         }
@@ -2760,23 +2999,18 @@ inline hwMathStatus hwTMatrix<double>::ComplexRCond(double& rCondNum) const
             else
                 rCondNum = 1.0;
 
+            IPIV(0) = 1;
             return status;
         }
     }
 
-    hwTMatrix<double> Ain(*this); // copy matrix
     double Anorm;
     char NORM = '1';
-    int m = Ain.m_nRows;
-    int n = Ain.m_nCols;
+    int m = m_nRows;
+    int n = m_nCols;
     int INFO = 0;
-
-    complexD* dA = (complexD*) Ain.m_complex;
-
+    complexD* dA = (complexD*) m_complex;
     Anorm = zlange_(&NORM, &m, &n, dA, &m, NULL);
-    
-    hwTMatrix<int> IPIV(_min(m, n), 1, hwTMatrix<int>::REAL);
-
     int* iPiv = IPIV.GetRealData();
 
     if (!dA || !iPiv)
@@ -2788,7 +3022,6 @@ inline hwMathStatus hwTMatrix<double>::ComplexRCond(double& rCondNum) const
         return hwMathStatus(HW_MATH_ERR_DECOMPFAIL);
 
     INFO = 0; 
-
     hwTMatrix<double> WORK(4 * n, 1, COMPLEX);
     hwTMatrix<double> RWORK(2 * n, 1, REAL);
 
@@ -2825,10 +3058,13 @@ inline hwMathStatus hwTMatrix<double>::RCond(double& rCondNum) const
         return status;
     }
 
+    hwTMatrix<double> copy(*this);
+    hwTMatrix<int> IPIV(_min(m_nRows, m_nCols), 1, hwTMatrix<int>::REAL);
+
     if (IsReal())
-        status = RealRCond(rCondNum);
+        status = copy.RealRCond(rCondNum, IPIV);
     else
-        status = ComplexRCond(rCondNum);
+        status = copy.ComplexRCond(rCondNum, IPIV);
 
     return status;
 }
@@ -3075,8 +3311,15 @@ inline hwMathStatus hwTMatrix<double>::LSolve(const hwTMatrix<double>& A, const 
 
     // check matrix condition
     double rcond;
+    hwTMatrix<double> Acopy(A);
+    hwTMatrix<int> IPIV(_min(m, n), 1, hwTMatrix<int>::REAL);
 
-    status = A.RCond(rcond);
+    if (Acopy.IsEmpty())
+        rcond = std::numeric_limits<double>::infinity();
+    else if (Acopy.IsReal())
+        status = Acopy.RealRCond(rcond, IPIV);     // LU decomposition inside
+    else
+        status = Acopy.ComplexRCond(rcond, IPIV);  // LU decomposition inside
 
     if (!status.IsOk())
     {
@@ -3089,20 +3332,11 @@ inline hwMathStatus hwTMatrix<double>::LSolve(const hwTMatrix<double>& A, const 
         status2(HW_MATH_WARN_SINGMATRIXDIV, 1);
     }
 
+    char TRANSA = 'N';
     int lda = m;
     int ldb = m;
-    int* ipiv;
+    int* ipiv = IPIV.GetRealData();
     int info;
-    hwTMatrix<double> Acopy(A);
-
-    try
-    {
-        ipiv = new int[m];
-    }
-    catch (std::bad_alloc&) 
-    {
-        return status(HW_MATH_ERR_ALLOCFAILED);
-    }
 
     if (A.IsReal() && B.IsReal())
     {
@@ -3122,7 +3356,7 @@ inline hwMathStatus hwTMatrix<double>::LSolve(const hwTMatrix<double>& A, const 
         double* x_r = X.m_real;
         double* a_r = Acopy.m_real;
 
-        dgesv_(&n, &bn, a_r, &lda, ipiv, x_r, &ldb, &info);
+        dgetrs(&TRANSA, &n, &bn, a_r, &lda, ipiv, x_r, &ldb, &info);
     }
     else if (!A.IsReal() && !B.IsReal())
     {
@@ -3139,7 +3373,7 @@ inline hwMathStatus hwTMatrix<double>::LSolve(const hwTMatrix<double>& A, const 
         complexD* a_c = (complexD*) Acopy.m_complex;
         complexD* x_c = (complexD*) X.m_complex;
 
-        zgesv_(&n, &bn, a_c, &lda, ipiv, x_c, &ldb, &info);
+        zgetrs(&TRANSA, &n, &bn, a_c, &lda, ipiv, x_c, &ldb, &info);
     }
     else if (A.IsReal() && !B.IsReal())
     {
@@ -3164,7 +3398,7 @@ inline hwMathStatus hwTMatrix<double>::LSolve(const hwTMatrix<double>& A, const 
         complexD* a_c = (complexD*) Acopy.m_complex;
         complexD* x_c = (complexD*) X.m_complex;
 
-        zgesv_(&n, &bn, a_c, &lda, ipiv, x_c, &ldb, &info);
+        zgetrs(&TRANSA, &n, &bn, a_c, &lda, ipiv, x_c, &ldb, &info);
     }
     else // if (!A.IsReal() && B.IsReal())
     {
@@ -3187,10 +3421,8 @@ inline hwMathStatus hwTMatrix<double>::LSolve(const hwTMatrix<double>& A, const 
         complexD* a_c = (complexD*) Acopy.m_complex;
         complexD* x_c = (complexD*) X.m_complex;
 
-        zgesv_(&n, &bn, a_c, &lda, ipiv, x_c, &ldb, &info);
+        zgetrs(&TRANSA, &n, &bn, a_c, &lda, ipiv, x_c, &ldb, &info);
     }
-
-    delete [] ipiv;
 
     if (info != 0)
     {
@@ -4880,84 +5112,10 @@ inline hwMathStatus hwTMatrix<double>::LU(hwTMatrix<int>& P, hwTMatrix<double>& 
 template<>
 inline hwMathStatus hwTMatrix<double>::Csky(hwTMatrix<double>& T, bool upper) const
 {
-    hwMathStatus status;
-
-    if (this == &T)
-        return status(HW_MATH_ERR_NOTIMPLEMENT);
-
-    const hwTMatrix<double>& A = (*this);
-    int n = A.m_nCols;
-
-    if (A.m_nRows != n)
-        return status(HW_MATH_ERR_MTXNOTSQUARE, 1);
-
-    if (!A.IsReal())
-        return status(HW_MATH_ERR_COMPLEX, 1);
-
-    if (A.Size() != 0)
-    {
-        T = A;
-
-        double* t = T.m_real;
-
-        if (!t)
-            return status(HW_MATH_ERR_ALLOCFAILED);
-
-        // decompose the matrix
-        int i, j;
-        int lda = n;
-        int info;
-        char UPLO;
-
-        if (upper)
-            UPLO = 'U';
-        else
-            UPLO = 'L';
-
-        dpotrf_(&UPLO, &n, t, &lda, &info);
-
-        if (info != 0)
-        {
-            status(HW_MATH_ERR_MTXNOTSPD, 1);
-
-            if (info > 0)
-            {
-                n = info - 1;
-                hwMathStatus status2 = T.Resize(n, n);
-
-                if (!status2.IsOk())
-                {
-                    status2.ResetArgs();
-                    return status2;
-                }
-            }
-            else
-            {
-                return status;
-            }
-        }
-
-        if (upper)
-        {
-            for (i = 1; i < n; ++i)
-            {
-                for (j = 0; j < i; ++j)
-                    T(i, j) = 0.0;
-            }
-        }
-        else
-        {
-            for (j = 1; j < n; ++j)
-            {
-                for (i = 0; i < j; ++i)
-                    T(i, j) = 0.0;
-            }
-        }
-    }
+    if (IsReal())
+        return RealCholeskyDecomp(T, upper);
     else
-        status = T.Dimension(0, 0, REAL);
-
-    return status;
+        return ComplexCholeskyDecomp(T, upper);
 }
 
 //! Eigen decomposition
@@ -4992,7 +5150,7 @@ inline hwMathStatus hwTMatrix<double>::Eigen(bool balance, hwTMatrix<double>* V,
 
 //! Real symmetric Eigen decomposition
 template<>
-inline hwMathStatus hwTMatrix<double>::EigenDecompRealSymmetric(hwTMatrix<double>& V, hwTMatrix<double>& D) const
+inline hwMathStatus hwTMatrix<double>::EigenDecompRealSPD(hwTMatrix<double>& V, hwTMatrix<double>& D) const
 {
     hwMathStatus status;
 
@@ -5060,7 +5218,7 @@ inline hwMathStatus hwTMatrix<double>::EigenDecompRealSymmetric(hwTMatrix<double
 
 //! Complex Hermitian Eigen decomposition
 template<>
-inline hwMathStatus hwTMatrix<double>::EigenDecompComplexHermitian(hwTMatrix<double>& V, hwTMatrix<double>& D) const
+inline hwMathStatus hwTMatrix<double>::EigenDecompComplexHPD(hwTMatrix<double>& V, hwTMatrix<double>& D) const
 {
     hwMathStatus status;
 
@@ -5191,9 +5349,9 @@ inline hwMathStatus hwTMatrix<double>::EigenSH(hwTMatrix<double>* V, hwTMatrix<d
         return status(HW_MATH_ERR_NONFINITEDATA, 0);
 
     if (IsReal())
-        status = EigenDecompRealSymmetric(*V, D);
+        status = EigenDecompRealSPD(*V, D);
     else
-        status = EigenDecompComplexHermitian(*V, D);
+        status = EigenDecompComplexHPD(*V, D);
 
     return status;
 }
@@ -5354,17 +5512,50 @@ inline hwMathStatus hwTMatrix<double>::Eigen(const hwTMatrix<double>& A, const h
     if (!B.IsFinite())
         return status(HW_MATH_ERR_NONFINITEDATA, 2);
 
-    if (A.IsReal() && B.IsReal())
+    if (A.m_real && !B.m_real)
     {
-        if (A.IsSymmetric() && B.IsSymmetric())
-            status = GeneralizedEigenDecompRealSymmetric(A, B, V, D);
+        hwTMatrix<double> temp;
+
+        status = temp.PackComplex(A);
+
+        if (!status.IsOk())
+        {
+            status.ResetArgs();
+            return status;
+        }
+
+        return Eigen(temp, B, V, D);
+    }
+
+    if (!A.m_real && B.m_real)
+    {
+        hwTMatrix<double> temp;
+
+        status = temp.PackComplex(B);
+
+        if (!status.IsOk())
+        {
+            status.ResetArgs();
+            return status;
+        }
+
+        return Eigen(A, temp, V, D);
+    }
+
+    hwTMatrix<double> T;
+
+    if (A.IsHermitian() && B.IsHermitian() &&
+        A.Csky(T).IsOk() && B.Csky(T).IsOk())
+    {
+        if (A.IsReal())
+            status = GeneralizedEigenDecompRealSPD(A, B, V, D);
         else
-            status = GeneralizedEigenDecompReal(A, B, V, D);
+            status = GeneralizedEigenDecompComplexHPD(A, B, V, D);
     }
     else
     {
-        if (A.IsHermitian() && B.IsHermitian())
-            status = GeneralizedEigenDecompComplexHermitian(A, B, V, D);
+        if (A.IsReal())
+            status = GeneralizedEigenDecompReal(A, B, V, D);
         else
             status = GeneralizedEigenDecompComplex(A, B, V, D);
     }

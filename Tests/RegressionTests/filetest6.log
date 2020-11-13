@@ -1,0 +1,6 @@
+fname = FileManipulation/EmptyFile.txt
+fid = 3
+error = 
+path = FileManipulation/EmptyFile.txt
+mode = r+b
+ans = 0

@@ -79,8 +79,9 @@ public:
                                       bool               wait);
     //!
     //! Prints prompt for save on exit
+    //! \param Code to exit the application with
     //!
-    virtual void OnSaveOnExitHandler();
+    virtual void OnSaveOnExitHandler(int);
     //!
     //! Adds nested display for pagination
     //! \param display Nested display to add

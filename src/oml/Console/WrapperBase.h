@@ -1,7 +1,7 @@
 /**
 * @file WrapperBase.h
 * @date January 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -41,7 +41,8 @@ public:
     //! Clears results and pagination related to results
     virtual void HandleOnClearResults() {}
     //! Handles application exit
-    virtual void HandleOnSaveOnExit() {}
+    //! \param returnCode Code to exit the application with
+    virtual void HandleOnSaveOnExit(int returnCode = EXIT_SUCCESS) {}
     //! Displays a prompt and gets user input
 	//! \param[in]  prompt    Prompt to display to user
     //! \param[in]  type      Type, if specified

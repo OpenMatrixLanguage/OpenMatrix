@@ -1,7 +1,7 @@
 /**
 * @file SparseDisplay.cpp
 * @date June, 2019
-* Copyright (C) 2019 Altair Engineering, Inc.
+* Copyright (C) 2019-2020 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -34,8 +34,9 @@ typedef hwTMatrixS<double, hwTComplex<double> > hwMatrixS;
 //------------------------------------------------------------------------------
 SparseDisplay::SparseDisplay(const Currency& cur)
     : CurrencyDisplay(cur)
-    , _realwidth   (0)
-    , _imagwidth   (0)
+    , _realwidth       (0)
+    , _imagwidth       (0)
+    , _skipformatwidth (-1)
 {
 }
 //------------------------------------------------------------------------------
@@ -233,6 +234,16 @@ void SparseDisplay::SetFormat(const OutputFormat* fmt, Interpreter* interp)
         return;
     }
 
+    // Scan matrix and set format
+    if (CurrencyDisplay::GetSkipFormat() > 0 &&
+        mtx->Size() >= CurrencyDisplay::GetSkipFormat())
+    {
+        // Flip to short format
+        _formatvars.SetFormatType(DisplayFormatVars::TypeFloat);
+        return;
+    }
+
+
     int nnz = mtx->NNZ();
 
     // Scan matrix and set format
@@ -284,6 +295,29 @@ void SparseDisplay::SetWidth(Interpreter* interp)
     int nnz = mtx->NNZ();
     bool isreal = mtx->IsReal();
     bool isrealdata = mtx->IsRealData();
+
+    if (mtx->Size() >= m_skipFormat)
+    {
+        // Flip to fixed width, after examining the first element
+        double      realval = 0.0;
+        double      imagval = 0.0;
+        std::string imagsign;
+
+        int row = 0;
+        int col = 0;
+        if (isreal)
+        {
+            mtx->NZinfo(0, row, col, realval);
+        }
+        else
+        {
+            GetComplexNumberVals(mtx->z(0, 0), realval, imagval, imagsign);
+        }
+        std::string realstr(_formatvars.RealToString(realval));
+        _realwidth = std::max(_realwidth, static_cast<int>(realstr.size())) + 1;
+        _imagwidth = _realwidth + 3;
+        return;
+    }
 
     _realwidth = 0;
     _imagwidth = 0;

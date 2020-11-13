@@ -28,10 +28,10 @@ m24 = [Matrix] 3 x 3
 m25 = [Matrix] 3 x 0
 m31 = sparse [4 x 2], nnz = 0
 m32 = sparse [2 x 4], nnz = 0
-m33 = sparse [ ]
+m33 = sparse [3 x 0], nnz = 0
 ans = [Matrix] 1 x 2
 3  0
 m34 = sparse [3 x 3], nnz = 0
-m35 = sparse [ ]
+m35 = sparse [0 x 3], nnz = 0
 ans = [Matrix] 1 x 2
 0  3

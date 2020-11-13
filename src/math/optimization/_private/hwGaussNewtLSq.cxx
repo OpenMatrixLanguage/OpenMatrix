@@ -49,13 +49,35 @@ hwGaussNewtLSqFit::hwGaussNewtLSqFit(const hwMatrix& P,
 
     m_numEqns = numEqns;
 
-    F.Dimension(m_numEqns,    1,           hwMatrix::REAL);
-    J.Dimension(m_numEqns,    m_numParams, hwMatrix::REAL);
-    JT.Dimension(m_numParams, m_numEqns,   hwMatrix::REAL);
+    m_status = F.Dimension(m_numEqns, 1, hwMatrix::REAL);
+
+    if (!m_status.IsOk())
+    {
+        return;
+    }
+        
+    m_status = J.Dimension(m_numEqns, m_numParams, hwMatrix::REAL);
+
+    if (!m_status.IsOk())
+    {
+        return;
+    }
+
+    m_status = JT.Dimension(m_numParams, m_numEqns, hwMatrix::REAL);
+
+    if (!m_status.IsOk())
+    {
+        return;
+    }
 
     if (m_numEqns != m_numParams) // approximate Hessian
     {
-        B.Dimension(m_numParams, m_numParams, hwMatrix::REAL);
+        m_status = B.Dimension(m_numParams, m_numParams, hwMatrix::REAL);
+
+        if (!m_status.IsOk())
+        {
+            return;
+        }
     }
 }
 //------------------------------------------------------------------------------

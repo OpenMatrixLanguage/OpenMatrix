@@ -324,9 +324,7 @@ bool oml_lastwarn(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
 bool oml_secret(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_meshgrid(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_ndgrid(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_exit(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_cputime(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_diary(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_numel(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_circshift(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_shiftdim(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -352,6 +350,7 @@ bool oml_logspace(EvaluatorInterface, const std::vector<Currency>& inputs, std::
 bool oml_rot90(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_rehash(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_verbose(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
+bool oml_parcluster(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 
 // function replacement methods
 HML2DLL_DECLS void _OML_Error(EvaluatorInterface& eval, std::vector<Currency>::const_iterator start, std::vector<Currency>::const_iterator end);

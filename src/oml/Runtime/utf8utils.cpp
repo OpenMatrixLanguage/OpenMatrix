@@ -70,12 +70,25 @@ size_t utf8_byte_position_from_index(unsigned char* ptr, size_t index)
 {
 	int internal_index = 0;
 
-	for (int j = 0; j < index; ++j)
+	int j = 0;
+
+	if (index == 0)
+		return 0;
+
+	while (1)
 	{
-		unsigned char temp_char = ptr[j];
+		unsigned char temp_char = ptr[internal_index];
+
+		if (!temp_char)
+			break; // null terminator
+
 		size_t char_size = utf8_get_char_size(&temp_char);
 
 		internal_index += (int)char_size;
+		j++;
+
+		if (j == index)
+			break;
 	}
 
 	return internal_index;

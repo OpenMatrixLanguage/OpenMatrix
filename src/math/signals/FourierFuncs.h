@@ -22,7 +22,9 @@
 class hwMathStatus;
 template <typename T> class hwTComplex;
 template <typename T1, typename T2> class hwTMatrix;
+template <typename T1, typename T2> class hwTMatrixN;
 typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
+typedef hwTMatrixN<double, hwTComplex<double> > hwMatrixN;
 
 //------------------------------------------------------------------------------
 //!
@@ -102,6 +104,26 @@ SIGNALS_DECLS hwMathStatus Fft(const hwMatrix& signal,
                                hwMatrix&       freqRes,
                                int             fftSize = 0);
 //!
+//! FFT of a real or complex signal  
+//! \param signal 
+//! \param freqRes
+//! \param fftSize Optional argument
+//!
+SIGNALS_DECLS hwMathStatus Fft(const hwMatrix& signal,
+                               hwMatrix&       freqRes,
+                               int             dim,
+                               int             fftSize);
+//!
+//! FFT of a real or complex signal  
+//! \param signal 
+//! \param freqRes
+//! \param fftSize Optional argument
+//!
+SIGNALS_DECLS hwMathStatus Fft(const hwMatrixN& signal,
+                               hwMatrixN&       freqRes,
+                               int              dim,
+                               int              fftSize);
+//!
 //! Inverse FFT of a real or complex spectrum  
 //! \param freqRes Real or complex spectrum
 //! \param signal  Inverse FFT
@@ -110,6 +132,26 @@ SIGNALS_DECLS hwMathStatus Fft(const hwMatrix& signal,
 SIGNALS_DECLS hwMathStatus Ifft(const hwMatrix& freqRes,
                                 hwMatrix&       signal, 
                                 int             fftSize = 0);
+//!
+//! Inverse FFT of a real or complex signal  
+//! \param signal 
+//! \param freqRes
+//! \param fftSize Optional argument
+//!
+SIGNALS_DECLS hwMathStatus Ifft(const hwMatrix& signal,
+                                hwMatrix&       freqRes,
+                                int             dim,
+                                int             fftSize);
+//!
+//! Inverse FFT of a real or complex signal  
+//! \param signal 
+//! \param freqRes
+//! \param fftSize Optional argument
+//!
+SIGNALS_DECLS hwMathStatus Ifft(const hwMatrixN& signal,
+                                hwMatrixN&       freqRes,
+                                int              dim,
+                                int              fftSize);
 //!
 //! Circular convolution of a real signal pair for periodic signals 
 //! \param signal1 

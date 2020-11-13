@@ -98,10 +98,21 @@ private:
     std::string GetOutputForwardPagination(const OutputFormat* fmt,
                                            std::ostringstream& os) const;
     //!
+    //! Gets outputfor forward/down pagination for cell list
+    //! \param Format
+    //!
+    std::string GetCellListOutputForwardPagination(const OutputFormat*) const;
+    //!
     //! Gets outputfor back/up pagination
     //! \param fmt Format
     //!
     std::string GetOutputBackPagination(const OutputFormat* fmt) const;
+    //!
+    //! Gets output for back/up pagination for cell list
+    //! \param Format
+    //!
+    std::string GetCellListOutputBackPagination(const OutputFormat*) const;
+
     //!
     //! Updates the number of rows to fit
     //!

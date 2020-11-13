@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsFile.h
 * @date March 2016
-* Copyright (C) 2016-2019 Altair Engineering, Inc.  
+* Copyright (C) 2016-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -124,6 +124,24 @@ public:
     static bool Fopen(EvaluatorInterface           eval,
                       const std::vector<Currency>& inputs,
                       std::vector<Currency>&       outputs);
+    //!
+    //! Returns true and reads a comma separated file [csvread]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //! 
+    static bool Csvread(EvaluatorInterface,
+                        const std::vector<Currency>&,
+                        std::vector<Currency>&);
+    //!
+    //! Returns true and writes a comma separated file [csvwrite]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //! 
+    static bool Csvwrite(EvaluatorInterface,
+                         const std::vector<Currency>&,
+                         std::vector<Currency>&);
 
 private:
     //!
@@ -195,13 +213,35 @@ private:
                        const std::string& err,
                        int&               row,
                        int&               col);
-    bool GetFormats(const std::string& in,
-        std::vector<std::string>& basefmts,
-        std::vector<std::string>& rawfmts,
-        std::vector<bool>& usefmts,
-        std::string& err,
-        std::string& prefix);
-
+    //!
+    //! Utility to get format
+    //! \param Input
+    //! \param Vector of base formats
+    //! \param Vector of raw  formats
+    //! \param True if specific format can be used
+    //! \param Error
+    //! \param Prefix
+    //!
+    bool GetFormats(const std::string&,
+                    std::vector<std::string>&,
+                    std::vector<std::string>&,
+                    std::vector<bool>&,
+                    std::string&,
+                    std::string&);
+    //!
+    //! Sets default delimiter for certain file types
+    //! \param File name
+    //! \param Delimiter
+    //!
+    static void SetDefaultDelimiter(const std::string&,
+                                    std::string&);
+    //!
+    //! Escapes delimiters
+    //! \param Current delimiter(s)
+    //! \param True if there is a newline delimiter
+    //!
+    static void EscapeDelimiters(std::string&,
+                                 bool&);
 }; 
 
 #endif  // __BUILTINFUNCSFILE__

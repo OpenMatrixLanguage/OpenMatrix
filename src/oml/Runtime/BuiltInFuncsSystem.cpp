@@ -552,9 +552,7 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
     long id = 0;
     if (saveoutput || echo)
     {
-        time_t ltime;
-        time(&ltime);
-        id = static_cast<long>(ltime);
+        id = utils.CreateChainedDisplayId();
     }
 
 #ifdef OS_WIN
@@ -1142,6 +1140,19 @@ bool BuiltInFuncsSystem::Rmdir(EvaluatorInterface           eval,
     std::string dir(inputs[0].StringVal());
     dir = utils.GetAbsolutePath(dir);
 
+
+#ifndef OS_WIN
+    if (utils.GetCurrentWorkingDir() == dir)
+    {
+        // Undefined behavior with rmdir when deleting current working dir
+        std::string newcwd(utils.GetBaseDir(dir));
+        std::vector<Currency> inputs2;
+        inputs2.push_back(newcwd);
+        std::vector<Currency> outputs2;
+        BuiltInFuncsSystem::Cd(eval, inputs2, outputs2);
+    }
+#endif
+
     std::string error;
     std::string msgid;
     bool        result = true;
@@ -1693,4 +1704,104 @@ std::string BuiltInFuncsSystem::GetInputForSystemCommand(const std::string& str)
     cmd += in;
     return std::string(cmd + " 2>&1");
 #endif
+}
+//------------------------------------------------------------------------------
+// Returns system dependant path separator [filesep]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsSystem::Filesep(EvaluatorInterface           eval,
+    const std::vector<Currency>& inputs,
+    std::vector<Currency>& outputs)
+{
+#ifdef OS_WIN
+    std::string sep;
+    if (!inputs.empty())
+    {
+        if (!inputs[0].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, 1);
+        }
+        std::string val(inputs[0].StringVal());
+        if (!val.empty())
+        {
+            std::transform(val.begin(), val.end(), val.begin(), ::tolower);
+            if (val != "all")
+            {
+                throw OML_Error(OML_ERR_BAD_STRING, 1);
+            }
+            sep += '/';
+        }
+    }
+    sep += '\\';
+    outputs.push_back(sep);
+#else
+    outputs.push_back("/");
+#endif
+    return true;
+}
+//------------------------------------------------------------------------------
+// Returns true after starting/stopping writing to diary [diary]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsSystem::Diary(EvaluatorInterface           eval,
+                               const std::vector<Currency>& inputs,
+                               std::vector<Currency>&       outputs)
+{
+    std::ofstream& ofs = eval.GetDiary();
+    std::string    name("diary.txt");
+    bool           close = false;
+
+    if (inputs.empty())
+    {
+        close = ofs.is_open();
+    }
+    else
+    {
+        const Currency& cur = inputs[0];
+        if (cur.IsLogical())
+        {
+            int val = static_cast<int>(cur.Scalar());
+            if (val == 0)
+            {
+                close = true;
+            }
+            else if (val != 1)
+            {
+                throw(OML_ERR_BAD_STRING, 1);
+            }
+        }
+        else if (cur.IsString())
+        {
+            name = cur.StringVal();
+            if (name.empty())
+            {
+                throw (OML_ERR_NONEMPTY_STR, 1);
+            }
+            std::string lower(name);
+            std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+            if (lower == "off")
+            {
+                close = true;
+            }
+            else if (lower == "on")
+            {
+                name = ""; // Open diary with default name
+            }
+        }
+    }
+
+    if (ofs.is_open())
+    {
+        ofs.close(); // Force close if diary is open
+    }
+
+    if (!close)
+    {
+        BuiltInFuncsUtils utils;
+        if (name.empty())
+        {
+            name = "diary.txt";
+        }
+        name = utils.StripMultipleSlashesAndNormalize(name);
+        ofs.open(name, std::ios_base::out | std::ios_base::trunc);
+    }
+    return true;
 }

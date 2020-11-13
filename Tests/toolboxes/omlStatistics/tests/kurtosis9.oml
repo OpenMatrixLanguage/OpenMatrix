@@ -1,0 +1,2 @@
+addToolbox omlstatistics
+kurtosis({})

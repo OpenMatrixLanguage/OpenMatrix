@@ -1,7 +1,7 @@
 /**
 * @file MatrixDisplay.h
 * @date November, 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -123,15 +123,16 @@ public:
     virtual bool GetPaginationEndMsg(std::string& msg) const;
 
 private:
-    mutable bool             _haslargeint;   //!< True if matrix has large ints
-    mutable bool             _uppercase;     //!< True if scientific uppercase
-    mutable int              _formatinteger; //!< Integer part for format, if applicable
-    mutable int              _formatdecimal; //!< Decimal part for format, if applicable
-    mutable DisplayFormat    _displayformat; //!< Display format for matrix
-    mutable std::streamsize  _precision;     //!< Precision
-    mutable std::vector<int> _realwidth;     //!< Widest real value width/column
-    mutable std::vector<int> _imagwidth;     //!< Widest imag value width/column
-    mutable std::string      _delimiter;     //!< Delimiter between cols
+    mutable bool             _haslargeint;     //!< True if matrix has large ints
+    mutable bool             _uppercase;       //!< True if scientific uppercase
+    mutable int              _formatinteger;   //!< Integer part for format, if applicable
+    mutable int              _formatdecimal;   //!< Decimal part for format, if applicable
+    mutable DisplayFormat    _displayformat;   //!< Display format for matrix
+    mutable std::streamsize  _precision;       //!< Precision
+    mutable std::vector<int> _realwidth;       //!< Widest real value width/column
+    mutable std::vector<int> _imagwidth;       //!< Widest imag value width/column
+    mutable std::string      _delimiter;       //!< Delimiter between cols
+    mutable int              _skipformatwidth; //!< Width for skip format option
 
     mutable long long   _maxdigits;          //!< Format - max digits
     mutable long double _maxfloat;           //!< Format - max possible float
@@ -283,6 +284,18 @@ private:
     //! \param display format type
     //!
     size_t GetFormattedStringLength(double, DisplayFormat) const;
+
+    //!
+    //! Gets real component width
+    //! \param index
+    int GetRealWidth(int) const;
+    //!
+    //! Gets imaginary component width
+    //! \param index
+    //! \param True if this is real data
+    //!
+    int GetImagWidth(int,
+                     bool) const;
 
 };
 

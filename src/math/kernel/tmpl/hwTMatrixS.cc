@@ -1,7 +1,7 @@
 /**
 * @file hwTMatrixS.cc
 * @date May 2019
-* Copyright (C) 2014-2019 Altair Engineering, Inc.
+* Copyright (C) 2014-2020 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -552,6 +552,7 @@ hwTMatrixS<T1, T2>::hwTMatrixS(int            nRows,
                                const MKL_INT* pEndCount,
                                const MKL_INT* pRowNum,
                                const T1*      pValues)
+    : m_refCount(1)
 {
     m_nRows = nRows;
     m_nCols = nCols;
@@ -652,6 +653,7 @@ hwTMatrixS<T1, T2>::hwTMatrixS(int            nRows,
                                const MKL_INT* pEndCount,
                                const MKL_INT* pRowNum,
                                const T2*      pValues)
+    : m_refCount(1)
 {
 	m_nRows = nRows;
 	m_nCols = nCols;
@@ -5027,8 +5029,8 @@ void hwTMatrixS<T1, T2>::Sum(const hwTMatrixS<T1, T2>& source, bool cols)
 
             for (int col = 0; col < source.m_nCols; ++col)
             {
-                for (int row = source.m_pointerB[col]; row < source.m_pointerE[col]; ++row)
-                    sum(0, col) += source(source.m_rows[index++], col);
+                for (int index2 = source.m_pointerB[col]; index2 < source.m_pointerE[col]; ++index2)
+                    sum(0, col) += source.m_values(index2);
             }
         }
         else
@@ -5038,8 +5040,8 @@ void hwTMatrixS<T1, T2>::Sum(const hwTMatrixS<T1, T2>& source, bool cols)
 
             for (int col = 0; col < source.m_nCols; ++col)
             {
-                for (int row = source.m_pointerB[col]; row < source.m_pointerE[col]; ++row)
-                    sum.z(0, col) += source.z(source.m_rows[index++], col);
+                for (int index2 = source.m_pointerB[col]; index2 < source.m_pointerE[col]; ++index2)
+                    sum.z(0, col) += source.m_values.z(index2);
             }
         }
     }
@@ -5067,6 +5069,559 @@ void hwTMatrixS<T1, T2>::Sum(const hwTMatrixS<T1, T2>& source, bool cols)
 
     hwTMatrixS<T1, T2> temp(sum);
     (*this) = temp;
+}
+
+//! Find maximum along a direction
+template<typename T1, typename T2>
+void hwTMatrixS<T1, T2>::Max(hwTMatrixS<T1, T2>& val, hwTMatrix<int, hwTComplex<int>>* rc, bool cols) const
+{
+    hwMathStatus status;
+    hwTMatrix<T1, T2> max;
+
+    if (cols)   // max for each column
+    {
+        int index = 0;
+
+        if (IsReal())
+        {
+            status = max.Dimension(1, m_nCols, hwTMatrix<T1, T2>::REAL);
+
+            if (rc)
+                status = rc->Dimension(1, m_nCols, hwTMatrix<int, hwTComplex<int>>::REAL);
+
+            for (int col = 0; col < m_nCols; ++col)
+            {
+                if (m_pointerE[col] > m_pointerB[col])
+                {
+                    if (m_rows[m_pointerB[col]] == 0)
+                    {
+                        // top of column is non-zero and current max
+                        max(0, col) = m_values(m_pointerB[col]);
+
+                        if (rc)
+                            (*rc)(0, col) = 0;
+                    }
+                    else if (m_values(m_pointerB[col]) > static_cast<T1> (0))
+                    {
+                        // first non-zero in column is positive and current max
+                        max(0, col) = m_values(m_pointerB[col]);
+
+                        if (rc)
+                            (*rc)(0, col) = m_rows[m_pointerB[col]];
+                    }
+                    else
+                    {
+                        // top of column is zero and current max
+                        max(0, col) = static_cast<T1> (0);
+
+                        if (rc)
+                            (*rc)(0, col) = 0;
+                    }
+
+                    for (int index = m_pointerB[col] + 1; index < m_pointerE[col]; ++index)
+                    {
+                        // check other non-zeros
+                        if (m_values(index) > max(0, col))
+                        {
+                            max(0, col) = m_values(index);
+
+                            if (rc)
+                                (*rc)(0, col) = m_rows[index];
+                        }
+                    }
+
+                    if (max(0, col) < static_cast<T1> (0) && m_pointerE[col] - m_pointerB[col] < m_nRows)
+                    {
+                        // find first zero if current max is negative
+                        int row = 0;
+                        int index;
+
+                        max(0, col) = static_cast<T1> (0);
+
+                        for (index = m_pointerB[col]; index < m_pointerE[col]; ++index)
+                        {
+                            if (m_rows[index] != row)
+                            {
+                                if (rc)
+                                    (*rc)(0, col) = row;
+
+                                break;
+                            }
+
+                            ++row;
+                        }
+
+                        if (index == m_pointerE[col])
+                        {
+                            if (rc)
+                                (*rc)(0, col) = row;
+                        }
+                    }
+                }
+                else
+                {
+                    max(0, col) = 0.0;
+
+                    if (rc)
+                        (*rc)(0, col) = 0;
+                }
+            }
+        }
+        else
+        {
+            status = max.Dimension(1, m_nCols, hwTMatrix<T1, T2>::COMPLEX);
+
+            if (rc)
+                status = rc->Dimension(1, m_nCols, hwTMatrix<int, hwTComplex<int>>::REAL);
+
+            for (int col = 0; col < m_nCols; ++col)
+            {
+                if (m_pointerE[col] > m_pointerB[col])
+                {
+                    max.z(0, col) = m_values.z(m_pointerB[col]);
+
+                    if (rc)
+                        (*rc)(0, col) = m_rows[m_pointerB[col]];
+
+                    for (int index = m_pointerB[col] + 1; index < m_pointerE[col]; ++index)
+                    {
+                        if (m_values.z(index).MagSq() > max.z(0, col).MagSq())
+                        {
+                            max.z(0, col) = m_values.z(index);
+
+                            if (rc)
+                                (*rc)(0, col) = m_rows[index];
+                        }
+                        else if (m_values.z(index).MagSq() == max.z(0, col).MagSq())
+                        {
+                            if (m_values.z(index).Arg() > max.z(0, col).Arg())
+                            {
+                                max.z(0, col) = m_values.z(index);
+
+                                if (rc)
+                                    (*rc)(0, col) = m_rows[index];
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    max.z(0, col) = 0.0;
+
+                    if (rc)
+                        (*rc)(0, col) = 0;
+                }
+            }
+        }
+    }
+    else   // max for each row
+    {
+        int nnz = NNZ();
+
+        if (IsReal())
+        {
+            status = max.Dimension(m_nRows, 1, hwTMatrix<T1, T2>::REAL);
+
+            if (rc)
+                status = rc->Dimension(m_nRows, 1, hwTMatrix<int, hwTComplex<int>>::REAL);
+
+            int index2 = 0;
+
+            for (int index = 0; index < m_nRows; ++index)
+            {
+                if (index == m_rows[index2])
+                    max(index, 0) = m_values(index2++);
+                else
+                    max(index, 0) = static_cast<T1> (0);
+
+                if (rc)
+                    (*rc)(index, 0) = 0;
+            }
+
+            for (int col = 1; col < m_nCols; ++col)
+            {
+                for (int index = m_pointerB[col]; index < m_pointerE[col]; ++index)
+                {
+                    if (m_values(index) > max(m_rows[index], 0))
+                    {
+                        max(m_rows[index], 0) = m_values(index);
+
+                        if (rc)
+                            (*rc)(m_rows[index], 0) = col;
+                    }
+                }
+            }
+
+            // handle the terribly inefficient case in which the maximum non-zero
+            // element in the row is negative
+            for (int row = 0; row < m_nRows; ++row)
+            {
+                if (max(row, 0) < static_cast<T1> (0))
+                {
+                    for (int col = 1; col < m_nCols; ++col)
+                    {
+                        if ((*this)(row, col) == static_cast<T1> (0))
+                        {
+                            max(row, 0) = static_cast<T1> (0);
+
+                            if (rc)
+                                (*rc)(row, 0) = col;
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            status = max.Dimension(m_nRows, 1, hwTMatrix<T1, T2>::COMPLEX);
+
+            if (rc)
+                status = rc->Dimension(m_nRows, 1, hwTMatrix<int, hwTComplex<int>>::REAL);
+
+            int index2 = 0;
+
+            for (int index = 0; index < m_nRows; ++index)
+            {
+                if (index == m_rows[index2])
+                    max.z(index, 0) = m_values.z(index2++);
+                else
+                    max.z(index, 0) = static_cast<T1> (0);
+
+                if (rc)
+                    (*rc)(index, 0) = 0;
+            }
+
+            for (int col = 1; col < m_nCols; ++col)
+            {
+                for (int index = m_pointerB[col]; index < m_pointerE[col]; ++index)
+                {
+                    if (m_values.z(index).MagSq() > max.z(m_rows[index], 0).MagSq())
+                    {
+                        max.z(m_rows[index], 0) = m_values.z(index);
+
+                        if (rc)
+                            (*rc)(m_rows[index], 0) = col;
+                    }
+                    else if (m_values.z(index).MagSq() == max.z(m_rows[index], 0).MagSq())
+                    {
+                        if (m_values.z(index).Arg() > max.z(m_rows[index], 0).Arg())
+                        {
+                            max.z(m_rows[index], 0) = m_values.z(index);
+
+                            if (rc)
+                                (*rc)(m_rows[index], 0) = col;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    hwTMatrixS<T1, T2> temp(max);
+    val = temp;
+}
+
+//! Find minimum along a direction
+template<typename T1, typename T2>
+void hwTMatrixS<T1, T2>::Min(hwTMatrixS<T1, T2>& val, hwTMatrix<int, hwTComplex<int>>* rc, bool cols) const
+{
+    hwMathStatus status;
+    hwTMatrix<T1, T2> min;
+
+    if (cols)   // min for each column
+    {
+        int index = 0;
+
+        if (IsReal())
+        {
+            status = min.Dimension(1, m_nCols, hwTMatrix<T1, T2>::REAL);
+
+            if (rc)
+                status = rc->Dimension(1, m_nCols, hwTMatrix<int, hwTComplex<int>>::REAL);
+
+            for (int col = 0; col < m_nCols; ++col)
+            {
+                if (m_pointerE[col] > m_pointerB[col])
+                {
+                    if (m_rows[m_pointerB[col]] == 0)
+                    {
+                        // top of column is non-zero and current min
+                        min(0, col) = m_values(m_pointerB[col]);
+
+                        if (rc)
+                            (*rc)(0, col) = 0;
+                    }
+                    else if (m_values(m_pointerB[col]) < static_cast<T1> (0))
+                    {
+                        // first non-zero in column is negative and current min
+                        min(0, col) = m_values(m_pointerB[col]);
+
+                        if (rc)
+                            (*rc)(0, col) = m_rows[m_pointerB[col]];
+                    }
+                    else
+                    {
+                        // top of column is zero and current min
+                        min(0, col) = static_cast<T1> (0);
+
+                        if (rc)
+                            (*rc)(0, col) = 0;
+                    }
+
+                    for (int index = m_pointerB[col] + 1; index < m_pointerE[col]; ++index)
+                    {
+                        // check other non-zeros
+                        if (m_values(index) < min(0, col))
+                        {
+                            min(0, col) = m_values(index);
+
+                            if (rc)
+                                (*rc)(0, col) = m_rows[index];
+                        }
+                    }
+
+                    if (min(0, col) > static_cast<T1> (0) && m_pointerE[col] - m_pointerB[col] < m_nRows)
+                    {
+                        // find first zero if current min is positive
+                        int row = 0;
+                        int index;
+
+                        min(0, col) = static_cast<T1> (0);
+
+                        for (index = m_pointerB[col]; index < m_pointerE[col]; ++index)
+                        {
+                            if (m_rows[index] != row)
+                            {
+                                if (rc)
+                                    (*rc)(0, col) = row;
+
+                                break;
+                            }
+
+                            ++row;
+                        }
+
+                        if (index == m_pointerE[col])
+                        {
+                            if (rc)
+                                (*rc)(0, col) = row;
+                        }
+                    }
+                }
+                else
+                {
+                    min(0, col) = 0.0;
+
+                    if (rc)
+                        (*rc)(0, col) = 0;
+                }
+            }
+        }
+        else
+        {
+            status = min.Dimension(1, m_nCols, hwTMatrix<T1, T2>::COMPLEX);
+
+            if (rc)
+                status = rc->Dimension(1, m_nCols, hwTMatrix<int, hwTComplex<int>>::REAL);
+
+            for (int col = 0; col < m_nCols; ++col)
+            {
+                if (m_pointerE[col] > m_pointerB[col])
+                {
+                    min.z(0, col) = m_values.z(m_pointerB[col]);
+
+                    if (rc)
+                        (*rc)(0, col) = m_rows[m_pointerB[col]];
+
+                    for (int index = m_pointerB[col] + 1; index < m_pointerE[col]; ++index)
+                    {
+                        if (m_values.z(index).MagSq() < min.z(0, col).MagSq())
+                        {
+                            min.z(0, col) = m_values.z(index);
+
+                            if (rc)
+                                (*rc)(0, col) = m_rows[index];
+                        }
+                        else if (m_values.z(index).MagSq() == min.z(0, col).MagSq())
+                        {
+                            if (m_values.z(index).Arg() < min.z(0, col).Arg())
+                            {
+                                min.z(0, col) = m_values.z(index);
+
+                                if (rc)
+                                    (*rc)(0, col) = m_rows[index];
+                            }
+                        }
+                    }
+
+                    if (min.z(0, col) != static_cast<T1> (0) && m_pointerE[col] - m_pointerB[col] < m_nRows)
+                    {
+                        // find first zero if current min is non-zero
+                        int row = 0;
+                        int index;
+
+                        min.z(0, col) = static_cast<T1> (0);
+
+                        for (index = m_pointerB[col]; index < m_pointerE[col]; ++index)
+                        {
+                            if (m_rows[index] != row)
+                            {
+                                if (rc)
+                                    (*rc)(0, col) = row;
+
+                                break;
+                            }
+
+                            ++row;
+                        }
+
+                        if (index == m_pointerE[col])
+                        {
+                            if (rc)
+                                (*rc)(0, col) = row;
+                        }
+                    }
+                }
+                else
+                {
+                    min.z(0, col) = 0.0;
+
+                    if (rc)
+                        (*rc)(0, col) = 0;
+                }
+            }
+        }
+    }
+    else   // min for each row
+    {
+        int nnz = NNZ();
+
+        if (IsReal())
+        {
+            status = min.Dimension(m_nRows, 1, hwTMatrix<T1, T2>::REAL);
+
+            if (rc)
+                status = rc->Dimension(m_nRows, 1, hwTMatrix<int, hwTComplex<int>>::REAL);
+
+            int index2 = 0;
+
+            for (int index = 0; index < m_nRows; ++index)
+            {
+                if (index == m_rows[index2])
+                    min(index, 0) = m_values(index2++);
+                else
+                    min(index, 0) = static_cast<T1> (0);
+
+                if (rc)
+                    (*rc)(index, 0) = 0;
+            }
+
+            for (int col = 1; col < m_nCols; ++col)
+            {
+                for (int index = m_pointerB[col]; index < m_pointerE[col]; ++index)
+                {
+                    if (m_values(index) < min(m_rows[index], 0))
+                    {
+                        min(m_rows[index], 0) = m_values(index);
+
+                        if (rc)
+                            (*rc)(m_rows[index], 0) = col;
+                    }
+                }
+            }
+
+            // handle the terribly inefficient case in which the minimum non-zero
+            // element in the row is positive
+            for (int row = 0; row < m_nRows; ++row)
+            {
+                if (min(row, 0) > static_cast<T1> (0))
+                {
+                    for (int col = 1; col < m_nCols; ++col)
+                    {
+                        if ((*this)(row, col) == static_cast<T1> (0))
+                        {
+                            min(row, 0) = static_cast<T1> (0);
+
+                            if (rc)
+                                (*rc)(row, 0) = col;
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            status = min.Dimension(m_nRows, 1, hwTMatrix<T1, T2>::COMPLEX);
+
+            if (rc)
+                status = rc->Dimension(m_nRows, 1, hwTMatrix<int, hwTComplex<int>>::REAL);
+
+            int index2 = 0;
+
+            for (int index = 0; index < m_nRows; ++index)
+            {
+                if (index == m_rows[index2])
+                    min.z(index, 0) = m_values.z(index2++);
+                else
+                    min.z(index, 0) = static_cast<T1> (0);
+
+                if (rc)
+                    (*rc)(index, 0) = 0;
+            }
+
+            for (int col = 1; col < m_nCols; ++col)
+            {
+                for (int index = m_pointerB[col]; index < m_pointerE[col]; ++index)
+                {
+                    if (m_values.z(index).MagSq() < min.z(m_rows[index], 0).MagSq())
+                    {
+                        min.z(m_rows[index], 0) = m_values.z(index);
+
+                        if (rc)
+                            (*rc)(m_rows[index], 0) = col;
+                    }
+                    else if (m_values.z(index).MagSq() == min.z(m_rows[index], 0).MagSq())
+                    {
+                        if (m_values.z(index).Arg() < min.z(m_rows[index], 0).Arg())
+                        {
+                            min.z(m_rows[index], 0) = m_values.z(index);
+
+                            if (rc)
+                                (*rc)(m_rows[index], 0) = col;
+                        }
+                    }
+                }
+            }
+
+            // handle the terribly inefficient case in which the minimum non-zero
+            // element in the row is positive
+            for (int row = 0; row < m_nRows; ++row)
+            {
+                if (min.z(row, 0) != static_cast<T1> (0))
+                {
+                    for (int col = 1; col < m_nCols; ++col)
+                    {
+                        if (z(row, col) == static_cast<T1> (0))
+                        {
+                            min.z(row, 0) = static_cast<T1> (0);
+
+                            if (rc)
+                                (*rc)(row, 0) = col;
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    hwTMatrixS<T1, T2> temp(min);
+    val = temp;
 }
 
 // ****************************************************

@@ -1,7 +1,7 @@
 /**
 * @file GeometryTboxFuncs.cxx
 * @date November, 2018
-* Copyright (C) 2018-2019 Altair Engineering, Inc.  
+* Copyright (C) 2018-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -32,7 +32,7 @@
 #include "GeometryFuncs.h"
 
 #define GEOM "Geometry"
-#define TBOXVERSION 2019.1
+#define TBOXVERSION 2020.1
 
 // Returns temporary error file name and redirect QHull errors
 std::string SetQHullErrorFile(EvaluatorInterface eval,
@@ -528,6 +528,11 @@ void ShowQHullMessages(EvaluatorInterface eval, const std::string& name, int han
 {
     if (name.empty())
     {
+        return;
+    }
+    if (handle < 0)
+    {
+        std::remove(name.c_str());
         return;
     }
     fflush(stderr);

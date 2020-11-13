@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsSystem.h
 * @date October 2016
-* Copyright (C) 2016-2019 Altair Engineering, Inc.  
+* Copyright (C) 2016-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -239,6 +239,25 @@ public:
     //! \param Given input command
     //!
     static std::string GetInputForSystemCommand(const std::string&);
+    //!
+    //! Returns system dependant path separator [filesep]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //!
+    static bool Filesep(EvaluatorInterface,
+                        const std::vector<Currency>&,
+                        std::vector<Currency>&);
+    //!
+    //! Returns true after starting/stopping writing to diary [diary]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //!
+    static bool Diary(EvaluatorInterface,
+                      const std::vector<Currency>&,
+                      std::vector<Currency>&);
+
 private:
     //!
     //! Constructor

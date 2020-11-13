@@ -306,10 +306,12 @@ public:
     //!
     std::string LTrim(const std::string& in);
     //!
-    //! Returns string trimmed from trailing white space(s)
+    //! Trims trailing characters
     //! \param in Input string
+    //! \param trim Chars to trim
     //!
-    std::string RTrim(const std::string& in);
+    std::string RTrim(const std::string& in,
+                      const std::string& trim = " \t");
 
     //!
     //! Throws regex error
@@ -433,7 +435,23 @@ public:
     //! \param String value
     //!
     void SetPaginate(const std::string&);
+    //!
+    //! Creates a temporary folder and returns its name
+    //!
+    static std::string CreateTempFolder();
+    //!
+    //! Creates the directory, if it does not exist
+    //! \param dir Directory name
+    //!
+    static void Mkdir(const std::string& dir);
 
+    //!
+    //! Returns file pointer after opening in given mode, supports Unicode
+    //! \param File name
+    //! \param Mode
+    //!
+    std::FILE* FileOpen(const std::string&,
+                        const std::string&);
 private: 
     //!
     //! Reads formatted input and returns true if successful

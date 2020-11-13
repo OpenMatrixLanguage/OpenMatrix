@@ -17,11 +17,16 @@
   
   <div class="body refbody"><p class="shortdesc">Annotates the z-axis.</p>
 
-    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+    <section class="section" id="reference_wpv_kyv_pr__section_fdr_ckl_lmb"><h2 class="title sectiontitle">Syntax</h2>
+      
       <p class="p"><span class="ph synph">handle = zlabel<span class="ph var">(str)</span></span></p>
 
       <p class="p"><span class="ph synph">handle = zlabel<span class="ph var">(hAxis, str)</span></span></p>
-<?STOP?></section>
+
+      <p class="p"><span class="ph synph">h = zlabel<span class="ph var">(..., property, value, ...)</span></span></p>
+
+      <?STOP?>
+    </section>
 
     <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
       
@@ -29,7 +34,7 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">str</var></dt>
 
-          <dd class="dd pd">Name of z-axis.</dd>
+          <dd class="dd pd">Name of the z-axis.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">char | string</span></dd>
 
@@ -42,6 +47,26 @@
           <dd class="dd pd"><span class="keyword"> Axis handle. </span></dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">property</var></dt>
+
+          <dd class="dd pd"><span class="keyword">Properties that control the appearance or behavior of the graphics object.</span></dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">value</var></dt>
+
+          <dd class="dd pd"><span class="keyword">Value of the properties.</span></dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer | string</span></dd>
 
           <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
 
@@ -65,20 +90,31 @@
       <?STOPOUT?>
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Example</h2>
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
-      <p class="p">Simple <span class="keyword cmdname">zlabel</span> example.</p>
-
-      <pre class="pre codeblock"><code>clf;
+      <div class="p">Simple <span class="keyword cmdname">zlabel</span>
+          example.<pre class="pre codeblock"><code>clf;
 x=[0:0.1:2*pi];
 y=x;
 z=sin(x')*cos(y);
 s=surf(x, y, z)
-handle = zlabel('this is zlabel')</code></pre>
-      <figure class="fig fignone">
-        
-        <br /><img class="image" src="../../../../images/math_solutions/plots/zlabel.PNG" /><br />
-      <span class="figcap"><span class="fig--title-label">Figure 1. </span>Simple zlabel example</span></figure>
+handle = zlabel('this is zlabel')</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_zdl_skl_lmb">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_a2l_skl_lmb" src="../../../../images/math_solutions/plots/zlabel.PNG" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 1. </span>Simple zlabel example</span></figure>
+</div>
+
+      <div class="p">Optional arguments
+          example:<pre class="pre codeblock"><code>clf;
+x=[0:0.1:2*pi];
+y=x;
+z=sin(x')*cos(y);
+s=surf(x, y, z)
+handle = zlabel('this is zlabel', 'fontsize', 12, 'fontweight', 'bold')</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_gd3_vkl_lmb">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_hd3_vkl_lmb" src="../../../../images/math_solutions/plots/zlabelOptionalArgs.png" height="300" width="430" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 2. </span>Optional arguments in the <span class="keyword cmdname">zlabel</span> command</span></figure>
+</div>
 
     </section>
 

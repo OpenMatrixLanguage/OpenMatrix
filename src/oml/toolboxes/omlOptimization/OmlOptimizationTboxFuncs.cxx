@@ -66,7 +66,8 @@ bool OmlOptimset(EvaluatorInterface           eval,
         msg += "TolCon\n";
         msg += "TolFun\n";
         msg += "TolKKT\n";
-        msg += "TolX";
+        msg += "TolX\n";
+        msg += "MaxFail";
 
         Currency tmp(msg);
         tmp.DispOutput();
@@ -83,6 +84,7 @@ bool OmlOptimset(EvaluatorInterface           eval,
         out.Struct()->SetValue(0, -1, "Jacobian",    "off");
         out.Struct()->SetValue(0, -1, "MaxFunEvals", 400);
         out.Struct()->SetValue(0, -1, "MaxIter",     100);
+        out.Struct()->SetValue(0, -1, "MaxFail",     20000);
         out.Struct()->SetValue(0, -1, "TolCon",      0.5);
         out.Struct()->SetValue(0, -1, "TolFun",      1.0e-7);
         out.Struct()->SetValue(0, -1, "TolKKT",      1.0e-4);
@@ -125,6 +127,11 @@ bool OmlOptimset(EvaluatorInterface           eval,
         {
             if (!cur.IsScalar())
                 throw OML_Error(OML_ERR_SCALAR, i+2, OML_VAR_TOLFUN);
+        }
+        else if (opt == "MaxFail")
+        {
+            if (!cur.IsPositiveInteger())
+                throw OML_Error(OML_ERR_POSINTEGER, i + 2, OML_VAR_MAXFAIL);
         }
         else if (opt == "TolCon")
         {

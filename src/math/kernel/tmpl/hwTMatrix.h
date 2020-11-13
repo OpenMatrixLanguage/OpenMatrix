@@ -17,6 +17,8 @@
 #ifndef _hwTMatrix_h
 #define _hwTMatrix_h
 
+#include <mutex>
+
 //! Forward declarations
 class hwMathStatus;
 template < typename T > class hwTComplex;
@@ -594,6 +596,8 @@ public:
     unsigned int GetRefCount() const { return m_refCount; }
     bool IsMatrixShared() const { return m_refCount != 1; }
      
+	std::mutex mutex;
+
 private:
 
     // ****************************************************
@@ -666,14 +670,18 @@ private:
     hwMathStatus RealLU(hwTMatrix<double>& L, hwTMatrix<double>& U, hwTMatrix<int>& P ) const;
     //! Complex LU decomposition (PA = LU)
     hwMathStatus ComplexLU(hwTMatrix<double>& L, hwTMatrix<double>& U, hwTMatrix<int>& P ) const;
+    //! Real Cholesky decomposition (A=TT', where T is triangular)
+    hwMathStatus RealCholeskyDecomp(hwTMatrix<double>& T, bool upper) const;
+    //! Complex Cholesky decomposition (A=TT', where T is triangular)
+    hwMathStatus ComplexCholeskyDecomp(hwTMatrix<double>& T, bool upper) const;
     //! Real asymmetric Eigen decomposition with balance option
     hwMathStatus EigenDecompReal(bool balance, hwTMatrix<double>* V, hwTMatrix<double>& D) const;
-    //! Real symmetric Eigen decomposition
-    hwMathStatus EigenDecompRealSymmetric(hwTMatrix<double>& V, hwTMatrix<double>& D) const;
+    //! Real symmetric positive definite Eigen decomposition
+    hwMathStatus EigenDecompRealSPD(hwTMatrix<double>& V, hwTMatrix<double>& D) const;
     //! Complex non-Hermitian Eigen decomposition with balance option
     hwMathStatus EigenDecompComplex(bool balance, hwTMatrix<double>* V, hwTMatrix<double>& D) const;
-    //! Complex Hermitian Eigen decomposition
-    hwMathStatus EigenDecompComplexHermitian(hwTMatrix<double>& V, hwTMatrix<double>& D) const;
+    //! Complex Hermitian positive definite Eigen decomposition
+    hwMathStatus EigenDecompComplexHPD(hwTMatrix<double>& V, hwTMatrix<double>& D) const;
     //! Balance real matrix
     hwMathStatus BalanceReal(bool noperm, hwTMatrix<double>& S, hwTMatrix<double>& P, hwTMatrix<double>& B) const;
     //! Balance complex matrix
@@ -684,11 +692,11 @@ private:
     //! Generalized complex non-Hermitian Eigen decomposition
     static hwMathStatus GeneralizedEigenDecompComplex(const hwTMatrix<double>& A,
                         const hwTMatrix<double>& B, hwTMatrix<double>& V, hwTMatrix<double>& D);
-    //! Generalized real symmetric Eigen decomposition
-    static hwMathStatus GeneralizedEigenDecompRealSymmetric(const hwTMatrix<double>& A,
+    //! Generalized real symmetric positive definite Eigen decomposition
+    static hwMathStatus GeneralizedEigenDecompRealSPD(const hwTMatrix<double>& A,
                         const hwTMatrix<double>& B, hwTMatrix<double>& V, hwTMatrix<double>& D);
-    //! Generalized complex Hermitian Eigen decomposition
-    static hwMathStatus GeneralizedEigenDecompComplexHermitian(const hwTMatrix<double>& A,
+    //! Generalized complex Hermitian positive definite Eigen decomposition
+    static hwMathStatus GeneralizedEigenDecompComplexHPD(const hwTMatrix<double>& A,
                         const hwTMatrix<double>& B, hwTMatrix<double>& V, hwTMatrix<double>& D);
     //! enum to define Singular Value decomposition type
     enum SVDtype
@@ -714,9 +722,9 @@ private:
     // Complex Schur decomposition
     hwMathStatus ComplexSchur(hwTMatrix<double>& U, hwTMatrix<double>& T) const;
     //! Reciprocal condition number estimate of a real matrix
-    hwMathStatus RealRCond(double& rCondNum) const;
+    hwMathStatus RealRCond(double& rCondNum, hwTMatrix<int>& IPIV);
     //! Reciprocal condition number estimate of a complex matrix
-    hwMathStatus ComplexRCond(double& rCondNum) const;
+    hwMathStatus ComplexRCond(double& rCondNum, hwTMatrix<int>& IPIV);
 };
 
 //! template implementation file

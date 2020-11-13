@@ -1,7 +1,7 @@
 /**
 * @file Evaluator.h
 * @date August 2013
-* Copyright (C) 2013-2019 Altair Engineering, Inc.  
+* Copyright (C) 2013-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -67,16 +67,17 @@ struct BuiltinFunc
 	ALT_FUNCPTR alt_fptr;
 
 	FunctionMetaData md;
-    BuiltinFunc(FUNCPTR func, FunctionMetaData in_md) : fptr(func), alt_fptr(nullptr), md(in_md), locked(false), dll(nullptr) {}
-    BuiltinFunc(ALT_FUNCPTR func, const std::string* context) : fptr(nullptr), alt_fptr(func), locked(false), dll(context) {}
-	BuiltinFunc(ALT_FUNCPTR func, FunctionMetaData in_md, const std::string* context) : fptr(nullptr), alt_fptr(func), md(in_md), locked(false), dll(context) {}
-    BuiltinFunc() : fptr(nullptr), alt_fptr(nullptr), locked(false), dll(nullptr) {}
+    BuiltinFunc(FUNCPTR func, FunctionMetaData in_md) : fptr(func), alt_fptr(nullptr), md(in_md), locked(false), dll(nullptr), hierarchy(nullptr) {}
+    BuiltinFunc(ALT_FUNCPTR func, const std::string* context, const std::string* meta) : fptr(nullptr), alt_fptr(func), locked(false), dll(context), hierarchy(meta) {}
+	BuiltinFunc(ALT_FUNCPTR func, FunctionMetaData in_md, const std::string* context, const std::string* meta) : fptr(nullptr), alt_fptr(func), md(in_md), locked(false), dll(context), hierarchy(meta) {}
+    BuiltinFunc() : fptr(nullptr), alt_fptr(nullptr), locked(false), dll(nullptr), hierarchy(nullptr) {}
 
 	void Lock() { locked = true; }
 
 	bool locked;
 
 	const std::string* dll;
+	const std::string* hierarchy;
 };
 
 struct UserFunc
@@ -150,6 +151,7 @@ public:
 	std::string     GetCurrentFilename() const;
 
 	void SetDLLContext(const std::string& dll_name);
+	void SetDLLHierarchy(const std::string& metadata);
 
 	std::vector<std::string> GetVariableNames(int offset) const;
 	std::vector<std::string> GetBuiltinFunctionNames() const;
@@ -327,10 +329,10 @@ public:
 	//!
 	bool IsPaused() const { return _paused; }
 
-	void     SetDiary(bool);
-	void     SetDiary(std::string filename);
-	bool     IsDiaryOpen();
-	void     WriteToDiaryFile(std::string filename);
+    //!
+    //! Returns the diary file stream
+    //!
+    std::ofstream& GetDiary() { return diaryFile; }
 
 	void StoreSuppressedResults(bool store) { _store_suppressed = store; }
 
@@ -391,7 +393,8 @@ public:
 	void OnRefreshDirs();
 
 	//! Prompts to save before exiting
-	void OnSaveOnExit();
+    //! \param returnCode Code to exit the application with
+	void OnSaveOnExit(int returnCode);
 	//! Update function list in language
 	void OnUpdateFuncList();
 	//! Gets user input
@@ -456,6 +459,8 @@ public:
 	MemoryScopeManager* GetMSM() const { return msm; }
 	
 	int SetNestedFunctionMarker(int new_val);
+
+	void SetNumberOfThreads(int num_threads) { _num_threads = num_threads; }
 
 private:
 	Currency AddOperator(const Currency&, const Currency&);
@@ -606,9 +611,6 @@ private:
     Currency BoundClassMethod( const Currency*   in, 
                                OMLTree* field);
 
-
-
-
 private:
 
 	//data members
@@ -625,17 +627,19 @@ private:
 
 	std::string        _script_name;
 	const std::string* _dll_context;
+	const std::string* _dll_user_hierarchy;
 
 	std::map<std::string, ClassInfo*>      *class_info_map;      //classdef classes
     std::map<std::string, BoundClassInfo*> _boundclassinfo; //! Bound classes
 
 	std::map<std::string, ENCRPTR> _decryptors;
 
-	static std::set<void*> ignore_cow_pointers;
 	bool IgnoreCoW(void*) const;
 
     void OnEvaluationEnd( const Currency& currency);
     bool PathMatches(const std::string& s1, const std::string& s2) const;
+
+	void ParforAnalyze(const std::string& loop_var, OMLTree* tree, std::set<std::string>& sliced_vars, std::set<std::string>& broadcast_vars, std::set<std::string>& reduced_vars, std::map<std::string, int>& reduced_ops);
 
 	std::string* end_context_varname;
 	int          end_context_index;
@@ -661,6 +665,7 @@ private:
 	bool        _diary_on;
 	bool        _store_suppressed;
     bool        _suspendFunclistUpdate; //! Suspends function list update
+	bool        _suppress_all;
 
 	std::string builtin_error_scope;
 
@@ -706,6 +711,8 @@ private:
 
 	std::vector<hwSliceArg> slices;
 	std::vector<int> indices;
+
+	int _num_threads;
 };
 
 #endif

@@ -1,0 +1,13 @@
+Available optimization options:
+
+Display
+GradConstr
+GradObj
+Jacobian
+MaxFunEvals
+MaxIter
+TolCon
+TolFun
+TolKKT
+TolX
+MaxFail

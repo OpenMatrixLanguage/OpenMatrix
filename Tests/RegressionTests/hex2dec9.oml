@@ -1,0 +1,2 @@
+﻿R = hex2dec(['FFF2BC'; '22B'; '111'])
+R = hex2dec(['2BC'; '22B'; 'FFF111'])

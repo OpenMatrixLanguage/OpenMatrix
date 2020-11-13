@@ -1,0 +1,10 @@
+data1{1} = 'foo1';
+data1{2} = 'foo2';
+cell1{1} = data1;
+result1 = regexp(cell1{1},'.rcd$');
+class(result1)
+
+data2{1} = 'foo1';
+cell2{1} = data2;
+result2 = regexp(cell2{1},'.rcd$');
+class(result2)	

@@ -3,9 +3,7 @@ a: 2
 ]
 A = struct [
 a: 2
-b: 
-{
-}
+b: {}
 ]
 B = struct [
 b: 3 + 6i

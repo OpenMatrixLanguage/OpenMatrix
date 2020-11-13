@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsTime.cpp
 * @date April 2019
-* Copyright (C) 2019 Altair Engineering, Inc.
+* Copyright (C) 2019-2020 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -611,9 +611,11 @@ bool BuiltInFuncsTime::Hour(EvaluatorInterface           eval,
     {
         throw OML_Error(OML_ERR_STRING, 2);
     }
+
     size_t idx = funcs.GetFormat(inputs[1].StringVal());
 
     std::string str;
+    bool hasTimePeriod = false;
     switch (idx)
     {
         case 0:   // dd-mmm-yyyy HH:MM:SS
@@ -643,7 +645,8 @@ bool BuiltInFuncsTime::Hour(EvaluatorInterface           eval,
             break;
 
         case 14:  // HH:MM:SS PM
-            str = "%d:%*d:%*d %*s";
+            str = "%d:%*d:%*d %s";
+            hasTimePeriod = true;
             break;
 
         case 15:  // HH:MM
@@ -651,7 +654,8 @@ bool BuiltInFuncsTime::Hour(EvaluatorInterface           eval,
             break;
 
         case 16:  // HH:MM PM
-            str = "%d:%*d %*s";
+            str = "%d:%*d %s";
+            hasTimePeriod = true;
             break;
 
         case 21:  // mmm.dd,yyyy HH:MM:SS
@@ -672,11 +676,29 @@ bool BuiltInFuncsTime::Hour(EvaluatorInterface           eval,
     int result = -1;
     if (!str.empty())
     {
-        result = std::sscanf(in.c_str(), str.c_str(), &value);
+        if (!hasTimePeriod)
+        {
+            result = std::sscanf(in.c_str(), str.c_str(), &value);
+        }
+        else
+        {
+            char tmp[128];
+            result = std::sscanf(in.c_str(), str.c_str(), &value, tmp);
+            std::string timePeriod(tmp);
+            if (!timePeriod.empty())
+            {
+                std::transform(timePeriod.begin(), timePeriod.end(),
+                    timePeriod.begin(), ::tolower);
+                if (value < 12 && timePeriod == "pm")
+                {
+                    value += 12;
+                }
+            }
+        }
     }
     if (result < 1 || value < 0 || value > 24)
     {
-        throw OML_Error(OML_ERR_CANNOTAPPLY_DATE_FMT, 2);
+        value = 0; // Just return 0 if format is not applicable
     }
 
     outputs.push_back(value);

@@ -126,14 +126,29 @@ bool BuiltInFuncsCore::Pause(EvaluatorInterface           eval,
 
         waittime = in.Scalar();
 
-        if (eval.GetVerbose() >= 1)
+        if (eval.GetVerbose() > 0)
         {
-            msg += "Execution is paused for " + std::to_string(
-                static_cast<long long>(waittime)) + " second(s)...";
+            msg += "Execution is paused for ";
+            if (in.IsInteger())
+            {
+                msg += std::to_string(static_cast<long long>(waittime));
+            }
+            else
+            {
+                msg += std::to_string(static_cast<long double>(waittime));
+            }
+            msg += " second(s)...";
         }
         wait = false;
     }
 
+    if (!msg.empty())
+    {
+        Currency tmp(msg);
+        tmp.DispOutput();
+        eval.PrintResult(tmp);
+        msg = "";
+    }
     eval.OnPauseStart(msg, wait);
     BuiltInFuncsCore funcs;
     if (!wait)
@@ -834,6 +849,24 @@ bool BuiltInFuncsCore::AddToolbox(EvaluatorInterface           eval,
     return true;
 }
 
+bool BuiltInFuncsCore::RegisterLibrary(EvaluatorInterface           eval,
+	const std::vector<Currency>& inputs,
+	std::vector<Currency>& outputs)
+{
+	if (inputs.empty()) throw OML_Error(OML_ERR_NUMARGIN);
+
+	const Currency& in = inputs[0];
+	if (!in.IsString())
+		throw OML_Error(OML_ERR_STRING, 1);
+
+	std::vector<Currency> ins;
+	std::vector<Currency> outs;
+	ins.push_back(in);
+
+	eval.SetDLLHierarchy(inputs[1].StringVal());
+	return BuiltInFuncsCore::AddToolbox(eval, ins, outs);
+}
+
 bool BuiltInFuncsCore::RemoveToolbox(EvaluatorInterface eval,
 	const std::vector<Currency>& inputs,
 	std::vector<Currency>& outputs)
@@ -1076,6 +1109,18 @@ bool BuiltInFuncsCore::Omlfilename(EvaluatorInterface           eval,
 
     return true;
 }
+
+//------------------------------------------------------------------------------
+// Returns true after getting current file name being processed [omlfilename command]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsCore::Omllinenumber(EvaluatorInterface           eval,
+	const std::vector<Currency>& inputs,
+	std::vector<Currency>& outputs)
+{
+	outputs.push_back(eval.GetCurrentLinenumber());
+	return true;
+}
+
 //------------------------------------------------------------------------------
 // Returns true after checking if given variable/file/path/function exists [exist command]
 //------------------------------------------------------------------------------
@@ -1431,7 +1476,8 @@ bool BuiltInFuncsCore::OmlPaginate(EvaluatorInterface           eval,
     }
     throw OML_Error(OML_ERR_STRING_NATURALNUM, 1);
     return true;
-}//------------------------------------------------------------------------------
+}
+//------------------------------------------------------------------------------
 // Sleeps for the given time period (sleep)
 //------------------------------------------------------------------------------
 bool BuiltInFuncsCore::OmlSleep(EvaluatorInterface           eval, 
@@ -1505,5 +1551,60 @@ bool BuiltInFuncsCore::Clc(EvaluatorInterface           eval,
     system("clear");
 #endif
 
+    return true;
+}
+//------------------------------------------------------------------------------
+// Sets limit which causes printing without formatting [skipformat]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsCore::SkipFormat(EvaluatorInterface           eval,
+                                  const std::vector<Currency>& inputs,
+                                  std::vector<Currency>&       outputs)
+{
+    if (inputs.empty())
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsInteger())
+    {
+        throw OML_Error(OML_ERR_INTEGER, 1);
+    }
+    CurrencyDisplay::SetSkipFormat(static_cast<int>(inputs[0].Scalar()));
+    return true;
+}
+//------------------------------------------------------------------------------
+// Displays the currency output [display]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsCore::Display(EvaluatorInterface           eval,
+                               const std::vector<Currency>& inputs,
+                               std::vector<Currency>&       outputs)
+{
+    if (inputs.empty())
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    eval.PrintResult(inputs[0]);
+    return true;
+}
+//------------------------------------------------------------------------------
+// Exits the application [exit/quit]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsCore::Exit(EvaluatorInterface           eval,
+    const std::vector<Currency>& inputs,
+    std::vector<Currency>& outputs)
+{
+    int returnCode = EXIT_SUCCESS;
+    if (!inputs.empty())
+    {
+        if (!inputs[0].IsInteger())
+        {
+            throw OML_Error(OML_ERR_INTEGER, 1);
+        }
+
+        returnCode = static_cast<int>(inputs[0].Scalar());
+    }
+    eval.SetQuit(true);
+    eval.OnSaveOnExit(returnCode);
     return true;
 }
