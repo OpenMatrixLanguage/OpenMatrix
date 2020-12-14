@@ -252,8 +252,6 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/clear.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
-               path="topics/reference/oml_language/CoreMinimalInterpreter/composedir.htm"/>
-   <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/continue.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/CoreMinimalInterpreter/disp.htm"/>
@@ -810,14 +808,6 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/FileIO/textscan.htm"/>
    <appContext helpID="reference_pv1_4pr_cv"
-               path="topics/reference/oml_language/HDF5Reader/hdf5reader_commands.htm"/>
-   <appContext helpID="reference_wpv_kyv_pr"
-               path="topics/reference/oml_language/HDF5Reader/readhdf5.htm"/>
-   <appContext helpID="reference_wpv_kyv_pr"
-               path="topics/reference/oml_language/HDF5Reader/readhdf5attributes.htm"/>
-   <appContext helpID="reference_wpv_kyv_pr"
-               path="topics/reference/oml_language/HDF5Reader/readhdf5toc.htm"/>
-   <appContext helpID="reference_pv1_4pr_cv"
                path="topics/reference/oml_language/LinearAlgebra/linearalgebra_commands.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/LinearAlgebra/balance.htm"/>
@@ -928,8 +918,6 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/contour3.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
-               path="topics/reference/oml_language/Plotting/drawnow.htm"/>
-   <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/fanplot.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/figure.htm"/>
@@ -942,8 +930,6 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/get.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
-               path="topics/reference/oml_language/Plotting/getmousepos.htm"/>
-   <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/properties.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/grid.htm"/>
@@ -951,8 +937,6 @@
                path="topics/reference/oml_language/Plotting/hist.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/hold.htm"/>
-   <appContext helpID="reference_wpv_kyv_pr"
-               path="topics/reference/oml_language/Plotting/imagesc.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/isaxes.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
@@ -980,8 +964,6 @@
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/plotyy.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
-               path="topics/reference/oml_language/Plotting/polar.htm"/>
-   <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/scatter.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/scatter3.htm"/>
@@ -1001,10 +983,6 @@
                path="topics/reference/oml_language/Plotting/text.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/title.htm"/>
-   <appContext helpID="reference_wpv_kyv_pr"
-               path="topics/reference/oml_language/Plotting/uiresume.htm"/>
-   <appContext helpID="reference_wpv_kyv_pr"
-               path="topics/reference/oml_language/Plotting/uiwait.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
                path="topics/reference/oml_language/Plotting/xlabel.htm"/>
    <appContext helpID="reference_wpv_kyv_pr"
