@@ -1,7 +1,7 @@
 a = struct [
-b: struct [
-c: 4
-d: 5
-]
+  b: struct [
+    c: 4
+    d: 5
+  ]
 ]
 ans = 20

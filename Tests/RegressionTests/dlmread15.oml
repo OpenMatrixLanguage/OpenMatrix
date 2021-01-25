@@ -1,0 +1,6 @@
+fname = 'FileManipulation/dlmread15.csv';
+m = eye(5,5);
+m(1,2) = 5i;
+dlmwrite(fname,m,',',2,3)
+csvread(fname)
+delete(fname)

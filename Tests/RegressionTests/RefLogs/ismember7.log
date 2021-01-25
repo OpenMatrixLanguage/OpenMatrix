@@ -1,1 +1,1 @@
-Error: option must be a string in call to function ismember at line number 1 in file ismember7.oml
+Error: invalid input in argument 3; must be string in call to function ismember at line number 1 in file ismember7.oml

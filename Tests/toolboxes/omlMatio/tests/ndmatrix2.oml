@@ -1,0 +1,10 @@
+﻿addlibrary('omlmatio')
+M(:,:,1) = [0 0; pi -2];
+M(:,:,2) = [0 nan; inf 1-i];
+disp('before save')
+M
+save('ndmatrix2.mat')
+clear all
+load('ndmatrix2.mat')
+delete('ndmatrix2.mat')
+M

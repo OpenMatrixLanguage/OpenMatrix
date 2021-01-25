@@ -1,7 +1,7 @@
 a = struct [
-b: 3
+  b: 3
 ]
 ans = struct [
-Struct array of size 1 x 2 with fields:
-b
+  Struct array of size 1 x 2 with fields:
+  b
 ]

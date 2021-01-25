@@ -1,9 +1,9 @@
 a = struct [
-b: 5
+  b: 5
 ]
 a = struct [
-b: 5
-c: 7
+  b: 5
+  c: 7
 ]
 ans = 
 {

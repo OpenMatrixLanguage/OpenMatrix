@@ -1,0 +1,7 @@
+addtoolbox omlmatio;
+m = [];
+save('empty1.mat');
+clear all
+load('empty1.mat');
+m
+delete('empty1.mat')

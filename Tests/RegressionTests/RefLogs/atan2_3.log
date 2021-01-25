@@ -1,1 +1,1 @@
-Error: invalid input in argument 1; dimension must be real in call to function atan2 at line number 1 in file atan2_3.oml
+Error: invalid input in argument 1; type must be a scalar or matrix in call to function atan2 at line number 1 in file atan2_3.oml

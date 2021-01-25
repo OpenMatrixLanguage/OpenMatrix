@@ -1,1 +1,1 @@
-Error: strings must have same number of columns when comparing rows in call to function ismember at line number 1 in file ismember14.oml
+Error: invalid inputs in arguments 1 and 2; ; string columns must match when searching by rows in call to function ismember at line number 1 in file ismember14.oml

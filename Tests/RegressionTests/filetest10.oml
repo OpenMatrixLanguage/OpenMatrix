@@ -1,0 +1,4 @@
+fname = 'FileManipulation/EmptyFile.txt'
+[fid, error] = fopen(fname, 'ab')
+[path, mode] = fopen(fid)
+fclose(fid)

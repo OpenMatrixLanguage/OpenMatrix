@@ -1,11 +1,11 @@
 a = struct [
-b: 2
+  b: 2
 ]
 a = struct [
-Struct array of size 1 x 2 with fields:
-b
+  Struct array of size 1 x 2 with fields:
+  b
 ]
 a = struct [
-Struct array of size 3 x 2 with fields:
-b
+  Struct array of size 3 x 2 with fields:
+  b
 ]

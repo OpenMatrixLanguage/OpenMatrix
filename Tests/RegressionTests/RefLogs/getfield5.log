@@ -1,6 +1,6 @@
 ans = struct [
-b: 2
+  b: 2
 ]
 ans = struct [
-b: 4
+  b: 4
 ]

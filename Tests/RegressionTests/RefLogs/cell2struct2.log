@@ -1,19 +1,19 @@
 c = struct [
-Struct array of size 2 x 1 with fields:
-a
-b
-c
-d
+  Struct array of size 2 x 1 with fields:
+  a
+  b
+  c
+  d
 ]
 ans = struct [
-a: 1
-b: 3
-c: 2
-d: 4
+  a: 1
+  b: 3
+  c: 2
+  d: 4
 ]
 ans = struct [
-a: 5
-b: 7
-c: 6
-d: 8
+  a: 5
+  b: 7
+  c: 6
+  d: 8
 ]

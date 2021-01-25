@@ -1,5 +1,5 @@
 options = struct [
-GradConstr: on
-GradObj: on
-MaxIter: 200
+  GradConstr: on
+  GradObj: on
+  MaxIter: 200
 ]

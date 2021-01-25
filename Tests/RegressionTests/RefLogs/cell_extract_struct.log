@@ -1,5 +1,5 @@
 s = struct [
-Struct array of size 1 x 3 with fields:
-a
+  Struct array of size 1 x 3 with fields:
+  a
 ]
 ans = 5

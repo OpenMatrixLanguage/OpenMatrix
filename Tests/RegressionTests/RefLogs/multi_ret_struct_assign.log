@@ -1,14 +1,14 @@
 a = struct [
-x: 1
-y: 2
-z: 3
+  x: 1
+  y: 2
+  z: 3
 ]
 ans = struct [
-x: 1
+  x: 1
 ]
 ans = struct [
-x: 2
+  x: 2
 ]
 ans = struct [
-x: 3
+  x: 3
 ]

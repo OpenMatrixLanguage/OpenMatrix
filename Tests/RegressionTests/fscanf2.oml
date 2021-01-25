@@ -1,0 +1,2 @@
+f = fopen('FileManipulation\datetime.txt');
+fscanf(f, '%d/%d/%d %d:%d:%d')

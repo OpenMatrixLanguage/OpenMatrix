@@ -1,9 +1,9 @@
 inner_struct = struct [
-value: 5
+  value: 5
 ]
 outer_struct = struct [
-data: struct [
-value: 5
-]
+  data: struct [
+    value: 5
+  ]
 ]
 ans = 5

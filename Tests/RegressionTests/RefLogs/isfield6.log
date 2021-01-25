@@ -1,14 +1,14 @@
 s = struct [
-a: 5
+  a: 5
 ]
 s = struct [
-a: 5
-b: test
+  a: 5
+  b: test
 ]
 s = struct [
-Struct array of size 1 x 2 with fields:
-a
-b
-c
+  Struct array of size 1 x 2 with fields:
+  a
+  b
+  c
 ]
 ans = [Matrix] 0 x 0

@@ -1,6 +1,6 @@
 a = object [
-birth_year: 1970
-first_name: Jeff
-last_name: Stacey
-title: Employee
+  birth_year: 1970
+  first_name: Jeff
+  last_name: Stacey
+  title: Employee
 ]

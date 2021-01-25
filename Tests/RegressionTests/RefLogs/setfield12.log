@@ -1,16 +1,16 @@
 x = struct [
-Struct array of size 1 x 2 with fields:
-b
+  Struct array of size 1 x 2 with fields:
+  b
 ]
 ans = struct [
-b: 1
+  b: 1
 ]
 ans = struct [
-b: 2
+  b: 2
 ]
 ans = struct [
-b: 1
+  b: 1
 ]
 ans = struct [
-b: 3
+  b: 3
 ]

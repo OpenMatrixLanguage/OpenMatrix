@@ -1,5 +1,5 @@
 c = struct [
-d: struct [
-b: 5
-]
+  d: struct [
+    b: 5
+  ]
 ]

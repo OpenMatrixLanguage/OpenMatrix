@@ -1,13 +1,13 @@
 a = struct [
-b: 2
+  b: 2
 ]
 aa = struct [
-c: struct [
-b: 2
-]
+  c: struct [
+    b: 2
+  ]
 ]
 aa = struct [
-c: struct [
-b: 3
-]
+  c: struct [
+    b: 3
+  ]
 ]

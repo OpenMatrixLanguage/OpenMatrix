@@ -1,1 +1,1 @@
-Error: invalid input type; must be scalar, complex, or a matrix in call to function exp at line number 1 in file exp5.oml
+Error: invalid input in argument 1; type must be a scalar, complex or matrix in call to function exp at line number 1 in file exp5.oml
