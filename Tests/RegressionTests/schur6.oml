@@ -1,4 +1,0 @@
-[a,b]=schur([i,2-i,1+i;9,1,2+i;2,5i,1-i])
-disp(a)
-disp(b)
-disp(a*b*inv(a))
