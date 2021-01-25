@@ -4,28 +4,6 @@
 template<> inline
 void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, Currency real);
 
-// !Write a contiguous block to the calling object, as if the calling
-//! object is being sliced on the left hand side of an equals sign
-template<> inline
-void hwTMatrixN<Currency, void*>::CopyBlockLHS(int& pos, int sliceArg, const hwTMatrixN<Currency, void*>& rhsMatrix)
-{
-	int numVals = 1;
-	int numArgs = _min(sliceArg, (int)m_dim.size());
-
-	for (int i = 0; i < numArgs; ++i)
-		numVals *= m_dim[i];
-
-	// the rhsMatrix block begins at location pos
-	// the lhsMatrix block begins at location m_pos, which must be set prior to the function call
-	if (numVals > 0)
-	{
-		if (m_real)
-			CopyData(m_real + m_pos, numVals, rhsMatrix.m_real + pos, numVals);
-	}
-
-	pos += numVals;
-}
-
 //! Write a contiguous matrix to the calling object, as if the
 //! calling object is on the left hand side of an equals sign
 template<> inline
@@ -59,7 +37,7 @@ void hwTMatrixN<Currency, void*>::CopyMatrixLHS(const hwTMatrixN<Currency, void*
 		else
 		{
 			SetMemoryPosition(m_rhsMatrixIndex);    // update m_pos
-			CopyBlockLHS(i, discontiguity, rhsMatrix);
+			CopyBlockLHS(i, discontiguity, rhsMatrix, false);
 			--i;
 		}
 
@@ -85,12 +63,11 @@ void hwTMatrixN<Currency, void*>::GrowLHSMatrix(const std::vector<hwSliceArg>& s
 	const hwTMatrixN<Currency, void*>* rhsMatrix, bool rule2)
 {
 	// create matrix with expanded dimensions
-	int i;
 	int common = _min(numSlices, (int)m_dim.size());
 	int rhsIndex = 0;
 	std::vector<int> newDim(m_dim.size());
 
-	for (i = 0; i < common; ++i)
+	for (int i = 0; i < common; ++i)
 	{
 		if (sliceArg[i].IsScalar())
 		{
@@ -144,10 +121,9 @@ void hwTMatrixN<Currency, void*>::GrowLHSMatrix(const std::vector<hwSliceArg>& s
 					++rhsIndex;
 			}
 
-			int j;
 			int max = m_dim[i] - 1;
 
-			for (j = 0; j < sliceArg[i].Vector().size(); ++j)
+			for (int j = 0; j < sliceArg[i].Vector().size(); ++j)
 			{
 				if (sliceArg[i].Vector()[j] > max)
 					max = sliceArg[i].Vector()[j];
@@ -163,7 +139,7 @@ void hwTMatrixN<Currency, void*>::GrowLHSMatrix(const std::vector<hwSliceArg>& s
 		}
 	}
 
-	for (i = common; i < numSlices; ++i)
+	for (int i = common; i < numSlices; ++i)
 	{
 		if (sliceArg[i].IsScalar())
 		{
@@ -199,10 +175,9 @@ void hwTMatrixN<Currency, void*>::GrowLHSMatrix(const std::vector<hwSliceArg>& s
 					++rhsIndex;
 			}
 
-			int j;
 			int max = -1;
 
-			for (j = 0; j < sliceArg[i].Vector().size(); ++j)
+			for (int j = 0; j < sliceArg[i].Vector().size(); ++j)
 			{
 				if (sliceArg[i].Vector()[j] > max)
 					max = sliceArg[i].Vector()[j];
@@ -215,7 +190,7 @@ void hwTMatrixN<Currency, void*>::GrowLHSMatrix(const std::vector<hwSliceArg>& s
 		}
 	}
 
-	for (i = numSlices; i < m_dim.size(); ++i)
+	for (int i = numSlices; i < m_dim.size(); ++i)
 		newDim[i] = m_dim[i];
 
 	// discard any singleton dimensions that may have been created
@@ -306,19 +281,31 @@ void hwTMatrixN<Currency, void*>::GrowLHSMatrix(const std::vector<hwSliceArg>& s
 	// reallocate because capacity was insufficient
 	if (m_bits.realData)
 	{
-		Currency* m_real_old = m_real;
-		hwTMatrixN<Currency, void*> tempMatrix(oldDim, m_real_old, REAL);
-		m_real = nullptr;
-		Allocate(REAL);
+        char* m_real_mem_old = m_real_memory;
+        Currency* m_real_old = m_real;
+        hwTMatrixN<Currency, void*> tempMatrix(oldDim, m_real_old, REAL);
+        m_real_memory = nullptr;
+        m_real = nullptr;
+        Allocate(REAL);
 
-		// copy old data to the expanded matrix
+        // copy zeros to the expanded matrix
+        // SetElements(0.0);
+
+        // copy old data to the expanded matrix
 		CopyMatrixLHS(tempMatrix);
 
-		if (m_bits.ownData)
-			delete[] m_real_old;
-		else
-			m_bits.ownData = 1;
-	}
+        if (m_bits.ownData)
+        {
+            if (m_real_mem_old)
+                delete[] m_real_mem_old;
+            else if (m_real_old)
+                delete[] m_real_old;
+        }
+        else
+        {
+            m_bits.ownData = 1;
+        }
+    }
 	else
 	{
 		// cannot allocate an empty matrix with GrowLHSMatrix
@@ -339,8 +326,6 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
 {
 	if (sliceArg.size() == 0)
 		throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
-
-	int i, j;
 
 	// ignore high singleton dimensions
 	int numSlices = RelevantNumberOfSlices(sliceArg, false);
@@ -366,16 +351,13 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
 	{
 		std::vector<int> newDim(numSlices);
 
-		for (i = 0; i < numSlices - 1; ++i)
+		for (int i = 0; i < numSlices - 1; ++i)
 			newDim[i] = m_dim[i];
 
 		newDim[numSlices - 1] = -1;
 		void* dataPtr;
 
-		if (IsReal())
-			dataPtr = (void*)m_real;
-		else
-			dataPtr = (void*)m_complex;
+		dataPtr = (void*) m_real;
 
 		hwTMatrixN<Currency, void*> reshaped(m_dim, dataPtr, Type());
 
@@ -401,7 +383,7 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
 				m_real = reshaped.m_real;
 				reshaped.m_bits.ownData = 0;
 
-				for (i = 0; i < numSlices - 1; ++i)
+				for (int i = 0; i < numSlices - 1; ++i)
 					m_dim[i] = reshaped.m_dim[i];
 
 				ComputeSize();
@@ -472,10 +454,51 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
 		}
 	}
 
-	// determine slice at which discontiguity occurs
+    // set the lhsMatrix indices to the first index
+    // in each slice, then assign the first rhs matrix element
+    m_lhsMatrixIndex.resize(numSlices);
+
+    for (int i = 0; i < numSlices; ++i)
+    {
+        if (sliceArg[i].IsScalar())
+            m_lhsMatrixIndex[i] = sliceArg[i].Scalar();
+        else if (sliceArg[i].IsColon())
+            m_lhsMatrixIndex[i] = 0;
+        else if (sliceArg[i].IsVector())
+            m_lhsMatrixIndex[i] = sliceArg[i].Vector()[0];
+    }
+
+    // handle equally spaced memory case
+    int numScalars = 0;
+    int dim = -1;
+
+    for (int i = 0; i < numSlices; ++i)
+    {
+        if (sliceArg[i].IsScalar())
+            ++numScalars;
+        else if (sliceArg[i].IsColon())
+            dim = i;
+    }
+
+    if (dim > 0 && numScalars == numSlices - 1)
+    {
+        int start = Index(m_lhsMatrixIndex);
+        ++m_lhsMatrixIndex[dim];
+        int stride = Index(m_lhsMatrixIndex) - start;
+
+        for (int i = 0; i < m_dim[dim]; ++i)
+        {
+            (*this)(start) = real;
+            start += stride;
+        }
+
+        return;
+    }
+
+    // determine slice at which discontiguity occurs
 	int discontiguity = numSlices;
 
-	for (j = 0; j < numSlices; ++j)
+	for (int j = 0; j < numSlices; ++j)
 	{
 		if (sliceArg[j].IsScalar())
 		{
@@ -495,19 +518,6 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
 		}
 	}
 
-	// set the lhsMatrix indices to the first index
-	// in each slice, then assign the first rhs matrix element
-	m_lhsMatrixIndex.resize(numSlices);
-
-	for (i = 0; i < numSlices; ++i)
-	{
-		if (sliceArg[i].IsScalar())
-			m_lhsMatrixIndex[i] = sliceArg[i].Scalar();
-		else if (sliceArg[i].IsColon())
-			m_lhsMatrixIndex[i] = 0;
-		else if (sliceArg[i].IsVector())
-			m_lhsMatrixIndex[i] = sliceArg[i].Vector()[0];
-	}
 
 	// simulate nested loops to iterate over the rhsMatrix elements
 	// in order of contiguous memory location, copying blocks where possible
@@ -516,7 +526,7 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
 	m_rhsMatrixIndex.clear();
 	m_rhsMatrixIndex.resize(numSlices);
 
-	for (i = 0; i < numSlices; ++i)
+	for (int i = 0; i < numSlices; ++i)
 	{
 		if (sliceArg[i].IsScalar()) {}
 		else if (sliceArg[i].IsColon())
@@ -528,7 +538,7 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
 	if (m_size < size)
 		throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
 
-	for (i = 0; i < size; ++i)
+	for (int i = 0; i < size; ++i)
 	{
 		if (discontiguity == 0)
 		{
@@ -543,7 +553,7 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
 
 		// advance rhs matrix indices, as if the RHS is real*ones(slice_dims)
 		// there is probably a better way to do this
-		for (j = discontiguity; j < numSlices; ++j)
+		for (int j = discontiguity; j < numSlices; ++j)
 		{
 			if (sliceArg[j].IsScalar())
 			{
@@ -618,14 +628,8 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
 			newDim[i] = m_dim[i];
 
 		newDim[numSlices - 1] = -1;
-		void* dataPtr;
 
-		if (IsReal())
-			dataPtr = (void*)m_real;
-		else
-			dataPtr = (void*)m_complex;
-
-		hwTMatrixN<Currency, void*> reshaped(m_dim, dataPtr, Type());
+		hwTMatrixN<Currency, void*> reshaped(m_dim, (void*) m_real, Type());
 
 		try
 		{
@@ -669,6 +673,7 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
 	// Rule 3: attempt Rule2 if Rule 1 fails
 	bool rule2;
 	int numColons = 0;
+    int rhsIndex = 0;
 
 	for (int i = 0; i < numSlices; ++i)
 	{
@@ -689,7 +694,6 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
 	if (m_dim.size() == 2 && m_dim[0] == 0 && m_dim[1] == 0)
 	{
 		// dimension the matrix
-		int rhsIndex = 0;
 		std::vector<int> newDim(numSlices);
 
 		for (int i = 0; i < numSlices; ++i)
@@ -764,8 +768,6 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
 		}
 
 		// verify that slice op is well defined
-		int rhsIndex = 0;
-
 		for (int i = 0; i < numSlices; ++i)
 		{
 			if (sliceArg[i].IsScalar())
@@ -848,7 +850,55 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
 			throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
 	}
 
-	// determine slice at which discontiguity occurs
+    int size = rhsMatrix.Size();
+
+    if (size == 0)
+        return;
+
+    if (m_size < size)
+        throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
+
+    // set the lhsMatrix indices to the first index in each slice
+    m_lhsMatrixIndex.resize(numSlices);
+
+    for (int i = 0; i < numSlices; ++i)
+    {
+        if (sliceArg[i].IsScalar())
+            m_lhsMatrixIndex[i] = sliceArg[i].Scalar();
+        else if (sliceArg[i].IsColon())
+            m_lhsMatrixIndex[i] = 0;
+        else if (sliceArg[i].IsVector())
+            m_lhsMatrixIndex[i] = sliceArg[i].Vector()[0];
+    }
+
+    // handle equally spaced memory case
+    int numScalars = 0;
+    int dim = -1;
+
+    for (int i = 0; i < numSlices; ++i)
+    {
+        if (sliceArg[i].IsScalar())
+            ++numScalars;
+        else if (sliceArg[i].IsColon())
+            dim = i;
+    }
+
+    if (dim > 0 && numScalars == numSlices - 1)
+    {
+        int start = Index(m_lhsMatrixIndex);
+        ++m_lhsMatrixIndex[dim];
+        int stride = Index(m_lhsMatrixIndex) - start;
+
+        for (int i = 0; i < m_dim[dim]; ++i)
+        {
+            (*this)(start) = rhsMatrix(i);
+            start += stride;
+        }
+
+        return;
+    }
+
+    // determine slice at which discontiguity occurs
 	int discontiguity = numSlices;
 
 	for (int j = 0; j < numSlices; ++j)
@@ -871,45 +921,84 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
 		}
 	}
 
-	// set the lhsMatrix indices to the first index in each slice
-	m_lhsMatrixIndex.resize(numSlices);
+    // check for contiguous first slice argument
+    bool contigFirstVec = true;
 
-	for (int i = 0; i < numSlices; ++i)
-	{
-		if (sliceArg[i].IsScalar())
-			m_lhsMatrixIndex[i] = sliceArg[i].Scalar();
-		else if (sliceArg[i].IsColon())
-			m_lhsMatrixIndex[i] = 0;
-		else if (sliceArg[i].IsVector())
-			m_lhsMatrixIndex[i] = sliceArg[i].Vector()[0];
-	}
+    if (discontiguity == 0 && sliceArg[0].IsVector())
+    {
+        int vecLength = static_cast<int> (sliceArg[0].Vector().size());
+        int indx = sliceArg[0].Vector()[0];
+
+        for (int i = 1; i < vecLength; ++i)
+        {
+            if (sliceArg[0].Vector()[i] != ++indx)
+            {
+                contigFirstVec = false;
+                break;
+            }
+        }
+
+        if (contigFirstVec)
+            discontiguity = 1;
+    }
 
 	// simulate nested loops to iterate over the rhsMatrix elements
 	// in order of contiguous memory location, copying blocks where possible
-	int size = rhsMatrix.Size();
-
 	m_rhsMatrixIndex.clear();
 	m_rhsMatrixIndex.resize(numSlices);
 
-	if (m_size < size)
-		throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
-
-	if (size == 0)
-		return;
-
 	for (int i = 0; i < size; ++i)
 	{
-		// copy data up to discontguity
+        int nextSliceArg;
+
+        // copy data up to discontguity
 		if (discontiguity == 0)
 		{
-			(*this)(m_lhsMatrixIndex) = rhsMatrix(i);
-		}
-		else
-		{
-			SetMemoryPosition(m_lhsMatrixIndex);    // update m_pos
-			CopyBlockLHS(i, discontiguity, rhsMatrix);
-			--i;
-		}
+            if (sliceArg[0].IsScalar())
+            {
+                (*this)(m_lhsMatrixIndex) = rhsMatrix(i);
+            }
+            else if (sliceArg[0].IsVector())
+            {
+                int vecLen = static_cast<int> (sliceArg[0].Vector().size());
+
+                if (contigFirstVec)
+                {
+                    int start = Index(m_lhsMatrixIndex);
+                    const Currency* rhsData = rhsMatrix.GetRealData() + i;
+                    Currency* lhsData = GetRealData() + start;
+                    hwTMatrix<Currency, void*> rhsVec(vecLen, 1, (void*)rhsData, hwTMatrix<Currency, void*>::REAL);
+                    hwTMatrix<Currency, void*> lhsVec(vecLen, 1, (void*)lhsData, hwTMatrix<Currency, void*>::REAL);
+
+                    lhsVec = rhsVec;
+                }
+                else
+                {
+                    m_lhsMatrixIndex[0] = 0;
+                    int start = Index(m_lhsMatrixIndex);
+                    int k = i;
+
+                    for (int j = 0; j < vecLen; ++j)
+                    {
+                        int pos = start + sliceArg[0].Vector()[j];
+                        (*this)(pos) = rhsMatrix(k++);
+                    }
+
+                    m_lhsMatrixIndex[0] = sliceArg[0].Vector()[0];
+                }
+
+                i += vecLen - 1;
+            }
+
+            nextSliceArg = 1;
+        }
+        else    // if (sliceArg[0].IsColon())
+        {
+            SetMemoryPosition(m_lhsMatrixIndex);    // update m_pos
+            CopyBlockLHS(i, discontiguity, rhsMatrix, rule2);
+            --i;
+            nextSliceArg = discontiguity;
+        }
 
 		// advance rhs matrix indices
 		for (int j = discontiguity; j < numSlices; ++j)
@@ -947,7 +1036,3 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
 		}
 	}
 }
-
-
-
-

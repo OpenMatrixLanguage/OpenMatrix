@@ -18,7 +18,7 @@
 #define __MATRIX_N_UTILS_H__
 
 // Begin defines/includes
-#include "Hml2Dll.h"
+#include "OMLDll.h"
 
 #include "BuiltInFuncsUtils.h"
 #include "Currency.h"
@@ -33,7 +33,7 @@ typedef bool (*OML_func6)(const Currency& op1, const Currency& op2, const Curren
 
 // Apply a function to each element of an ND matrix. The syntax is oml_func(ND).
 // Examples: cos(ND), assert(ND), rat(ND, tol)
-HML2DLL_DECLS
+OMLDLL_DECLS
 bool oml_MatrixNUtil1(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs,
                       const OML_func1 oml_func);
 
@@ -46,7 +46,7 @@ bool oml_MatrixNUtil2(EvaluatorInterface eval, const std::vector<Currency>& inpu
 // syntax is oml_func(ND, dim). This utility applies to functions for which the
 // output for each vector input is a scalar.
 // Examples: sum(ND, dim), max(ND, [], dim)
-HML2DLL_DECLS
+OMLDLL_DECLS
 bool oml_MatrixNUtil3(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs,
                       const OML_func1 oml_func, int dimArg = 0);
 
@@ -54,7 +54,7 @@ bool oml_MatrixNUtil3(EvaluatorInterface eval, const std::vector<Currency>& inpu
 // syntax is oml_func(ND, dim). This utility applies to functions for which the
 // output for each vector input is a vector.
 // Examples: cumsum(ND, dim), sort(ND, dim, mode)
-HML2DLL_DECLS
+OMLDLL_DECLS
 bool oml_MatrixNUtil4(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs,
                       const OML_func1 oml_func, int dimArg = 0, int ndArg = 1);
 
@@ -62,7 +62,7 @@ bool oml_MatrixNUtil4(EvaluatorInterface eval, const std::vector<Currency>& inpu
 // syntax is oml_func(..., ND, ...). Output vectors will be in the same dimension as the first
 // argument if it is a vector.
 // Examples: not yet in use
-HML2DLL_DECLS
+OMLDLL_DECLS
 bool oml_MatrixNVecs(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs,
                      const OML_func1 oml_func);
 
@@ -110,10 +110,10 @@ bool oml_MatrixNUtil10(const Currency& op1, const Currency& op2, const Currency&
 // syntax is oml_func(2D, dim). This utility applies to functions for which the
 // output for each vector is a scalar.
 // Examples: any(2D, dim), all(2D, dim)
-HML2DLL_DECLS
+OMLDLL_DECLS
 Currency oml_MatrixUtil(EvaluatorInterface& eval, const hwMatrix* mtx, int dim, double (*func)(EvaluatorInterface&, const hwMatrix*));
 
-HML2DLL_DECLS
+OMLDLL_DECLS
 void checkMathStatus(EvaluatorInterface& eval, hwMathStatus stat);  // also declared in BuiltInFuncs.h, review later
 
 // 2D support for sort function

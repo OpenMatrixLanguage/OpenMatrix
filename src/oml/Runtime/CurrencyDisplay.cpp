@@ -18,6 +18,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <fstream>
 #include <iomanip>
 #include <limits>
 #include <memory>
@@ -38,7 +39,7 @@ int CurrencyDisplay::m_maxRows      = 0;
 int CurrencyDisplay::m_maxCols      = 0;
 int CurrencyDisplay::m_linesPrinted = 0;
 CurrencyDisplay::PAGINATE CurrencyDisplay::m_paginate = CurrencyDisplay::PAGINATE_ON;
-
+std::ofstream CurrencyDisplay::_outputlog;
 
 //# define CURRENCYDISPLAY_DBG 1  // Uncomment to print debug info
 #ifdef CURRENCYDISPLAY_DBG

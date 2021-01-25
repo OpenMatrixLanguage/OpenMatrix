@@ -17,7 +17,7 @@
 #define __DISPLAYFORMATVARS_H__
 
 // Begin defines/includes
-#include "Hml2Dll.h"
+#include "OMLDll.h"
 
 #include <string>
 
@@ -29,7 +29,7 @@ class OutputFormat;
 //! \class DisplayFormatVars
 //! \brief Contains variables needed for formatting displays
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS DisplayFormatVars
+class OMLDLL_DECLS DisplayFormatVars
 {
 public:
 

@@ -23,6 +23,7 @@
 #include "FilterFuncs.h"
 
 #include "BuiltInFuncs.h"
+#include "BuiltInFuncsMKL.h"
 #include "BuiltInFuncsUtils.h"
 #include "StructData.h"
 #include "MatrixNUtils.h"
@@ -642,7 +643,7 @@ bool OmlFftShift(EvaluatorInterface           eval,
             inputs2.clear();
             inputs2.push_back(halfLen);
             outputs2.clear();
-            oml_ceil(eval, inputs2, outputs2);
+            BuiltInFuncsMKL::Ceil(eval, inputs2, outputs2);
             hwMatrix* dc_vec = outputs2[0].GetWritableMatrix();
 
             // create index vectors and slice arguments
@@ -1605,7 +1606,7 @@ bool OmlTFestimate(EvaluatorInterface           eval,
 		std::vector<Currency> inputs2;
 		std::vector<Currency> outputs2;
         inputs2.push_back(tf);
-		oml_abs(eval, inputs2, outputs2);
+        BuiltInFuncsMKL::Abs(eval, inputs2, outputs2);
 
         std::vector<Currency> plotInput;
         plotInput.push_back(outputs1[1]);

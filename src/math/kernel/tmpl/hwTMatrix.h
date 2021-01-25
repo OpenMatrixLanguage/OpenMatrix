@@ -100,6 +100,8 @@ public:
     //! Dimension matrix for double indexing, specifying real or complex
     //! Applies to empty or populated matrix, does not preserve existing data
     hwMathStatus Dimension(int m, int n, DataType dataType);
+    //! Borrow external data
+    hwMathStatus Borrow(int m, int n, char* memory, void* data, DataType dataType);
     //! Resize the matrix as a vector, leaving the data type unchanged
     //! Applies to populated matrix, can only resize an empty matrix if it remains empty
     hwMathStatus Resize(int size, bool initZero = false);
@@ -148,6 +150,8 @@ public:
     const T1* GetRealData() const { return m_real; }
     //! Return the T1* data vector pointer
     T1* GetRealData() { return m_real; }
+    //! Return the T1* memory pointer
+    char* GetRealMemory() const { return m_real_memory; }
     //! Return a reference to the real vector element at the specified single index
     T1& operator()(int index) { return m_real[index]; }
     //! Return a const reference to the real data element at the specified single index
@@ -175,6 +179,8 @@ public:
     const T2* GetComplexData() const { return m_complex; };
     //! Return the T2* data vector pointer
     T2* GetComplexData() { return m_complex; };
+    //! Return the T2* memory pointer
+    char* GetComplexMemory() const { return m_complex_memory; }
     //! Return a reference to the complex vector element at the specified single index
     T2& z(int index) { return m_complex[index]; }
     //! Return a const reference to the complex data element at the specified single index
@@ -621,9 +627,9 @@ private:
     int m_nCols;
     //! Allocated memory capacity (utilized memory may be smaller)
     int m_capacity;
-    //! Pointer to unaligned memory for new T1
+    //! Pointer to unaligned memory for T1
     char* m_real_memory;
-    //! Pointer to unaligned memory for new T2
+    //! Pointer to unaligned memory for T2
     char* m_complex_memory;
     //! Pointer to aligned memory to store data of type T1
     T1* m_real;

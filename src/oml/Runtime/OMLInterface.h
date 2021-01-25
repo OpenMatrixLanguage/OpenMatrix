@@ -27,12 +27,13 @@
 
 typedef hwTMatrix<Currency, void*> HML_CELLARRAY;
 
-class OMLInterfaceImpl : public OMLInterface3
+class OMLInterfaceImpl : public OMLInterface4
 {
 public:
 	OMLInterfaceImpl(EvaluatorInterface* in_eval) { _eval = in_eval; }
 
 	void RegisterFunction(const char*, ALT_FUNCPTR);
+	void RegisterHiddenFunction(const char*, ALT_FUNCPTR);
 	void RegisterFunctionWithMetadata(const char*, ALT_FUNCPTR, const char*, int, int);
 
 	void ThrowError(const char*);

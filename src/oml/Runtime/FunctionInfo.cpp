@@ -37,6 +37,7 @@ FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*
 	_anon_scope       = NULL;
 	_help_string      = help_str;
 	_refcnt           = 1;
+	_parent_fi        = NULL;
 
 	// the persistent scope doesn't have a FunctionInfo* (and therefore its own persistent), otherwise
 	// you'll be in an infinite loop looking for persistents forever
@@ -45,7 +46,8 @@ FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*
 	_is_constructor   = false;
 	_is_encrypted     = false;
 
-	local_functions = new std::map<const std::string*, FunctionInfo*>;
+	local_functions  = new std::map<const std::string*, FunctionInfo*>;
+	nested_functions = new std::map<const std::string*, FunctionInfo*>;
 }
 
 FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*> ret_vals, std::vector<const std::string*> params, OMLTree* stmt_list, std::string file_name)
@@ -59,6 +61,7 @@ FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*
 	_alt_fptr         = NULL;
 	_anon_scope       = NULL;
 	_refcnt           = 1;
+	_parent_fi        = NULL;
 
 	// the persistent scope doesn't have a FunctionInfo* (and therefore its own persistent), otherwise
 	// you'll be in an infinite loop looking for persistents forever
@@ -67,7 +70,8 @@ FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*
 	_is_constructor   = false;
 	_is_encrypted     = false;
 
-	local_functions = new std::map<const std::string*, FunctionInfo*>;
+	local_functions  = new std::map<const std::string*, FunctionInfo*>;
+	nested_functions = new std::map<const std::string*, FunctionInfo*>;
 }
 
 FunctionInfo::FunctionInfo(std::string func_name, FUNCPTR builtin_func)
@@ -83,7 +87,9 @@ FunctionInfo::FunctionInfo(std::string func_name, FUNCPTR builtin_func)
 	_is_constructor   = false; 
 	_is_encrypted     = false;
 	local_functions   = NULL;
+	nested_functions  = NULL;
 	_refcnt           = 1;
+	_parent_fi        = NULL;
 }
 
 FunctionInfo::FunctionInfo(std::string func_name, ALT_FUNCPTR alt_func)
@@ -98,8 +104,10 @@ FunctionInfo::FunctionInfo(std::string func_name, ALT_FUNCPTR alt_func)
 	_is_nested = false;
 	_is_constructor = false;
 	_is_encrypted = false;
-	local_functions = NULL;
+	local_functions  = NULL;
+	nested_functions = NULL;
 	_refcnt = 1;
+	_parent_fi = NULL;
 }
 
 FunctionInfo::FunctionInfo()
@@ -115,7 +123,9 @@ FunctionInfo::FunctionInfo()
 	_is_constructor   = false;
 	_is_encrypted     = false;
 	local_functions   = NULL;
-	_refcnt = 1;
+	nested_functions  = NULL;
+	_refcnt           = 1;
+	_parent_fi        = NULL;
 }
 
 FunctionInfo::~FunctionInfo()
@@ -142,6 +152,21 @@ FunctionInfo::~FunctionInfo()
 
 			delete local_functions;
 		}
+
+		if (nested_functions)
+		{
+			for (iter = nested_functions->begin(); iter != nested_functions->end(); iter++)
+			{
+				FunctionInfo* fi = iter->second;
+
+				fi->DecrRefCount();
+
+				if (fi->GetRefCount() == 0)
+					delete fi;
+			}
+
+			delete nested_functions;
+		}
 	}
 }
 
@@ -154,6 +179,7 @@ FunctionInfo::FunctionInfo(const FunctionInfo& in)
 	_return_values = in._return_values;
 	_parameters = in._parameters;
 	_refcnt = 1;
+	_parent_fi = in._parent_fi;
 
     if (in._statements)
     {
@@ -176,18 +202,8 @@ FunctionInfo::FunctionInfo(const FunctionInfo& in)
 
 	_help_string = in._help_string;
 
-	local_functions = new std::map<const std::string*, FunctionInfo*>;
-
-    if (in.local_functions)
-    {
-        std::map<const std::string*, FunctionInfo*>::iterator iter;
-
-        for (iter = in.local_functions->begin();
-            iter != in.local_functions->end(); ++iter)
-        {
-            (*local_functions)[iter->first] = new FunctionInfo(*iter->second);
-        }
-    }
+	local_functions = in.local_functions;
+	nested_functions = in.nested_functions;
 
     _alt_fptr = in._alt_fptr;
 }

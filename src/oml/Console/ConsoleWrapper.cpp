@@ -44,6 +44,16 @@
 #endif
 
 int maxcols = 0;
+#ifndef OS_WIN
+enum ARROWKEY
+{
+    ARROWKEY_UP = 65,
+    ARROWKEY_LEFT = 68,
+    ARROWKEY_RIGHT = 67,
+    ARROWKEY_DOWN = 66
+};
+#endif
+
 const size_t g_buffsize = 256 * 1024;
 static char  g_buf[g_buffsize + 1];
 // Utility to flush output buffer
@@ -61,6 +71,7 @@ ConsoleWrapper::ConsoleWrapper(Interpreter* interp)
     , _appendOutput     (false)
     , _addnewline       (false)
     , _getWindowSize    (false)
+    , _childHandler     (nullptr)
 {
     memset(g_buf, 0, sizeof(g_buf));
     std::cout.rdbuf()->pubsetbuf(g_buf, g_buffsize);
@@ -71,6 +82,8 @@ ConsoleWrapper::ConsoleWrapper(Interpreter* interp)
 //------------------------------------------------------------------------------
 ConsoleWrapper::~ConsoleWrapper()
 {
+    BuiltInFuncsUtils::CloseOutputLog();
+
     std::cout.rdbuf()->pubsetbuf(nullptr, 0);
 }
 //------------------------------------------------------------------------------
@@ -106,6 +119,10 @@ void ConsoleWrapper::GetCommandWindowInfo()
     ioctl(0, TIOCGWINSZ, &w);
     rows = w.ws_row;
     cols = w.ws_col;
+    if (rows > 2)
+    {
+        rows--;  // Reduce one row to account for pagination message
+    }
 #endif    
 
     maxcols = cols;
@@ -203,21 +220,29 @@ void ConsoleWrapper::PrintPaginationMessage(bool showColControl)
 {
     if (CurrencyDisplay::IsPaginateInteractive())
     {
+        std::string msg("-- (f)orward, (b)ack, (q)uit, (e)xit");
+
+        msg += ", (up), (down)";
+        if (showColControl)
+        {
+            msg += ", (left), (right)";
+        }
+
+       FlushStdout();
+
 #ifdef OS_WIN
         // Gray background with white letters
         SetConsoleTextAttribute(_outhandle, BACKGROUND_INTENSITY |
             FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 
-        std::cout << "-- (f)orward, (b)ack, (q)uit, (e)xit, (up), (down)";
-        if (showColControl)
-            std::cout << ", (left), (right)";
+        Print(msg, true);
+        FlushStdout();
+
         SetConsoleTextAttribute(_outhandle, _defaultWinAttr); // Reset color info
 #else
-
-        std::cout << "-- (f)orward, (b)ack, (q)uit, (e)xit";
+        Print(msg, true);
 #endif
     }
-    std::cout << std::flush;
 }
 //------------------------------------------------------------------------------
 // Prints end of pagination message
@@ -231,7 +256,7 @@ void ConsoleWrapper::PrintPaginationMessage()
         display->GetPaginationEndMsg(strmsg);
         if (!strmsg.empty())
         {
-            std::cout << strmsg << std::endl;;
+            Print(strmsg + '\n', true);
         }
     }
 }
@@ -325,6 +350,7 @@ void ConsoleWrapper::ProcessPagination()
         if (CurrencyDisplay::IsPaginateInteractive())
         {
             std::cout << '\r' << '\n';
+            BuiltInFuncsUtils::SaveToOutputLog("\n");
         }
         HandleOnClearResults();   // Quit all printing
     }
@@ -350,6 +376,7 @@ void ConsoleWrapper::ProcessPagination()
                 else
                 {
                     std::cout << '\n';
+                    BuiltInFuncsUtils::SaveToOutputLog("\n");
                 }
             }
             bool isPrintOutput = curBeingPrinted.IsPrintfOutput();
@@ -561,9 +588,9 @@ void ConsoleWrapper::Paginate()
     // Get the terminal settings so there is no echo of input during 
     // pagination and user does not have to press the enter key
 
-    termios savedt;
+    struct termios savedt;
     tcgetattr(STDIN_FILENO, &savedt);
-    termios tmpt = savedt;
+    struct termios tmpt = savedt;
     tmpt.c_lflag &= ~(ICANON | ECHO);  // Disable echo and waiting for EOL
     tcsetattr(STDIN_FILENO, TCSANOW, &tmpt);
 
@@ -575,6 +602,8 @@ void ConsoleWrapper::Paginate()
         assert(display);
         if (!display) break;
 
+        bool canPaginateCols = display ? display->CanPaginateColumns() : false;
+
         if (CurrencyDisplay::IsPaginateInteractive())
         {
             int key = getchar();
@@ -585,15 +614,71 @@ void ConsoleWrapper::Paginate()
                 display->SetMode(CurrencyDisplay::DISPLAYMODE_FORWARD);
 
             else if (key == 0x51 || key == 0x71)      // (q)uit
+            {
+                DeleteChainedDisplays(display);
                 display->SetMode(CurrencyDisplay::DISPLAYMODE_QUIT);
+            }
 
             else if (key == 0x42 || key == 0x62)      // (b)ack pagination
                 display->SetMode(CurrencyDisplay::DISPLAYMODE_BACK);
 
             else if (key == 0x45 || key == 0x65)    // (e)xit
+            {
+                DeleteChainedDisplays(display);
                 display->SetMode(CurrencyDisplay::DISPLAYMODE_EXIT);
+            }
+            else if (key == 27) // ANSI escape sequence for arrow keys
+            {
+                key = getchar();
+                if (key == 91)
+                {
+                    key = getchar();
+                }
 
-            else continue;
+                switch (key)
+                {
+                    case ARROWKEY_UP:
+                        display->SetMode(CurrencyDisplay::DISPLAYMODE_UP);
+                        break;
+
+                    case ARROWKEY_DOWN:
+                        display->SetMode(CurrencyDisplay::DISPLAYMODE_DOWN);
+                        break;
+
+                    case ARROWKEY_LEFT:
+                        if (canPaginateCols)
+                        {
+                            display->SetMode(CurrencyDisplay::DISPLAYMODE_LEFT);
+                        }
+                        else
+                        {
+                            display->SetMode(CurrencyDisplay::DISPLAYMODE_BACK);
+                        }
+                        break;
+
+                    case ARROWKEY_RIGHT:
+                        if (canPaginateCols)
+                        {
+                            display->SetMode(CurrencyDisplay::DISPLAYMODE_RIGHT);
+                        }
+                        else
+                        {
+                            display->SetMode(CurrencyDisplay::DISPLAYMODE_FORWARD);
+                        }
+                        break;
+
+                    default: // Treat any other key as quit
+                        DeleteChainedDisplays(display);
+                        display->SetMode(CurrencyDisplay::DISPLAYMODE_QUIT);
+                        break;
+                }
+            }
+            else
+            {
+                // Treat any other key as quit
+                DeleteChainedDisplays(display);
+                display->SetMode(CurrencyDisplay::DISPLAYMODE_QUIT);
+            }
         }
         else
         {
@@ -616,8 +701,13 @@ void ConsoleWrapper::HandleOnSaveOnExit(int returnCode)
 {	
     DisconnectOmlSignalHandler();
 
-    delete _interp;
-    _interp = NULL;
+    // Do not delete the interpreter. If the exit command is in a function, this
+    // causes a crash as the function is not complete and the memory scope is still 
+    // open. This is not a solution, just a band-aid fix. We should ideally be
+    // setting a flag here and stop further execution of commands
+    //delete _interp;
+    //_interp = NULL;
+
     exit(returnCode);
 }
 //------------------------------------------------------------------------------
@@ -808,13 +898,11 @@ void ConsoleWrapper::PrintInfoToOmlWindow(const std::string& msg)
     // Gray background with black letters
     SetConsoleTextAttribute(_outhandle, BACKGROUND_INTENSITY | 0);
 
-    std::cout << msg;
+    Print(msg + '\n', true);
     SetConsoleTextAttribute(_outhandle, _defaultWinAttr); // Reset color info
 #else
-    std::cout << msg;
+    Print(msg + '\n', true);
 #endif
-
-    std::cout << std::endl;
 }
 //------------------------------------------------------------------------------
 // Prints info message
@@ -824,7 +912,7 @@ void ConsoleWrapper::PrintToStdout(const std::string& msg)
     size_t len = msg.size();
     if (len < g_buffsize)
     {
-        std::cout << msg;
+        Print(msg, false);
         return;
     }
 
@@ -834,13 +922,12 @@ void ConsoleWrapper::PrintToStdout(const std::string& msg)
         FlushStdout(); // Flush before printing large output
         if (numprinted + g_buffsize > len)
         {
-            std::cout << msg.substr(numprinted);
+            Print(msg.substr(numprinted), false);
             break;
         }
         else
         {
-
-            std::cout << msg.substr(numprinted, g_buffsize);
+            Print(msg.substr(numprinted, g_buffsize), false);
             numprinted += g_buffsize;
         }
     }
@@ -864,6 +951,7 @@ void ConsoleWrapper::PrintNewPrompt()
         msg = '\n';    // Printf with newline
         _addnewline = false;
     }
+    BuiltInFuncsUtils::SaveToOutputLog(msg);
     msg += ">>>";
     std::cout << msg << std::flush;        // New prompt
 }
@@ -925,4 +1013,19 @@ void ConsoleWrapper::InitCommandWindowInfo()
     _defaultWinAttr = csbiInfo.wAttributes; // Cache color info
 
 #endif
+}
+//------------------------------------------------------------------------------
+// Prints to stdout
+//------------------------------------------------------------------------------
+void ConsoleWrapper::Print(const std::string& msg, bool forceFlush)
+{
+    if (!_childHandler)  // Main interp, print to stdout
+    {
+        std::cout << msg;
+        if (forceFlush)
+        {
+            FlushStdout();
+        }
+    }
+    BuiltInFuncsUtils::SaveToOutputLog(msg);
 }

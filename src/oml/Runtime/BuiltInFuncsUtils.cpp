@@ -669,7 +669,7 @@ void BuiltInFuncsUtils::SetMatrixNSlice(const hwMatrix* mtx, size_t index, hwMat
     if (!mtx || !lhs) return;
 
 	hwMatrixN* rhs = EvaluatorInterface::allocateMatrixN();
-	rhs->Convert2DtoND(*mtx);
+	rhs->Convert2DtoND(*mtx, false);
     if (!rhs) return;
 
     std::vector<hwSliceArg> slices;
@@ -1395,21 +1395,6 @@ std::wstring BuiltInFuncsUtils::GetAbsolutePathW(const std::wstring& path)
     return out;
 }
 //------------------------------------------------------------------------------
-// Returns normalized path for the operating system, supports Unicode
-//------------------------------------------------------------------------------
-std::wstring BuiltInFuncsUtils::GetNormpathW(const std::wstring& path)
-{
-    if (path.empty())
-    {
-        return path;
-    }
-
-    std::wstring normpath(path);
-
-    std::replace(normpath.begin(), normpath.end(), '/', '\\');
-    return normpath;
-}
-//------------------------------------------------------------------------------
 // Gets current working directory, supports Unicode
 //------------------------------------------------------------------------------
 std::wstring BuiltInFuncsUtils::GetCurrentWorkingDirW()
@@ -1954,4 +1939,158 @@ std::FILE* BuiltInFuncsUtils::FileOpen(const std::string& name,
 
     return fp;
 
+}
+//------------------------------------------------------------------------------
+// Closes output log
+//------------------------------------------------------------------------------
+void BuiltInFuncsUtils::CloseOutputLog()
+{
+    std::ofstream& ofs = CurrencyDisplay::GetOutputLog();
+    if (ofs.is_open())
+    {
+        ofs.close(); 
+    }
+}
+//------------------------------------------------------------------------------
+// Closes output log
+//------------------------------------------------------------------------------
+void BuiltInFuncsUtils::SaveToOutputLog(const std::string& str)
+{
+    std::ofstream& ofs = CurrencyDisplay::GetOutputLog();
+    if (ofs.is_open())
+    {
+        ofs << str;
+        std::flush(ofs);
+    }
+}
+//------------------------------------------------------------------------------
+// Returns normalized path for the operating system, supports Unicode
+//------------------------------------------------------------------------------
+std::wstring BuiltInFuncsUtils::GetNormpathW(const std::wstring& path)
+{
+    if (path.empty())
+    {
+        return path;
+    }
+
+    std::wstring normpath(path);
+
+#ifdef OS_WIN
+    std::replace(normpath.begin(), normpath.end(), '/', '\\');
+#else
+    std::replace(normpath.begin(), normpath.end(), '\\', '/');
+#endif
+    return normpath;
+}
+//------------------------------------------------------------------------------
+// Returns true if strtod conversion is successful
+//------------------------------------------------------------------------------
+bool BuiltInFuncsUtils::IsValidStrtodResult(const std::string& in,
+                                            const std::string& end,
+                                            double             val)
+{
+    if (in.empty() || errno == ERANGE)
+    {
+        return false;
+    }
+    else if (!IsZero(val) || in != end)
+    {
+        return true;
+    }
+
+    if (in.find_first_of("0") != std::string::npos)
+    {
+        return true;
+    }
+
+    return (end.find_first_of("ij") != std::string::npos);
+}
+//------------------------------------------------------------------------------
+// Returns true successful in converting string to scalar/complex
+//------------------------------------------------------------------------------
+bool BuiltInFuncsUtils::ReadNumber(const std::string& in,
+    double&            rval,
+    double&            ival,
+    bool&              isscalar)
+{
+    if (in.empty())
+    {
+        return false;
+    }
+    else if (in == "i" || in == "j")  // Special case
+    {
+        rval = 0;
+        ival = 1;
+        isscalar = false;
+        return true;
+    }
+    std::string tmp(in);
+
+    // Linux and VS2015 will not process numbers with double scientific 
+    // notation which use 'D' instead of 'E'
+    std::replace(tmp.begin(), tmp.end(), 'D', 'E');
+    std::replace(tmp.begin(), tmp.end(), 'd', 'e');
+
+    char*  cptr = nullptr;
+    double result = strtod(tmp.c_str(), &cptr);
+    std::string imagstr = (cptr) ? cptr : nullptr;
+    if (!BuiltInFuncsUtils::IsValidStrtodResult(tmp, imagstr, result))
+    {
+        return false;
+    }
+
+    // Remove spaces
+    if (!imagstr.empty())
+    {
+        std::string::iterator itr = std::remove(imagstr.begin(), imagstr.end(), ' ');
+        imagstr.erase(itr, imagstr.end());
+    }
+
+    if (imagstr.empty() || imagstr[0] == '%' )
+    {
+        rval = result;
+        return true;   // Conversion succeeded
+    }
+
+    
+    char lastch = imagstr[imagstr.length() - 1];
+    if (lastch == 'i' || lastch == 'j')
+    {
+        imagstr.pop_back();
+        for (size_t i = 0; i < imagstr.length(); ++i)
+        {
+            char ch = imagstr[i];
+            if (ch == '.' || isdigit(ch) || (i == 0 && (ch == '+' || ch == '-')))
+            {
+                continue;
+            }
+            return false; // Conversion failed
+        }
+        isscalar = false;
+        if (imagstr.empty())  // Only a complex number
+        {
+            ival = result;
+            rval = 0;
+        }
+        else
+        {
+            char* endptr = nullptr;
+            ival = strtod(imagstr.c_str(), &endptr);
+            tmp = (endptr) ? endptr : "";
+            if (!BuiltInFuncsUtils::IsValidStrtodResult(imagstr, tmp, ival))
+            {
+                ival = std::numeric_limits<double>::quiet_NaN();
+                isscalar = true;
+                return false;
+            }
+            rval = result;
+        }
+        return true;
+    }
+    else
+    {
+        rval = result;
+        return true;
+    }
+    return false;
 }

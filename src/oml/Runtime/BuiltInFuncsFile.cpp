@@ -612,11 +612,24 @@ bool BuiltInFuncsFile::Dlmwrite(EvaluatorInterface           eval,
         int   numrows       = mtx ? mtx->M() : 0;
         int   numcols       = mtx ? mtx->N() : 0;
 
-        for (int i = 0; i < roffset; ++i)
+        if (coffset <= 0)
         {
-            for (int j = 0; j < numcols; ++j)
-                roffsetstr += cdelim;
-            roffsetstr += rdelim;
+            for (int i = 0; i < roffset; ++i)
+            {
+                for (int j = 0; j < numcols; ++j)
+                    roffsetstr += cdelim;
+                roffsetstr += rdelim;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < roffset; ++i)
+            {
+                for (int j = 0; j < numcols + coffset - 1; ++j)
+                    roffsetstr += cdelim;
+                roffsetstr += rdelim;
+            }
+
         }
     }
 
@@ -815,12 +828,29 @@ bool BuiltInFuncsFile::Copyfile(EvaluatorInterface           eval,
     returncode = _wsystem(wcmd.c_str());
 #else
     // Make sure that the underlying directories exist before copying
-    std::string mkdircmd = "mkdir -p " + BuiltInFuncsUtils::GetBaseDir(dst);
+    std::string base1(BuiltInFuncsUtils::GetBaseDir(dst));
+    if (base1.find(' ') != std::string::npos && base1.find('\"') == std::string::npos)
+    {
+        base1 = '\"' + base1 + '\"';
+    }
+    std::string mkdircmd = "mkdir -p " + base1;
     system(mkdircmd.c_str());
 
     strcmd = "cp -R ";
     if (!forcecopy)
         strcmd += "-n ";
+
+    if (src.find(' ') != std::string::npos && src.find('\"') == std::string::npos)
+    {
+        src = '\"' + src + '\"';
+    }
+
+    if (dst.find(' ') != std::string::npos && dst.find('\"') == std::string::npos)
+    {
+        dst = '\"' + dst + '\"';
+    }
+
+
     strcmd +=  src + " " + dst;
 
     returncode = system(strcmd.c_str());
@@ -861,7 +891,7 @@ bool BuiltInFuncsFile::Copyfile(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-//! Returns true after importing data from files (importdata command)
+//! Returns true after importing data from files [importdata]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsFile::Importdata(EvaluatorInterface           eval, 
 	                              const std::vector<Currency>& inputs, 
@@ -871,26 +901,32 @@ bool BuiltInFuncsFile::Importdata(EvaluatorInterface           eval,
     if (nargin < 1) 
         throw OML_Error(OML_ERR_NUMARGIN);
 
-    Currency cur = inputs[0];
-    if (!cur.IsString())
+    if (!inputs[0].IsString())
+    {
         throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
+    }
 
-    std::string fname (cur.StringVal());
+    std::string fname (inputs[0].StringVal());
+    if (!BuiltInFuncsUtils::FileExists(fname))
+    {
+        throw OML_Error(OML_ERR_FILE_NOTFOUND, 1);
+    }
+
+    if (BuiltInFuncsUtils::IsDir(fname))
+    {
+        throw OML_Error(OML_Error(OML_ERR_FILE_NOTFOUND).GetErrorMessage() +
+            "; argument 1 is a directory");
+    }
+
     std::string err   ("Error: invalid input in argument 1; ");
     std::string npath ("[" + BuiltInFuncsUtils::Normpath(fname) + "]");
 
-    if (!BuiltInFuncsUtils::FileExists(fname))
-        throw OML_Error(err + "cannot find file " + npath);
-
-    if (BuiltInFuncsUtils::IsDir(fname))
-        throw OML_Error(err + "value must be a file name " + npath);
 
     std::string tboxerr ("unsupported file format " + npath + ".\nTo import data, add toolbox ");
     std::string ext     (BuiltInFuncsUtils::GetFileExtension(fname));
     if (!ext.empty())
         std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
-    std::vector<Currency> funcInputs(inputs);
     int nargout = eval.GetNargoutValue();
 
     if (ext == "mat") // Use mat file binary reader
@@ -900,6 +936,8 @@ bool BuiltInFuncsFile::Importdata(EvaluatorInterface           eval,
         eval.FindFunctionByName("load", &fi, &funcptr, NULL);
         if (funcptr)
         {
+            std::vector<Currency> funcInputs(inputs);
+
             outputs = eval.DoMultiReturnFunctionCall(funcptr, funcInputs, 
                         nargin, nargout, true);
             return true;
@@ -920,6 +958,7 @@ bool BuiltInFuncsFile::Importdata(EvaluatorInterface           eval,
         {
             if (xlsfuncptr)
             {
+                std::vector<Currency> funcInputs(inputs);
                 outputs = eval.DoMultiReturnFunctionCall(xlsfuncptr, funcInputs, 
                           nargin, nargout, true);
                 return true;
@@ -931,7 +970,7 @@ bool BuiltInFuncsFile::Importdata(EvaluatorInterface           eval,
     
     if (nargin > 1 && inputs[nargin-1].IsString())
     {
-        std::string opt = inputs[nargin-1].StringVal();
+        std::string opt (inputs[nargin-1].StringVal());
         if (!opt.empty())
         {
             std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
@@ -942,6 +981,7 @@ bool BuiltInFuncsFile::Importdata(EvaluatorInterface           eval,
                 eval.FindFunctionByName("load", &fi, &funcptr, NULL);
                 if (funcptr)
                 {
+                    std::vector<Currency> funcInputs(inputs);
                     outputs = eval.DoMultiReturnFunctionCall(funcptr, funcInputs, 
                                   nargin, nargout, true);
                     return true;
@@ -953,15 +993,18 @@ bool BuiltInFuncsFile::Importdata(EvaluatorInterface           eval,
     
     try
     {
-        FunctionInfo* fi   = nullptr;
-        FUNCPTR       fptr = nullptr;
-        eval.FindFunctionByName("textread", &fi, &fptr, NULL);
-        if (fptr)
+        // Use dlmread if there are no input arguments as it will generate a 
+        // matrix with the correct columns. Textread without input arguments will
+        // generate a matrix with all values in 1 column
+        if (nargin == 1)
         {
-            outputs = eval.DoMultiReturnFunctionCall(fptr, funcInputs, 
-                        nargin, nargout, true);
-            return true;
+            Dlmread(eval, inputs, outputs);
         }
+        else
+        {
+            Textread(eval, inputs, outputs);
+        }
+        return true;
     }
     catch (OML_Error e)
     {
@@ -972,10 +1015,15 @@ bool BuiltInFuncsFile::Importdata(EvaluatorInterface           eval,
 #ifdef OS_WIN
     // Try excel for text files
     if (istxtfile && xlsfuncptr)
+    {
+        std::vector<Currency> funcInputs(inputs);
         outputs = eval.DoMultiReturnFunctionCall(xlsfuncptr, funcInputs, nargin,
-                  nargout, true);
+            nargout, true);
+    }
     else
+    {
         throw OML_Error(err + "unsupported file format " + npath);
+    }
 #else
     throw OML_Error(err + "unsupported file format " + npath);
 #endif
@@ -2442,7 +2490,9 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
 
     std::unique_ptr<hwMatrix> mtx = nullptr;
 
-    double emptyval = 0;
+    double remptyval  = 0;
+    double iemptyval  = 0;
+    bool   hascomplex = false;
 
     std::string delim;
     std::string strrange;
@@ -2469,11 +2519,21 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
                     {
                         throw OML_Error(OML_ERR_NUMARGIN);
                     }
-                    if (!inputs[i].IsScalar())
+                    if (inputs[i].IsScalar())
                     {
-                        throw OML_Error(OML_ERR_SCALAR, i + 1, OML_VAR_TYPE);
+                        remptyval = inputs[i].Scalar();
                     }
-                    emptyval = inputs[i].Scalar();
+                    else if (inputs[i].IsComplex())
+                    {
+                        hwComplex c = inputs[i].Complex();
+                        remptyval   = c.Real();
+                        iemptyval   = c.Imag();
+                        hascomplex  = true;
+                    }
+                    else
+                    {
+                        throw OML_Error(OML_ERR_SCALAR_COMPLEX, i + 1, OML_VAR_TYPE);
+                    }
                     continue;
                 }
                 else if (lower == "linestoskip" || lower == "headerlines")
@@ -2590,6 +2650,9 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
         std::vector< std::vector<double> > data;
         data.reserve(rowcapacity);
 
+        std::vector< std::vector<double> > idata;
+        idata.reserve(rowcapacity);
+
         // Read the data
         while (!quitLoop && !eval.IsInterrupt() && !ifs.eof())
         {
@@ -2637,7 +2700,6 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
             }
             
             // Start of line parsing
-            double dval = emptyval;
             int currentcol = 0;
             n = 0;
             int used = 0;
@@ -2645,8 +2707,9 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
 
             if (delim.empty())
             {
-                if (std::any_of(line.begin(), line.end(), ::isdigit)) //hema
+                if (std::any_of(line.begin(), line.end(), ::isdigit)) 
                 {    
+                    double dval = 0;
                     sscanf(line.c_str(), "%lf%n", &dval, &used);
                 }
                 for (size_t j = static_cast<size_t>(used); j < line.size(); ++j)
@@ -2681,13 +2744,23 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
             std::vector<double> thiscol;
             thiscol.reserve(colcapacity);
 
-            char* tok = strtok((char *)line.c_str(), delim.c_str());
+            std::vector<double> thiscol2;   // Imaginary numbers
+            thiscol2.reserve(colcapacity);
 
-            while (tok)
+            bool iscomment = (line[0] == '%');
+
+            size_t linepos = 0;
+            bool quit = false;
+            while (!line.empty() && !quit)
             {
+                linepos = line.find(delim);
+
                 if (currentcol < startcol)
                 {
-                    tok = strtok(nullptr, delim.c_str());
+                    if (linepos != std::string::npos)
+                    {
+                        line = line.substr(linepos + delim.length());
+                    }
                     currentcol++;
                     continue;
                 }
@@ -2696,18 +2769,35 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
                     break;
                 }
 
-                double val = emptyval;
-                if (sscanf(tok, "%lf", &val) <= 0)
+                std::string tok = line.substr(0, linepos);
+                double rval = remptyval;
+                double ival = iemptyval;
+                bool   isscalar = true;
+                if (!iscomment)
                 {
-                    val = emptyval;
+                    BuiltInFuncsUtils::ReadNumber(tok, rval, ival, isscalar);
+                    if (!isscalar)
+                    {
+                        hascomplex = true;
+                    }
+
+                    if (!thiscol.empty() && thiscol.size() >= colcapacity)
+                    {
+                        colcapacity *= 2;
+                        thiscol.reserve(colcapacity);
+                        thiscol2.reserve(colcapacity);
+                    }
                 }
-                if (!thiscol.empty() && thiscol.size() >= colcapacity)
+                thiscol.emplace_back(rval);
+                thiscol2.emplace_back(ival);
+                if (linepos != std::string::npos)
                 {
-                    colcapacity *= 2;
-                    thiscol.reserve(colcapacity);
+                    line = line.substr(linepos + delim.length());
                 }
-                thiscol.push_back(val);
-                tok = strtok(nullptr, delim.c_str());
+                else
+                {
+                    quit = true;
+                }
                 n++;
                 currentcol++;
             }
@@ -2716,26 +2806,65 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
             {
                 rowcapacity *= 2;
                 data.reserve(rowcapacity);
-            }          
-            maxn = std::max(maxn, static_cast<int>(thiscol.size()));
+            }    
+
+            int colcount = (thiscol.empty()) ? 0 : static_cast<int>(thiscol.size());
+            maxn = std::max(maxn, colcount);
             data.push_back(thiscol);
+            idata.push_back(thiscol2);  // Imaginary vals
             m++;
             currentrow++;
         }
 
         ifs.close();
-        mtx.reset(EvaluatorInterface::allocateMatrix(m, maxn, emptyval));
 
-        for (int i = 0; i < m; ++i)
+        assert(data.size() == m);
+        if (data.size() != m)
         {
-            if (data[i].size() != maxn)
+            throw OML_Error(OML_ERR_INTERNAL);
+        }
+
+        if (!hascomplex)
+        {
+            mtx.reset(EvaluatorInterface::allocateMatrix(m, maxn, hwMatrix::REAL));
+            mtx->SetElements(remptyval);
+
+            for (int i = 0; i < m; ++i)
             {
-                data[i].reserve(maxn);
-                data[i].resize(maxn, emptyval);
+                std::vector <double> rvals(data[i]);
+                if (rvals.empty())
+                {
+                    continue;
+                }
+                int n = static_cast<int>(rvals.size());
+                for (int j = 0; j < n; ++j)
+                {
+                    (*mtx)(i, j) = rvals[j];
+                }
             }
-            std::unique_ptr<hwMatrix> row(EvaluatorInterface::allocateMatrix(
-                1, maxn, data[i].data(), hwMatrix::REAL));
-            utils.CheckMathStatus(eval, mtx->WriteRow(i, *(row.get())));
+        }
+        else
+        {
+            mtx.reset(EvaluatorInterface::allocateMatrix(m, maxn, hwMatrix::COMPLEX));
+            mtx->SetElements(hwComplex(remptyval, iemptyval));
+
+            assert(data.size() == idata.size());
+            for (int i = 0; i < m; ++i)
+            {
+                std::vector <double> rvals(data[i]);
+                std::vector <double> ivals(idata[i]);
+                if (rvals.empty())
+                {
+                    continue;
+                }
+
+                int n = static_cast<int>(rvals.size());
+                assert(rvals.size() == ivals.size());
+                for (int j = 0; j < n; ++j)
+                {
+                    mtx->z(i, j) = hwComplex(rvals[j], ivals[j]);
+                }
+            }
         }
     }
     catch (const OML_Error& e)
@@ -3259,4 +3388,4 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
         }
     }
  }
-
+ 

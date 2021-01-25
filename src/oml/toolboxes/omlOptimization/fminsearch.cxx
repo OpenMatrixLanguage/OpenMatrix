@@ -28,20 +28,27 @@ static std::vector<EvaluatorInterface*> FMINSEARCH_eval_ptr_stack;
 static std::vector<FunctionInfo*>       FMINSEARCH_oml_func_stack;
 static std::vector<FUNCPTR>             FMINSEARCH_oml_pntr_stack;
 static std::vector<std::string>         FMINSEARCH_oml_name_stack;
+static std::vector<bool>                FMINSEARCH_oml_Xrow_stack; // row vector checks
 
 //------------------------------------------------------------------------------
 // Helper function for fminsearch algorithm
 //------------------------------------------------------------------------------
 static hwMathStatus FMINSEARCH_file_func(const hwMatrix& X, double& y)
 {
-    std::vector<Currency> inputs;
-    inputs.push_back(EvaluatorInterface::allocateMatrix(&X));
-    Currency result;
+    EvaluatorInterface* FMINSEARCH_eval_ptr        = FMINSEARCH_eval_ptr_stack.back();
+    FunctionInfo*       FMINSEARCH_oml_func        = FMINSEARCH_oml_func_stack.back();
+    FUNCPTR             FMINSEARCH_oml_pntr        = FMINSEARCH_oml_pntr_stack.back();
+    std::string         FMINSEARCH_oml_name        = FMINSEARCH_oml_name_stack.back();
+    bool                FMINSEARCH_oml_func_isXrow = FMINSEARCH_oml_Xrow_stack.back();
 
-    EvaluatorInterface* FMINSEARCH_eval_ptr = FMINSEARCH_eval_ptr_stack.back();
-    FunctionInfo*       FMINSEARCH_oml_func = FMINSEARCH_oml_func_stack.back();
-    FUNCPTR             FMINSEARCH_oml_pntr = FMINSEARCH_oml_pntr_stack.back();
-    std::string         FMINSEARCH_oml_name = FMINSEARCH_oml_name_stack.back();
+    std::vector<Currency> inputs;
+    Currency result;
+    hwMatrix* X_temp = EvaluatorInterface::allocateMatrix(&X);
+
+    if (FMINSEARCH_oml_func_isXrow && X_temp->M() > 1)
+        X_temp->Transpose();
+
+    inputs.push_back(X_temp);
 
     if (FMINSEARCH_oml_func)
     {
@@ -110,12 +117,9 @@ bool OmlFminsearch(EvaluatorInterface           eval,
     if (!optPoint->IsFinite())
         throw OML_Error(OML_ERR_FINITE, 2);
 
-    if (optPoint->M() == 1)
-        optPoint->Transpose();
-
     bool   displayHist  = false;
-    int    maxIter      = 100;
-    int    maxFunEval   = 400;
+    int    maxIter      = 400;
+    int    maxFunEval   = 1000000;
     double tolx         = 1.0e-7;
 
     if (nargin > 2 && inputs[2].IsStruct())
@@ -168,6 +172,11 @@ bool OmlFminsearch(EvaluatorInterface           eval,
     FMINSEARCH_oml_pntr_stack.push_back(funcPntr);
     FMINSEARCH_oml_name_stack.push_back(funcName);
 
+    if (optPoint->N() > 1)
+        FMINSEARCH_oml_Xrow_stack.push_back(true);
+    else
+        FMINSEARCH_oml_Xrow_stack.push_back(false);
+
     // call algorithm
     hwMatrix* objHist    = (displayHist || nargout > 3) ?
                            EvaluatorInterface::allocateMatrix() : nullptr;
@@ -219,6 +228,7 @@ bool OmlFminsearch(EvaluatorInterface           eval,
             FMINSEARCH_oml_func_stack.clear();
             FMINSEARCH_oml_pntr_stack.clear();
             FMINSEARCH_oml_name_stack.clear();
+            FMINSEARCH_oml_Xrow_stack.clear();
 
             if (status.GetArg1() == 111)
             {
@@ -244,9 +254,6 @@ bool OmlFminsearch(EvaluatorInterface           eval,
     }
 
     // pack outputs
-    if (cur2.Matrix()->M() == 1)
-        optPoint->Transpose();
-
     outputs.push_back(optPoint);
 
     if (nargout > 1)
@@ -289,6 +296,7 @@ bool OmlFminsearch(EvaluatorInterface           eval,
     FMINSEARCH_oml_func_stack.pop_back();
     FMINSEARCH_oml_pntr_stack.pop_back();
     FMINSEARCH_oml_name_stack.pop_back();
+    FMINSEARCH_oml_Xrow_stack.pop_back();
 
     return true;
 }

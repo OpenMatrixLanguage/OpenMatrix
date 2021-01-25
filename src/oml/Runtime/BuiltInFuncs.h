@@ -45,14 +45,13 @@ bool oml_nargoutchk(EvaluatorInterface eval, const std::vector<Currency>& inputs
 bool oml_narginchk(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_assert(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_builtin(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_atan2(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 //! Returns true if successful in joining path names to build complete filename
 bool oml_fullfile(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 bool oml_struct2cell(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_cart2sph(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_sph2cart(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_cart2pol(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-HML2DLL_DECLS bool oml_isvector(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_isvector(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_deblank(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_pol2cart(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_nargin(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -100,7 +99,7 @@ bool oml_normalize(EvaluatorInterface eval, const std::vector<Currency>& inputs,
 bool oml_mkdir(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_setenv(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_cond(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-HML2DLL_DECLS bool oml_sort(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_sort(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_isnumeric(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_all(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_any(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -140,10 +139,9 @@ bool oml_strncmpi(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
 bool oml_strcmpi(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_cellfun(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_datenum(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-HML2DLL_DECLS bool oml_issorted(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_issorted(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_getfield(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_ismember(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_angle(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_isfield(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_which(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_linspace(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -162,10 +160,6 @@ bool oml_path(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
 bool oml_repmat(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_deg2rad(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_rad2deg(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_acosd(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_asind(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_cosd(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_sind(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_cross(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_isstruct(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_fgetl(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -218,8 +212,6 @@ bool oml_iscellstr(EvaluatorInterface eval, const std::vector<Currency>& inputs,
 bool oml_cat(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 bool oml_poly(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_permute(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_fix(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_rem(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_reshape(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_permute(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_squeeze(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -228,9 +220,9 @@ bool oml_i(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::ve
 //! Returns true if successul, output is a vector of nonzero elements of matrix
 bool oml_find(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 bool oml_eval(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-HML2DLL_DECLS bool oml_length(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-HML2DLL_DECLS bool oml_ndims(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-HML2DLL_DECLS bool oml_size(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_length(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_ndims(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_size(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_iscomplex(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_isreal(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_isequal(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -273,38 +265,18 @@ bool oml_zeros(EvaluatorInterface, const std::vector<Currency>& inputs, std::vec
 bool oml_trace(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_det(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_rcond(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_mod(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_imag(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_real(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_exp(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-HML2DLL_DECLS bool oml_conj(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_conj(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_prod(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-HML2DLL_DECLS bool oml_sum(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_sum(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_cumsum(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_cumprod(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_accumarray(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_log10(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_log2(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_log(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-HML2DLL_DECLS bool oml_abs(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_cos(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_acos(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_cosh(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_acosh(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_sin(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_asin(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_sinh(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_asinh(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_tan(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_atan(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_tanh(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_atanh(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_sqrt(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_max(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_min(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-HML2DLL_DECLS bool oml_ceil(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_floor(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_round(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_print(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_inv(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_pwd(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -353,9 +325,9 @@ bool oml_verbose(EvaluatorInterface, const std::vector<Currency>&, std::vector<C
 bool oml_parcluster(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 
 // function replacement methods
-HML2DLL_DECLS void _OML_Error(EvaluatorInterface& eval, std::vector<Currency>::const_iterator start, std::vector<Currency>::const_iterator end);
+OMLDLL_DECLS void _OML_Error(EvaluatorInterface& eval, std::vector<Currency>::const_iterator start, std::vector<Currency>::const_iterator end);
 bool keywordFunc(const std::vector<Currency>& inputs, std::vector<Currency>& outputs, Currency val);
-HML2DLL_DECLS bool noConditionFunc(const std::vector<Currency>& inputs, std::vector<Currency>& outputs, double (*realFunc) (double), hwComplex (*cplxFunc)(const hwComplex&));
+bool noConditionFunc(const std::vector<Currency>& inputs, std::vector<Currency>& outputs, double (*realFunc) (double), hwComplex (*cplxFunc)(const hwComplex&));
 bool conditionFunc(const std::vector<Currency>& inputs, std::vector<Currency>& outputs, double (*realFunc) (double), hwComplex (*cplxFunc)(const hwComplex&), hwComplex (*cnvrtFunc)(double), bool (*conditionFunc)(double));
 bool roundingFunc(const std::vector<Currency>& inputs, std::vector<Currency>& outputs, double (*roundFunc) (double));
 bool createCommonMatrix(EvaluatorInterface& eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs, Currency newval);
@@ -392,13 +364,13 @@ bool iszero(double d);
 bool iszero(const hwComplex &c);
 
 // input-reading methods
-HML2DLL_DECLS bool boolFromCur(const Currency& cur);
-HML2DLL_DECLS hwMatrix* matrixCopyFromInput(const Currency &input, bool allowString);
-HML2DLL_DECLS hwMatrix* safeMatrixCopyFromInput(const Currency& input, bool allowString);
-HML2DLL_DECLS int getFileFromInput(EvaluatorInterface &eval, const Currency &input);
+OMLDLL_DECLS bool boolFromCur(const Currency& cur);
+OMLDLL_DECLS hwMatrix* matrixCopyFromInput(const Currency &input, bool allowString);
+OMLDLL_DECLS hwMatrix* safeMatrixCopyFromInput(const Currency& input, bool allowString);
+OMLDLL_DECLS int getFileFromInput(EvaluatorInterface &eval, const Currency &input);
 FILE* makeTempFile();
 std::string readTmpFile(FILE* file);
-HML2DLL_DECLS std::string readOption(EvaluatorInterface& eval, const Currency &input);
+OMLDLL_DECLS std::string readOption(EvaluatorInterface& eval, const Currency &input);
 std::vector<std::array<double, 6> > datesFromInput(const std::vector<Currency> &inputs, int *m, int *n);
 void get1DStringsFromInput(const Currency& cur, std::vector<std::string>& vec);
 
@@ -492,7 +464,7 @@ inline Currency addStringMask(double d) { return addStringMask(EvaluatorInterfac
 // math methods
 double mod(double x, double y);
 double signum(double x);
-double doubleMod(double a, double b);
+double rem(double a, double b);
 int gcd(int x, int y, int *s, int *t);
 hwComplex gcd(hwComplex x, hwComplex y, hwComplex *s, hwComplex *t);
 hwComplex signum(const hwComplex &cplx);
@@ -548,7 +520,7 @@ bool isstr(HML_CELLARRAY *cell);
 hwMatrix* tostr(EvaluatorInterface& eval, const hwMatrix *m, bool throwError);
 hwMatrix* tostr(EvaluatorInterface& eval, HML_CELLARRAY *cell, bool throwError);
 HML_CELLARRAY* tocellstr(EvaluatorInterface& eval, HML_CELLARRAY *c, bool throwError);
-HML2DLL_DECLS Currency toCurrencyStr(EvaluatorInterface& eval, const Currency &c, bool throwError, bool keepcell);
+OMLDLL_DECLS Currency toCurrencyStr(EvaluatorInterface& eval, const Currency &c, bool throwError, bool keepcell);
 std::string convertToLower(std::string str);
 hwMatrix* convertToLower(const hwMatrix *str);
 hwMatrix* convertToUpper(const hwMatrix *str);
@@ -574,7 +546,7 @@ Currency deblankHelper(EvaluatorInterface& eval, const Currency& cur);
 void removeFields(EvaluatorInterface& eval, StructData* strct, const hwMatrix* fields);
 bool _strncompHelper(std::string s1, std::string s2, int n);
 bool dostrcmp(const std::vector<Currency>& inputs, std::vector<Currency>& outputs, int n = 0);
-HML2DLL_DECLS Currency tripleCurrencyFunc(EvaluatorInterface& eval, const Currency &cur1, const Currency &cur2, const Currency &cur3, void* overlap, Currency (*func)(EvaluatorInterface&, const Currency*, const Currency*, const Currency*, void*));
+OMLDLL_DECLS Currency tripleCurrencyFunc(EvaluatorInterface& eval, const Currency &cur1, const Currency &cur2, const Currency &cur3, void* overlap, Currency (*func)(EvaluatorInterface&, const Currency*, const Currency*, const Currency*, void*));
 Currency doStrRep(EvaluatorInterface& eval, const Currency *searchcur, const Currency *patcur, const Currency *repcur, void *dooverlap);
 void dostrcat(EvaluatorInterface& eval, Currency &out, HML_CELLARRAY *cell);
 Currency dostrcat(EvaluatorInterface& eval, const hwMatrix *first, const hwMatrix *second);
@@ -584,13 +556,13 @@ Currency doScalarToLogical(const Currency &cur, double (*checker)(double));
 void cd(std::string &dir, EvaluatorInterface &eval);
 std::vector<Currency> doregexp(EvaluatorInterface& eval, const std::string &search, const std::string &pattern, std::vector<Currency>::const_iterator inputIter, const std::vector<Currency>::const_iterator inputEnd);
 bool isempty(const Currency &input);
-HML2DLL_DECLS std::string strrep(EvaluatorInterface& eval, const std::string &search, const std::string &pattern, const std::string &replace, bool overlap);
-HML2DLL_DECLS std::vector<Currency> mtxFun(EvaluatorInterface& eval, const std::vector<Currency>& inputs, int numOutputs, std::vector<Currency> (*method)(EvaluatorInterface&, const std::vector<Currency>&), const std::vector<Currency>& extras = std::vector<Currency>());
+OMLDLL_DECLS std::string strrep(EvaluatorInterface& eval, const std::string &search, const std::string &pattern, const std::string &replace, bool overlap);
+OMLDLL_DECLS std::vector<Currency> mtxFun(EvaluatorInterface& eval, const std::vector<Currency>& inputs, int numOutputs, std::vector<Currency> (*method)(EvaluatorInterface&, const std::vector<Currency>&), const std::vector<Currency>& extras = std::vector<Currency>());
 bool twoMatrixCaller(EvaluatorInterface& eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs, hwMathStatus(hwMatrix::*func)(const hwMatrix&, const hwMatrix&));
 
-HML2DLL_DECLS bool checkMakeComplex(EvaluatorInterface& eval, hwMatrix *mtx1, hwMatrix *mtx2);
+OMLDLL_DECLS bool checkMakeComplex(EvaluatorInterface& eval, hwMatrix *mtx1, hwMatrix *mtx2);
 inline bool checkMakeComplex(EvaluatorInterface& eval, HML_CELLARRAY* cell1, HML_CELLARRAY* cell2) { return false; }
-HML2DLL_DECLS bool checkMakeComplex(EvaluatorInterface& eval, hwMatrix *mtx1, hwMatrix *mtx2, hwMatrix *mtx3);
+OMLDLL_DECLS bool checkMakeComplex(EvaluatorInterface& eval, hwMatrix *mtx1, hwMatrix *mtx2, hwMatrix *mtx3);
 
 // general common helpers
 void getMatchingSizes(const hwMatrix*, const hwMatrix*, int* m, int* n);
@@ -601,29 +573,29 @@ bool isActuallyComplex(const Currency& cur);
 bool isActuallyReal(const Currency& cur);
 template <typename T1, typename T2>
 inline bool sameSize(const T1 *m1, const T2 *m2) { return (m1->M() == m2->M() && m1->N() == m2->N()); }
-HML2DLL_DECLS std::string readString(const Currency& str, int index = 0);
+OMLDLL_DECLS std::string readString(const Currency& str, int index = 0);
 hwMatrix* readRow(EvaluatorInterface& eval, const hwMatrix *mtx, int index = 0);
-HML2DLL_DECLS Currency readRow(EvaluatorInterface& eval, const Currency &input, int index = 0);
+OMLDLL_DECLS Currency readRow(EvaluatorInterface& eval, const Currency &input, int index = 0);
 bool checkIsDirectory(EvaluatorInterface& eval, std::string &str, bool throwError);
 bool isDirectory(std::string& str, std::string* errmsg = nullptr);
 std::string getAbsolutePath(EvaluatorInterface& eval, const Currency &cur);
 std::string sprintf(EvaluatorInterface& eval, std::vector<Currency>::const_iterator iter, const std::vector<Currency>::const_iterator enditer);
 std::string sprintf(EvaluatorInterface& eval, const std::string &tmplt, std::vector<Currency>::const_iterator rawiter, const std::vector<Currency>::const_iterator rawenditer);
-HML2DLL_DECLS void getDimensionsFromInput(const std::vector<Currency> &inputs, int *m, int *n);
+OMLDLL_DECLS void getDimensionsFromInput(const std::vector<Currency> &inputs, int *m, int *n);
 bool isequal(const Currency &observed, const Currency &expected, const Currency& tol);
 bool isequal(const Currency &c1, const Currency &c2);
 Currency getAtIndex(const Currency &cur, int index);
 Currency getAtIndex(const Currency &cur, int i, int j);
 std::string concatRowToString(EvaluatorInterface& eval, int row, const HML_CELLARRAY *cell);
-HML2DLL_DECLS inline Currency getTrue() { Currency True(1.0); True.SetMask(Currency::MASK_LOGICAL); return True; }
-HML2DLL_DECLS inline Currency getFalse() { Currency False(0.0); False.SetMask(Currency::MASK_LOGICAL); return False; }
+OMLDLL_DECLS inline Currency getTrue() { Currency True(1.0); True.SetMask(Currency::MASK_LOGICAL); return True; }
+OMLDLL_DECLS inline Currency getFalse() { Currency False(0.0); False.SetMask(Currency::MASK_LOGICAL); return False; }
 Currency unnest(Currency nested, const std::string &errmsg = std::string("Error: input must be a string"));
 void makeInt(hwComplex &c);
 Currency transpose(EvaluatorInterface& eval, const Currency &cur);
 hwMatrix *removePadding(const hwMatrix *mtx);
 hwMatrix *getInnerMatrix(const hwMatrix *mtx, int top, int bottom, int left, int right);
 std::deque<int> getprimes(int max);
-HML2DLL_DECLS bool fileExists(const std::string &file_name);
+OMLDLL_DECLS bool fileExists(const std::string &file_name);
 bool isEscaped(const std::string &str, size_t index);
 Currency findUnsorted(EvaluatorInterface& eval, std::deque<hwMatrix> vals, const hwMatrix *searchin, bool forward);
 Currency findUnsorted(std::deque<double> vals, const hwMatrix *searchin, bool forward);
@@ -634,25 +606,25 @@ Currency findSorted(std::deque<double> vals, const hwMatrix *searchin);
 Currency findSorted(std::deque<hwComplex> vals, const hwMatrix *searchin);
 Currency findSorted(EvaluatorInterface& eval, std::deque<std::string> vals, const HML_CELLARRAY *searchin);
 int posIntFromDouble(double d);
-HML2DLL_DECLS void writeCol(EvaluatorInterface& eval, hwMatrix* mtx, hwMatrix* col, int index);
-HML2DLL_DECLS void writeRow(EvaluatorInterface& eval, hwMatrix* mtx, hwMatrix* row, int index);
-HML2DLL_DECLS void writeCol(EvaluatorInterface& eval, HML_CELLARRAY* cell, HML_CELLARRAY* col, int index);
-HML2DLL_DECLS void writeRow(EvaluatorInterface& eval, HML_CELLARRAY* cell, HML_CELLARRAY* row, int index);
+OMLDLL_DECLS void writeCol(EvaluatorInterface& eval, hwMatrix* mtx, hwMatrix* col, int index);
+OMLDLL_DECLS void writeRow(EvaluatorInterface& eval, hwMatrix* mtx, hwMatrix* row, int index);
+OMLDLL_DECLS void writeCol(EvaluatorInterface& eval, HML_CELLARRAY* cell, HML_CELLARRAY* col, int index);
+OMLDLL_DECLS void writeRow(EvaluatorInterface& eval, HML_CELLARRAY* cell, HML_CELLARRAY* row, int index);
 
 // data checkers
 bool checkisfinite(double d);
 bool isfinite(hwComplex c);
 bool isfinite(hwMatrix *m);
-HML2DLL_DECLS bool isint(double d);
-HML2DLL_DECLS bool islonglong(double d);
-HML2DLL_DECLS bool isposint(double d);
-HML2DLL_DECLS bool isint(const hwMatrix *mtx);
-HML2DLL_DECLS bool isinfinity(double d);
-// HML2DLL_DECLS bool isfinite(double d);
-HML2DLL_DECLS double realval(const hwMatrix*, int i, int j);
-HML2DLL_DECLS double realval(const hwMatrix*, int index);
-HML2DLL_DECLS double realvalorscalar(const hwMatrix* mtx, int i, int j);
-HML2DLL_DECLS double realvalorscalar(const hwMatrix* mtx, int index);
+OMLDLL_DECLS bool isint(double d);
+OMLDLL_DECLS bool islonglong(double d);
+OMLDLL_DECLS bool isposint(double d);
+OMLDLL_DECLS bool isint(const hwMatrix *mtx);
+OMLDLL_DECLS bool isinfinity(double d);
+// OMLDLL_DECLS bool isfinite(double d);
+OMLDLL_DECLS double realval(const hwMatrix*, int i, int j);
+OMLDLL_DECLS double realval(const hwMatrix*, int index);
+OMLDLL_DECLS double realvalorscalar(const hwMatrix* mtx, int i, int j);
+OMLDLL_DECLS double realvalorscalar(const hwMatrix* mtx, int index);
 
 // path-related helpers
 //!
@@ -694,7 +666,7 @@ inline bool isField(EvaluatorInterface& eval, const std::map<std::string, int> &
 inline bool isField(EvaluatorInterface& eval, const std::map<std::string, int> &fieldNames, const Currency &field) { return field.IsString() && fieldNames.count(readRow(eval, field).StringVal()); }
 // ismember
 void stringVecFromCurrency(EvaluatorInterface& eval, const Currency &input1, const Currency &input2, std::vector<Currency> &searchfor, std::vector<Currency> &searchin, int *m, int *n);
-void stringVecFromCurrencyRows(EvaluatorInterface& eval, const Currency &input1, const Currency &input2, std::vector<Currency> &searchfor, std::vector<Currency> &searchin, int *m, int *n);
+int  stringVecFromCurrencyRows(EvaluatorInterface&, const Currency &input1, const Currency &input2, std::vector<Currency> &searchfor, std::vector<Currency> &searchin);
 void tryPushBackString(const HML_CELLARRAY *cell, std::vector<Currency> &topush);
 void tryPushBackString(const hwMatrix *mtx, std::vector<Currency> &topush);
 void tryPushBackStringByRows(EvaluatorInterface& eval, const hwMatrix *mtx, std::vector<Currency> &topush);
@@ -838,31 +810,5 @@ void UniqueHelperFuncCell( EvaluatorInterface&    eval,
                            bool                   outputIdx,
                            bool                   inputIdx,
                            std::vector<Currency>& outputs);
-
-// Sparse matrix helper functions
-// These functions reside here temporarily to avoid propogating an MKL header
-// dependency to all /kernel clients. They may be moved to /math/sparse in
-// a future release.
-
-// Add two sparse matrices, sum = A + B
-void SparseAdd(const hwMatrixS& A, const hwMatrixS& B, hwMatrixS& sum);
-
-// Multiply a sparse matrix by a full matrix, prod = A * B
-void SparseMult(const hwMatrixS& A, const hwMatrix& B, hwMatrix& prod);
-
-// Multiply a full matrix by a sparse matrix, prod = A * B
-void SparseMult(const hwMatrix& A, const hwMatrixS& B, hwMatrix& prod);
-
-// Multiply a sparse matrix by a sparse matrix, prod = A * B
-void SparseMult(const hwMatrixS& A, const hwMatrixS& B, hwMatrixS& prod);
-
-// Divide a full matrix by a sparse matrix on the left side, Q = A \ B
-void SparseDivideLeft(const hwMatrixS& A, const hwMatrix& B, hwMatrix& Q);
-
-// Divide a full matrix by a sparse matrix on the right side, Q = A / B
-void SparseDivideRight(const hwMatrix& A, const hwMatrixS& B, hwMatrix& Q);
-
-// Set pivot threshold for MKL sparse matrix division
-bool oml_mkl_sdpt(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 
 #endif

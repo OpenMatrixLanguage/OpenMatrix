@@ -17,7 +17,7 @@
 #ifndef _OML_Math_Error_h
 #define _OML_Math_Error_h
 
-#include "Hml2Dll.h"
+#include "OMLDll.h"
 
 #include <string>
 
@@ -184,7 +184,7 @@ enum omlMathErrCode
     OML_ERR_HWREADER_TIMECHANNELS_COMPARE,   // to compare time channels
     OML_ERR_HWREADER_SUBCASE_INVALID_RANGE,  // subcase index out of range
 
-    //HDF5 reader Codes
+    //HDF5 reader/writer Codes
     OML_ERR_HDF5_INVALID_FILE,               // not a valid hdf5 file
     OML_ERR_HDF5_FILE_READ_FAILED,           // failed to read hdf5 file
     OML_ERR_HDF5_INVALID_GROUP,              // invalid group
@@ -199,6 +199,28 @@ enum omlMathErrCode
     OML_ERR_HDF5_POINTS_SELECTION_INVALID,   // selected points are not valid
     OML_ERR_HDF5_UNSUPPORTDIM,               // data with more than seven dimentions are not supported
     OML_ERR_HDF5_UNSUPPORT_DATA,             // unsupported data
+    OML_ERR_HDF5_FILE_CREATION_FAILED,       // failed to create HDF5 file
+    OML_ERR_HDF5_GROUP_EXIST,                // group already exist
+    OML_ERR_HDF5_GROUP_CREATION_FAILED,      // failed to create group
+    OML_ERR_HDF5_GROUP_RENAME_FAILED,        // failed to rename group
+    OML_ERR_HDF5_GROUP_REMOVE_FAILED,        // failed to remove group
+    OML_ERR_HDF5_DATASET_CREATION_FAILED,    // failed to create dataset
+    OML_ERR_HDF5_WRITE_FAILED,               // failed to write
+    OML_ERR_HDF5_DATASET_RENAME_FAILED,      // failed to rename dataset
+    OML_ERR_HDF5_DATASET_REMOVE_FAILED,      // failed to remove dataset
+    OML_ERR_HDF5_DATASET_EXIST,              // dataset already exist
+    OML_ERR_HDF5_CHUNK_MATRIXDIM_INVALID,    // number of columns in chunk size matrix not matching number of dimentions of data
+    OML_ERR_HDF5_CHUNK_MATRIX_INVALID_ROW,   // number of rows in chunk size matrix must be 1
+    OML_ERR_HDF5_EMPTYMATRIX,                // must not be empty [] matrix
+    OML_ERR_HDF5_EMPTYCELL,                  // must not be empty {} cell
+    OML_ERR_HDF5_INVALID_CELL_MEMBERS,       // all {} cell members must have same dimensions
+    OML_ERR_HDF5_STRUCT_INVALID_DIMS,        // invalid struct, struct with 1,1 only supported
+    OML_ERR_HDF5_ATTRIBUTE_CREATION_FAILED,  // failed to create attribute
+    OML_ERR_HDF5_INVALID_LOCATION,           // invalid location
+    OML_ERR_HDF5_ATTRIBUTE_EXIST,            // attribute already exist
+    OML_ERR_HDF5_INVALID_ATTRIBUTE,          // invalid attribute
+    OML_ERR_HDF5_INVALID_STRUCT_MEMBERS,     // all values in struct must have same dimensions
+    OML_ERR_HDF5_INVALID_ATTRIBUTE_DATA,     // Attribute value must be a scalar,string or real matrix.
 
     OML_ERR_END
 };
@@ -270,7 +292,7 @@ enum omlMathVarCode
 //! See the OML_Error constructors for all options
 //!
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS OML_Error
+class OMLDLL_DECLS OML_Error
 {
 public:
 	//!

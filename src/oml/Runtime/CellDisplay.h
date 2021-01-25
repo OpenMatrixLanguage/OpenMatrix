@@ -28,7 +28,7 @@ class OutputFormat;
 //! \class CellDisplay
 //! \brief Displays cell arrays
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS CellDisplay : public CurrencyDisplay
+class OMLDLL_DECLS CellDisplay : public CurrencyDisplay
 {
 public:
     friend class Currency; // Only currency is allowed to construct

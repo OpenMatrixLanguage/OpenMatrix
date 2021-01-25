@@ -35,10 +35,13 @@ public:
     //! Constructor
     //! \param fi Function info pointer
     //!
+	MemoryScope();
     MemoryScope(FunctionInfo* info);
 	~MemoryScope();
 	MemoryScope(const MemoryScope&);
 	MemoryScope(const MemoryScope&, FunctionInfo* fi);
+
+	void Initialize(FunctionInfo* info);
 
 	// I would like to hide these as well, but I need to provide access to them
 	// in one particular case - namely anonymous functions
@@ -49,6 +52,7 @@ public:
 	bool            IsGlobal(const std::string& varname) const;
 	bool            IsPersistent(const std::string* varname) const;
 	bool            Contains(const std::string* var_ptr) const;
+	bool            IsEmpty() const;
 
 	bool            IsAnonymous() const;
 	bool            IsNested() const;
@@ -61,6 +65,7 @@ public:
 	FunctionInfo*   GetLocalFunction(const std::string* func_name);
 
 	FunctionInfo*   GetFunctionInfo() const { return fi; }
+	void            SetFunctionInfo(FunctionInfo* new_fi) { fi = new_fi; }
 
 	void               SetDebugInfo(const std::string* fname, int line) { debug_filename = fname; debug_line = line; }
 	const std::string& GetFilename() const;
@@ -71,6 +76,7 @@ public:
 	void			   Remove(const std::string& varname);
 
 	void               AddGlobalReference(const std::string& varname);
+	void			   Reset();
 
 protected:
 	void            RemoveGlobalReference(const std::string& varname);
@@ -88,7 +94,6 @@ protected:
 private:
 	std::map<const std::string*, Currency> scope;
 	std::set<std::string> global_names;
-	std::unordered_map<const std::string*, FunctionInfo*> nested_functions;
 
 	static std::map<std::string, Currency> globals;
 
@@ -100,7 +105,7 @@ private:
 class MemoryScopeManager
 {
 public:
-	MemoryScopeManager() : delete_scopes(true), first_scope_with_nested(-1) {}
+	MemoryScopeManager();
 	~MemoryScopeManager();
 
 	MemoryScope* GetCurrentScope() const;	
@@ -167,5 +172,9 @@ private:
 	static int _env_counter;
 
 	int first_scope_with_nested;
+
+	MemoryScope* stack_pool;
+	std::vector<MemoryScope*> unused_scopes;
+	int pool_in_use;
 };
 #endif

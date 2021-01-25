@@ -25,7 +25,7 @@
 
 typedef hwTMatrix<std::map<int, Currency>, void*> HML_FIELDVALS;
 
-class HML2DLL_DECLS StructData 
+class OMLDLL_DECLS StructData 
 {
 public:
 	StructData():field_values(NULL), next_key(1) {}

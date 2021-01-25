@@ -19,10 +19,10 @@
 
 #include "ExprCppTreeLexer.h"
 #include "ExprCppTreeParser.h"
-#include "Hml2Dll.h"
+#include "OMLDll.h"
 #include <string>
 
-class HML2DLL_DECLS ANTLRData
+class OMLDLL_DECLS ANTLRData
 {
 public:
 	ANTLRData(pANTLR3_INPUT_STREAM input, bool delay_parser = false);
@@ -37,8 +37,15 @@ public:
 
 	static pANTLR3_INPUT_STREAM InputFromFilename(const std::string&);
 	static pANTLR3_INPUT_STREAM InputFromExpression(const std::string& expr, const std::string& use_filename);
-	static void PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens);
 
+	static void PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens);
+	static int  PreprocessMatrixOrCell(pANTLR3_COMMON_TOKEN_STREAM& tokens, int start);
+	static int  PreprocessString(pANTLR3_COMMON_TOKEN_STREAM& tokens, int start);
+	static int  PreprocessComment(pANTLR3_COMMON_TOKEN_STREAM& tokens, int start);
+	static int  PreprocessContinue(pANTLR3_COMMON_TOKEN_STREAM& tokens, int start);
+	static int  PreprocessEquote(pANTLR3_COMMON_TOKEN_STREAM& tokens, int start);
+	static int  PreprocessNumberHack(pANTLR3_COMMON_TOKEN_STREAM& tokens, int start);
+	static int  PreprocessParentheses(pANTLR3_COMMON_TOKEN_STREAM& tokens, int start);
 private:
 	pANTLR3_INPUT_STREAM input;
 	pExprCppTreeLexer lex;

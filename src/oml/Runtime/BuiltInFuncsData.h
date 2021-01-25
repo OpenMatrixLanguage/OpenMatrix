@@ -29,7 +29,7 @@
 //! \brief Class for built-in functions implementing data structures commands
 //!
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS BuiltInFuncsData
+class OMLDLL_DECLS BuiltInFuncsData
 {
 public:
     //!

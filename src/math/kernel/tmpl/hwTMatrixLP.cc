@@ -1088,6 +1088,26 @@ inline hwMathStatus hwTMatrix<double>::ComplexPinv(const hwTMatrix<double>& sour
 template<>
 inline hwMathStatus hwTMatrix<double>::Pinv(const hwTMatrix<double>& source, double tol)
 {
+    if (source.M() > source.N())
+    {
+        hwMathStatus status;
+        hwTMatrix<double> temp;
+
+        status = temp.Transpose(source);
+
+        if (!status.IsOk())
+            return status;
+
+        status = Pinv(temp, tol);
+
+        if (!status.IsOk())
+            return status;
+
+        status = Transpose();
+
+        return status;
+    }
+
     if (tol > 0.0)
     {
         double norm;
@@ -5544,8 +5564,7 @@ inline hwMathStatus hwTMatrix<double>::Eigen(const hwTMatrix<double>& A, const h
 
     hwTMatrix<double> T;
 
-    if (A.IsHermitian() && B.IsHermitian() &&
-        A.Csky(T).IsOk() && B.Csky(T).IsOk())
+    if (A.IsHermitian() && B.IsHermitian() && B.Csky(T).IsOk())
     {
         if (A.IsReal())
             status = GeneralizedEigenDecompRealSPD(A, B, V, D);

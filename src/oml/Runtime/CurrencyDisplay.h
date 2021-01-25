@@ -18,7 +18,7 @@
 #define __CURRENCYDISPLAY_H__
 
 // Begin defines/includes
-#include "Hml2Dll.h"
+#include "OMLDll.h"
 
 #include "Currency.h"
 
@@ -31,7 +31,7 @@ class SignalHandlerBase;
 //! \class CurrencyDisplay
 //! \brief Displays currency
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS CurrencyDisplay
+class OMLDLL_DECLS CurrencyDisplay
 {
 public:
     friend class Currency; //!< Only currency is allowed to construct
@@ -279,6 +279,10 @@ public:
     //!
     void SetPaginateOnModeData();
 
+    //!
+    //! Returns output log
+    //!
+    static std::ofstream& GetOutputLog() { return _outputlog; }
 protected:  
     //!
     //! \enum DisplayFormat
@@ -295,6 +299,7 @@ protected:
     static int m_linesPrinted;         //!< of lines displayed
     static PAGINATE m_paginate;        //!< Pagination mode
     static int m_skipFormat;           //!< Skip format limit
+    static std::ofstream _outputlog;   //!< Output log
     
     mutable int m_colBegin;            //!< 0-based index of first column displayed
     mutable int m_colEnd;              //!< 0-based index of last  column displayed

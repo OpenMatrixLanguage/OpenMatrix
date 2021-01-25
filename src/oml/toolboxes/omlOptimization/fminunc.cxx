@@ -27,7 +27,8 @@
 static std::vector<EvaluatorInterface*> FMINUNC_eval_ptr_stack;
 static std::vector<FunctionInfo*>       FMINUNC_oml_func_stack;
 static std::vector<FUNCPTR>             FMINUNC_oml_pntr_stack;
-static std::vector<bool>                FMINUNC_oml_bool_stack;
+static std::vector<bool>                FMINUNC_oml_anon_stack;
+static std::vector<bool>                FMINUNC_oml_Prow_stack; // row vector checks
 
 //------------------------------------------------------------------------------
 // Wrapper for the objective function called in OmlFminunc by oml scripts
@@ -36,15 +37,20 @@ static hwMathStatus FMinUnconFunc(const hwMatrix& P,
                                   const hwMatrix* userData, 
                                   double&         min)
 {
-    std::vector<Currency> inputs;
-    inputs.push_back(EvaluatorInterface::allocateMatrix(&P));
-    int numinputs = static_cast<int>(inputs.size()); 
-    std::vector<Currency> outputs;
-
     EvaluatorInterface* FMINUNC_eval_ptr        = FMINUNC_eval_ptr_stack.back();
     FunctionInfo*       FMINUNC_oml_func        = FMINUNC_oml_func_stack.back();
     FUNCPTR             FMINUNC_oml_pntr        = FMINUNC_oml_pntr_stack.back();
-    bool                FMINUNC_oml_func_isanon = FMINUNC_oml_bool_stack.back();
+    bool                FMINUNC_oml_func_isanon = FMINUNC_oml_anon_stack.back();
+    bool                FMINUNC_oml_func_isProw = FMINUNC_oml_Prow_stack.back();
+
+    std::vector<Currency> inputs;
+    std::vector<Currency> outputs;
+    hwMatrix* P_temp = EvaluatorInterface::allocateMatrix(&P);
+
+    if (FMINUNC_oml_func_isProw && P_temp->M() > 1)
+        P_temp->Transpose();
+
+    inputs.push_back(P_temp);
 
     if (FMINUNC_oml_func_isanon)
     {
@@ -55,12 +61,12 @@ static hwMathStatus FMinUnconFunc(const hwMatrix& P,
     else if (FMINUNC_oml_func)
     {
         outputs = FMINUNC_eval_ptr->DoMultiReturnFunctionCall(
-            FMINUNC_oml_func, inputs, numinputs, 1, true);
+            FMINUNC_oml_func, inputs, 1, 1, true);
     }
     else if (FMINUNC_oml_pntr)
     {
         outputs = FMINUNC_eval_ptr->DoMultiReturnFunctionCall(
-            FMINUNC_oml_pntr, inputs, numinputs, 1, true);
+            FMINUNC_oml_pntr, inputs, 1, 1, true);
     }
     else
     {
@@ -116,24 +122,29 @@ static hwMathStatus FMinUnconGradient(const hwMatrix& P,
                                       const hwMatrix* userData, 
                                       hwMatrix&       grad)
 {
-    std::vector<Currency> inputs;
-    inputs.push_back(EvaluatorInterface::allocateMatrix(&P));
-    int numinputs = static_cast<int>(inputs.size());    
-    std::vector<Currency> outputs;
+    EvaluatorInterface* FMINUNC_eval_ptr        = FMINUNC_eval_ptr_stack.back();
+    FunctionInfo*       FMINUNC_oml_func        = FMINUNC_oml_func_stack.back();
+    FUNCPTR             FMINUNC_oml_pntr        = FMINUNC_oml_pntr_stack.back();
+    bool                FMINUNC_oml_func_isProw = FMINUNC_oml_Prow_stack.back();
 
-    EvaluatorInterface* FMINUNC_eval_ptr = FMINUNC_eval_ptr_stack.back();
-    FunctionInfo*       FMINUNC_oml_func = FMINUNC_oml_func_stack.back();
-    FUNCPTR             FMINUNC_oml_pntr = FMINUNC_oml_pntr_stack.back();
+    std::vector<Currency> inputs;
+    std::vector<Currency> outputs;
+    hwMatrix* P_temp = EvaluatorInterface::allocateMatrix(&P);
+
+    if (FMINUNC_oml_func_isProw && P_temp->M() > 1)
+        P_temp->Transpose();
+
+    inputs.push_back(P_temp);
 
     if (FMINUNC_oml_func)
     {
         outputs = FMINUNC_eval_ptr->DoMultiReturnFunctionCall(FMINUNC_oml_func, 
-                  inputs, numinputs, 2, true);
+                  inputs, 1, 2, true);
     }
     else if (FMINUNC_oml_pntr)
     {
         outputs = FMINUNC_eval_ptr->DoMultiReturnFunctionCall(FMINUNC_oml_pntr, 
-                  inputs, numinputs, 2, true);
+                  inputs, 1, 2, true);
     }
     else
     {
@@ -209,12 +220,12 @@ bool OmlFminunc(EvaluatorInterface           eval,
     {
         funcInfo = cur1.FunctionHandle();
         (funcInfo->RedirectedFunction().empty()) ?
-            FMINUNC_oml_bool_stack.push_back(true):  // true anonymous function
-            FMINUNC_oml_bool_stack.push_back(false); // handle to an inner function
+            FMINUNC_oml_anon_stack.push_back(true):  // true anonymous function
+            FMINUNC_oml_anon_stack.push_back(false); // handle to an inner function
     }
     else
     {
-        FMINUNC_oml_bool_stack.push_back(false);
+        FMINUNC_oml_anon_stack.push_back(false);
 
         if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr, nullptr))
         {
@@ -240,8 +251,8 @@ bool OmlFminunc(EvaluatorInterface           eval,
 
     bool   displayHist        = false;
     bool   analyticalGradient = false;
-    int    maxIter            = 100;
-    int    maxFuncEval        = 400;
+    int    maxIter            = 400;
+    int    maxFuncEval        = 1000000;
     double tolf               = 1.0e-7;
     double tolx               = 1.0e-7;
 
@@ -361,6 +372,11 @@ bool OmlFminunc(EvaluatorInterface           eval,
     FMINUNC_oml_func_stack.push_back(funcInfo);
     FMINUNC_oml_pntr_stack.push_back(funcPntr);
 
+    if (optPoint->N() > 1)
+        FMINUNC_oml_Prow_stack.push_back(true);
+    else
+        FMINUNC_oml_Prow_stack.push_back(false);
+
     // call algorithm
     hwMatrix*    objHist    = (displayHist || nargout > 3) ?
                               EvaluatorInterface::allocateMatrix() : nullptr;
@@ -446,7 +462,8 @@ bool OmlFminunc(EvaluatorInterface           eval,
                 FMINUNC_eval_ptr_stack.clear();
                 FMINUNC_oml_func_stack.clear();
                 FMINUNC_oml_pntr_stack.clear();
-                FMINUNC_oml_bool_stack.clear();
+                FMINUNC_oml_anon_stack.clear();
+                FMINUNC_oml_Prow_stack.clear();
 
                 if (optPoint)
                 {
@@ -525,7 +542,8 @@ bool OmlFminunc(EvaluatorInterface           eval,
     FMINUNC_eval_ptr_stack.pop_back();
     FMINUNC_oml_func_stack.pop_back();
     FMINUNC_oml_pntr_stack.pop_back();
-    FMINUNC_oml_bool_stack.pop_back();
+    FMINUNC_oml_anon_stack.pop_back();
+    FMINUNC_oml_Prow_stack.pop_back();
 
     return true;
 }

@@ -614,6 +614,7 @@ hwMathStatus NelderMead(const NelderMeadFunc f,
                         hwMatrix*            designHist)
 {
     hwMathStatus status;
+    bool needTranspose = false;
 
     if (!optPoint.IsReal())
     {
@@ -622,6 +623,12 @@ hwMathStatus NelderMead(const NelderMeadFunc f,
     if (!optPoint.IsVector())
     {
         return status(HW_MATH_ERR_VECTOR, 2);
+    }
+
+    if (optPoint.N() > 1)
+    {
+        optPoint.Transpose();
+        needTranspose = true;
     }
 
     int        dim = optPoint.Size();
@@ -829,6 +836,9 @@ hwMathStatus NelderMead(const NelderMeadFunc f,
 
     maxIter     = numIters;
     maxFuncEval = numFunEvals;
+
+    if (needTranspose)
+        optPoint.Transpose();
 
     for (int i = 0; i < dim+1; ++i)
     {

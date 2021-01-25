@@ -163,16 +163,10 @@ hwTMatrix<T1, T2>::hwTMatrix(int m, int n, void* data,
 //! Copy constructor
 template<typename T1, typename T2>
 hwTMatrix<T1, T2>::hwTMatrix(const hwTMatrix<T1, T2>& source)
-    : m_refCount(1)
+    : m_nCols(0), m_nRows(0), m_real(nullptr), m_complex(nullptr),
+      m_real_memory(nullptr), m_complex_memory(nullptr),
+      m_capacity(0), m_refCount(1)
 {
-    m_nCols = source.m_nCols;
-    m_nRows = source.m_nRows;
-    m_bits.ownData = 1;
-    m_real_memory = nullptr;
-    m_complex_memory = nullptr;
-    m_real = nullptr;
-    m_complex = nullptr;
-
     hwMathStatus status = Copy(source);
 
     if (!status.IsOk())
@@ -325,6 +319,39 @@ hwMathStatus hwTMatrix<T1, T2>::Dimension(int m, int n, DataType dataType)
         m_bits.realData = 1;
     else
         m_bits.realData = 0;
+
+    return hwMathStatus();
+}
+
+//! Borrow external data
+template<typename T1, typename T2>
+hwMathStatus hwTMatrix<T1, T2>::Borrow(int m, int n, char* memory, void* data, DataType dataType)
+{
+    if (!IsEmpty())
+        MakeEmpty();
+
+    if (m < 0)
+        return hwMathStatus(HW_MATH_ERR_ARRAYDIM);
+
+    if (n < 0)
+        return hwMathStatus(HW_MATH_ERR_ARRAYDIM);
+
+    m_bits.ownData = 0;
+    m_nCols = n;
+    m_nRows = m;
+
+    if (dataType == REAL)
+    {
+        m_bits.realData = 1;
+        m_real_memory = memory;
+        m_real = static_cast<T1*> (data);
+    }
+    else
+    {
+        m_bits.realData = 0;
+        m_complex_memory = memory;
+        m_complex = static_cast<T2*> (data);
+    }
 
     return hwMathStatus();
 }
@@ -3970,17 +3997,65 @@ hwMathStatus hwTMatrix<T1, T2>::PowerByElems(T2 base, const hwTMatrix<T1, T2>& P
 template<typename T1, typename T2>
 bool hwTMatrix<T1, T2>::operator==(const hwTMatrix<T1, T2>& A) const
 {
-    return IsEqual(A, (T1) 0);
+    // return IsEqual(A, (T1) 0);
+    if (A.m_nRows != m_nRows || A.m_nCols != m_nCols)
+        return false;
+
+    int size = Size();
+
+    if (m_real)
+    {
+        if (A.m_real)
+        {
+            for (int i = 0; i < size; ++i)
+            {
+                if (A.m_real[i] != m_real[i])
+                    return false;
+            }
+        }
+        else if (A.m_complex)
+        {
+            for (int i = 0; i < size; ++i)
+            {
+                if (A.m_complex[i].Imag() != 0)
+                    return false;
+
+                if (A.m_complex[i].Real() != m_real[i])
+                    return false;
+            }
+        }
+    }
+    else if (A.m_complex)
+    {
+        for (int i = 0; i < size; ++i)
+        {
+            if (A.m_complex[i].Imag() != m_complex[i].Imag())
+                return false;
+
+            if (A.m_complex[i].Real() != m_complex[i].Real())
+                return false;
+        }
+    }
+    else if (A.m_real)
+    {
+        for (int i = 0; i < size; ++i)
+        {
+            if (m_complex[i].Imag() != 0)
+                return false;
+
+            if (A.m_real[i] != m_complex[i].Real())
+                return false;
+        }
+    }
+
+    return true;
 }
 
 //! Determine if the matrix is equal to another
 template<typename T1, typename T2>
 bool hwTMatrix<T1, T2>::IsEqual(const hwTMatrix<T1, T2>& A, T1 tol) const
 {
-    int m = m_nRows;
-    int n = m_nCols;
-
-    if (A.m_nRows != m || A.m_nCols != n)
+    if (A.m_nRows != m_nRows || A.m_nCols != m_nCols)
         return false;
 
     int size = Size();
@@ -6066,106 +6141,35 @@ void hwTMatrix<T1, T2>::MakeEmpty()
 template<typename T1, typename T2>
 hwMathStatus hwTMatrix<T1, T2>::Copy(const hwTMatrix<T1, T2>& source)
 {
-    bool sizeChange;
-
-    if (m_nCols != source.m_nCols || m_nRows != source.m_nRows)
+    if (IsEmpty())
     {
-        if (Size() != source.Size())
-            sizeChange = true;
-        else
-            sizeChange = false;
+        hwMathStatus status = Dimension(source.M(), source.N(), source.Type());
 
-        m_nCols = source.m_nCols;
-        m_nRows = source.m_nRows;
+        if (!status.IsOk())
+            return status;
+
+        m_bits.ownData = 1;
+        int size = Size();
+
+        if (m_real)
+            CopyData(m_real, size, source.m_real, size);
+        else if (m_complex)
+            CopyData(m_complex, size, source.m_complex, size);
+    }
+    else if (m_nCols == source.m_nCols && m_nRows == source.m_nRows &&
+             m_bits.realData == source.m_bits.realData)
+    {
+        int size = Size();
+
+        if (m_real)
+            CopyData(m_real, size, source.m_real, size);
+        else if (m_complex)
+            CopyData(m_complex, size, source.m_complex, size);
     }
     else
-        sizeChange = false;
-
-    m_capacity = source.m_capacity;
-    m_bits.realData = source.m_bits.realData;
-
-    if (m_bits.ownData)
     {
-        if (source.m_real)
-        {
-            if (!m_real)
-            {
-                try
-                {
-                    Allocate(REAL);
-                }
-                catch (std::bad_alloc&)
-                {
-                    return hwMathStatus(HW_MATH_ERR_ALLOCFAILED, 0);
-                }
-            }
-            else if (sizeChange)
-            {
-                FreeMemory(m_real_memory, m_real);
-
-                try
-                {
-                    Allocate(REAL);
-                }
-                catch (std::bad_alloc&)
-                {
-                    return hwMathStatus(HW_MATH_ERR_ALLOCFAILED, 0);
-                }
-            }
-        }
-        else if (m_real)
-        {
-            FreeMemory(m_real_memory, m_real);
-        }
-
-        if (source.m_complex)
-        {
-            if (!m_complex)
-            {
-                try
-                {
-                    Allocate(COMPLEX);
-                }
-                catch (std::bad_alloc&)
-                {
-                    return hwMathStatus(HW_MATH_ERR_ALLOCFAILED, 0);
-                }
-            }
-            else if (sizeChange)
-            {
-                FreeMemory(m_complex_memory, m_complex);
-
-                try
-                {
-                    Allocate(COMPLEX);
-                }
-                catch (std::bad_alloc&)
-                {
-                    return hwMathStatus(HW_MATH_ERR_ALLOCFAILED, 0);
-                }
-            }
-        }
-        else if (m_complex)
-        {
-            FreeMemory(m_complex_memory, m_complex);
-        }
-    }
-    else if (sizeChange)
-    {
-        // copying data is not allowed when the target matrix does not
-        // own its data and there is a change of dimension
         MakeEmpty();
-        return hwMathStatus(HW_MATH_ERR_NOTALLOWED);
-    }
-
-    int newSize = Size();
-
-    if (newSize > 0)
-    {
-        if (m_real)
-            CopyData(m_real, newSize, source.m_real, newSize);
-        else if (m_complex)
-            CopyData(m_complex, newSize, source.m_complex, newSize);
+        return Copy(source);
     }
 
     return hwMathStatus();

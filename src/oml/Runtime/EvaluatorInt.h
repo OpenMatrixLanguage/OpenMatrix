@@ -16,7 +16,7 @@
 
 #ifndef __ExprTreeEvaluatorInterface_h
 #define __ExprTreeEvaluatorInterface_h
-#include "Hml2Dll.h"
+#include "OMLDll.h"
 #include "Currency.h"
 #include "hwMatrix.h"
 #include "hwMatrixN.h"
@@ -39,7 +39,7 @@ typedef bool (*FUNCPTR) (EvaluatorInterface, const std::vector<Currency>&, std::
 typedef bool (*ALT_FUNCPTR) (OMLInterface*, const OMLCurrencyList* ins, OMLCurrencyList* outs);
 typedef void* (*ENCRPTR) (const std::string& filename);
 
-class HML2DLL_DECLS EvaluatorInterface
+class OMLDLL_DECLS EvaluatorInterface
 {
     friend class Interpreter;
 public:

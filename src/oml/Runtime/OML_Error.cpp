@@ -197,6 +197,28 @@
 #define OML_MSG_HDF5_POINTS_SELECTION_INVALID    "Error: selected points are out of range"
 #define OML_MSG_HDF5_UNSUPPORTDIM                "Error: data with more than seven dimentions are not supported"
 #define OML_MSG_HDF5_UNSUPPORT_DATA              "Error: unsupported data"
+#define OML_MSG_HDF5_FILE_CREATION_FAILED        "Error: failed to create HDF5 file"
+#define OML_MSG_HDF5_GROUP_EXIST                 "Error: group already exists"
+#define OML_MSG_HDF5_GROUP_CREATION_FAILED       "Error: failed to create group"
+#define OML_MSG_HDF5_GROUP_RENAME_FAILED         "Error: failed to rename group"
+#define OML_MSG_HDF5_GROUP_REMOVE_FAILED         "Error: failed to remove group"
+#define OML_MSG_HDF5_DATASET_CREATION_FAILED     "Error: failed to create dataset"
+#define OML_MSG_HDF5_WRITE_FAILED                "Error: failed to write"
+#define OML_MSG_HDF5_DATASET_RENAME_FAILED       "Error: failed to rename dataset"
+#define OML_MSG_HDF5_DATASET_REMOVE_FAILED       "Error: failed to remove dataset"
+#define OML_MSG_HDF5_DATASET_EXIST               "Error: dataset already exists"
+#define OML_MSG_HDF5_CHUNK_MATRIXDIM_INVALID     "Error: number of columns in chunk size matrix must match the number of dimensions in data"
+#define OML_MSG_HDF5_CHUNK_MATRIX_INVALID_ROW    "Error: number of rows in chunk size matrix must be 1"
+#define OML_MSG_HDF5_EMPTYMATRIX                 "Error: must not be empty matrix"
+#define OML_MSG_HDF5_EMPTYCELL                   "Error: must not be empty cell"
+#define OML_MSG_HDF5_INVALID_CELL_MEMBERS        "Error: all cell members must have same dimensions"
+#define OML_MSG_HDF5_STRUCT_INVALID_DIMS         "Error: invalid struct dimensions; only single element structs are supported"
+#define OML_MSG_HDF5_ATTRIBUTE_CREATION_FAILED   "Error: failed to create attribute"
+#define OML_MSG_HDF5_INVALID_LOCATION            "Error: invalid location"
+#define OML_MSG_HDF5_ATTRIBUTE_EXIST             "Error: attribute already exists"
+#define OML_MSG_HDF5_INVALID_ATTRIBUTE           "Error: invalid attribute"
+#define OML_MSG_HDF5_INVALID_STRUCT_MEMBERS      "Error: all values in struct must have same dimensions"
+#define OML_MSG_HDF5_INVALID_ATTRIBUTE_DATA      "Error: attribute value must be a scalar,string or real matrix."
 
 // Variable type definitions
 #define OML_STR_MATRIX          "matrix"
@@ -598,7 +620,7 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode errCode) const
     case OML_ERR_HWREADER_TIMECHANNELS_COMPARE: msgStr = OML_MSG_HWREADER_TIMECHANNELS_COMPARE; break;
 	case OML_ERR_HWREADER_SUBCASE_INVALID_RANGE: msgStr = OML_MSG_HWREADER_SUBCASE_INVALID_RANGE; break;
 
-    // HDF5 reader error messages:
+    // HDF5 reader/writer error messages:
     case OML_ERR_HDF5_INVALID_FILE:              msgStr = OML_MSG_HDF5_INVALID_FILE;              break;
     case OML_ERR_HDF5_FILE_READ_FAILED:          msgStr = OML_MSG_HDF5_FILE_READ_FAILED;          break;
     case OML_ERR_HDF5_INVALID_GROUP:             msgStr = OML_MSG_HDF5_INVALID_GROUP;             break;
@@ -613,6 +635,28 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode errCode) const
     case OML_ERR_HDF5_POINTS_SELECTION_INVALID:  msgStr = OML_MSG_HDF5_POINTS_SELECTION_INVALID;  break;
     case OML_ERR_HDF5_UNSUPPORTDIM:              msgStr = OML_MSG_HDF5_UNSUPPORTDIM;              break;
     case OML_ERR_HDF5_UNSUPPORT_DATA:            msgStr = OML_MSG_HDF5_UNSUPPORT_DATA;            break;
+    case OML_ERR_HDF5_FILE_CREATION_FAILED:      msgStr = OML_MSG_HDF5_FILE_CREATION_FAILED;      break;
+    case OML_ERR_HDF5_GROUP_EXIST:               msgStr = OML_MSG_HDF5_GROUP_EXIST;               break;
+    case OML_ERR_HDF5_GROUP_CREATION_FAILED:     msgStr = OML_MSG_HDF5_GROUP_CREATION_FAILED;     break;
+    case OML_ERR_HDF5_GROUP_RENAME_FAILED:       msgStr = OML_MSG_HDF5_GROUP_RENAME_FAILED;       break;
+    case OML_ERR_HDF5_GROUP_REMOVE_FAILED:       msgStr = OML_MSG_HDF5_GROUP_REMOVE_FAILED;       break;
+    case OML_ERR_HDF5_DATASET_CREATION_FAILED:   msgStr = OML_MSG_HDF5_DATASET_CREATION_FAILED;   break;
+    case OML_ERR_HDF5_WRITE_FAILED:              msgStr = OML_MSG_HDF5_WRITE_FAILED;              break;
+    case OML_ERR_HDF5_DATASET_RENAME_FAILED:     msgStr = OML_MSG_HDF5_DATASET_RENAME_FAILED;     break;
+    case OML_ERR_HDF5_DATASET_REMOVE_FAILED:     msgStr = OML_MSG_HDF5_DATASET_REMOVE_FAILED;     break;
+    case OML_ERR_HDF5_DATASET_EXIST:             msgStr = OML_MSG_HDF5_DATASET_EXIST;             break;
+    case OML_ERR_HDF5_CHUNK_MATRIXDIM_INVALID:   msgStr = OML_MSG_HDF5_CHUNK_MATRIXDIM_INVALID;   break;
+    case OML_ERR_HDF5_CHUNK_MATRIX_INVALID_ROW:  msgStr = OML_MSG_HDF5_CHUNK_MATRIX_INVALID_ROW;  break;
+    case OML_ERR_HDF5_EMPTYMATRIX:               msgStr = OML_MSG_HDF5_EMPTYMATRIX;               break;
+    case OML_ERR_HDF5_EMPTYCELL:                 msgStr = OML_MSG_HDF5_EMPTYCELL;                 break;
+    case OML_ERR_HDF5_INVALID_CELL_MEMBERS:      msgStr = OML_MSG_HDF5_INVALID_CELL_MEMBERS;      break;
+    case OML_ERR_HDF5_STRUCT_INVALID_DIMS:       msgStr = OML_MSG_HDF5_STRUCT_INVALID_DIMS;       break;
+    case OML_ERR_HDF5_ATTRIBUTE_CREATION_FAILED: msgStr = OML_MSG_HDF5_ATTRIBUTE_CREATION_FAILED; break;
+    case OML_ERR_HDF5_INVALID_LOCATION:          msgStr = OML_MSG_HDF5_INVALID_LOCATION;          break;
+    case OML_ERR_HDF5_ATTRIBUTE_EXIST:           msgStr = OML_MSG_HDF5_ATTRIBUTE_EXIST;           break;
+    case OML_ERR_HDF5_INVALID_ATTRIBUTE:         msgStr = OML_MSG_HDF5_INVALID_ATTRIBUTE;         break;
+    case OML_ERR_HDF5_INVALID_STRUCT_MEMBERS:    msgStr = OML_MSG_HDF5_INVALID_STRUCT_MEMBERS;    break;
+    case OML_ERR_HDF5_INVALID_ATTRIBUTE_DATA:    msgStr = OML_MSG_HDF5_INVALID_ATTRIBUTE_DATA;    break;
 
     default: break;
     }

@@ -127,10 +127,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(OML_ROOT)\src\oml\toolboxes\omlmatio\MatioTboxFuncs.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\oml\toolboxes\omlMatio\omlmatio.cxx" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(OML_ROOT)\src\oml\toolboxes\omlmatio\MatioTboxDefs.h" />
     <ClInclude Include="$(OML_ROOT)\src\oml\toolboxes\omlmatio\MatioTboxFuncs.h" />
+    <ClInclude Include="$(OML_ROOT)\src\oml\toolboxes\omlMatio\omlmatio.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

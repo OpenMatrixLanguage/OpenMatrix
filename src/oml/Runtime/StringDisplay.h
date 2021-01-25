@@ -31,7 +31,7 @@ class OutputFormat;
 //! \brief Displays formatted multiline string output
 //!
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS StringDisplay : public CurrencyDisplay
+class OMLDLL_DECLS StringDisplay : public CurrencyDisplay
 {
 public:
     friend class Currency; //! Only currency is allowed to construct

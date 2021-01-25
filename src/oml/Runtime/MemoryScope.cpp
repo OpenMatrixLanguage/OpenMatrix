@@ -37,6 +37,16 @@ MemoryScope::MemoryScope(FunctionInfo* info)
     }
 }
 
+//------------------------------------------------------------------------------
+// Constructor
+//------------------------------------------------------------------------------
+MemoryScope::MemoryScope()
+	: fi(NULL)
+	, debug_line(0)
+	, debug_filename(NULL)
+{
+}
+
 MemoryScope::MemoryScope(const MemoryScope& in)
 {
 	scope            = in.scope;
@@ -44,7 +54,6 @@ MemoryScope::MemoryScope(const MemoryScope& in)
 	fi               = in.fi;
 	debug_filename   = in.debug_filename;
 	debug_line       = in.debug_line;
-	nested_functions = in.nested_functions;
 }
 
 MemoryScope::MemoryScope(const MemoryScope& in, FunctionInfo* finfo)
@@ -54,9 +63,6 @@ MemoryScope::MemoryScope(const MemoryScope& in, FunctionInfo* finfo)
 	fi               = finfo;
 	debug_filename   = in.debug_filename;
 	debug_line       = in.debug_line;
-
-	if (finfo)
-		nested_functions = in.nested_functions;
 }
 //------------------------------------------------------------------------------
 // Destructor
@@ -64,23 +70,17 @@ MemoryScope::MemoryScope(const MemoryScope& in, FunctionInfo* finfo)
 MemoryScope::~MemoryScope()
 {
     if (fi)
-    {
         fi->DecrRefCount(); //\todo: Delete if refcnt is 0?
-    }
-	std::unordered_map<const std::string*, FunctionInfo*>::const_iterator iter;
+}
 
-	for (iter = nested_functions.begin(); iter != nested_functions.end(); iter++)
-	{
-		FunctionInfo* nfi = iter->second;
-		
-		nfi->DecrRefCount();
-		
-        if (nfi->GetRefCount() == 0)
-        {
-            delete nfi;
-            nfi = nullptr;
-        }
-	}
+void MemoryScope::Initialize(FunctionInfo* finfo)
+{
+	fi = finfo;
+
+	if (fi)
+		fi->IncrRefCount();
+
+	SetDebugInfo(NULL, 0);
 }
 
 const Currency& MemoryScope::GetValue(const std::string& varname) const
@@ -377,6 +377,16 @@ bool MemoryScope::Remove(const std::regex& varname)
     return rv;
 }
 
+void MemoryScope::Reset()
+{
+	scope.clear();
+	global_names.clear();
+
+	fi = NULL;
+	debug_filename = NULL;
+	debug_line = 0;
+}
+
 void MemoryScope::ClearLocals()
 {
 	scope.clear();
@@ -453,6 +463,11 @@ bool MemoryScope::IsPersistent(const std::string* varname) const
 	return false;
 }
 
+bool MemoryScope::IsEmpty() const
+{
+	return scope.empty();
+}
+
 std::string MemoryScope::FunctionName() const
 {
 	if (fi)
@@ -494,8 +509,8 @@ std::vector<const std::string*> MemoryScope::GetVariableNamePtrs() const
 
 FunctionInfo* MemoryScope::GetNestedFunction(const std::string* func_name)
 {
-	if (nested_functions.find(func_name) != nested_functions.end())
-		return nested_functions[func_name];
+	if (fi && fi->nested_functions->find(func_name) != fi->nested_functions->end())
+		return (*fi->nested_functions)[func_name];
 	else
 		return NULL;
 }
@@ -521,22 +536,20 @@ const std::string& MemoryScope::GetFilename() const
 	return *(Currency::pm.GetStringPointer("Unknown"));
 }
 
-void MemoryScope::RegisterNestedFunction(FunctionInfo* fi)
+void MemoryScope::RegisterNestedFunction(FunctionInfo* in_fi)
 {
-	const std::string* fi_name = fi->FunctionNamePtr();
+	const std::string* fi_name = in_fi->FunctionNamePtr();
 
-	std::unordered_map<const std::string*, FunctionInfo*>::iterator iter = nested_functions.find(fi_name);
-	if (iter != nested_functions.end())
-	{
-		FunctionInfo* fi = iter->second;
+	// we already have this registered, so don't overwrite it
+	if (GetNestedFunction(in_fi->FunctionNamePtr()))
+		return;
 
-		fi->DecrRefCount();
+	(*fi->nested_functions)[fi_name] = in_fi;
+}
 
-		if (fi->GetRefCount() == 0)
-			delete fi;
-	}
-
-	nested_functions[fi_name] = fi; 
+MemoryScopeManager::MemoryScopeManager() : delete_scopes(true), first_scope_with_nested(-1), pool_in_use(0)
+{
+	stack_pool = new MemoryScope[128];
 }
 
 MemoryScopeManager::~MemoryScopeManager()
@@ -579,7 +592,24 @@ void MemoryScopeManager::OpenScope(FunctionInfo*fi)
 	if (memory_stack.size() == MAX_VAL) 
 		throw OML_Error("Maximum function depth reached");
 
-	MemoryScope* temp = new MemoryScope(fi);
+	MemoryScope* temp;
+
+	if (unused_scopes.size())
+	{
+		temp = unused_scopes.back();
+		unused_scopes.pop_back();
+	}
+	else
+	{
+		temp = &(stack_pool[pool_in_use]);
+		++pool_in_use;
+
+		if (pool_in_use == 128)
+			throw OML_Error("Maximum scope depth reached");
+	}
+
+	temp->Initialize(fi);
+
 	memory_stack.push_back(temp);
 }
 
@@ -598,7 +628,7 @@ void MemoryScopeManager::CloseScope()
 		size_t       stack_size = memory_stack.size();
 		MemoryScope* parent = memory_stack[stack_size-2];
 
-		if (parent->fi != temp->fi) // don't copy variables during recursive function calls
+		if (parent->fi && (parent->fi != temp->fi)) // don't copy variables during recursive function calls
 		{
 			for (auto iter = temp->scope.begin(); iter != temp->scope.end(); iter++)
 			{
@@ -620,7 +650,9 @@ void MemoryScopeManager::CloseScope()
 
 	ClearEnv(temp);
 
-	delete temp;
+	temp->Reset();
+	unused_scopes.push_back(temp);
+
 	memory_stack.pop_back();
 
 	if (first_scope_with_nested == GetStackDepth())
@@ -911,9 +943,16 @@ FunctionInfo* MemoryScopeManager::GetNestedFunction(const std::string* func_name
 
 	int stack_depth = GetStackDepth();
 
+	const std::string* current_file = GetCurrentScope()->GetFilenamePtr();
+
 	for (int j=0; j<stack_depth-first_scope_with_nested; j++)
 	{
 		MemoryScope* scope = GetScope(j);
+
+		const std::string* scope_file = scope->GetFilenamePtr();
+
+		if (scope_file != current_file)
+			continue;
 
 		FunctionInfo* fi = scope->GetNestedFunction(func_name);
 
@@ -928,9 +967,16 @@ FunctionInfo* MemoryScopeManager::GetLocalFunction(const std::string* func_name)
 {
 	int stack_depth = GetStackDepth();
 
+	const std::string* current_file = GetCurrentScope()->GetFilenamePtr();
+
 	for (int j=0; j<stack_depth; j++)
 	{
 		MemoryScope* scope = GetScope(j);
+
+		const std::string* scope_file = scope->GetFilenamePtr();
+
+		if (scope_file != current_file)
+			continue;
 
 		FunctionInfo* fi = scope->GetLocalFunction(func_name);
 

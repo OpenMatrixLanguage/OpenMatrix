@@ -313,6 +313,8 @@ bool BuiltInFuncsSystem::Dir(EvaluatorInterface           eval,
 
     bool echo = (eval.GetNargoutValue() == 0);  // Just print the results
     std::vector<std::string> files(utils.GetMatchingFiles(pattern));
+
+    std::unique_ptr<StructData> sd(EvaluatorInterface::allocateStruct());
     if (files.empty())
     {
         std::string warn("Warning: Cannot find directory/files matching '"
@@ -320,7 +322,7 @@ bool BuiltInFuncsSystem::Dir(EvaluatorInterface           eval,
         utils.SetWarning(eval, warn);
         if (!echo)
         {
-            outputs.push_back(new StructData());
+            outputs.push_back(sd.release());
         }
         return true;
     }
@@ -348,7 +350,6 @@ bool BuiltInFuncsSystem::Dir(EvaluatorInterface           eval,
     }
 
     // Create an array of structs
-    StructData *sd       = new StructData();
     int         numfiles = static_cast<int>(files.size());
     sd->DimensionNew(numfiles, 1);
 
@@ -388,7 +389,7 @@ bool BuiltInFuncsSystem::Dir(EvaluatorInterface           eval,
         sd->SetValue(i, 0, "bytes", numbytes);
         sd->SetValue(i, 0, "isdir", isdir);
     }
-    outputs.push_back(sd);
+    outputs.push_back(sd.release());
     return true;
 }
 //------------------------------------------------------------------------------
@@ -1802,6 +1803,77 @@ bool BuiltInFuncsSystem::Diary(EvaluatorInterface           eval,
         }
         name = utils.StripMultipleSlashesAndNormalize(name);
         ofs.open(name, std::ios_base::out | std::ios_base::trunc);
+    }
+    return true;
+}
+//------------------------------------------------------------------------------
+// Returns true after starting/stopping writing to outputlog [outputlog]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsSystem::OutputLog(EvaluatorInterface           eval,
+                                   const std::vector<Currency>& inputs,
+                                   std::vector<Currency>& outputs)
+{
+    std::ofstream& ofs = CurrencyDisplay::GetOutputLog();
+    std::wstring    name(L"omloutputlog.txt");
+    bool           close = false;
+
+    if (inputs.empty())
+    {
+        close = ofs.is_open();
+    }
+    else
+    {
+        const Currency& cur = inputs[0];
+        if (cur.IsLogical())
+        {
+            int val = static_cast<int>(cur.Scalar());
+            if (val == 0)
+            {
+                close = true;
+            }
+            else if (val != 1)
+            {
+                throw(OML_ERR_BAD_STRING, 1);
+            }
+        }
+        else if (cur.IsString())
+        {
+            std::string val (cur.StringVal());
+            if (val.empty())
+            {
+                throw (OML_ERR_NONEMPTY_STR, 1);
+            }
+            std::string lower(val);
+            std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+            if (lower == "off")
+            {
+                close = true;
+            }
+            else if (lower != "on")
+            {
+                name = BuiltInFuncsUtils::StdString2WString(val);
+            }
+        }
+    }
+
+    if (ofs.is_open())
+    {
+        ofs.close(); // Force close if outputlog is open
+    }
+
+    if (!close)
+    {
+        if (name.empty())
+        {
+            name = L"omloutputlog.txt";
+        }
+        name = BuiltInFuncsUtils::GetNormpathW(name);
+#ifdef OS_WIN
+        ofs.open(name, std::ios_base::out | std::ios_base::trunc);
+#else
+        std::string logname(BuiltInFuncsUtils::WString2StdString(name));
+        ofs.open(logname, std::ios_base::out | std::ios_base::trunc);
+#endif
     }
     return true;
 }

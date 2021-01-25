@@ -30,7 +30,7 @@
 //! \brief Class for built-in functions implementing elementary math commands
 //!
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS BuiltInFuncsElemMath
+class OMLDLL_DECLS BuiltInFuncsElemMath
 {
 public:
     //!

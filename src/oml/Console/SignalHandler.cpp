@@ -18,11 +18,23 @@
 #include "SignalHandler.h"
 
 #include <cassert>
+#include <fstream>
 
 #include "WrapperBase.h"
+#include "ConsoleWrapper.h"
+#include "Runtime/CurrencyDisplay.h"
 
 // End defines/includes
-
+//------------------------------------------------------------------------------
+// Destructor
+//------------------------------------------------------------------------------
+SignalHandler::~SignalHandler()
+{
+    if (_src)
+    {
+        _wrapper->SetChildSignalHandler(nullptr);
+    }
+}
 //------------------------------------------------------------------------------
 // Copy constructor
 //------------------------------------------------------------------------------
@@ -85,9 +97,21 @@ void SignalHandler::OnUserInputHandler(const std::string& prompt,
 //------------------------------------------------------------------------------
 void SignalHandler::OnPrintResultHandler(const Currency& cur)
 {
-    // Printing is done only by the source console wrapper
-    if (!_src && _wrapper)  
+	assert(_wrapper);
+    if (!_src)  // This is the main interpreter
+    {
         _wrapper->HandleOnPrintResult(cur);
+    }
+    else // This is a child interpreter
+    {
+        std::ofstream& ofs = CurrencyDisplay::GetOutputLog();
+        if (ofs.is_open())
+        {
+            _wrapper->SetChildSignalHandler(this);
+            _wrapper->HandleOnPrintResult(cur);
+            _wrapper->SetChildSignalHandler(nullptr);
+        }
+    }
 }
 //------------------------------------------------------------------------------
 // Add nested display

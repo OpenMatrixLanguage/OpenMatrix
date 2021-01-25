@@ -19,6 +19,7 @@
 
 // Begin defines/includes
 #include "Runtime/Currency.h"
+#include "SignalHandler.h"
 
 class CurrencyDisplay;
 class Interpreter;
@@ -58,6 +59,11 @@ public:
     //! Handles nested displays during pagination
     //! \param[in] display Display to be added
     virtual void HandleOnAddDisplay( CurrencyDisplay* display) {}
+
+	//!
+	//! Sets child signal handler
+	//!
+	virtual void SetChildSignalHandler( SignalHandler* handler) {}
 
 protected:
     

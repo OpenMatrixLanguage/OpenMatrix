@@ -18,7 +18,7 @@
 #define __OMLUTILS__
 
 // Begin defines/includes
-#include "Hml2Dll.h"
+#include "OMLDll.h"
 
 #include <string>
 #include <vector>
@@ -28,7 +28,7 @@
 //------------------------------------------------------------------------------
 //! Class for utility functions used by evaluator/interpreter/built in func
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS OmlUtils
+class OMLDLL_DECLS OmlUtils
 {
     public:
     //! Destructor

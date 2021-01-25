@@ -1,7 +1,7 @@
 /**
 * @file CellNDisplay.cxx
 * @date January 2019
-* Copyright (C) 2019 Altair Engineering, Inc.
+* Copyright (C) 2019-2020 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -86,14 +86,27 @@ std::string CellNDisplay::GetOutput(const OutputFormat* fmt,
 		return std::string(os.str());
 	}
 
+    bool paginate = IsValidDisplaySize();
+    if (!paginate)
+    {
+        m_rowBegin = 0;
+        m_rowEnd = 0;
+        m_colBegin = 0;
+        m_colEnd = 0;
+    }
+
 	std::string header;
-	if (m_rowBegin == 0 && !m_currency.IsDispOutput())
+	if (m_rowBegin < 1 && !m_currency.IsDispOutput())
 	{
 		header = os.str();
 	}
 
 	// Disabled pagination for now
+    CurrencyDisplay::PAGINATE cachedVal = CurrencyDisplay::GetPaginate();
+    CurrencyDisplay::SetPaginate(CurrencyDisplay::PAGINATE_OFF);
 	std::string output = GetOutputNoPagination(fmt);
+    CurrencyDisplay::SetPaginate(cachedVal);
+
 	return (header + output);
 }
 //------------------------------------------------------------------------------
@@ -205,7 +218,7 @@ std::string CellNDisplay::GetOutputNoPagination(const OutputFormat* fmt) const
 	if (cell->Size() == 1)
 	{
 		Currency temp((*cell)(0));
-		os << temp.GetOutputString(fmt) << std::endl;
+		os << temp.GetOutputString(fmt) << '\n';
 	}
 	else
 	{
@@ -216,13 +229,13 @@ std::string CellNDisplay::GetOutputNoPagination(const OutputFormat* fmt) const
 		{
 			Currency cur(*itr);
 
-			os << std::endl << labels[i] << " = ";
+			os << '\n' << labels[i] << " = ";
 
 			std::string tmp(cur.GetOutputString(fmt));
 			StripEndline(tmp);
 			if (!tmp.empty())
 			{
-				os << tmp << std::endl;
+				os << tmp << '\n';
 			}
 
 			CurrencyDisplay::DeleteDisplay(cur.GetDisplay());

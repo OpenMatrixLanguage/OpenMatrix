@@ -17,7 +17,7 @@
 #ifndef __BUILTINFUNCSFILE__
 #define __BUILTINFUNCSFILE__
 
-#include "Hml2Dll.h"
+#include "OMLDll.h"
 #include "EvaluatorInt.h"
 
 //------------------------------------------------------------------------------
@@ -26,7 +26,7 @@
 //! \brief Utility class for built-in functions related to file I/O commands
 //!
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS BuiltInFuncsFile
+class OMLDLL_DECLS BuiltInFuncsFile
 {
 public:
     //!
@@ -193,8 +193,19 @@ private:
     //! Returns true if this is a complex number along with the value
     //! \param in  Input string
     //! \param val Value
+    //!
     bool IsComplex(const std::string& in,
                    double&            val);
+    //!
+    //! Utility returning true if string represents complex value
+    //! \param in  Input string
+    //! \param rval Real value
+    //! \param ival Imaginary value
+    //!
+    static bool IsComplex(const std::string& in,
+                          double&            rval,
+                          double&            ival);
+
     //!
     //! Returns a vector range, given a string range in excel format
     //! \param strRange Given range in the form A1..B5 or A1:B5
@@ -242,6 +253,8 @@ private:
     //!
     static void EscapeDelimiters(std::string&,
                                  bool&);
+    //!
+    //! Returns true if strtod conversion is successful
 }; 
 
 #endif  // __BUILTINFUNCSFILE__

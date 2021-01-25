@@ -275,6 +275,18 @@ unsigned long long BuiltInFuncsCore::GetsBytesUsed(const Currency& cur) const
         
         return bytes;
     }
+	else if (cur.IsNDCellArray())
+	{
+		HML_ND_CELLARRAY* cells = cur.CellArrayND();
+		if (!cells) return 0;
+
+		int sz = cells->Size();
+		unsigned long long bytes = 0;
+		for (int i = 0; i < sz; ++i)
+			bytes += funcs.GetsBytesUsed((*cells)(i));
+
+		return bytes;
+	}
     else if (cur.IsStruct())
     {
         unsigned long long  bytes = 0;
@@ -419,6 +431,11 @@ bool BuiltInFuncsCore::Whos(EvaluatorInterface           eval,
             sz     = funcs.DimensionToString(mtxn->Dimensions());
             isreal = mtxn->IsReal();
         }
+		else if (var.IsNDCellArray())
+		{
+			HML_ND_CELLARRAY* cells = var.CellArrayND();
+			sz = funcs.DimensionToString(cells->Dimensions());
+		}
         else if (var.IsSparse())
         {
             const hwMatrixS* mtx = var.MatrixS();

@@ -374,7 +374,7 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
 		if (m_values.IsReal())
 		{
 			T1* srcV = copyV.GetRealData();
-			hwMathStatus status = m_values.Dimension(nDistinctIndices, 1, hwMatrix::REAL);
+			status = m_values.Dimension(nDistinctIndices, 1, hwMatrix::REAL);
 			T1* destV = m_values.GetRealData();
 
 			for (int ii = 0; ii < nDistinctIndices; ++ii)
@@ -426,7 +426,7 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
 		else
 		{
 			T2* srcV = copyV.GetComplexData();
-			hwMathStatus status = m_values.Dimension(nDistinctIndices, 1, hwMatrix::COMPLEX);
+			status = m_values.Dimension(nDistinctIndices, 1, hwMatrix::COMPLEX);
 			T2* destV = m_values.GetComplexData();
 
 			for (int ii = 0; ii < nDistinctIndices; ++ii)
@@ -1274,13 +1274,13 @@ void hwTMatrixS<T1, T2>::Reshape(int m, int n)
         throw hwMathException(HW_MATH_ERR_MATRIXRESHAPE2, 1, 2);
 
     // reassign element locations
-    int col = 0;
     std::vector<int> accumulator(n);
 
     for (int ii = 0; ii < m_rows.size(); ++ii)
     {
         // get current (row, col)
         int row = m_rows[ii];
+        int col;
 
         for (col = 0; col < m_nCols; ++col)
         {
@@ -1354,7 +1354,7 @@ void hwTMatrixS<T1, T2>::UnpackComplex(hwTMatrixS<T1, T2>* real, hwTMatrixS<T1, 
         if (imag)
         {
             hwTMatrix<T1, T2> imagD;
-            hwMathStatus status = m_values.UnpackComplex(&realD, &imagD);
+            status = m_values.UnpackComplex(&realD, &imagD);
             imag->m_nRows    = m_nRows;
             imag->m_nCols    = m_nCols;
             imag->m_values   = imagD;
@@ -1377,7 +1377,7 @@ void hwTMatrixS<T1, T2>::UnpackComplex(hwTMatrixS<T1, T2>* real, hwTMatrixS<T1, 
     else if (imag)
     {
         hwTMatrix<T1, T2> imagD;
-        hwMathStatus status = m_values.UnpackComplex(nullptr, &imagD);
+        status = m_values.UnpackComplex(nullptr, &imagD);
         imag->m_nRows    = m_nRows;
         imag->m_nCols    = m_nCols;
         imag->m_values   = imagD;
@@ -4759,7 +4759,6 @@ void hwTMatrixS<T1, T2>::Diag(const hwTMatrixS<T1, T2>& source, int k)
         std::vector<int> ivec;
         std::vector<int> jvec;
         hwTMatrix<T1, T2> diag;
-        int nnz = 0;
 
         if (length > 0)
         {
@@ -4769,6 +4768,8 @@ void hwTMatrixS<T1, T2>::Diag(const hwTMatrixS<T1, T2>& source, int k)
             {
                 throw hwMathException(HW_MATH_ERR_OUTOFMEMORY);
             }
+
+            int nnz = 0;
 
             if (source.IsReal())   // real
             {
@@ -4945,7 +4946,6 @@ void hwTMatrixS<T1, T2>::Transpose()
     // This can probably be done with mkl_dcsrcsc and mkl_zcsrcsc
     int nnz = static_cast<int>(m_rows.size());
     std::vector<int> jvec(nnz);
-    int col = 0;
 
     for (int col = 0; col < m_nCols; ++col)
     {
@@ -4966,7 +4966,6 @@ void hwTMatrixS<T1, T2>::Transpose(const hwTMatrixS<T1, T2>& source)
     // This can probably be done with mkl_dcsrcsc and mkl_zcsrcsc
     int nnz = static_cast<int> (source.m_rows.size());
     std::vector<int> jvec(nnz);
-    int col = 0;
 
     for (int col = 0; col < source.m_nCols; ++col)
     {
@@ -5080,8 +5079,6 @@ void hwTMatrixS<T1, T2>::Max(hwTMatrixS<T1, T2>& val, hwTMatrix<int, hwTComplex<
 
     if (cols)   // max for each column
     {
-        int index = 0;
-
         if (IsReal())
         {
             status = max.Dimension(1, m_nCols, hwTMatrix<T1, T2>::REAL);
@@ -5216,8 +5213,6 @@ void hwTMatrixS<T1, T2>::Max(hwTMatrixS<T1, T2>& val, hwTMatrix<int, hwTComplex<
     }
     else   // max for each row
     {
-        int nnz = NNZ();
-
         if (IsReal())
         {
             status = max.Dimension(m_nRows, 1, hwTMatrix<T1, T2>::REAL);
@@ -5332,8 +5327,6 @@ void hwTMatrixS<T1, T2>::Min(hwTMatrixS<T1, T2>& val, hwTMatrix<int, hwTComplex<
 
     if (cols)   // min for each column
     {
-        int index = 0;
-
         if (IsReal())
         {
             status = min.Dimension(1, m_nCols, hwTMatrix<T1, T2>::REAL);
@@ -5496,8 +5489,6 @@ void hwTMatrixS<T1, T2>::Min(hwTMatrixS<T1, T2>& val, hwTMatrix<int, hwTComplex<
     }
     else   // min for each row
     {
-        int nnz = NNZ();
-
         if (IsReal())
         {
             status = min.Dimension(m_nRows, 1, hwTMatrix<T1, T2>::REAL);
@@ -5641,8 +5632,8 @@ void hwTMatrixS<T1, T2>::Add(const hwTMatrixS<T1, T2>& A, const hwTMatrixS<T1, T
         throw hwMathException(HW_MATH_ERR_NOTIMPLEMENT);
 
     // check dimensions
-    int m_nRows = A.m_nRows;
-    int m_nCols = A.m_nCols;
+    m_nRows = A.m_nRows;
+    m_nCols = A.m_nCols;
 
     if (A.m_nRows != B.m_nRows || A.m_nCols != B.m_nCols)
     {

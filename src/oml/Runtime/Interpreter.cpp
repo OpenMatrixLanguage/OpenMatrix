@@ -505,11 +505,22 @@ Currency InterpreterImpl::CallFunctionInCurrentScope(FunctionInfo* finfo, const 
 
 	_eval.Mark();
 
+	MemoryScopeManager* msm       = _eval.GetMSM();
+	MemoryScope*        cur_scope = msm->GetCurrentScope();
+	FunctionInfo*       cur_fi    = cur_scope->GetFunctionInfo();
+
 	// Need a try-catch block to close scopes properly in case of any error
 	try
 	{
+		if (!cur_fi)
+			cur_scope->SetFunctionInfo(finfo);
+
 		Currency ret = _eval.CallInternalFunction(finfo, inputs, false, "", Currency());
 		GetOutputCurrencyList(true); // clear any outputs this may have generated
+
+		if (!cur_fi)
+			cur_scope->SetFunctionInfo(NULL);
+
 		return ret;
 	}
 	catch (OML_Error & error)
@@ -521,6 +532,9 @@ Currency InterpreterImpl::CallFunctionInCurrentScope(FunctionInfo* finfo, const 
 
 		_eval.PushResult(cur);
 		_eval.Restore();
+
+		if (!cur_fi)
+			cur_scope->SetFunctionInfo(NULL);
 
 		return cur;
 	}
@@ -698,6 +712,9 @@ FunctionInfo* InterpreterImpl::FunctionInfoFromName(const std::string& funcName)
 
 	if (!fi && fptr)
 		return new FunctionInfo(funcName, fptr);
+
+	if (!fi && aptr)
+		return new FunctionInfo(funcName, aptr);
 
     return fi;
 }

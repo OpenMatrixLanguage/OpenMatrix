@@ -1,7 +1,7 @@
 /**
 * @file MatioTboxFuncs.h
 * @date November 2015
-* Copyright (C) 2015-2019 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -34,12 +34,12 @@ extern "C"
     //! Entry point which registers load/save functions with oml
     //! \param eval Evaluator interface
     //!
-    MATIOHML2TBOX_DECLS int InitDll(EvaluatorInterface eval);
+    MATIOOMLTBOX_DECLS int InitDll(EvaluatorInterface eval);
     //!
     //! Returns toolbox version
     //! \param eval Evaluator interface
     //!
-    MATIOHML2TBOX_DECLS double GetToolboxVersion(EvaluatorInterface eval);
+    MATIOOMLTBOX_DECLS double GetToolboxVersion(EvaluatorInterface eval);
 }
 
 //!

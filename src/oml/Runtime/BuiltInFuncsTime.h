@@ -17,7 +17,7 @@
 #ifndef __BUILTINFUNCSTIME__
 #define __BUILTINFUNCSTIME__
 
-#include "Hml2Dll.h"
+#include "OMLDll.h"
 #include "EvaluatorInt.h"
 
 //------------------------------------------------------------------------------
@@ -26,7 +26,7 @@
 //! \brief Utility class for built-in functions related to time commands
 //!
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS BuiltInFuncsTime
+class OMLDLL_DECLS BuiltInFuncsTime
 {
 public:
     //!

@@ -98,8 +98,10 @@ std::string StructDisplay::GetOutputNoPagination(const OutputFormat* fmt,
         fields = sd->GetFieldNames();
     }
 
-    std::string myindent (GetIndentString(m_indent));
-    bool        isindented = (!myindent.empty());
+    int cindent = m_indent + 1;
+
+    std::string childindent(GetIndentString(cindent));
+    std::string myindent(GetIndentString(m_indent));
 
     if (m_currency.IsObject())
     {
@@ -121,11 +123,11 @@ std::string StructDisplay::GetOutputNoPagination(const OutputFormat* fmt,
     if (structsize != 1 && (!fields.empty() || sd->M() > 0 || sd->N() > 0))
     { 
         // Just print the name of the fields
-        os << std::endl;
-        os << myindent << "Struct array of size " << sd->M() << " x " << sd->N();
+        os << '\n';
+        os << childindent << "Struct array of size " << sd->M() << " x " << sd->N();
 		os << " with fields:";
     }
-    os << std::endl;
+    os << '\n';
     for (std::map<std::string, int>::const_iterator itr = fields.begin(); 
          itr != fields.end(); ++itr)
     {
@@ -133,15 +135,16 @@ std::string StructDisplay::GetOutputNoPagination(const OutputFormat* fmt,
 			os << '\n';
 
         std::string name (itr->first);
-        os << myindent << name;
+        os << childindent << name;
 
         if (structsize != 1) continue; // Show values only for size = 1
 
         Currency cur (sd->GetValue(0, 0, name));
         CurrencyDisplay* display = cur.GetDisplay();
-        if (display && isindented)
+        if (display)
         {
-            display->SetIndent(m_indent);
+            display->SetParentDisplay(const_cast<StructDisplay*>(this));
+            display->SetIndent(cindent);
         }
 
         os << ": " << cur.GetOutputString(fmt);
@@ -250,8 +253,9 @@ std::string StructDisplay::GetOutputBackPagination(const OutputFormat* fmt) cons
     std::map<std::string, int> fields (sd->GetFieldNames());
     std::map<std::string, int>::reverse_iterator ritr = fields.rbegin();
 
-    std::string myindent = GetIndentString(m_indent);
-    bool        isindented = (!myindent.empty());
+    int         cindent = m_indent + 1;
+    std::string childindent = (GetIndentString(cindent));
+    std::string myindent = (GetIndentString(m_indent));
 
     for (int j = numcols - 1; j >= 0 && m_linesPrinted <= linestofit && ritr != fields.rend();
          --j, ++ritr)
@@ -265,22 +269,17 @@ std::string StructDisplay::GetOutputBackPagination(const OutputFormat* fmt) cons
 
         Currency cur (sd->GetValue(0, 0, field));
         CurrencyDisplay* disp = cur.GetDisplay();
-        if (disp && isindented)
+        if (disp)
         {
-            disp->SetIndent(m_indent);
+            disp->SetParentDisplay(const_cast<StructDisplay*>(this));
+            disp->SetIndent(cindent);
         }
 
         bool canpaginate = CanPaginate(cur);
-        if (canpaginate)
-        {
-            if (disp)
-            {
-                disp->SetParentDisplay(const_cast<StructDisplay*>(this));
-            }
-        }
+
         std::string tmp (cur.GetOutputString(fmt));
         StripEndline(tmp);
-        os << myindent << field << ": " << tmp;
+        os << childindent << field << ": " << tmp;
 
         if (j != endcol)
             os << std::endl;
@@ -324,14 +323,15 @@ std::string StructDisplay::GetOutputForwardPagination(const OutputFormat* fmt,
 
     const_cast<StructDisplay*>(this)->UpdateNumLinesPrinted();
 
-    std::string myindent   = GetIndentString(m_indent);
-    bool        isindented = (!myindent.empty());
+    int         cindent = m_indent + 1;
+    std::string childindent(GetIndentString(cindent));
+    std::string myindent(GetIndentString(m_indent));
 
     bool printclosebraces = false;
     if (m_colBegin == 0) // Need header only for first col
     {
         printclosebraces = true;
-        os << "struct [" << std::endl;
+        os << "struct [" << '\n';
     }
     else
     {
@@ -371,20 +371,17 @@ std::string StructDisplay::GetOutputForwardPagination(const OutputFormat* fmt,
         std::string field (itr->first);
         Currency cur (sd->GetValue(0, 0, field));
         CurrencyDisplay* disp = cur.GetDisplay();
-        if (disp && isindented)
+        if (disp)
         {
-            disp->SetIndent(m_indent);
+            disp->SetParentDisplay(const_cast<StructDisplay*>(this));
+            disp->SetIndent(cindent);
         }
 
         bool canpaginate = CanPaginate(cur);
-        if (disp && canpaginate)
-        {
-           disp->SetParentDisplay(const_cast<StructDisplay*>(this));
-        }
 
         std::string tmp (cur.GetOutputString(fmt));
         StripEndline(tmp);
-        os << myindent << field << ": " << tmp;
+        os << childindent << field << ": " << tmp;
 
         if (!canpaginate)
         {

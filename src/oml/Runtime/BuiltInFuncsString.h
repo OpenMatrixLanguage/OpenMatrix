@@ -28,7 +28,7 @@ class OutputFormat;
 //! \brief Utility class for built-in functions implementing string commands
 //!
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS BuiltInFuncsString
+class OMLDLL_DECLS BuiltInFuncsString
 {
 public:
     //!

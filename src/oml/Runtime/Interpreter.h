@@ -18,7 +18,7 @@
 #define __Interpreter_h
 
 // Begin defines/includes
-#include "Hml2Dll.h"
+#include "OMLDll.h"
 
 #include "Currency.h"
 #include "EvaluatorDebug.h"
@@ -34,7 +34,7 @@ class FunctionInfo;
 //------------------------------------------------------------------------------
 //! oml interpreter
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS Interpreter
+class OMLDLL_DECLS Interpreter
 {
 public:
     Interpreter(ExprTreeEvaluator* source);        //! Constructor
