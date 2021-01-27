@@ -39,8 +39,6 @@ before_build:
     
     set OML
     
-    set MKL
-    
     set KMP
     
 
