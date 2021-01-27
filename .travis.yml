@@ -24,6 +24,7 @@ env:
   OML_PYTHONHOME=/usr
   OML_PYTHONVERSION=python3
   OML_PYTHON_NUMPYDIR=$OML_PYTHONHOME/lib/$OML_PYTHONVERSION/dist-packages/numpy/core/include/numpy/
+  KMP_AFFINITY=compact,1,0,granularity=fine
 before_script:
 script:
 - export LD_LIBRARY_PATH=$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/mkl/lib/intel64_lin:$LD_LIBRARY_PATH

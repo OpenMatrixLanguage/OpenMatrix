@@ -13,10 +13,7 @@ export OML_HELP=$PWD/help/win/en/topics/reference/oml_language/
 # Save the system default
 export LD_LIBRARY_PATH_SAVE=$LD_LIBRARY_PATH
 
-
-set KMP_AFFINITY=SCATTER
-set MKL_NUM_THREADS=7
-set MKL_DOMAIN_NUM_THREADS=MKL_BLAS=7
+export KMP_AFFINITY=compact,1,0,granularity=fine
 
 # add directory for libiomp5md.dll
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/compiler/lib/intel64_lin

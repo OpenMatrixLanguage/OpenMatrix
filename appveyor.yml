@@ -22,9 +22,7 @@ environment:
   OML_THIRDPARTY: c:\oss\third_party\third_party
   OML_APPVEYOR: TRUE
   OML_PYTHON: c:\python36-x64
-  KMP_AFFINITY: SCATTER
-  MKL_NUM_THREADS: 7
-  MKL_DOMAIN_NUM_THREADS: MKL_BLAS=7
+  KMP_AFFINITY: compact,1,0,granularity=fine
   
 before_build:
 - cmd: >-

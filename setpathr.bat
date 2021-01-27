@@ -24,9 +24,7 @@ rem add MKL directory
 set path=%OML_THIRDPARTY%\intel\compilers_and_libraries_2019.5.281\windows\redist\intel64_win\mkl;%path%
 
 rem MKL related environment variables.
-set KMP_AFFINITY=SCATTER
-set MKL_NUM_THREADS=7
-set MKL_DOMAIN_NUM_THREADS=MKL_BLAS=7
+set KMP_AFFINITY=compact,1,0,granularity=fine
 
 rem add fftw directory to path
 set path=%OML_THIRDPARTY%\fftw\fftw-3.2.2\fftw-3.2.2-libs\x64\Release;%path%
