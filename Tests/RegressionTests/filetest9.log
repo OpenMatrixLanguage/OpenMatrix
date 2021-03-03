@@ -1,6 +1,0 @@
-fname = FileManipulation/EmptyFile.txt
-fid = 3
-error = 
-path = FileManipulation/EmptyFile.txt
-mode = a+b
-ans = 0
