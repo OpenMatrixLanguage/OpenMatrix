@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="set" /><meta name="abstract" content="Sets property values for graphics handles." /><meta name="description" content="Sets property values for graphics handles." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Plotting Commands" /><meta name="indexterms" content="set" /><meta name="DC.subject" content="set" /><meta name="keywords" content="set" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/properties.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/get.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>set</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="set" /><meta name="abstract" content="Sets property values for graphics handles." /><meta name="description" content="Sets property values for graphics handles." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Plotting Commands" /><meta name="indexterms" content="set" /><meta name="DC.subject" content="set" /><meta name="keywords" content="set" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/properties.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/get.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>set</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -19,6 +19,8 @@
 
     <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       <p class="p"><span class="ph synph">set<span class="ph var">(handle, p, v)</span></span></p>
+
+      <p class="p"><span class="ph synph">set<span class="ph var">(h-vector, str-cell, v-cell)</span></span></p>
 <?STOP?></section>
 
     <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
@@ -54,102 +56,85 @@
           <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
 
         
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">h-vector</var></dt>
+
+          <dd class="dd pd">Vector of the graphics handles.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">vector</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">str-cell</var></dt>
+
+          <dd class="dd pd">A cell array containing the properties to be set.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">cell</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">v-cell</var></dt>
+
+          <dd class="dd pd">A cell array containing the values to be set. The cell array's dimensions can either
+            be MxN, where M is the number of handles and N is the number of properties, or, 1xN,
+            where N is the number of properties. If the cell array's dimensions are 1xN, then the
+            same properties/values are applied to all graphics object handles included in
+              <var class="keyword varname">h-vector</var>.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">cell</span></dd>
+
+        
       </dl>
 
       <?STOPINP?>
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Example</h2>
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
-      <p class="p">Simple <span class="keyword cmdname">set</span> example:</p>
-
-      <pre class="pre codeblock"><code>clf;
+      <div class="p">Simple <span class="keyword cmdname">set</span>
+          example:<pre class="pre codeblock"><code>clf;
 titleHandle = get(gca, 'title')
-set(titleHandle, 'string', 'dummy title')
-set(titleHandle, 'color', [255 0 0])
-</code></pre>
-      <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_rn1_1nr_bt">
-        <br /><img class="image" src="../../../../images/math_solutions/plots/set.PNG" height="350" width="350" /><br />
-      </figure>
+set(titleHandle, 'string', 'New title')
+set(titleHandle, 'color', [255 0 0])</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_awb_gpl_mnb">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_dln_dpl_mnb" src="../../../../images/math_solutions/plots/set.PNG" height="350" width="350" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 1. </span>Set one property</span></figure>
+</div>
+
+      <div class="p">Set multiple properties to one graphics
+          handle:<pre class="pre codeblock"><code>clf;
+titleHandle = get(gca, 'title')
+set(titleHandle, {'string', 'color', 'fontSize', 'fontweight'}, {'New title', [136 0 21], 18 'bold'})</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_h2r_gpl_mnb">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_eqz_z4l_mnb" src="../../../../images/math_solutions/plots/setMultPropsToOne.png" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 2. </span>Set multiple properties to a single handle</span></figure>
+</div>
+
+      <div class="p">Set multiple properties to multiple
+          handles:<pre class="pre codeblock"><code>clf;
+ph = plot(rand(10,5));
+set(ph, {'color','linewidth'}, {'r', 1;'b', 2;'g', 3;'c', 4;'y', 5})</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_rn1_1nr_bt">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_rpz_z4l_mnb" src="../../../../images/math_solutions/plots/setMultProps.png" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 3. </span>Set multiple properties</span></figure>
+</div>
+
+      <div class="p">Set the same values to all graphics
+          handles:<pre class="pre codeblock"><code>clf;
+ph = plot(rand(10,5));
+set(ph, {'color','linestyle'}, {'r', '--'})</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_lbh_hpl_mnb">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_gpz_z4l_mnb" src="../../../../images/math_solutions/plots/setSinglePropToAll.png" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 4. </span>Set the same values to all handles</span></figure>
+</div>
 
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Comments</h2>
       
-      <p class="p">Set can be used to set properties of different graphics objects, including root figure,
-        axes, line, text, surface. Each type of graphics object has its own properties:</p>
-
-      <div class="p">Root's properties:
-        <pre class="pre codeblock"><code>children (read only): Child objects of the root.
-currentfigure: Current active figure.
-handle (read only): Handle of the root, always 0.
-parent (read only): Handle of the parent of the root, always empty.
-type (read only): Type of the graphics object, which is always 'root'.</code></pre>
-      </div>
-
-      <div class="p">Figure's properties:
-        <pre class="pre codeblock"><code>children (read only): Child objects of the figure.
-currentaxes: Current active axes in the figure.
-handle (read only): Handle of the figure.
-parent (read only): Handle of the parent of the figure, which is always the root's handle 0.
-type (read only): Type of the graphics object, which is always 'figure'.
-visible: Visibility of the figure.</code></pre>
-      </div>
-
-      <div class="p">Axes' properties:
-        <pre class="pre codeblock"><code>children (read only): Child objects of the axes.
-color: Background color of the axes.
-handle (read only): Handle of the axes.
-parent (read only): Handle of the parent of the axes.
-title: Handle of the title of the axes.
-type (read only): Type of the graphics object, which is always 'axes'.
-visible: Visibility of the axes.
-xcolor: Color of x axis.
-xlabel: Handle of the x axis label.
-xminorgrid: Visibility of x axis grid.
-xscale: Scale type of x axis.
-ycolor: Color of y axis.
-ylabel: Handle of the y axis label.
-yminorgrid: Visibility of y axis grid.
-yscale: Scale type of y axis.
-zcolor: Color of z axis.
-zlabel: Handle of the z axis label.
-zminorgrid: Visibility of z axis grid.
-zscale: Scale type of z axis.</code></pre>
-      </div>
-
-      <div class="p">Line's properties:
-        <pre class="pre codeblock"><code>children (read only): Child objects of the line.
-color: Color of the line.
-handle (read only): Handle of the line.
-linestyle: Style of the line.
-linewidth: Width of the line.
-marker: Style of the marker on the line.
-markerfacecolor: Color of the marker on the line.
-parent (read only): Handle of the parent of the line.
-type (read only): Type of the graphics object, which is always 'line'.</code></pre>
-      </div>
-
-      <div class="p">Surface's properties:
-        <pre class="pre codeblock"><code>children (read only): Child objects of the surface.
-handle (read only): Handle of the surface.
-parent (read only): Handle of the parent of the surface.
-type (read only): Type of the graphics object, which is always 'surface'.</code></pre>
-      </div>
-
-      <div class="p">Text's properties:
-        <pre class="pre codeblock"><code>children (read only): Child objects of the line.
-color: Color of the text.
-fontangle: Font angle of the text, either regular or italic.
-fontname: Font family of the text.
-fontsize: Font size of the text.
-fontweight: Font weight of the text, either normal or bold.
-handle (read only): Handle of the text;
-parent (read only): Handle of the parent of the line.
-string: Displayed text.
-type (read only): Type of the graphics object, which is always 'text'.
-visible: Visibility of the text.</code></pre>
-      </div>
+      <p class="p"><span class="keyword cmdname">set</span> can be used to set properties of differrent graphics objects,
+        including root, figure, axes, line, text, and surface, for example. For a complete list of
+        the available properties for each graphics object, please see <a class="xref" href="properties.htm" title="Properties for the graphics object in OML.">Graphics Object Properties</a>.</p>
 
     </section>
 
@@ -169,7 +154,7 @@ visible: Visibility of the text.</code></pre>
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" title="Plotting Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Plotting Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         
         <div>
-            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2021)</p>
                
         </div>
     </div></footer></body>

@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="legend" /><meta name="abstract" content="Update legend text of axes. Turn on/off the legend of axes. Toggle the states if no argument is used." /><meta name="description" content="Update legend text of axes. Turn on/off the legend of axes. Toggle the states if no argument is used." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Plotting Commands" /><meta name="indexterms" content="legend" /><meta name="DC.subject" content="legend" /><meta name="keywords" content="legend" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>legend</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="legend" /><meta name="abstract" content="Update axes' legend text, turn on/off the legend of axes. Toggle the states if no argument is used." /><meta name="description" content="Update axes' legend text, turn on/off the legend of axes. Toggle the states if no argument is used." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Plotting Commands" /><meta name="indexterms" content="legend" /><meta name="DC.subject" content="legend" /><meta name="keywords" content="legend" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>legend</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -15,7 +15,8 @@
 
   
   
-  <div class="body refbody"><p class="shortdesc">Update legend text of axes. Turn on/off the legend of axes. Toggle the states if no argument is used. </p>
+  <div class="body refbody"><p class="shortdesc">Update axes' legend text, turn on/off the legend of axes. Toggle the states if no
+    argument is used. </p>
 
     <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       
@@ -30,6 +31,8 @@
       <p class="p"><span class="ph synph">legend<span class="ph var">(str-cell)</span></span></p>
 
       <p class="p"><span class="ph synph">legend<span class="ph var">(h-vector, str-cell)</span></span></p>
+
+      <p class="p"><span class="ph synph">legend<span class="ph var">(..., property, value)</span></span></p>
 
       <?STOP?>
     </section>
@@ -74,6 +77,67 @@
           <dd class="dd pd ddexpand">Type: <span class="keyword">vector</span></dd>
 
         
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">property, value</var></dt>
+
+          <dd class="dd pd">
+            <dl class="dl table">
+              
+                <dt class="dt dlterm"><span class="ph synph">'location'</span></dt>
+
+                <dd class="dd">Specifies the location of the legend.</dd>
+
+                <dd class="dd ddexpand">Valid values for 2D plots are:<ul class="ul" id="reference_wpv_kyv_pr__ul_hyr_3pt_knb">
+                    <li class="li"><span class="ph synph">'north'</span></li>
+
+                    <li class="li"><span class="ph synph">'south'</span></li>
+
+                    <li class="li"><span class="ph synph">'east'</span></li>
+
+                    <li class="li"><span class="ph synph">'west'</span></li>
+
+                    <li class="li"><span class="ph synph">'northeast'</span></li>
+
+                    <li class="li"><span class="ph synph">'northwest'</span></li>
+
+                    <li class="li"><span class="ph synph">'southeast'</span></li>
+
+                    <li class="li"><span class="ph synph">'southwest'</span></li>
+
+                    <li class="li"><span class="ph synph">'northoutside'</span></li>
+
+                    <li class="li"><span class="ph synph">'southoutside'</span></li>
+
+                    <li class="li"><span class="ph synph">'eastoutside'</span></li>
+
+                    <li class="li"><span class="ph synph">'westoutside'</span></li>
+
+                    <li class="li">or a real <span class="keyword">vector</span>, specifying the location of the legend in
+                      normalized coordinates.</li>
+
+                  </ul>
+</dd>
+
+                <dd class="dd ddexpand">Valid values for 3D plots are:<ul class="ul" id="reference_wpv_kyv_pr__ul_cyj_kw5_knb">
+                    <li class="li"><span class="ph synph">'northeast'</span></li>
+
+                    <li class="li"><span class="ph synph">'northwest'</span></li>
+
+                    <li class="li"><span class="ph synph">'southeast'</span></li>
+
+                    <li class="li"><span class="ph synph">'southwest'</span></li>
+
+                  </ul>
+</dd>
+
+              
+            </dl>
+
+          </dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string | vector</span></dd>
+
+        
       </dl>
 
       <?STOPINP?>
@@ -81,29 +145,45 @@
 
     <section class="section"><h2 class="title sectiontitle">Example</h2>
       
-      <p class="p">Simple <span class="keyword cmdname">legend</span> example.</p>
-
-      <pre class="pre codeblock"><code>clf;
+      <div class="p">Simple <span class="keyword cmdname">legend</span>
+          example.<pre class="pre codeblock"><code>clf;
 plot(rand(1, 10));
 legend('on');
-legend('legend text');</code></pre>
-      <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_fvl_jnr_bt">
-        
-        <br /><img class="image" id="reference_wpv_kyv_pr__image_vhq_bcq_rv" src="../../../../images/math_solutions/plots/setLegend.PNG" /><br />
-      <span class="figcap"><span class="fig--title-label">Figure 1. </span>Legend Example 1</span></figure>
+legend('legend text');</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_fvl_jnr_bt">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_vhq_bcq_rv" src="../../../../images/math_solutions/plots/setLegend.PNG" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 1. </span>Legend Example 1</span></figure>
+</div>
 
-      <p class="p">Add legends for selected curves.</p>
-
-      <pre class="pre codeblock"><code>clf;
+      <div class="p">Add legends for selected
+          curves.<pre class="pre codeblock"><code>clf;
 hold on;
 h1 = plot(rand(10,1),'--o');
 h2 = plot(rand(10,1),'-s');
 h3 = plot(rand(10,1),'r^');
-legend([h2,h3],{'curve2','curve3'});</code></pre>
-      <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_o1b_vrq_mcb">
-        
-        <br /><img class="image" id="reference_wpv_kyv_pr__image_vxf_wrq_mcb" src="../../../../images/math_solutions/plots/legend-for-selected-curves.png" /><br />
-      <span class="figcap"><span class="fig--title-label">Figure 2. </span>Legend Example 2</span></figure>
+legend([h2,h3],{'curve2','curve3'});</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_o1b_vrq_mcb">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_vxf_wrq_mcb" src="../../../../images/math_solutions/plots/legend-for-selected-curves.png" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 2. </span>Legend Example 2</span></figure>
+</div>
+
+      <div class="p">Set the location of the
+          legend.<pre class="pre codeblock"><code>clf;
+plot(rand(1, 10));
+legend('location','westoutside');</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_fwr_x4t_knb">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_rjb_b4t_knb" src="../../../../images/math_solutions/plots/legendlocation1.png" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 3. </span>Location string example</span></figure>
+</div>
+
+      <div class="p">Set legend location
+          coordinates.<pre class="pre codeblock"><code>clf;
+plot(rand(1, 10));
+legend('location',[0.2 0.1]]);</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_irs_t4t_knb">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_qhv_b4t_knb" src="../../../../images/math_solutions/plots/legendlocation2.png" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 4. </span>Location coordinates example</span></figure>
+</div>
 
     </section>
 
@@ -118,7 +198,7 @@ legend([h2,h3],{'curve2','curve3'});</code></pre>
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" title="Plotting Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Plotting Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         
         <div>
-            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2021)</p>
                
         </div>
     </div></footer></body>

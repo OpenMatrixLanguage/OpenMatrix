@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="axis" /><meta name="abstract" content="Sets the scaling and range of x, y, and z axes (x by default). Called without arguments, axis turns autoscaling on." /><meta name="description" content="Sets the scaling and range of x, y, and z axes (x by default). Called without arguments, axis turns autoscaling on." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Plotting Commands" /><meta name="indexterms" content="axis" /><meta name="DC.subject" content="axis" /><meta name="keywords" content="axis" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>axis</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="axis" /><meta name="abstract" content="Sets the scaling and range of x, y, and z axes (x by default). Called without arguments, axis turns autoscaling on." /><meta name="description" content="Sets the scaling and range of x, y, and z axes (x by default). Called without arguments, axis turns autoscaling on." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Plotting Commands" /><meta name="indexterms" content="axis" /><meta name="DC.subject" content="axis" /><meta name="keywords" content="axis" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>axis</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -69,6 +69,20 @@
 
           <dd class="dd pd">Takes one of the following values:<dl class="dl table">
               
+                <dt class="dt dlterm">'bestfit'</dt>
+
+                <dd class="dd">The length of each axis is adjusted to maximize the graphics area (3D plots
+                  only).</dd>
+
+              
+              
+                <dt class="dt dlterm">'cubical'</dt>
+
+                <dd class="dd">The length of each axis is the same (3D plots only). This is the default
+                  value.</dd>
+
+              
+              
                 <dt class="dt dlterm"><span class="ph synph">'equal'</span></dt>
 
                 <dd class="dd">Sets uniform aspect ratio to the axes (2D plots only).</dd>
@@ -96,6 +110,12 @@
                 <dt class="dt dlterm"><span class="ph synph">'square'</span></dt>
 
                 <dd class="dd">Sets square aspect ratio to the axes (2D plots only).</dd>
+
+              
+              
+                <dt class="dt dlterm">'unscaled'</dt>
+
+                <dd class="dd">The length of each axis is based on the axis values (3D plots only).</dd>
 
               
             </dl>
@@ -139,6 +159,29 @@ axis('square');</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr
         <span class="figcap"><span class="fig--title-label">Figure 3. </span>Square aspect ratio</span></figure>
 </div>
 
+      <div class="p"><span class="keyword cmdname">axis('bestfit')</span>
+          example:<pre class="pre codeblock"><code>clf;
+x=[0:0.1:2*pi];
+y=x;
+z=sin(x')*cos(y);
+s=surf(x, y, z)
+axis('bestfit');</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_xdm_n1l_mnb">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_ydm_n1l_mnb" src="../../../../images/math_solutions/plots/axisBestfit.png" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 4. </span>Best fit axes</span></figure>
+</div>
+
+      <div class="p"><span class="keyword cmdname">axis('unscaled')</span> example:<figure class="fig fignone" id="reference_wpv_kyv_pr__fig_kdm_n1l_mnb">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_ldm_n1l_mnb" src="../../../../images/math_solutions/plots/axisUnscaled.png" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 5. </span>Unscaled axes</span></figure>
+<pre class="pre codeblock"><code>clf;
+x=[0:0.1:2*pi];
+y=x;
+z=sin(x')*cos(y);
+s=surf(x, y, z)
+axis('unscaled');</code></pre></div>
+
     </section>
 
     <section class="section">
@@ -151,7 +194,7 @@ axis('square');</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" title="Plotting Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Plotting Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         
         <div>
-            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2021)</p>
                
         </div>
     </div></footer></body>

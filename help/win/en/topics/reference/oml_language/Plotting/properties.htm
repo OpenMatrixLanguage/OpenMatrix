@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Graphics Object Properties" /><meta name="abstract" content="Properties for the graphics object in OML." /><meta name="description" content="Properties for the graphics object in OML." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Plotting Commands" /><meta name="indexterms" content="graphics object properties, properties - plotting commands" /><meta name="DC.subject" content="graphics object properties, properties - plotting commands" /><meta name="keywords" content="graphics object properties, properties - plotting commands" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/figure.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/axes.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plot.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/get.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/set.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Graphics Object Properties</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Graphics Object Properties" /><meta name="abstract" content="Properties for the graphics object in OML." /><meta name="description" content="Properties for the graphics object in OML." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Plotting Commands" /><meta name="indexterms" content="graphics object properties, properties - plotting commands" /><meta name="DC.subject" content="graphics object properties, properties - plotting commands" /><meta name="keywords" content="graphics object properties, properties - plotting commands" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/figure.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/axes.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plot.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/get.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/set.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/uibuttongroup.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/uipanel.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Graphics Object Properties</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -201,6 +201,12 @@
 
         
         
+          <dt class="dt dlterm">uicontextmenu</dt>
+
+          <dd class="dd">Handle of the uicontextmenu object associated with this figure, if it exists.</dd>
+
+        
+        
           <dt class="dt dlterm">visible</dt>
 
           <dd class="dd">Visibility of the figure.</dd>
@@ -222,6 +228,62 @@
 
         
         
+          <dt class="dt dlterm">bargap (2D bar plot only)</dt>
+
+          <dd class="dd">Gap between bars.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">barlabels (2D bar chart plot only)</dt>
+
+          <dd class="dd">Show the value over each bar.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'off'</span> | <span class="keyword option">'on'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">barlabelsfontangle (2D bar chart plot only)</dt>
+
+          <dd class="dd">Font angle for the bar labels.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'regular'</span> | <span class="keyword option">'italic'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">barlabelsfontname (2D bar chart plot only)</dt>
+
+          <dd class="dd">Font name for the bar labels.</dd>
+
+          <dd class="dd ddexpand">Any available font from the system.</dd>
+
+        
+        
+          <dt class="dt dlterm">barlabelsfontsize (2D bar chart plot only)</dt>
+
+          <dd class="dd">Font size for the bar labels.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">barlabelsfontweight (2D bar chart plot only)</dt>
+
+          <dd class="dd">Font weight for the bar labels.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'normal'</span> | <span class="keyword option">'bold'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">barorientation (2D bar chart plot only)</dt>
+
+          <dd class="dd">Orientation of the bars.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'horizontal'</span> | <span class="keyword option">'vertical'</span></dd>
+
+        
+        
           <dt class="dt dlterm">children</dt>
 
           <dd class="dd">A vector of handles, which are the children of the axes.</dd>
@@ -236,11 +298,28 @@
 
         
         
-          <dt class="dt dlterm">contourlevels</dt>
+          <dt class="dt dlterm">colorbarscale</dt>
 
-          <dd class="dd">Number of colors in the color bar. Maximum number of colors is 32.</dd>
+          <dd class="dd">Scale of the colorbar values.</dd>
 
-          <dd class="dd ddexpand">Integer</dd>
+          <dd class="dd ddexpand"><span class="keyword option">'linear</span>' | '<span class="keyword option">log</span>' | '<span class="keyword option">db10</span>' |
+              '<span class="keyword option">db20'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">colorlevels</dt>
+
+          <dd class="dd">The colorbar values.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> The <span class="keyword cmdname">set</span> command for this property accepts either an integer or
+              a real vector. Use a real vector to set custom values to the colorbar. Use an integer
+              to define the number of colors in the colorbar. In this case, the range and values of
+              the colorbar are automatically calculated. The maximum number of colors is 32.</div>
+
+          </dd>
+
+          <dd class="dd ddexpand">Integer or real vector.</dd>
 
         
         
@@ -368,7 +447,7 @@
 
         
         
-          <dt class="dt dlterm">xcategories (bar plots only)</dt>
+          <dt class="dt dlterm">xcategories (bar chart plots only)</dt>
 
           <dd class="dd">Labels for the x category axis of a bar plot.</dd>
 
@@ -406,6 +485,23 @@
 
         
         
+          <dt class="dt dlterm">xnumericformat</dt>
+
+          <dd class="dd">Displays the format of the x axis values.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'auto'</span> | <span class="keyword option">'fixed'</span> |
+            <span class="keyword option">'scientific'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">xnumericprecision</dt>
+
+          <dd class="dd">Number of digits following the decimal point of the x axis values.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
           <dt class="dt dlterm">xscale</dt>
 
           <dd class="dd">Scale of the x axis.</dd>
@@ -419,13 +515,35 @@
 
           <dd class="dd">Number of tics on the x axis.</dd>
 
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> If the axis scale is logarithmic, decibels, or dB10, this property refers to tics
+              per decade. The accepted values are:<ul class="ul" id="reference_wpv_kyv_pr__ul_tjy_ntt_vnb">
+                <li class="li">0, 1, 2, 5, 9 or 18 for logarithmic.</li>
+
+                <li class="li">0, 1, 2, 4, 10 or 20 for decibels.</li>
+
+                <li class="li">0, 1, 2, 4 or 10 for dB10.</li>
+
+              </ul>
+</div>
+
+          </dd>
+
           <dd class="dd ddexpand">Integer</dd>
 
         
         
-          <dt class="dt dlterm">ycategories (3D bar plots only)</dt>
+          <dt class="dt dlterm">xtickmethod</dt>
 
-          <dd class="dd">Labels for the y category axis of a 3D bar plot.</dd>
+          <dd class="dd">The method for calculating the number of tics for the x axis.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'increment'</span> | <span class="keyword option">'ticks'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">ycategories (3D bar chart plots only)</dt>
+
+          <dd class="dd">Labels for the y category axis of a 3D bar chart plot.</dd>
 
           <dd class="dd ddexpand">Cell</dd>
 
@@ -461,6 +579,23 @@
 
         
         
+          <dt class="dt dlterm">ynumericformat</dt>
+
+          <dd class="dd">Display format of the y axis values.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'auto'</span> | <span class="keyword option">'fixed'</span> |
+            <span class="keyword option">'scientific'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">ynumericprecision</dt>
+
+          <dd class="dd">Number of digits following the decimal point of the y axis values.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
           <dt class="dt dlterm">yscale</dt>
 
           <dd class="dd">Scale of the y axis.</dd>
@@ -474,7 +609,29 @@
 
           <dd class="dd">Number of tics on the y axis.</dd>
 
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> If the axis scale is logarithmic, decibels, or dB10, this property refers to tics
+              per decade and the accepted values are:<ul class="ul" id="reference_wpv_kyv_pr__ul_g2s_qtt_vnb">
+                <li class="li">0, 1, 2, 5, 9 or 18 for logarithmic.</li>
+
+                <li class="li">0, 1, 2, 4, 10 or 20 for decibels.</li>
+
+                <li class="li">0, 1, 2, 4 or 10 for dB10.</li>
+
+              </ul>
+</div>
+
+          </dd>
+
           <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">ytickmethod</dt>
+
+          <dd class="dd">The method for calculating the number of tics for the y axis.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'increment'</span> | <span class="keyword option">'ticks'</span></dd>
 
         
         
@@ -508,6 +665,23 @@
 
         
         
+          <dt class="dt dlterm">znumericformat</dt>
+
+          <dd class="dd">Display format of the z axis values.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'auto'</span> | <span class="keyword option">'fixed'</span> |
+            <span class="keyword option">'scientific'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">znumericprecision</dt>
+
+          <dd class="dd">Number of digits following the decimal point of the z axis values.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
           <dt class="dt dlterm">zscale</dt>
 
           <dd class="dd">Scale of the z axis.</dd>
@@ -521,7 +695,29 @@
 
           <dd class="dd">Number of tics on the z axis.</dd>
 
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> If the axis scale is logarithmic, decibels, or dB10, this property refers to tics
+              per decade and the accepted values are:<ul class="ul" id="reference_wpv_kyv_pr__ul_zd2_ttt_vnb">
+                <li class="li">0, 1, 2, 5, 9 or 18 for logarithmic.</li>
+
+                <li class="li">0, 1, 2, 4, 10 or 20 for decibels.</li>
+
+                <li class="li">0, 1, 2, 4 or 10 for dB10.</li>
+
+              </ul>
+</div>
+
+          </dd>
+
           <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">ztickmethod</dt>
+
+          <dd class="dd">The method for calculating the number of tics for the z axis.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'increment'</span> | <span class="keyword option">'ticks'</span></dd>
 
         
       </dl>
@@ -683,6 +879,54 @@
 
         
         
+          <dt class="dt dlterm">dataxoffset</dt>
+
+          <dd class="dd">Shifts the data along the x axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">datayoffset</dt>
+
+          <dd class="dd">Shifts the data along the y axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">datazoffset</dt>
+
+          <dd class="dd">Shifts the data along the z axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">dataxscale</dt>
+
+          <dd class="dd">Scales the data in the x axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">datayscale</dt>
+
+          <dd class="dd">Scales the data in the y axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">datazscale</dt>
+
+          <dd class="dd">Scales the data in the z axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
           <dt class="dt dlterm">handle</dt>
 
           <dd class="dd">Handle of the line object.</dd>
@@ -714,6 +958,14 @@
               '<span class="keyword option">v</span>' | '<span class="keyword option">x</span>' | '<span class="keyword option">o</span>' |
               '<span class="keyword option">d</span>' | '<span class="keyword option">diamond</span>' | '<span class="keyword option">+</span>' |
               '<span class="keyword option">*</span>' | '<span class="keyword option">.</span>' | '<span class="keyword option">none'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">markerevery</dt>
+
+          <dd class="dd">Frequency of line markers.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
 
         
         
@@ -990,6 +1242,8 @@
     
     
     
+    
+    
     <section class="section"><h2 class="title sectiontitle">Hggroup Properties</h2>
       <dl class="dl table">
         
@@ -1013,25 +1267,81 @@
 
         
         
-          <dt class="dt dlterm">bargroup (bar plot only)</dt>
+          <dt class="dt dlterm">bargroup (bar chart plot only)</dt>
 
           <dd class="dd">A vector of handles, which point to bar groups.</dd>
 
         
         
-          <dt class="dt dlterm">barlayout (bar plot only)</dt>
+          <dt class="dt dlterm">barlayout (bar chart plot only)</dt>
 
           <dd class="dd">The bar layout style.</dd>
 
-          <dd class="dd ddexpand"><span class="keyword option">'grouped</span>' | '<span class="keyword option">stacked'</span></dd>
+          <dd class="dd ddexpand"><span class="keyword option">'grouped'</span> | <span class="keyword option">'stacked'</span></dd>
 
         
         
-          <dt class="dt dlterm">barwidth (bar plot only)</dt>
+          <dt class="dt dlterm">barstyle (bar chart plot only)</dt>
+
+          <dd class="dd">The bar style.</dd>
+
+          <dd class="dd ddexpand">Integer in the range [0,4]</dd>
+
+        
+        
+          <dt class="dt dlterm">barwidth (bar chart plot only)</dt>
 
           <dd class="dd">The width of the bars.</dd>
 
           <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">dataxoffset</dt>
+
+          <dd class="dd">Shifts the data along the x axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">datayoffset</dt>
+
+          <dd class="dd">Shifts the data along the y axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">datazoffset</dt>
+
+          <dd class="dd">Shifts the data along the z axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">dataxscale</dt>
+
+          <dd class="dd">Scales the data in the x axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">datayscale</dt>
+
+          <dd class="dd">Scales the data in the y axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">datazscale</dt>
+
+          <dd class="dd">Scales the data in the z axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
 
         
         
@@ -1047,10 +1357,10 @@
 
           <dd class="dd">marker style</dd>
 
-          <dd class="dd ddexpand"><span class="keyword option">'s</span>' | '<span class="keyword option">square</span>' | '<span class="keyword option">^</span>' |
-              '<span class="keyword option">v</span>' | '<span class="keyword option">x</span>' | '<span class="keyword option">o</span>' |
-              '<span class="keyword option">d</span>' | '<span class="keyword option">diamond</span>' | '<span class="keyword option">+</span>' |
-              '<span class="keyword option">*</span>' | '<span class="keyword option">.</span>' | '<span class="keyword option">none'</span></dd>
+          <dd class="dd ddexpand"><span class="keyword option">'s'</span> | <span class="keyword option">'square'</span> | <span class="keyword option">'^'</span> |
+              <span class="keyword option">'v'</span> | <span class="keyword option">'x'</span> | <span class="keyword option">'o'</span> |
+              <span class="keyword option">'d'</span> | <span class="keyword option">'diamond'</span> | <span class="keyword option">'+'</span> |
+              <span class="keyword option">'*'</span> | <span class="keyword option">'.'</span> | <span class="keyword option">'none'</span></dd>
 
         
         
@@ -1102,7 +1412,7 @@
 
           <dd class="dd">The units of measurement, currently not used.</dd>
 
-          <dd class="dd ddexpand"><span class="keyword option">'pixels</span>' | '<span class="keyword option">normalized'</span></dd>
+          <dd class="dd ddexpand"><span class="keyword option">'pixels'</span> | <span class="keyword option">'normalized'</span></dd>
 
         
         
@@ -1176,7 +1486,7 @@
 
           <dd class="dd">Units of measurement (not yet used).</dd>
 
-          <dd class="dd ddexpand"><span class="keyword option">'pixels</span>' | '<span class="keyword option">normalized'</span></dd>
+          <dd class="dd ddexpand"><span class="keyword option">'pixels'</span> | <span class="keyword option">'normalized'</span></dd>
 
         
       </dl>
@@ -1321,12 +1631,14 @@
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/axes.htm" title="Create a new axes or set current axes by passing a handle argument.">axes</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/plot.htm" title="Plots a given dataset in 2D axes.">plot</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/get.htm" title="Returns the value of the named property p from the graphics handle, h. If property name is omitted, all properties of h will be returned.">get</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/set.htm" title="Sets property values for graphics handles.">set</a></div></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/set.htm" title="Sets property values for graphics handles.">set</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/uibuttongroup.htm" title="Creates a button group in a figure to group radio buttons.">uibuttongroup</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/uipanel.htm" title="Creates a frame for interactive graphical control objects in a figure.">uipanel</a></div></div>
 </nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" title="Plotting Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Plotting Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         
         <div>
-            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2021)</p>
                
         </div>
     </div></footer></body>
