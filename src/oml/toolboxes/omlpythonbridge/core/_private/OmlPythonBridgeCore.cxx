@@ -15,6 +15,7 @@
 */
 
 // Begin defines/includes
+#pragma warning(disable: 4251)
 
 #include "Python.h"
 #include "numpy/arrayobject.h"
@@ -261,6 +262,10 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
             }
         }
     }
+    else if (var.IsSparse())
+    {
+            obj = ConvertSparseToPyObject(var.MatrixS());
+    }
     else if (var.IsBoundObject())
     {
         //ToDo:implement when in need
@@ -269,11 +274,229 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
     return (NULL != obj) ? (true) : (false);
 }
 
+PyObject* OmlPythonBridgeCore::ConvertSparseToPyObject(const hwMatrixS* spm)
+{
+    PyObject* obj = nullptr;
+    //Construct indptr of python CSC matrix from pointerB and pointerE
+    //indptr = pointerB + (last element of pointerE)
+    const MKL_INT* pointer_b = spm->pointerB();
+    const MKL_INT* pointer_e = spm->pointerE();
+    const MKL_INT* rows = spm->rows(); //rows is equal to indices of csc sparse
+    const int num_rows = spm->M();
+    const int num_cols = spm->N();
+    const int num_elements = spm->NNZ();
+    npy_intp indices_dims[1] = { num_elements };
+    npy_intp indptr_dims[1]  = { num_cols+1 };
+
+    PyObject* data_pyobj = nullptr;
+    PyObject* indices_pyobj = nullptr;
+    PyObject* indptr_pyobj  = nullptr;
+    PyObject* numrows_pyobj = nullptr;
+    PyObject* numcols_pyobj = nullptr;
+    
+
+    if ( ConvertCurrencyToPyObject(numrows_pyobj, num_rows) &&
+        ConvertCurrencyToPyObject(numcols_pyobj, num_cols) )
+    {
+        import_array();
+        double* dptr = nullptr;
+
+        if (spm->IsReal())
+        {
+            data_pyobj = PyArray_ZEROS(1, indices_dims, NPY_DOUBLE, 1);
+            dptr = (npy_double*)PyArray_DATA(data_pyobj);
+
+            const double* data = spm->GetRealData();
+            for (int i = 0; i < num_elements; i++)
+            {
+                dptr[i] = data[i];
+            }
+        }
+        else
+        {
+            const hwTComplex<double>* cmpxdata = spm->GetComplexData();
+            data_pyobj = PyArray_ZEROS(1, indices_dims, NPY_COMPLEX128, 1);
+            npy_complex128* data_py = (npy_complex128*)PyArray_DATA(data_pyobj);
+
+            for (int i = 0; i < num_elements; i++)
+            {
+                data_py[i].real = (cmpxdata[i]).Real();
+                data_py[i].imag = (cmpxdata[i]).Imag();
+            }
+        }
+
+        indices_pyobj = PyArray_ZEROS(1, indices_dims, NPY_DOUBLE, 1);
+        dptr = (npy_double*)PyArray_DATA(indices_pyobj);
+        for (int i = 0; i < num_elements; i++)
+        {
+            dptr[i] = rows[i];
+        }
+
+        indptr_pyobj = PyArray_ZEROS(1, indptr_dims, NPY_DOUBLE, 1);
+        dptr = (npy_double*)PyArray_DATA(indptr_pyobj);
+        for (int i = 0; i < num_cols; i++)
+        {
+            dptr[i] = pointer_b[i];
+        }
+
+        if (num_cols > 0)
+            dptr[num_cols] = pointer_e[num_cols - 1];
+
+        PyObject* sparse_csc_pyobj = PyImport_ImportModule("scipy.sparse.csc");
+        PyObject* csc_matrix_pyobj = PyObject_GetAttrString(sparse_csc_pyobj, "csc_matrix");
+        Py_XDECREF(sparse_csc_pyobj);
+
+        PyObject* inputs_pyobj = PyTuple_New(3);
+        PyTuple_SetItem(inputs_pyobj, 0, data_pyobj);
+        PyTuple_SetItem(inputs_pyobj, 1, indices_pyobj);
+        PyTuple_SetItem(inputs_pyobj, 2, indptr_pyobj);
+        
+        PyObject* shape_pyobj = PyTuple_New(2);
+        PyTuple_SetItem(shape_pyobj, 0, numrows_pyobj);
+        PyTuple_SetItem(shape_pyobj, 1, numcols_pyobj);
+
+        PyObject* args_pyobj = PyTuple_New(2);
+        PyTuple_SetItem(args_pyobj, 0, inputs_pyobj);
+        PyTuple_SetItem(args_pyobj, 1, shape_pyobj);
+
+        obj = PyObject_CallObject(csc_matrix_pyobj, args_pyobj);
+        Py_XDECREF(args_pyobj);
+        Py_XDECREF(csc_matrix_pyobj);        
+    }
+      
+    return obj;
+}
+
+hwMatrixS* OmlPythonBridgeCore::ConvertPyObjectToSparse(PyObject* const& obj, bool& status)
+{
+    status = false;
+    std::string indptr_attr  = "indptr";
+    std::string data_attr    = "data";
+    std::string indices_attr = "indices";
+    std::string shape_attr   = "shape";
+
+    if (PyObject_HasAttrString(obj, indptr_attr.c_str()) &&
+        PyObject_HasAttrString(obj, data_attr.c_str()) &&
+        PyObject_HasAttrString(obj, indices_attr.c_str()) &&
+        PyObject_HasAttrString(obj, shape_attr.c_str()))
+    {
+        PyObject* shape_ptr = PyObject_GetAttrString(obj, shape_attr.c_str());
+        std::vector<Currency> out;
+        ConvertPyObjectToCurrency(out, shape_ptr);
+        Py_XDECREF(shape_ptr);
+        Currency shape = out.back();
+        out.pop_back();
+
+        Py_ssize_t size = PyTuple_GET_SIZE(shape_ptr);
+
+        if (2 == size)
+        {
+            PyObject* indptr_ptr  = PyObject_GetAttrString(obj, indptr_attr.c_str());
+            PyObject* indices_ptr = PyObject_GetAttrString(obj, indices_attr.c_str());
+            PyObject* data_ptr    = PyObject_GetAttrString(obj, data_attr.c_str());
+
+            ConvertPyObjectToCurrency(out, indptr_ptr);
+            Currency ind = out.back();
+            out.pop_back();
+
+            ConvertPyObjectToCurrency(out, indices_ptr);
+            Currency indices = out.back();
+            out.pop_back();
+
+            ConvertPyObjectToCurrency(out, data_ptr);
+            Currency data = out.back();
+            out.pop_back();
+            
+            Py_XDECREF(indptr_ptr);
+            Py_XDECREF(indices_ptr);
+            Py_XDECREF(data_ptr);
+
+            std::vector<Currency> row;
+            std::vector<Currency> col;
+            PyObject* value = PyTuple_GetItem(shape_ptr, 0);
+            status = ConvertPyObjectToCurrency(row, value);
+            
+            if (status)
+            {
+                value = PyTuple_GetItem(shape_ptr, 1);
+                status = ConvertPyObjectToCurrency(col, value);
+
+                if (status)
+                {
+                    int row_count = static_cast<int>(row[0].Scalar());
+                    int col_count = static_cast<int>(col[0].Scalar());
+                    if ((0 == row_count) || (0 == col_count))
+                    {
+                        return new hwMatrixS();
+                    }
+                    else
+                    {
+
+                        const double* ind_real = ind.Matrix()->GetRealData();
+                        const double* indices_real = indices.Matrix()->GetRealData();
+                        const hwMatrix* data_mat = data.Matrix();
+
+                        std::vector<MKL_INT> begin_count;
+                        std::vector<MKL_INT> end_count;
+                        std::vector<MKL_INT> row_num;
+                        int count = (ind.Matrix()->Size()) - 1;
+
+                        for (int index = 0; index < count; index++)
+                        {
+                            begin_count.push_back(static_cast<int>(ind_real[index]));
+                            end_count.push_back(static_cast<int>(ind_real[index + 1]));
+                        }
+
+                        if (indices_real)
+                        {
+                            count = indices.Matrix()->Size();
+                            for (int index = 0; index < count; index++)
+                            {
+                                row_num.push_back(static_cast<int>(indices_real[index]));
+                            }
+                        }
+
+                        if (data_mat->IsReal())
+                        {
+                            const double* data_real = data_mat->GetRealData();
+                            return (new hwMatrixS(row_count, col_count, begin_count.data(),
+                                end_count.data(), row_num.data(), data_real));
+                        }
+                        else
+                        {
+                            return (new hwMatrixS(row_count, col_count, begin_count.data(),
+                                end_count.data(), row_num.data(), data_mat->GetComplexData()));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return new hwMatrixS();;
+}
+
 bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outputs, PyObject* const& obj)
 {
     bool success = true;
     
-    if (PyDict_Check(obj))
+    PyObject* sparse_csc_pyobj = PyImport_ImportModule("scipy.sparse.csc");
+    PyObject* csc_globals_pyobj = PyModule_GetDict(sparse_csc_pyobj);
+    PyObject* csc_matrix_pyobj = PyDict_GetItemString(csc_globals_pyobj, "csc_matrix");
+    Py_XDECREF(sparse_csc_pyobj);
+
+    if (PyObject_IsInstance(obj, csc_matrix_pyobj))
+    {
+        hwMatrixS* sparse_mat = ConvertPyObjectToSparse(obj, success);
+        if (success)
+        {
+            outputs.push_back(sparse_mat);
+        }
+        else
+        {
+            outputs.push_back("");
+        }
+    }
+    else if (PyDict_Check(obj))
     {
         bool status = true;
         StructData*  dict = EvaluatorInterface::allocateStruct();
@@ -377,7 +600,7 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
     }
     else if (PyUnicode_Check(obj))
     {
-        PyObject* bytesObj = PyUnicode_AsASCIIString(obj);
+        PyObject* bytesObj = PyUnicode_AsUTF8String(obj);
 
         if (!bytesObj)
         {

@@ -1,0 +1,12 @@
+nestcount = 1
+mycount = 1
+nc = 1
+ans = 1
+nestcount = 2
+mycount = 2
+nc = 2
+ans = 2
+nestcount = 3
+mycount = 3
+nc = 3
+ans = 3

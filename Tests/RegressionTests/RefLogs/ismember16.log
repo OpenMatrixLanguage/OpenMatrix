@@ -1,1 +1,1 @@
-Error: cannot use cell arrays when searching for rows in call to function ismember at line number 1 in file ismember16.oml
+Error: unsupported option in argument 3; see help for valid options; 'rows' is not applicable for cell arrays in call to function ismember at line number 1 in file ismember16.oml

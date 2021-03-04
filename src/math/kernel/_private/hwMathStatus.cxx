@@ -263,16 +263,10 @@ std::string hwMathStatus::hwContent::GetMessage() const
 
     if (!m_userFuncName.empty())
     {
-        size_t pos = statusMsg.find(';');
+        pos = statusMsg.find(';');
         statusMsg.insert(pos + 2, m_userFuncName + " ");
     }
-/*
-    {
-        pos = statusMsg.find("user function");
-        statusMsg.erase(pos, 13);
-        statusMsg.insert(pos, m_userFuncName);
-    }
-*/
+
     return statusMsg;
 }
 

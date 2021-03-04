@@ -19,7 +19,7 @@
 #define __OUTPUTFORMAT_H__
 
 // Begin defines/includes
-#include "Hml2Dll.h"
+#include "OMLDll.h"
 
 #include <iostream>
 #include <string>
@@ -32,7 +32,7 @@
 //! \brief Specifies output format
 //!
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS OutputFormat
+class OMLDLL_DECLS OutputFormat
 {
 public:
     //!

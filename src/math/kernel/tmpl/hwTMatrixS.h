@@ -112,6 +112,8 @@ public:
     bool Is0x0() const { return (m_nCols == 0 && m_nRows == 0); }
     //! Determine if the matrix is a vector
     bool IsVector() const { return (m_values.Size() && (m_nCols == 1 || m_nRows == 1) ? true : false); }
+    //! Determine if the matrix is square
+    bool IsSquare() const { return (m_nCols == m_nRows ? true : false); }
 
     // ****************************************************
     //                 Dense Functions

@@ -1,7 +1,7 @@
 a = struct [
-b: 3
+  b: 3
 ]
 c = struct [
-c: 6
+  c: 6
 ]
 Error: structs must have the same field names to be concatenated in call to function horzcat at line number 3 in file horzcat45.oml

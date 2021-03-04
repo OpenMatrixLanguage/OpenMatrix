@@ -19,7 +19,7 @@
 
 #include <string>
 
-class HML2DLL_DECLS FunctionMetaData 
+class OMLDLL_DECLS FunctionMetaData 
 {
 public:
 	FunctionMetaData() : nargin(0), nargout(0) {}

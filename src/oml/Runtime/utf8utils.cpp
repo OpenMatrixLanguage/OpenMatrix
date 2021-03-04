@@ -151,7 +151,7 @@ size_t utf8_byte_position_from_index(const double* ptr, size_t index)
 
 	for (int j = 0; j < index; ++j)
 	{
-		unsigned char temp_char = (unsigned char)ptr[j];
+		unsigned char temp_char = (unsigned char)ptr[internal_index];
 		size_t char_size = utf8_get_char_size(&temp_char);
 
 		internal_index += (int)char_size;

@@ -23,7 +23,7 @@
 
 class MemoryScope;
 
-class HML2DLL_DECLS FunctionInfo 
+class OMLDLL_DECLS FunctionInfo 
 {
 public:
 	FunctionInfo(std::string, std::vector<const std::string*>, std::vector<const std::string*>, std::map<const std::string*, Currency>, OMLTree*, std::string, std::string);
@@ -81,10 +81,14 @@ public:
 
 	MemoryScope* Persistent() const { return _persistent_scope; }
 
+	void          SetParentFunctionInfo(FunctionInfo* fi) { _parent_fi = fi; }
+	FunctionInfo* GetParentFunctionInfo() const { return _parent_fi; }
+
 	bool     HasDefaultValue(const std::string*) const;
 	Currency GetDefaultValue(const std::string*) const;
 
 	std::map<const std::string*, FunctionInfo*>* local_functions;
+	std::map<const std::string*, FunctionInfo*>* nested_functions; // map or unordered map?
 
 private:
 	const std::string*              _function_name;
@@ -95,15 +99,16 @@ private:
 	std::vector<const std::string*>        _parameters;
 	std::map<const std::string*, Currency> _default_values;
 
-	OMLTree*     _statements;
-	int          _refcnt;
-	FUNCPTR      _builtin;
-	ALT_FUNCPTR  _alt_fptr;
-	MemoryScope* _anon_scope;
-	MemoryScope* _persistent_scope;
-	bool         _is_nested;
-	bool         _is_encrypted;
-	bool         _is_constructor;
+	OMLTree*      _statements;
+	int           _refcnt;
+	FUNCPTR       _builtin;
+	ALT_FUNCPTR   _alt_fptr;
+	MemoryScope*  _anon_scope;
+	MemoryScope*  _persistent_scope;
+	bool          _is_nested;
+	bool          _is_encrypted;
+	bool          _is_constructor;
+	FunctionInfo* _parent_fi;
 }; 
 
 #endif

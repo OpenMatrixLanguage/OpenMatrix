@@ -28,7 +28,7 @@
 //! \brief Utility class for helper methods used by built-in functions
 //!
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS BuiltInFuncsUtils
+class OMLDLL_DECLS BuiltInFuncsUtils
 {
 public:
     //!
@@ -320,6 +320,12 @@ public:
     void ThrowRegexError(std::regex_constants::error_type code);
 
     // utf8 support utilities
+    //! 
+    //! Returns normalized path for operating system, supports Unicode
+    //! \param path Given path
+    //!
+    static std::wstring GetNormpathW(const std::wstring& path);
+
 #ifdef OS_WIN
     //!
     //! Gets absolute path, supports unicode on Windows
@@ -336,11 +342,6 @@ public:
     //! Gets current working directory on windows
     //!
     std::wstring GetCurrentWorkingDirW();
-    //! 
-    //! Returns normalized path for operating system, supports Unicode
-    //! \param path Given path
-    //!
-    std::wstring GetNormpathW(const std::wstring& path);
     //!
     //! Strips trailing slash for wide strings
     //! \param in Input string
@@ -372,12 +373,12 @@ public:
     //! Converts std::string to std::wstring
     //! \param in Input string
     //!
-    std::wstring StdString2WString(const std::string& in);
+    static std::wstring StdString2WString(const std::string& in);
     //!
     //! Converts std::wstring to std::string, supports Unicode
     //! \param in Wide string input
     //!
-    std::string WString2StdString(const std::wstring& in);
+    static std::string WString2StdString(const std::wstring& in);
 
     //!
     //! Returns true if given path exists on disk, supports Unicode
@@ -452,6 +453,27 @@ public:
     //!
     std::FILE* FileOpen(const std::string&,
                         const std::string&);
+
+    //!
+    //! Closes output log
+    //!
+    static void CloseOutputLog();
+    //!
+    //! Saves string to output log
+    //! \param Given string
+    //!
+    static void SaveToOutputLog(const std::string&);
+    //!
+    //! Returns true successful in converting string to scalar/complex
+    //! \param in       Input string
+    //! \param rval     Real part
+    //! \param ival     Imaginary part, if it exists
+    //! \param isscalar True if value is scalar
+    //!
+    static bool ReadNumber(const std::string& in,
+                           double&            rval,
+                           double&            ival,
+                           bool&              isscalar);
 private: 
     //!
     //! Reads formatted input and returns true if successful
@@ -497,6 +519,16 @@ private:
                              const std::string&     fmt,
                              std::vector<Currency>& outvals,
                              std::string&           stringread);
+    //!
+    //! Returns true if strtod conversion is successful
+    //! \param in  Input string
+    //! \param end End string
+    //! \param val Value converted by strtod
+    //!
+    static bool IsValidStrtodResult(const std::string& in,
+                                    const std::string& end,
+                                    double             val);
+
 };
 //------------------------------------------------------------------------------
 //! Returns matrix (real/complex) from container

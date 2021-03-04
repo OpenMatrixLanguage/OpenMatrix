@@ -18,7 +18,7 @@
 #define __MATRIXDISPLAY_H__
 
 // Begin defines/includes
-#include "Hml2Dll.h"
+#include "OMLDll.h"
 #include "Currency.h"
 #include "CurrencyDisplay.h"
 
@@ -39,7 +39,7 @@ class OutputFormat;
 //! \brief Displays formatted matrix output
 //!
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS MatrixDisplay : public CurrencyDisplay
+class OMLDLL_DECLS MatrixDisplay : public CurrencyDisplay
 {
 public:
     friend class Currency; //! Only currency is allowed to construct

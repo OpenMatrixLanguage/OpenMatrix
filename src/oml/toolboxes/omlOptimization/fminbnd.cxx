@@ -105,8 +105,8 @@ bool OmlFminbnd(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_VECTOR2, 2, OML_VAR_DATA);
 
     bool    displayHist = false;
-    int     maxIter     = 100;
-    int     maxFunEval  = 400;
+    int     maxIter     = 400;
+    int     maxFunEval  = 1000000;
     double  tolx        = 1.0e-7;
 
     if (nargin > 2 && inputs[2].IsStruct())

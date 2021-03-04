@@ -178,18 +178,19 @@ std::string MatrixDisplay::GetOutputNoPagination(const OutputFormat* fmt,
     }
 
     std::string myindent = GetIndentString(m_indent);
+
+    std::string coffsetstr;
+    for (int k = 0; k < coffset && k < numcols; ++k)
+    {
+        coffsetstr += _delimiter;
+    }
+    
 	for (int i = 0; i < numrows; ++i)
 	{	
         if (startwithnewline || i > 0)
 	        output += rowdelim;  
 
-        if (i < coffset)
-        {
-            for (int j = 0; j < numcols; ++j)
-                output += _delimiter;
-        }
-
-        output += myindent;
+        output += myindent + coffsetstr;
 		for (int j = 0; j < numcols; ++j)
 		{
             int rwidth = GetRealWidth(j);

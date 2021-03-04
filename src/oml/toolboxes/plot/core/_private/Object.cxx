@@ -222,10 +222,15 @@ namespace omlplot{
         }
     }
 
-    Root::Root(){
+    Root::Root()
+        :Object()
+    {
         m_ps.push_back(Property("type", string("root"), PropertyType::STRING) );
         m_ps.push_back(Property("handle", double(0), PropertyType::DOUBLE) );
         m_ps.push_back(Property("currentfigure", double(0), PropertyType::DOUBLE) );
+
+        m_ps.push_back(Property("units", string("pixels"), PropertyType::STRING));
+
         m_objectMap[double(0)] = this;
     }
 
@@ -273,7 +278,7 @@ namespace omlplot{
     }
 
     Figure::Figure()
-        :m_out(new GnuplotOutput)
+        :Object(), m_out(new GnuplotOutput)
     {
         double handle = m_figureHandlePool->allocHandle();
         init(handle);
@@ -310,7 +315,10 @@ namespace omlplot{
 		m_ps.push_back(Property("toplabel", string("toplabel"), PropertyType::UNSUPPORTED));
 		m_ps.push_back(Property("bottomlabel", string("bottomlabel"), PropertyType::UNSUPPORTED));
 		m_ps.push_back(Property("leftlabel", string("leftlabel"), PropertyType::UNSUPPORTED));
-		m_ps.push_back(Property("rightlabel", string("rightlabel"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("rightlabel", string("rightlabel"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("name", string("name"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("numbertitle", string("numbertitle"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("uicontextmenu", string("uicontextmenu"), PropertyType::UNSUPPORTED));
     }
 
     Figure::~Figure(){
@@ -406,7 +414,7 @@ namespace omlplot{
     }
 
     Axes::Axes()
-        :m_title(new Text), m_xlabel(new Text), m_ylabel(new Text), m_zlabel(new Text),
+        :Object(), m_title(new Text), m_xlabel(new Text), m_ylabel(new Text), m_zlabel(new Text),
          _axisNeedRepaint(false), _borderOn(true), _colorbarVisible(true)
     {
         double handle = m_handlePool->allocHandle();
@@ -458,13 +466,33 @@ namespace omlplot{
 		m_ps.push_back(Property("fontsize", string("fontsize"), PropertyType::UNSUPPORTED));
 		m_ps.push_back(Property("fontweight", string("fontweight"), PropertyType::UNSUPPORTED));
 		m_ps.push_back(Property("mouseclickcallback", string("mouseclickcallback"), PropertyType::UNSUPPORTED));
-		m_ps.push_back(Property("contourlevels", string("contourlevels"), PropertyType::UNSUPPORTED));
+		m_ps.push_back(Property("colorlevels", string("colorlevels"), PropertyType::UNSUPPORTED));
 		m_ps.push_back(Property("polarmethod", string("polarmethod"), PropertyType::UNSUPPORTED));
 		m_ps.push_back(Property("polartiptotail", string("polartiptotail"), PropertyType::UNSUPPORTED));
 		m_ps.push_back(Property("contourtype", string("contourtype"), PropertyType::UNSUPPORTED));
 		m_ps.push_back(Property("xcategories", string("xcategories"), PropertyType::UNSUPPORTED));
 		m_ps.push_back(Property("ycategories", string("ycategories"), PropertyType::UNSUPPORTED));
 		m_ps.push_back(Property("secondaryyaxis", string("secondaryyaxis"), PropertyType::UNSUPPORTED));
+
+        m_ps.push_back(Property("bargap", string("bargap"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("barorientation", string("barorientation"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("barlabels", string("barlabels"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("barlabelsfontname", string("barlabelsfontname"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("barlabelsfontsize", string("barlabelsfontsize"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("barlabelsfontweight", string("barlabelsfontweight"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("barlabelsfontangle", string("barlabelsfontangle"), PropertyType::UNSUPPORTED));
+
+        m_ps.push_back(Property("xnumericformat", string("xnumericformat"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("xnumericprecision", string("xnumericprecision"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("xtickmethod", string("xtickmethod"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("ynumericformat", string("ynumericformat"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("ynumericprecision", string("ynumericprecision"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("ytickmethod", string("ytickmethod"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("znumericformat", string("znumericformat"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("znumericprecision", string("znumericprecision"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("ztickmethod", string("ztickmethod"), PropertyType::UNSUPPORTED));
+
+        m_ps.push_back(Property("colorbarscale", string("colorbarscale"), PropertyType::UNSUPPORTED));
 
     }
 
@@ -776,7 +804,9 @@ namespace omlplot{
         return ret;
     }
 
-    Drawable::Drawable(){
+    Drawable::Drawable()
+        :Object(), _xcolcount(0), _ycolcount(0), _zcolcount(0)
+    {
         double handle = m_handlePool->allocHandle();
         m_ps.push_back(Property("handle", handle , PropertyType::DOUBLE));
         vector<double> d;
@@ -838,7 +868,9 @@ namespace omlplot{
         out->printf("e\n");
     }
 
-    Line::Line(){
+    Line::Line()
+        :Drawable()
+    {
         m_ps.push_back(Property("type", string("line"), PropertyType::STRING) );
         m_ps.push_back(Property("linestyle", string("-"), PropertyType::STRING));
         m_ps.push_back(Property("color", Color(string("blue")), PropertyType::COLOR));
@@ -850,7 +882,15 @@ namespace omlplot{
 
 		// not yet supported properties
 		m_ps.push_back(Property("visible", string("visible"), PropertyType::UNSUPPORTED));
-		m_ps.push_back(Property("tiptotail", string("tiptotail"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("tiptotail", string("tiptotail"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("markerevery", string("markerevery"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("dataxoffset", string("dataxoffset"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("dataxscale", string("dataxscale"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("datayoffset", string("datayoffset"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("datayscale", string("datayscale"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("datazoffset", string("datazoffset"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("datazscale", string("datazscale"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("units", string("units"), PropertyType::UNSUPPORTED));
     }
 
     void Line::init(const LineData &ld){
@@ -950,6 +990,12 @@ namespace omlplot{
     void Line::cleanup(GnuplotOutput *out){
     }
 
+    Polar::Polar()
+        :Line()
+    {
+
+    }
+
     string Polar::getLineStyle(int line) {
         string style = Line::getLineStyle(line);
         stringstream ss;
@@ -968,7 +1014,9 @@ namespace omlplot{
         out->printf("set ytics\n");
     }
 
-    Fill::Fill(){
+    Fill::Fill()
+        :Drawable()
+    {
         m_ps.push_back(Property("color", Color(string("blue")), PropertyType::COLOR));
         m_ps.push_back(Property("type", string("patch"), PropertyType::STRING) );
     }
@@ -1015,10 +1063,22 @@ namespace omlplot{
     void Fill::cleanup(GnuplotOutput *out){
     }
 
-    Area::Area(){
+    Area::Area()
+        :Drawable()
+    {
         m_ps.push_back(Property("type", string("hggroup"), PropertyType::STRING) );
         m_ps.push_back(Property("basevalue", double(0), PropertyType::DOUBLE));
         m_ps.push_back(Property("facecolor", Color(string("blue")), PropertyType::COLOR));
+
+        // not yet supported properties
+        m_ps.push_back(Property("visible", string("visible"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("markerevery", string("markerevery"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("dataxoffset", string("dataxoffset"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("dataxscale", string("dataxscale"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("datayoffset", string("datayoffset"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("datayscale", string("datayscale"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("units", string("units"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("areagroup", string("areagroup"), PropertyType::UNSUPPORTED));
     }
 
     string Area::getUsingClause(){
@@ -1052,11 +1112,19 @@ namespace omlplot{
     void Area::cleanup(GnuplotOutput *out){
     }
 
-    HggroupBar::HggroupBar(){
+    HggroupBar::HggroupBar()
+        :Drawable()
+    {
         m_ps.push_back(Property("type", string("hggroup"), PropertyType::STRING) );
         m_ps.push_back(Property("barwidth", double(0.8), PropertyType::DOUBLE));
         m_ps.push_back(Property("barlayout", string("grouped"), PropertyType::STRING));
         m_ps.push_back(Property("facecolor", Color(string("blue")), PropertyType::COLOR));
+
+        // not yet supported properties
+        m_ps.push_back(Property("visible", string("visible"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("units", string("units"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("bargroup", string("bargroup"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("barstyle", string("barstyle"), PropertyType::UNSUPPORTED));
     }
 
     void HggroupBar::init(const LineData &ld){
@@ -1113,7 +1181,9 @@ namespace omlplot{
     void HggroupBar::cleanup(GnuplotOutput *out) {
     }
 
-    Hist::Hist(){
+    Hist::Hist()
+        :HggroupBar()
+    {
         setPropertyValue("barwidth", 0.4);
     }
 
@@ -1129,11 +1199,24 @@ namespace omlplot{
         return ss.str();
     }
 
-    HggroupScatter::HggroupScatter(){
+    HggroupScatter::HggroupScatter()
+        :Drawable()
+    {
         m_ps.push_back(Property("type", string("hggroup"), PropertyType::STRING) );
         m_ps.push_back(Property("marker", string("o"), PropertyType::STRING));
         m_ps.push_back(Property("markerfacecolor", string("blue"), PropertyType::COLOR));
         m_ps.push_back(Property("markersize", double(1), PropertyType::DOUBLE));
+
+        // not yet supported properties
+        m_ps.push_back(Property("visible", string("visible"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("markerevery", string("markerevery"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("dataxoffset", string("dataxoffset"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("dataxscale", string("dataxscale"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("datayoffset", string("datayoffset"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("datayscale", string("datayscale"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("datazoffset", string("datazoffset"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("datazscale", string("datazscale"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("units", string("units"), PropertyType::UNSUPPORTED));
     }
 
     string HggroupScatter::getUsingClause(){
@@ -1193,19 +1276,26 @@ namespace omlplot{
     void HggroupScatter::cleanup(GnuplotOutput *out) {
     }
 
+    HggroupScatter3::HggroupScatter3()
+        :HggroupScatter()
+    {
+
+    }
+    
     string HggroupScatter3::getUsingClause(){
         return "'-' using 1:2:3";
     }
 
     Surface::Surface()
-        :_minZ(0), _maxZ(1)
+        :Drawable(), _minZ(0), _maxZ(1)
     {
         m_ps.push_back(Property("type", string("surface"), PropertyType::STRING) );
 
 		// not yet supported properties
 		m_ps.push_back(Property("meshlines", string("meshlines"), PropertyType::UNSUPPORTED));
 		m_ps.push_back(Property("color", string("color"), PropertyType::UNSUPPORTED));
-		m_ps.push_back(Property("visible", string("visible"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("visible", string("visible"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("units", string("units"), PropertyType::UNSUPPORTED));
 		
     }
 
@@ -1296,6 +1386,12 @@ namespace omlplot{
         out->printf("e\n");
     }
 
+    Mesh::Mesh()
+        :Surface()
+    {
+
+    }
+    
     string Mesh::getLineStyle(int line){
         return "set pal maxcolor 0\n"
             "unset pm3d\n"
@@ -1306,6 +1402,12 @@ namespace omlplot{
             "unset view\n";
     }
 
+    Line3::Line3()
+        :Line()
+    {
+
+    }
+    
     string Line3::getLineStyle(int line){
         return "set surface\n";
     }
@@ -1318,6 +1420,12 @@ namespace omlplot{
         stringstream ss;
         ss << "with line linestyle " << lineId;
         return ss.str();
+    }
+
+    Contour3::Contour3()
+        :Surface()
+    {
+
     }
 
     string Contour3::getLineStyle(int line){
@@ -1339,6 +1447,12 @@ namespace omlplot{
         return "'-' using 1:2:3 with lines nosurf";
     }
 
+    Contour::Contour()
+        :Surface()
+    {
+
+    }
+    
     string Contour::getLineStyle(int line){
         return "set contour base\n"
             "unset surface\n"
@@ -1352,10 +1466,22 @@ namespace omlplot{
         out->printf("unset view\n");
     }
 
+    Stem::Stem()
+        :Line()
+    {
+
+    }
+    
     string Stem::getWithClause(int lineId){
         stringstream ss;
         ss << "with impulses linestyle " << lineId;
         return ss.str();
+    }
+
+    Loglog::Loglog()
+        :Line()
+    {
+
     }
 
     string Loglog::getLineStyle(int line) {
@@ -1369,6 +1495,12 @@ namespace omlplot{
         out->printf("unset logscale xy\n");
     }
 
+    Semilogx::Semilogx()
+        :Line()
+    {
+
+    }
+    
     string Semilogx::getLineStyle(int line) {
         string style = Line::getLineStyle(line);
         stringstream ss;
@@ -1380,6 +1512,12 @@ namespace omlplot{
         out->printf("unset logscale x\n");
     }
 
+    Semilogy::Semilogy()
+        :Line()
+    {
+
+    }
+    
     string Semilogy::getLineStyle(int line) {
         string style = Line::getLineStyle(line);
         stringstream ss;
@@ -1391,7 +1529,9 @@ namespace omlplot{
         out->printf("unset logscale y\n");
     }
 
-    Text::Text(){
+    Text::Text()
+        :Object()
+    {
         double handle = m_handlePool->allocHandle();
         m_ps.push_back(Property("type", string("text"), PropertyType::STRING) );
         m_ps.push_back(Property("handle", handle, PropertyType::DOUBLE));
@@ -1412,7 +1552,8 @@ namespace omlplot{
 		m_ps.push_back(Property("horizontalalignment", string("horizontalalignment"), PropertyType::UNSUPPORTED));
 		m_ps.push_back(Property("verticalalignment", string("verticalalignment"), PropertyType::UNSUPPORTED));
 		m_ps.push_back(Property("borderwidth", string("borderwidth"), PropertyType::UNSUPPORTED));
-		m_ps.push_back(Property("offset", string("offset"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("offset", string("offset"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("units", string("units"), PropertyType::UNSUPPORTED));
     }
 
     void Text::update(GnuplotOutput *out){

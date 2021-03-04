@@ -1,3 +1,0 @@
-fname = FileManipulation/EmptyFile.txt
-fid = 3
-Error: invalid precision type in call to function fwrite at line number 3 in file filetest145.oml

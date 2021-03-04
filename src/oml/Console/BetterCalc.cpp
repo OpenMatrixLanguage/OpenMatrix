@@ -14,7 +14,7 @@
 * Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
-#include "../Runtime/Hml2Dll.h"
+#include "../Runtime/OMLDll.h"
 #include "../Runtime/Currency.h"
 #include "../Runtime/CurrencyDisplay.h"
 #include "../Runtime/Interpreter.h"

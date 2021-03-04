@@ -4,9 +4,9 @@ te = {}
 m = {}
 t = {}
 nm = struct [
-FIRST: 
-OUTER: 
-SECOND: 
+  FIRST: 
+  OUTER: 
+  SECOND: 
 ]
 sp = 
 {

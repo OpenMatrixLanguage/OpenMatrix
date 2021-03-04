@@ -1,0 +1,8 @@
+﻿mycell = cell(2,2);
+mycell{:} = 1;
+
+mycell2 = cell(3,3);
+mycell2{:} = 0;
+
+mycell2(2:end,2:end) = mycell
+mycell2(1:2,1:2) = 'hi'

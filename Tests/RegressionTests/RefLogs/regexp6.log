@@ -67,18 +67,18 @@ t =
 nm = 
 {
   [1,1] struct [
-  FIRST: AA
-  OUTER: AA
-  SECOND: 
+    FIRST: AA
+    OUTER: AA
+    SECOND: 
   ]
   [1,2] struct [
-  FIRST: AA
-  OUTER: 
-  {
-    [1,1] AA
-    [1,2] BB
-  }
-  SECOND: BB
+    FIRST: AA
+    OUTER: 
+    {
+      [1,1] AA
+      [1,2] BB
+    }
+    SECOND: BB
   ]
 }
 sp = 

@@ -1,7 +1,7 @@
 /**
 * @file MatioTboxDefs.h
 * @date November 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -14,21 +14,21 @@
 * Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 
-#ifndef _matio_Hml2_Tbox_Defs_h
-#define _matio_Hml2_Tbox_Defs_h
+#ifndef _matio_Oml_Tbox_Defs_h
+#define _matio_Oml_Tbox_Defs_h
 
 // Windows export macro
 #ifdef OS_WIN
-  #ifdef MATIOHML2TBOX_EXPORT
-    #undef  MATIOHML2TBOX_DECLS
-    #define MATIOHML2TBOX_DECLS __declspec(dllexport)
+  #ifdef MATIOOMLTBOX_EXPORT
+    #undef  MATIOOMLTBOX_DECLS
+    #define MATIOOMLTBOX_DECLS __declspec(dllexport)
   #else
-    #undef  MATIOHML2TBOX_DECLS
-    #define MATIOHML2TBOX_DECLS __declspec(dllimport)
-  #endif  // MATIOHML2TBOX_EXPORT
+    #undef  MATIOOMLTBOX_DECLS
+    #define MATIOOMLTBOX_DECLS __declspec(dllimport)
+  #endif  // MATIOOMLTBOX_EXPORT
 #else
-  #undef  MATIOHML2TBOX_DECLS
-  #define MATIOHML2TBOX_DECLS
+  #undef  MATIOOMLTBOX_DECLS
+  #define MATIOOMLTBOX_DECLS
 #endif // OS_WIN
 
-#endif // _matio_Hml2_Tbox_Defs_h
+#endif // _matio_Oml_Tbox_Defs_h

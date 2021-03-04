@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="acos" /><meta name="abstract" content="Returns the inverse cosine (in radians) of a." /><meta name="description" content="Returns the inverse cosine (in radians) of a." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Trigonometry Commands" /><meta name="indexterms" content="acos" /><meta name="DC.subject" content="acos" /><meta name="keywords" content="acos" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/trigonometry_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/acosd.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/cos.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>acos</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="acos" /><meta name="abstract" content="Returns the inverse cosine (in radians) for each element of the argument." /><meta name="description" content="Returns the inverse cosine (in radians) for each element of the argument." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Trigonometry Commands" /><meta name="indexterms" content="acos" /><meta name="DC.subject" content="acos" /><meta name="keywords" content="acos" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/trigonometry_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/acosd.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/cos.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/cosd.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>acos</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -15,11 +15,11 @@
 
   
   
-  <div class="body refbody"><p class="shortdesc">Returns the inverse cosine (in radians) of <var class="keyword varname">a</var>.</p>
+  <div class="body refbody"><p class="shortdesc">Returns the inverse cosine (in radians) for each element of the argument.</p>
 
     <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       
-      <p class="p"><span class="ph synph">R = acos<span class="ph var">(a)</span></span></p>
+      <p class="p"><span class="ph synph">R = acos<span class="ph var">(sqrt(3)/2)</span></span></p>
 
       <?STOP?>
     </section>
@@ -30,11 +30,7 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">a</var></dt>
 
-          <dd class="dd pd">Any valid <span class="keyword">scalar | vector | matrix</span></dd>
-
-          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer</span></dd>
-
-          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
+          <dd class="dd pd">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
 
         
       </dl>
@@ -46,9 +42,9 @@
       
       <dl class="dl parml">
         
-          <dt class="dt pt dlterm"><span class="ph synph">R</span>  in radians</dt>
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
 
-          <dd class="dd pd"><span class="keyword">scalar | vector | matrix</span></dd>
+          <dd class="dd pd">The angle result (in radians).</dd>
 
         
       </dl>
@@ -58,14 +54,13 @@
 
     <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
-      <div class="p">Simple scalar
-        input:<pre class="pre codeblock"><code>R = acos(-0.5)</code></pre><pre class="pre codeblock"><code><samp class="ph systemoutput">R = 2.0944</samp></code></pre></div>
+      <div class="p">Scalar
+        input:<pre class="pre codeblock"><code>R = acos(sqrt(3)/2)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 0.523598776</code></code></pre></div>
 
-      <div class="p">Simple matrix
-        input:<pre class="pre codeblock"><code>R = acos([-3,0.6])</code></pre><pre class="pre codeblock"><code><samp class="ph systemoutput">R = [ 3.14159-1.76275i, 0.927295]</samp></code></pre></div>
-
-      <div class="p">Complex matrix
-        input:<pre class="pre codeblock"><code>R = acos([i+2,3i-1;i,0.3])</code></pre><pre class="pre codeblock"><code><samp class="ph systemoutput">R = [ 0.507356-1.46935i, 1.8784-1.86416i; 1.5708-0.881374i, 1.2661]</samp></code></pre></div>
+      <div class="p">Matrix
+        input:<pre class="pre codeblock"><code>R = acos([0, sqrt(3)/2; 0.5, sqrt(2)/2])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = [Matrix] 2 x 2
+  1.57080  0.52360
+  1.04720  0.78540</code></code></pre></div>
 
     </section>
 
@@ -79,13 +74,14 @@
 <nav role="navigation" class="related-links">
 <div class="linklist linklist"><strong>See Also</strong><br />
 
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/acosd.htm" title="Returns the inverse cosine (in degrees) for each element of x.">acosd</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/cos.htm" title="Returns the cosine of a (input in radians).">cos</a></div></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/acosd.htm" title="Returns the inverse cosine (in degrees) for each element of the argument.">acosd</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/cos.htm" title="Returns the cosine for each element of the argument (in radians).">cos</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/cosd.htm" title="Returns the cosine for each element of the argument (in degrees).">cosd</a></div></div>
 </nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Trigonometry/trigonometry_commands.htm" title="Trigonometry Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Trigonometry Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         
         <div>
-            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2021)</p>
                
         </div>
     </div></footer></body>

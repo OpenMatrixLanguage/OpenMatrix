@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#include "Evaluator.h" // indirectly gets HML2DLL_DECLS
+#include "Evaluator.h" // indirectly gets OMLDLL_DECLS
 
 class FunctionInfo;
 class PropertyInfo;
@@ -30,7 +30,7 @@ class PropertyInfo;
 //------------------------------------------------------------------------------
 //! Registers external C++ classes defined in OML language with OML core
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS ClassInfo 
+class OMLDLL_DECLS ClassInfo 
 {
 public:
     //! Constructor
@@ -95,7 +95,7 @@ private:
 //------------------------------------------------------------------------------
 //! Property info class
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS PropertyInfo 
+class OMLDLL_DECLS PropertyInfo 
 {
 public:
     //! Constructor

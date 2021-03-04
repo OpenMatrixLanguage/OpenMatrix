@@ -39,7 +39,7 @@ public:
     //!
     //! Destructor
     //!
-    virtual ~SignalHandler() {}
+    virtual ~SignalHandler();
 
     //!
     //! Creates clone
@@ -54,7 +54,7 @@ public:
     //! Sets the console wrapper
     //! \param wrapper Wrapper pointer
     //!
-    void SetWrapper( WrapperBase* wrapper) { _wrapper = wrapper; }
+    void SetWrapper(WrapperBase* wrapper) { _wrapper = wrapper; }
 
     //!
     //! Returns class info

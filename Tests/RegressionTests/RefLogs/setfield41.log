@@ -1,13 +1,13 @@
 a = struct [
-b: 2
+  b: 2
 ]
 aa = struct [
-c: struct [
-b: 2
-]
+  c: struct [
+    b: 2
+  ]
 ]
 aa = struct [
-Struct array of size 1 x 2 with fields:
-c
+  Struct array of size 1 x 2 with fields:
+  c
 ]
 Error: invalid input in argument 3; type struct cannot be indexed in call to function setfield at line number 4 in file setfield41.oml

@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="fminunc" /><meta name="abstract" content="Find the unconstrained minimum of a real function." /><meta name="description" content="Find the unconstrained minimum of a real function." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Optimization Commands" /><meta name="indexterms" content="fminunc" /><meta name="DC.subject" content="fminunc" /><meta name="keywords" content="fminunc" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/optimization_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/optimset.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/language_guides/anonymous_functions_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/fminsearch.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>fminunc</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="fminunc" /><meta name="abstract" content="Find the unconstrained minimum of a real function." /><meta name="description" content="Find the unconstrained minimum of a real function." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Optimization Commands" /><meta name="indexterms" content="fminunc" /><meta name="DC.subject" content="fminunc" /><meta name="keywords" content="fminunc" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/optimization_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/optimset.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/language_guides/anonymous_functions_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/fminsearch.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>fminunc</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -154,19 +154,29 @@
       <?STOPOUT?>
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Example</h2>
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
-      <p class="p">Minimize the Rosenbrock function.</p>
-
-      <pre class="pre codeblock"><code>function obj = Rosenbrock(x)<?oxy_custom_start type="oxy_content_highlight" color="255,255,0"?>
+      <div class="p">Minimize the Rosenbrock
+        function.<pre class="pre codeblock"><code>function obj = Rosenbrock(x)<?oxy_custom_start type="oxy_content_highlight" color="255,255,0"?>
 <?oxy_custom_end?>    obj = (1 - x(1))^2 + 100 * (x(2) - x(1)^2)^2;
 end
 
 x0 = [-1.2, 1.0];
-[x,fval] = fminunc(@Rosenbrock, x0)</code></pre>
-      <pre class="pre codeblock"><code><code class="ph codeph">x = [Matrix] 1 x 2
+[x,fval] = fminunc(@Rosenbrock, x0)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">x = [Matrix] 1 x 2
 1.00000  1.00000
-fval = 1.29122e-15</code></code></pre>
+fval = 1.29122e-15</code></code></pre></div>
+
+      <div class="p">Modify the previous example to pass an extra parameter to the user function using a
+        function
+        handle.<pre class="pre codeblock"><code>function obj = Rosenbrock2(x, offset)
+    obj = (1 - x(1))^2 + 100 * (x(2) - x(1)^2)^2 + offset;
+end
+
+handle = @(x) Rosenbrock2(x, 2);
+[x,fval] = fminunc(handle, x0)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">x = [Matrix] 1 x 2
+0.99999  0.99999
+fval = 2</code></code></pre></div>
+
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Comments</h2>
@@ -181,9 +191,9 @@ fval = 1.29122e-15</code></code></pre>
         function.</p>
 
       <div class="p">The <span class="keyword cmdname">optimset</span> options and defaults are as follows:<ul class="ul">
-          <li class="li"><span class="keyword option">MaxIter</span>: 100</li>
+          <li class="li"><span class="keyword option">MaxIter</span>: 400</li>
 
-          <li class="li"><span class="keyword option">MaxFunEvals</span>: 400</li>
+          <li class="li"><span class="keyword option">MaxFunEvals</span>: 1,000,000</li>
 
           <li class="li"><span class="keyword option">TolFun</span>: 1.0e-7</li>
 
@@ -215,7 +225,7 @@ fval = 1.29122e-15</code></code></pre>
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Optimization/optimization_commands.htm" title="Optimization Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Optimization Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         
         <div>
-            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2021)</p>
                
         </div>
     </div></footer></body>

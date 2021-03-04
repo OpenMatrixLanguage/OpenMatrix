@@ -1,20 +1,20 @@
 a = struct [
-b: 3
+  b: 3
 ]
 a = struct [
-b: 3
-c: 4
+  b: 3
+  c: 4
 ]
 a = struct [
-Struct array of size 2 x 1 with fields:
-b
-c
+  Struct array of size 2 x 1 with fields:
+  b
+  c
 ]
 A = struct [
-b: -4
+  b: -4
 ]
 A = struct [
-b: -4
-c: -3
+  b: -4
+  c: -3
 ]
 Error: inputs must have the same number of rows to be concatenated horizontally in call to function horzcat at line number 6 in file horzcat51.oml

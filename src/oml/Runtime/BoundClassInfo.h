@@ -28,7 +28,7 @@ class BoundProperty;
 //! \brief Interface for internal Swig bound C++ classes
 //!
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS BoundClassInfo
+class OMLDLL_DECLS BoundClassInfo
 {
 public:
     //!
@@ -96,7 +96,7 @@ private:
 //! Interface for storing property information in (swig) bound classes
 //!
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS BoundProperty
+class OMLDLL_DECLS BoundProperty
 {
     friend class BoundClassInfo;  //!< Special access to construct
 public:

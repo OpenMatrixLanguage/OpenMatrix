@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="fsolve" /><meta name="abstract" content="Find a solution of a system of real nonlinear equations." /><meta name="description" content="Find a solution of a system of real nonlinear equations." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Optimization Commands" /><meta name="indexterms" content="fsolve" /><meta name="DC.subject" content="fsolve" /><meta name="keywords" content="fsolve" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/optimization_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/optimset.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/lsqcurvefit.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/language_guides/anonymous_functions_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>fsolve</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="fsolve" /><meta name="abstract" content="Find a solution of a system of real nonlinear equations." /><meta name="description" content="Find a solution of a system of real nonlinear equations." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Optimization Commands" /><meta name="indexterms" content="fsolve" /><meta name="DC.subject" content="fsolve" /><meta name="keywords" content="fsolve" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/optimization_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/optimset.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/lsqcurvefit.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/language_guides/anonymous_functions_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>fsolve</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -154,11 +154,10 @@
       <?STOPOUT?>
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Example</h2>
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
-      <p class="p">Solve the system of equations <span class="keyword cmdname">SysFunc</span>.</p>
-
-      <pre class="pre codeblock"><code>function res = SysFunc(x)
+      <div class="p">Solve the system of equations
+        <span class="keyword cmdname">SysFunc</span>.<pre class="pre codeblock"><code>function res = SysFunc(x)
     % intersection of two paraboloids and a plane
     v1 = (x(1))^2 + (x(2))^2 + 6;
     v2 = 2*(x(1))^2 + 2*(x(2))^2 + 4;
@@ -169,13 +168,33 @@
 end
 
 x0 = [1; 2];
-[x,fval] = fsolve(@SysFunc,x0)</code></pre>
-      <pre class="pre codeblock"><code><code class="ph codeph">x = [Matrix] 2 x 1
+[x,fval] = fsolve(@SysFunc,x0)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">x = [Matrix] 2 x 1
  1.40000
 -0.20000
 fval = [Matrix] 2 x 1
 3.67339e-07
-7.34677e-07</code></code></pre>
+7.34677e-07</code></code></pre></div>
+
+      <div class="p">Modify the previous example to pass an extra parameter to the user function using a
+        function
+        handle.<pre class="pre codeblock"><code>function res = SysFunc(x, offset)
+    % intersection of two paraboloids and a plane
+    v1 = (x(1))^2 + (x(2))^2 + offset(1);
+    v2 = 2*(x(1))^2 + 2*(x(2))^2 + offset(2);
+    v3 = 5*x(1) - 5*x(2) + offset(3);
+    res = zeros(2,1);
+    res(1,1) = v1 - v3;
+    res(2,1) = v2 - v3;
+end
+
+handle = @(x) SysFunc(x, [8,6,4]);
+[x,fval] = fsolve(handle,x0)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">x = [Matrix] 2 x 1
+1.40000
+0.20000
+fval = [Matrix] 2 x 1
+0
+0</code></code></pre></div>
+
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Comments</h2>
@@ -193,9 +212,9 @@ fval = [Matrix] 2 x 1
 
       <div class="p">The <span class="keyword cmdname">optimset</span> options and defaults are as follows.
         <ul class="ul">
-          <li class="li"><span class="keyword option">MaxIter</span>:     100</li>
+          <li class="li"><span class="keyword option">MaxIter</span>: 400</li>
 
-          <li class="li"><span class="keyword option">MaxFunEvals</span>: 400</li>
+          <li class="li"><span class="keyword option">MaxFunEvals</span>: 1,000,000</li>
 
           <li class="li"><span class="keyword option">TolFun</span>:      1.0e-7</li>
 
@@ -227,7 +246,7 @@ fval = [Matrix] 2 x 1
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Optimization/optimization_commands.htm" title="Optimization Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Optimization Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         
         <div>
-            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2021)</p>
                
         </div>
     </div></footer></body>

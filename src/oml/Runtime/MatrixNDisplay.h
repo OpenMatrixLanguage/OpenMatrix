@@ -18,7 +18,7 @@
 #define __MATRIXNDISPLAY__
 
 // Begin defines/includes
-#include "Hml2Dll.h"
+#include "OMLDll.h"
 #include "Currency.h"
 #include "CurrencyDisplay.h"
 #include "hwMatrixN.h"
@@ -31,7 +31,7 @@
 //! \brief Displays ND matrices
 //!
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS MatrixNDisplay : public CurrencyDisplay
+class OMLDLL_DECLS MatrixNDisplay : public CurrencyDisplay
 {
 public:
     friend class Currency; //! Only currency is allowed to construct

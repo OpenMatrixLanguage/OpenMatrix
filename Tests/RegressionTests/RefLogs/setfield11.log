@@ -1,9 +1,9 @@
 a = struct [
-b: 3
+  b: 3
 ]
 a = struct [
-b: 4
+  b: 4
 ]
 a = struct [
-b: test
+  b: test
 ]

@@ -1,21 +1,21 @@
 c = struct [
-Struct array of size 4 x 1 with fields:
-abc
-def
+  Struct array of size 4 x 1 with fields:
+  abc
+  def
 ]
 ans = struct [
-abc: 1
-def: 5
+  abc: 1
+  def: 5
 ]
 ans = struct [
-abc: 2
-def: 6
+  abc: 2
+  def: 6
 ]
 ans = struct [
-abc: 3
-def: 7
+  abc: 3
+  def: 7
 ]
 ans = struct [
-abc: 4
-def: 8
+  abc: 4
+  def: 8
 ]

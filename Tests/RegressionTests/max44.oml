@@ -1,0 +1,3 @@
+﻿myvec = [];
+
+max(myvec(:))

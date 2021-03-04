@@ -1,5 +1,5 @@
 A = object [
-Filepath: C:/
-Number: 1000
-Time: 0
+  Filepath: C:/
+  Number: 1000
+  Time: 0
 ]

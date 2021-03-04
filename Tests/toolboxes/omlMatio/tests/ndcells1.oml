@@ -1,0 +1,7 @@
+addtoolbox omlmatio;
+a{2,2,2} = 99
+save('ndcells1.mat')
+clear all
+load('ndcells1.mat')
+a
+delete('ndcells1.mat')

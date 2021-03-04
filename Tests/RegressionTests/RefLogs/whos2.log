@@ -1,14 +1,14 @@
 a = struct [
-b: 4
+  b: 4
 ]
 a = struct [
-b: 4
-c: 3
+  b: 4
+  c: 3
 ]
 a = struct [
-Struct array of size 1 x 2 with fields:
-b
-c
+  Struct array of size 1 x 2 with fields:
+  b
+  c
 ]
  Attr Name Size Bytes Class 
  ==== ==== ==== ===== ===== 

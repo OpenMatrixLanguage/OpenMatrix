@@ -38,11 +38,11 @@ t =
   }
 }
 nm = struct [
-FIRST: AA
-OUTER: 
-{
-  [1,1] AA
-  [1,2] BB
-}
-SECOND: BB
+  FIRST: AA
+  OUTER: 
+  {
+    [1,1] AA
+    [1,2] BB
+  }
+  SECOND: BB
 ]

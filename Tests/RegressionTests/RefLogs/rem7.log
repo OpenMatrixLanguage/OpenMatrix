@@ -1,1 +1,1 @@
-Error: invalid input in argument 2; value must be real in call to function rem at line number 1 in file rem7.oml
+Error: invalid input in argument 2; type must be a scalar or matrix in call to function rem at line number 1 in file rem7.oml

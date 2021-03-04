@@ -1,1 +1,1 @@
-Error: invalid option; must be 'rows' in call to function ismember at line number 1 in file ismember10.oml
+Error: unsupported option in argument 3; see help for valid options in call to function ismember at line number 1 in file ismember10.oml

@@ -23,7 +23,7 @@
 //! \brief Class for built-in functions implementing system/time commands
 //!
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS BuiltInFuncsSystem
+class OMLDLL_DECLS BuiltInFuncsSystem
 {
 public:
     //!
@@ -161,11 +161,11 @@ public:
                             const std::vector<Currency>& inputs, 
                             std::vector<Currency>&       outputs);
 	//!
-//! Returns true and deletes the specified environment [deleteenv]
-//! \param eval    Evaluator interface
-//! \param inputs  Vector of inputs
-//! \param outputs Vector of outputs
-//!
+    //! Returns true and deletes the specified environment [deleteenv]
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //!
 	static bool DeleteEnv(EvaluatorInterface eval,
 		const std::vector<Currency>& inputs,
 		std::vector<Currency>& outputs);
@@ -257,6 +257,15 @@ public:
     static bool Diary(EvaluatorInterface,
                       const std::vector<Currency>&,
                       std::vector<Currency>&);
+    //!
+    //! Returns true after starting/stopping writing to outputlog [outputlog]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //!
+    static bool OutputLog(EvaluatorInterface, 
+                          const std::vector<Currency>&,
+                          std::vector<Currency>&);
 
 private:
     //!

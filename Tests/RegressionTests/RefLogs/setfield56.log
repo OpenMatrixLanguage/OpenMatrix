@@ -1,16 +1,16 @@
 aa = struct [
-c: 5
+  c: 5
 ]
 a = struct [
-c: 6
+  c: 6
 ]
 a = struct [
-b: 2
-c: 6
+  b: 2
+  c: 6
 ]
 a = struct [
-Struct array of size 1 x 2 with fields:
-b
-c
+  Struct array of size 1 x 2 with fields:
+  b
+  c
 ]
 Error: unsupported operation; struct field names must match in call to function setfield at line number 5 in file setfield56.oml

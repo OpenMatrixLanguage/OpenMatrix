@@ -1,0 +1,21 @@
+before save
+M = 
+slice(:, :, 1) = 
+[Matrix] 2 x 2
+0.00000   0.00000
+3.14159  -2.00000
+
+slice(:, :, 2) = 
+[Matrix] 2 x 2
+  0 + 0i  NaN + 0i
+Inf + 0i    1 - 1i
+M = 
+slice(:, :, 1) = 
+[Matrix] 2 x 2
+0.00000   0.00000
+3.14159  -2.00000
+
+slice(:, :, 2) = 
+[Matrix] 2 x 2
+  0 + 0i  NaN + 0i
+Inf + 0i    1 - 1i

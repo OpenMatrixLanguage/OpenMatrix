@@ -1,0 +1,17 @@
+﻿function nc=ncounter
+	nc = nestedcounter
+
+	function mycount=nestedcounter
+		persistent nestcount
+		if isempty(nestcount)
+			nestcount = 1
+		else
+			nestcount = nestcount+1
+		end
+		mycount=nestcount
+	end
+end
+
+ncounter
+ncounter
+ncounter

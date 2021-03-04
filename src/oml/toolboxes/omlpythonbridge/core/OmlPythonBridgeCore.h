@@ -20,6 +20,7 @@
 
 #include "Currency.h"
 #include "EvaluatorInt.h" 
+#include "hwMatrixS.h"
 
 #ifndef PyObject_HEAD
 struct _object;
@@ -102,6 +103,9 @@ private:
     OmlPythonBridgeCore& operator=(const OmlPythonBridgeCore&) = delete;
     //! Destructor
     ~OmlPythonBridgeCore();
+
+    hwMatrixS* ConvertPyObjectToSparse(PyObject* const& obj, bool& status);
+    PyObject* ConvertSparseToPyObject(const hwMatrixS* spm);
 
     static OmlPythonBridgeCore* _instance;
     std::string m_errorMessagePython;

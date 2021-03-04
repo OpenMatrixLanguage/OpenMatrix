@@ -17,7 +17,7 @@
 #ifndef __Currency_h
 #define __Currency_h
 
-#include "Hml2Dll.h"
+#include "OMLDll.h"
 
 #include <string>
 #include <vector>
@@ -34,8 +34,8 @@ typedef hwTMatrixN<double, hwTComplex<double> > hwMatrixN;
 template <typename T1, typename T2> class hwTMatrixS;
 typedef hwTMatrixS<double, hwTComplex<double> > hwMatrixS;
 
-class HML2DLL_DECLS Currency;
-class HML2DLL_DECLS CurrencyDisplay;
+class OMLDLL_DECLS Currency;
+class OMLDLL_DECLS CurrencyDisplay;
 class OutputFormat;
 class FunctionInfo;
 class StructData;
@@ -70,7 +70,7 @@ private:
 //------------------------------------------------------------------------------
 //! Currency implementation
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS Currency
+class OMLDLL_DECLS Currency
 {
 public:
 	Currency(double val);
@@ -118,6 +118,7 @@ public:
     bool  IsScalar()    const;
 	bool  IsString()    const;
 	bool  IsUTF8String()    const { return _is_utf8; }
+	void  CheckForUTF8Characters();
 	bool  IsMultilineString() const;
 	bool  IsVector()    const;
 	bool  IsRealVector() const;
@@ -145,6 +146,7 @@ public:
 	bool  IsPositiveInteger() const;
 	bool  IsPositiveIntegralVector() const;
 	bool  IsPositiveIntegralMatrix() const;
+	bool  IsLinearRange() const;
 	bool  IsLogical() const;
 	bool  IsCharacter() const;
 	bool  IsCellList() const;
@@ -179,7 +181,7 @@ public:
 	Currency*           Pointer() const        { return data.cur_ptr; }
     void*               BoundObject() const    { return data.boundobj; }
 
-	void                SetMask(int new_mask)  { mask = MaskType(new_mask); }
+	void                SetMask(int new_mask);
 	int                 GetMask() const        { return mask; }
 	void                SetOutputName(const std::string& name) const; // the const is a mistake and needs to be fixed -- JDS
 	void                SetOutputName(const std::string* name) const; // the const is a mistake and needs to be fixed -- JDS
@@ -200,6 +202,8 @@ public:
 	void                FlattenCellList();
 
 	void                ConvertToStruct();
+
+	void                SetLinearRange(bool);
 
 	enum CurrencyType { TYPE_SCALAR, TYPE_STRING, TYPE_MATRIX, TYPE_COLON, TYPE_COMPLEX, TYPE_CELLARRAY, TYPE_ERROR, TYPE_BREAK, TYPE_RETURN, TYPE_FUNCHANDLE, TYPE_STRUCT, TYPE_NOTHING, TYPE_FORMAT, TYPE_BREAKPOINT, TYPE_POINTER, TYPE_CONTINUE, TYPE_ND_MATRIX, TYPE_OBJECT, TYPE_BOUNDOBJECT, TYPE_ND_CELLARRAY, TYPE_SPARSE };
 	enum MaskType { MASK_NONE, MASK_DOUBLE, MASK_STRING, MASK_LOGICAL, MASK_CELL_LIST, MASK_EXPLICIT_COMPLEX };
@@ -293,6 +297,7 @@ private:
 	mutable const std::string* out_name;
     mutable CurrencyDisplay*   _display;        //! Displays for output
 	bool                       _is_utf8;
+	bool                       _is_linear_range;
     
     static bool _experimental;                  //! True if experimental mode is active
 };

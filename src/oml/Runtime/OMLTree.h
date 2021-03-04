@@ -17,14 +17,14 @@
 #ifndef __OMLTree_h
 #define __OMLTree_h
 
-#include "Hml2Dll.h"
+#include "OMLDll.h"
 #include <vector>
 #include "Currency.h"
 #include "Evaluator.h"
 
 class OMLTree;
 
-class HML2DLL_DECLS OMLTree
+class OMLDLL_DECLS OMLTree
 {
 public:
 	OMLTree(int type, const std::string& text, const std::string* filename, int line, int num_children);

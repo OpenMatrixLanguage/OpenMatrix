@@ -1,6 +1,6 @@
 ans = object [
-a: 0
+  a: 0
 ]
 ans = object [
-a: 4
+  a: 4
 ]

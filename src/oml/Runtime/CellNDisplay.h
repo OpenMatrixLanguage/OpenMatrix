@@ -29,7 +29,7 @@ class OutputFormat;
 //! \class CellNDisplay
 //! \brief Displays ND cell arrays
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS CellNDisplay : public CurrencyDisplay
+class OMLDLL_DECLS CellNDisplay : public CurrencyDisplay
 {
 public:
 	friend class Currency; //!< Only currency is allowed to construct

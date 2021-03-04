@@ -45,7 +45,7 @@
 //! Construct empty matrix
 template<typename T1, typename T2>
 hwTMatrixN<T1, T2>::hwTMatrixN()
-    : m_pos(-1), m_refCount(1)
+    : m_refCount(1)
 {
     m_bits.ownData = 0;
     MakeEmpty();
@@ -58,6 +58,8 @@ hwTMatrixN<T1, T2>::hwTMatrixN(const std::vector<int>& dim, DataType dataType)
 {
     SetDimensions(dim);
     m_bits.ownData = 1;
+    m_real_memory = nullptr;
+    m_complex_memory = nullptr;
     m_real = nullptr;
     m_complex = nullptr;
 
@@ -75,6 +77,8 @@ hwTMatrixN<T1, T2>::hwTMatrixN(const std::vector<int>& dim, void* data, DataType
     : m_dim(dim), m_refCount(1), m_capacity(0)
 {
     m_bits.ownData = 0;
+    m_real_memory = nullptr;
+    m_complex_memory = nullptr;
 
     if (dataType == REAL)
     {
@@ -95,35 +99,11 @@ hwTMatrixN<T1, T2>::hwTMatrixN(const std::vector<int>& dim, void* data, DataType
 //! Copy constructor
 template<typename T1, typename T2>
 hwTMatrixN<T1, T2>::hwTMatrixN(const hwTMatrixN<T1, T2>& source)
-    : m_refCount(1)
+    : m_real(nullptr), m_complex(nullptr),
+      m_real_memory(nullptr), m_complex_memory(nullptr),
+      m_capacity(0), m_refCount(1)
 {
-    m_bits = source.m_bits;
-    m_dim = source.m_dim;
-    m_size = source.m_size;
-    m_pos = source.m_pos;
-
-    if (m_bits.ownData)
-    {
-        m_real = nullptr;
-        m_complex = nullptr;
-        m_capacity = source.m_capacity;
-
-        try
-        {
-            Copy(source);
-        }
-        catch (hwMathException& except)
-        {
-            except.Status().ResetArgs();
-            throw;
-        }
-    }
-    else
-    {
-        m_real = source.m_real;
-        m_complex = source.m_complex;
-        m_capacity = 0;
-    }
+    Copy(source);
 }
 
 //! Destructor
@@ -143,20 +123,13 @@ hwTMatrixN<T1, T2>& hwTMatrixN<T1, T2>::operator=(const hwTMatrixN<T1, T2>& rhs)
     if (this == &rhs)
         return *this;
 
-    m_bits = rhs.m_bits;
-    m_dim = rhs.m_dim;
-    // m_size = rhs.m_size;
-    m_real = nullptr;
-    m_complex = nullptr;
-    m_pos = rhs.m_pos;
-    m_capacity = rhs.m_capacity;
-
     try
     {
         Copy(rhs);
     }
     catch (hwMathException& except)
     {
+        MakeEmpty();
         except.Status().ResetArgs();
         throw;
     }
@@ -190,8 +163,9 @@ bool hwTMatrixN<T1, T2>::IsRealData() const
 // ****************************************************
 //! Convert hwTMatrixN to hwTMatrix
 template<typename T1, typename T2>
-void hwTMatrixN<T1, T2>::ConvertNDto2D(hwTMatrix<T1, T2>& target) const
+void hwTMatrixN<T1, T2>::ConvertNDto2D(hwTMatrix<T1, T2>& target, bool copyData) const
 {
+    // This method repackages 1D or 2D data from an ND matrix into a 2D matrix
     int m = m_dim[0];
     int n = m_dim[1];
 
@@ -215,17 +189,97 @@ void hwTMatrixN<T1, T2>::ConvertNDto2D(hwTMatrix<T1, T2>& target) const
         }
     }
 
-    if (IsReal())
-        target.Dimension(m, n, hwTMatrix<T1, T2>::REAL);
-    else
-        target.Dimension(m, n, hwTMatrix<T1, T2>::COMPLEX);
-
-    if (m_size > 0)
+    if (copyData)
     {
-        if (m_real)
-            CopyData(target.GetRealData(), m_size, m_real, m_size);
-        else if (m_complex)
-            CopyData(target.GetComplexData(), m_size, m_complex, m_size);
+        if (IsReal())
+            target.Dimension(m, n, hwTMatrix<T1, T2>::REAL);
+        else
+            target.Dimension(m, n, hwTMatrix<T1, T2>::COMPLEX);
+
+        if (m_size > 0)
+        {
+            if (m_real)
+                CopyData(target.GetRealData(), m_size, m_real, m_size);
+            else if (m_complex)
+                CopyData(target.GetComplexData(), m_size, m_complex, m_size);
+        }
+    }
+    else    // borrow data without taking ownership
+    {
+        if (IsReal())
+        {
+            target.Borrow(m, n, m_real_memory, m_real, hwTMatrix<T1, T2>::REAL);
+        }
+        else
+        {
+            target.Borrow(m, n, m_complex_memory, m_complex, hwTMatrix<T1, T2>::COMPLEX);
+        }
+    }
+}
+
+//! Convert hwTMatrixN to hwTMatrix
+template<typename T1, typename T2>
+void hwTMatrixN<T1, T2>::ConvertNDto2D(hwTMatrix<T1, T2>& target, bool copyData)
+{
+    // This method repackages 1D or 2D data from an ND matrix into a 2D matrix
+    int m = m_dim[0];
+    int n = m_dim[1];
+
+    for (int i = 2; i < m_dim.size(); ++i)
+    {
+        if (m_dim[i] > 2)
+        {
+            if (m == 1)
+            {
+                m = n;
+                n = m_dim[i];
+            }
+            else if (n == 1)
+            {
+                n = m_dim[i];
+            }
+            else
+            {
+                throw hwMathException(HW_MATH_ERR_NOTALLOWED, 1);
+            }
+        }
+    }
+
+    if (copyData)
+    {
+        if (IsReal())
+            target.Dimension(m, n, hwTMatrix<T1, T2>::REAL);
+        else
+            target.Dimension(m, n, hwTMatrix<T1, T2>::COMPLEX);
+
+        if (m_size > 0)
+        {
+            if (m_real)
+                CopyData(target.GetRealData(), m_size, m_real, m_size);
+            else if (m_complex)
+                CopyData(target.GetComplexData(), m_size, m_complex, m_size);
+        }
+    }
+    else    // borrow data, and transfer ownership (if applicable)
+    {
+        if (IsReal())
+        {
+            target.Borrow(m, n, m_real_memory, m_real, hwTMatrix<T1, T2>::REAL);
+        }
+        else
+        {
+            target.Borrow(m, n, m_complex_memory, m_complex, hwTMatrix<T1, T2>::COMPLEX);
+        }
+
+        if (m_bits.ownData)
+        {
+            OwnData(false);
+            target.OwnData(true);
+        }
+        else
+        {
+            target.OwnData(false);
+        }
     }
 }
 
@@ -233,6 +287,7 @@ void hwTMatrixN<T1, T2>::ConvertNDto2D(hwTMatrix<T1, T2>& target) const
 template<typename T1, typename T2>
 void hwTMatrixN<T1, T2>::Convert2DtoND(const hwTMatrix<T1, T2>& source, bool copyData)
 {
+    // This method repackages 1D or 2D data from a 2D matrix into a ND matrix
     if (!IsEmpty())
         MakeEmpty();
 
@@ -254,15 +309,128 @@ void hwTMatrixN<T1, T2>::Convert2DtoND(const hwTMatrix<T1, T2>& source, bool cop
                 CopyData(m_complex, m_size, source.GetComplexData(), m_size);
         }
     }
-    else    // borrow data
+    else    // borrow data without taking ownership
     {
         OwnData(false);
         ComputeSize();
 
         if (source.IsReal())
+        {
             m_real = const_cast<T1*> (source.GetRealData());
+            m_bits.realData = 1;
+        }
         else
+        {
             m_complex = const_cast<T2*> (source.GetComplexData());
+            m_bits.realData = 0;
+        }
+    }
+}
+
+//! Convert hwTMatrix to hwTMatrixN
+template<typename T1, typename T2>
+void hwTMatrixN<T1, T2>::Convert2DtoND(hwTMatrix<T1, T2>& source, bool copyData)
+{
+    // This method repackages 1D or 2D data from a 2D matrix into a ND matrix
+    if (!IsEmpty())
+        MakeEmpty();
+
+    m_dim[0] = source.M();
+    m_dim[1] = source.N();
+
+    if (copyData)
+    {
+        if (source.IsReal())
+            Dimension(m_dim, REAL);
+        else
+            Dimension(m_dim, COMPLEX);
+
+        if (m_size > 0)
+        {
+            if (m_real)
+                CopyData(m_real, m_size, source.GetRealData(), m_size);
+            else if (m_complex)
+                CopyData(m_complex, m_size, source.GetComplexData(), m_size);
+        }
+    }
+    else    // borrow data, and transfer ownership (if applicable)
+    {
+        ComputeSize();
+
+        if (source.IsReal())
+        {
+            m_real_memory = source.GetRealMemory();
+            m_real = source.GetRealData();
+            m_bits.realData = 1;
+        }
+        else
+        {
+            m_complex_memory = source.GetComplexMemory();
+            m_complex = source.GetComplexData();
+            m_bits.realData = 0;
+        }
+
+        if (source.OwnData())
+        {
+            source.OwnData(false);
+            m_bits.ownData = 1;
+        }
+        else
+        {
+            m_bits.ownData = 0;
+        }
+    }
+}
+
+//! Convert hwTMatrixN to hwTMatrix
+template<typename T1, typename T2>
+void hwTMatrixN<T1, T2>::ConvertNDto1D(hwTMatrix<T1, T2>& target) const
+{
+    // This method repackages ND data into a vector,
+    // borrowing data without taking ownership
+    if (IsReal())
+    {
+        target.Borrow(Size(), 1, m_real_memory, m_real, hwTMatrix<T1, T2>::REAL);
+    }
+    else
+    {
+        target.Borrow(Size(), 1, m_complex_memory, m_complex, hwTMatrix<T1, T2>::COMPLEX);
+    }
+}
+
+//! Convert hwTMatrix to hwTMatrixN
+template<typename T1, typename T2>
+void hwTMatrixN<T1, T2>::Convert1DtoND(hwTMatrix<T1, T2>& source, const std::vector<int>& dim)
+{
+    // This method repackages a vector into an ND matrix,
+    // borrowring data, and transferring ownership (if applicable)
+    if (!IsEmpty())
+        MakeEmpty();
+
+    m_dim = dim;
+    ComputeSize();
+
+    if (source.IsReal())
+    {
+        m_real_memory = source.GetRealMemory();
+        m_real = source.GetRealData();
+        m_bits.realData = 1;
+    }
+    else
+    {
+        m_complex_memory = source.GetComplexMemory();
+        m_complex = source.GetComplexData();
+        m_bits.realData = 0;
+    }
+
+    if (source.OwnData())
+    {
+        source.OwnData(false);
+        m_bits.ownData = 1;
+    }
+    else
+    {
+        m_bits.ownData = 0;
     }
 }
 
@@ -278,11 +446,10 @@ void hwTMatrixN<T1, T2>::Dimension(const std::vector<int>& dim, DataType dataTyp
         (m_complex && dataType == COMPLEX))
     {
         // nothing to do if dimensions have not changed
-        int i;
         int effDimSize = _min((int) m_dim.size(), (int) dim.size());
         bool sizeChange = false;
 
-        for (i = 0; i < effDimSize; ++i)
+        for (int i = 0; i < effDimSize; ++i)
         {
             if (m_dim[i] != dim[i])
             {
@@ -293,7 +460,7 @@ void hwTMatrixN<T1, T2>::Dimension(const std::vector<int>& dim, DataType dataTyp
 
         if (!sizeChange)
         {
-            for (i = effDimSize; i < m_dim.size(); ++i)
+            for (int i = effDimSize; i < m_dim.size(); ++i)
             {
                 if (m_dim[i] != 1)
                 {
@@ -302,7 +469,7 @@ void hwTMatrixN<T1, T2>::Dimension(const std::vector<int>& dim, DataType dataTyp
                 }
             }
 
-            for (i = effDimSize; i < dim.size(); ++i)
+            for (int i = effDimSize; i < dim.size(); ++i)
             {
                 if (dim[i] != 1)
                 {
@@ -519,14 +686,13 @@ void hwTMatrixN<T1, T2>::Permute(const hwTMatrixN<T1, T2>& source, const std::ve
 template<typename T1, typename T2>
 void hwTMatrixN<T1, T2>::PermuteCheck(const std::vector<int>& permuteVec)
 {
-    int i;
     int numDims = static_cast<int> (permuteVec.size());
     bool* hasDim = new bool[numDims];
 
-    for (i = 0; i < numDims; ++i)
+    for (int i = 0; i < numDims; ++i)
         hasDim[i] = false;
 
-    for (i = 0; i < numDims; ++i)
+    for (int i = 0; i < numDims; ++i)
     {
         int dim = permuteVec[i];
 
@@ -543,9 +709,6 @@ void hwTMatrixN<T1, T2>::PermuteCheck(const std::vector<int>& permuteVec)
     }
 
     delete [] hasDim;
-
-    if (i != numDims)
-        throw hwMathException(HW_MATH_ERR_PERMVEC3);
 }
 
 // ****************************************************
@@ -588,16 +751,15 @@ bool hwTMatrixN<T1, T2>::IsEmptyOrVector() const
 template<typename T1, typename T2>
 void hwTMatrixN<T1, T2>::BoundsCheckLHS(const std::vector<int>& indexVec) const
 {
-    int i;
     int numDim = (int) m_dim.size();
 
-    for (i = 0; i < numDim; ++i)
+    for (int i = 0; i < numDim; ++i)
     {
         if (indexVec[i] < 0)
             throw hwMathException(HW_MATH_ERR_INVALIDINDEX, 1);
     }
 
-    for (i = numDim; i < indexVec.size(); ++i)
+    for (int i = numDim; i < indexVec.size(); ++i)
     {
         if (indexVec[i] < 0)
             throw hwMathException(HW_MATH_ERR_INVALIDINDEX, 1);
@@ -608,10 +770,9 @@ void hwTMatrixN<T1, T2>::BoundsCheckLHS(const std::vector<int>& indexVec) const
 template<typename T1, typename T2>
 void hwTMatrixN<T1, T2>::BoundsCheckRHS(const std::vector<int>& indexVec) const
 {
-    int i;
     int min = _min((int) m_dim.size(), (int) indexVec.size());
 
-    for (i = 0; i < min; ++i)
+    for (int i = 0; i < min; ++i)
     {
         if (indexVec[i] < 0)
             throw hwMathException(HW_MATH_ERR_INVALIDINDEX, 1);
@@ -620,7 +781,7 @@ void hwTMatrixN<T1, T2>::BoundsCheckRHS(const std::vector<int>& indexVec) const
             throw hwMathException(HW_MATH_ERR_INVALIDINDEX, 1);
     }
 
-    for (i = min; i < indexVec.size(); ++i)
+    for (int i = min; i < indexVec.size(); ++i)
     {
         if (indexVec[i] != 0)
             throw hwMathException(HW_MATH_ERR_INVALIDINDEX, 1);
@@ -634,10 +795,9 @@ void hwTMatrixN<T1, T2>::BoundsCheckLHS(const std::vector<hwSliceArg>& sliceArg,
     if (numSlices == 0)
         numSlices = RelevantNumberOfSlices(sliceArg, true);     // Evaluator support - deal with it later
 
-    int i;
     int common = _min((int) m_dim.size(), numSlices);
 
-    for (i = 0; i < common; ++i)
+    for (int i = 0; i < common; ++i)
     {
         if (sliceArg[i].IsScalar())
         {
@@ -657,7 +817,7 @@ void hwTMatrixN<T1, T2>::BoundsCheckLHS(const std::vector<hwSliceArg>& sliceArg,
         }
     }
 
-    for (i = common; i < numSlices; ++i)
+    for (int i = common; i < numSlices; ++i)
     {
         if (sliceArg[i].IsScalar())
         {
@@ -685,10 +845,9 @@ void hwTMatrixN<T1, T2>::BoundsCheckRHS(const std::vector<hwSliceArg>& sliceArg,
     if (numSlices == 0)
         numSlices = RelevantNumberOfSlices(sliceArg, true);
 
-    int i;
     int common = _min((int) m_dim.size(), numSlices);
 
-    for (i = 0; i < common; ++i)
+    for (int i = 0; i < common; ++i)
     {
         if (sliceArg[i].IsScalar())
         {
@@ -714,7 +873,7 @@ void hwTMatrixN<T1, T2>::BoundsCheckRHS(const std::vector<hwSliceArg>& sliceArg,
         }
     }
 
-    for (i = common; i < numSlices; ++i)
+    for (int i = common; i < numSlices; ++i)
     {
         if (sliceArg[i].IsScalar())
         {
@@ -739,15 +898,13 @@ void hwTMatrixN<T1, T2>::BoundsCheckRHS(const std::vector<hwSliceArg>& sliceArg,
 template<typename T1, typename T2>
 bool hwTMatrixN<T1, T2>::NeedToGrowLHS(const std::vector<int>& indexVec)
 {
-    int i;
-
-    for (i = 0; i < m_dim.size(); ++i)
+    for (int i = 0; i < m_dim.size(); ++i)
     {
         if (indexVec[i] > m_dim[i] - 1)
             return true;
     }
 
-    for (i = (int) m_dim.size(); i < indexVec.size(); ++i)
+    for (int i = (int) m_dim.size(); i < indexVec.size(); ++i)
     {
         if (indexVec[i] > 0)
             return true;
@@ -760,10 +917,9 @@ bool hwTMatrixN<T1, T2>::NeedToGrowLHS(const std::vector<int>& indexVec)
 template<typename T1, typename T2>
 bool hwTMatrixN<T1, T2>::NeedToGrowLHS(const std::vector<hwSliceArg>& sliceArg, int numSlices) const
 {
-    int i;
     int common = _min(numSlices, (int) m_dim.size());
 
-    for (i = 0; i < common; ++i)
+    for (int i = 0; i < common; ++i)
     {
         if (sliceArg[i].IsScalar())
         {
@@ -785,7 +941,7 @@ bool hwTMatrixN<T1, T2>::NeedToGrowLHS(const std::vector<hwSliceArg>& sliceArg, 
         }
     }
 
-    for (i = common; i < numSlices; ++i)
+    for (int i = common; i < numSlices; ++i)
     {
         if (sliceArg[i].IsScalar())
         {
@@ -908,8 +1064,10 @@ void hwTMatrixN<T1, T2>::GrowLHSMatrix(const std::vector<int>& indexVec)
     // reallocate because capacity was insufficient
     if (m_real)
     {
+        char* m_real_mem_old = m_real_memory;
         T1* m_real_old = m_real;
         hwTMatrixN<T1, T2> tempMatrix(oldDim, m_real_old, REAL);
+        m_real_memory = nullptr;
         m_real = nullptr;
         Allocate(REAL);
 
@@ -920,14 +1078,23 @@ void hwTMatrixN<T1, T2>::GrowLHSMatrix(const std::vector<int>& indexVec)
         CopyMatrixLHS(tempMatrix);
 
         if (m_bits.ownData)
-            delete [] m_real_old;
+        {
+            if (m_real_mem_old)
+                delete[] m_real_mem_old;
+            else if (m_real_old)
+                delete[] m_real_old;
+        }
         else
+        {
             m_bits.ownData = 1;
+        }
     }
     else if (m_complex)
     {
+        char* m_complex_mem_old = m_complex_memory;
         T2* m_complex_old = m_complex;
         hwTMatrixN<T1, T2> tempMatrix(oldDim, m_complex_old, COMPLEX);
+        m_complex_memory = nullptr;
         m_complex = nullptr;
         Allocate(COMPLEX);
 
@@ -938,9 +1105,16 @@ void hwTMatrixN<T1, T2>::GrowLHSMatrix(const std::vector<int>& indexVec)
         CopyMatrixLHS(tempMatrix);
 
         if (m_bits.ownData)
-            delete [] m_complex_old;
+        {
+            if (m_complex_mem_old)
+                delete[] m_complex_mem_old;
+            else if (m_complex_old)
+                delete[] m_complex_old;
+        }
         else
+        {
             m_bits.ownData = 1;
+        }
     }
     else
     {
@@ -961,12 +1135,11 @@ void hwTMatrixN<T1, T2>::GrowLHSMatrix(const std::vector<hwSliceArg>& sliceArg, 
                                        const hwTMatrixN<T1, T2>* rhsMatrix, bool rule2)
 {
     // create matrix with expanded dimensions
-    int i;
     int common = _min(numSlices, (int) m_dim.size());
     int rhsIndex = 0;
     std::vector<int> newDim(m_dim.size());
 
-    for (i = 0; i < common; ++i)
+    for (int i = 0; i < common; ++i)
     {
         if (sliceArg[i].IsScalar())
         {
@@ -1020,10 +1193,9 @@ void hwTMatrixN<T1, T2>::GrowLHSMatrix(const std::vector<hwSliceArg>& sliceArg, 
                     ++rhsIndex;
             }
 
-            int j;
             int max = m_dim[i] - 1;
 
-            for (j = 0; j < sliceArg[i].Vector().size(); ++j)
+            for (int j = 0; j < sliceArg[i].Vector().size(); ++j)
             {
                 if (sliceArg[i].Vector()[j] > max)
                     max = sliceArg[i].Vector()[j];
@@ -1039,7 +1211,7 @@ void hwTMatrixN<T1, T2>::GrowLHSMatrix(const std::vector<hwSliceArg>& sliceArg, 
         }
     }
 
-    for (i = common; i < numSlices; ++i)
+    for (int i = common; i < numSlices; ++i)
     {
         if (sliceArg[i].IsScalar())
         {
@@ -1075,10 +1247,9 @@ void hwTMatrixN<T1, T2>::GrowLHSMatrix(const std::vector<hwSliceArg>& sliceArg, 
                     ++rhsIndex;
             }
 
-            int j;
             int max = -1;
 
-            for (j = 0; j < sliceArg[i].Vector().size(); ++j)
+            for (int j = 0; j < sliceArg[i].Vector().size(); ++j)
             {
                 if (sliceArg[i].Vector()[j] > max)
                     max = sliceArg[i].Vector()[j];
@@ -1091,7 +1262,7 @@ void hwTMatrixN<T1, T2>::GrowLHSMatrix(const std::vector<hwSliceArg>& sliceArg, 
         }
     }
 
-    for (i = numSlices; i < m_dim.size(); ++i)
+    for (int i = numSlices; i < m_dim.size(); ++i)
         newDim[i] = m_dim[i];
 
     // discard any singleton dimensions that may have been created
@@ -1182,8 +1353,10 @@ void hwTMatrixN<T1, T2>::GrowLHSMatrix(const std::vector<hwSliceArg>& sliceArg, 
     // reallocate because capacity was insufficient
     if (m_bits.realData)
     {
+        char* m_real_mem_old = m_real_memory;
         T1* m_real_old = m_real;
         hwTMatrixN<T1, T2> tempMatrix(oldDim, m_real_old, REAL);
+        m_real_memory = nullptr;
         m_real = nullptr;
         Allocate(REAL);
 
@@ -1194,14 +1367,23 @@ void hwTMatrixN<T1, T2>::GrowLHSMatrix(const std::vector<hwSliceArg>& sliceArg, 
         CopyMatrixLHS(tempMatrix);
 
         if (m_bits.ownData)
-            delete [] m_real_old;
+        {
+            if (m_real_mem_old)
+                delete [] m_real_mem_old;
+            else if (m_real_old)
+                delete [] m_real_old;
+        }
         else
+        {
             m_bits.ownData = 1;
+        }
     }
     else if (m_complex)
     {
+        char* m_complex_mem_old = m_complex_memory;
         T2* m_complex_old = m_complex;
         hwTMatrixN<T1, T2> tempMatrix(oldDim, m_complex_old, COMPLEX);
+        m_complex_memory = nullptr;
         m_complex = nullptr;
         Allocate(COMPLEX);
 
@@ -1212,9 +1394,16 @@ void hwTMatrixN<T1, T2>::GrowLHSMatrix(const std::vector<hwSliceArg>& sliceArg, 
         CopyMatrixLHS(tempMatrix);
 
         if (m_bits.ownData)
-            delete [] m_complex_old;
+        {
+            if (m_complex_mem_old)
+                delete [] m_complex_mem_old;
+            else if (m_complex_old)
+                delete [] m_complex_old;
+        }
         else
+        {
             m_bits.ownData = 1;
+        }
     }
     else
     {
@@ -1302,12 +1491,11 @@ const T1& hwTMatrixN<T1, T2>::operator()(const std::vector<int>& indexVec) const
 template<typename T1, typename T2>
 void hwTMatrixN<T1, T2>::SetElements(T1 real)
 {
-    int i;
     int size = Size();
 
     if (m_real)
     {
-        for (i = 0; i < size; ++i)
+        for (int i = 0; i < size; ++i)
             m_real[i] = real;
     }
 
@@ -1315,7 +1503,7 @@ void hwTMatrixN<T1, T2>::SetElements(T1 real)
     // the user must manage that if desired
     if (m_complex)
     {
-        for (i = 0; i < size; ++i)
+        for (int i = 0; i < size; ++i)
             m_complex[i] = real;
     }
 }
@@ -1393,21 +1581,25 @@ void hwTMatrixN<T1, T2>::MakeComplex()
 
     Allocate(COMPLEX);
 
-    int i;
     int size = Size();
 
-    for (i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i)
     {
         m_complex[i].Real() = m_real[i];
         m_complex[i].Imag() = (T1) 0;
     }
 
-    if (m_real)
+    if (m_real_memory)
     {
-        delete [] m_real;
-        m_real = nullptr;
+        delete [] m_real_memory;
+        m_real_memory = nullptr;
+    }
+    else if (m_real)
+    {
+        delete[] m_real;
     }
 
+    m_real = nullptr;
     m_bits.realData = 0;
     return;
 }
@@ -1541,8 +1733,6 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
     if (sliceArg.size() == 0)
         throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
 
-    int i, j;
-
     // ignore high singleton dimensions
     int numSlices = RelevantNumberOfSlices(sliceArg, false);
 
@@ -1551,7 +1741,7 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
     {
         std::vector<int> newDim(numSlices);
 
-        for (i = 0; i < numSlices-1; ++i)
+        for (int i = 0; i < numSlices-1; ++i)
             newDim[i] = m_dim[i];
 
         newDim[numSlices-1] = -1;
@@ -1624,7 +1814,7 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
 
     std::vector<int> lhsMatrixDim(lhsNumDims);
 
-    for (i = 0; i < lhsNumDims; ++i)
+    for (int i = 0; i < lhsNumDims; ++i)
     {
         if (sliceArg[i].IsScalar())
             lhsMatrixDim[i] = 1;
@@ -1652,7 +1842,7 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
     // set the rhsMatrix indices to the first index in each slice
     m_rhsMatrixIndex.resize(numSlices);
 
-    for (i = 0; i < numSlices; ++i)
+    for (int i = 0; i < numSlices; ++i)
     {
         if (sliceArg[i].IsScalar())
             m_rhsMatrixIndex[i] = sliceArg[i].Scalar();
@@ -1666,7 +1856,7 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
     int numScalars = 0;
     int dim = -1;
 
-    for (i = 0; i < numSlices; ++i)
+    for (int i = 0; i < numSlices; ++i)
     {
         if (sliceArg[i].IsScalar())
             ++numScalars;
@@ -1680,7 +1870,7 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
         ++m_rhsMatrixIndex[dim];
         int stride = Index(m_rhsMatrixIndex) - start;
 
-        for (i = 0; i < m_dim[dim]; ++i)
+        for (int i = 0; i < m_dim[dim]; ++i)
         {
             if (IsReal())
                 lhsMatrix(i) = (*this)(start);
@@ -1696,7 +1886,7 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
     // determine slice at which discontiguity occurs
     int discontiguity = numSlices;
 
-    for (j = 0; j < numSlices; ++j)
+    for (int j = 0; j < numSlices; ++j)
     {
         if (sliceArg[j].IsScalar())
         {
@@ -1732,6 +1922,9 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                 break;
             }
         }
+
+        if (contigFirstVec)
+            discontiguity = 1;
     }
 
     // simulate nested loops to iterate over the lhsMatrix elements
@@ -1739,7 +1932,7 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
     m_lhsMatrixIndex.clear();
     m_lhsMatrixIndex.resize(numSlices);
 
-    for (i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i)
     {
         int nextSliceArg;
 
@@ -1813,7 +2006,7 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
         }
 
         // advance lhs matrix indices
-        for (j = nextSliceArg; j < numSlices; ++j)
+        for (int j = nextSliceArg; j < numSlices; ++j)
         {
             if (sliceArg[j].IsScalar())
             {
@@ -1948,6 +2141,7 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
     // Rule 3: attempt Rule2 if Rule 1 fails
     bool rule2;
     int numColons = 0;
+    int rhsIndex  = 0;
 
     for (int i = 0; i < numSlices; ++i)
     {
@@ -1968,7 +2162,6 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
     if (m_dim.size() == 2 && m_dim[0] == 0 && m_dim[1] == 0)
     {
         // dimension the matrix
-        int rhsIndex = 0;
         std::vector<int> newDim(numSlices);
 
         for (int i = 0; i < numSlices; ++i)
@@ -2067,8 +2260,6 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
         }
 
         // verify that slice op is well defined
-        int rhsIndex = 0;
-
         for (int i = 0; i < numSlices; ++i)
         {
             if (sliceArg[i].IsScalar())
@@ -2242,6 +2433,9 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                 break;
             }
         }
+
+        if (contigFirstVec)
+            discontiguity = 1;
     }
 
     // simulate nested loops to iterate over the rhsMatrix elements
@@ -2317,7 +2511,7 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
         else    // if (sliceArg[0].IsColon())
         {
             SetMemoryPosition(m_lhsMatrixIndex);    // update m_pos
-            CopyBlockLHS(i, discontiguity, rhsMatrix);
+            CopyBlockLHS(i, discontiguity, rhsMatrix, rule2);
             --i;
             nextSliceArg = discontiguity;
         }
@@ -2367,8 +2561,6 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
     if (sliceArg.size() == 0)
         throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
 
-    int i, j;
-
     if (!IsReal())
     {
         try
@@ -2408,7 +2600,7 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
     {
         std::vector<int> newDim(numSlices);
 
-        for (i = 0; i < numSlices-1; ++i)
+        for (int i = 0; i < numSlices-1; ++i)
             newDim[i] = m_dim[i];
 
         newDim[numSlices-1] = -1;
@@ -2443,7 +2635,7 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
                 m_real = reshaped.m_real;
                 reshaped.m_bits.ownData = 0;
 
-                for (i = 0; i < numSlices-1; ++i)
+                for (int i = 0; i < numSlices-1; ++i)
                     m_dim[i] = reshaped.m_dim[i];
 
                 ComputeSize();
@@ -2518,7 +2710,7 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
     // in each slice, then assign the first rhs matrix element
     m_lhsMatrixIndex.resize(numSlices);
 
-    for (i = 0; i < numSlices; ++i)
+    for (int i = 0; i < numSlices; ++i)
     {
         if (sliceArg[i].IsScalar())
             m_lhsMatrixIndex[i] = sliceArg[i].Scalar();
@@ -2562,7 +2754,7 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
     // determine slice at which discontiguity occurs
     int discontiguity = numSlices;
 
-    for (j = 0; j < numSlices; ++j)
+    for (int j = 0; j < numSlices; ++j)
     {
         if (sliceArg[j].IsScalar())
         {
@@ -2589,7 +2781,7 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
     m_rhsMatrixIndex.clear();
     m_rhsMatrixIndex.resize(numSlices);
 
-    for (i = 0; i < numSlices; ++i)
+    for (int i = 0; i < numSlices; ++i)
     {
         if (sliceArg[i].IsScalar()) {}
         else if (sliceArg[i].IsColon())
@@ -2601,7 +2793,7 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
     if (m_size < size)
         throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
 
-    for (i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i)
     {
         if (discontiguity == 0)
         {
@@ -2619,7 +2811,7 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
 
         // advance rhs matrix indices, as if the RHS is real*ones(slice_dims)
         // there is probably a better way to do this
-        for (j = discontiguity; j < numSlices; ++j)
+        for (int j = discontiguity; j < numSlices; ++j)
         {
             if (sliceArg[j].IsScalar())
             {
@@ -2664,8 +2856,6 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
 {
     if (sliceArg.size() == 0)
         throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
-
-    int i, j;
 
     try
     {
@@ -2818,7 +3008,7 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
     // in each slice, then assign the first rhs matrix element
     m_lhsMatrixIndex.resize(numSlices);
 
-    for (i = 0; i < numSlices; ++i)
+    for (int i = 0; i < numSlices; ++i)
     {
         if (sliceArg[i].IsScalar())
             m_lhsMatrixIndex[i] = sliceArg[i].Scalar();
@@ -2858,7 +3048,7 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
     // determine slice at which discontiguity occurs
     int discontiguity = numSlices;
 
-    for (j = 0; j < numSlices; ++j)
+    for (int j = 0; j < numSlices; ++j)
     {
         if (sliceArg[j].IsScalar())
         {
@@ -2885,7 +3075,7 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
     m_rhsMatrixIndex.clear();
     m_rhsMatrixIndex.resize(numSlices);
 
-    for (i = 0; i < numSlices; ++i)
+    for (int i = 0; i < numSlices; ++i)
     {
         if (sliceArg[i].IsScalar()) {}
         else if (sliceArg[i].IsColon())
@@ -2897,7 +3087,7 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
     if (m_size < size)
         throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
 
-    for (i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i)
     {
         if (discontiguity == 0)
         {
@@ -2912,7 +3102,7 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
 
         // advance rhs matrix indices, as if the RHS is cmplx*ones(slice_dims)
         // there is probably a better way to do this
-        for (j = discontiguity; j < numSlices; ++j)
+        for (int j = discontiguity; j < numSlices; ++j)
         {
             if (sliceArg[j].IsScalar())
             {
@@ -2957,22 +3147,21 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
 template<typename T1, typename T2>
 bool hwTMatrixN<T1, T2>::operator==(const hwTMatrixN<T1, T2>& A) const
 {
-    int i;
     int effDimSize = _min((int) m_dim.size(), (int) A.m_dim.size());
 
-    for (i = 0; i < effDimSize; ++i)
+    for (int i = 0; i < effDimSize; ++i)
     {
         if (m_dim[i] != A.m_dim[i])
             return false;
     }
 
-    for (i = effDimSize; i < m_dim.size(); ++i)
+    for (int i = effDimSize; i < m_dim.size(); ++i)
     {
         if (m_dim[i] != 1)
             return false;
     }
 
-    for (i = effDimSize; i < A.m_dim.size(); ++i)
+    for (int i = effDimSize; i < A.m_dim.size(); ++i)
     {
         if (A.m_dim[i] != 1)
             return false;
@@ -2982,7 +3171,7 @@ bool hwTMatrixN<T1, T2>::operator==(const hwTMatrixN<T1, T2>& A) const
     {
         if (A.IsReal())
         {
-            for (i = 0; i < m_size; ++i)
+            for (int i = 0; i < m_size; ++i)
             {
                 if (m_real[i] != A.m_real[i])
                     return false;
@@ -2990,7 +3179,7 @@ bool hwTMatrixN<T1, T2>::operator==(const hwTMatrixN<T1, T2>& A) const
         }
         else
         {
-            for (i = 0; i < m_size; ++i)
+            for (int i = 0; i < m_size; ++i)
             {
                 if (A.m_complex[i] != m_real[i])
                     return false;
@@ -3001,7 +3190,7 @@ bool hwTMatrixN<T1, T2>::operator==(const hwTMatrixN<T1, T2>& A) const
     {
         if (A.IsReal())
         {
-            for (i = 0; i < m_size; ++i)
+            for (int i = 0; i < m_size; ++i)
             {
                 if (m_complex[i] != A.m_real[i])
                     return false;
@@ -3009,7 +3198,7 @@ bool hwTMatrixN<T1, T2>::operator==(const hwTMatrixN<T1, T2>& A) const
         }
         else
         {
-            for (i = 0; i < m_size; ++i)
+            for (int i = 0; i < m_size; ++i)
             {
                 if (m_complex[i] != A.m_complex[i])
                     return false;
@@ -3049,11 +3238,10 @@ void hwTMatrixN<T1, T2>::SetDimensions(const std::vector<int>& dim)
     }
     else
     {
-        int i;
         int numDims = 2;
 
         // ignore trailing dimensions greater than 2 of size 1
-        for (i = (int) size-1; i > 1; --i)
+        for (int i = (int) size-1; i > 1; --i)
         {
             if (dim[i] != 1)
             {
@@ -3064,7 +3252,7 @@ void hwTMatrixN<T1, T2>::SetDimensions(const std::vector<int>& dim)
 
         m_dim.resize(numDims);
 
-        for (i = 0; i < numDims; ++i)
+        for (int i = 0; i < numDims; ++i)
             m_dim[i] = dim[i];
     }
 }
@@ -3135,6 +3323,63 @@ void hwTMatrixN<T1, T2>::SetCapacity(DataType dataType)
 }
 
 //! Allocate memory for the matrix data
+template<>
+inline void hwTMatrixN<double>::Allocate(DataType dataType)
+{
+    ComputeSize();
+    SetCapacity(dataType);
+
+    if (m_capacity == 0)
+    {
+        return;
+    }
+
+    // allocate contiguous block
+    if (dataType == REAL)
+    {
+        if (m_real)
+        {
+            MakeEmpty();
+            throw hwMathException(HW_MATH_ERR_ALLOCFAILED);
+        }
+
+        try
+        {
+            m_real_memory = new char[(m_capacity + 8) * sizeof(double)];
+            m_real = reinterpret_cast<double*>
+                ((reinterpret_cast<std::ptrdiff_t> (m_real_memory) + 63) & ~0x3F);   // 64-byte alignment
+        }
+        catch (std::bad_alloc&)
+        {
+            Deallocate();
+            m_real_memory = nullptr;
+            throw;
+        }
+    }
+    else
+    {
+        if (m_complex)
+        {
+            MakeEmpty();
+            throw hwMathException(HW_MATH_ERR_ALLOCFAILED);
+        }
+
+        try
+        {
+            m_complex_memory = new char[(m_capacity + 4) * sizeof(hwTComplex<double>)];
+            m_complex = reinterpret_cast<hwTComplex<double>*>
+                ((reinterpret_cast<std::ptrdiff_t> (m_complex_memory) + 63) & ~0x3F);   // 64-byte alignment
+        }
+        catch (std::bad_alloc&)
+        {
+            Deallocate();
+            m_complex_memory = nullptr;
+            throw;
+        }
+    }
+}
+
+//! Allocate memory for the matrix data
 template<typename T1, typename T2>
 void hwTMatrixN<T1, T2>::Allocate(DataType dataType)
 {
@@ -3193,11 +3438,15 @@ void hwTMatrixN<T1, T2>::Deallocate()
 {
     if (m_bits.ownData)
     {
-        if (m_real)
-            delete [] m_real;
+        if (m_real_memory)
+            delete[] m_real_memory;
+        else if (m_real)
+            delete[] m_real;	    // ownership of external data was assumed
 
-        if (m_complex)
-            delete [] m_complex;
+        if (m_complex_memory)
+            delete[] m_complex_memory;
+        else if (m_complex)
+            delete[] m_complex;    // ownership of external data was assumed
     }
 }
 
@@ -3207,6 +3456,8 @@ void hwTMatrixN<T1, T2>::MakeEmpty()
 {
     Deallocate();
     m_capacity = 0;
+    m_real_memory = nullptr;
+    m_complex_memory = nullptr;
     m_real = nullptr;
     m_complex = nullptr;
     m_size = 0;
@@ -3236,64 +3487,27 @@ int hwTMatrixN<T1, T2>::SetMemoryPosition(const std::vector<int>& indexVec) cons
 template<typename T1, typename T2>
 void hwTMatrixN<T1, T2>::Copy(const hwTMatrixN<T1, T2>& source)
 {
-    bool sizeChange = (m_size != source.m_size);
-
-    m_size = source.m_size;
-
-    if (m_bits.ownData)
+    if (IsEmpty())
     {
-        if (source.m_real)
-        {
-            if (!m_real)
-            {
-                Allocate(REAL);
-            }
-            else if (sizeChange)
-            {
-                delete [] m_real;
-                m_real = nullptr;
-                Allocate(REAL);
-            }
-        }
-        else if (m_real)
-        {
-            delete [] m_real;
-            m_real = nullptr;
-        }
+        Dimension(source.m_dim, source.Type());
+        m_bits.ownData = 1;
 
-        if (source.m_complex)
-        {
-            if (!m_complex)
-            {
-                Allocate(COMPLEX);
-            }
-            else if (sizeChange)
-            {
-                delete [] m_complex;
-                m_complex = nullptr;
-                Allocate(COMPLEX);
-            }
-        }
+        if (m_real)
+            CopyData(m_real, m_size, source.m_real, m_size);
         else if (m_complex)
-        {
-            delete [] m_complex;
-            m_complex = nullptr;
-        }
+            CopyData(m_complex, m_size, source.m_complex, m_size);
     }
-    else if (sizeChange)
-    {
-        // copying data is not allowed when the target matrix does not
-        // own its data and there is a change of dimension
-        MakeEmpty();
-        throw hwMathException(HW_MATH_ERR_NOTALLOWED);
-    }
-
-    if (m_size > 0)
+    else if (m_dim == source.m_dim && m_bits.realData == source.m_bits.realData)
     {
         if (m_real)
             CopyData(m_real, m_size, source.m_real, m_size);
         else if (m_complex)
             CopyData(m_complex, m_size, source.m_complex, m_size);
+    }
+    else
+    {
+        MakeEmpty();
+        Copy(source);
     }
 }
 
@@ -3360,10 +3574,9 @@ void hwTMatrixN<T1, T2>::DeleteSlice(const std::vector<hwSliceArg>& sliceArg)
 
     // verify rhs matrix dimensions
     // only one non-colon is allowed
-    int i;
     int nonColonArg = -1;
 
-    for (i = 0; i < m_dim.size(); ++i)
+    for (int i = 0; i < m_dim.size(); ++i)
     {
         if (!sliceArg[i].IsColon())
         {
@@ -3399,7 +3612,7 @@ void hwTMatrixN<T1, T2>::DeleteSlice(const std::vector<hwSliceArg>& sliceArg)
 
     if (sliceArg[nonColonArg].IsScalar())
     {
-        for (i = 0; i < newVec.size(); ++i)
+        for (int i = 0; i < newVec.size(); ++i)
         {
             if (i < sliceArg[nonColonArg].Scalar())
                 newVec[i] = i;
@@ -3412,7 +3625,7 @@ void hwTMatrixN<T1, T2>::DeleteSlice(const std::vector<hwSliceArg>& sliceArg)
         tempVec = GetUniqueVec(sliceArg[nonColonArg].Vector());
         int skip = 0;
 
-        for (i = 0; i < newVec.size(); ++i)
+        for (int i = 0; i < newVec.size(); ++i)
         {
             if (skip != tempVec.size())
             {
@@ -3479,13 +3692,19 @@ void hwTMatrixN<T1, T2>::CopyBlockRHS(int& pos, int sliceArg, hwTMatrixN<T1, T2>
 //! Write a contiguous block to the calling object, as if the calling
 //! object is being sliced on the left hand side of an equals sign
 template<typename T1, typename T2>
-void hwTMatrixN<T1, T2>::CopyBlockLHS(int& pos, int sliceArg, const hwTMatrixN<T1, T2>& rhsMatrix)
+void hwTMatrixN<T1, T2>::CopyBlockLHS(int& pos, int sliceArg, const hwTMatrixN<T1, T2>& rhsMatrix,
+                                      bool rule2)
 {
+    int rhsIndex = 0;
+
+    while (rule2 && rhsIndex < rhsMatrix.m_dim.size() && rhsMatrix.m_dim[rhsIndex] == 1)
+        ++rhsIndex;
+
     int numVals = 1;
-    int numArgs = _min(sliceArg, (int) m_dim.size());
+    int numArgs = _min(sliceArg, static_cast<int> (rhsMatrix.m_dim.size()) - rhsIndex);
 
     for (int i = 0; i < numArgs; ++i)
-        numVals *= m_dim[i];
+        numVals *= rhsMatrix.m_dim[rhsIndex + i];
 
     // the rhsMatrix block begins at location pos
     // the lhsMatrix block begins at location m_pos, which must be set prior to the function call
@@ -3572,7 +3791,7 @@ void hwTMatrixN<T1, T2>::CopyMatrixLHS(const hwTMatrixN<T1, T2>& rhsMatrix)
         else
         {
             SetMemoryPosition(m_rhsMatrixIndex);    // update m_pos
-            CopyBlockLHS(i, discontiguity, rhsMatrix);
+            CopyBlockLHS(i, discontiguity, rhsMatrix, false);
             --i;
         }
 
@@ -3592,8 +3811,6 @@ void hwTMatrixN<T1, T2>::CopyMatrixLHS(const hwTMatrixN<T1, T2>& rhsMatrix)
     }
 }
 
-
-
 //! Transfer contents from another object
 template<typename T1, typename T2>
 void hwTMatrixN<T1, T2>::Transfer(hwTMatrixN<T1, T2>& source)
@@ -3603,10 +3820,14 @@ void hwTMatrixN<T1, T2>::Transfer(hwTMatrixN<T1, T2>& source)
     m_dim = source.m_dim;
     m_size = source.m_size;
     m_capacity = source.m_capacity;
+    m_real_memory = source.m_real_memory;
+    m_complex_memory = source.m_complex_memory;
     m_real = source.m_real;
     m_complex = source.m_complex;
     m_pos = source.m_pos;
 
+    source.m_real_memory = nullptr;
+    source.m_complex_memory = nullptr;
     source.m_real = nullptr;
     source.m_complex = nullptr;
 

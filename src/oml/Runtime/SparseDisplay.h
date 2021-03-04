@@ -17,7 +17,7 @@
 #define __SPARSEDISPLAY_H__
 
 // Begin defines/includes
-#include "Hml2Dll.h"
+#include "OMLDll.h"
 
 #include "CurrencyDisplay.h"
 #include "DisplayFormatVars.h"
@@ -32,7 +32,7 @@ class OutputFormat;
 //! \brief Displays formatted sparse output
 //!
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS SparseDisplay : public CurrencyDisplay
+class OMLDLL_DECLS SparseDisplay : public CurrencyDisplay
 {
 public:
     friend class Currency; //! Only currency is allowed to construct

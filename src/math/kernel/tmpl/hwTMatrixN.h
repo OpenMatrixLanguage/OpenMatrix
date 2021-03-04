@@ -57,9 +57,17 @@ public:
     // ****************************************************
 
     //! Convert hwTMatrixN to hwTMatrix 
-    void ConvertNDto2D(hwTMatrix<T1, T2>& target) const;
+    void ConvertNDto2D(hwTMatrix<T1, T2>& target, bool copyData = true) const;
+    //! Convert hwTMatrixN to hwTMatrix 
+    void ConvertNDto2D(hwTMatrix<T1, T2>& target, bool copyData = true);
     //! Convert hwTMatrix to hwTMatrixN 
     void Convert2DtoND(const hwTMatrix<T1, T2>& source, bool copyData = true);
+    //! Convert hwTMatrix to hwTMatrixN 
+    void Convert2DtoND(hwTMatrix<T1, T2>& source, bool copyData = true);
+    //! Convert hwTMatrixN to hwTMatrix 
+    void ConvertNDto1D(hwTMatrix<T1, T2>& target) const;
+    //! Convert hwTMatrix to hwTMatrixN 
+    void Convert1DtoND(hwTMatrix<T1, T2>& source, const std::vector<int>& dim);
 
     // ****************************************************
     //               Data Type, Ownership
@@ -122,9 +130,6 @@ public:
     //! Grow a matrix
     void GrowLHSMatrix(const std::vector<hwSliceArg>& sliceArg, int& numSlices,
                        const hwTMatrixN<T1, T2>* rhsMatrix = NULL, bool rule2 = false);
-	//! Grow a matrix
-	void GrowLHSMatrix2(const std::vector<hwSliceArg>& sliceArg, int& numSlices,
-		const hwTMatrixN<T1, T2>* rhsMatrix = NULL, bool rule2 = false);
 
     // ****************************************************
     //               Indexing Functions
@@ -242,6 +247,10 @@ private:
     int m_size;
     //! Allocated memory capacity (utilized memory may be smaller)
     int m_capacity;
+    //! Pointer to unaligned memory for T1
+    char* m_real_memory;
+    //! Pointer to unaligned memory for T2
+    char* m_complex_memory;
     //! Contiguous block of memory to store data of type T1
     T1* m_real;
     //! Contiguous block of memory to store data of type T2, which is hwTComplex<T> by default
@@ -287,7 +296,8 @@ private:
     void CopyBlockRHS(int& pos, int sliceArg, hwTMatrixN<T1, T2>& lhsMatrix) const;
     //! Write a contiguous block to the calling object, as if the calling
     //! object is being sliced on the the left hand side of an equals sign
-    void CopyBlockLHS(int& pos, int sliceArg, const hwTMatrixN<T1, T2>& rhsMatrix);
+    void CopyBlockLHS(int& pos, int sliceArg, const hwTMatrixN<T1, T2>& rhsMatrix,
+                      bool rule2);
     //! Write a contiguous block to the calling object, as if the calling
     //! object is being sliced on the the left hand side of an equals sign
     void CopyBlockLHS(int& pos, int sliceArg, T1 real);

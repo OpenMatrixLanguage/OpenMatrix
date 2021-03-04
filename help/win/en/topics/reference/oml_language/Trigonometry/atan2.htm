@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="atan2" /><meta name="abstract" content="The four quadrant inverse tangent function." /><meta name="description" content="The four quadrant inverse tangent function." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Trigonometry Commands" /><meta name="indexterms" content="atan2" /><meta name="DC.subject" content="atan2" /><meta name="keywords" content="atan2" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/trigonometry_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/atan.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/atanh.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/tan.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/tanh.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>atan2</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="atan2" /><meta name="abstract" content="Returns the four quadrant inverse tangent (in radians) for each element pair of the arguments." /><meta name="description" content="Returns the four quadrant inverse tangent (in radians) for each element pair of the arguments." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Trigonometry Commands" /><meta name="indexterms" content="atan2" /><meta name="DC.subject" content="atan2" /><meta name="keywords" content="atan2" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/trigonometry_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/atan.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/atan2d.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/tan.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Trigonometry/tand.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>atan2</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -15,7 +15,8 @@
 
   
   
-  <div class="body refbody"><p class="shortdesc">The four quadrant inverse tangent function.</p>
+  <div class="body refbody"><p class="shortdesc">Returns the four quadrant inverse tangent (in radians) for each element pair of the
+    arguments.</p>
 
     <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       
@@ -32,8 +33,6 @@
 
           <dd class="dd pd">The opposite leg of a triangle.</dd>
 
-          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
-
           <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
 
         
@@ -41,8 +40,6 @@
           <dt class="dt pt dlterm"><var class="keyword varname">x</var></dt>
 
           <dd class="dd pd">The adjacent leg of a triangle.</dd>
-
-          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
 
           <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
 
@@ -69,12 +66,12 @@
     <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
       <div class="p">Scalar
-        case:<pre class="pre codeblock"><code>R = atan2(1,-2)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 2.67794504</code></code></pre></div>
+        inputs:<pre class="pre codeblock"><code>R = atan2(1,-sqrt(3))</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 2.61799388</code></code></pre></div>
 
       <div class="p">Matrix
-        case:<pre class="pre codeblock"><code>R = atan2([2,-3;4,-5],[-3,4;5,-6])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = [Matrix] 2 x 2
-2.55359  -0.64350
-0.67474  -2.44685</code></code></pre></div>
+        inputs:<pre class="pre codeblock"><code>R = atan2([2,-3;4,-5],[-3,4;5,-6])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = [Matrix] 2 x 2
+  2.55359  -0.64350
+  0.67474  -2.44685</code></code></pre></div>
 
     </section>
 
@@ -87,15 +84,15 @@
 <nav role="navigation" class="related-links">
 <div class="linklist linklist"><strong>See Also</strong><br />
 
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/atan.htm" title="Returns the inverse tangent (in radians) of a.">atan</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/atanh.htm" title="Returns the inverse hyperbolic tangent of a.">atanh</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/tan.htm" title="Returns the tangent of a (in radians).">tan</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/tanh.htm" title="Returns hyperbolic tangent of a.">tanh</a></div></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/atan.htm" title="Returns the inverse tangent (in radians) for each element of the argument.">atan</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/atan2d.htm" title="Returns the four quadrant inverse tangent (in radians) for each element pair of the arguments.">atan2d</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/tan.htm" title="Returns the tangent for each element of the argument (in radians).">tan</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Trigonometry/tand.htm" title="Returns the tangent for each element of the argument (in degrees).">tand</a></div></div>
 </nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Trigonometry/trigonometry_commands.htm" title="Trigonometry Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Trigonometry Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         
         <div>
-            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2020)</p>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2021)</p>
                
         </div>
     </div></footer></body>

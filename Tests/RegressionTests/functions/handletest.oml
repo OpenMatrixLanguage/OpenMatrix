@@ -1,0 +1,12 @@
+function a = handletest()
+   a = @loc_func1;
+end
+
+function loc_func1()
+   disp('in func1')
+   loc_func2()
+end
+
+function loc_func2()
+	disp('in func2')
+end

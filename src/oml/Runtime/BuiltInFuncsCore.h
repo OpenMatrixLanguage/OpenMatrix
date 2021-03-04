@@ -25,7 +25,7 @@
 //! \brief Utility class for built-in functions implementing core commands
 //!
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS BuiltInFuncsCore
+class OMLDLL_DECLS BuiltInFuncsCore
 {
 public:
     //!

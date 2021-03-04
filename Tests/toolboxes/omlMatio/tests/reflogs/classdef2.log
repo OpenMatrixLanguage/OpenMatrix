@@ -1,0 +1,3 @@
+Warnings:
+         Cannot load variable [a]; cannot find class definition [A]
+         No variables loaded from [classdef2.mat] in call to function load at line number 38 in file classdef2.oml

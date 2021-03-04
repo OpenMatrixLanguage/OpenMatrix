@@ -1,0 +1,2 @@
+% Reads complex matrix with empty val
+dlmread('FileManipulation/dlmread12.csv', 'emptyvalue', 70 + 7i)

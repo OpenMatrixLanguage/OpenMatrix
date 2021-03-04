@@ -239,6 +239,7 @@ namespace omlplot{
 
     class OMLPLOT_EXPORT Polar : public Line{
     public:
+        Polar();
         string getLineStyle(int) override;
         void cleanup(GnuplotOutput *) override;
     };
@@ -266,6 +267,7 @@ namespace omlplot{
 
     class OMLPLOT_EXPORT Line3 : public Line{
     public:
+        Line3();
         string getLineStyle(int line) override;
         string getUsingClause() override;
         string getWithClause(int lineId) override;
@@ -304,6 +306,7 @@ namespace omlplot{
 
     class OMLPLOT_EXPORT HggroupScatter3 : public HggroupScatter{
     public:
+        HggroupScatter3();
         string getUsingClause() override;
     };
 
@@ -324,39 +327,48 @@ namespace omlplot{
 
     class OMLPLOT_EXPORT Mesh : public Surface{
     public:
+        Mesh();
         string getLineStyle(int) override;
     };
 
     class OMLPLOT_EXPORT Contour3 : public Surface{
+    public:
+        Contour3();
         string getLineStyle(int) override;
         string getUsingClause() override;
         void cleanup(GnuplotOutput *) override;
     };
 
     class OMLPLOT_EXPORT Contour : public Surface{
+    public:
+        Contour();
         string getLineStyle(int) override;
         void cleanup(GnuplotOutput *) override;
     };
 
     class OMLPLOT_EXPORT Stem : public Line{
     public:
+        Stem();
         string getWithClause(int lineId) override;        
     };
 
     class OMLPLOT_EXPORT Loglog : public Line{
     public:
+        Loglog();
         string getLineStyle(int) override;
         void cleanup(GnuplotOutput *) override;
     };
 
     class OMLPLOT_EXPORT Semilogx : public Line{
     public:
+        Semilogx();
         string getLineStyle(int) override;
         void cleanup(GnuplotOutput *) override;
     };
 
     class OMLPLOT_EXPORT Semilogy : public Line{
     public:
+        Semilogy();
         string getLineStyle(int) override;
         void cleanup(GnuplotOutput *) override;
     };

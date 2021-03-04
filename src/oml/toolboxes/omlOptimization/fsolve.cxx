@@ -26,7 +26,8 @@
 static std::vector<EvaluatorInterface*> FSOLVE_eval_ptr_stack;
 static std::vector<FunctionInfo*>       FSOLVE_oml_func_stack;
 static std::vector<FUNCPTR>             FSOLVE_oml_pntr_stack;
-static std::vector<bool>                FSOLVE_oml_bool_stack;
+static std::vector<bool>                FSOLVE_oml_anon_stack;
+static std::vector<bool>                FSOLVE_oml_Prow_stack; // row vector checks
 
 //------------------------------------------------------------------------------
 // System of equation to be solved. Wrapper function for the system function
@@ -40,15 +41,21 @@ static hwMathStatus NLSolveFuncs(const hwMatrix& P,
     if (residual.Size() == 0)
         return hwMathStatus();
 
-    std::vector<Currency> inputs;
-    inputs.push_back(EvaluatorInterface::allocateMatrix(&P));
-    std::vector<Currency> outputs;
-    Currency result;
-
     EvaluatorInterface* FSOLVE_eval_ptr        = FSOLVE_eval_ptr_stack.back();
     FunctionInfo*       FSOLVE_oml_func        = FSOLVE_oml_func_stack.back();
     FUNCPTR             FSOLVE_oml_pntr        = FSOLVE_oml_pntr_stack.back();
-    bool                FSOLVE_oml_func_isanon = FSOLVE_oml_bool_stack.back();
+    bool                FSOLVE_oml_func_isanon = FSOLVE_oml_anon_stack.back();
+    bool                FSOLVE_oml_func_isProw = FSOLVE_oml_Prow_stack.back();
+
+    std::vector<Currency> inputs;
+    std::vector<Currency> outputs;
+    Currency result;
+    hwMatrix* P_temp = EvaluatorInterface::allocateMatrix(&P);
+
+    if (FSOLVE_oml_func_isProw && P_temp->M() > 1)
+        P_temp->Transpose();
+
+    inputs.push_back(P_temp);
 
     if (FSOLVE_oml_func_isanon)
     {
@@ -110,14 +117,20 @@ static hwMathStatus NLSolveJacobian(const hwMatrix& P,
                                     hwMatrix&       J)
 {
     // X is not used - see NLCurveFit.cxx
-    std::vector<Currency> inputs;
-    inputs.push_back(EvaluatorInterface::allocateMatrix(&P));
-    std::vector<Currency> outputs;
-
     EvaluatorInterface* FSOLVE_eval_ptr        = FSOLVE_eval_ptr_stack.back();
     FunctionInfo*       FSOLVE_oml_func        = FSOLVE_oml_func_stack.back();
     FUNCPTR             FSOLVE_oml_pntr        = FSOLVE_oml_pntr_stack.back();
-    bool                FSOLVE_oml_func_isanon = FSOLVE_oml_bool_stack.back();
+    bool                FSOLVE_oml_func_isanon = FSOLVE_oml_anon_stack.back();
+    bool                FSOLVE_oml_func_isProw = FSOLVE_oml_Prow_stack.back();
+
+    std::vector<Currency> inputs;
+    std::vector<Currency> outputs;
+    hwMatrix* P_temp = EvaluatorInterface::allocateMatrix(&P);
+
+    if (FSOLVE_oml_func_isProw && P_temp->M() > 1)
+        P_temp->Transpose();
+
+    inputs.push_back(P_temp);
 
     if (FSOLVE_oml_func)
     {
@@ -193,12 +206,12 @@ bool OmlFsolve(EvaluatorInterface           eval,
     {
         funcInfo = cur1.FunctionHandle();
         (funcInfo->RedirectedFunction().empty()) ?
-            FSOLVE_oml_bool_stack.push_back(true):  // true anonymous function
-            FSOLVE_oml_bool_stack.push_back(false); // handle to an inner function
+            FSOLVE_oml_anon_stack.push_back(true):  // true anonymous function
+            FSOLVE_oml_anon_stack.push_back(false); // handle to an inner function
     }
     else
     {
-        FSOLVE_oml_bool_stack.push_back(false);
+        FSOLVE_oml_anon_stack.push_back(false);
 
         if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr, nullptr))
         {
@@ -224,8 +237,8 @@ bool OmlFsolve(EvaluatorInterface           eval,
 
     bool   displayHist        = false;
     bool   analyticalJacobian = false;
-    int    maxIter            = 100;
-    int    maxFuncEval        = 400;
+    int    maxIter            = 400;
+    int    maxFuncEval        = 1000000;
     double tolf               = 1.0e-7;
     double tolx               = 1.0e-7;
     double minVal;
@@ -315,6 +328,11 @@ bool OmlFsolve(EvaluatorInterface           eval,
     FSOLVE_oml_func_stack.push_back(funcInfo);
     FSOLVE_oml_pntr_stack.push_back(funcPntr);
 
+    if (optPoint->N() > 1)
+        FSOLVE_oml_Prow_stack.push_back(true);
+    else
+        FSOLVE_oml_Prow_stack.push_back(false);
+
     // call user function to figure out how many equations are in the system
     std::vector<Currency> temp_outputs;
 
@@ -333,15 +351,15 @@ bool OmlFsolve(EvaluatorInterface           eval,
             if (!eval.FindFunctionByName(script_func, &script_func_fi, &dummy, nullptr))
                 throw OML_Error(OML_ERR_FUNCNAME, 1);
 
-            FSOLVE_oml_bool_stack.push_back(false); // handle to an inner function
+            FSOLVE_oml_anon_stack.push_back(false); // handle to an inner function
         }
         else
         {
-            FSOLVE_oml_bool_stack.push_back(true);  // true anonymous function
+            FSOLVE_oml_anon_stack.push_back(true);  // true anonymous function
         }
     }
 
-    if (FSOLVE_oml_bool_stack.back())
+    if (FSOLVE_oml_anon_stack.back())
     {
         Currency cur = eval.CallInternalFunction(funcInfo, temp_inputs);
         temp_outputs.push_back(cur);
@@ -452,7 +470,8 @@ bool OmlFsolve(EvaluatorInterface           eval,
                 FSOLVE_eval_ptr_stack.clear();
                 FSOLVE_oml_func_stack.clear();
                 FSOLVE_oml_pntr_stack.clear();
-                FSOLVE_oml_bool_stack.clear();
+                FSOLVE_oml_anon_stack.clear();
+                FSOLVE_oml_Prow_stack.clear();
 
                 delete optPoint;
                 optPoint = nullptr;
@@ -534,7 +553,8 @@ bool OmlFsolve(EvaluatorInterface           eval,
     FSOLVE_eval_ptr_stack.pop_back();
     FSOLVE_oml_func_stack.pop_back();
     FSOLVE_oml_pntr_stack.pop_back();
-    FSOLVE_oml_bool_stack.pop_back();
+    FSOLVE_oml_anon_stack.pop_back();
+    FSOLVE_oml_Prow_stack.pop_back();
 
     return true;
 }

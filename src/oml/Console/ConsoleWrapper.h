@@ -1,7 +1,7 @@
 /**
 * @file ConsoleWrapper.h
 * @date June 2015
-* Copyright (C) 2015-2020 Altair Engineering, Inc.  
+* Copyright (C) 2015-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -33,6 +33,7 @@
 
 class CurrencyDisplay;
 class Interpreter;
+class SignalHandler;
 // End defines/includes
 
 //------------------------------------------------------------------------------
@@ -72,6 +73,13 @@ public:
     //! \param msg Message to print
     //!
     void PrintToStdout(const std::string& msg);
+    //!
+    //! Prints to stdout
+    //! \param msg Message to print
+    //! \param forceFlush True if stdout needs to be flushed
+    //!
+    void Print(const std::string& msg,
+               bool               forceFlush = true);
 
     //!
     //! Prints currency to console
@@ -137,6 +145,11 @@ public:
     //!
     void SetWindowSize(bool val) { _getWindowSize = val; }
 
+    //!
+    //! Sets child signal handler
+    //!
+    void SetChildSignalHandler(SignalHandler* handler) { _childHandler = handler; }
+
 private:
     bool _appendOutput;                           //! True if output is appended
     bool _addnewline;                             //! True if new line should be added
@@ -153,11 +166,11 @@ private:
     HANDLE _outhandle;                            //!< Stdout handle
     WORD   _defaultWinAttr;                       //!< Console window  attribute
 #endif
-
+    SignalHandler* _childHandler;                 //!< Child signal handler
     //!
     //! Private default constructor
     //!
-    ConsoleWrapper() : WrapperBase(nullptr) {}
+    ConsoleWrapper() : WrapperBase(nullptr), _childHandler(0) {}
     //!
     //! Stubbed out copy constructor
     //!

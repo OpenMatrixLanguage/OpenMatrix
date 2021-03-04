@@ -18,7 +18,7 @@
 #define __SIGNALHANDLERBASE_H__
 
 // Begin defines/includes
-#include "Hml2Dll.h"
+#include "OMLDll.h"
 #include "Currency.h"
 #include "EvaluatorInt.h"
 #include "OML_Error.h"
@@ -33,7 +33,7 @@ class Interpreter;
 //------------------------------------------------------------------------------
 //! Base class for handling signals in evaluator
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS SignalHandlerBase
+class OMLDLL_DECLS SignalHandlerBase
 {
 public:
     //!
@@ -62,6 +62,14 @@ public:
     //! This method should be called in cases where printing is handled separately
     //!
     virtual void CopyNonPrintSignals() {}
+    //!
+    //! Connects print signal
+    //!
+    virtual void ConnectPrintSignal() {}
+    //!
+    //! Disconnect print signal
+    //!
+    virtual void DisconnectPrintSignal() {}
 
     //!
     //! Returns true if worker thread is being executed

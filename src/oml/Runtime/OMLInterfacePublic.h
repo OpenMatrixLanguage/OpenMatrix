@@ -58,6 +58,12 @@ public:
 	virtual const OMLCurrency* CallFunction(const char*, OMLCurrencyList* inputs) = 0;
 };
 
+class OMLInterface4 : public OMLInterface3
+{
+public:
+	virtual void RegisterHiddenFunction(const char*, ALT_FUNCPTR) = 0;
+};
+
 class OMLCurrency
 {
 public:

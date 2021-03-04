@@ -27,7 +27,8 @@
 static std::vector<EvaluatorInterface*> LSQCURVEFIT_eval_ptr_stack;
 static std::vector<FunctionInfo*>       LSQCURVEFIT_oml_func_stack;
 static std::vector<FUNCPTR>             LSQCURVEFIT_oml_pntr_stack;
-static std::vector<bool>                LSQCURVEFIT_oml_bool_stack;
+static std::vector<bool>                LSQCURVEFIT_oml_anon_stack;
+static std::vector<bool>                LSQCURVEFIT_oml_Prow_stack; // row vector checks
 
 //------------------------------------------------------------------------------
 // Wrapper for the system function called by lsqcurvefit algorithm.
@@ -41,16 +42,22 @@ static hwMathStatus NLCurveFitFunc(const hwMatrix& P,
     if (residual.Size() == 0)
         return hwMathStatus();
 
-    std::vector<Currency> inputs;
-    inputs.push_back(EvaluatorInterface::allocateMatrix(&P));
-    inputs.push_back(EvaluatorInterface::allocateMatrix(&X));
-    std::vector<Currency> outputs;
-    Currency result;
-
     EvaluatorInterface* LSQCURVEFIT_eval_ptr        = LSQCURVEFIT_eval_ptr_stack.back();
     FunctionInfo*       LSQCURVEFIT_oml_func        = LSQCURVEFIT_oml_func_stack.back();
     FUNCPTR             LSQCURVEFIT_oml_pntr        = LSQCURVEFIT_oml_pntr_stack.back();
-    bool                LSQCURVEFIT_oml_func_isanon = LSQCURVEFIT_oml_bool_stack.back();
+    bool                LSQCURVEFIT_oml_func_isanon = LSQCURVEFIT_oml_anon_stack.back();
+    bool                LSQCURVEFIT_oml_func_isProw = LSQCURVEFIT_oml_Prow_stack.back();
+
+    std::vector<Currency> inputs;
+    std::vector<Currency> outputs;
+    Currency result;
+    hwMatrix* P_temp = EvaluatorInterface::allocateMatrix(&P);
+
+    if (LSQCURVEFIT_oml_func_isProw && P_temp->M() > 1)
+        P_temp->Transpose();
+
+    inputs.push_back(P_temp);
+    inputs.push_back(EvaluatorInterface::allocateMatrix(&X));
 
     if (LSQCURVEFIT_oml_func_isanon)
     {
@@ -117,15 +124,21 @@ static hwMathStatus NLCurveFitJacobian(const hwMatrix& P,
                                        const hwMatrix* userData, 
                                        hwMatrix&       J)
 {
-    std::vector<Currency> inputs;
-    inputs.push_back(EvaluatorInterface::allocateMatrix(&P));
-    inputs.push_back(EvaluatorInterface::allocateMatrix(&X));
-    std::vector<Currency> outputs;
-
     EvaluatorInterface* LSQCURVEFIT_eval_ptr        = LSQCURVEFIT_eval_ptr_stack.back();
     FunctionInfo*       LSQCURVEFIT_oml_func        = LSQCURVEFIT_oml_func_stack.back();
     FUNCPTR             LSQCURVEFIT_oml_pntr        = LSQCURVEFIT_oml_pntr_stack.back();
-    bool                LSQCURVEFIT_oml_func_isanon = LSQCURVEFIT_oml_bool_stack.back();
+    bool                LSQCURVEFIT_oml_func_isanon = LSQCURVEFIT_oml_anon_stack.back();
+    bool                LSQCURVEFIT_oml_func_isProw = LSQCURVEFIT_oml_Prow_stack.back();
+
+    std::vector<Currency> inputs;
+    std::vector<Currency> outputs;
+    hwMatrix* P_temp = EvaluatorInterface::allocateMatrix(&P);
+
+    if (LSQCURVEFIT_oml_func_isProw && P_temp->M() > 1)
+        P_temp->Transpose();
+
+    inputs.push_back(P_temp);
+    inputs.push_back(EvaluatorInterface::allocateMatrix(&X));
 
     if (LSQCURVEFIT_oml_func)
     {
@@ -209,12 +222,12 @@ bool OmlLsqcurvefit(EvaluatorInterface           eval,
     {
         funcInfo = cur1.FunctionHandle();
         (funcInfo->RedirectedFunction().empty()) ?
-            LSQCURVEFIT_oml_bool_stack.push_back(true):  // true anonymous function
-            LSQCURVEFIT_oml_bool_stack.push_back(false); // handle to an inner function
+            LSQCURVEFIT_oml_anon_stack.push_back(true):  // true anonymous function
+            LSQCURVEFIT_oml_anon_stack.push_back(false); // handle to an inner function
     }
     else
     {
-        LSQCURVEFIT_oml_bool_stack.push_back(false);
+        LSQCURVEFIT_oml_anon_stack.push_back(false);
 
         if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr, nullptr))
         {
@@ -278,8 +291,8 @@ bool OmlLsqcurvefit(EvaluatorInterface           eval,
 
     bool   displayHist        = false;
     bool   analyticalJacobian = false;
-    int    maxIter            = 100;
-    int    maxFuncEval        = 400;
+    int    maxIter            = 400;
+    int    maxFuncEval        = 1000000;
     double tolf               = 1.0e-7;
     double tolx               = 1.0e-7;
 
@@ -368,6 +381,11 @@ bool OmlLsqcurvefit(EvaluatorInterface           eval,
     LSQCURVEFIT_oml_func_stack.push_back(funcInfo);
     LSQCURVEFIT_oml_pntr_stack.push_back(funcPntr);
     
+    if (optParam->N() > 1)
+        LSQCURVEFIT_oml_Prow_stack.push_back(true);
+    else
+        LSQCURVEFIT_oml_Prow_stack.push_back(false);
+
     // call algorithm
     hwMatrix*    stats      = nullptr;
     hwMatrix*    yEst       = nullptr;
@@ -473,7 +491,8 @@ bool OmlLsqcurvefit(EvaluatorInterface           eval,
                 LSQCURVEFIT_eval_ptr_stack.clear();
                 LSQCURVEFIT_oml_func_stack.clear();
                 LSQCURVEFIT_oml_pntr_stack.clear();
-                LSQCURVEFIT_oml_bool_stack.clear();
+                LSQCURVEFIT_oml_anon_stack.clear();
+                LSQCURVEFIT_oml_Prow_stack.clear();
 
                 delete optParam;
                 optParam = nullptr;
@@ -578,7 +597,8 @@ bool OmlLsqcurvefit(EvaluatorInterface           eval,
     LSQCURVEFIT_eval_ptr_stack.pop_back();
     LSQCURVEFIT_oml_func_stack.pop_back();
     LSQCURVEFIT_oml_pntr_stack.pop_back();
-    LSQCURVEFIT_oml_bool_stack.pop_back();
+    LSQCURVEFIT_oml_anon_stack.pop_back();
+    LSQCURVEFIT_oml_Prow_stack.pop_back();
 
     return true;
 }

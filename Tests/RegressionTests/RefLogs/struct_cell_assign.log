@@ -1,7 +1,7 @@
 mystruct = struct [
-field1: hml
-field2: 
-{
-  [1,1] hml
-}
+  field1: hml
+  field2: 
+  {
+    [1,1] hml
+  }
 ]

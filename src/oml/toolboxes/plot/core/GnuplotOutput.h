@@ -1,7 +1,7 @@
 /**
 * @file GnuplotOutput.h
 * @date May 2017
-* Copyright (C) 2017-2018 Altair Engineering, Inc.  
+* Copyright (C) 2017-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -21,8 +21,6 @@
 #include <string>
 #include <cstdarg>
 #include "OmlPlotExport.h"
-
-#define _DEBUG 1
 
 namespace omlplot{
     class OMLPLOT_EXPORT GnuplotOutput{

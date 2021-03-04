@@ -171,6 +171,7 @@
     <ClCompile Include="$(OML_ROOT)\src\oml\Runtime\DisplayFormatVars.cpp" />
     <ClCompile Include="$(OML_ROOT)\src\oml\Runtime\SparseDisplay.cpp" />
     <ClCompile Include="$(OML_ROOT)\src\oml\Runtime\utf8utils.cpp" />
+    <ClCompile Include="$(OML_ROOT)\src\oml\Runtime\BuiltInFuncsMKL.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(OML_ROOT)\src\oml\runtime\ANTLRData.h" />
@@ -214,6 +215,7 @@
     <ClInclude Include="$(OML_ROOT)\src\oml\Runtime\StringDisplay.h" />
     <ClInclude Include="$(OML_ROOT)\src\oml\Runtime\BuiltInFuncsTime.h" />
     <ClInclude Include="$(OML_ROOT)\src\oml\Runtime\CellNDisplay.h" />
+    <ClInclude Include="$(OML_ROOT)\src\oml\Runtime\BuiltInFuncsMKL.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

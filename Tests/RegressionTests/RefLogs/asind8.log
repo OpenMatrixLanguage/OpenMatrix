@@ -1,3 +1,1 @@
-ans = [Matrix] 2 x 5
-90.00000 - 312.07400i  90.00000 - 304.13993i  90.00000 - 311.57791i  90.00000 - 312.07400i  90.00000 - 262.69332i
-90.00000 - 312.07400i  90.00000 - 304.13993i  90.00000 - 311.57791i  90.00000 - 312.07400i  90.00000 - 263.85109i
+Error: invalid input in argument 1; type must be a scalar, complex or matrix in call to function asind at line number 1 in file asind8.oml

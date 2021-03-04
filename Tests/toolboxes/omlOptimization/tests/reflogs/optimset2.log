@@ -1,4 +1,4 @@
 options = struct [
-Jacobian: on
-MaxIter: 200
+  Jacobian: on
+  MaxIter: 200
 ]

@@ -352,6 +352,9 @@ public:
 	void SetVerbose(int val);
 
 	Currency  VariableIndex(const Currency&, const std::vector<Currency>&);
+	Currency  VariableIndex(const Currency&, const Currency&);
+	Currency  VariableIndex(const Currency&, const Currency&, const Currency&);
+
 	Currency  CellValueHelper(const Currency&, const std::vector<Currency>&);
 	Currency  NDCellValueHelper(const Currency&, const std::vector<Currency>&);
 

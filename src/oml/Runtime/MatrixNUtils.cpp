@@ -35,18 +35,14 @@ bool oml_MatrixNUtil1(EvaluatorInterface eval, const std::vector<Currency>& inpu
     const std::vector<int>& dims = matrix->Dimensions();
 
     // convert from ND to vector
-    std::vector<hwSliceArg> sliceArgs;
-    sliceArgs.push_back(hwSliceArg());
-    hwMatrixN slice;
-    matrix->SliceRHS(sliceArgs, slice);
-    hwMatrix* slice2D = new hwMatrix;
-    slice.ConvertNDto2D(*slice2D);
+    hwMatrix* slice1D = new hwMatrix;
+    matrix->ConvertNDto1D(*slice1D);
 
     // call computation function
     std::vector<Currency> inputs2;
     std::vector<Currency> outputs2;
 
-    inputs2.push_back(slice2D);
+    inputs2.push_back(slice1D);
 
     for (int i = 1; i < inputs.size(); ++i)
     {
@@ -60,8 +56,7 @@ bool oml_MatrixNUtil1(EvaluatorInterface eval, const std::vector<Currency>& inpu
     {
         // convert from vector to ND
         hwMatrixN* outMatrix = new hwMatrixN;
-        outMatrix->Convert2DtoND(*outputs2[0].Matrix());
-        outMatrix->Reshape(dims);
+        outMatrix->Convert1DtoND(*outputs2[0].GetWritableMatrix(), dims);
 
    		Currency out(outMatrix);
 		out.SetMask(outputs2[0].GetMask());
@@ -72,8 +67,7 @@ bool oml_MatrixNUtil1(EvaluatorInterface eval, const std::vector<Currency>& inpu
     {
         // convert from vector to ND
         hwMatrixN* outMatrix = new hwMatrixN;
-        outMatrix->Convert2DtoND(*outputs2[1].Matrix());
-        outMatrix->Reshape(dims);
+        outMatrix->Convert1DtoND(*outputs2[1].GetWritableMatrix(), dims);
 
    		Currency out(outMatrix);
 		out.SetMask(outputs2[1].GetMask());
@@ -96,7 +90,6 @@ bool oml_MatrixNUtil2(EvaluatorInterface eval, const std::vector<Currency>& inpu
     const Currency& op2 = inputs[1];
     std::vector<hwSliceArg> sliceArgs;
     sliceArgs.push_back(hwSliceArg());
-    hwMatrixN slice;
     hwMatrixN* outMatrix = new hwMatrixN;
     std::vector<Currency> inputs2;
     std::vector<Currency> outputs2;
@@ -107,10 +100,9 @@ bool oml_MatrixNUtil2(EvaluatorInterface eval, const std::vector<Currency>& inpu
         const std::vector<int>& dims_1 = matrix_1->Dimensions();
 
         // convert from ND to vector
-        matrix_1->SliceRHS(sliceArgs, slice);
-        hwMatrix* slice2D_1 = new hwMatrix;
-        slice.ConvertNDto2D(*slice2D_1);
-        Currency op1_new(slice2D_1);
+        hwMatrix* slice1D_1 = new hwMatrix;
+        matrix_1->ConvertNDto1D(*slice1D_1);
+        Currency op1_new(slice1D_1);
 
         if (op2.IsNDMatrix())
         {
@@ -124,10 +116,9 @@ bool oml_MatrixNUtil2(EvaluatorInterface eval, const std::vector<Currency>& inpu
             }
 
             // convert from ND to vector
-            matrix_2->SliceRHS(sliceArgs, slice);
-            hwMatrix* slice2D_2 = new hwMatrix;
-            slice.ConvertNDto2D(*slice2D_2);
-            Currency op2_new(slice2D_2);
+            hwMatrix* slice1D_2 = new hwMatrix;
+            matrix_2->ConvertNDto1D(*slice1D_2);
+            Currency op2_new(slice1D_2);
 
             // call computation function
             inputs2.push_back(op1_new);
@@ -135,8 +126,7 @@ bool oml_MatrixNUtil2(EvaluatorInterface eval, const std::vector<Currency>& inpu
             oml_func(eval, inputs2, outputs2);
 
             // convert from vector to ND
-            outMatrix->Convert2DtoND(*outputs2[0].Matrix());
-            outMatrix->Reshape(dims_1);
+            outMatrix->Convert1DtoND(*outputs2[0].GetWritableMatrix(), dims_1);
         }
         else if (!op2.IsMatrix())
         {
@@ -146,8 +136,7 @@ bool oml_MatrixNUtil2(EvaluatorInterface eval, const std::vector<Currency>& inpu
             oml_func(eval, inputs2, outputs2);
 
             // convert from vector to ND
-            outMatrix->Convert2DtoND(*outputs2[0].Matrix());
-            outMatrix->Reshape(dims_1);
+            outMatrix->Convert1DtoND(*outputs2[0].GetWritableMatrix(), dims_1);
         }
         else
         {
@@ -160,10 +149,9 @@ bool oml_MatrixNUtil2(EvaluatorInterface eval, const std::vector<Currency>& inpu
         const std::vector<int>& dims_2 = matrix_2->Dimensions();
 
         // convert from ND to vector
-        matrix_2->SliceRHS(sliceArgs, slice);
-        hwMatrix* slice2D_2 = new hwMatrix;
-        slice.ConvertNDto2D(*slice2D_2);
-        Currency op2_new(slice2D_2);
+        hwMatrix* slice1D_2 = new hwMatrix;
+        matrix_2->ConvertNDto1D(*slice1D_2);
+        Currency op2_new(slice1D_2);
 
         // call computation function
         inputs2.push_back(op1);
@@ -171,8 +159,7 @@ bool oml_MatrixNUtil2(EvaluatorInterface eval, const std::vector<Currency>& inpu
         oml_func(eval, inputs2, outputs2);
 
         // convert from vector to ND
-        outMatrix->Convert2DtoND(*outputs2[0].Matrix());
-        outMatrix->Reshape(dims_2);
+        outMatrix->Convert1DtoND(*outputs2[0].GetWritableMatrix(), dims_2);
     }
     else
     {
@@ -296,7 +283,7 @@ bool oml_MatrixNUtil3(EvaluatorInterface eval, const std::vector<Currency>& inpu
         hwMatrix* slice2D = new hwMatrix;
         matrix->SliceRHS(sliceArgs, slice);
         slice.Reshape(sliceDims2D);     // reshape to a column
-        slice.ConvertNDto2D(*slice2D);
+        slice.ConvertNDto2D(*slice2D, false);
 
         // call computation function
         std::vector<Currency> inputs2;
@@ -442,7 +429,7 @@ bool oml_MatrixNUtil4(EvaluatorInterface eval, const std::vector<Currency>& inpu
         hwMatrix* slice2D = new hwMatrix;
         matrix->SliceRHS(sliceArgs, slice);
         slice.Reshape(sliceDims2D);     // reshape to a column
-        slice.ConvertNDto2D(*slice2D);
+        slice.ConvertNDto2D(*slice2D, false);
 
         // call computation function
         std::vector<Currency> inputs2;
@@ -486,7 +473,8 @@ bool oml_MatrixNUtil4(EvaluatorInterface eval, const std::vector<Currency>& inpu
         oml_func(eval, inputs2, outputs2);
 
         // convert from vector to ND
-        slice.Convert2DtoND(*outputs2[0].Matrix());
+        slice = hwMatrixN();
+        slice.Convert2DtoND(*outputs2[0].GetWritableMatrix(), false);
 
         if (i == 0)
         {
@@ -506,7 +494,8 @@ bool oml_MatrixNUtil4(EvaluatorInterface eval, const std::vector<Currency>& inpu
 
         if (nargout == 2)
         {
-            slice.Convert2DtoND(*outputs2[1].Matrix());
+            slice = hwMatrixN();
+            slice.Convert2DtoND(*outputs2[1].GetWritableMatrix(), false);
             outMatrix2->SliceLHS(sliceArgs, slice);
         }
 
@@ -589,7 +578,7 @@ bool oml_MatrixNVecs(EvaluatorInterface eval, const std::vector<Currency>& input
                 hwMatrixN slice;
                 matrixN->SliceRHS(sliceArgs, slice);
                 hwMatrix* vec = new hwMatrix;
-                slice.ConvertNDto2D(*vec);
+                slice.ConvertNDto2D(*vec, false);
                 inputs2.push_back(vec);
             }
             else
@@ -623,7 +612,7 @@ bool oml_MatrixNVecs(EvaluatorInterface eval, const std::vector<Currency>& input
                 dims[dim] = matrix->Size();
 
                 hwMatrixN* vec = new hwMatrixN;
-                vec->Convert2DtoND(*matrix);
+                vec->Convert2DtoND(*matrix, false);
                 vec->Reshape(dims);
                 outputs.push_back(vec);
             }
@@ -730,16 +719,17 @@ bool oml_MatrixN_VecProd(EvaluatorInterface eval, const std::vector<Currency>& i
     for (int i = 0; i < numVecs; ++i)
     {
         // slice matrix to retrieve vector
-        hwMatrixN slice;
+        hwMatrixN slice1;
+        hwMatrixN slice2;
         hwMatrix* slice2D_1 = new hwMatrix;
-        matrix1->SliceRHS(sliceArgs, slice);
-        slice.Reshape(sliceDims2D);     // reshape to a column
-        slice.ConvertNDto2D(*slice2D_1);
+        matrix1->SliceRHS(sliceArgs, slice1);
+        slice1.Reshape(sliceDims2D);     // reshape to a column
+        slice1.ConvertNDto2D(*slice2D_1, false);
 
         hwMatrix* slice2D_2 = new hwMatrix;
-        matrix2->SliceRHS(sliceArgs, slice);
-        slice.Reshape(sliceDims2D);     // reshape to a column
-        slice.ConvertNDto2D(*slice2D_2);
+        matrix2->SliceRHS(sliceArgs, slice2);
+        slice2.Reshape(sliceDims2D);     // reshape to a column
+        slice2.ConvertNDto2D(*slice2D_2, false);
 
         // call computation function
         std::vector<Currency> inputs2;
@@ -758,8 +748,8 @@ bool oml_MatrixN_VecProd(EvaluatorInterface eval, const std::vector<Currency>& i
             else                    // cross product
             {
                 // convert from vector to ND
-                slice.Convert2DtoND(*outputs2[0].Matrix());
-                outMatrix->SliceLHS(sliceArgs, slice);
+                slice1.Convert2DtoND(*outputs2[0].GetWritableMatrix(), false);
+                outMatrix->SliceLHS(sliceArgs, slice1);
             }
         }
         else     // dot product
@@ -1279,7 +1269,7 @@ bool oml_MatrixN_diff(EvaluatorInterface eval, const std::vector<Currency>& inpu
         hwMatrix* slice2D = new hwMatrix;
         matrix->SliceRHS(sliceArgs, slice);
         slice.Reshape(sliceDims2D);     // reshape to a column
-        slice.ConvertNDto2D(*slice2D);
+        slice.ConvertNDto2D(*slice2D, false);
 
         // call computation function
         std::vector<Currency> inputs2;
@@ -1293,7 +1283,7 @@ bool oml_MatrixN_diff(EvaluatorInterface eval, const std::vector<Currency>& inpu
         oml_func(eval, inputs2, outputs2);
 
         // convert from vector to ND
-        slice.Convert2DtoND(*outputs2[0].ConvertToMatrix());
+        slice.Convert2DtoND(*outputs2[0].GetWritableMatrix(), false);
         outMatrix1->SliceLHS(sliceArgs, slice);
 
         // advance slice indices
@@ -1409,24 +1399,19 @@ Currency oml_MatrixNUtil6(const Currency& op, OML_func2 oml_func)
     const std::vector<int>& dims = matrix->Dimensions();
 
     // convert from ND to vector
-    std::vector<hwSliceArg> sliceArgs;
-    sliceArgs.push_back(hwSliceArg());
-    hwMatrixN slice;
-    matrix->SliceRHS(sliceArgs, slice);
-    hwMatrix* slice2D = new hwMatrix;
-    slice.ConvertNDto2D(*slice2D);
-    
+    hwMatrix* slice1D = new hwMatrix;
+    matrix->ConvertNDto1D(*slice1D);
+
     // call computation function
     ExprTreeEvaluator dummy;
-    Currency op_new(slice2D);
+    Currency op_new(slice1D);
     Currency result;
 
     result = (dummy.*oml_func)(op_new);
 
     // convert from vector to ND
     hwMatrixN* outMatrix = new hwMatrixN;
-    outMatrix->Convert2DtoND(*result.Matrix());
-    outMatrix->Reshape(dims);
+    outMatrix->Convert1DtoND(*result.GetWritableMatrix(), dims);
 
     return outMatrix;
 }
@@ -1435,9 +1420,6 @@ Currency oml_MatrixNUtil6(const Currency& op, OML_func2 oml_func)
 Currency oml_MatrixNUtil7(const Currency& op1, const Currency& op2, const OML_func3 oml_func)
 {
     static ExprTreeEvaluator dummy;
-    std::vector<hwSliceArg> sliceArgs;
-    sliceArgs.push_back(hwSliceArg());
-    hwMatrixN slice;
     hwMatrixN* outMatrix = new hwMatrixN;
     Currency result;
 
@@ -1447,10 +1429,9 @@ Currency oml_MatrixNUtil7(const Currency& op1, const Currency& op2, const OML_fu
         const std::vector<int>& dims_1 = matrix_1->Dimensions();
 
         // convert from ND to vector
-        matrix_1->SliceRHS(sliceArgs, slice);
-        hwMatrix* slice2D_1 = new hwMatrix;
-        slice.ConvertNDto2D(*slice2D_1);
-        Currency op1_new(slice2D_1);
+        hwMatrix* slice1D_1 = new hwMatrix;
+        matrix_1->ConvertNDto1D(*slice1D_1);
+        Currency op1_new(slice1D_1);
 
         if (op2.IsNDMatrix())
         {
@@ -1464,10 +1445,9 @@ Currency oml_MatrixNUtil7(const Currency& op1, const Currency& op2, const OML_fu
             }
 
             // convert from ND to vector
-            matrix_2->SliceRHS(sliceArgs, slice);
-            hwMatrix* slice2D_2 = new hwMatrix;
-            slice.ConvertNDto2D(*slice2D_2);
-            Currency op2_new(slice2D_2);
+            hwMatrix* slice1D_2 = new hwMatrix;
+            matrix_2->ConvertNDto1D(*slice1D_2);
+            Currency op2_new(slice1D_2);
             result = (dummy.*oml_func)(op1_new, op2_new);
         }
         else if (op2.IsScalar() || op2.IsComplex())
@@ -1480,8 +1460,7 @@ Currency oml_MatrixNUtil7(const Currency& op1, const Currency& op2, const OML_fu
         }
 
         // convert from vector to ND
-        outMatrix->Convert2DtoND(*result.Matrix());
-        outMatrix->Reshape(dims_1);
+        outMatrix->Convert1DtoND(*result.GetWritableMatrix(), dims_1);
     }
     else if ((op1.IsScalar() || op1.IsComplex()) && op2.IsNDMatrix())
     {
@@ -1489,16 +1468,14 @@ Currency oml_MatrixNUtil7(const Currency& op1, const Currency& op2, const OML_fu
         const std::vector<int>& dims_2 = matrix_2->Dimensions();
 
         // convert from ND to vector
-        matrix_2->SliceRHS(sliceArgs, slice);
-        hwMatrix* slice2D_2 = new hwMatrix;
-        slice.ConvertNDto2D(*slice2D_2);
-        Currency op2_new(slice2D_2);
+        hwMatrix* slice1D_2 = new hwMatrix;
+        matrix_2->ConvertNDto1D(*slice1D_2);
+        Currency op2_new(slice1D_2);
 
         result = (dummy.*oml_func)(op1, op2_new);
 
         // convert from vector to ND
-        outMatrix->Convert2DtoND(*result.Matrix());
-        outMatrix->Reshape(dims_2);
+        outMatrix->Convert1DtoND(*result.GetWritableMatrix(), dims_2);
     }
     else
     {
@@ -1512,9 +1489,6 @@ Currency oml_MatrixNUtil7(const Currency& op1, const Currency& op2, const OML_fu
 Currency oml_MatrixNUtil8(const Currency& op1, const Currency& op2, int op, const OML_func4 oml_func)
 {
     ExprTreeEvaluator dummy;
-    std::vector<hwSliceArg> sliceArgs;
-    sliceArgs.push_back(hwSliceArg());
-    hwMatrixN slice;
     hwMatrixN* outMatrix = new hwMatrixN;
     Currency result;
 
@@ -1524,10 +1498,9 @@ Currency oml_MatrixNUtil8(const Currency& op1, const Currency& op2, int op, cons
         const std::vector<int>& dims_1 = matrix_1->Dimensions();
 
         // convert from ND to vector
-        matrix_1->SliceRHS(sliceArgs, slice);
-        hwMatrix* slice2D_1 = new hwMatrix;
-        slice.ConvertNDto2D(*slice2D_1);
-        Currency op1_new(slice2D_1);
+        hwMatrix* slice1D_1 = new hwMatrix;
+        matrix_1->ConvertNDto1D(*slice1D_1);
+        Currency op1_new(slice1D_1);
 
         if (op2.IsNDMatrix())
         {
@@ -1541,10 +1514,9 @@ Currency oml_MatrixNUtil8(const Currency& op1, const Currency& op2, int op, cons
             }
 
             // convert from ND to vector
-            matrix_2->SliceRHS(sliceArgs, slice);
-            hwMatrix* slice2D_2 = new hwMatrix;
-            slice.ConvertNDto2D(*slice2D_2);
-            Currency op2_new(slice2D_2);
+            hwMatrix* slice1D_2 = new hwMatrix;
+            matrix_2->ConvertNDto1D(*slice1D_2);
+            Currency op2_new(slice1D_2);
             result = (dummy.*oml_func)(op1_new, op2_new, op);
         }
         else if (op2.IsScalar() || op2.IsComplex())
@@ -1557,8 +1529,7 @@ Currency oml_MatrixNUtil8(const Currency& op1, const Currency& op2, int op, cons
         }
 
         // convert from vector to ND
-        outMatrix->Convert2DtoND(*result.Matrix());
-        outMatrix->Reshape(dims_1);
+        outMatrix->Convert1DtoND(*result.GetWritableMatrix(), dims_1);
     }
     else if ((op1.IsScalar() || op1.IsComplex()) && op2.IsNDMatrix())
     {
@@ -1566,16 +1537,14 @@ Currency oml_MatrixNUtil8(const Currency& op1, const Currency& op2, int op, cons
         const std::vector<int>& dims_2 = matrix_2->Dimensions();
 
         // convert from ND to vector
-        matrix_2->SliceRHS(sliceArgs, slice);
-        hwMatrix* slice2D_2 = new hwMatrix;
-        slice.ConvertNDto2D(*slice2D_2);
-        Currency op2_new(slice2D_2);
+        hwMatrix* slice1D_2 = new hwMatrix;
+        matrix_2->ConvertNDto1D(*slice1D_2);
+        Currency op2_new(slice1D_2);
 
         result = (dummy.*oml_func)(op1, op2_new, op);
 
         // convert from vector to ND
-        outMatrix->Convert2DtoND(*result.Matrix());
-        outMatrix->Reshape(dims_2);
+        outMatrix->Convert1DtoND(*result.GetWritableMatrix(), dims_2);
     }
     else
     {
@@ -1588,9 +1557,6 @@ Currency oml_MatrixNUtil8(const Currency& op1, const Currency& op2, int op, cons
 // Apply a bool function to a pair of arguments, with at least one ND matrix.
 bool oml_MatrixNUtil9(const Currency& op1, const Currency& op2, OML_func5 oml_func)
 {
-    std::vector<hwSliceArg> sliceArgs;
-    sliceArgs.push_back(hwSliceArg());
-    hwMatrixN slice;
     bool result;
 
     if (op1.IsNDMatrix())
@@ -1599,10 +1565,9 @@ bool oml_MatrixNUtil9(const Currency& op1, const Currency& op2, OML_func5 oml_fu
         const std::vector<int>& dims_1 = matrix_1->Dimensions();
 
         // convert from ND to vector
-        matrix_1->SliceRHS(sliceArgs, slice);
-        hwMatrix* slice2D_1 = new hwMatrix;
-        slice.ConvertNDto2D(*slice2D_1);
-        Currency op1_new(slice2D_1);
+        hwMatrix* slice1D_1 = new hwMatrix;
+        matrix_1->ConvertNDto1D(*slice1D_1);
+        Currency op1_new(slice1D_1);
 
         if (op2.IsNDMatrix())
         {
@@ -1616,10 +1581,9 @@ bool oml_MatrixNUtil9(const Currency& op1, const Currency& op2, OML_func5 oml_fu
             }
 
             // convert from ND to vector
-            matrix_2->SliceRHS(sliceArgs, slice);
-            hwMatrix* slice2D_2 = new hwMatrix;
-            slice.ConvertNDto2D(*slice2D_2);
-            Currency op2_new(slice2D_2);
+            hwMatrix* slice1D_2 = new hwMatrix;
+            matrix_2->ConvertNDto1D(*slice1D_2);
+            Currency op2_new(slice1D_2);
             result = oml_func(op1_new, op2_new);
         }
         else if (op2.IsScalar() || op2.IsComplex())
@@ -1636,10 +1600,9 @@ bool oml_MatrixNUtil9(const Currency& op1, const Currency& op2, OML_func5 oml_fu
         const hwMatrixN* matrix_2 = op2.MatrixN();
 
         // convert from ND to vector
-        matrix_2->SliceRHS(sliceArgs, slice);
-        hwMatrix* slice2D_2 = new hwMatrix;
-        slice.ConvertNDto2D(*slice2D_2);
-        Currency op2_new(slice2D_2);
+        hwMatrix* slice1D_2 = new hwMatrix;
+        matrix_2->ConvertNDto1D(*slice1D_2);
+        Currency op2_new(slice1D_2);
 
         result = oml_func(op1, op2_new);
     }
@@ -1654,9 +1617,6 @@ bool oml_MatrixNUtil9(const Currency& op1, const Currency& op2, OML_func5 oml_fu
 // Apply a bool function to a pair of arguments, with at least one ND matrix and a tolerance.
 bool oml_MatrixNUtil10(const Currency& op1, const Currency& op2, const Currency& tol, OML_func6 oml_func)
 {
-    std::vector<hwSliceArg> sliceArgs;
-    sliceArgs.push_back(hwSliceArg());
-    hwMatrixN slice;
     bool result;
 
     if (op1.IsNDMatrix())
@@ -1665,10 +1625,9 @@ bool oml_MatrixNUtil10(const Currency& op1, const Currency& op2, const Currency&
         const std::vector<int>& dims_1 = matrix_1->Dimensions();
 
         // convert from ND to vector
-        matrix_1->SliceRHS(sliceArgs, slice);
-        hwMatrix* slice2D_1 = new hwMatrix;
-        slice.ConvertNDto2D(*slice2D_1);
-        Currency op1_new(slice2D_1);
+        hwMatrix* slice1D_1 = new hwMatrix;
+        matrix_1->ConvertNDto1D(*slice1D_1);
+        Currency op1_new(slice1D_1);
 
         if (op2.IsNDMatrix())
         {
@@ -1682,10 +1641,9 @@ bool oml_MatrixNUtil10(const Currency& op1, const Currency& op2, const Currency&
             }
 
             // convert from ND to vector
-            matrix_2->SliceRHS(sliceArgs, slice);
-            hwMatrix* slice2D_2 = new hwMatrix;
-            slice.ConvertNDto2D(*slice2D_2);
-            Currency op2_new(slice2D_2);
+            hwMatrix* slice1D_2 = new hwMatrix;
+            matrix_2->ConvertNDto1D(*slice1D_2);
+            Currency op2_new(slice1D_2);
             result = oml_func(op1_new, op2_new, tol);
         }
         else if (!op2.IsMatrix())
@@ -1702,10 +1660,9 @@ bool oml_MatrixNUtil10(const Currency& op1, const Currency& op2, const Currency&
         const hwMatrixN* matrix_2 = op2.MatrixN();
 
         // convert from ND to vector
-        matrix_2->SliceRHS(sliceArgs, slice);
-        hwMatrix* slice2D_2 = new hwMatrix;
-        slice.ConvertNDto2D(*slice2D_2);
-        Currency op2_new(slice2D_2);
+        hwMatrix* slice1D_2 = new hwMatrix;
+        matrix_2->ConvertNDto1D(*slice1D_2);
+        Currency op2_new(slice1D_2);
 
         result = oml_func(op1, op2_new, tol);
     }

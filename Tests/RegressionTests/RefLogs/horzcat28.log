@@ -1,27 +1,27 @@
 A = struct [
-a: 2
+  a: 2
 ]
 A = struct [
-a: 2
-b: {}
+  a: 2
+  b: {}
 ]
 B = struct [
-b: 3 + 6i
+  b: 3 + 6i
 ]
 B = struct [
-a: 
-{
-  [1,1] [Matrix] 0 x 0
-}
-b: 3 + 6i
+  a: 
+  {
+    [1,1] [Matrix] 0 x 0
+  }
+  b: 3 + 6i
 ]
 ans = struct [
-Struct array of size 1 x 2 with fields:
-a
-b
+  Struct array of size 1 x 2 with fields:
+  a
+  b
 ]
 ans = struct [
-Struct array of size 1 x 2 with fields:
-a
-b
+  Struct array of size 1 x 2 with fields:
+  a
+  b
 ]

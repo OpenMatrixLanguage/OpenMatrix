@@ -1,10 +1,10 @@
 ans = struct [
-age: 20
-id: 902830905
-name: Murielle
+  age: 20
+  id: 902830905
+  name: Murielle
 ]
 ans = struct [
-age: 33
-id: 902839409
-name: Bob
+  age: 33
+  id: 902839409
+  name: Bob
 ]

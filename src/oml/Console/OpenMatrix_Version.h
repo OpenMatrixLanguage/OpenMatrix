@@ -17,7 +17,7 @@
 #ifndef __OPENMATRIX_VERSION_H__
 #define __OPENMATRIX_VERSION_H__
 
-#define OML_VERSION "1.0.6"
+#define OML_VERSION "1.0.7"
 
 #endif
 

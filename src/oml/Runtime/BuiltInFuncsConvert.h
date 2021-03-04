@@ -24,7 +24,7 @@
 //! \brief Utility class for built-in functions related to datatype conversions
 //!
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS BuiltInFuncsConvert
+class OMLDLL_DECLS BuiltInFuncsConvert
 {
 public:
     //!

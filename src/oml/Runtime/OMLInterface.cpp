@@ -27,6 +27,12 @@ void OMLInterfaceImpl::RegisterFunction(const char* name, ALT_FUNCPTR fp)
 	_eval->RegisterBuiltInFunction(name, fp);
 }
 
+void OMLInterfaceImpl::RegisterHiddenFunction(const char* name, ALT_FUNCPTR fp)
+{
+	_eval->RegisterBuiltInFunction(name, fp);
+	_eval->LockBuiltInFunction(name);
+}
+
 void OMLInterfaceImpl::RegisterFunctionWithMetadata(const char* name, ALT_FUNCPTR fp, const char* module,
 	                                                int in_vals, int out_vals)
 {

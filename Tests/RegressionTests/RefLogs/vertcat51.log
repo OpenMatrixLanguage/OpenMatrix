@@ -1,28 +1,28 @@
 a = struct [
-b: 3
+  b: 3
 ]
 a = struct [
-Struct array of size 1 x 2 with fields:
-b
-c
+  Struct array of size 1 x 2 with fields:
+  b
+  c
 ]
 c = struct [
-c: 6
+  c: 6
 ]
 ans = 
 {
   [1,1] struct [
-  Struct array of size 1 x 2 with fields:
-  b
-  c
+    Struct array of size 1 x 2 with fields:
+    b
+    c
   ]
   [1,2] struct [
-  c: 6
+    c: 6
   ]
   [2,1] struct [
-  Struct array of size 1 x 2 with fields:
-  b
-  c
+    Struct array of size 1 x 2 with fields:
+    b
+    c
   ]
   [2,2] 
   {
@@ -40,9 +40,9 @@ efgh
     [2,2] @(x) x + 2
 
     [2,3] struct [
-    Struct array of size 1 x 2 with fields:
-    b
-    c
+      Struct array of size 1 x 2 with fields:
+      b
+      c
     ]
   }
 }

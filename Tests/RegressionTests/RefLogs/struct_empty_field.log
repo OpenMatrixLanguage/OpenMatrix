@@ -1,4 +1,4 @@
 x = struct [
-a: 1
+  a: 1
 ]
 Error: invalid field name at line number 3 in file struct_empty_field.oml

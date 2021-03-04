@@ -27,7 +27,7 @@ class OutputFormat;
 //! \class StructDisplay
 //! \brief Displays structs
 //------------------------------------------------------------------------------
-class HML2DLL_DECLS StructDisplay : public CurrencyDisplay
+class OMLDLL_DECLS StructDisplay : public CurrencyDisplay
 {
 public:
     friend class Currency; // Only currency is allowed to construct

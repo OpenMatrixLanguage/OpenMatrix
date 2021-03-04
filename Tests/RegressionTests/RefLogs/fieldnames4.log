@@ -1,10 +1,10 @@
 a = struct [
-b: 2
+  b: 2
 ]
 a = struct [
-Struct array of size 1 x 2 with fields:
-b
-c
+  Struct array of size 1 x 2 with fields:
+  b
+  c
 ]
 ans = 
 {
