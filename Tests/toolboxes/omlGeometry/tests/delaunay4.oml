@@ -1,0 +1,13 @@
+addToolbox omlgeometry
+addToolbox omlstatistics
+
+x = [18, 10, 20, 10, 20, 10, 20, 10, 20, 14]';
+y = [23, 20, 20, 30, 30, 20, 20, 30, 30, 27]';
+z = [46, 40, 40, 40, 40, 50, 50, 50, 50, 42]';
+
+rand('seed', 2019);
+x = x + unifrnd(-0.001, 0.001, 10, 1);
+y = y + unifrnd(-0.001, 0.001, 10, 1);
+z = z + unifrnd(-0.001, 0.001, 10, 1);
+
+h = delaunay([x, y, z])
