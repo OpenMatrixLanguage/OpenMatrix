@@ -539,6 +539,159 @@ int hwTMatrixN<T1, T2>::RelevantNumberOfSlices(const std::vector<hwSliceArg>& sl
     return relevantNum;
 }
 
+//! Resize the matrix, leaving the data type unchanged
+//! Applies to populated matrix, can only resize an empty matrix if it remains empty
+template<typename T1, typename T2>
+void hwTMatrixN<T1, T2>::Resize(const hwTMatrixN<T1, T2>& source, const std::vector<int>& dim, bool initZero)
+{
+    const std::vector<int>& sourceDim = source.Dimensions();
+    int numDims = static_cast<int> (sourceDim.size());
+
+    if (dim.size() != numDims)
+        throw hwMathException(HW_MATH_ERR_ARRAYSIZE, 1, 2);
+
+    for (int i = 0; i < numDims; ++i)
+    {
+        if (dim[i] < 0)
+            throw hwMathException(HW_MATH_ERR_ARRAYDIM, 1);
+    }
+
+    Dimension(dim, source.Type());
+
+    if (IsEmpty())
+        return;
+
+    int numVecs = Size() / dim[0];
+    int inc = 1;
+    m_lhsMatrixIndex.resize(numDims);
+    int maxZVdim = 0;
+    bool zeroVector = false;
+
+    if (IsReal())
+    {
+        T1* src = const_cast<T1*> (source.GetRealData());
+        T1* dst = m_real;
+
+        for (int i = 0; i < numVecs; ++i)
+        {
+            if (!zeroVector)
+            {
+                int srcIndex = source.Index(m_lhsMatrixIndex);
+
+                if (sourceDim[0] < dim[0])
+                {
+                    // NOTE: If Resize is needed with non-trivial types then use a loop for
+                    //       assignments and switch to dcopy in a partial template instantiation.
+                    //       See CopyData for a similar case.
+                    // dcopy_((int*) &sourceDim[0], src + srcIndex, &inc, dst, &inc);
+                    memcpy_s(dst, sourceDim[0]*sizeof(T1), src + srcIndex, sourceDim[0]*sizeof(T1));
+
+                    if (initZero)
+                        memset(dst + sourceDim[0], 0, (dim[0] - sourceDim[0]) * sizeof(T1));
+                }
+                else
+                {
+                    // dcopy_((int*) &dim[0], src + srcIndex, &inc, dst, &inc);
+                    memcpy_s(dst, dim[0]*sizeof(T1), src + srcIndex, dim[0]*sizeof(T1));
+                }
+            }
+            else if (initZero)
+            {
+                memset(dst, 0, dim[0] * sizeof(T1));
+            }
+
+            // advance matrix pointers and indices
+            dst += dim[0];
+
+            for (int j = 1; j < numDims; ++j)
+            {
+                // increment index j if possible
+                if (m_lhsMatrixIndex[j] < dim[j] - 1)
+                {
+                    ++m_lhsMatrixIndex[j];
+
+                    if (m_lhsMatrixIndex[j] == sourceDim[j])
+                    {
+                        zeroVector = true;
+                        maxZVdim   = _max(maxZVdim, j);
+                    }
+
+                    break;
+                }
+
+                // index j is maxed out, so reset and continue to j+1
+                m_lhsMatrixIndex[j] = 0;
+
+                if (j == maxZVdim)
+                {
+                    zeroVector = false;
+                    maxZVdim   = 0;
+                }
+            }
+        }
+    }
+    else    // complex
+    {
+        T2* src = const_cast<T2*> (source.GetComplexData());
+        T2* dst = m_complex;
+
+        for (int i = 0; i < numVecs; ++i)
+        {
+            if (!zeroVector)
+            {
+                int srcIndex = source.Index(m_lhsMatrixIndex);
+
+                if (sourceDim[0] < dim[0])
+                {
+                    // zcopy_((int*) &sourceDim[0], (complexD*) src + srcIndex, &inc, (complexD*) dst, &inc);
+                    memcpy_s(dst, sourceDim[0]*sizeof(T2), src + srcIndex, sourceDim[0]*sizeof(T2));
+
+                    if (initZero)
+                        memset(dst + sourceDim[0], 0, (dim[0] - sourceDim[0]) * sizeof(T2));
+                }
+                else
+                {
+                    // zcopy_((int*) &dim[0], (complexD*) src + srcIndex, &inc, (complexD*) dst, &inc);
+                    memcpy_s(dst, dim[0]*sizeof(T2), src + srcIndex, dim[0]*sizeof(T2));
+                }
+            }
+            else if (initZero)
+            {
+                memset(dst, 0, dim[0] * sizeof(T2));
+            }
+
+            // advance matrix pointers and indices
+            dst += dim[0];
+
+            for (int j = 1; j < numDims; ++j)
+            {
+                // increment index j if possible
+                if (m_lhsMatrixIndex[j] < dim[j] - 1)
+                {
+                    ++m_lhsMatrixIndex[j];
+
+                    if (m_lhsMatrixIndex[j] == sourceDim[j])
+                    {
+                        zeroVector = true;
+                        maxZVdim = _max(maxZVdim, j);
+                    }
+
+                    break;
+                }
+
+                // index j is maxed out, so reset and continue to j+1
+                m_lhsMatrixIndex[j] = 0;
+
+                if (j == maxZVdim)
+                {
+                    zeroVector = false;
+                    maxZVdim = 0;
+                }
+            }
+        }
+    }
+}
+
 //! Change the dimensions of a matrix while maintaining the same number of elements
 template<typename T1, typename T2>
 void hwTMatrixN<T1, T2>::Reshape(const std::vector<int>& dim)
@@ -3765,7 +3918,7 @@ void hwTMatrixN<T1, T2>::CopyMatrixLHS(const hwTMatrixN<T1, T2>& rhsMatrix)
     {
         if (m_dim[i] != rhsMatrix.m_dim[i])
         {
-            discontiguity = i;
+            discontiguity = i + 1;
             break;
         }
     }
@@ -3779,21 +3932,9 @@ void hwTMatrixN<T1, T2>::CopyMatrixLHS(const hwTMatrixN<T1, T2>& rhsMatrix)
 
     for (int i = 0; i < size; ++i)
     {
-        if (discontiguity == 0)
-        {
-            if (IsReal())
-                (*this)(m_rhsMatrixIndex) = rhsMatrix(i);
-            else if (rhsMatrix.IsReal())
-                this->z(m_rhsMatrixIndex) = rhsMatrix(i);
-            else
-                this->z(m_rhsMatrixIndex) = rhsMatrix.z(i);
-        }
-        else
-        {
-            SetMemoryPosition(m_rhsMatrixIndex);    // update m_pos
-            CopyBlockLHS(i, discontiguity, rhsMatrix, false);
-            --i;
-        }
+        SetMemoryPosition(m_rhsMatrixIndex);    // update m_pos
+        CopyBlockLHS(i, discontiguity, rhsMatrix, false);
+        --i;
 
         // advance rhs matrix indices
         for (int j = discontiguity; j < rhsMatrix.m_dim.size(); ++j)

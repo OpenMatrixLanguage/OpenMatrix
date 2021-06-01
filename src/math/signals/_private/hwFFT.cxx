@@ -1056,6 +1056,14 @@ void hwFFT_r::DetermineType(const hwMatrix& input)
                             break;
                         }
                     }
+
+                    if (conjugateSymmetric && m_dataSize % 2 == 0)
+                    {
+                        if (complexInput[m_dataSize / 2].Imag() != 0.0)
+                        {
+                            conjugateSymmetric = false;
+                        }
+                    }
                 }
             }
         }

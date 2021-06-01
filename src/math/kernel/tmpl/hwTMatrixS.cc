@@ -225,10 +225,7 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
     if (m_nRows == 0 || m_nCols == 0)
         return;
 
-    m_pointerB[0] = 0;
-    m_pointerE[0] = 0;
     long long int index_prev = -1;
-    int col_prev = -1;
 	int nDistinctIndices = 0;
 	std::vector<int> colNum(nnz);
 
@@ -281,19 +278,7 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
                 index_prev = index;
                 int col = static_cast<int> (index / m_nRows);
 				colNum[nDistinctIndices] = col;
-
-                if (col != col_prev)
-                {
-                    if (col_prev > -1)
-                    {
-                        for (int k = col_prev + 1; k <= col; ++k)
-                            m_pointerB[k] = m_pointerE[k] = m_pointerE[k - 1];
-                    }
-
-                    col_prev = col;
-                }
-
-				++m_pointerE[col];
+				++m_pointerE[col];  // not cumulative
 				++nDistinctIndices;
 			}
         }
@@ -339,27 +324,22 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
                 index_prev = index;
                 int col = static_cast<int> (index / m_nRows);
 				colNum[nDistinctIndices] = col;
-
-                if (col != col_prev)
-                {
-                    if (col_prev > -1)
-                    {
-                        for (int k = col_prev + 1; k <= col; ++k)
-                            m_pointerB[k] = m_pointerE[k] = m_pointerE[k - 1];
-                    }
-
-                    col_prev = col;
-                }
-
-				++m_pointerE[col];
+				++m_pointerE[col];  // not cumulative
 				++nDistinctIndices;
 			}
         }
     }
 
+    // make cumulative
+    for (int i = 1; i < m_nCols; ++i)
+    {
+        m_pointerE[i] += m_pointerE[i - 1];
+        m_pointerB[i] = m_pointerE[i - 1];
+    }
+
     if (nDistinctIndices != nnz && (option == nullptr || strcmp(option, "unique")))
     {
-		// rebuild matrix, removing zero values
+		// rebuild matrix, removing summed zero values
 		std::vector<MKL_INT> nzCol(m_nCols);
 		hwMatrix copyV(m_values);
 		std::vector<MKL_INT> copyR = m_rows;
@@ -1610,6 +1590,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                 }
             }
 
+            // make cumulative
             for (int ii = 1; ii < lhsMatrix.m_nCols; ++ii)
             {
                 lhsMatrix.m_pointerE[ii] += lhsMatrix.m_pointerE[ii - 1];
@@ -1696,6 +1677,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                     lhsMatrix.m_pointerE[index] = m_pointerE[col] - m_pointerB[col];    // not cumulative
                 }
 
+                // make cumulative
                 for (int ii = 1; ii < lhsMatrix.m_nCols; ++ii)
                 {
                     lhsMatrix.m_pointerE[ii] += lhsMatrix.m_pointerE[ii - 1];
@@ -1808,6 +1790,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                     lhsMatrix.m_pointerE[col] = col_nnz;    // not cumulative
                 }
 
+                // make cumulative
                 for (int ii = 1; ii < m_nCols; ++ii)
                 {
                     lhsMatrix.m_pointerE[ii] += lhsMatrix.m_pointerE[ii - 1];
@@ -1872,6 +1855,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                     lhsMatrix.m_pointerE[colIndex] = col_nnz;    // not cumulative
                 }
 
+                // make cumulative
                 for (int ii = 1; ii < lhsMatrix.m_nCols; ++ii)
                 {
                     lhsMatrix.m_pointerE[ii] += lhsMatrix.m_pointerE[ii - 1];

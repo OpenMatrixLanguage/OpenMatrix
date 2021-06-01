@@ -26,6 +26,9 @@
 
 #ifndef OS_WIN
 #    include <float.h>
+# ifndef DECIMAL_DIG
+#     define DECIMAL_DIG 21
+# endif
 #endif
 
 #include "BuiltInFuncsUtils.h"
