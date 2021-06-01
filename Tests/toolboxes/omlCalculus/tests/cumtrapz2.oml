@@ -1,0 +1,4 @@
+addtoolbox omlcalculus
+
+x = [0:0.05:1]*pi;
+area = cumtrapz(sin(x))

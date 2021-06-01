@@ -1,0 +1,11 @@
+addtoolbox omlsignals
+addtoolbox omlstatistics
+
+mask = 1000000000;
+m = 7;
+n = 5;
+rand('seed', 2017);
+x = unifrnd(-100,100,m,n);
+x = reshape(x, [m,1,n]);
+
+fftnd = fftn(x)

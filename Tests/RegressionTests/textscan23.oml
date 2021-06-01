@@ -1,0 +1,2 @@
+str = '234 strbb 1523bbb';
+textscan(str, '%s %s %d', 'whitespace', 'b', 'endofline', '5')
