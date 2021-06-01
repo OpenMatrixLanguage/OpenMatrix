@@ -122,7 +122,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories> $(SolutionDir)/x64/$(Configuration); $(OML_MKL_LIBDIR) </AdditionalLibraryDirectories>
-      <AdditionalDependencies>hwstatistics.lib; mathcore.lib; oml.lib; mkl_rt.lib</AdditionalDependencies>
+      <AdditionalDependencies>hwstatistics.lib; mathcore.lib; oml.lib; $(OML_MKL_LIBS)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

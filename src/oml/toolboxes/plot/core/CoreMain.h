@@ -1,7 +1,7 @@
 /**
 * @file CoreMain.h
 * @date May 2017
-* Copyright (C) 2017-2020 Altair Engineering, Inc.  
+* Copyright (C) 2017-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -47,8 +47,8 @@ namespace omlplot{
             return it != names.cend();
         }        
 
-        Object *getObject(double);
-        Property getObjectProperty(double, string);
+        Object *getObject(double) const;
+        Property getObjectProperty(double, string) const;
         vector<string> getObjectPropertyNames(double);
 
         template <typename T>
@@ -60,7 +60,21 @@ namespace omlplot{
             if (! isAxes(ah)){
                 ah = gca();
             }
-            Axes *axes = dynamic_cast<Axes *>(getObject(ah));
+            bool plotOnSecondary = false;
+            Object* obj = getObject(ah);
+            Axes *axes = dynamic_cast<Axes *>(obj);
+            if (!axes) {
+                SecondaryYAxis* secAxis = dynamic_cast<SecondaryYAxis*>(obj);
+                if (!secAxis)
+                    throw OML_Error(OML_ERR_PLOT_INVALID_AXES_HANDLE);
+                Object* pObj = getObject(secAxis->getParentAxesHandle());
+                axes = dynamic_cast<Axes*>(pObj);
+                if (!axes)
+                    throw OML_Error(OML_ERR_PLOT_INVALID_AXES_HANDLE);
+                axes->setSecondaryYAxisVisible(true);
+                plotOnSecondary = true;
+            }
+
             if (! axes->ishold()){
                 axes->clear();
             }
@@ -72,8 +86,9 @@ namespace omlplot{
                 ld.index = (int)axes->getPropertyValue("children").Vector().size();
                 try {
                     pLine = allocObject<T>();
-                    pLine->init(ld);
                     axes->addChild(pLine);
+                    pLine->init(ld);
+                    pLine->plotOnSecondaryYAxis(plotOnSecondary);
                     res.push_back(pLine->getHandle());
                 } catch (OML_Error &e){
                     delete pLine;
@@ -102,13 +117,14 @@ namespace omlplot{
             vector<LineData>::iterator it = ldVec.begin();
             for (; it != ldVec.end(); ++it){
                 LineData ld = *it;
+                ld.index = (int)axes->getPropertyValue("children").Vector().size();
                 try {
                     pLine = allocObject<T>();
+                    axes->addChild(pLine);
                     pLine->init(ld);
                     for (int i = 0; i < ld.properties.size(); i++){
                         pLine->setPropertyValue(ld.properties[i], ld.values[i]);
                     }
-                    axes->addChild(pLine);
                     res.push_back(pLine->getHandle());
                 } catch (OML_Error &e){
                     delete pLine;
@@ -138,6 +154,7 @@ namespace omlplot{
         vector<double> loglog(vector<LineData> &);
         vector<double> semilogx(vector<LineData> &);
         vector<double> semilogy(vector<LineData> &);
+        vector<Currency> plotyy(vector<LineData> &);
 
         double figure(unique_ptr<FigureData> &);
         double axes(unique_ptr<AxesData> &);
@@ -176,6 +193,8 @@ namespace omlplot{
         void colorbar(double axes);
         void colorbar(double axes, std::string state, const std::vector<double>& range);
         std::vector<double> colorbarRange(double axes);
+        Currency colormap(double h) const;
+        void colormap(double h, const Currency& cmap);
 
     private:
         CoreMain();

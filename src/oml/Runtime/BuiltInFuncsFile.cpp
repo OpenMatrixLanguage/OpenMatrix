@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsFile.cpp
 * @date March 2016
-* Copyright (C) 2016-2020 Altair Engineering, Inc.  
+* Copyright (C) 2016-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -260,27 +260,27 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
     
     // Read the data
     int linenum = 0;      
+    const int tmpbuffsize = 2048;
 
 #ifdef OS_WIN
-    wchar_t lineC [2048];
+    wchar_t lineC [tmpbuffsize];
 #else
-    char lineC[2048];
+    char lineC[tmpbuffsize];
 
 #endif
     bool hasdata = false;
-    while (!eval.IsInterrupt())
+    while (!eval.IsInterrupt() && !feof(f))
     {
-        memset(lineC, 0, sizeof(lineC));
         std::string line;
 
 #ifdef OS_WIN
-        if (fgetws(lineC, sizeof(lineC), f) == nullptr)
+        if (fgetws(lineC, tmpbuffsize, f) == nullptr)
         {
             break;
         }
         line = utils.WString2StdString(lineC);
 #else
-        if (fgets(lineC, sizeof(lineC), f) == nullptr)
+        if (fgets(lineC, tmpbuffsize, f) == nullptr)
         {
             break;
         }
@@ -299,13 +299,12 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
         if (!strstr(lineC, "\n") && !strstr(lineC, "\r"))
 #endif
         {
-            while(1)
+            while(!feof(f))
             {
-                memset(lineC, 0, sizeof(lineC));
 #ifdef OS_WIN
-                if (fgetws(lineC, sizeof(lineC), f) == nullptr)
+                if (fgetws(lineC, tmpbuffsize, f) == nullptr)
 #else
-                if (fgets(lineC, sizeof(lineC), f) == nullptr)
+                if (fgets(lineC, tmpbuffsize, f) == nullptr)
 #endif
                 {
                     break;
@@ -633,9 +632,19 @@ bool BuiltInFuncsFile::Dlmwrite(EvaluatorInterface           eval,
         }
     }
 
-    std::string vals = MatrixDisplay::GetOutputValues(cur2, 
-        eval.GetOutputFormat(), rdelim, cdelim, precision, precision, coffset);
-
+    std::string vals;
+    if (precision.empty())
+    {
+        vals = MatrixDisplay::GetNonFormattedOutputValues(cur2, rdelim, cdelim, coffset);
+    }
+    else
+    {
+        int skipformat = CurrencyDisplay::GetSkipFormat();
+        CurrencyDisplay::SetSkipFormat(-1);
+        vals = MatrixDisplay::GetOutputValues(cur2,
+            eval.GetOutputFormat(), rdelim, cdelim, precision, precision, coffset);
+        CurrencyDisplay::SetSkipFormat(skipformat);
+    }
     if (fp)
     {
         fflush(fp);
@@ -1125,6 +1134,7 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
     std::string delims;
     size_t      numargin = inputs.size();
     std::string whitespace(" ");
+    std::string endofline;
 
     std::string prefix;
     if (numargin > 1)
@@ -1233,6 +1243,24 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
                 }
                 whitespace = cval.StringVal();
             }
+            else if (val == "endofline")
+            {
+                if (!cval.IsString())
+                {
+                    throw OML_Error(OML_ERR_STRING, cIdx + 1);
+                }
+                endofline = cval.StringVal();
+                if (endofline == "\r"  || endofline == "\n"  || endofline == "\r\n" ||
+                    endofline == "\\r" || endofline == "\\n" || endofline == "\\r\\n")
+                {
+                    endofline = ""; // This case is handled by default
+                }
+                else if (!endofline.empty() && endofline.length() > 1)
+                {
+                    throw OML_Error(
+                        "Error: invalid value specified for 'endofline'; must be a single character, '\\r' or '\\r\\n'");
+                }
+            }
             else
             {
                 throw OML_Error(OML_ERR_OPTION, static_cast<int>(index + 1));
@@ -1260,43 +1288,59 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
             delims.replace(pos, 2, "\t");
         }
 
-        pos = delims.find("\\n");
-        if (pos != std::string::npos)
+        if (endofline.empty())
         {
-            if (delims == "\\n")
+            pos = delims.find("\\n");
+            if (pos != std::string::npos)
             {
-                newlinedelim = true;
+                if (delims == "\\n")
+                {
+                    newlinedelim = true;
+                }
+                else
+                {
+                    std::string tmp = delims.substr(0, pos);
+                    tmp += delims.substr(pos + 2);
+                    delims = tmp;
+                }
             }
-            else
+            pos = delims.find("\\r");
+            if (pos != std::string::npos)
             {
-                std::string tmp = delims.substr(0, pos);
-                tmp += delims.substr(pos + 2);
-                delims = tmp;
+                if (delims == "\\r")
+                {
+                    newlinedelim = true;
+                }
+                else
+                {
+                    std::string tmp = delims.substr(0, pos);
+                    tmp += delims.substr(pos + 2);
+                    delims = tmp;
+                }
             }
         }
-        pos = delims.find("\\r");
-        if (pos != std::string::npos)
+        else if (delims.find(endofline) != std::string::npos)
         {
-            if (delims == "\\r")
-            {
-                newlinedelim = true;
-            }
-            else
-            {
-                std::string tmp = delims.substr(0, pos);
-                tmp += delims.substr(pos + 2);
-                delims = tmp;
-            }
+            newlinedelim = true;
         }
     }
 
     bool excludenewline = false;
     if (numformats == 1)
     {
-        std::string tmp (rawfmts[0]);
-        if (tmp == "[^\\n]" || tmp == "[^\\n\\r]" || tmp == "[^\\r]")
+        std::string tmp(rawfmts[0]);
+
+        if (!endofline.empty())
         {
-            excludenewline = true;
+            std::string tpl("[^" + endofline + "]");
+            excludenewline = (tmp == tpl);
+        }
+        else
+        {
+            if (tmp == "[^\\n]" || tmp == "[^\\n\\r]" || tmp == "[^\\r]")
+            {
+                excludenewline = true;
+            }
         }
     }
 
@@ -1364,17 +1408,16 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
         std::string line;
         if (!f)
         {
-            line     = textstr;
+            line = textstr;
             quitLoop = true;  // Don't need to loop through if text is processed
         }
         else                  // Reading file
         {
-            memset(lineC, 0, sizeof(lineC));
-            if (fgets(lineC, sizeof(lineC), f) == nullptr)
+            line = GetLine(f, endofline); 
+            if (feof(f))
             {
-                break;
+                quitLoop = true;
             }
-            line = lineC;
         }
 
 		if (linenum < numheaderlines || line.empty())
@@ -1386,36 +1429,6 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
             }
 			continue; 
 		}
-
-        if (f)
-        {
-            if (!strstr(lineC, "\n") && !strstr(lineC, "\r"))
-            {
-                while(1)
-                {
-                    memset(lineC, 0, sizeof(lineC));
-                    if (fgets(lineC, sizeof(lineC), f) == nullptr)
-                    {
-                        break;
-                    }
-                    line += lineC;
-                    if (strstr(lineC, "\n") || strstr(lineC, "\r"))
-                    {
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (line[line.size() - 1] == '\n')
-        {
-            line.pop_back();
-        }
-
-        if (!line.empty() && line[line.size() - 1] == '\r')
-        {
-            line.pop_back();
-        }
 
         if (line.empty())
         {
@@ -2497,6 +2510,8 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
     std::string delim;
     std::string strrange;
 
+    bool ignoreMultidelim = false;
+
     int startrow = -1;
     int startcol = -1;
     int endrow   = -1;
@@ -2536,6 +2551,45 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
                     }
                     continue;
                 }
+                else if (lower == "ignoremultidelim")
+                {
+                    ++i;
+                    if (i >= nargin)
+                    {
+                        throw OML_Error(OML_ERR_NUMARGIN);
+                    }
+                    if (inputs[i].IsScalar())
+                    {
+                        int val = static_cast<int>(inputs[i].Scalar());
+                        ignoreMultidelim = (val == 1);
+                    }
+                    else if (inputs[i].IsString())
+                    {
+                        std::string tmp(inputs[i].StringVal());
+                        if (!tmp.empty())
+                        {
+                            if (tmp == "on")
+                            {
+                                ignoreMultidelim = 1;
+                            }
+                            else if (tmp != "off")
+                            {
+                                throw OML_Error(OML_ERR_FUNCSWITCH, i + 1);
+                            }
+                        }
+                        else
+                        {
+                            throw OML_Error(OML_ERR_FUNCSWITCH, i + 1);
+                        }
+
+                    }
+                    else
+                    {
+                        throw OML_Error(OML_ERR_FUNCSWITCH, i + 1);
+                    }
+                    continue;
+                }
+
                 else if (lower == "linestoskip" || lower == "headerlines")
                 {
                     throw OML_Error(OML_ERR_BAD_STRING, i + 1);
@@ -2653,16 +2707,79 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
         std::vector< std::vector<double> > idata;
         idata.reserve(rowcapacity);
 
+        bool useLinuxLineDelim = false;
+
+#ifdef OS_WIN
+        if (ifs.good())
+        {
+            std::wstring firstline;
+            std::getline(ifs, firstline);
+            if (firstline.find(L"\r\n") == std::string::npos &&
+                firstline.find(L'\r') != std::string::npos)
+            {
+                useLinuxLineDelim = true;
+            }
+            ifs.seekg(0);
+        }
+#else
+        if (ifs.good())
+        {
+            std::string firstline;
+            std::getline(ifs, firstline);
+            if (firstline.find("\r\n") == std::string::npos &&
+                firstline.find('\r')  != std::string::npos)
+            {
+                useLinuxLineDelim = true;
+            }
+            ifs.seekg(0);
+        }
+#endif
+
         // Read the data
         while (!quitLoop && !eval.IsInterrupt() && !ifs.eof())
         {
             std::string line;
 #ifdef OS_WIN
             std::wstring wline;
-            std::getline(ifs, wline);
+            if (useLinuxLineDelim)
+            {
+                std::getline(ifs, wline, L'\r');
+                if (ifs.good() && ifs.peek() == L'\n') // Could have mismatched line endings
+                {
+                    wchar_t nextch;  
+                    ifs.get(nextch);
+                    wline += nextch;
+                }
+            }
+            else
+            {
+                std::getline(ifs, wline);
+            }
+            if (wline.empty() && !ifs.good())
+            {
+                break;  // End of file not detected on windows for empty file opened in wide mode
+            }
+
             line = utils.WString2StdString(wline);
 #else
-            std::getline(ifs, line);
+            if (useLinuxLineDelim)
+            {
+                std::getline(ifs, line, '\r');
+                if (ifs.good() && ifs.peek() == '\n') // Could have mismatched line endings
+                {
+                    char nextch;
+                    ifs.get(nextch);
+                    line += nextch;
+                }
+            }
+            else
+            {
+                std::getline(ifs, line);
+            }
+            if (line.empty() && !ifs.good())
+            {
+                break;  
+            }
 #endif
 
 		    if (startrow != -1 && currentrow < startrow || line.empty())
@@ -2751,6 +2868,34 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
 
             size_t linepos = 0;
             bool quit = false;
+
+            if (ignoreMultidelim)
+            {
+                line = BuiltInFuncsUtils::LTrim(line, delim);
+                line = BuiltInFuncsUtils::RTrim(line, delim);
+                if (!line.empty())
+                {
+                    size_t tmplen = line.length();
+                    std::string newstr;
+                    newstr += line[0];
+                    bool wasdelim = false;
+                    for (size_t k = 1; k < tmplen; ++k)
+                    {
+                        char ch = line[k];
+                        if (delim.find(ch) == std::string::npos)
+                        {
+                            newstr += ch;
+                            wasdelim = false;
+                        }
+                        else if (!wasdelim)
+                        {
+                            wasdelim = true;
+                            newstr += ch;
+                        }
+                    }
+                    line = newstr;
+                }
+            }
             while (!line.empty() && !quit)
             {
                 linepos = line.find(delim);
@@ -3388,4 +3533,54 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
         }
     }
  }
- 
+ //-----------------------------------------------------------------------------
+ // Returns a line read from the given file, with the given end of line character
+ //-----------------------------------------------------------------------------
+ std::string BuiltInFuncsFile::GetLine(std::FILE* fp, const std::string& endofline)
+ {
+     if (!fp || feof(fp))
+     {
+         return std::string();
+     }
+
+     std::string line;
+
+     if (endofline.empty())
+     {
+         char lineC[2048];
+         while (!feof(fp))  // Loop till we hit \r or \n
+         {
+             memset(lineC, 0, sizeof(lineC));
+             if (fgets(lineC, sizeof(lineC), fp) == nullptr)
+             {
+                 break;
+             }
+             line += lineC;
+             if (strstr(lineC, "\n") || strstr(lineC, "\r"))
+             {
+                 break;
+             }
+         }
+         if (!line.empty() && line.back() == '\n')
+         {
+             line.pop_back();
+         }
+         if (!line.empty() && line.back() == '\r')
+         {
+             line.pop_back();
+         }
+         return line;
+     }
+
+     char ref = endofline[0];
+     while (!feof(fp))  // Loop till we hit \r or \n
+     {
+         int ch = fgetc(fp);
+         if (ch == EOF || ch == ref)
+         {
+             break;
+         }
+         line += ch;
+     }
+     return line;
+ }

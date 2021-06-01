@@ -89,6 +89,30 @@ struct UserFunc
     ~UserFunc();
 };
 
+class ProfileTimer
+{
+public:
+	ProfileTimer() { total = 0.0; }
+	~ProfileTimer() {};
+
+	void Start() { baseline = clock(); }
+	void Stop() { total += ((clock() - baseline) / static_cast<double>(CLOCKS_PER_SEC)); }
+	void Reset() { total = 0.0; }
+
+	double Time() const { return total; }
+
+	static void          Initialize();
+	static ProfileTimer* GetNext();
+	static void          ReleaseLast();
+
+private:
+	double  total;
+	clock_t baseline;
+
+	static ProfileTimer* _timers;
+	static int _counter;
+};
+
 class DebugInfo
 {
 public:
@@ -235,6 +259,7 @@ public:
 	void                    AddHiddenPath(std::string pathname);
 	void                    AddPath2(const std::string& pathname, const std::vector<std::string>& func_names);
 	bool                    RemovePath(std::string &pathname);
+	bool                    RemoveHiddenPath(std::string& pathname);
 	inline void             ClearPath() { paths->erase(paths->begin() + NUM_MANDATORY_PATHS, paths->end()); }
 	bool                    FindFileInPath(const std::string& file_plus_ext, std::string& filepath) const;
 	void                    RestorePath();
@@ -448,6 +473,8 @@ public:
 	Currency Analyze(const std::string& infile);
 	Currency GetMetadata(const std::string& infile);
 
+	void RegisterFunction(OMLTree* tree);
+
 	void RegisterChildEvaluator(ExprTreeEvaluator* eval) { child_interps.push_back(eval); }
 	void RemoveChildEvaluator() { child_interps.pop_back(); }
 
@@ -464,6 +491,10 @@ public:
 	int SetNestedFunctionMarker(int new_val);
 
 	void SetNumberOfThreads(int num_threads) { _num_threads = num_threads; }
+
+	Currency GetProfileData() const;
+	void     ClearProfileData();
+	void     Profile(bool on) { _profiling = on; }
 
 private:
 	Currency AddOperator(const Currency&, const Currency&);
@@ -687,6 +718,8 @@ private:
 	bool _pauseRequestPending;  //!< True if pause request is pending
     bool _paused;               //!< True if interpreter is paused
 
+	bool _profiling;
+
 	int  _verbose;
 
     OutputFormat* format;
@@ -716,6 +749,9 @@ private:
 	std::vector<int> indices;
 
 	int _num_threads;
+
+	std::vector<ProfileTimer*> profile_timers;
+	std::map<const std::string*, std::map<int, std::tuple<double, int>>> profile_data;
 };
 
 #endif

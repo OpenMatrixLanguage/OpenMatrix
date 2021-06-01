@@ -2847,9 +2847,9 @@ void BuiltInFuncsMKL::SparseAdd(const hwMatrixS& A,
     MKL_INT* peC = nullptr;
 
     // MKL matrix and description
-    sparse_matrix_t A_MKL;
-    sparse_matrix_t B_MKL;
-    sparse_matrix_t C_MKL;
+    sparse_matrix_t A_MKL = NULL;
+    sparse_matrix_t B_MKL = NULL;
+    sparse_matrix_t C_MKL = NULL;
     sparse_status_t mkl_status;
 
     if (A.IsReal() && B.IsReal())
@@ -2935,6 +2935,10 @@ void BuiltInFuncsMKL::SparseAdd(const hwMatrixS& A,
         AC.PackComplex(A);
         return SparseAdd(AC, B, sum);
     }
+
+    mkl_sparse_destroy(A_MKL);
+    mkl_sparse_destroy(B_MKL);
+    mkl_sparse_destroy(C_MKL);
 }
 //------------------------------------------------------------------------------
 // Multiply a sparse matrix by a full matrix, prod = A * B
@@ -2964,7 +2968,7 @@ void BuiltInFuncsMKL::SparseMult(const hwMatrixS& A,
     MKL_INT* pe = const_cast<MKL_INT*> (A.pointerE());
 
     // MKL matrix and description
-    sparse_matrix_t A_MKL;
+    sparse_matrix_t A_MKL = NULL;
     struct matrix_descr DSC;
     DSC.type = SPARSE_MATRIX_TYPE_GENERAL;
     sparse_status_t mkl_status;
@@ -3105,6 +3109,8 @@ void BuiltInFuncsMKL::SparseMult(const hwMatrixS& A,
 
     if (mkl_status != SPARSE_STATUS_SUCCESS)
         throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+    mkl_sparse_destroy(A_MKL);
 }
 //------------------------------------------------------------------------------
 // Multiply a full matrix by a sparse matrix, prod = A * B
@@ -3142,7 +3148,7 @@ void BuiltInFuncsMKL::SparseMult(const hwMatrix&  A,
     MKL_INT* pr = const_cast<MKL_INT*> (B.rows());
     MKL_INT* pb = const_cast<MKL_INT*> (B.pointerB());
     MKL_INT* pe = const_cast<MKL_INT*> (B.pointerE());
-    sparse_matrix_t B_MKL;
+    sparse_matrix_t B_MKL = NULL;
     struct matrix_descr DSC;
     DSC.type = SPARSE_MATRIX_TYPE_GENERAL;
     sparse_status_t mkl_status;
@@ -3234,6 +3240,8 @@ void BuiltInFuncsMKL::SparseMult(const hwMatrix&  A,
 
     if (mkl_status != SPARSE_STATUS_SUCCESS)
         throw hwMathException(HW_MATH_ERR_UNKNOWN);
+
+    mkl_sparse_destroy(B_MKL);
 }
 //------------------------------------------------------------------------------
 // Multiply a sparse matrix by a sparse matrix, prod = A * B
@@ -3272,9 +3280,9 @@ void BuiltInFuncsMKL::SparseMult(const hwMatrixS& A,
     MKL_INT* peC = nullptr;
 
     // MKL matrix and description
-    sparse_matrix_t A_MKL;
-    sparse_matrix_t B_MKL;
-    sparse_matrix_t C_MKL;
+    sparse_matrix_t A_MKL = NULL;
+    sparse_matrix_t B_MKL = NULL;
+    sparse_matrix_t C_MKL = NULL;
     sparse_status_t mkl_status;
 
     if (A.IsReal() && B.IsReal())
@@ -3355,6 +3363,10 @@ void BuiltInFuncsMKL::SparseMult(const hwMatrixS& A,
         AC.PackComplex(A);
         return SparseMult(AC, B, prod);
     }
+
+    mkl_sparse_destroy(A_MKL);
+    mkl_sparse_destroy(B_MKL);
+    mkl_sparse_destroy(C_MKL);
 }
 //------------------------------------------------------------------------------
 // Set pivot threshold for MKL sparse matrix division

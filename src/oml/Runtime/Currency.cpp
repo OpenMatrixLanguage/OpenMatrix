@@ -1,7 +1,7 @@
 /**
 * @file Currency.h
 * @date August 2013
-* Copyright (C) 2013-2020 Altair Engineering, Inc.  
+* Copyright (C) 2013-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -32,6 +32,8 @@
 
 #include "hwMatrixN.h"
 #include "hwMatrixS.h"
+
+#include "ExprCppTreeLexer.h"
 
 #include <cassert>
 #include <sstream>
@@ -223,6 +225,13 @@ Currency::Currency(Currency* ptr) : type(TYPE_POINTER), out_name(NULL), mask(MAS
 {
 	data.cur_ptr = ptr;
 }
+
+Currency::Currency(OMLTree* tree) : type(TYPE_TREE), out_name(NULL), mask(MASK_NONE),
+_display(0), _outputType(OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false), _is_linear_range(false)
+{
+	data.tree = tree;
+}
+
 //------------------------------------------------------------------------------
 // Constructor for swig bound objects
 //------------------------------------------------------------------------------
@@ -368,6 +377,10 @@ void Currency::Copy(const Currency& cur)
 	{
 		message  = new std::string;
 		*message = cur.Message();
+	}
+	else if (type == TYPE_TREE)
+	{
+		data.tree = cur.data.tree;
 	}
     else if (type == TYPE_BOUNDOBJECT)
     {
@@ -976,6 +989,16 @@ bool Currency::IsPositiveIntegralVector() const
 		if ((mtx->M() != 1) && (mtx->N() != 1))
 			return false;
 
+		if (IsLinearRange())
+		{
+			double val = (*mtx)(0);
+
+			if (val >= 1.0)
+				return true;
+			else
+				return false;
+		}
+
         for (int k=0; k<mtx->N(); k++)
         {
             for (int j=0; j<mtx->M(); j++)
@@ -1522,6 +1545,45 @@ void Currency::ConvertToStruct()
 	}
 }
 
+OMLTree* Currency::ConvertToTree() const
+{
+	if (IsTree())
+	{
+		// nothing to be done
+	}
+	else if (IsString())
+	{
+		OMLTree* tree = new OMLTree(IDENT, StringVal(), NULL, 0, 0);
+		
+		data.mtx->DecrRefCount();
+
+		if (data.mtx->GetRefCount() == 0)
+			delete data.mtx;
+
+		data.tree = tree;
+
+		type = TYPE_TREE;
+	}
+	else if (IsScalar())
+	{
+		char buffer[256];
+
+		sprintf(buffer, "%g", data.value);
+		
+		OMLTree* tree = new OMLTree(NUMBER, buffer, NULL, 0, 0);
+
+		data.tree = tree;
+
+		type = TYPE_TREE;
+	}
+	else
+	{
+		return NULL;
+	}
+
+	return Tree();
+}
+
 void Currency::SetOutputName(const std::string& name) const
 {
 	out_name = vm.GetStringPointer(name);
@@ -1792,3 +1854,40 @@ StringManager::~StringManager()
 	for (iter = _strings.begin(); iter != _strings.end(); iter++)
 		delete *iter;
 }
+ //------------------------------------------------------------------------------
+ // Update output type to save to output log
+ //------------------------------------------------------------------------------
+ void Currency::SetOutputTypeToLog()
+ {
+     if (!IsLogOutput())
+     {
+         int val = _outputType | OUTPUT_TYPE_LOG;
+         _outputType = static_cast<OUTPUT_TYPE>(val);
+     }
+ }
+ //------------------------------------------------------------------------------
+ // Sets output type to be from 'disp' command
+ //------------------------------------------------------------------------------
+ void Currency::UpdateOutputType(OUTPUT_TYPE type)
+ {
+     if (!IsLogOutput())
+     {
+         _outputType = type;
+     }
+     else
+     {
+         int val = type | OUTPUT_TYPE_LOG;
+         _outputType = static_cast<OUTPUT_TYPE>(val);
+     }
+ }
+//------------------------------------------------------------------------------
+// Returns true if this output is the same as the given type
+//------------------------------------------------------------------------------
+ bool Currency::IsOutputType(OUTPUT_TYPE ref) const
+ {
+     if (_outputType == ref)
+     {
+         return true;
+     }
+     return (((int)_outputType & ref) != 0);  // Check for combination of outputs
+ }

@@ -584,7 +584,7 @@ MemoryScope* MemoryScopeManager::GetParentScope() const
 void MemoryScopeManager::OpenScope(FunctionInfo*fi)
 {
 #if _DEBUG
-	#define MAX_VAL 40
+	#define MAX_VAL 39
 #else
 	#define MAX_VAL 100
 #endif

@@ -1,7 +1,7 @@
 /**
 * @file MatioTboxFuncs.cxx
 * @date November 2015
-* Copyright (C) 2015-2020 Altair Engineering, Inc.  
+* Copyright (C) 2015-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -23,12 +23,13 @@
 #include "omlmatio.h"
 
 #include "BuiltInFuncsUtils.h"
+#include "MatrixDisplay.h"
 #include "OML_Error.h"
 #include "StructData.h" 
 
 #include "matio.h"
 
-#define TBOXVERSION 2021
+#define TBOXVERSION 2021.1
 
 // Ascii files
 // Returns true after loading file in ascii format
@@ -639,7 +640,7 @@ bool SaveAsciiFile(EvaluatorInterface              eval,
 
         if (cur.IsScalar())
         {
-            fprintf(fp, "%g\n", cur.Scalar());
+            fprintf(fp, "%s\n", CurrencyDisplay::NonFormattedDoubleToString(cur.Scalar()));
         }
         else if (cur.IsMatrixOrString())
         {
@@ -663,16 +664,9 @@ bool SaveAsciiFile(EvaluatorInterface              eval,
                     continue;
                 }
             }
-            int m = mtx->M();
-            int n = mtx->N();
-			for (int j = 0; j < m; ++j)
-			{
-				for (int k = 0; k < n; ++k)
-                {
-					fprintf(fp, "%g ", (*mtx)(j,k));
-                }
-				fprintf(fp, "\n");
-			}
+            std::string data(MatrixDisplay::GetNonFormattedOutputValues(
+                cur, "\n", " ", -1));
+            fprintf(fp, "%s", data.c_str());
         }
         else
         {

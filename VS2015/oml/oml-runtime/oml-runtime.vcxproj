@@ -115,7 +115,7 @@
       <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; DLL_EXPORT; _empty=NULL</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>antlr3cd.lib; mathcore.lib; mkl_rt.lib</AdditionalDependencies>
+      <AdditionalDependencies>antlr3cd.lib; mathcore.lib; $(OML_MKL_LIBS)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OML_THIRDPARTY)/ANTLR/libantlr3c-3.4/x64/debug;$(OML_MKL_LIBDIR);$(SolutionDir)/x64/$(Configuration)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

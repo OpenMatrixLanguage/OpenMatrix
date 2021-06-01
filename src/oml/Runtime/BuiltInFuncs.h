@@ -153,6 +153,7 @@ bool oml_fieldnames(EvaluatorInterface eval, const std::vector<Currency>& inputs
 bool oml_sprintf(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_feval(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_rmpath(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_rmhiddenpath(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_addpath(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_addhiddenpath(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_addpath2(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -323,6 +324,65 @@ bool oml_rot90(EvaluatorInterface, const std::vector<Currency>& inputs, std::vec
 bool oml_rehash(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_verbose(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 bool oml_parcluster(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
+
+// Functions to build other functions w/o writing to disk
+bool oml_p_definefunction(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_registerfunction(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_assign(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_multassign(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_struct(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_func(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_add(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_statement(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_handle(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_string(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_equal(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_if(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_elseif(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_else(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_conditional(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_divide(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_bitand(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_entrypow(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_entrydivide(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_entryleftdivide(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_greaterequal(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_greaterthan(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_logand(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_leftdivide(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_lessthan(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_lessequal(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_logor(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_subtract(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_notequal(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_or(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_pow(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_multiply(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_negate(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_uminus(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_transpose(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_ctranspose(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_global(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_persistent(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_range(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_forloop(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_trycatch(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_try(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_catch(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_cellvalue(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_whileloop(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_switch(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_case(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_otherwise(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_matrix(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_vector(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_cellarray(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_colon(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_p_return(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+
+bool oml_getprofiledata(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_clearprofiledata(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_profile(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 
 // function replacement methods
 OMLDLL_DECLS void _OML_Error(EvaluatorInterface& eval, std::vector<Currency>::const_iterator start, std::vector<Currency>::const_iterator end);

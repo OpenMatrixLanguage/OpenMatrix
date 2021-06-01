@@ -111,7 +111,7 @@
       <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\polynom;$(OML_ROOT)\src\math\optimization;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\math\statistics;$(OML_MKL_INCLUDE)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>mathcore.lib; hwmathutils.lib; hwpolynom.lib; hwoptimization.lib; mkl_rt.lib</AdditionalDependencies>
+      <AdditionalDependencies>mathcore.lib; hwmathutils.lib; hwpolynom.lib; hwoptimization.lib; $(OML_MKL_LIBS)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration); $(OML_MKL_LIBDIR)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

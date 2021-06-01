@@ -76,6 +76,33 @@ bool OmlFft2(EvaluatorInterface           eval,
              const std::vector<Currency>& inputs, 
              std::vector<Currency>&       outputs);
 //!
+//! Two dimensional inverse Fast Fourier transform
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlIfft2(EvaluatorInterface           eval,
+              const std::vector<Currency>& inputs,
+              std::vector<Currency>&       outputs);
+//!
+//! N dimensional Fast Fourier transform
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlFftN(EvaluatorInterface           eval,
+             const std::vector<Currency>& inputs,
+             std::vector<Currency>&       outputs);
+//!
+//! N dimensional inverse Fast Fourier transform
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlIfftN(EvaluatorInterface           eval,
+              const std::vector<Currency>& inputs,
+              std::vector<Currency>&       outputs);
+//!
 //! Shift FFT related data to center DC component
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs

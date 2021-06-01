@@ -1,7 +1,7 @@
 /**
 * @file LineStyle.cxx
 * @date May 2018
-* Copyright (C) 2018-2020 Altair Engineering, Inc.  
+* Copyright (C) 2018-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -45,16 +45,15 @@ namespace omlplot{
     };
 	static const int COLORCOUNT = sizeof(InitColor) / sizeof(InitColor[0]);
 
-	LineStyle::LineStyle(const LineData& ld) {
+	LineStyle::LineStyle(const LineData& ld, const Currency& parentColorOrder) {
 		try {
 			const string& fmt = ld.style;
 			string style, legend;
 			SplitFormat(fmt, style, legend);
 			m_lineStyle = "";
-			m_lineColor = InitColor[ld.index % COLORCOUNT];
+			InitColorByIndex(ld.index, parentColorOrder);
 			m_lineWidth = 1;
 			m_markerStyle = "";
-			m_markerColor = InitColor[ld.index % COLORCOUNT];
 			m_markerSize = 1;
 			m_legend = legend;
 
@@ -187,4 +186,33 @@ namespace omlplot{
         }
         return false;
     }
+	void LineStyle::InitColorByIndex(int index, const Currency& pCO){
+		
+		m_lineColor = InitColor[index % COLORCOUNT];
+		m_markerColor = m_lineColor;
+
+		if (pCO.IsMatrix()) {
+			const hwMatrix* colorMat = pCO.Matrix();
+			int numColors = colorMat->M();
+			int numColComponents = colorMat->N();
+
+			if (numColComponents != 3)
+				return;
+
+			int colIndex = index % numColors;
+			double r = (*colorMat)(colIndex, 0);
+			double g = (*colorMat)(colIndex, 1); 
+			double b = (*colorMat)(colIndex, 2);
+			if (r <= 1 && g <= 1 && b <= 1) {
+				r *= 255;
+				g *= 255;
+				b *= 255;
+			}
+			vector<int> c = { (int)r,(int)g,(int)b };
+			Color cl(c);
+
+			m_lineColor = cl;
+			m_markerColor = cl;
+		}
+	}
 }

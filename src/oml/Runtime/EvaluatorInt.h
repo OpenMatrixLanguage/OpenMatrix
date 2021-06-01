@@ -92,6 +92,7 @@ public:
 
     void ClearPath();
     bool RemovePath(std::string &pathname);
+	bool RemoveHiddenPath(std::string& pathname);
     void AddPath(std::string pathname, bool end);
 	void AddHiddenPath(std::string pathname);
 	void AddPath2(const std::string& pathname, const std::vector<std::string> funcs);
@@ -262,6 +263,8 @@ public:
 	void     ImportEnv(int handle1, int handle2);
 	void     DeleteEnv(int handle1);
 
+	void     RegisterFunc(OMLTree* def);
+
     //! Updates function list in language
     void OnUpdateFuncList();
     //! Suspend function list updates in language
@@ -292,6 +295,10 @@ public:
 	void RemoveChildEvaluator();
 
 	void SetNumberOfThreads(int threads);
+	
+	Currency GetProfileData() const;
+	void     ClearProfileData();
+	void     Profile(bool on);
 
     //!
     //! Returns diary filestream

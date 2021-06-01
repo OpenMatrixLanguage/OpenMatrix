@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsFile.h
 * @date March 2016
-* Copyright (C) 2016-2020 Altair Engineering, Inc.  
+* Copyright (C) 2016-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -254,7 +254,12 @@ private:
     static void EscapeDelimiters(std::string&,
                                  bool&);
     //!
-    //! Returns true if strtod conversion is successful
+    //! Returns a line read from the given file, with the given end of line character
+    //! \param File pointer
+    //! \param End of line character
+    //!
+   static std::string GetLine(std::FILE*,
+                              const std::string&);
 }; 
 
 #endif  // __BUILTINFUNCSFILE__

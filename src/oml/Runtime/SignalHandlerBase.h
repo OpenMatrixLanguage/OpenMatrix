@@ -135,6 +135,11 @@ public:
     //!
     virtual void OnRefreshDirsHandler() {}
 
+	//!
+	//! Signal for library addition or removal
+	//!
+	virtual void OnLibraryUpdateHandler() {}
+
     //!
     //! Add nested display
     //! \param display Nested display to add

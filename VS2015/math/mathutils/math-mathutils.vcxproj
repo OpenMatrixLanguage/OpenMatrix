@@ -112,7 +112,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration); $(OML_MKL_LIBDIR)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mathcore.lib;mkl_rt.lib</AdditionalDependencies>
+      <AdditionalDependencies>mathcore.lib; $(OML_MKL_LIBS)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

@@ -1,7 +1,7 @@
 /**
 * @file MatrixDisplay.h
 * @date November, 2015
-* Copyright (C) 2015-2020 Altair Engineering, Inc.  
+* Copyright (C) 2015-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -112,6 +112,17 @@ public:
                                        const std::string&  precisionreal,
                                        const std::string&  precisionimag,
                                        int                 coffset);
+    //!
+    //! Utility which returns matrix values as string, without formatting output
+    //! \param Input currency
+    //! \param Row delimiter
+    //! \param Column delimiter
+    //! \param Number of columns which need col delim prepended - col offset
+    //!
+    static std::string GetNonFormattedOutputValues(const Currency&,
+                                                   const std::string&,
+                                                   const std::string&,
+                                                   int);
     //!
     //! Gets values as a string
     //! \param fmt Output format

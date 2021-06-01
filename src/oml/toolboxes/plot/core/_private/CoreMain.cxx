@@ -1,7 +1,7 @@
 /**
 * @file CoreMain.cxx
 * @date May 2018
-* Copyright (C) 2018-2020 Altair Engineering, Inc.  
+* Copyright (C) 2018-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -46,19 +46,21 @@ namespace omlplot{
     }
 
     bool CoreMain::isFigure(double h){
-        return root->isFigure(h);
+        Object* o = getObject(h);
+        return o && o->isFigure();
     }
 
     bool CoreMain::isAxes(double h){
-        return root->isAxes(h);
+        Object* o = getObject(h);
+        return o && o->isAxes();
     }
 
 
-    Object *CoreMain::getObject(double h){
+    Object *CoreMain::getObject(double h) const {
         return root->getObject(h);
     }
 
-    Property CoreMain::getObjectProperty(double h, string name){
+    Property CoreMain::getObjectProperty(double h, string name) const {
         Object *o = getObject(h);
         return o->getProperty(name);
     }
@@ -142,7 +144,12 @@ namespace omlplot{
         pos.push_back(x); pos.push_back(y);
         pos.push_back(width); pos.push_back(height);
         a->setPropertyValue("pos", pos);
+        a->setGridIndex(active);
 
+        Figure* fig = dynamic_cast<Figure*>(figure);
+        if (fig) {
+            fig->setGridLayout(row, col);
+        }
         figure->addChild(a);
         double h = a->getHandle();
         figure->setPropertyValue("currentaxes", h);
@@ -242,6 +249,28 @@ namespace omlplot{
 
     vector<double> CoreMain::semilogy(vector<LineData> &ldVec){
         return _T_2D_PLOT<Semilogy>(ldVec);
+    }
+
+    vector<Currency> CoreMain::plotyy(vector<LineData>& ldVec)
+    {
+        vector<Currency> ret;
+        std::vector<double> axesVec;
+        std::vector<double> lh = _T_2D_PLOT<Line>(ldVec);
+        if (lh.size() == 2) {
+            Drawable* lineObject = dynamic_cast<Drawable*>(getObject(lh[1]));
+            if (lineObject)
+                lineObject->plotOnSecondaryYAxis(true);
+            Axes* axes = dynamic_cast<Axes*>(getObject(gca()));
+            if (axes) {
+                axes->setSecondaryYAxisVisible(true);
+                axes->repaint();
+                axesVec.push_back(axes->getHandle());
+                axesVec.push_back(axes->getSecondaryYAxisHandle());
+            }
+        }
+        ret.push_back(axesVec);
+        ret.insert(ret.end(), lh.begin(), lh.end());
+        return ret;
     }
 
     void CoreMain::set(unique_ptr<SetData> &data, vector<string>& notSupported)
@@ -438,9 +467,27 @@ namespace omlplot{
         if (! isAxes(axes)){
             throw OML_Error(OML_ERR_PLOT_INVALID_AXES_HANDLE);
         }
-        Axes *pAxes = dynamic_cast<Axes *>(getObject(axes));
-        VALUETYPE c = pAxes->getPropertyValue("ylabel");
-        Text *text = (Text *)c.BoundObject();
+
+        Text* text = nullptr;
+        Object* obj = getObject(axes);
+        Axes *pAxes = dynamic_cast<Axes *>(obj);
+        if (pAxes) {
+            VALUETYPE c = pAxes->getPropertyValue("ylabel");
+            text = (Text*)c.BoundObject();
+        }
+        else {
+            SecondaryYAxis* secAxis = dynamic_cast<SecondaryYAxis*>(obj);
+            if (!secAxis)
+                throw OML_Error(OML_ERR_PLOT_INVALID_AXES_HANDLE);
+            Object* pObj = getObject(secAxis->getParentAxesHandle());
+            pAxes = dynamic_cast<Axes*>(pObj);
+            if (!axes)
+                throw OML_Error(OML_ERR_PLOT_INVALID_AXES_HANDLE);
+
+            VALUETYPE c = secAxis->getPropertyValue("ylabel");
+            text = (Text*)c.BoundObject();
+        }
+
         text->setPropertyValue("string", str);
         pAxes->repaint();
         return text->getHandle();
@@ -481,15 +528,17 @@ namespace omlplot{
         vector<double> limits(2);
         limits[0] = data[0]; limits[1] = data[1];
         pAxes->setPropertyValue("xlim", limits);
+        pAxes->setAxisNeedRepaint(0);
         if (data.size() == 4){
             limits[0] = data[2]; limits[1] = data[3];
             pAxes->setPropertyValue("ylim", limits);
+            pAxes->setAxisNeedRepaint(1);
         }
         if (data.size() == 6){
             limits[0] = data[4]; limits[1] = data[5];
             pAxes->setPropertyValue("zlim", limits);
+            pAxes->setAxisNeedRepaint(3);
         }
-        pAxes->setAxisNeedRepaint(true);
         pAxes->repaint();
     }
 
@@ -507,7 +556,7 @@ namespace omlplot{
         }
         Axes *pAxes = dynamic_cast<Axes *>(getObject(axes));
         pAxes->setPropertyValue("xlim", limits);
-        pAxes->setAxisNeedRepaint(true);
+        pAxes->setAxisNeedRepaint(0);
         pAxes->repaint();
     }
 
@@ -523,9 +572,24 @@ namespace omlplot{
         if (! isAxes(axes)){
             throw OML_Error(OML_ERR_PLOT_INVALID_AXES_HANDLE);
         }
-        Axes *pAxes = dynamic_cast<Axes *>(getObject(axes));
-        pAxes->setPropertyValue("ylim", limits);
-        pAxes->setAxisNeedRepaint(true);
+        Object* obj = getObject(axes);
+        Axes *pAxes = dynamic_cast<Axes *>(obj);
+        if (pAxes) {
+            pAxes->setPropertyValue("ylim", limits);
+            pAxes->setAxisNeedRepaint(1);
+        }
+        else {
+            SecondaryYAxis * secAxis = dynamic_cast<SecondaryYAxis*>(obj);
+            if (!secAxis)
+                throw OML_Error(OML_ERR_PLOT_INVALID_AXES_HANDLE);
+            Object* pObj = getObject(secAxis->getParentAxesHandle());
+            pAxes = dynamic_cast<Axes*>(pObj);
+            if (!axes)
+                throw OML_Error(OML_ERR_PLOT_INVALID_AXES_HANDLE);
+
+            secAxis->setPropertyValue("ylim", limits);
+            pAxes->setAxisNeedRepaint(2);
+        }
         pAxes->repaint();
     }
 
@@ -543,7 +607,7 @@ namespace omlplot{
         }
         Axes *pAxes = dynamic_cast<Axes *>(getObject(axes));
         pAxes->setPropertyValue("zlim", limits);
-        pAxes->setAxisNeedRepaint(true);
+        pAxes->setAxisNeedRepaint(3);
         pAxes->repaint();
     }
 
@@ -673,5 +737,21 @@ namespace omlplot{
 
         Axes* pAxes = dynamic_cast<Axes*>(getObject(axes));
         return pAxes->getColorbarRange();
+    }
+    
+    Currency CoreMain::colormap(double h) const
+    {
+        Property cmap = getObjectProperty(h, "colormap");
+        return cmap.getValue().getCurrency();
+    }
+    
+    void CoreMain::colormap(double h, const Currency& cmap)
+    {
+        Object* po = getObject(h);
+        if (!po)
+            throw OML_Error(OML_ERR_PLOT_INVALID_AXES_HANDLE);
+
+        bool ret = po->setPropertyValue("colormap", cmap);
+        root->update();
     }
 }

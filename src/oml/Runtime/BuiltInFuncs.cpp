@@ -1,7 +1,7 @@
 ﻿/**
 * @file BuiltInFuncs.cpp
 * @date October 2013
-* Copyright (C) 2013-2020 Altair Engineering, Inc.  
+* Copyright (C) 2013-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -359,6 +359,7 @@ void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions)
     (*std_functions)["sprintf"]            = BuiltinFunc(oml_sprintf, FunctionMetaData(-2, 2, STNG));
     (*std_functions)["feval"]              = BuiltinFunc(oml_feval, FunctionMetaData(-2, -1, CORE));
     (*std_functions)["rmpath"]             = BuiltinFunc(oml_rmpath, FunctionMetaData(-1, 1, CORE));
+	(*std_functions)["rmhiddenpath"]       = BuiltinFunc(oml_rmhiddenpath, FunctionMetaData(-1, 1, CORE));
     (*std_functions)["addpath"]            = BuiltinFunc(oml_addpath, FunctionMetaData(-1, 1, CORE));
 	(*std_functions)["addhiddenpath"]      = BuiltinFunc(oml_addhiddenpath, FunctionMetaData(-1, 1, CORE));
 	(*std_functions)["registerpath"]       = BuiltinFunc(oml_addpath2, FunctionMetaData(2, 1, CORE));
@@ -716,12 +717,12 @@ void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions)
                                         FunctionMetaData(1, 1));
     // End of client specific environment related functions
 	 
-	(*std_functions)["memoryuse"]   = BuiltinFunc(oml_memoryuse, FunctionMetaData(0, 1, CORE));
-	(*std_functions)["analyze"]     = BuiltinFunc(oml_analyze, FunctionMetaData(1, 0, CORE));
-	(*std_functions)["getmetadata"] = BuiltinFunc(oml_getmetadata, FunctionMetaData(1, 0, CORE));
-	(*std_functions)["rehash"]      = BuiltinFunc(oml_rehash, FunctionMetaData(0, 0, CORE));
-	(*std_functions)["verbose"]     = BuiltinFunc(oml_verbose, FunctionMetaData(0, 1, CORE));
-	(*std_functions)["parcluster"]  = BuiltinFunc(oml_parcluster, FunctionMetaData(0, 1, CORE));
+	(*std_functions)["memoryuse"]      = BuiltinFunc(oml_memoryuse, FunctionMetaData(0, 1, CORE));
+	(*std_functions)["analyze"]        = BuiltinFunc(oml_analyze, FunctionMetaData(1, 0, CORE));
+	(*std_functions)["getmetadata"]    = BuiltinFunc(oml_getmetadata, FunctionMetaData(1, 0, CORE));
+	(*std_functions)["rehash"]         = BuiltinFunc(oml_rehash, FunctionMetaData(0, 0, CORE));
+	(*std_functions)["verbose"]        = BuiltinFunc(oml_verbose, FunctionMetaData(0, 1, CORE));
+	(*std_functions)["parcluster"]     = BuiltinFunc(oml_parcluster, FunctionMetaData(0, 1, CORE));
 
     // Function place holders have been added for the following. 
     // The implementation is on the client side
@@ -739,6 +740,10 @@ void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions)
 	experimental = Currency::GetExperimental();
 #endif
 
+	(*std_functions)["getprofiledata"] = BuiltinFunc(oml_getprofiledata, FunctionMetaData(0, 1, CORE));
+	(*std_functions)["clearprofiledata"] = BuiltinFunc(oml_clearprofiledata, FunctionMetaData(0, 1, CORE));
+	(*std_functions)["profile"] = BuiltinFunc(oml_profile, FunctionMetaData(0, 1, CORE));
+
 	if (experimental)
 	{
 		(*std_functions)["writepfile"] = BuiltinFunc(oml_writepfile, FunctionMetaData(2, 0, CORE));
@@ -746,6 +751,60 @@ void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions)
 		// helptest function is restricted to experimental mode
 	    (*std_functions)["helptest"]      = BuiltinFunc(oml_helptest, FunctionMetaData(1,1, CORE));
 	    (*std_functions)["helpmodule"]      = BuiltinFunc(oml_helpmodule, FunctionMetaData(1,1, CORE));
+
+		(*std_functions)["p_definefunction"] = BuiltinFunc(oml_p_definefunction, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_registerfunction"] = BuiltinFunc(oml_p_registerfunction, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_assign"] = BuiltinFunc(oml_p_assign, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_multassign"] = BuiltinFunc(oml_p_multassign, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_struct"] = BuiltinFunc(oml_p_struct, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_func"] = BuiltinFunc(oml_p_func, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_add"] = BuiltinFunc(oml_p_add, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_statement"] = BuiltinFunc(oml_p_statement, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_handle"] = BuiltinFunc(oml_p_handle, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_string"] = BuiltinFunc(oml_p_string, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_equal"] = BuiltinFunc(oml_p_equal, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_if"] = BuiltinFunc(oml_p_if, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_elseif"] = BuiltinFunc(oml_p_elseif, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_else"] = BuiltinFunc(oml_p_else, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_conditional"] = BuiltinFunc(oml_p_conditional, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_divide"] = BuiltinFunc(oml_p_divide, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_bitand"] = BuiltinFunc(oml_p_bitand, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_entrypow"] = BuiltinFunc(oml_p_entrypow, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_entrydivide"] = BuiltinFunc(oml_p_entrydivide, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_entryleftdivide"] = BuiltinFunc(oml_p_entryleftdivide, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_greaterequal"] = BuiltinFunc(oml_p_greaterequal, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_greaterthan"] = BuiltinFunc(oml_p_greaterthan, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_logand"] = BuiltinFunc(oml_p_logand, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_leftdivide"] = BuiltinFunc(oml_p_leftdivide, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_lessthan"] = BuiltinFunc(oml_p_lessthan, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_lessequal"] = BuiltinFunc(oml_p_lessequal, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_logor"] = BuiltinFunc(oml_p_logor, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_subtract"] = BuiltinFunc(oml_p_subtract, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_notequal"] = BuiltinFunc(oml_p_notequal, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_or"] = BuiltinFunc(oml_p_or, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_pow"] = BuiltinFunc(oml_p_pow, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_multiply"] = BuiltinFunc(oml_p_multiply, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_negate"] = BuiltinFunc(oml_p_negate, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_uminus"] = BuiltinFunc(oml_p_uminus, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_transpose"] = BuiltinFunc(oml_p_transpose, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_ctranspose"] = BuiltinFunc(oml_p_ctranspose, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_global"] = BuiltinFunc(oml_p_global, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_persistent"] = BuiltinFunc(oml_p_persistent, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_range"] = BuiltinFunc(oml_p_range, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_forloop"] = BuiltinFunc(oml_p_forloop, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_trycatch"] = BuiltinFunc(oml_p_trycatch, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_try"] = BuiltinFunc(oml_p_try, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_catch"] = BuiltinFunc(oml_p_catch, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_cellvalue"] = BuiltinFunc(oml_p_cellvalue, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_whileloop"] = BuiltinFunc(oml_p_whileloop, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_switch"] = BuiltinFunc(oml_p_switch, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_case"] = BuiltinFunc(oml_p_case, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_otherwise"] = BuiltinFunc(oml_p_otherwise, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_matrix"] = BuiltinFunc(oml_p_matrix, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_vector"] = BuiltinFunc(oml_p_vector, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_cellarray"] = BuiltinFunc(oml_p_cellarray, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_colon"] = BuiltinFunc(oml_p_colon, FunctionMetaData(0, 0, CORE));
+		(*std_functions)["p_return"] = BuiltinFunc(oml_p_return, FunctionMetaData(0, 0, CORE));
 	}
 }
 //------------------------------------------------------------------------------
@@ -5160,8 +5219,8 @@ bool oml_str2func(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
 			fi = new FunctionInfo(funcName, fptr);
 		else if (aptr)
 			fi = new FunctionInfo(funcName, aptr);
-		else
-			fi->IncrRefCount();
+		// else
+		//	fi->IncrRefCount(); The ref count will be increased by pushing it into a Currency
 
         outputs.push_back(fi);
         return true;
@@ -7706,6 +7765,38 @@ bool oml_rmpath(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
     return true;
 }
 //------------------------------------------------------------------------------
+// Removes given directories from search path [rmpath]
+//------------------------------------------------------------------------------
+bool oml_rmhiddenpath(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	size_t nargin = inputs.size();
+
+	if (!nargin)
+		throw OML_Error(OML_ERR_NUMARGIN);
+
+	for (int i = 0; i < nargin; i++)
+	{
+		std::vector<std::string> toremove = separatePathNames(eval, inputs[i]);
+
+		std::vector<std::string>::reverse_iterator iter;
+		for (iter = toremove.rbegin(); iter != toremove.rend(); iter++)
+		{
+			std::string rmv = BuiltInFuncsUtils::GetAbsolutePath(*iter);
+			BuiltInFuncsUtils::StripTrailingSlash(rmv);
+
+			if (!eval.RemoveHiddenPath(rmv))
+			{
+				BuiltInFuncsUtils::SetWarning(eval, "Warning: '" + rmv + "' is not in path");
+			}
+		}
+	}
+
+	if (getNumOutputs(eval))
+		outputs.push_back(getPathString(eval, pathsep));
+
+	return true;
+}
+//------------------------------------------------------------------------------
 // Sets or displays current search path [path]
 //------------------------------------------------------------------------------
 bool oml_path(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
@@ -7853,7 +7944,7 @@ bool oml_addpath2(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
 {
     size_t nargin = inputs.size();
 
-    if (!nargin)
+    if (nargin != 2)
         throw OML_Error(OML_ERR_NUMARGIN);
 
 	Currency new_path   = inputs[0];
@@ -7887,7 +7978,10 @@ bool oml_addpath2(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
 		}
 	}
 
-	eval.AddPath2(new_path.StringVal(), funcs);
+	std::string abs_path = BuiltInFuncsUtils::GetAbsolutePath(new_path.StringVal());
+	BuiltInFuncsUtils::StripTrailingSlash(abs_path);
+
+	eval.AddPath2(abs_path, funcs);
 	
 	return true;
 }
@@ -9222,7 +9316,6 @@ bool oml_run(EvaluatorInterface           eval,
         cd(pathname, eval);
     }
 
-    Currency ret;
     std::string errmsg;
     bool        formatmsg = true;
 
@@ -9255,9 +9348,8 @@ bool oml_run(EvaluatorInterface           eval,
     }
     if (childHandler)
     {
-        // Signals like exit, cd need to be copied over and we want to make
-        // sure that any print signal is still connected
-        childHandler->ConnectPrintSignal(); 
+        // Signals like exit, cd need to be copied but not printing as all
+        // printing is handled in parent, when results are transfered over
         childHandler->CopyNonPrintSignals();
     }
 
@@ -9270,9 +9362,17 @@ bool oml_run(EvaluatorInterface           eval,
 	int old_val = eval_ptr->SetNestedFunctionMarker(0);
 #endif
 
+    bool wasopen = BuiltInFuncsUtils::IsOutputLogOpen();
+    if (parentHandler)
+    {
+        // Disconnect printing till results are copied over. Otherwise this 
+        // results in printing being done twice in the child and parent in batch
+        parentHandler->DisconnectPrintSignal();
+    }
+
     try
     {
-        ret = interp.DoFile(full_file_name);
+        Currency ret = interp.DoFile(full_file_name);
         if (ret.IsError())
         {
             errmsg = ret.Message();
@@ -9283,11 +9383,16 @@ bool oml_run(EvaluatorInterface           eval,
         errmsg    = e.GetErrorMessage();
         formatmsg = e.GetFormatMessage();
     }
+
     if (parentHandler)
     {
-        // Disconnect printing till results are copied over. Otherwise this 
-        // results in printing being done twice in the child and parent
-        parentHandler->DisconnectPrintSignal();
+        // Reconnect printing since all execution in the child is complete
+        parentHandler->ConnectPrintSignal();
+    }
+
+    if (!wasopen)  // If the log was opened in the child evaluator, close it
+    {
+        BuiltInFuncsUtils::CloseOutputLog();
     }
 
 	eval.RemoveChildEvaluator();
@@ -9297,32 +9402,37 @@ bool oml_run(EvaluatorInterface           eval,
         cd(cwd, eval);
     }
 
-    // Push results. Printing is different in batch mode as all results are
-    // printed. So, if in batch mode, push only results that are not printed
-    // already
+    // Push results
+    bool logerror = false;
+
     std::vector<Currency> results (interp.GetOutputCurrencyList());
     for (std::vector<Currency>::const_iterator itr = results.begin(); 
          itr != results.end(); ++itr)
     {
-        if (itr->IsError())
+        const Currency& cur = *itr;
+        if (cur.IsError())
         {
-            errmsg = itr->Message(); // To display later
+            errmsg = cur.Message(); // To display later
+            if (cur.IsLogOutput())
+            {
+                logerror = true;
+            }
         }
         else
         {
-            eval.PushResult(*itr);
+            eval.PushResult(cur);
         }
-    }
-
-    if (parentHandler)
-    {
-        // Reconnect printing since all printing from the child is complete
-        parentHandler->ConnectPrintSignal();
     }
 
     // Output errors
     if (!errmsg.empty())
     {
+        if (logerror)
+        {
+            BuiltInFuncsUtils::OpenOutputLogForAppend();
+            BuiltInFuncsUtils::SaveToOutputLog(errmsg);
+            BuiltInFuncsUtils::CloseOutputLog();
+        }
         throw OML_Error(errmsg, formatmsg);
     }
 
@@ -12416,12 +12526,59 @@ bool oml_eval(EvaluatorInterface           eval,
     {
         throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
     }
-
-    std::string trystr (readString(inputs[0]));
+    std::string trystr(readString(inputs[0]));
     if (trystr.empty())
     {
         return true;
     }
+
+    bool hasSemiColon    = (trystr.back() == ';');
+    bool outputSomething = (getNumOutputs(eval) > 0);
+    Currency result;
+
+    // Try if input can be pre-parsed and evaluated without ANTLR
+    if (trystr.find(' ') == std::string::npos)
+    {
+        if (hasSemiColon)
+        {
+            trystr.pop_back();
+        }
+        bool evaluated = BuiltInFuncsString::IsNumber(trystr, result);  // strtod
+        if (!evaluated)
+        {
+            result = eval.GetValue(trystr);
+            if (!result.IsError())
+            {
+                evaluated = !result.IsNothing();
+            }
+            if (!evaluated && !trystr.empty() && trystr.length() > 1 &&
+                trystr[0] == '\'' && trystr.back() == '\'')   // String with multiple leading/trailing single quotes
+            {
+                std::string tmp(BuiltInFuncsUtils::LTrim(trystr, "'"));
+                tmp = BuiltInFuncsUtils::RTrim(tmp, "'");
+                if (tmp.find('\'') == std::string::npos)
+                {
+                    result = Currency(tmp);
+                    evaluated = true;
+                }
+            }
+        }
+        
+        if (evaluated)
+        {
+            if (!hasSemiColon || outputSomething)
+            {
+                outputs.push_back(result);
+            }
+            return true;
+        }
+        if (hasSemiColon)
+        {
+            trystr += ';';
+        }
+    }
+   
+
 
     // Create a child intepreter as this is in the middle of an eval
     Interpreter interp1(eval);
@@ -12432,18 +12589,19 @@ bool oml_eval(EvaluatorInterface           eval,
     }
 
     // Evaluate the try string
+    bool storeSupressedResult = true;
     eval.CacheLineInfomation();
     eval.RegisterChildEvaluator(interp1.GetEvaluator());
-    Currency ret = interp1.DoString(trystr);
+    result = interp1.DoString(trystr, storeSupressedResult);
     std::vector<Currency> results (interp1.GetOutputCurrencyList());
     eval.RemoveChildEvaluator();
 
     std::string errmsg;
-    if (ret.IsError())
+    if (result.IsError())
     {
         if (size < 2)
         {
-            errmsg = ret.Message();
+            errmsg = result.Message();
         }
         else // Evaluate the catch string
         {
@@ -12451,6 +12609,7 @@ bool oml_eval(EvaluatorInterface           eval,
             {
                 throw OML_Error(OML_ERR_STRING, 2);
             }
+
             std::string catchstr (readString(inputs[1]));
             if (!catchstr.empty())
             {
@@ -12460,11 +12619,11 @@ bool oml_eval(EvaluatorInterface           eval,
                 {
                     handler2->CopyNonPrintSignals(); 
                 }
-
-                Currency result2 = interp2.DoString(catchstr);
-                if (result2.IsError())
+                hasSemiColon = (catchstr.back() == ';');
+                result = interp2.DoString(catchstr, storeSupressedResult);
+                if (result.IsError())
                 {
-                    errmsg = result2.Message();
+                    errmsg = result.Message();
                 }
                 results = interp2.GetOutputCurrencyList();
             }
@@ -12477,32 +12636,35 @@ bool oml_eval(EvaluatorInterface           eval,
 
     if (!results.empty())
     {
-        std::vector<Currency>::const_iterator it = results.begin();
-        std::vector<Currency>::const_iterator end = results.end();
-        bool outputSomething = (getNumOutputs(eval) > 0);
-        if (outputSomething)
+        for (std::vector<Currency>::const_iterator itr = results.begin();
+             itr != results.end(); ++itr)
         {
-            end--;
-        }
-
-        for (; it != end; ++it)
-        {
-            if (it->IsError())
+            const Currency& r = *itr;
+            if (r.IsError())
             {
-                throw OML_Error(it->Message());
+                throw OML_Error(r.Message());
             }
-            eval.PushResult(*it);
-        }
-        if (!errmsg.empty())
+            if ((!hasSemiColon || outputSomething) && itr == results.end()-1)
+            {
+                outputs.push_back(r);
+            }
+            else
+            {
+                eval.PushResult(r);
+            }
+        }        
+    }
+    else if (!result.IsError()) // If the try/catch strings have semicolon, results are empty
+    {
+        // Copy the result over only if there is an output and there is an explicit supression of output
+        // If this has results and it is not suppressed, we would not be in this section of code
+        if (hasSemiColon && outputSomething)
         {
-            throw OML_Error(errmsg);
-        }
-        if (outputSomething && !it->IsError())
-        {
-            outputs.push_back(*it);
+            outputs.push_back(result);
         }
     }
-    else if (!errmsg.empty())
+    
+    if (!errmsg.empty())
     {
         throw OML_Error(errmsg);
     }
@@ -16938,7 +17100,7 @@ bool oml_prod(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
     {
         const hwMatrix* mtx = input1.Matrix();
 
-        if (mtx->Is0x0())
+        if (mtx->Is0x0() || (mtx->IsEmpty() && mtx->IsVector()))
         {
             outputs.push_back(1.0);
         }
@@ -17113,7 +17275,7 @@ bool oml_sum(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
     {
         const hwMatrix* mtx = input1.Matrix();
 
-        if (mtx->Is0x0())
+        if (mtx->Is0x0() || (mtx->IsEmpty() && mtx->IsVector()))
         {
             outputs.push_back(0.0);
         }
@@ -19827,15 +19989,45 @@ bool oml_help(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
 		std::string helpdir;
 		helpdir = intBase.GetHelpDirectory(inputs[0].StringVal());
 
+#ifdef _DEBUG
+#    define DEBUG_PRINT(s) { std::cout << s << std::endl; }
+#else
+#    define DEBUG_PRINT(s)
+#endif
+
 		// DIRECTORY_DELIM
 		//if(helpdir.find_last_of("/\\") !=  string::npos)
 		if (helpdir.find_last_of(DIRECTORY_DELIM) != string::npos)
 		{
 			userDocLocation = helpdir + DIRECTORY_DELIM + inputs[0].StringVal() + ".htm";
+			if (!BuiltInFuncsUtils::FileExists(userDocLocation))
+			{
+				DEBUG_PRINT("DEBUG1: FILE NOT FOUND")
+				DEBUG_PRINT(userDocLocation)
+				std::string lower(inputs[0].StringVal());
+				std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+				userDocLocation = helpdir + DIRECTORY_DELIM + lower + ".htm";
+				DEBUG_PRINT("DEBUG1: CHECK FOR FILE")
+				DEBUG_PRINT(userDocLocation)
+
+			}
+
 		}
 		else
 		{
 			userDocLocation = base + intBase.GetHelpModule(inputs[0].StringVal()) + DIRECTORY_DELIM + inputs[0].StringVal() + ".htm";
+			if (!BuiltInFuncsUtils::FileExists(userDocLocation))
+			{
+				DEBUG_PRINT("DEBUG2: FILE NOT FOUND")
+				DEBUG_PRINT(userDocLocation)
+				std::string lower(inputs[0].StringVal());
+				std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+				userDocLocation = base + intBase.GetHelpModule(inputs[0].StringVal()) + DIRECTORY_DELIM + lower + ".htm";
+				DEBUG_PRINT("DEBUG2: CHECK FOR FILE")
+				DEBUG_PRINT(userDocLocation)
+			}
 		}
 
 		// userDocLocation = base + intBase.GetHelpModule(inputs[0].StringVal()) + "/" + inputs[0].StringVal() + ".htm";
@@ -22763,8 +22955,14 @@ void dostrcat(EvaluatorInterface& eval, Currency &out, HML_CELLARRAY *cell)
                 else
                     (*outcell)(j) = EvaluatorInterface::allocateCellArray(toappend.CellArray());
             }
-            else
-                (*outcell)(j) = dostrcat(eval, strout, toappend.Matrix());
+			else if (toappend.IsMatrixOrString() || toappend.IsScalar())
+			{
+				(*outcell)(j) = dostrcat(eval, strout, toappend.ConvertToMatrix());
+			}
+			else
+			{
+				throw OML_Error("Invalid concatentation");
+			}
         }
         out = temp;
     }
@@ -23080,7 +23278,7 @@ bool isempty(const Currency &input)
 	{
 		return input.CellArrayND()->IsEmpty();
 	}
-    else if (input.IsStruct())
+    else if (input.IsStruct() || input.IsObject())
     {
         StructData *sd = input.Struct();
         return !(sd->M() * sd->N());
@@ -28237,3 +28435,1431 @@ bool ReadInt64Block(EvaluatorInterface eval, std::FILE* file, bool sign,
     return true;
 }
 
+// If we keep all of these functions to define an AST in memory, it probably makes sense to try memory pooling the OMLTree
+// since we're allocating a bunch of them.
+bool oml_p_definefunction(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 3)
+		throw OML_Error("Illegal function definition");
+
+	Currency func_name = inputs[0];
+	Currency func_inputs = inputs[1];
+	Currency func_outputs = inputs[2];
+
+	if (!func_name.IsString())
+		throw OML_Error("Illegal function definition");
+
+	if (!func_inputs.IsCellArray())
+		throw OML_Error("Illegal function definition");
+
+	if (!func_outputs.IsCellArray())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(FUNC_DEF, "FUNC_DEF", NULL, 0, 5);
+	my_tree->AddChild(new OMLTree(IDENT, func_name.StringVal(), NULL, 0, 0));
+
+	HML_CELLARRAY* cells = func_inputs.CellArray();
+
+	OMLTree* input_tree = new OMLTree(ID_LIST, "ID_LIST", NULL, 0, cells->Size());
+
+	for (int j = 0; j < cells->Size(); j++)
+	{
+		Currency temp = (*cells)(j);
+
+		if (!temp.IsString())
+			throw OML_Error("Illegal function definition");
+
+		input_tree->AddChild(new OMLTree(IDENT, temp.StringVal(), NULL, 0, 0));
+	}
+
+	cells = func_outputs.CellArray();
+
+	OMLTree* output_tree = new OMLTree(ID_LIST, "ID_LIST", NULL, 0, cells->Size());
+
+	for (int j = 0; j < cells->Size(); j++)
+	{
+		Currency temp = (*cells)(j);
+
+		if (!temp.IsString())
+			throw OML_Error("Illegal function definition");
+
+		output_tree->AddChild(new OMLTree(IDENT, temp.StringVal(), NULL, 0, 0));
+	}
+
+	my_tree->AddChild(input_tree);
+	my_tree->AddChild(output_tree);
+
+	my_tree->AddChild(new OMLTree(STATEMENT_LIST, "STATEMENT_LIST", NULL, 0, 0));
+	my_tree->AddChild(new OMLTree(END, "end", NULL, 0, 0));
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_registerfunction(EvaluatorInterface ei, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 1)
+		throw OML_Error("Illegal function definition");
+
+	Currency func_def = inputs[0];
+
+	if (!func_def.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	ei.RegisterFunc(func_def.Tree());
+
+	return true;
+}
+
+bool oml_p_assign(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree() && !lhs.IsString())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* assign_tree = new OMLTree(ASSIGN, "=", NULL, 0, 2);
+
+	if (lhs.IsString())
+		assign_tree->AddChild(new OMLTree(IDENT, lhs.StringVal(), NULL, 0, 0));
+	else
+		assign_tree->AddChild(lhs.Tree());
+
+	assign_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(assign_tree);
+
+	return true;
+}
+
+bool oml_p_multassign(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	rhs.ConvertToTree();
+
+	if (!lhs.IsCellArray())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* assign_tree = new OMLTree(MR_FUNC, "MR_FUNC", NULL, 0, 2);
+
+	HML_CELLARRAY* cells = lhs.CellArray();
+	OMLTree* params_tree = new OMLTree(ID_LIST, "ID_LIST", NULL, 0, cells->Size());
+
+	for (int j = 0; j < cells->Size(); ++j)
+	{
+		Currency temp = (*cells)(j);
+
+		if (temp.IsString())
+		{
+			OMLTree* temp_tree = new OMLTree(IDENT, temp.StringVal(), NULL, 0, 1);
+			params_tree->AddChild(temp_tree);
+		}
+	}
+
+	assign_tree->AddChild(params_tree);
+	assign_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(assign_tree);
+
+	return true;
+}
+
+bool oml_p_struct(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() < 2)
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* assign_tree = NULL;
+
+	for (int j = 1; j<inputs.size(); ++j)
+	{
+		if (!assign_tree)
+		{
+			Currency temp = inputs[j-1];
+
+			if (!temp.IsString())
+				throw OML_Error("Illegal struct definition");
+
+			assign_tree = new OMLTree(STRUCT, "STRUCT", NULL, 0, 2);
+			assign_tree->AddChild(new OMLTree(IDENT, temp.StringVal(), NULL, 0, 0));
+
+			Currency temp2 = inputs[j];
+
+			if (!temp2.IsString())
+				throw OML_Error("Illegal struct definition");
+
+			assign_tree->AddChild(new OMLTree(IDENT, temp2.StringVal(), NULL, 0, 0));
+		}
+		else
+		{
+			Currency temp = inputs[j];
+
+			OMLTree* new_tree = new OMLTree(STRUCT, "STRUCT", NULL, 0, 2);
+
+			new_tree->AddChild(assign_tree);
+			new_tree->AddChild(new OMLTree(IDENT, temp.StringVal(), NULL, 0, 0));
+
+			assign_tree = new_tree;
+		}
+	}
+
+	outputs.push_back(assign_tree);
+
+	return true;
+}
+
+bool oml_p_func(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() == 0)
+		throw OML_Error("Illegal function definition");
+
+	Currency func_name = inputs[0];
+
+	OMLTree* func_tree = func_name.ConvertToTree();
+		
+	if (!func_tree)
+		throw OML_Error("Illegal function definition");
+
+	int numargs = (int)inputs.size() - 1;
+
+	OMLTree* my_tree = new OMLTree(FUNC, "FUNC", NULL, 0, 1);
+
+	my_tree->AddChild(func_tree);
+
+	OMLTree* param_tree = new OMLTree(PARAM_LIST, "PARAM_LIST", NULL, 0, numargs);
+	my_tree->AddChild(param_tree);
+
+	for (int j = 0; j < numargs; ++j)
+	{
+		Currency arg = inputs[j + 1];
+		arg.ConvertToTree();
+
+		if (!arg.IsTree())		
+			throw OML_Error("Illegal function definition");
+
+		param_tree->AddChild(arg.Tree());
+	}
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_add(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(PLUS, "+", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_statement(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if ((inputs.size() != 2) && (inputs.size() != 3))
+		throw OML_Error("Illegal function definition");
+
+	Currency parent = inputs[0];
+	Currency stmt = inputs[1];
+
+	int semicolon = 0;
+	
+	if (inputs.size() == 3)
+	{
+		Currency semic = inputs[2];
+
+		if (semic.IsScalar())
+		{
+			if (semic.Scalar())
+				semicolon = 1;
+		}
+		else
+		{
+			throw OML_Error("Illegal function definition");
+		}
+	}
+
+	if (!parent.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!stmt.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* cur_tree = parent.Tree();
+	OMLTree* stmts = NULL;
+	
+	if (parent.Tree()->GetType() == FUNC_DEF)
+		stmts = cur_tree->GetChild(3);
+	else if (parent.Tree()->GetType() == IF)
+		stmts = cur_tree->GetChild(1);
+	else if (parent.Tree()->GetType() == ELSEIF)
+		stmts = cur_tree->GetChild(1);
+	else if (parent.Tree()->GetType() == ELSE)
+		stmts = cur_tree->GetChild(0);
+	else if (parent.Tree()->GetType() == FOR)
+		stmts = cur_tree->GetChild(2);
+	else if (parent.Tree()->GetType() == WHILE)
+		stmts = cur_tree->GetChild(1);
+	else if (parent.Tree()->GetType() == CASE)
+		stmts = cur_tree->GetChild(1);
+	else if (parent.Tree()->GetType() == OTHERWISE)
+		stmts = cur_tree->GetChild(0);
+	else 
+		stmts = parent.Tree();
+
+	int num_children = 1;
+
+	if (semicolon)
+		num_children = 2;
+
+	if (stmt.Tree()->GetType() == FUNC_DEF) 
+	{
+		stmts->AddChild(stmt.Tree());
+	}
+	else if (stmt.Tree()->GetType() == CONDITIONAL)
+	{
+		stmts->AddChild(stmt.Tree());
+	}
+	else if (stmt.Tree()->GetType() == SWITCH)
+	{
+		stmts->AddChild(stmt.Tree());
+	}
+	else if (stmt.Tree()->GetType() == FOR)
+	{
+		stmts->AddChild(stmt.Tree());
+	}
+	else if (stmt.Tree()->GetType() == WHILE)
+	{
+		stmts->AddChild(stmt.Tree());
+	}
+	else if (stmt.Tree()->GetType() == TRY)
+	{
+		stmts->AddChild(stmt.Tree());
+	}
+	else
+	{
+		OMLTree* stmt_tree = new OMLTree(STMT, "STMT", NULL, 0, num_children);
+		stmt_tree->AddChild(stmt.Tree());
+
+		if (num_children == 2)
+			stmt_tree->AddChild(new OMLTree(SEMIC, ";", NULL, 0, 0));
+
+		stmts->AddChild(stmt_tree);
+	}
+
+	return true;
+}
+
+bool oml_p_handle(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 1)
+		throw OML_Error("Illegal handle definition");
+
+	Currency handle_def = inputs[0];
+
+	if (!handle_def.IsString())
+		throw OML_Error("Illegal handle definition");
+
+	OMLTree* new_tree = new OMLTree(FUNC_HANDLE, "FUNC_HANDLE", NULL, 0, 2);
+	new_tree->AddChild(new OMLTree(IDENT, handle_def.StringVal(), NULL, 0, 0));
+	
+	outputs.push_back(new_tree);
+
+	return true;
+}
+
+bool oml_p_string(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 1)
+		throw OML_Error("Illegal string definition");
+
+	Currency string_def = inputs[0];
+
+	if (!string_def.IsString())
+		throw OML_Error("Illegal handle definition");
+
+	std::string new_string = "'" + string_def.StringVal() + "'";
+
+	OMLTree* new_tree = new OMLTree(HML_STRING, "HML_STRING", NULL, 0, 1);
+	new_tree->AddChild(new OMLTree(IDENT, new_string, NULL, 0, 0));
+
+	outputs.push_back(new_tree);
+
+	return true;
+}
+
+bool oml_p_equal(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(EQUAL, "==", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+	return true;
+}
+
+bool oml_p_if(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 1)
+		throw OML_Error("Illegal if statement");
+
+	Currency if_test = inputs[0];
+
+	if (!if_test.IsTree())
+		throw OML_Error("Illegal if statement");
+
+	OMLTree* my_tree = new OMLTree(IF, "if", NULL, 0, 2);
+	my_tree->AddChild(if_test.Tree());
+	my_tree->AddChild(new OMLTree(STATEMENT_LIST, "STATEMENT_LIST", NULL, 0, 0));
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_elseif(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 1)
+		throw OML_Error("Illegal elseif statement");
+
+	Currency elseif_test = inputs[0];
+
+	if (!elseif_test.IsTree())
+		throw OML_Error("Illegal elseif statement");
+
+	OMLTree* my_tree = new OMLTree(IF, "IF", NULL, 0, 2);
+	my_tree->AddChild(elseif_test.Tree());
+	my_tree->AddChild(new OMLTree(STATEMENT_LIST, "STATEMENT_LIST", NULL, 0, 0));
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_else(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 0)
+		throw OML_Error("Illegal elseif statement");
+
+	OMLTree* my_tree = new OMLTree(ELSE, "ELSE", NULL, 0, 2);
+	my_tree->AddChild(new OMLTree(STATEMENT_LIST, "STATEMENT_LIST", NULL, 0, 0));
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_conditional(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	OMLTree* my_tree = new OMLTree(CONDITIONAL, "CONDITIONAL", NULL, 0, 2);
+
+	for (int j = 0; j < inputs.size(); ++j)
+	{
+		Currency branch = inputs[j];
+
+		if (!branch.IsTree())
+			throw OML_Error("Illegal conditional branch");
+
+		my_tree->AddChild(branch.Tree());
+	}
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+bool oml_p_divide(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(DIV, "/", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_bitand(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(AND, "&", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_entrypow(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(DOTPOW, ".^", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_entrydivide(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(EDIV, "./", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_entryleftdivide(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(ELDIV, ".\\", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_greaterequal(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(GEQ, ">=", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_greaterthan(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(GTHAN, ">", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_logand(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(LAND, "&&", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_leftdivide(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(LDIV, "\\", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_lessequal(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(LEQ, "<=", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_logor(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(LOR, "||", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_lessthan(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(LTHAN, "<", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_subtract(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(MINUS, "-", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_notequal(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(NEQUAL, "~=", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_or(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(OR, "|", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_pow(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(POW, "^", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_multiply(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal function definition");
+
+	Currency lhs = inputs[0];
+	Currency rhs = inputs[1];
+
+	lhs.ConvertToTree();
+	rhs.ConvertToTree();
+
+	if (!lhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(TIMES, "*", NULL, 0, 2);
+	my_tree->AddChild(lhs.Tree());
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_negate(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 1)
+		throw OML_Error("Illegal function definition");
+
+	Currency rhs = inputs[0];
+
+	rhs.ConvertToTree();
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(NEGATE, "~", NULL, 0, 1);
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_uminus(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 1)
+		throw OML_Error("Illegal function definition");
+
+	Currency rhs = inputs[0];
+
+	rhs.ConvertToTree();
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(UMINUS, "UMINUS", NULL, 0, 1);
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_transpose(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 1)
+		throw OML_Error("Illegal function definition");
+
+	Currency rhs = inputs[0];
+
+	rhs.ConvertToTree();
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(TRANSP, "TRANSP", NULL, 0, 1);
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_ctranspose(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 1)
+		throw OML_Error("Illegal function definition");
+
+	Currency rhs = inputs[0];
+
+	rhs.ConvertToTree();
+
+	if (!rhs.IsTree())
+		throw OML_Error("Illegal function definition");
+
+	OMLTree* my_tree = new OMLTree(CTRANSP, "CTRANSP", NULL, 0, 1);
+	my_tree->AddChild(rhs.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_global(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 1)
+		throw OML_Error("Illegal function definition");
+
+	Currency rhs = inputs[0];
+
+	if (!rhs.IsCellArray())
+		throw OML_Error("Illegal function definition");
+
+	HML_CELLARRAY* cells = rhs.CellArray();
+
+	int num_children = cells->Size();
+
+	OMLTree* my_tree = new OMLTree(GLOBAL, "global", NULL, 0, num_children);
+
+	for (int j = 0; j < num_children; j++)
+	{
+		Currency temp = (*cells)(j);
+
+		if (!temp.IsString())
+			throw OML_Error("Illegal global definition");
+
+		my_tree->AddChild(new OMLTree(IDENT, temp.StringVal(), NULL, 0, 0));
+	}
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_persistent(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 1)
+		throw OML_Error("Illegal function definition");
+
+	Currency rhs = inputs[0];
+
+	if (!rhs.IsCellArray())
+		throw OML_Error("Illegal function definition");
+
+	HML_CELLARRAY* cells = rhs.CellArray();
+
+	int num_children = cells->Size();
+
+	OMLTree* my_tree = new OMLTree(PERSISTENT, "persistent", NULL, 0, num_children);
+
+	for (int j = 0; j < num_children; j++)
+	{
+		Currency temp = (*cells)(j);
+
+		if (!temp.IsString())
+			throw OML_Error("Illegal global definition");
+
+		my_tree->AddChild(new OMLTree(IDENT, temp.StringVal(), NULL, 0, 0));
+	}
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_range(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if ((inputs.size() != 2) && (inputs.size() != 3))
+		throw OML_Error("Illegal range definition");
+
+	Currency cur1 = inputs[0];
+	Currency cur2 = inputs[1];
+
+	cur1.ConvertToTree();
+	cur2.ConvertToTree();
+
+	if (!cur1.IsTree())
+		throw OML_Error("Illegal range definition");
+
+	if (!cur2.IsTree())
+		throw OML_Error("Illegal range definition");
+
+	OMLTree* my_tree = new OMLTree(COLON, ":", NULL, 0, 2);
+	my_tree->AddChild(cur1.Tree());
+	my_tree->AddChild(cur2.Tree());
+
+	if (inputs.size() == 3)
+	{
+		Currency cur3 = inputs[2];
+
+		cur3.ConvertToTree();
+
+		if (!cur3.IsTree())
+			throw OML_Error("Illegal range definition");
+
+		OMLTree* new_tree = new OMLTree(COLON, ":", NULL, 0, 2); 
+
+		new_tree->AddChild(my_tree);
+		new_tree->AddChild(cur3.Tree());
+		
+		my_tree = new_tree;
+	}
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_forloop(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal range definition");
+
+	Currency cur1 = inputs[0];
+	Currency cur2 = inputs[1];
+
+	cur1.ConvertToTree();
+	cur2.ConvertToTree();
+
+	if (!cur1.IsTree())
+		throw OML_Error("Illegal for definition");
+
+	if (!cur2.IsTree())
+		throw OML_Error("Illegal for definition");
+
+	OMLTree* my_tree = new OMLTree(FOR, "for", NULL, 0, 3);
+	my_tree->AddChild(cur1.Tree());
+	my_tree->AddChild(cur2.Tree());
+	my_tree->AddChild(new OMLTree(STATEMENT_LIST, "STATEMENT_LIST", NULL, 0, 0));
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+bool oml_p_trycatch(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 3)
+		throw OML_Error("Illegal trycatch definition");
+
+	Currency cur1 = inputs[0];
+	Currency cur2 = inputs[1];
+	Currency cur3 = inputs[2];
+
+	cur3.ConvertToTree();
+
+	if (!cur1.IsTree())
+		throw OML_Error("Illegal trycatch definition");
+
+	if (!cur2.IsTree())
+		throw OML_Error("Illegal trycatch definition");
+
+	if (!cur3.IsTree())
+		throw OML_Error("Illegal trycatch definition");
+
+	OMLTree* my_tree = new OMLTree(TRY, "try", NULL, 0, 3);
+	my_tree->AddChild(cur1.Tree());
+	my_tree->AddChild(cur2.Tree());
+	my_tree->AddChild(cur3.Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_try(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 0)
+		throw OML_Error("Illegal try statement");
+
+	OMLTree* my_tree = new OMLTree(STATEMENT_LIST, "STATEMENT_LIST", NULL, 0, 0);
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+bool oml_p_catch(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 0)
+		throw OML_Error("Illegal try statement");
+
+	OMLTree* my_tree = new OMLTree(STATEMENT_LIST, "STATEMENT_LIST", NULL, 0, 0);
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_cellvalue(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 2)
+		throw OML_Error("Illegal cell dereference");
+
+	Currency cur1 = inputs[0];
+	Currency cur2 = inputs[1];
+	
+	cur1.ConvertToTree();
+
+	if (!cur1.IsTree())
+		throw OML_Error("Illegal cell dereference");
+
+	if (!cur2.IsCellArray())
+		throw OML_Error("Illegal cell dereference");
+
+	HML_CELLARRAY* cells = cur2.CellArray();
+
+	OMLTree* my_tree = new OMLTree(CELL_VAL, "CELL_VAL", NULL, 0, 2);
+
+	my_tree->AddChild(cur1.Tree());
+	
+	OMLTree* param_tree = new OMLTree(PARAM_LIST, "PARAM_LIST", NULL, 0, cells->Size());
+
+	for (int j = 0; j < cells->Size(); ++j)
+	{
+		Currency temp = (*cells)(j);
+		temp.ConvertToTree();
+
+		if (!temp.IsTree())
+			throw OML_Error("Illegal cell dereference");
+
+		param_tree->AddChild(temp.Tree());
+	}
+
+	my_tree->AddChild(param_tree);
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+bool oml_p_whileloop(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 1)
+		throw OML_Error("Illegal while definition");
+
+	Currency cur1 = inputs[0];
+
+	cur1.ConvertToTree();
+
+	if (!cur1.IsTree())
+		throw OML_Error("Illegal for definition");
+
+	OMLTree* my_tree = new OMLTree(WHILE, "while", NULL, 0, 3);
+	my_tree->AddChild(cur1.Tree());
+	my_tree->AddChild(new OMLTree(STATEMENT_LIST, "STATEMENT_LIST", NULL, 0, 0));
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_case(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 1)
+		throw OML_Error("Illegal case statement");
+
+	Currency case_test = inputs[0];
+
+	case_test.ConvertToTree();
+
+	if (!case_test.IsTree())
+		throw OML_Error("Illegal case statement");
+
+	OMLTree* my_tree = new OMLTree(CASE, "case", NULL, 0, 2);
+	my_tree->AddChild(case_test.Tree());
+	my_tree->AddChild(new OMLTree(STATEMENT_LIST, "STATEMENT_LIST", NULL, 0, 0));
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_otherwise(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 0)
+		throw OML_Error("Illegal otherwise statement");
+
+	OMLTree* my_tree = new OMLTree(OTHERWISE, "otherwise", NULL, 0, 2);
+	my_tree->AddChild(new OMLTree(STATEMENT_LIST, "STATEMENT_LIST", NULL, 0, 0));
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_switch(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	int num_inputs = (int)inputs.size();
+
+	OMLTree* my_tree = new OMLTree(SWITCH, "switch", NULL, 0, num_inputs);
+
+	Currency case_test = inputs[0];
+
+	case_test.ConvertToTree();
+
+	if (!case_test.IsTree())
+		throw OML_Error("Illegal switch statement");
+
+	my_tree->AddChild(case_test.Tree());
+
+	for (int j = 1; j < num_inputs; ++j)
+		my_tree->AddChild(inputs[j].Tree());
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_matrix(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	int num_inputs = (int)inputs.size();
+
+	OMLTree* my_tree = new OMLTree(MATRIX, "MATRIX", NULL, 0, num_inputs);
+
+	for (int j = 0; j < num_inputs; ++j)
+	{
+		Currency cur = inputs[j];
+		cur.ConvertToTree();
+
+		if (!cur.IsTree())
+			throw OML_Error("Illegal vector");
+
+		// might want to check that all the trees are vectors ...
+
+		my_tree->AddChild(cur.Tree());
+	}
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_vector(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	int num_inputs = (int)inputs.size();
+
+	OMLTree* my_tree = new OMLTree(VECTOR, "VECTOR", NULL, 0, num_inputs);
+
+	for (int j = 0; j < num_inputs; ++j)
+	{
+		Currency cur = inputs[j];
+		cur.ConvertToTree();
+
+		if (!cur.IsTree())
+			throw OML_Error("Illegal vector");
+
+		my_tree->AddChild(cur.Tree());
+	}
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_cellarray(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	int num_inputs = (int)inputs.size();
+
+	OMLTree* my_tree = new OMLTree(CELL_ARRAY, "CELL_ARRAY", NULL, 0, num_inputs);
+
+	for (int j = 0; j < num_inputs; ++j)
+	{
+		Currency cur = inputs[j];
+		cur.ConvertToTree();
+
+		if (!cur.IsTree())
+			throw OML_Error("Illegal vector");
+
+		// might want to check that all the trees are vectors ...
+
+		my_tree->AddChild(cur.Tree());
+	}
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_colon(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 0)
+		throw OML_Error("Illegal use of colon");
+
+	OMLTree* my_tree = new OMLTree(COLON, ":", NULL, 0, 2);
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+
+bool oml_p_return(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() != 0)
+		throw OML_Error("Illegal use of return");
+
+	OMLTree* my_tree = new OMLTree(RETURN, "return", NULL, 0, 2);
+
+	outputs.push_back(my_tree);
+
+	return true;
+}
+bool oml_getprofiledata(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	outputs.push_back(eval.GetProfileData());
+	return true;
+}
+
+bool oml_clearprofiledata(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	eval.ClearProfileData();
+	return true;
+}
+
+bool oml_profile(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+	if (inputs.size() == 1)
+	{
+		Currency temp = inputs[0];
+
+		if (temp.IsLogical() && (temp.Scalar() == 1.0))
+			eval.Profile(true);
+		else
+			eval.Profile(false);
+	}
+
+	return true;
+}

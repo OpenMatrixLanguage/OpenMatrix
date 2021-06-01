@@ -40,6 +40,9 @@ int InitDll(EvaluatorInterface eval)
     eval.RegisterBuiltInFunction("ifft",        OmlIfft,       FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("fft",         OmlFft,        FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("fft2",        OmlFft2,       FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("ifft2",       OmlIfft2,      FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("fftn",        OmlFftN,       FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("ifftn",       OmlIfftN,      FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("fftshift",    OmlFftShift,   FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("freq",        OmlFreq,       FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("fold",        OmlFold,       FunctionMetaData(-2, 1, SIGN));
@@ -548,9 +551,9 @@ bool OmlFft2(EvaluatorInterface            eval,
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
-    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar() || inputs[0].IsComplex())
     {
-        throw OML_Error(OML_ERR_REALVECTOR, 1, OML_VAR_DATA);
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
     }
 
     const hwMatrix* signal = inputs[0].ConvertToMatrix();
@@ -584,6 +587,195 @@ bool OmlFft2(EvaluatorInterface            eval,
     }
 
     outputs.push_back(freqRes.release());
+    return true;
+}
+//------------------------------------------------------------------------------
+// Two dimensional inverse Fast Fourier transform
+//------------------------------------------------------------------------------
+bool OmlIfft2(EvaluatorInterface           eval,
+              const std::vector<Currency>& inputs,
+              std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+    if (nargin != 1 && nargin != 3)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar() || inputs[0].IsComplex())
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
+    }
+
+    const hwMatrix* signal = inputs[0].ConvertToMatrix();
+    std::unique_ptr<hwMatrix> freqRes(EvaluatorInterface::allocateMatrix());
+
+    hwMathStatus status;
+    if (nargin == 1)
+    {
+        status = Ifft2(*signal, *freqRes, false);
+    }
+    else
+    {
+        if (!inputs[1].IsInteger())
+        {
+            throw OML_Error(OML_ERR_INTEGER, 2, OML_VAR_TYPE);
+        }
+        if (!inputs[2].IsInteger())
+        {
+            throw OML_Error(OML_ERR_INTEGER, 3, OML_VAR_TYPE);
+        }
+
+        int m = static_cast<int>(inputs[1].Scalar());
+        int n = static_cast<int>(inputs[2].Scalar());
+
+        status = Ifft2(*signal, m, n, *freqRes, false);
+    }
+
+    if (!status.IsOk())
+    {
+        throw OML_Error(status);
+    }
+
+    outputs.push_back(freqRes.release());
+    return true;
+}
+//------------------------------------------------------------------------------
+// N dimensional Fast Fourier transform
+//------------------------------------------------------------------------------
+bool OmlFftN(EvaluatorInterface           eval,
+             const std::vector<Currency>& inputs,
+             std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin != 1 && nargin != 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (inputs[0].IsNDMatrix())
+    {
+        const hwMatrixN* signal = inputs[0].MatrixN();
+        hwMatrixN* freqRes = new hwMatrixN;
+        hwMathStatus status;
+
+        if (nargin == 1)
+        {
+            status = FftN(*signal, *freqRes);
+        }
+        else
+        {
+            if (!inputs[1].IsRealVector())
+            {
+                delete freqRes;
+                throw OML_Error(OML_ERR_INTEGER, 2, OML_VAR_TYPE);
+            }
+
+            const hwMatrix* dims = inputs[1].Matrix();
+            int numDims = dims->Size();
+            std::vector<int> size(numDims);
+
+            for (int i = 0; i < numDims; ++i)
+            {
+                if (!IsInteger((*dims)(i)).IsOk())
+                {
+                    delete freqRes;
+                    throw OML_Error(OML_ERR_NATURALNUM, 1, OML_VAR_DIM);
+                }
+
+                size[i] = static_cast<int> ((*dims)(i));
+            }
+
+            status = FftN(*signal, size, *freqRes);
+
+            if (!status.IsOk())
+            {
+                delete freqRes;
+                throw OML_Error(status);
+            }
+        }
+
+        outputs.push_back(freqRes);
+    }
+    else if (inputs[0].IsMatrix() || inputs[0].IsScalar() || inputs[0].IsComplex())
+    {
+        return OmlFft2(eval, inputs, outputs);
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// N dimensional inverse Fast Fourier transform
+//------------------------------------------------------------------------------
+bool OmlIfftN(EvaluatorInterface           eval,
+              const std::vector<Currency>& inputs,
+              std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin != 1 && nargin != 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (inputs[0].IsNDMatrix())
+    {
+        const hwMatrixN* freqRes = inputs[0].MatrixN();
+        hwMatrixN* signal = new hwMatrixN;
+        hwMathStatus status;
+
+        if (nargin == 1)
+        {
+            status = IfftN(*freqRes, *signal, false);
+        }
+        else
+        {
+            if (!inputs[1].IsRealVector())
+            {
+                delete signal;
+                throw OML_Error(OML_ERR_INTEGER, 2, OML_VAR_TYPE);
+            }
+
+            const hwMatrix* dims = inputs[1].Matrix();
+            int numDims = dims->Size();
+            std::vector<int> size(numDims);
+
+            for (int i = 0; i < numDims; ++i)
+            {
+                if (!IsInteger((*dims)(i)).IsOk())
+                {
+                    delete freqRes;
+                    throw OML_Error(OML_ERR_NATURALNUM, 1, OML_VAR_DIM);
+                }
+
+                size[i] = static_cast<int> ((*dims)(i));
+            }
+
+            // status = IfftN(*freqRes, size, *signal, false);
+
+            if (!status.IsOk())
+            {
+                delete signal;
+                throw OML_Error(status);
+            }
+        }
+
+        outputs.push_back(signal);
+    }
+    else if (inputs[0].IsMatrix() || inputs[0].IsScalar() || inputs[0].IsComplex())
+    {
+        return OmlIfft2(eval, inputs, outputs);
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
+    }
+
     return true;
 }
 //------------------------------------------------------------------------------

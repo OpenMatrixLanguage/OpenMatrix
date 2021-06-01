@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsUtils.cpp
 * @date November 2015
-* Copyright (C) 2015-2020 Altair Engineering, Inc.  
+* Copyright (C) 2015-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -1505,17 +1505,16 @@ bool BuiltInFuncsUtils::DoesPathExist(const std::string& path)
 #endif
 }
 //------------------------------------------------------------------------------
-//  Returns string trimmed from leading white space(s)
+//  Returns string trimmed from leading characters
 //------------------------------------------------------------------------------
-std::string BuiltInFuncsUtils::LTrim(const std::string& in)
+std::string BuiltInFuncsUtils::LTrim(const std::string& in, const std::string& trim)
 {
     if (in.empty())
     {
         return std::string();
     }
 
-    std::string whitespace(" \t");
-    size_t pos = in.find_first_not_of(whitespace);
+    size_t pos = in.find_first_not_of(trim);
     if (pos == std::string::npos)
     {
         return in;
@@ -2093,4 +2092,28 @@ bool BuiltInFuncsUtils::ReadNumber(const std::string& in,
         return true;
     }
     return false;
+}
+//------------------------------------------------------------------------------
+// Closes output log
+//------------------------------------------------------------------------------
+void BuiltInFuncsUtils::OpenOutputLogForAppend()
+{
+    std::ofstream& ofs = CurrencyDisplay::GetOutputLog();
+    if (!ofs.is_open())
+    {
+        std::wstring name(CurrencyDisplay::GetOutputLogName());
+#ifdef OS_WIN
+        ofs.open(name, std::ios_base::out | std::ios_base::app);
+#else
+        std::string logname(WString2StdString(name));
+        ofs.open(logname, std::ios_base::out | std::ios_base::app);
+#endif
+    }
+}
+//------------------------------------------------------------------------------
+// Returns true if output log is open
+//------------------------------------------------------------------------------
+bool BuiltInFuncsUtils::IsOutputLogOpen()
+{
+    return CurrencyDisplay::GetOutputLog().is_open();
 }

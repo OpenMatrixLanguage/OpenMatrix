@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsString.cpp
 * @date November 2015
-* Copyright (C) 2015-2020 Altair Engineering, Inc.  
+* Copyright (C) 2015-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -2044,4 +2044,32 @@ void BuiltInFuncsString::RightTrim(std::string&                    in,
         }
         insize = in.size();
     }
+}
+//------------------------------------------------------------------------------
+// Returns true if successful in converting string to scalar/complex
+//------------------------------------------------------------------------------
+bool BuiltInFuncsString::IsNumber(const std::string& in, Currency& result)
+{
+    if (in.empty())
+    {
+        return false;
+    }
+
+    double rval = 0;
+    double ival = 0;
+    bool   isscalar = true;
+    BuiltInFuncsString funcs;
+    if (funcs.Str2Num(in, rval, ival, isscalar))
+    {
+        if (isscalar)
+        {
+            result = Currency(rval);
+        }
+        else
+        {
+            result = Currency(hwComplex(rval, ival));
+        }
+        return true;
+    }
+    return false;
 }
