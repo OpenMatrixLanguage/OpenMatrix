@@ -1,3 +1,0 @@
-fid = fopen('FileManipulation\fscanf19.txt','r');
-[info] = fscanf(fid,'%*s %f %*s %f %f %*s',3)
-fclose(fid);

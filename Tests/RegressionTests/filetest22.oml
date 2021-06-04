@@ -1,9 +1,0 @@
-fname = 'FileManipulation/FileToRead.txt'
-fid = fopen(fname)
-[text, len] = fgets(fid, 9)
-[text, len] = fgets(fid)
-[text, len] = fgets(fid,100)
-[text, len] = fgets(fid)
-[text, len] = fgets(fid)
-[text, len] = fgets(fid)
-fclose(fid)
