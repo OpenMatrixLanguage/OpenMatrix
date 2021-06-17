@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Welcome to OpenMatrix" /><meta name="abstract" content="" /><meta name="description" content="OpenMatrix is an open source project. To learn more about the OpenMatrix project, please visit https://www.openmatrix.org/ . OpenMatrix 1.0.7 includes the following new features and enhancements. OML ..." /><meta name="indexterms" content="release notes" /><meta name="DC.subject" content="release notes, OpenMatrix" /><meta name="keywords" content="release notes, OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_qw4_vch_fw" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Welcome to OpenMatrix</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Welcome to OpenMatrix" /><meta name="abstract" content="" /><meta name="description" content="OpenMatrix is an open source project. To learn more about the OpenMatrix project, please visit https://www.openmatrix.org/ . OpenMatrix 1.0.8 includes the following new features and enhancements. OML ..." /><meta name="indexterms" content="release notes" /><meta name="DC.subject" content="release notes, OpenMatrix" /><meta name="keywords" content="release notes, OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_qw4_vch_fw" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Welcome to OpenMatrix</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../index.htm";
           
@@ -22,27 +22,44 @@
           <span class="keyword">OpenMatrix</span> project, please visit <a class="xref" href="https://www.openmatrix.org/" target="_blank">https://www.openmatrix.org/</a>.</p>
 
       <p class="p"><span class="keyword">OpenMatrix</span>
-        <span class="keyword">1.0.7</span> includes the following new features and enhancements.</p>
+        <span class="keyword">1.0.8</span> includes the following new features and enhancements.</p>
 
     </section>
 
     <section class="section" id="reference_qw4_vch_fw__section_wpq_y32_thb"><h2 class="title sectiontitle">OML Commands and Functions</h2>
       
-      <p class="p">The following commands have been improved:</p>
-
       <div class="p">
         <ul class="ul" id="reference_qw4_vch_fw__ul_s3k_r3p_nnb">
-          <li class="li">Support <span class="ph filepath">ss(A,B,C,D)</span> with sparse A.</li>
+          <li class="li">New OML profiler functions.</li>
 
-          <li class="li">Improved performance for <span class="ph filepath">eig</span> and matrix inverse operation.</li>
+          <li class="li">New <code class="ph codeph">removehiddenpath</code> command.</li>
 
-          <li class="li">Improved performance of multi-dimensional and 2D matrices interaction.</li>
+          <li class="li">New <code class="ph codeph">margin</code> command.</li>
 
-          <li class="li">Support [A,B;C,D] with sparse A,B,C,D.</li>
+          <li class="li">The <code class="ph codeph">-ascii</code> option of <code class="ph codeph">save</code> and
+              <code class="ph codeph">dlmwrite</code> can now use the same format.</li>
 
-          <li class="li"><span class="ph filepath">for</span> loop performance improvement.</li>
+          <li class="li">When <code class="ph codeph">outputlog</code> is enabled and a script is executed, any errors are
+            recorded in the output log.</li>
 
-          <li class="li"><span class="ph filepath">delete</span> function can delete curves or graphical objects.</li>
+          <li class="li">The <code class="ph codeph">EndOfline</code> option is implemented for the <code class="ph codeph">textscan</code>
+            command.</li>
+
+          <li class="li">The <code class="ph codeph">system</code> command in async mode is enhanced to work on all cores, on
+            Linux. Performance is also improved.</li>
+
+          <li class="li">The <code class="ph codeph">eval</code> function is optimized for simple numeric expressions.</li>
+
+          <li class="li">The <code class="ph codeph">dlmwrite</code> command is backward compatible with earlier OpenMatrix
+            versions.</li>
+
+          <li class="li">The <code class="ph codeph">xlsopen</code> and <code class="ph codeph">xlswrite</code> documentation explains that
+            a new file is created if no file exists.</li>
+
+          <li class="li">Support for a single argument (y), in addition to (x,y), has been
+            added for <code class="ph codeph">cumtrapz</code>:<pre class="pre codeblock" id="reference_qw4_vch_fw__codeblock_vrc_xhv_ypb"><code><code class="ph codeph">
+area = cumtrapz(y)</code><code class="ph codeph">
+area = cumtrapz(x,y)</code></code></pre></li>
 
         </ul>
 
@@ -50,67 +67,34 @@
 
     </section>
 
-    <section class="section" id="reference_qw4_vch_fw__section_bqk_1n2_thb"><h2 class="title sectiontitle">Resolved Issues</h2>
+    <section class="section" id="reference_qw4_vch_fw__section_byr_nj2_thb"><h2 class="title sectiontitle">Resolved Issues</h2>
       
-      <div class="p">The following issues were resolved:<ul class="ul" id="reference_qw4_vch_fw__ul_c3j_mmd_s4b">
-          <li class="li"><span class="ph filepath">importdata</span> was not maintaining the format of the read file.</li>
+      <div class="p">The following issues are resolved:<ul class="ul" id="reference_qw4_vch_fw__ul_kmn_1jp_nnb">
+          <li class="li">Running a script with <code class="ph codeph">outputlog</code> produces an empty TXT file.</li>
 
-          <li class="li">Scoping issue.</li>
+          <li class="li">CSV file-reading errors occur due to line ending ASCII characters.</li>
 
-          <li class="li">ytick does not change in <span class="ph filepath">get(handle)</span>.</li>
+          <li class="li"><code class="ph codeph">textread</code> crashes OML.</li>
 
-          <li class="li">Eigen vector is incorrect for cases where the decomposition fails.</li>
+          <li class="li"><code class="ph codeph">eval(['if 1',char(10),'expr=3;',char(10),'end'])</code> should not have a
+            return value.</li>
 
-          <li class="li">Issue with nested functions.</li>
+          <li class="li"><code class="ph codeph">ls</code> doesn't work correctly with a wildcard on Linux.</li>
 
-          <li class="li"><span class="ph filepath">persistent</span> variable does not retain value in nested
-            function.</li>
+          <li class="li">Crash on vectorized assignment of variable.</li>
 
-          <li class="li">Issue with folder path containing special characters.</li>
+          <li class="li">Crash when <code class="ph codeph">str2func</code> is called due to text within quotes.</li>
 
-          <li class="li"><span class="ph filepath">ismember</span> issue with the 'rows' option.</li>
+          <li class="li"><code class="ph codeph">isempty</code> not working for class objects..</li>
 
-          <li class="li">On <span class="keyword">Linux</span>, "system" call redirection of the output to a
-            file does not work.</li>
+          <li class="li">Unable to find a function depending on its position within a file.</li>
 
-          <li class="li">Sudden crash when script runs once, followed by a second attempt to run.</li>
+          <li class="li">Issue with fit quality when applying the <code class="ph codeph">polyfit</code> function with a high
+            polynomial order.</li>
 
-          <li class="li">Inconsistent behavior with non-US ASCII strings.</li>
+          <li class="li"><code class="ph codeph">freqz</code> documentation does not mention the 2nd output value.</li>
 
-          <li class="li"><span class="ph filepath">toc</span> used as an expression must return a value.</li>
-
-          <li class="li"><span class="ph filepath">input</span> function syntax error.</li>
-
-          <li class="li">"<span class="ph filepath">run</span>" is executed twice in batch mode (prints twice).</li>
-
-          <li class="li"><span class="ph filepath">cellfun</span> issue.</li>
-
-          <li class="li">Loading <span class="ph filepath">mat</span> file causes a crash.</li>
-
-          <li class="li">OML <span class="ph filepath">exit</span> function is ignored when called through the
-              <span class="ph filepath">run</span> function.</li>
-
-          <li class="li">On <span class="keyword">Linux</span>, <span class="ph filepath">copyfile</span> does not work if
-            the file path contains whitespace.</li>
-
-          <li class="li">ND cells information incorrect in the <span class="ph filepath">whos</span> function.</li>
-
-          <li class="li">Syntax error incorrectly raised in some cases (parsing issue with dots).</li>
-
-          <li class="li">Issue with offset in <span class="ph filepath">dlmwrite</span> or
-            <span class="ph filepath">csvwrite</span>.</li>
-
-          <li class="li"><span class="ph filepath">dlmread</span> and <span class="ph filepath">csvread</span> cannot support complex
-            numbers.</li>
-
-          <li class="li"><span class="ph filepath">pinv</span> function not working for "large" matrix.</li>
-
-          <li class="li">Parameter size in <span class="ph filepath">lsqcurvefit</span> changes during optimization.</li>
-
-          <li class="li">Row vector becomes column vector inside <span class="ph filepath">lsqcurvefit</span>.</li>
-
-          <li class="li">Saving the <span class="keyword">OML</span> console outputs using <span class="ph filepath">diary</span>
-            doesn’t work.</li>
+          <li class="li">Matrix power calculation bug with inappropriate diagonalization.</li>
 
         </ul>
 </div>

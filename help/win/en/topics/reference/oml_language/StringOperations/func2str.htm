@@ -58,13 +58,23 @@
       
       <div class="p">Built-in function
         input:<pre class="pre codeblock"><code>f = @sum % Creates a function handle for the built-in function 'sum'
-f = sum
-R = func2str(f)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = sum</code></code></pre></div>
+R = func2str(f)</code></pre></div>
+
+      <div class="p">
+        <pre class="pre codeblock"><code>f = @sum
+
+R = sum</code></pre>
+      </div>
 
       <div class="p">User defined function
         input:<pre class="pre codeblock"><code>f = @(x) 2*x % Creates a function handle for the user defined function, with input x
-f = anonymous
-R = func2str(f)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = anonymous</code></code></pre></div>
+R = func2str(f)</code></pre></div>
+
+      <div class="p">
+        <pre class="pre codeblock"><code>f = @(x) 2 * x
+
+R = 2 * x</code></pre>
+      </div>
 
     </section>
 

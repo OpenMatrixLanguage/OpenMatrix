@@ -140,8 +140,7 @@ x0 = [-1.2, 1.0];
 1.00000  1.00000
 fval = 5.29978e-14</code></code></pre></div>
 
-      <div class="p">Modify the previous example to pass an extra parameter to the user function using a
-        function
+      <div class="p">Modify the previous example to pass an extra parameter to the function using a function
         handle.<pre class="pre codeblock"><code>function obj = Rosenbrock2(x, offset)
     obj = (1 - x(1))^2 + 100 * (x(2) - x(1)^2)^2 + offset;
 end

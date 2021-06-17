@@ -50,12 +50,12 @@
       <div class="p">Simple <span class="keyword cmdname">which</span>
         example:<pre class="pre codeblock"><code>which('sqrt')</code></pre><pre class="pre codeblock"><code><samp class="ph systemoutput">'sqrt' is a built-in function</samp></code></pre></div>
 
-      <div class="p">If a user made variable matches a built in function. <span class="keyword cmdname">Which</span> will still
-        indicate that the given variable is still a built-in
+      <div class="p">If a variable you made matches a built-in function, <span class="keyword cmdname">which</span> still
+        indicates that the given variable is a built-in
         function:<pre class="pre codeblock"><code>sqrt = 5
 which('sqrt')</code></pre><pre class="pre codeblock"><code><samp class="ph systemoutput">'sqrt' is a built-in function</samp></code></pre></div>
 
-      <div class="p">User function
+      <div class="p">User-defined function
         example:<pre class="pre codeblock"><code>function z=sqrt(a)
 z=a/2;
 end
