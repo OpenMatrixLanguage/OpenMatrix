@@ -1,4 +1,5 @@
-notifications: _webhooks: _
+notifications:
+  _webhooks: _
 install: true
 language: cpp
 addons:
