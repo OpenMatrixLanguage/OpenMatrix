@@ -1,7 +1,7 @@
 /**
 * @file SparseDisplay.cpp
 * @date June, 2019
-* Copyright (C) 2019-2020 Altair Engineering, Inc.
+* Copyright (C) 2019-2021 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -296,7 +296,8 @@ void SparseDisplay::SetWidth(Interpreter* interp)
     bool isreal = mtx->IsReal();
     bool isrealdata = mtx->IsRealData();
 
-    if (mtx->Size() >= m_skipFormat)
+    // NZInfo needs to have the first argument > NNZ
+    if (mtx->Size() >= m_skipFormat && mtx->NNZ() > 0) 
     {
         // Flip to fixed width, after examining the first element
         double      realval = 0.0;

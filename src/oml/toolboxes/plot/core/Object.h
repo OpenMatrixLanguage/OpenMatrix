@@ -1,7 +1,7 @@
 /**
 * @file Object.h
 * @date May 2017
-* Copyright (C) 2017-2020 Altair Engineering, Inc.  
+* Copyright (C) 2017-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -45,7 +45,15 @@ namespace omlplot{
         POINTER = 0x20,
         VEC_DOUBLE = 0x40,
         COLOR = 0x80,
-		UNSUPPORTED = 0x100 //Helper for identifying properties that are not supported in OM yet
+        CELL = 0x100,
+		UNSUPPORTED = 0x200 //Helper for identifying properties that are not supported in OM yet
+    };
+
+    enum class ObjectType {
+        NO_TYPE, ROOT, FIGURE, AXES, SECONDARYYAXIS, TEXT, 
+        LINE, POLAR_LINE, FILL, AREA, LINE_3D, BAR, HIST, 
+        SCATTER, SCATTER_3D, SURFACE, MESH, CONTOUR_3D, 
+        CONTOUR, STEM, LOGLOG, SEMILOGX, SEMILOGY
     };
 
     template <typename T1 = string, typename T2 = Currency,
@@ -119,16 +127,19 @@ namespace omlplot{
         vector<string> getPropertyNames();
         Property &getProperty(const string&);
         VALUETYPE getPropertyValue(const string&);
-        bool setPropertyValue(const string& , VALUETYPE);
+        virtual bool setPropertyValue(const string& , VALUETYPE);
 
         double getHandle();
         string getType();
 
         bool isHandle(double);
-        virtual bool isFigure(double);
-        virtual bool isAxes(double);
+        virtual bool isFigure();
+        virtual bool isAxes();
+        virtual bool isDrawable();
+        virtual bool isText();
         Object *getObject(double);
         void dump(Object *, int);
+        Object* getParentObject();
 
         void setParent(Object *);
         void addChild(Object *);
@@ -136,47 +147,56 @@ namespace omlplot{
         virtual void repaint();
         virtual void update(GnuplotOutput *) = 0;
 
+        ObjectType getObjectType() const;
+
     protected:
         vector<Property> m_ps;         // properties
         static HandlePool *m_handlePool;
         static FigureHandlePool * m_figureHandlePool;
         static map<double, Object *> m_objectMap;
+        ObjectType m_type;
     };
 
     class OMLPLOT_EXPORT Root: public Object{
     public:
         Root();
-        bool isFigure(double h) override;
-        bool isAxes(double) override;
         void repaint() override;
         void update(GnuplotOutput *out = nullptr) override;
     };
+
+    class Text;
 
     class OMLPLOT_EXPORT Figure: public Object{
     public:
         Figure();
         Figure(int);
         ~Figure();
-        bool isFigure(double h) override;
-        bool isAxes(double) override;
+        bool isFigure() override;
         void repaint() override;
         void update(GnuplotOutput *out = nullptr) override;
+        virtual bool setPropertyValue(const string&, VALUETYPE) override;
 
         void clear();
         void out(string);
         void saveas(string , string);
+        void setGridLayout(int rows, int cols);
+        bool isGridLayout();
+        void getSubplotPosition(int subplotIdx, double& x, double& y, double& w, double& h);
     private:
         void init(double h);
     private:
         unique_ptr<GnuplotOutput> m_out;
+        unique_ptr<Text> m_tLabel, m_rLabel, m_lLabel, m_bLabel;       
+        int m_rows, m_cols;
+        bool m_isGridLayout;
     };
 
-    class Text;
+    class SecondaryYAxis;
 
     class OMLPLOT_EXPORT Axes: public Object{
     public:
         Axes();
-        bool isAxes(double) override;
+        bool isAxes() override;
         void update(GnuplotOutput *) override;
         void repaint() override;
 
@@ -184,24 +204,52 @@ namespace omlplot{
         void hold(bool);
         bool ishold();
 
-        void setAxisNeedRepaint(bool);
-        bool axisNeedRepaint();
+        void setAxisNeedRepaint(int axisID);
         void setBorder(bool state);
         bool getBorder() const;
         void setColorbarVisible(bool state);
         bool getColorbarVisible() const;
         void setColorbarRange(const std::vector<double>& range);
         std::vector<double> getColorbarRange();
-
+        void getBarNumberAndIdx(double barHandle, int& barNumber, int& barIndex);
+        void setBarLayout(const string& barLayout);
+        void setBarWidth(double barWidth);
+        void setSecondaryYAxisVisible(bool visible);
+        bool setPropertyValue(const string& name, VALUETYPE value) override;
+        double getSecondaryYAxisHandle() const;
+        void setGridIndex(int idx);
+        void getTipToTailCoordinates(double& x, double& y, double& t, double& r) const;
+        void setTipToTailCoordinates(double x, double y, double t, double r);
     private:
+        string drawStackedBarPlotLabels(GnuplotOutput* out);
+        void setupColorbar(GnuplotOutput* out);
+
         unique_ptr<Text> m_title;
         unique_ptr<Text> m_xlabel;
         unique_ptr<Text> m_ylabel;
         unique_ptr<Text> m_zlabel;
-        bool _axisNeedRepaint;
+        unique_ptr<SecondaryYAxis> m_secYAxis;
         bool _borderOn;
         bool _colorbarVisible;
         std::vector<double> _colorbarRange;
+        string m_barlayout;
+        double m_barWidth;
+        bool m_secYAxisVisible;
+        bool m_updateXAxisRange, m_updateYAxisRange, m_updateY2AxisRange, m_updateZAxisRange;
+        int m_gridIndex;
+        double m_tailX, m_tailY, m_tailTheta, m_tailR;
+    };
+
+    class OMLPLOT_EXPORT SecondaryYAxis : public Object {
+    public:
+        SecondaryYAxis(double parentHandle);
+        void update(GnuplotOutput*) override;
+        bool isAxes() override;
+        double getParentAxesHandle() const;
+
+    private:
+        unique_ptr<Text> m_ylabel;
+        double m_parentAxesHandle;
     };
 
     class OMLPLOT_EXPORT Drawable : public Object{
@@ -211,8 +259,10 @@ namespace omlplot{
         vector<double> getXdata();
         vector<double> getYdata();
         vector<double> getZdata();
+        bool getVisible();
 
         void update(GnuplotOutput *) override;
+        bool isDrawable() override;
 
         virtual string getUsingClause() = 0;
         virtual string getWithClause(int) = 0;
@@ -220,10 +270,14 @@ namespace omlplot{
         virtual string getLineStyle(int) = 0;
         virtual void putData(GnuplotOutput *);
         virtual void cleanup(GnuplotOutput *) = 0;
+
+        void plotOnSecondaryYAxis(bool plot);
+
     protected:
         int _xcolcount;
         int _ycolcount;
         int _zcolcount;
+        std::string m_xaxisRef, m_yaxisRef;
     };
 
     class OMLPLOT_EXPORT Line: public Drawable{
@@ -240,8 +294,7 @@ namespace omlplot{
     class OMLPLOT_EXPORT Polar : public Line{
     public:
         Polar();
-        string getLineStyle(int) override;
-        void cleanup(GnuplotOutput *) override;
+        virtual void putData(GnuplotOutput* out) override;
     };
 
     class OMLPLOT_EXPORT Fill : public Drawable{
@@ -258,6 +311,7 @@ namespace omlplot{
     class OMLPLOT_EXPORT Area : public Drawable{
     public:
         Area();
+        void init(const LineData& ld) override;
         string getUsingClause() override;
         string getWithClause(int) override;
         string getLegend() override;
@@ -268,9 +322,7 @@ namespace omlplot{
     class OMLPLOT_EXPORT Line3 : public Line{
     public:
         Line3();
-        string getLineStyle(int line) override;
         string getUsingClause() override;
-        string getWithClause(int lineId) override;
     };
 
     class OMLPLOT_EXPORT HggroupBar : public Drawable{
@@ -283,6 +335,8 @@ namespace omlplot{
         string getLegend() override;
         string getLineStyle(int) override;
         void cleanup(GnuplotOutput *) override;
+        void putData(GnuplotOutput*) override;
+        bool setPropertyValue(const string& name, VALUETYPE value) override;
     };
 
     class OMLPLOT_EXPORT Hist : public HggroupBar{
@@ -290,13 +344,13 @@ namespace omlplot{
         Hist();
 
         void init(const LineData &) override;
-        string getLineStyle(int line) override;
     };
 
     class OMLPLOT_EXPORT HggroupScatter : public Drawable{
     public:
         HggroupScatter();
 
+        void init(const LineData& ld) override;
         string getUsingClause() override;
         string getWithClause(int) override;
         string getLegend() override;
@@ -313,7 +367,8 @@ namespace omlplot{
     class OMLPLOT_EXPORT Surface : public Drawable{
     public:
         Surface();
-
+        
+        void init(const LineData& ld) override;
         string getUsingClause() override;
         string getWithClause(int) override;
         string getLegend() override;
@@ -328,6 +383,8 @@ namespace omlplot{
     class OMLPLOT_EXPORT Mesh : public Surface{
     public:
         Mesh();
+        string getUsingClause() override;
+        string getWithClause(int) override;
         string getLineStyle(int) override;
     };
 
@@ -335,11 +392,12 @@ namespace omlplot{
     public:
         Contour3();
         string getLineStyle(int) override;
+        string getWithClause(int) override;
         string getUsingClause() override;
         void cleanup(GnuplotOutput *) override;
     };
 
-    class OMLPLOT_EXPORT Contour : public Surface{
+    class OMLPLOT_EXPORT Contour : public Contour3{
     public:
         Contour();
         string getLineStyle(int) override;
@@ -377,7 +435,10 @@ namespace omlplot{
     public:
         Text();
         void update(GnuplotOutput *) override;
-        void update(GnuplotOutput *, const string);
+        void update(GnuplotOutput *, const string& type);
+        bool isText() override;
+        
+        bool getVisible();
     private:
         string getModifiedString(const string& text);
     };

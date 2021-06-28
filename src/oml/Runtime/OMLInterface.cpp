@@ -304,6 +304,36 @@ const double* OMLSparseMatrixImpl::GetImaginaryData() const
 	return temp.GetRealData();
 }
 
+const int* OMLSparseMatrixImpl::GetRowVector() const
+{
+	int num_vals = _mtxs->NNZ();
+	//	void NZinfo(int first, int last, std::vector<int> & row,
+	//	std::vector<int> & col, hwTMatrix<T1, T2> & value) const;
+		
+	std::vector<int> row_vec;
+	std::vector<int> col_vec;
+
+	hwMatrix val_mat;
+
+	_mtxs->NZinfo(0, num_vals, row_vec, col_vec, val_mat);
+
+	return row_vec.data();
+}
+
+const int* OMLSparseMatrixImpl::GetColumnVector() const
+{
+	int num_vals = _mtxs->NNZ();
+
+	std::vector<int> row_vec;
+	std::vector<int> col_vec;
+
+	hwMatrix val_mat;
+
+	_mtxs->NZinfo(0, num_vals-1, row_vec, col_vec, val_mat);
+
+	return col_vec.data();
+}
+
 OMLCurrency* OMLSparseMatrixImpl::GetCurrency() const
 {
 	return (new OMLCurrencyImpl(_mtxs));
@@ -638,15 +668,25 @@ OMLNDCellArray*  OMLCurrencyListImpl::CreateNDCellArray(int num_dims, int* dims)
 	return new OMLNDCellArrayImpl(cells);
 }
 
-OMLSparseMatrix* OMLCurrencyListImpl::CreateSparseMatrix(int num_rows, int num_cols)
+OMLSparseMatrix* OMLCurrencyListImpl::CreateSparseMatrix(int num_vals, int* ivec, int* jvec, double* vals, int rows, int cols)
 {
 	// expecting to create a sparse matrix of the specified size with all zero-values
 	// the user can then fill in the non-zero values one-at-a-time
-	const std::vector<int> ivec;
-	const std::vector<int> jvec;
-	const hwMatrix dummy;
+	std::vector<int> ivector;
+	std::vector<int> jvector;
 
-	hwMatrixS* temp =  new hwMatrixS(ivec, jvec, dummy, num_rows, num_cols);
+	hwMatrix* temp_mtx = new hwMatrix;
+
+	for (int j = 0; j < num_vals; ++j)
+	{
+		ivector[j] = ivec[j];
+		jvector[j] = jvec[j];
+
+		if (vals[j] != 0.0)
+			(*temp_mtx)(j) = vals[j];
+	}
+
+	hwMatrixS* temp =  new hwMatrixS(ivector, jvector, *temp_mtx, rows, cols);
 	return new OMLSparseMatrixImpl(temp);
 }
 

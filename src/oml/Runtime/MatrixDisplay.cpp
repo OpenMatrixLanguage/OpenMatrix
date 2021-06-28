@@ -1,7 +1,7 @@
 /**
 * @file MatrixDisplay.cpp
 * @date November 2016
-* Copyright (C) 2016-2020 Altair Engineering, Inc.  
+* Copyright (C) 2016-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -1256,13 +1256,17 @@ std::string MatrixDisplay::GetOutputValues(const Currency&     in,
         bool isreal     = mtx->IsReal();
         bool isrealdata = mtx->IsRealData();
 
+        std::string coffsetstr;
+        for (int k = 0; k < coffset && k < ncols; ++k)
+        {
+            coffsetstr += cdelim;
+        }
+
         for (int i = 0; i < nrows; ++i)
         {
+            output += coffsetstr;
             for (int j = 0; j < ncols; ++j)
             {
-                if (j < coffset)
-                    output += cdelim;
-
                 if (isreal)
                     output += RealToString((*mtx)(i, j), precisionreal);
                 else
@@ -1475,4 +1479,69 @@ int MatrixDisplay::GetImagWidth(int idx, bool isreal) const
     }
     return _imagwidth[idx];
 }
+//------------------------------------------------------------------------------
+// Utility which returns matrix values as string, without formatting output
+//------------------------------------------------------------------------------
+std::string MatrixDisplay::GetNonFormattedOutputValues(const Currency& in,
+    const std::string& rdelim,
+    const std::string& cdelim,
+    int                 coffset)
+{
+    if (in.IsScalar())
+    {
+        return NonFormattedDoubleToString(in.Scalar());
+    }
+    else if (in.IsComplex())
+    {
+        return NonFormattedComplexToString(in.Complex());
+    }
+    else if (in.IsMatrix()) // Just get the values without format
+    {
+        const hwMatrix* mtx = in.Matrix();
+        int             nrows = mtx ? mtx->M() : 0;
+        int             ncols = mtx ? mtx->N() : 0;
+        if (!mtx || nrows == 0 || ncols == 0)
+        {
+            return "";
+        }
+
+        std::string output;
+        std::string coffsetstr;
+        for (int k = 0; k < coffset && k < ncols; ++k)
+        {
+            coffsetstr += cdelim;
+        }
+
+        bool isreal     = mtx->IsReal();
+        bool isrealdata = mtx->IsRealData();
+
+        for (int i = 0; i < nrows; ++i)
+        {
+            output += coffsetstr;
+            for (int j = 0; j < ncols; ++j)
+            {
+                if (isreal)
+                {
+                    output += NonFormattedDoubleToString((*mtx)(i, j));
+                }
+                else if (isrealdata)
+                {
+                    output += NonFormattedDoubleToString(mtx->z(i, j).Real());
+                }
+                else
+                {
+                    output += NonFormattedComplexToString(mtx->z(i, j));
+                }
+                if (j < ncols - 1)
+                {
+                    output += cdelim;
+                }
+            }
+            output += rdelim;
+        }
+        return output;
+    }
+    return "";
+}
+
 // End of file

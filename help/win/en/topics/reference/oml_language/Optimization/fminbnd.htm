@@ -143,8 +143,7 @@ interval = [1, 6];
 [x,fval] = fminbnd(@func, interval)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">x = 2.71828183
 fval = -0.367879441</code></code></pre></div>
 
-      <div class="p">Modify the previous example to pass an extra parameter to the user function using a
-        function
+      <div class="p">Modify the previous example to pass an extra parameter to the function using a function
         handle:<pre class="pre codeblock"><code>function y = func(x, offset)
     y = -log(x) / x + offset;
 end

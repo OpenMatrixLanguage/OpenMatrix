@@ -135,6 +135,8 @@
 #define OML_MSG_CELL_MTX                    "Error: invalid input; must be a cell or matrix"
 #define OML_MSG_INVALIDTIMEVAL              "Error: invalid input: value is out of range for time function"
 #define OML_MSG_HANDLE_STRING_CELL          "Error: invalid input: must be a function handle, string or cell with function details"
+#define OML_MSG_ERR_OBJ_HANDLE              "Error: invalid input: must be an object handle"
+#define OML_MSG_ERR_HANDLE_STRING           "Error: invalid input: must be an object handle or string"
 #define OML_MSG_INTERNAL                    "Error: internal error"
 #define OML_MSG_AUTHENTICATE                "Error: authentication failure"
 #define OML_MSG_UNICODE_FILENAME            "Error: invalid input: file name cannot have Unicode characters"
@@ -219,6 +221,13 @@
 #define OML_MSG_HDF5_INVALID_ATTRIBUTE           "Error: invalid attribute"
 #define OML_MSG_HDF5_INVALID_STRUCT_MEMBERS      "Error: all values in struct must have same dimensions"
 #define OML_MSG_HDF5_INVALID_ATTRIBUTE_DATA      "Error: attribute value must be a scalar,string or real matrix."
+
+// oml menu apis codes
+#define OML_MSG_MENUAPI_SYS_NAME                 "Error: cannot use system ribbon name."
+#define OML_MSG_MENUAPI_SYS_DEL                  "Error: cannot delete system ribbons."
+#define OML_MSG_MENUAPI_SYS_MOD                  "Error: cannot modify system ribbons."
+#define OML_MSG_MENUAPI_INVALID_HANDLE           "Error: invalid handle"
+#define OML_MSG_MENUAPI_INVALID_HANDLE_TYPE      "Error: invalid handle type"
 
 // Variable type definitions
 #define OML_STR_MATRIX          "matrix"
@@ -576,6 +585,8 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode errCode) const
     case OML_ERR_CELL_MTX:                      msgStr = OML_MSG_CELL_MTX; break;
     case OML_ERR_INVALIDTIMEVAL:                msgStr = OML_MSG_INVALIDTIMEVAL; break;
     case OML_ERR_HANDLE_STRING_CELL:            msgStr = OML_MSG_HANDLE_STRING_CELL; break;
+    case OML_ERR_OBJ_HANDLE:                    msgStr = OML_MSG_ERR_OBJ_HANDLE; break;
+    case OML_ERR_HANDLE_STRING:                 msgStr = OML_MSG_ERR_HANDLE_STRING; break;
     case OML_ERR_INTERNAL:                      msgStr = OML_MSG_INTERNAL; break;
     case OML_ERR_AUTHENTICATE:                  msgStr = OML_MSG_AUTHENTICATE; break;
     case OML_ERR_UNICODE_FILENAME:              msgStr = OML_MSG_UNICODE_FILENAME; break;
@@ -657,6 +668,13 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode errCode) const
     case OML_ERR_HDF5_INVALID_ATTRIBUTE:         msgStr = OML_MSG_HDF5_INVALID_ATTRIBUTE;         break;
     case OML_ERR_HDF5_INVALID_STRUCT_MEMBERS:    msgStr = OML_MSG_HDF5_INVALID_STRUCT_MEMBERS;    break;
     case OML_ERR_HDF5_INVALID_ATTRIBUTE_DATA:    msgStr = OML_MSG_HDF5_INVALID_ATTRIBUTE_DATA;    break;
+
+    //oml menu apis code
+    case OML_ERR_MENUAPI_SYS_NAME:               msgStr = OML_MSG_MENUAPI_SYS_NAME; break;
+    case OML_ERR_MENUAPI_SYS_DEL:                msgStr = OML_MSG_MENUAPI_SYS_DEL;  break;
+    case OML_ERR_MENUAPI_SYS_MOD:                msgStr = OML_MSG_MENUAPI_SYS_MOD;  break;
+    case OML_ERR_MENUAPI_INVALID_HANDLE:         msgStr = OML_MSG_MENUAPI_INVALID_HANDLE; break;
+    case OML_ERR_MENUAPI_INVALID_HANDLE_TYPE:    msgStr = OML_MSG_MENUAPI_INVALID_HANDLE_TYPE; break;
 
     default: break;
     }

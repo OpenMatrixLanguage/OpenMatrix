@@ -1,7 +1,7 @@
 /**
 * @file ConsoleWrapper.cpp
 * @date June 2015
-* Copyright (C) 2015-2020 Altair Engineering, Inc.  
+* Copyright (C) 2015-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -91,7 +91,20 @@ ConsoleWrapper::~ConsoleWrapper()
 //------------------------------------------------------------------------------
 void ConsoleWrapper::HandleOnPrintResult(const Currency& cur)
 {	
+    bool islog = cur.IsLogOutput();
+    bool closelog = false;
+    if (islog && !BuiltInFuncsUtils::IsOutputLogOpen() && _displayStack.empty())
+    {
+        BuiltInFuncsUtils::OpenOutputLogForAppend(); // This currency is coming from a child evaluator
+        closelog = true;
+    }
+
     bool couldPrint = PrintResult(cur);
+    if (closelog)
+    {
+        BuiltInFuncsUtils::CloseOutputLog();
+    }
+
     if (!couldPrint)
         _resultsToPrint.push_back(cur);  // Print later, once pagination is done
 }
@@ -1026,6 +1039,6 @@ void ConsoleWrapper::Print(const std::string& msg, bool forceFlush)
         {
             FlushStdout();
         }
+        BuiltInFuncsUtils::SaveToOutputLog(msg);
     }
-    BuiltInFuncsUtils::SaveToOutputLog(msg);
 }

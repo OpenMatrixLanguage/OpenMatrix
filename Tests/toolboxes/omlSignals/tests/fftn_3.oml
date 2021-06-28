@@ -1,0 +1,5 @@
+addtoolbox omlsignals
+
+x = log([1:60]);
+x = reshape(x, [5,4,3]);
+fftnd = fftn(x)

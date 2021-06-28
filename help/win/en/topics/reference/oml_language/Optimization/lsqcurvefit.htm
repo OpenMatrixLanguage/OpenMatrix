@@ -206,8 +206,7 @@ p0 = [15; 1];
  0.69669
 res = 0.00190995098</code></code></pre></div>
 
-      <div class="p">Modify the previous example to pass an extra parameter to the user function using a
-        function
+      <div class="p">Modify the previous example to pass an extra parameter to the function using a function
         handle.<pre class="pre codeblock"><code>function y = FittingFunc(p, x, offset)
     y = p(1) * exp(-p(2)*x) + offset;
 end

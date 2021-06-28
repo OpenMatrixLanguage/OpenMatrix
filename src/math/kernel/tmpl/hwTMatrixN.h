@@ -92,6 +92,9 @@ public:
     //! Dimension matrix, specifying real or complex
     //! Applies to empty or populated matrix, does not preserve existing data
     void Dimension(const std::vector<int>& dim, DataType dataType);
+    //! Resize the matrix, leaving the data type unchanged
+    //! Applies to populated matrix, can only resize an empty matrix if it remains empty
+    void Resize(const hwTMatrixN<T1, T2>& source, const std::vector<int>& dim, bool initZero = false);
     //! Change the dimensions of a matrix while maintaining the same number of elements
     void Reshape(const std::vector<int>& dim);
     //! Reorder matrix dimensions, a generalized transpose

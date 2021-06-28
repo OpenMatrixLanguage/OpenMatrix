@@ -112,7 +112,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_MKL_LIBDIR);$(OML_FFTWDIR)\fftw-3.2.2-libs/x64/Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mathcore.lib;hwmathutils.lib; hwpolynom.lib; hwstatistics.lib; libfftw-3.2.2-x64.lib; mkl_rt.lib</AdditionalDependencies>
+      <AdditionalDependencies>mathcore.lib;hwmathutils.lib;hwpolynom.lib;hwstatistics.lib;libfftw-3.2.2-x64.lib;$(OML_MKL_LIBS)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

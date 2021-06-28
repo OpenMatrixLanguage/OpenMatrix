@@ -70,6 +70,20 @@
           <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
 
         
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">nprocs</var> (optional)</dt>
+
+          <dd class="dd pd">Controls how <var class="keyword varname">stringCommand</var> is executed with the
+              <span class="keyword option">async</span> mode on <span class="keyword">Linux</span>. If the value of
+              <var class="keyword varname">nprocs</var> is <span class="keyword option">'max'</span>, the <span class="keyword cmdname">system</span>
+            command is executed in asynchronous mode with equal thread affinity on all available
+            cores. If the value of <var class="keyword varname">nprocs</var> is <span class="keyword option">'default'</span>, the
+              <span class="keyword cmdname">system</span> command is executed in asynchronous mode, with the <span class="keyword">Linux</span> system deciding upon which core the command will be run. The
+            default value is <span class="keyword option">'default'</span>. On Windows, this option has no effect.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
       </dl>
 
       <?STOPINP?>
@@ -84,7 +98,7 @@
 
           <dd class="dd pd">The status of the system command executed. The process ID of the executed
               <var class="keyword varname">stringCommand</var> is returned if the <var class="keyword varname">mode</var> is
-              <span class="keyword option">'async' </span>.</dd>
+              <span class="keyword option">'async'</span>.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span></dd>
 
@@ -105,23 +119,38 @@
 	
      <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
-         <div class="p">Run the system command, without retrieving the
+         <div class="p">Run the <span class="keyword cmdname">system</span> command, without retrieving the
         output:<pre class="pre codeblock"><code>R = system('echo %date% %time%')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 0</code></code></pre></div>
 
-         <div class="p">Run the system command, with the text displayed to standard output:
+         <div class="p">Run the <span class="keyword cmdname">system</span> command, with the text displayed to standard output:
         <pre class="pre codeblock"><code>[R1, R2] = system('echo %date% %time%')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R1 = 0
 R2 = Fri 02/09/2018 12:24:58.52</code></code></pre></div>
 
-       <div class="p">Run the system command, retrieving the output:
+       <div class="p">Run the <span class="keyword cmdname">system</span> command, retrieving the output:
         <pre class="pre codeblock"><code>[R1, R2] = system('echo %date% %time%', true, 'sync')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R1 = 0
 R2 = Fri 02/09/2018 12:24:58.52</code></code></pre></div>
 
-       <div class="p">Run the system command, asynchronously:
+       <div class="p">Run the <span class="keyword cmdname">system</span> command, asynchronously:
         <pre class="pre codeblock"><code>R1 = system('notepad.exe', 'async')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R1 = 18300</code></code></pre></div>
+
+      <div class="p">Run the <span class="keyword cmdname">system</span> command asynchronously on <span class="keyword">Linux</span>, specifying the system to use all available
+        cores:<pre class="pre codeblock"><code>system('mdl_batch test.mdl test.xml MotionSolve', 'async', 'threadaffinity', 'max');</code></pre></div>
 
      </section>
 
-     <section class="section">
+     <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p">It is necessary to set the ALTAIR_HOME variable to <kbd class="ph userinput">empty</kbd> before
+        calling any <span class="keyword">Altair</span> product from inside <span class="keyword">OpenMatrix</span>. To do this, append "set ALTAIR_HOME=&amp;" to the string command to be executed in the
+          <span class="keyword cmdname">system</span> function.</p>
+
+      <div class="p">For example, default call of <span class="keyword">MotionSolve</span> in the command
+        shell:<pre class="pre codeblock"><code>"C:/Program Files/Altair/2021/hwsolvers/scripts/motionsolve.bat" solverdeck.xml</code></pre></div>
+
+      <div class="p">Same call of <span class="keyword">MotionSolve</span> through the <span class="keyword">OpenMatrix</span>
+        <span class="keyword cmdname">system</span>
+        function:<pre class="pre codeblock"><code>system('set ALTAIR_HOME=&amp;"C:/Program Files/Altair/2021/hwsolvers/scripts/motionsolve.bat" solverdeck.xml');</code></pre></div>
+
       
     </section>
 

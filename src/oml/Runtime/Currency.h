@@ -1,7 +1,7 @@
 /**
 * @file Currency.h
 * @date August 2013
-* Copyright (C) 2013-2018 Altair Engineering, Inc.  
+* Copyright (C) 2013-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -39,6 +39,7 @@ class OMLDLL_DECLS CurrencyDisplay;
 class OutputFormat;
 class FunctionInfo;
 class StructData;
+class OMLTree;
 
 typedef hwTMatrix<Currency, void*> HML_CELLARRAY;
 typedef hwTMatrixN<Currency, void*> HML_ND_CELLARRAY;
@@ -94,6 +95,7 @@ public:
 	Currency(StructData* sd);
     Currency(OutputFormat* fmt);
     Currency(Currency* ptr);	
+	Currency(OMLTree* ptr);
     //! Constructor for swig bound objects
     //! \param[in] obj  Pointer to bound object
     //! \param[in] name Class name associated with the bound object
@@ -141,6 +143,7 @@ public:
 	bool  IsNothing() const        { return type == TYPE_NOTHING; }
     bool  IsFormat() const         { return type == TYPE_FORMAT; }
     bool  IsBreakpoint() const     { return type == TYPE_BREAKPOINT; }
+	bool  IsTree() const           { return type == TYPE_TREE; }
 	bool  IsEmpty() const;
 	bool  IsInteger() const;
 	bool  IsPositiveInteger() const;
@@ -178,6 +181,7 @@ public:
 	FunctionInfo*       FunctionHandle() const { return data.func; }
 	StructData*         Struct() const         { return data.sd; }
     OutputFormat*       Format() const         { return data.format; }
+	OMLTree*            Tree() const           { return data.tree; }
 	Currency*           Pointer() const        { return data.cur_ptr; }
     void*               BoundObject() const    { return data.boundobj; }
 
@@ -199,13 +203,15 @@ public:
 	const hwMatrix*     ExpandMatrix(const hwMatrix*) const;
 	HML_CELLARRAY*      ConvertToCellArray();
 
+	OMLTree*            ConvertToTree() const;
+
 	void                FlattenCellList();
 
 	void                ConvertToStruct();
 
 	void                SetLinearRange(bool);
 
-	enum CurrencyType { TYPE_SCALAR, TYPE_STRING, TYPE_MATRIX, TYPE_COLON, TYPE_COMPLEX, TYPE_CELLARRAY, TYPE_ERROR, TYPE_BREAK, TYPE_RETURN, TYPE_FUNCHANDLE, TYPE_STRUCT, TYPE_NOTHING, TYPE_FORMAT, TYPE_BREAKPOINT, TYPE_POINTER, TYPE_CONTINUE, TYPE_ND_MATRIX, TYPE_OBJECT, TYPE_BOUNDOBJECT, TYPE_ND_CELLARRAY, TYPE_SPARSE };
+	enum CurrencyType { TYPE_SCALAR, TYPE_STRING, TYPE_MATRIX, TYPE_COLON, TYPE_COMPLEX, TYPE_CELLARRAY, TYPE_ERROR, TYPE_BREAK, TYPE_RETURN, TYPE_FUNCHANDLE, TYPE_STRUCT, TYPE_NOTHING, TYPE_FORMAT, TYPE_BREAKPOINT, TYPE_POINTER, TYPE_CONTINUE, TYPE_ND_MATRIX, TYPE_OBJECT, TYPE_BOUNDOBJECT, TYPE_ND_CELLARRAY, TYPE_SPARSE, TYPE_TREE };
 	enum MaskType { MASK_NONE, MASK_DOUBLE, MASK_STRING, MASK_LOGICAL, MASK_CELL_LIST, MASK_EXPLICIT_COMPLEX };
 
 	static StringManager vm;
@@ -229,19 +235,23 @@ public:
     static void SetExperimental( bool val) { _experimental = val; }
 
     //! True if output is from 'disp' command
-    bool IsDispOutput() const { return (_outputType == OUTPUT_TYPE_DISP); }
+    bool IsDispOutput() const { return IsOutputType(OUTPUT_TYPE_DISP); }
     //! Sets output type to be from 'disp' command
-    void DispOutput() { _outputType = OUTPUT_TYPE_DISP; }
-    //! 
+    void DispOutput() { UpdateOutputType(OUTPUT_TYPE_DISP); }
     //! Resets to default output
     //!
     void ResetOutputType() { _outputType = OUTPUT_TYPE_DEFAULT; }
 
     //! True if output is from 'printf'/'fprintf' commands
-    bool IsPrintfOutput() const { return (_outputType == OUTPUT_TYPE_PRINTF); }
+    bool IsPrintfOutput() const { return IsOutputType(OUTPUT_TYPE_PRINTF); }
     //! Sets output type to be from printf/fprintf commands
-    void PrintfOutput() { _outputType = OUTPUT_TYPE_PRINTF; }
+    void PrintfOutput() { UpdateOutputType(OUTPUT_TYPE_PRINTF); }
 
+    //! Returns true if this output needs to be logged
+    bool IsLogOutput() const { return IsOutputType(OUTPUT_TYPE_LOG); }
+    //! Update output type to save to output log
+    void SetOutputTypeToLog();
+    
     //! Utility to get just the values, without any header(s), if applicable
     //! \param[in] fmt Format
     std::string GetValues( const OutputFormat* fmt) const;
@@ -281,17 +291,19 @@ private:
 		StructData*          sd;
 		OutputFormat*        format;
 		Currency*            cur_ptr;   
+		OMLTree*             tree;
         void*                boundobj;        //! Bound object pointer
 	} mutable data;
 
-    enum OUTPUT_TYPE                          //! Currency output type
+    enum OUTPUT_TYPE                          //! \enum Output type of currency
     {
-        OUTPUT_TYPE_DEFAULT,                  //! Default
-        OUTPUT_TYPE_DISP,                     //! disp output
-        OUTPUT_TYPE_PRINTF                    //! printf/fprintf output
+        OUTPUT_TYPE_DEFAULT = 1,              //!< Default
+        OUTPUT_TYPE_DISP    = 2,              //!< disp: ans is not appended
+        OUTPUT_TYPE_PRINTF  = 4,              //!< printf/fprintf: newline not added by default
+        OUTPUT_TYPE_LOG     = 8               //!< saved to output log
     };
 
-    OUTPUT_TYPE                _outputType;   //! Type of output
+    mutable OUTPUT_TYPE        _outputType;   //! Type of output
 	std::string*               message;
 	std::string*               classname;
 	mutable const std::string* out_name;
@@ -300,6 +312,17 @@ private:
 	bool                       _is_linear_range;
     
     static bool _experimental;                  //! True if experimental mode is active
+
+    //!
+    //! Updates output type
+    //! \param Output type
+    //!
+    void UpdateOutputType(OUTPUT_TYPE);
+    //!
+    //! Returns true if outputtype matches
+    //! \param Reference output type
+    //!
+    bool IsOutputType(OUTPUT_TYPE) const;
 };
 
 #endif

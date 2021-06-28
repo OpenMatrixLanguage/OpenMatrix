@@ -1,0 +1,4 @@
+fname = 'FileManipulation/dlmread14.csv';
+dlmwrite(fname,eye(5,5),',',2,2, 'precision', '%2.1f');
+csvread(fname)
+delete(fname)

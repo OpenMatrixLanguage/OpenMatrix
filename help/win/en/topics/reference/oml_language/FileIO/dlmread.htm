@@ -30,6 +30,8 @@
 
       <p class="p"><span class="ph synph">R = dlmread<span class="ph var">(f, ..., 'emptyvalue', value)</span></span></p>
 
+      <p class="p"><span class="ph synph">R = dlmread<span class="ph var">(f, ..., 'ignoremultidelim', delimstate)</span></span></p>
+
       <?STOP?>
     </section>
 
@@ -49,6 +51,10 @@
 
             <dd class="dd pd">Optional delimiter between values read. If no delimiter is 
             specified, it will be determined from the file, <var class="keyword varname">f</var>.</dd>
+
+          <dd class="dd pd ddexpand">If there are multiple delimiters adjacent to each other, they are treated as
+            individual columns in <var class="keyword varname">R</var>, unless the keyword 'ignoremultidelim' is set
+            to '<kbd class="ph userinput">on</kbd>'. </dd>
 
             <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
 
@@ -94,6 +100,16 @@
             <dd class="dd pd ddexpand">Type: <span class="keyword">scalar</span></dd>
 
           
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">delimstate</var>(optional)</dt>
+
+          <dd class="dd pd">Argument following the keyword 'ignoremultidelim', which is 'off' by default. If 'on'
+            and there are multiple delimiters adjacent to each other in the file, they are treated
+            as a single delimter.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string | logical</span></dd>
+
+        
       </dl>
 
       <?STOPINP?>

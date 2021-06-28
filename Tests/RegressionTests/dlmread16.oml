@@ -1,0 +1,1 @@
+dlmread('FileManipulation/dlmread16.csv')   % Read empty file

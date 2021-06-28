@@ -14,8 +14,9 @@
     <OML_SUNDIALSDIR>$(OML_THIRDPARTY)/sundials/sundials-3.1.0-install</OML_SUNDIALSDIR>
     <OML_QHULLDIR>$(OML_THIRDPARTY)\qhull\qhull-2015.2\lib</OML_QHULLDIR>
     <OML_MKL_INCLUDE>$(OML_THIRDPARTY)\intel\compilers_and_libraries_2019.5.281\windows\mkl\include</OML_MKL_INCLUDE>
-    <OML_MKL_LIBDIR>$(OML_THIRDPARTY)\intel\compilers_and_libraries_2019.5.281\windows\mkl\lib\intel64_win</OML_MKL_LIBDIR>
-    <OML_MKLBIN>$(OML_THIRDPARTY)\intel\compilers_and_libraries_2019.5.281\windows\redist\intel64_win\mkl</OML_MKLBIN>
+    <OML_MKL_LIBDIR>$(OML_THIRDPARTY)\intel\compilers_and_libraries_2019.5.281\windows\mkl\lib\intel64_win;$(OML_THIRDPARTY)\intel\compilers_and_libraries_2019.5.281\windows\compiler\lib\intel64_win</OML_MKL_LIBDIR>
+    <OML_MKLBIN>$(OML_THIRDPARTY)\intel\compilers_and_libraries_2019.5.281\windows\redist\intel64_win\mkl;$(OML_THIRDPARTY)\intel\compilers_and_libraries_2019.5.281\windows\redist\intel64_win\compiler</OML_MKLBIN>
+    <OML_MKL_LIBS>mkl_intel_lp64_dll.lib; mkl_intel_thread_dll.lib; mkl_core_dll.lib; libiomp5md.lib</OML_MKL_LIBS>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup>
@@ -74,6 +75,10 @@
     </BuildMacro>
     <BuildMacro Include="OML_MKLBIN">
       <Value>$(OML_MKLBIN)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="OML_MKL_LIBS">
+      <Value>$(OML_MKL_LIBS)</Value>
       <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
   </ItemGroup>

@@ -40,14 +40,17 @@ hwMathStatus ZTest(const hwMatrix& data,
     {
         return hwMathStatus(HW_MATH_ERR_COMPLEX, 1);
     }
-    if (!data.IsVector())
+
+    if (!data.IsVector() || data.IsEmpty())
     {
         return hwMathStatus(HW_MATH_ERR_VECTOR, 1);
     }
+
     if (sigma <= 0.0)
     {
         return hwMathStatus(HW_MATH_ERR_NONPOSITIVE, 3);
     }
+
     if (alpha <= 0.0 || alpha >= 0.5)
     {
         return hwMathStatus(HW_MATH_ERR_STATTESTALPHA, 7);
@@ -94,16 +97,18 @@ hwMathStatus TTest(const hwMatrix& data,
         return hwMathStatus(HW_MATH_ERR_COMPLEX, 1);
     }
 
-    if (!data.IsVector())
+    if (!data.IsVector() || data.IsEmpty())
     {
         return hwMathStatus(HW_MATH_ERR_VECTOR, 1);
     }
+
     if (alpha <= 0.0 || alpha >= 0.5)
     {
         return hwMathStatus(HW_MATH_ERR_STATTESTALPHA, 6);
     }
 
     hwMathStatus status = CI.Dimension(1, 2, hwMatrix::REAL);
+
     if (!status.IsOk())
     {
         status.ResetArgs();
@@ -155,7 +160,7 @@ hwMathStatus TTest2(const hwMatrix& data1,
         return hwMathStatus(HW_MATH_ERR_COMPLEX, 1);
     }
 
-    if (!data1.IsVector())
+    if (!data1.IsVector() || data1.IsEmpty())
     {
         return hwMathStatus(HW_MATH_ERR_VECTOR, 1);
     }
@@ -165,7 +170,7 @@ hwMathStatus TTest2(const hwMatrix& data1,
         return hwMathStatus(HW_MATH_ERR_COMPLEX, 2);
     }
 
-    if (!data2.IsVector())
+    if (!data2.IsVector() || data2.IsEmpty())
     {
         return hwMathStatus(HW_MATH_ERR_VECTOR, 2);
     }
@@ -176,6 +181,7 @@ hwMathStatus TTest2(const hwMatrix& data1,
     }
 
     hwMathStatus status = CI.Dimension(1, 2, hwMatrix::REAL);
+
     if (!status.IsOk())
     {
         status.ResetArgs();
@@ -231,20 +237,24 @@ hwMathStatus ChiSqTest(const hwMatrix& data,
     {
         return hwMathStatus(HW_MATH_ERR_COMPLEX, 1);
     }
-    if (!data.IsVector())
+
+    if (!data.IsVector() || data.IsEmpty())
     {
         return hwMathStatus(HW_MATH_ERR_VECTOR, 1);
     }
+
     if (var <= 0.0)
     {
         return hwMathStatus(HW_MATH_ERR_NONPOSITIVE, 2);
     }
+
     if (alpha <= 0.0 || alpha >= 0.5)
     {
         return hwMathStatus(HW_MATH_ERR_STATTESTALPHA, 6);
     }
 
     hwMathStatus status = CI.Dimension(1, 2, hwMatrix::REAL);
+
     if (!status.IsOk())
     {
         status.ResetArgs();
@@ -293,24 +303,29 @@ hwMathStatus FTest(const hwMatrix& data1,
     {
         return hwMathStatus(HW_MATH_ERR_COMPLEX, 1);
     }
-    if (!data1.IsVector())
+
+    if (!data1.IsVector() || data1.IsEmpty())
     {
         return hwMathStatus(HW_MATH_ERR_VECTOR, 1);
     }
+
     if (!data2.IsReal())
     {
         return hwMathStatus(HW_MATH_ERR_COMPLEX, 2);
     }
-    if (!data2.IsVector())
+
+    if (!data2.IsVector() || data2.IsEmpty())
     {
         return hwMathStatus(HW_MATH_ERR_VECTOR, 2);
     }
+
     if (alpha <= 0.0 || alpha >= 0.5)
     {
         return hwMathStatus(HW_MATH_ERR_STATTESTALPHA, 6);
     }
 
     hwMathStatus status = CI.Dimension(1, 2, hwMatrix::REAL);
+
     if (!status.IsOk())
     {
         status.ResetArgs();

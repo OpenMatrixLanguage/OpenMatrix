@@ -122,7 +122,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration); $(OML_MKL_LIBDIR); $(OML_SUNDIALSDIR)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mathcore.lib;sundials_arkode.lib;sundials_cvode.lib;sundials_ida.lib;mkl_rt.lib</AdditionalDependencies>
+      <AdditionalDependencies>mathcore.lib;sundials_arkode.lib;sundials_cvode.lib;sundials_ida.lib; $(OML_MKL_LIBS)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

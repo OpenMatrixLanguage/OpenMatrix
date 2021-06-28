@@ -31,13 +31,41 @@
       
       <dl class="dl parml">
         
-          <dt class="dt pt dlterm"><var class="keyword varname">x, y, z</var></dt>
+          <dt class="dt pt dlterm"><var class="keyword varname">x</var></dt>
 
-          <dd class="dd pd"><span class="keyword">Range of the x, y, and z axes.</span></dd>
+          <dd class="dd pd">Range of the x axis.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer</span></dd>
 
-          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector | matrix</span></dd>
+
+          <dd class="dd pd ddexpand">If X is a vector, its length must be equal to the number of columns of Z.</dd>
+
+          <dd class="dd pd ddexpand">If X is a matrix, it must have the same size as Z.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">y</var></dt>
+
+          <dd class="dd pd">Range of the y axis.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector | matrix</span></dd>
+
+          <dd class="dd pd ddexpand">If Y is a vector, its length must be equal to the number of rows of Z.</dd>
+
+          <dd class="dd pd ddexpand">If Y is a matrix, it must have the same size as Z.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">z</var></dt>
+
+          <dd class="dd pd">Range of the z axis.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">matrix</span></dd>
 
         
         
@@ -79,6 +107,14 @@ contour(z);</code></pre><span class="ph">
         </span></div>
 
       
+      <div class="p">x and y inputs of contour as
+        vectors:<pre class="pre codeblock"><code>x = linspace(-2*pi,2*pi,50);
+y = linspace(0,2*pi);
+[X,Y] = meshgrid(x,y);
+Z = sin(X).*cos(Y);
+
+contour(x,y,Z);</code></pre></div>
+
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Comments</h2>

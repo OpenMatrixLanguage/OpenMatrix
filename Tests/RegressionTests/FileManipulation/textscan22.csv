@@ -1,0 +1,8 @@
+Resource,Subcase,Step,DS1=linearcombination,DS2=linearcombination,DS3=linearcombination,DS4=linearcombination
+test.op2,100,0,2.0,0,-2.0,-4.0,b
+test.op2,101,0,0,2.0,-2.0,-4.0,b
+test.op2,102,0,0,0,-2.0,-4.0,b
+VR1,1,0,D,,b
+VR2,2,0,,D,b
+VR3,3,0,,,D,b
+VR4,4,0,,,,D,b

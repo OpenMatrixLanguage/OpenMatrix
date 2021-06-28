@@ -1,7 +1,7 @@
 /**
 * @file CurrencyDisplay.h
 * @date January 2016
-* Copyright (C) 2016-2020 Altair Engineering, Inc.  
+* Copyright (C) 2016-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -283,6 +283,26 @@ public:
     //! Returns output log
     //!
     static std::ofstream& GetOutputLog() { return _outputlog; }
+    //!
+    //! Gets output log name
+    //!
+    static std::wstring GetOutputLogName() { return _outputlogname; }
+    //!
+    //! Sets output logname
+    //! \param Output log name
+    //!
+    static void SetOutputLogName(const std::wstring&);
+    //!
+    //! Utility to convert double to string without precision loss or formatting
+    //! \param Input
+    //!
+    static std::string NonFormattedDoubleToString(double);
+    //!
+    //! Utility to convert complex to string without precision loss or formatting
+    //! \param Input
+    //!
+    static std::string NonFormattedComplexToString(const hwComplex&);
+
 protected:  
     //!
     //! \enum DisplayFormat
@@ -294,12 +314,14 @@ protected:
         DisplayFormatScientific,       //!< Scientific format
     };
 
-    static int m_maxCols;              //!< Max columns (chars) for display        
-    static int m_maxRows;              //!< Max rows (lines) for display
-    static int m_linesPrinted;         //!< of lines displayed
-    static PAGINATE m_paginate;        //!< Pagination mode
-    static int m_skipFormat;           //!< Skip format limit
-    static std::ofstream _outputlog;   //!< Output log
+    static int m_maxCols;                //!< Max columns (chars) for display        
+    static int m_maxRows;                //!< Max rows (lines) for display
+    static int m_linesPrinted;           //!< of lines displayed
+    static PAGINATE m_paginate;          //!< Pagination mode
+    static int m_skipFormat;             //!< Skip format limit
+
+    static std::ofstream _outputlog;     //!< Output log
+    static std::wstring  _outputlogname; //!< Output log name
     
     mutable int m_colBegin;            //!< 0-based index of first column displayed
     mutable int m_colEnd;              //!< 0-based index of last  column displayed

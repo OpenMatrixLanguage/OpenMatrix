@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsSystem.cpp
 * @date October 2016
-* Copyright (C) 2016-2020 Altair Engineering, Inc.  
+* Copyright (C) 2016-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -32,6 +32,7 @@
 #else
 #    include <unistd.h>
 #    include <dirent.h>
+#    include <pthread.h>
 #    include <stdio.h>
 #    include <sys/resource.h>
 #    include <sys/times.h>
@@ -86,6 +87,7 @@ bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
             if (options[0] != '-')                      // This is a filename
             {
                 filenames = utils.Normpath(options);
+                options = "";
             }
 #endif
         }
@@ -181,7 +183,7 @@ bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
         strcmd += " " + filenames;
     }
 
-    strcmd += " 2>&1";
+    strcmd += " 2>&1"; // Redirects 2 (standard error) into 1 (standard output)
     std::cout << std::flush;
     FILE* cmdoutput = popen(strcmd.c_str(), "r");
     if (!cmdoutput)
@@ -438,8 +440,7 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
     const std::vector<Currency>& inputs,
     std::vector<Currency>& outputs)
 {
-    size_t nargin = inputs.size();
-    if (nargin < 1)
+    if (inputs.empty())
     {
         throw OML_Error(OML_ERR_NUMARGIN);
     }
@@ -457,66 +458,88 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
         throw (OML_ERR_NONEMPTY_STR, 1);
     }
 
-    bool returnoutput = false; // True if output from system command is returned
-    bool async = false; // True if system command runs asynchronously
-    if (nargin > 1)
+    bool returnoutput      = false; // True if output from system command is returned
+    bool async             = false; // True if system command runs asynchronously
+    bool maxThreadAffinity = false; // True if async command needs to run on all cores on Linux
+
+    int  nargin       = static_cast<int>(inputs.size());
+    for (int i = 1; i < nargin; ++i)
     {
-        int val = 0;
-        if (inputs[1].IsLogical())
+        const Currency& cur = inputs[i];
+        if (cur.IsLogical())
         {
-            val = static_cast<int>(inputs[1].Scalar());
+            int val = static_cast<int>(cur.Scalar());
+            returnoutput = (val == 1) ? true : false;
         }
-        else if (inputs[1].IsInteger())
+        else if (cur.IsInteger())
         {
-            val = static_cast<int>(inputs[1].Scalar());
+            int val = static_cast<int>(cur.Scalar());
             if (val != 0 && val != 1)
             {
-                throw OML_Error(OML_ERR_LOGICAL, 2);
+                throw OML_Error(OML_ERR_LOGICAL, i + 1);
             }
+            returnoutput = (val == 1) ? true : false;
         }
-        else if (inputs[1].IsString())
+        else if (cur.IsString())
         {
-            std::string val(inputs[1].StringVal());
-            if (!val.empty())
+            std::string opt(cur.StringVal());
+            if (opt.empty())
             {
-                std::transform(val.begin(), val.end(), val.begin(), ::tolower);
+                throw OML_Error(OML_ERR_NONEMPTY_STR, i + 1);
             }
-            if (val == "async")
+            std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
+            if (opt == "async")
             {
                 async = true;
             }
-            else if (val != "sync")
+            else if (opt == "sync")
             {
-                throw OML_Error("Error: invalid input in argument 2; must be 'sync', 'async' or logical");
+                async = false;
+                returnoutput = true;
+            }
+            else if (opt == "threadaffinity")
+            {
+                // Get the value
+                ++i;
+                if (i >= nargin)
+                {
+                    throw OML_Error(OML_ERR_NUMARGIN);
+                }
+                const Currency& val = inputs[i];
+                if (!val.IsString())
+                {
+                    throw OML_Error(OML_ERR_STRING, i + 1);
+                }
+                std::string threadopt(val.StringVal());
+                if (threadopt.empty())
+                {
+                    throw OML_Error(OML_ERR_NONEMPTY_STR, i + 1);
+                }
+                std::transform(threadopt.begin(), threadopt.end(), threadopt.begin(), ::tolower);
+                if (threadopt == "max")
+                {
+                    maxThreadAffinity = true;
+                }
+                else if (threadopt == "default")
+                {
+                    maxThreadAffinity = false;
+                }
+                else
+                {
+                    throw OML_Error(OML_ERR_BAD_STRING, i + 1);
+                }
+            }
+            else
+            {
+                throw OML_Error(OML_ERR_BAD_STRING, i + 1);
             }
         }
         else
         {
-            throw OML_Error("Error: invalid input in argument 2; must be 'sync', 'async' or logical");
+            throw OML_Error(OML_ERR_BAD_STRING, i + 1);
         }
-        returnoutput = (val == 1) ? true : false;
     }
 
-    if (nargin > 2)
-    {
-        if (!inputs[2].IsString())
-        {
-            throw OML_Error(OML_ERR_STRING, 3);
-        }
-        std::string val(inputs[2].StringVal());
-        if (!val.empty())
-        {
-            std::transform(val.begin(), val.end(), val.begin(), ::tolower);
-        }
-        if (val == "async")
-        {
-            async = true;
-        }
-        else if (val != "sync")
-        {
-            throw OML_Error("Error: invalid input in argument 3; must be 'sync' or 'async'");
-        }
-    }
 
     int  nargout = eval.GetNargoutValue();
     bool saveoutput = false;
@@ -525,21 +548,54 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
     {
         if (async)
         {
-            throw OML_Error("Error: invalid input in argument 3; must be 'sync' to return output");
+            throw OML_Error("Error: invalid option 'async'; must be 'sync' to return output");
         }
         saveoutput = true;
+    }
+
+    if (maxThreadAffinity && !async)
+    {
+        throw OML_Error("Error: invalid option 'threadaffinity'; can be used only in 'async' mode");
     }
 
     // Construct the command
     std::string command(GetInputForSystemCommand(in));
 
-	if (async)
-	{
-		std::thread t (RunSystemCommand, command);
+    if (async)
+    {
+
+#ifndef OS_WIN
+        cpu_set_t cpuset;
+        if (maxThreadAffinity)
+        {
+            const auto ncores = std::thread::hardware_concurrency();
+            // Set affinity mask to include all cores
+            CPU_ZERO(&cpuset);
+            for (int j = 0; j < ncores; ++j)
+            {
+                CPU_SET(j, &cpuset);
+            }
+        }
+        std::thread t(RunSystemCommand, command);
+
+        if (maxThreadAffinity)
+        {
+            // Set thread affinity to use all cores
+            int s = pthread_setaffinity_np(t.native_handle(), sizeof(cpuset), &cpuset);
+        }
+
 		std::stringstream ss;
 		ss << t.get_id();
 		outputs.push_back(static_cast<int>(std::stoull(ss.str())));
-		t.detach();
+        t.detach();    
+#else
+        std::thread t(RunSystemCommand, command);
+
+        std::stringstream ss;
+        ss << t.get_id();
+        outputs.push_back(static_cast<int>(std::stoull(ss.str())));
+        t.detach();
+#endif
 		return true;
 	}
 
@@ -1868,6 +1924,7 @@ bool BuiltInFuncsSystem::OutputLog(EvaluatorInterface           eval,
             name = L"omloutputlog.txt";
         }
         name = BuiltInFuncsUtils::GetNormpathW(name);
+        CurrencyDisplay::SetOutputLogName(name);
 #ifdef OS_WIN
         ofs.open(name, std::ios_base::out | std::ios_base::trunc);
 #else

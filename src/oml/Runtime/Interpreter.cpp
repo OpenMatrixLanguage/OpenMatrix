@@ -1,7 +1,7 @@
 /**
 * @file Interpreter.cpp
 * @date February 2015
-* Copyright (C) 2015-2019 Altair Engineering, Inc.  
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -186,6 +186,8 @@ public:
 	int ArgumentsForFunction(const std::string& functionName);
 
     FunctionInfo* FunctionInfoFromName(const std::string& funcname);
+
+	void ClearUserFunctions();
 
     bool LockBuiltInFunction(const std::string& name) { return _eval.LockBuiltInFunction(name); }
 
@@ -507,6 +509,11 @@ Currency InterpreterImpl::CallFunctionInCurrentScope(FunctionInfo* finfo, const 
 
 	MemoryScopeManager* msm       = _eval.GetMSM();
 	MemoryScope*        cur_scope = msm->GetCurrentScope();
+    MemoryScope         old_scope;
+    if (cur_scope)
+    {
+        old_scope = *cur_scope; // Done so any local variables declared in callbacks don't get propogated
+    }
 	FunctionInfo*       cur_fi    = cur_scope->GetFunctionInfo();
 
 	// Need a try-catch block to close scopes properly in case of any error
@@ -521,6 +528,10 @@ Currency InterpreterImpl::CallFunctionInCurrentScope(FunctionInfo* finfo, const 
 		if (!cur_fi)
 			cur_scope->SetFunctionInfo(NULL);
 
+        if (cur_scope)
+        {
+            *cur_scope = old_scope;
+        }
 		return ret;
 	}
 	catch (OML_Error & error)
@@ -535,6 +546,11 @@ Currency InterpreterImpl::CallFunctionInCurrentScope(FunctionInfo* finfo, const 
 
 		if (!cur_fi)
 			cur_scope->SetFunctionInfo(NULL);
+
+        if (cur_scope)
+        {
+            *cur_scope = old_scope;
+        }
 
 		return cur;
 	}
@@ -717,6 +733,11 @@ FunctionInfo* InterpreterImpl::FunctionInfoFromName(const std::string& funcName)
 		return new FunctionInfo(funcName, aptr);
 
     return fi;
+}
+
+void InterpreterImpl::ClearUserFunctions()
+{
+	_eval.ClearFunctions();
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -1259,6 +1280,11 @@ int Interpreter::GetSyntaxErrorLine() const
 std::string Interpreter::GetSyntaxErrorFile() const
 {
 	return _impl->syntax_error_file;
+}
+
+void Interpreter::ClearUserFunctions()
+{
+	_impl->ClearUserFunctions();
 }
 
 //------------------------------------------------------------------------------

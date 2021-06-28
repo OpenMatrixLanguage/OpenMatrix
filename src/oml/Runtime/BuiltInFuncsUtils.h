@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsUtils.h
 * @date November 2015
-* Copyright (C) 2015-2020 Altair Engineering, Inc.  
+* Copyright (C) 2015-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -301,17 +301,19 @@ public:
                     std::vector<bool>&        usefmts,
                     std::string&              err);
     //!
-    //! Returns string trimmed from leading white space(s)
+    //! Returns string trimmed from leading characters
     //! \param in Input string
+    //! \param trim Chars to trim
     //!
-    std::string LTrim(const std::string& in);
+    static std::string LTrim(const std::string& in,
+                             const std::string& trim = " \t");
     //!
     //! Trims trailing characters
     //! \param in Input string
     //! \param trim Chars to trim
     //!
-    std::string RTrim(const std::string& in,
-                      const std::string& trim = " \t");
+    static std::string RTrim(const std::string& in,
+                             const std::string& trim = " \t");
 
     //!
     //! Throws regex error
@@ -453,7 +455,14 @@ public:
     //!
     std::FILE* FileOpen(const std::string&,
                         const std::string&);
-
+    //!
+    //! Returns true if output log is open
+    //!
+    static bool IsOutputLogOpen();
+    //!
+    //! Opens output log in append mode
+    //!
+    static void OpenOutputLogForAppend();
     //!
     //! Closes output log
     //!

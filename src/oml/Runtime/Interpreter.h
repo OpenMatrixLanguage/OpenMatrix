@@ -126,6 +126,8 @@ public:
     //!
     bool LockBuiltInFunction(const std::string& funcname);
 
+	void ClearUserFunctions();
+
     //! Rename
     int RenameVariable(const std::string& oldname,     
                         const std::string& newname);

@@ -87,8 +87,8 @@ bool OmlOptimset(EvaluatorInterface           eval,
         out.Struct()->SetValue(0, -1, "MaxFail",     20000);
         out.Struct()->SetValue(0, -1, "TolCon",      0.5);
         out.Struct()->SetValue(0, -1, "TolFun",      1.0e-7);
-        out.Struct()->SetValue(0, -1, "TolKKT",      1.0e-4);
-        out.Struct()->SetValue(0, -1, "TolX",        EvaluatorInterface::allocateMatrix());
+        out.Struct()->SetValue(0, -1, "TolKKT",      1.0e-7);
+        out.Struct()->SetValue(0, -1, "TolX",        1.0e-7);
         outputs.push_back(out);
         return true;
     }

@@ -158,6 +158,11 @@ bool EvaluatorInterface::RemovePath(std::string &pathname)
     return eval->RemovePath(pathname);
 }
 
+bool EvaluatorInterface::RemoveHiddenPath(std::string& pathname)
+{
+	return eval->RemoveHiddenPath(pathname);
+}
+
 bool EvaluatorInterface::RemoveLibrary(const std::string& lib_name)
 {
 	return eval->RemoveFunctionsInLibrary(lib_name);
@@ -902,4 +907,24 @@ void EvaluatorInterface::SetNumberOfThreads(int threads)
 std::ofstream& EvaluatorInterface::GetDiary()
 {
     return eval->GetDiary();
+}
+
+void EvaluatorInterface::RegisterFunc(OMLTree* def)
+{
+	eval->RegisterFunction(def);
+}	
+
+Currency EvaluatorInterface::GetProfileData() const
+{
+	return eval->GetProfileData();
+}
+
+void EvaluatorInterface::ClearProfileData()
+{
+	return eval->ClearProfileData();
+}
+
+void EvaluatorInterface::Profile(bool on)
+{
+	return eval->Profile(on);
 }

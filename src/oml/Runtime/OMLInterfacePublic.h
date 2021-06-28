@@ -154,6 +154,9 @@ public:
 
 	virtual const double* GetRealData() const = 0;
 	virtual const double* GetImaginaryData() const = 0;
+	
+	virtual const int* GetRowVector() const = 0;
+	virtual const int* GetColumnVector() const = 0;
 
 	virtual OMLCurrency* GetCurrency() const = 0;
 
@@ -251,7 +254,7 @@ public:
 	virtual void AddSparseMatrix(OMLSparseMatrix*) = 0;
 
 	virtual OMLNDCellArray*  CreateNDCellArray(int num_dims, int* dims) = 0;
-	virtual OMLSparseMatrix* CreateSparseMatrix(int rows, int cols) = 0;
+	virtual OMLSparseMatrix* CreateSparseMatrix(int num_vals, int* ivec, int* jvec, double* vals, int rows, int cols) = 0;
 };
 
 #endif

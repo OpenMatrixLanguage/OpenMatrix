@@ -163,6 +163,9 @@ public:
 	const double* GetRealData() const;
 	const double* GetImaginaryData() const;
 
+	const int* GetRowVector() const;
+	const int* GetColumnVector() const;
+
 	OMLCurrency*   GetCurrency() const;
 	hwMatrixS*      GetMatrixPointer() const;
 
@@ -305,7 +308,7 @@ public:
 
 
 	OMLNDCellArray*  CreateNDCellArray(int num_dims, int* dims);
-	OMLSparseMatrix* CreateSparseMatrix(int rows, int cols);
+	OMLSparseMatrix* CreateSparseMatrix(int num_vals, int* ivec, int* jvec, double* vals, int rows, int cols);
 
 private:
 	void Expand();

@@ -3109,7 +3109,7 @@ inline hwMathStatus hwTMatrix<double>::QRSolve(const hwTMatrix<double>& A, const
     int lwork = -1;
     int rank;
     int* jpvt;
-    double rcond = 1.0e-12;
+    double rcond = 1.0e-15;
     // char TRANS = 'N';
 
     if (B.m_nRows != m)
@@ -5936,14 +5936,14 @@ inline hwMathStatus hwTMatrix<double>::Power(const hwTMatrix<double>& base, doub
 
     if (IsInteger(power, 1.0e-10) != HW_MATH_ERR_NONINTEGER)
     {
-        if (power >= 0 && power < 9)
+        if (power >= 0.0 && power < 9.0)
         {
             return result.Power(base, static_cast<int>(power));
         }
-        else if (power > -9 && power < 0)
+        else if (power < 0.0)
         {
-            hwTMatrix<double> C(base.m_nRows, base.m_nRows, REAL); // accumulator
-            status = C.Inverse(base);
+            hwTMatrix<double> invB;
+            status = invB.Inverse(base);
 
             if (!status.IsOk())
             {
@@ -5954,7 +5954,7 @@ inline hwMathStatus hwTMatrix<double>::Power(const hwTMatrix<double>& base, doub
                     return status;
             }
 
-            hwMathStatus status2 = result.Power(C, static_cast<int>(-power));
+            hwMathStatus status2 = result.Power(invB, -power);
 
             if (!status2.IsOk())
                 return status2;
@@ -5976,8 +5976,9 @@ inline hwMathStatus hwTMatrix<double>::Power(const hwTMatrix<double>& base, doub
     if (!status.IsOk())
     {
         if (IsInteger(power, 1.0e-10) != HW_MATH_ERR_NONINTEGER)     // decomp method failed, see if int algorithm applies
+        {
             return result.Power(base, static_cast<int>(power));
-
+        }
         else
         {
             status.ResetArgs();
@@ -6006,8 +6007,15 @@ inline hwMathStatus hwTMatrix<double>::Power(const hwTMatrix<double>& base, doub
 
     if (!status.IsOk())
     {
-        status.ResetArgs();
-        return status;
+        if (status == HW_MATH_WARN_SINGMATRIXDIV &&
+            IsInteger(power, 1.0e-10) != HW_MATH_ERR_NONINTEGER)
+        {
+            status = result.Power(base, static_cast<int>(power));
+        }
+        else
+        {
+            status.ResetArgs();
+        }
     }
 
     return status;

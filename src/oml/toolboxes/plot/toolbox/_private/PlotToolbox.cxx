@@ -1,7 +1,7 @@
 /**
 * @file PlotToolbox.cxx
 * @date March 2017
-* Copyright (C) 2017-2020 Altair Engineering, Inc.  
+* Copyright (C) 2017-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -824,6 +824,51 @@ namespace omlplot{
 		return true;
 	}
 
+
+    bool colormap(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        
+        if (inputs.size() > 2)             
+            throw OML_Error(OML_ERR_NUMARGIN);
+
+        if (inputs.size() == 0) {
+            double h = cm->gca();
+            Currency cmap = cm->colormap(h);
+            outputs.push_back(cmap);
+        }
+        else if (inputs.size() == 1) {
+            if (inputs[0].IsScalar()) {
+                double h = inputs[0].Scalar();
+                Currency cmap = cm->colormap(h);
+                outputs.push_back(cmap);
+            }
+            else if (inputs[0].IsMatrix()) {
+                cm->colormap(cm->gca(), inputs[0]);
+            }
+            else
+                throw OML_Error(OML_ERR_NUMARGIN);
+        }
+        else {
+            if (inputs[0].IsScalar() && inputs[1].IsMatrix()) {
+                cm->colormap(inputs[0].Scalar(), inputs[1]);
+            }
+            else
+                throw OML_Error(OML_ERR_NUMARGIN);
+        }
+        return true;
+    }
+
+    bool plotyy(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        
+        if (inputs.size() != 4)
+            throw OML_Error(OML_ERR_NUMARGIN);
+
+        vector<LineData> vld = dsm.getLineData(inputs);
+        outputs = cm->plotyy(vld);
+        
+        return true;
+    }
+
+
 	bool drawnow(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
 		BuiltInFuncsUtils::SetWarning(eval, "Command [drawnow] is not supported in OpenMatrix");
 		return false;
@@ -844,11 +889,6 @@ namespace omlplot{
 		return false;
 	}
 
-	bool plotyy(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-		BuiltInFuncsUtils::SetWarning(eval, "Command [plotyy] is not supported in OpenMatrix");
-		return false;
-	}
-
 	bool uiresume(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
 		BuiltInFuncsUtils::SetWarning(eval, "Command [uiresume] is not supported in OpenMatrix");
 		return false;
@@ -858,11 +898,6 @@ namespace omlplot{
 		BuiltInFuncsUtils::SetWarning(eval, "Command [uiwait] is not supported in OpenMatrix");
 		return false;
 	}
-
-    bool colormap(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-        BuiltInFuncsUtils::SetWarning(eval, "Command [colormap] is not supported in OpenMatrix");
-        return false;
-    }
 
     bool patch(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
         BuiltInFuncsUtils::SetWarning(eval, "Command [patch] is not supported in OpenMatrix");
@@ -890,7 +925,7 @@ namespace omlplot{
     }
 
 
-#define TBOXVERSION 1.07
+#define TBOXVERSION 1.08
     extern "C" OMLPLOT_EXPORT
     double GetToolboxVersion(EvaluatorInterface eval){
         return TBOXVERSION;
@@ -946,19 +981,19 @@ namespace omlplot{
             evl.RegisterBuiltInFunction("text", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
             evl.RegisterBuiltInFunction("saveas", oml_doNothing, FunctionMetaData(-1, 0, "Plotting"));
             evl.RegisterBuiltInFunction("view", oml_doNothing, FunctionMetaData(-1, 0, "Plotting"));
+            evl.RegisterBuiltInFunction("colorbar", oml_doNothing, FunctionMetaData(-1, -1, "Plotting"));
+            evl.RegisterBuiltInFunction("plotyy", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("colormap", oml_doNothing, FunctionMetaData(-1, -1, "Plotting"));
 			// Not yet supported commands
             evl.RegisterBuiltInFunction("waterfall", waterfall, FunctionMetaData(-1, 1, "Plotting"));
             evl.RegisterBuiltInFunction("bar3", bar3, FunctionMetaData(-1, 1, "Plotting"));
 			evl.RegisterBuiltInFunction("box", box, FunctionMetaData(-1, 0, "Plotting"));
-			evl.RegisterBuiltInFunction("colorbar", colorbar, FunctionMetaData(-1, -1, "Plotting"));
 			evl.RegisterBuiltInFunction("drawnow", drawnow, FunctionMetaData(0, 0, "Plotting"));
 			evl.RegisterBuiltInFunction("fanplot", fanplot, FunctionMetaData(3, -1, "Plotting"));
 			evl.RegisterBuiltInFunction("getmousepos", getmousepos, FunctionMetaData(0, 2, "Plotting"));
 			evl.RegisterBuiltInFunction("imagesc", imagesc, FunctionMetaData(-1, 1, "Plotting"));
-			evl.RegisterBuiltInFunction("plotyy", plotyy, FunctionMetaData(-1, 1, "Plotting"));
 			evl.RegisterBuiltInFunction("uiresume", uiresume, FunctionMetaData(-1, 1, "Plotting"));
 			evl.RegisterBuiltInFunction("uiwait", uiwait, FunctionMetaData(-1, 1, "Plotting"));
-            evl.RegisterBuiltInFunction("colormap", colormap, FunctionMetaData(-1, -1, "Plotting"));
             evl.RegisterBuiltInFunction("patch", patch, FunctionMetaData(-1, -1, "Plotting"));
             evl.RegisterBuiltInFunction("pcolor", pcolor, FunctionMetaData(-1, -1, "Plotting"));
             evl.RegisterBuiltInFunction("findobj", findobj, FunctionMetaData(-1, -1, "Plotting"));
@@ -1013,6 +1048,8 @@ namespace omlplot{
         evl.RegisterBuiltInFunction("view", oml_doNothing, FunctionMetaData(-1, 0, "Plotting"));
         evl.RegisterBuiltInFunction("box", box, FunctionMetaData(-1, 0, "Plotting"));
         evl.RegisterBuiltInFunction("colorbar", colorbar, FunctionMetaData(-1, -1, "Plotting"));
+        evl.RegisterBuiltInFunction("plotyy", plotyy, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("colormap", colormap, FunctionMetaData(-1, -1, "Plotting"));
 #ifdef _DEBUG
         evl.RegisterBuiltInFunction("dump", dump, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("out", out, FunctionMetaData(-1, 1, "Plotting"));
@@ -1024,10 +1061,8 @@ namespace omlplot{
 		evl.RegisterBuiltInFunction("fanplot", fanplot, FunctionMetaData(3, -1, "Plotting"));
 		evl.RegisterBuiltInFunction("getmousepos", getmousepos, FunctionMetaData(0, 2, "Plotting"));
 		evl.RegisterBuiltInFunction("imagesc", imagesc, FunctionMetaData(-1, 1, "Plotting"));
-		evl.RegisterBuiltInFunction("plotyy", plotyy, FunctionMetaData(-1, 1, "Plotting"));
 		evl.RegisterBuiltInFunction("uiresume", uiresume, FunctionMetaData(-1, 1, "Plotting"));
 		evl.RegisterBuiltInFunction("uiwait", uiwait, FunctionMetaData(-1, 1, "Plotting"));
-        evl.RegisterBuiltInFunction("colormap", colormap, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("patch", patch, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("pcolor", pcolor, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("findobj", findobj, FunctionMetaData(-1, -1, "Plotting"));

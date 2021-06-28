@@ -79,7 +79,7 @@ hwMathStatus hwSAEFilter::Compute(const hwMatrix& input,
     double factor;
     double delta_f = m_sampFreq / size;
     double freq    = start * delta_f;  // one sided frequency
-    double log10b2 = 1.0 / log(2.0);
+    double log10b2 = log2(10.0);
 
     for (int j = start; j < (size+1)/2; ++j)
     {
@@ -100,6 +100,22 @@ hwMathStatus hwSAEFilter::Compute(const hwMatrix& input,
     if (!m_status.IsOk())
     {
         m_status.ResetArgs();
+        return m_status;
     }
+
+    int inputSize = input.Size();
+
+    if (inputSize != m_fftSize)
+    {
+        if (output.M() > 1)
+        {
+            m_status = output.Resize(inputSize, 1, true);
+        }
+        else
+        {
+            m_status = output.Resize(1, inputSize, true);
+        }
+    }
+
     return m_status;
 }

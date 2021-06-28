@@ -1,7 +1,7 @@
 /**
 * @file CurrencyDisplay.cpp
 * @date January 2016
-* Copyright (C) 2016-2020 Altair Engineering, Inc.  
+* Copyright (C) 2016-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -24,6 +24,13 @@
 #include <memory>
 #include <climits>
 
+#ifndef OS_WIN
+#    include <float.h>
+# ifndef DECIMAL_DIG
+#     define DECIMAL_DIG 21
+# endif
+#endif
+
 #include "BuiltInFuncsUtils.h"
 #include "Interpreter.h"
 #include "OutputFormat.h"
@@ -39,7 +46,9 @@ int CurrencyDisplay::m_maxRows      = 0;
 int CurrencyDisplay::m_maxCols      = 0;
 int CurrencyDisplay::m_linesPrinted = 0;
 CurrencyDisplay::PAGINATE CurrencyDisplay::m_paginate = CurrencyDisplay::PAGINATE_ON;
+
 std::ofstream CurrencyDisplay::_outputlog;
+std::wstring CurrencyDisplay::_outputlogname = L"outputlog.txt";
 
 //# define CURRENCYDISPLAY_DBG 1  // Uncomment to print debug info
 #ifdef CURRENCYDISPLAY_DBG
@@ -977,4 +986,77 @@ void CurrencyDisplay::SetSkipFormat(int val)
     {
         m_skipFormat = val;
     }
+}
+//------------------------------------------------------------------------------
+// Sets name of outputlog
+//------------------------------------------------------------------------------
+void CurrencyDisplay::SetOutputLogName(const std::wstring& name)
+{
+    if (name.empty())
+    {
+        _outputlogname = L"omloutputlog.txt";
+    }
+    else
+    {
+        size_t pos = name.find_last_of(L"/\\");
+        if (pos == std::wstring::npos)
+        {
+            _outputlogname = name;
+        }
+        _outputlogname = name.substr(pos + 1);
+    }
+}
+//------------------------------------------------------------------------------
+// Utility to convert double to string without precision loss
+//------------------------------------------------------------------------------
+std::string CurrencyDisplay::NonFormattedDoubleToString(double val)
+{
+    if (IsNegInf_T(val))
+    {
+        return "-Inf";
+    }
+    else if (IsInf_T(val))
+    {
+        return "Inf";
+    }
+    else if (IsNaN_T(val))
+    {
+        return "NaN";
+    }
+    else
+    {
+        char* tmp = new char[128];
+#ifdef OS_WIN
+        sprintf(tmp, "%.*g", DBL_DECIMAL_DIG, val);
+#else
+        sprintf(tmp, "%.*g", DECIMAL_DIG, val);
+#endif
+
+        std::string out(tmp);
+
+        delete[] tmp;
+        tmp = nullptr;
+
+        return out;
+    }
+    return "";
+}
+//------------------------------------------------------------------------------
+// Utility to convert double to string without precision loss
+//------------------------------------------------------------------------------
+std::string CurrencyDisplay::NonFormattedComplexToString(const hwComplex& val)
+{
+    std::string out (NonFormattedDoubleToString(val.Real()));
+
+    double imagval = val.Imag();
+
+    if (IsNegInf_T(imagval) || std::signbit(static_cast<long double>(imagval)))
+    {
+        out += "-" + NonFormattedDoubleToString(fabs(imagval)) + "i";
+    }
+    else
+    {
+        out += "+" + NonFormattedDoubleToString(imagval) + "i";
+    }
+    return out;
 }

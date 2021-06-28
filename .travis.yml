@@ -1,3 +1,5 @@
+notifications:
+  _webhooks: _
 install: true
 language: cpp
 addons:
@@ -41,11 +43,11 @@ script:
 - which gfortran
 - gfortran-4.9 --version
 - which gfortran-4.9
-#- ls -alF /usr/bin | grep fortran
-#- ls -alF /usr/lib | grep fortran
-#- ls -alF /usr/lib64 | grep fortran
+##- ls -alF /usr/bin | grep fortran
+##- ls -alF /usr/lib | grep fortran
+##- ls -alF /usr/lib64 | grep fortran
 - ls -alF /usr/lib/x86_64-linux-gnu | grep fortran
-#- ls -alF /lib/x86_64-linux-gnu | grep fortran
+##- ls -alF /lib/x86_64-linux-gnu | grep fortran
 - set | grep LD_LIBRARY_PATH
 - set | grep OML
 - cd $OML_THIRDPARTY/intel

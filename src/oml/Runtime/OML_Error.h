@@ -139,6 +139,8 @@ enum omlMathErrCode
     OML_ERR_CELL_MTX,                        // must be a cell or matrix
     OML_ERR_INVALIDTIMEVAL,                  // value is out of range for time function
     OML_ERR_HANDLE_STRING_CELL,              // must be a function handle, string or cell with function details
+    OML_ERR_OBJ_HANDLE,                      // must be an object handle
+    OML_ERR_HANDLE_STRING,                   // must be an object handle or string
     OML_ERR_INTERNAL,                        // internal error
     OML_ERR_AUTHENTICATE,                    // authentication failure
     OML_ERR_UNICODE_FILENAME,                // file name cannot have Unicode characters
@@ -221,6 +223,14 @@ enum omlMathErrCode
     OML_ERR_HDF5_INVALID_ATTRIBUTE,          // invalid attribute
     OML_ERR_HDF5_INVALID_STRUCT_MEMBERS,     // all values in struct must have same dimensions
     OML_ERR_HDF5_INVALID_ATTRIBUTE_DATA,     // Attribute value must be a scalar,string or real matrix.
+
+    //oml menu apis codes
+    OML_ERR_MENUAPI_SYS_NAME,                // cannot use system ribbon name
+    OML_ERR_MENUAPI_SYS_DEL,                 // cannot remove system ribbons
+    OML_ERR_MENUAPI_SYS_MOD,                 // cannot modify system ribbons
+    OML_ERR_MENUAPI_INVALID_HANDLE,          // invalid handle
+    OML_ERR_MENUAPI_INVALID_HANDLE_TYPE,     // invalid handle type
+
 
     OML_ERR_END
 };

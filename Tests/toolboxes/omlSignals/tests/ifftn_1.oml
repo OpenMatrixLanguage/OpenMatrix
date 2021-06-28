@@ -1,0 +1,8 @@
+addtoolbox omlsignals
+addtoolbox omlstatistics
+
+x = log([1:840]);
+x = reshape(x, [5,4,7,6]);
+fftnd = fftn(x);
+y = ifftn(fftnd);
+y = exp(y)

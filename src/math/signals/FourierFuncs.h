@@ -16,6 +16,7 @@
 #ifndef _Signals_FourierFuncs_h
 #define _Signals_FourierFuncs_h
 
+#include <vector>
 #include "SignalsExports.h"
 
 // forward declarations
@@ -81,7 +82,7 @@ SIGNALS_DECLS hwMathStatus Fold(const hwMatrix& mag_twosided,
 //! \param signal 
 //! \param freqRes 
 //!
-SIGNALS_DECLS hwMathStatus Fft2(const hwMatrix& signal, 
+SIGNALS_DECLS hwMathStatus Fft2(const hwMatrix& signal,
                                 hwMatrix&       freqRes);
 //!
 //! 2D FFT of a real or complex signal  
@@ -90,10 +91,57 @@ SIGNALS_DECLS hwMathStatus Fft2(const hwMatrix& signal,
 //! \param n 
 //! \param freqRes 
 //!
-SIGNALS_DECLS hwMathStatus Fft2(const hwMatrix& signal, 
+SIGNALS_DECLS hwMathStatus Fft2(const hwMatrix& signal,
                                 int             m, 
                                 int             n, 
                                 hwMatrix&       freqRes);
+//!
+//! ND FFT of a real or complex signal  
+//! \param signal 
+//! \param freqRes 
+//!
+SIGNALS_DECLS hwMathStatus FftN(const hwMatrixN& signal,
+                                hwMatrixN&       freqRes);
+//!
+//! ND FFT of a real or complex signal  
+//! \param signal 
+//! \param newdims 
+//! \param freqRes 
+//!
+SIGNALS_DECLS hwMathStatus FftN(const hwMatrixN&        signal,
+                                const std::vector<int>& newdims,
+                                hwMatrixN&              freqRes);
+//!
+//! 2D inverse FFT of a real or complex signal  
+//! \param freqRes 
+//! \param signal 
+//! \param assumeConjSym 
+//!
+SIGNALS_DECLS hwMathStatus Ifft2(const hwMatrix& freqRes,
+                                 hwMatrix&       signal,
+                                 bool            assumeConjSym);
+//!
+//! 2D inverse FFT of a real or complex signal
+//! \param freqRes 
+//! \param m 
+//! \param n 
+//! \param signal 
+//! \param assumeConjSym 
+//!
+SIGNALS_DECLS hwMathStatus Ifft2(const hwMatrix& freqRes,
+                                 int             m,
+                                 int             n,
+                                 hwMatrix&       signal,
+                                 bool            assumeConjSym);
+//!
+//! ND inverse FFT of a real or complex signal  
+//! \param freqRes 
+//! \param signal 
+//! \param assumeConjSym 
+//!
+SIGNALS_DECLS hwMathStatus IfftN(const hwMatrixN& freqRes,
+                                 hwMatrixN&       signal,
+                                 bool             assumeConjSym);
 //!
 //! FFT of a real or complex signal  
 //! \param signal 

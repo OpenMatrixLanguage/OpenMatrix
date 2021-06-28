@@ -1,0 +1,2 @@
+eval(['if 1',char(10),'expr=3;',char(10),'end']) 
+disp('Test done') % No value should be printed from the line above

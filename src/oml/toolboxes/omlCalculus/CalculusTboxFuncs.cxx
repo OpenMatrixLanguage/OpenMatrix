@@ -693,22 +693,43 @@ bool OmlTrapz(EvaluatorInterface           eval,
               const std::vector<Currency>& inputs,
               std::vector<Currency>&       outputs)
 {
-    if (inputs.size() != 2)
+    if (inputs.size() != 1 && inputs.size() != 2)
         throw OML_Error(OML_ERR_NUMARGIN);
 
     if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
         throw OML_Error(OML_ERR_VECTOR, 1, OML_VAR_VARIABLE);
 
-    if (!inputs[1].IsMatrix() && !inputs[1].IsScalar())
-        throw OML_Error(OML_ERR_VECTOR, 2, OML_VAR_VARIABLE);
-
     const hwMatrix* mtx1 = inputs[0].ConvertToMatrix();
-    const hwMatrix* mtx2 = inputs[1].ConvertToMatrix();
     double result;
 
-    BuiltInFuncsUtils::CheckMathStatus(eval, TrapZ(*mtx1, *mtx2, result));
-    outputs.push_back(result);
+    if (inputs.size() == 1)
+    {
+        hwMatrix units(mtx1->Size(), 1, hwMatrix::REAL);
 
+        for (int i = 0; i < units.M(); ++i)
+            units(i) = static_cast<double> (i);
+
+        hwMathStatus status = TrapZ(units, *mtx1, result);
+
+        if (!status.IsOk())
+        {
+            if (status.GetArg1() == 2)
+                status.SetArg1(1);
+        }
+
+        BuiltInFuncsUtils::CheckMathStatus(eval, status);
+    }
+    else
+    {
+        if (!inputs[1].IsMatrix() && !inputs[1].IsScalar())
+            throw OML_Error(OML_ERR_VECTOR, 2, OML_VAR_VARIABLE);
+
+        const hwMatrix* mtx2 = inputs[1].ConvertToMatrix();
+
+        BuiltInFuncsUtils::CheckMathStatus(eval, TrapZ(*mtx1, *mtx2, result));
+    }
+
+    outputs.push_back(result);
     return true;
 }
 //------------------------------------------------------------------------------
@@ -716,22 +737,43 @@ bool OmlTrapz(EvaluatorInterface           eval,
 //------------------------------------------------------------------------------
 bool OmlCumtrapz(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
 {
-    if (inputs.size() != 2)
+    if (inputs.size() != 1 && inputs.size() != 2)
         throw OML_Error(OML_ERR_NUMARGIN);
 
     if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
         throw OML_Error(OML_ERR_VECTOR, 1, OML_VAR_VARIABLE);
 
-    if (!inputs[1].IsMatrix() && !inputs[1].IsScalar())
-        throw OML_Error(OML_ERR_VECTOR, 2, OML_VAR_VARIABLE);
-
     const hwMatrix* mtx1 = inputs[0].ConvertToMatrix();
-    const hwMatrix* mtx2 = inputs[1].ConvertToMatrix();
-    hwMatrix* result = EvaluatorInterface::allocateMatrix();
+    std::unique_ptr<hwMatrix> result(EvaluatorInterface::allocateMatrix());
 
-    BuiltInFuncsUtils::CheckMathStatus(eval, CumTrapZ(*mtx1, *mtx2, *result));
-    outputs.push_back(result);
+    if (inputs.size() == 1)
+    {
+        hwMatrix units(mtx1->M(), mtx1->N(), hwMatrix::REAL);
 
+        for (int i = 0; i < units.Size(); ++i)
+            units(i) = static_cast<double> (i);
+
+        hwMathStatus status = CumTrapZ(units, *mtx1, *result);
+
+        if (!status.IsOk())
+        {
+            if (status.GetArg1() == 2)
+                status.SetArg1(1);
+        }
+
+        BuiltInFuncsUtils::CheckMathStatus(eval, status);
+    }
+    else
+    {
+        if (!inputs[1].IsMatrix() && !inputs[1].IsScalar())
+            throw OML_Error(OML_ERR_VECTOR, 2, OML_VAR_VARIABLE);
+
+        const hwMatrix* mtx2 = inputs[1].ConvertToMatrix();
+
+        BuiltInFuncsUtils::CheckMathStatus(eval, CumTrapZ(*mtx1, *mtx2, *result));
+    }
+
+    outputs.push_back(result.release());
     return true;
 }
 //------------------------------------------------------------------------------

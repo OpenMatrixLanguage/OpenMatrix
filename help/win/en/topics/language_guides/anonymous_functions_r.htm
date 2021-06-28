@@ -3,13 +3,13 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Anonymous Functions" /><meta name="abstract" content="Anonymous functions can be defined anywhere inside a script." /><meta name="description" content="Anonymous functions can be defined anywhere inside a script." /><meta name="indexterms" content="anonymous functions" /><meta name="DC.subject" content="anonymous functions" /><meta name="keywords" content="anonymous functions" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/functions.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_vlb_pyl_vt" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Anonymous Functions</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Anonymous Functions" /><meta name="abstract" content="Anonymous functions can be defined anywhere inside a script." /><meta name="description" content="Anonymous functions can be defined anywhere inside a script." /><meta name="indexterms" content="anonymous functions" /><meta name="DC.subject" content="anonymous functions" /><meta name="keywords" content="anonymous functions" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/functions.htm" /><meta name="prodname" content="OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_vlb_pyl_vt" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Anonymous Functions</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../index.htm";
           
           --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
 <body onload="highlightSearchTerm()" class="frmBody" id="reference_vlb_pyl_vt">
-<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language.">Scripting Guide for OpenMatrix Language</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/functions.htm" title="Functions are packets of statements that can be used repeatedly.">Functions</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language.">Scripting Guide for the OpenMatrix Language</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/functions.htm" title="Functions are packets of statements that can be used repeatedly.">Functions</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
 <span class="navparent"><a class="link" href="../../topics/language_guides/functions.htm" title="Functions are packets of statements that can be used repeatedly."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Functions</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
   <h1 class="title topictitle1" id="ariaid-title1">Anonymous Functions</h1>
 
@@ -34,30 +34,30 @@ silly(9)</code></pre>returns a value of 10, not 11.
         Local variables used by an anonymous function cannot be defined later. If they do not exist
         at the time the function is defined, an error will occur when the function is used.</div>
 
-      <p class="p">Anonymous functions also provide a means of passing additional parameters to a function
-        that is to be used as an argument. Consider the following scenario:</p>
-
-      <pre class="pre codeblock"><code>function result = ObjFunc(p, data)
+      <div class="p">Anonymous functions also provide a means of passing additional parameters to a function
+        that is to be used as an argument. Consider the following
+        scenario:<pre class="pre codeblock"><code>function result = ObjFunc(p, data)
     ...
 end
 
 init = [5,3]
 data = [2,3,5,7];
 [x,fval] = fminunc(@ObjFunc, init)
-</code></pre>
-      <p class="p">Passing <span class="keyword cmdname">ObjFunc</span> to <span class="keyword cmdname">fminunc</span> will not work because
-          <span class="keyword cmdname">fminunc</span> expects <span class="keyword cmdname">ObjFunc</span> to have one argument. The
-        solution is to use an anonymous function, like this:</p>
+</code></pre></div>
 
-      <pre class="pre codeblock"><code>[x,fval] = fminunc(@(x) ObjFunc(x, data), init)</code></pre>
-      <p class="p">The anonymous function satisfies the requirement of having one argument
+      <div class="p">Passing <span class="keyword cmdname">ObjFunc</span> to <span class="keyword cmdname">fminunc</span> will not work because
+          <span class="keyword cmdname">fminunc</span> expects <span class="keyword cmdname">ObjFunc</span> to have one argument. The
+        solution is to use an anonymous function, like
+        this:<pre class="pre codeblock"><code>[x,fval] = fminunc(@(x) ObjFunc(x, data), init)</code></pre></div>
+
+      <div class="p">The anonymous function satisfies the requirement of having one argument
           (<var class="keyword varname">x</var>), and allows the second argument (<var class="keyword varname">data</var>) to be
         passed to <span class="keyword cmdname">ObjFunc</span>. This can also be accomplished using a function handle
-        for the anonymous function, as follows:</p>
-
-      <pre class="pre codeblock"><code>handle = @(x) ObjFunc(x, data)
+        for the anonymous function, as
+        follows:<pre class="pre codeblock"><code>handle = @(x) ObjFunc(x, data)
 [x,fval] = fminunc(handle, init)
-</code></pre>
+</code></pre></div>
+
     </section>
 
   </div>

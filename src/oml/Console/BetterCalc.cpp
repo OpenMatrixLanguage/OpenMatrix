@@ -1,7 +1,7 @@
 /**
 * @file BetterCalc.cpp
 * @date June 2014
-* Copyright (C) 2014-2020 Altair Engineering, Inc.  
+* Copyright (C) 2014-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -348,6 +348,13 @@ void CallNewConsolePrompting(ConsoleWrapper* wrapper)
         }
 
         Currency    output = interp->DoString(strCommand);
+#ifndef OS_WIN
+        if (strCommand == "\r\n")
+        {
+            std::cout << std::endl;
+        }
+#endif
+
     }
 }
 //------------------------------------------------------------------------------
@@ -375,6 +382,13 @@ std::string GetInputCommand(ConsoleWrapper* wrapper)
 
         std::string partialCommand;
 		std::getline(std::cin, partialCommand);
+
+#ifndef OS_WIN  // Try and trap control+D on Linux
+        if (std::cin.eof())
+        {
+            std::cin.clear();
+        }
+#endif
 
         if (!partialCommand.empty())
             g_numUserInterrupts = 0; // Reset control-C interrupt attempts
@@ -452,7 +466,7 @@ void PrintBanner()
 
     std::cout << line << std::endl;
 	std::cout << GetVersion(interp->GetApplicationDir()) << std::endl;
-	std::cout << "(c) Altair Engineering, Inc. and Contributors. (2007-2020)"  << std::endl;
+	std::cout << "(c) Altair Engineering, Inc. and Contributors. (2007-2021)"  << std::endl;
 	std::cout << line << std::endl;
 #endif
 }

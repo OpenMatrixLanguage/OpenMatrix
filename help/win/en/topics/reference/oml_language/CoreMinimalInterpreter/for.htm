@@ -38,6 +38,13 @@ end</code></pre>
           <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
 
         
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">expression</var></dt>
+
+          <dd class="dd pd">Anything that has a valid array or a valid expression comprised of the initial value,
+            step (optional), and end value.</dd>
+
+        
       </dl>
 
       <?STOPINP?>
@@ -49,7 +56,7 @@ end</code></pre>
         
           <dt class="dt pt dlterm"><span class="ph synph">statement</span></dt>
 
-          <dd class="dd pd">Executed if the expression in the <span class="keyword cmdname">for </span>condition is true.</dd>
+          <dd class="dd pd">Executed if the expression in the <span class="keyword cmdname">for</span> condition is true.</dd>
 
         
       </dl>
@@ -57,16 +64,14 @@ end</code></pre>
       <?STOPOUT?>
     </section>
 
-    <section class="section"><h2 class="title sectiontitle">Example</h2>
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
-      <p class="p">Simple <span class="keyword cmdname">for</span> loop.</p>
-
-      <pre class="pre codeblock"><code>sum=0
+      <div class="p">Simple <span class="keyword cmdname">for</span>
+        loop:<pre class="pre codeblock"><code>sum=0
 for j=1:10
   sum = sum + j
 end
-sum</code></pre>
-      <pre class="pre codeblock"><code><samp class="ph systemoutput">sum = 0
+sum</code></pre><pre class="pre codeblock"><code><samp class="ph systemoutput">sum = 0
 sum = 1
 sum = 3
 sum = 6
@@ -77,7 +82,37 @@ sum = 28
 sum = 36
 sum = 45
 sum = 55
-sum = 55</samp></code></pre>
+sum = 55</samp></code></pre></div>
+
+      <div class="p">Two-dimensional array as an
+        expression:<pre class="pre codeblock"><code>for j = [-1,0;3,-2]
+  disp(j)
+end</code></pre><pre class="pre codeblock"><code>[Matrix] 2 x 1
+-1
+ 3
+[Matrix] 2 x 1
+ 0
+-2</code></pre></div>
+
+      <div class="p">One-dimensional
+        array:<pre class="pre codeblock"><code>expr = [-1:0.5:2];
+mult = 1;
+for j = expr
+  mult = mult .* expr;
+end
+mult</code></pre><pre class="pre codeblock"><code>mult = [Matrix] 1 x 7
+-1.00000  -0.00781  0.00000  0.00781  1.00000  17.08594  128.00000</code></pre></div>
+
+      <div class="p">Initial value, step, and end
+        value:<pre class="pre codeblock"><code>val = 10;
+for j = 5:-1:1
+  val = val - j
+end</code></pre><pre class="pre codeblock"><code>val = 5
+val = 1
+val = -2
+val = -4
+val = -5</code></pre></div>
+
     </section>
 
     <section class="section">

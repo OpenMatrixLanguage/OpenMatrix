@@ -1,7 +1,7 @@
 /**
 * @file SignalHandler.cpp
 * @date June 2016
-* Copyright (C) 2016-2020 Altair Engineering, Inc.  
+* Copyright (C) 2016-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -97,20 +97,10 @@ void SignalHandler::OnUserInputHandler(const std::string& prompt,
 //------------------------------------------------------------------------------
 void SignalHandler::OnPrintResultHandler(const Currency& cur)
 {
-	assert(_wrapper);
-    if (!_src)  // This is the main interpreter
+    if (!_src)  // This is the main interpreter, where printing is handled
     {
+        assert(_wrapper);
         _wrapper->HandleOnPrintResult(cur);
-    }
-    else // This is a child interpreter
-    {
-        std::ofstream& ofs = CurrencyDisplay::GetOutputLog();
-        if (ofs.is_open())
-        {
-            _wrapper->SetChildSignalHandler(this);
-            _wrapper->HandleOnPrintResult(cur);
-            _wrapper->SetChildSignalHandler(nullptr);
-        }
     }
 }
 //------------------------------------------------------------------------------
