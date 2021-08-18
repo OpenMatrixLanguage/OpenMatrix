@@ -1,4 +1,0 @@
-fname = 'FileManipulation/EmptyFile.txt'
-fid = fopen(fname, 'w')
-fread(fid)
-fclose(fid)
