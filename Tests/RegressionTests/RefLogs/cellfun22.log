@@ -1,1 +1,1 @@
-Unknown function: no_such_func in call to function cellfun at line number 1 in file cellfun22.oml
+Error: 'no_such_func' is not defined in call to function cellfun at line number 1 in file cellfun22.oml

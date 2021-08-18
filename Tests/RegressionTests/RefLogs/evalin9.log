@@ -1,3 +1,3 @@
 y = 2
 2
-Unknown function: x at line number 6 in file evalin9.oml
+Error: 'x' is not defined at line number 6 in file evalin9.oml

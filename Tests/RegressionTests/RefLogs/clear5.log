@@ -1,2 +1,2 @@
 ans = 9
-Unknown function: timesThree at line number 7 in file clear5.oml
+Error: 'timesThree' is not defined at line number 7 in file clear5.oml

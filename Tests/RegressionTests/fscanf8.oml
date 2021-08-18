@@ -1,0 +1,3 @@
+fid = fopen('FileManipulation\numbers.txt','r');
+a = fscanf(fid, '%f', 5)
+b = fscanf(fid, '%f', 5)

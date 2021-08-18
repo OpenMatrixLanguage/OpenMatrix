@@ -1,0 +1,6 @@
+a = 64 + 5/8192	% = 1000000.0000000000101 (b)
+b1 = (round(a, 16, 'sigbits') - 64) * 8192
+b2 = (round(a, 17, 'sigbits') - 64) * 8192
+b3 = (round(a, 18, 'sigbits') - 64) * 8192
+b4 = (round(a, 19, 'sigbits') - 64) * 8192
+b5 = (round(a, 20, 'sigbits') - 64) * 8192

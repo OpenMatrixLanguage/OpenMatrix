@@ -1,2 +1,2 @@
 5
-Unknown function: x at line number 9 in file evalin3.oml
+Error: 'x' is not defined at line number 9 in file evalin3.oml

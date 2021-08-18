@@ -1,1 +1,1 @@
-Unknown function: hello at line number 4 in file clear9.oml
+Error: 'hello' is not defined at line number 4 in file clear9.oml

@@ -1,2 +1,2 @@
 b = 4
-Unknown function: b at line number 10 in file trycatchcleanup.oml
+Error: 'b' is not defined at line number 10 in file trycatchcleanup.oml

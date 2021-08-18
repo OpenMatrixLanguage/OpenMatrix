@@ -1,0 +1,2 @@
+lastwarn('Warning')
+lastwarn()

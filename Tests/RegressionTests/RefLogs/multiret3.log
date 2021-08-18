@@ -1,1 +1,1 @@
-Unknown function: c in function adjust at line number 4 in file multiret3.oml
+Error: 'c' is not defined in function adjust at line number 4 in file multiret3.oml

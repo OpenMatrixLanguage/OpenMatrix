@@ -1,0 +1,3 @@
+test = [Matrix] 1 x 4
+84  69  83  84
+Error: invalid input in argument 1; type must be a string or vector in call to function cellstr at line number 2 in file cellstr05.oml

@@ -3,4 +3,4 @@ b = 3
 ans = 1
 ans = 0
 a = 5
-Unknown function: b at line number 11 in file clear12.oml
+Error: 'b' is not defined at line number 11 in file clear12.oml

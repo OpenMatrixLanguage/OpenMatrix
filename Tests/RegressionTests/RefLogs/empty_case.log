@@ -1,1 +1,1 @@
-Unknown function: b at line number 13 in file empty_case.oml
+Error: 'b' is not defined at line number 13 in file empty_case.oml

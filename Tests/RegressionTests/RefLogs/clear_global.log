@@ -1,2 +1,2 @@
 a = 3
-Unknown function: a in function test at line number 7 in file clear_global.oml
+Error: 'a' is not defined in function test at line number 7 in file clear_global.oml

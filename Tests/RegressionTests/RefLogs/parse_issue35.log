@@ -1,1 +1,1 @@
-Unknown function: temp at line number 1 in file parse_issue35.oml
+Error: 'temp' is not defined at line number 1 in file parse_issue35.oml
