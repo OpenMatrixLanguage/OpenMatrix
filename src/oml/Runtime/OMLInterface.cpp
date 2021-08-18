@@ -87,6 +87,12 @@ const OMLCurrency* OMLInterfaceImpl::CallFunction(const char* name, OMLCurrencyL
 	return new OMLCurrencyImpl(result);
 }
 
+const OMLCurrency* OMLInterfaceImpl::GetGlobalValue(const char* varname)
+{
+	Currency result = _eval->GetGlobalValue(varname);
+	return new OMLCurrencyImpl(result);
+}
+
 bool OMLCurrencyImpl::IsScalar() const
 {
 	return _cur.IsScalar();

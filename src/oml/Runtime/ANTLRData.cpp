@@ -186,6 +186,49 @@ void ANTLRData::PreprocessTokenStream(pANTLR3_COMMON_TOKEN_STREAM& tokens)
 				}
 			}
 		}
+		else if (token_type == PROPERTIES)
+		{
+			if (j < (num_tokens - 1))
+			{
+				pANTLR3_COMMON_TOKEN tok2 = (pANTLR3_COMMON_TOKEN)vec->get(vec, j + 1);
+
+				if (tok2->getType(tok2) == LPAREN)
+				{
+					tok->setType(tok, IDENT);
+					// the text for tok should already by properties
+				}
+			}
+		}
+		else if (token_type == METHODS)
+		{
+			bool skip = false;
+
+			if (j < (num_tokens - 1))
+			{
+				pANTLR3_COMMON_TOKEN tok2 = (pANTLR3_COMMON_TOKEN)vec->get(vec, j + 1);
+
+				if (tok2->getType(tok2) == LPAREN)
+				{
+					for (int k = j + 2; k < num_tokens; ++k)
+					{
+						pANTLR3_COMMON_TOKEN tokn = (pANTLR3_COMMON_TOKEN)vec->get(vec, k);
+
+						if (tokn->getType(tokn) == RPAREN)
+							break;
+
+						if (tokn->getType(tokn) == ASSIGN)
+						{
+							skip = true;
+							break;
+						}
+					}
+
+					if (!skip)
+						tok->setType(tok, IDENT);
+					// the text for tok should already by methods
+				}
+			}
+		}
 	}
 }
 

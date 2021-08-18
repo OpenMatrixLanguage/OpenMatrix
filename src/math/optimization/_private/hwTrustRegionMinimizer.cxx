@@ -13,25 +13,25 @@
 * Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
 * Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
-#include <hwTrustRegionMinimizer.h>
+#include "hwTrustRegionMinimizer.h"
 
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-hwTrustRegionMinimizer::hwTrustRegionMinimizer(const hwMatrix& P_, 
-                                               int             maxIter,
-                                               int             maxFuncEval, 
-                                               double          tolf, 
-                                               double          tolx)
-    : Obj_history    (nullptr),
-      DV_history     (nullptr),
-      m_maxIter      (maxIter),
-      m_numFuncEvals (maxFuncEval),
-      m_tolf         (tolf),
-      m_tolx         (tolx),
-      m_numIter      (0),
-      m_numHistPnts  (0),
-      m_objFuncVal   (0.0)
+hwTrustRegionMinimizer::hwTrustRegionMinimizer(const hwMatrix& P_,
+    int             maxIter,
+    int             maxFuncEval,
+    double          tolf,
+    double          tolx)
+    : Obj_history(nullptr),
+    DV_history(nullptr),
+    m_maxIter(maxIter),
+    m_numFuncEvals(maxFuncEval),
+    m_tolf(tolf),
+    m_tolx(tolx),
+    m_numIter(0),
+    m_numHistPnts(0),
+    m_objFuncVal(0.0)
 {
     if (P_.IsEmpty())
     {
@@ -134,7 +134,6 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
     bool converged = false;
     bool newEstimate;
     bool trBoundary;
-    bool GstepSet = false;
 
     double a;
     double b;
@@ -142,7 +141,7 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
     double f_new;                 // objective function values
     double m_new;                 // objective function values
     double gradLength;
-    double GstepLength;
+    double GstepLength = -1.0;
     double NstepLength;
     double PstepLength;
     double PcandLength;
@@ -158,7 +157,7 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
     // minimze f
     int i;
     for (i = 0; i < m_maxIter; i++)
-    {        
+    {
         if (i == 0) // step 1: manage the gradient
         {
             EvalGradient();
@@ -262,7 +261,6 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
                 if (trRadius <= trRadiusMin)
                 {
                     return m_status(HW_MATH_INFO_SMALLTRUST);
-                    // return m_status(HW_MATH_ERR_NOLOCALMIN);
                 }
 
                 trRadius    = _max(0.25 * PstepLength, trRadiusMin);
@@ -293,35 +291,24 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
                 // accept new step and update trust region radius
                 UpdateHistory(Pnew, f_new);
 
-                if (fabs(f_new) > _max(1.0e-6 * m_tolf, 1.0e-20))
+                if (fabs(f_new) > 1.0e-12)
                 {
                     if (fabs(f - f_new) < m_tolf * fabs(f))
                     {
                         f = f_new;
                         SetParams(Pnew);
-
-                        if (m_tolf < 1.0e-20 || gradLength * m_tolx < 100.0 * m_tolf)   // sanity check on gradient
-                        {
-                            converged = true;
-                            m_status(HW_MATH_INFO_TOLFCONV_R);
-                            break;
-                        }
+                        converged = true;
+                        m_status(HW_MATH_INFO_TOLFCONV_R);
+                        break;
                     }
                 }
-                else
+                else if (fabs(f - f_new) < m_tolf)
                 {
-                    if (fabs(f - f_new) < m_tolf)
-                    {
-                        f = f_new;
-                        SetParams(Pnew);
-
-                        if (m_tolf < 1.0e-20 || gradLength * m_tolx < 100.0 * m_tolf)   // sanity check on gradient
-                        {
-                            converged = true;
-                            m_status(HW_MATH_INFO_TOLFCONV);
-                            break;
-                        }
-                    }
+                    f = f_new;
+                    SetParams(Pnew);
+                    converged = true;
+                    m_status(HW_MATH_INFO_TOLFCONV);
+                    break;
                 }
 
                 f     = f_new;
@@ -346,10 +333,9 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
         else
         {
             // compute unconstrained steepest descent (gradient) step
-            if (newEstimate || !GstepSet)
+            if (newEstimate || GstepLength == -1.0)
             {
                 EvalSteepDescentStep(Gstep);
-                GstepSet = true;
 
                 if (!m_status.IsOk())
                 {
@@ -371,6 +357,7 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
             {
                 // use Cauchy point
                 Pstep = G * (trRadius / gradLength);
+                trBoundary = true;
             }
             else
             {
@@ -424,49 +411,24 @@ hwMathStatus hwTrustRegionMinimizer::Compute()
             return m_status;
         }
 
-        if (PcandLength > _max(1.0e-6 * m_tolx, 1.0e-20))
+        if (PcandLength > 1.0e-12)
         {
             if (PstepLength < m_tolx * PcandLength)
             {
-                if (m_tolf < 1.0e-20 || gradLength * PstepLength < 100.0 * m_tolf)   // sanity check on gradient
-                {
-                    converged = true;
-                    m_status(HW_MATH_INFO_TOLXCONV_R);
-                    Pnew = Pcand - Pstep;
-                    SetParams(Pnew);
-                    break;
-                }
-                else if (PstepLength <= trRadiusMin)
-                {
-                    converged = true;
-                    m_status(HW_MATH_INFO_TOLXCONV);
-                    Pnew = Pcand - Pstep;
-                    SetParams(Pnew);
-                    break;
-                }
+                converged = true;
+                m_status(HW_MATH_INFO_TOLXCONV_R);
+                Pnew = Pcand - Pstep;
+                SetParams(Pnew);
+                break;
             }
         }
-        else
+        else if (PstepLength < m_tolx)
         {
-            if (PstepLength < m_tolx)
-            {
-                if (m_tolf < 1.0e-20 || gradLength * PstepLength < 100.0 * m_tolf)   // sanity check on gradient
-                {
-                    converged = true;
-                    m_status(HW_MATH_INFO_TOLXCONV);
-                    Pnew = Pcand - Pstep;
-                    SetParams(Pnew);
-                    break;
-                }
-                else if (PstepLength <= trRadiusMin)
-                {
-                    converged = true;
-                    m_status(HW_MATH_INFO_TOLXCONV);
-                    Pnew = Pcand - Pstep;
-                    SetParams(Pnew);
-                    break;
-                }
-            }
+            converged = true;
+            m_status(HW_MATH_INFO_TOLXCONV);
+            Pnew = Pcand - Pstep;
+            SetParams(Pnew);
+            break;
         }
 
         // step 5: prepare next iteration

@@ -226,31 +226,91 @@ bool hwTMatrix<T1, T2>::IsRealData() const
 template<typename T1, typename T2>
 bool hwTMatrix<T1, T2>::IsDiag() const
 {
+    int m = M();
+    int size = Size();
+
+    // check for non-zeros with row != col
     if (IsReal())
     {
-        for (int jj = 0; jj < m_nCols; ++jj)
+        for (int k = 1; k < size; ++k)
         {
-            for (int ii = 0; ii < m_nCols; ++ii)
+            if (m_real[k] != static_cast<T1> (0) && (k % m != k / m))
             {
-                if (ii == jj)
-                    continue;
-
-                if ((*this)(ii, jj) != static_cast<T1> (0))
-                    return false;
+                return false;
             }
         }
     }
     else
     {
-        for (int jj = 0; jj < m_nCols; ++jj)
+        for (int k = 1; k < size; ++k)
         {
-            for (int ii = 0; ii < m_nCols; ++ii)
+            if (m_complex[k] != static_cast<T1> (0) && (k % m != k / m))
             {
-                if (ii == jj)
-                    continue;
+                return false;
+            }
+        }
+    }
 
-                if (z(ii, jj) != static_cast<T1> (0))
-                    return false;
+    return true;
+}
+
+//! Determine if the matrix is lower triagonal
+template<typename T1, typename T2>
+bool hwTMatrix<T1, T2>::IsLowerTriag() const
+{
+    int m = M();
+    int size = Size();
+
+    // check for non-zeros with row < col
+    if (IsReal())
+    {
+        for (int k = size - 1; k > 0; --k)
+        {
+            if (m_real[k] != static_cast<T1> (0) && (k % m < k / m))
+            {
+                return false;
+            }
+        }
+    }
+    else
+    {
+        for (int k = size - 1; k > 0; --k)
+        {
+            if (m_complex[k] != static_cast<T1> (0) && (k % m < k / m))
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+//! Determine if the matrix is upper triagonal
+template<typename T1, typename T2>
+bool hwTMatrix<T1, T2>::IsUpperTriag() const
+{
+    int m = M();
+    int size = Size();
+
+    // check for non-zeros with row > col
+    if (IsReal())
+    {
+        for (int k = 1; k < size; ++k)
+        {
+            if (m_real[k] != static_cast<T1> (0) && (k % m > k / m))
+            {
+                return false;
+            }
+        }
+    }
+    else
+    {
+        for (int k = 1; k < size; ++k)
+        {
+            if (m_complex[k] != static_cast<T1> (0) && (k % m > k / m))
+            {
+                return false;
             }
         }
     }
@@ -2076,76 +2136,22 @@ hwMathStatus hwTMatrix<T1, T2>::Transpose()
         return Transpose(temp);
     }
 
-    if (IsVector())
+    hwMathStatus status;
+
+    int temp = m_nCols;
+    m_nCols = m_nRows;
+    m_nRows = temp;
+
+    if (!IsVector())
     {
-        int temp = m_nCols;
-        m_nCols = m_nRows;
-        m_nRows = temp;
-    }
-    else if (IsSquare())
-    {
-        if (m_real)
-        {
-            T1 tempT1;
-
-            for (int i = 0; i < m_nCols; ++i)
-            {
-                for (int j = 0; j < i; ++j)
-                {
-                    tempT1 = (*this)(i, j);
-                    (*this)(i, j) = (*this)(j, i);
-                    (*this)(j, i) = tempT1;
-                }
-            }
-        }
-
-        if (m_complex)
-        {
-            T2 tempT2;
-
-            for (int i = 0; i < m_nCols; ++i)
-            {
-                for (int j = 0; j < i; ++j)
-                {
-                    tempT2 = z(i, j);
-                    z(i, j) = z(j, i);
-                    z(j, i) = tempT2;
-                }
-            }
-        }
-    }
-    else
-    {
-        // eventually replace this with an in place transpose
-        int m = m_nRows;
-        int n = m_nCols;
-
-        int temp = m_nCols;
-        m_nCols = m_nRows;
-        m_nRows = temp;
-
         if (m_real)
         {
             T1* temp_real = m_real;
             char* temp_real_memory = m_real_memory;
-            hwTMatrix<T1, T2> tempM(m, n, temp_real, REAL);
-
+            hwTMatrix<T1, T2> tempM(m_nCols, m_nRows, temp_real, REAL);
             m_real = nullptr;
 
-            try
-            {
-                Allocate(REAL);
-            }
-            catch (std::bad_alloc&)
-            {
-                return hwMathStatus(HW_MATH_ERR_ALLOCFAILED, 0);
-            }
-
-            for (int i = 0; i < m; ++i)
-            {
-                for (int j = 0; j < n; ++j)
-                    (*this)(j, i) = tempM(i, j);
-            }
+            status = Transpose(tempM);
 
             FreeMemory(temp_real_memory, temp_real);
         }
@@ -2154,30 +2160,16 @@ hwMathStatus hwTMatrix<T1, T2>::Transpose()
         {
             T2* temp_complex = m_complex;
             char* temp_complex_memory = m_complex_memory;
-            hwTMatrix<T1, T2> tempM(m, n, temp_complex, COMPLEX);
-
+            hwTMatrix<T1, T2> tempM(m_nCols, m_nRows, temp_complex, COMPLEX);
             m_complex = nullptr;
 
-            try
-            {
-                Allocate(COMPLEX);
-            }
-            catch (std::bad_alloc&)
-            {
-                return hwMathStatus(HW_MATH_ERR_ALLOCFAILED, 0);
-            }
-
-            for (int i = 0; i < m; ++i)
-            {
-                for (int j = 0; j < n; ++j)
-                    z(j, i) = tempM.z(i, j);
-            }
+            status = Transpose(tempM);
 
             FreeMemory(temp_complex_memory, temp_complex);
         }
     }
 
-    return hwMathStatus();
+    return status;
 }
 
 //! Transpose the matrix
@@ -2283,6 +2275,42 @@ void hwTMatrix<T1, T2>::Hermitian(const hwTMatrix<T1, T2>& source)
 // ****************************************************
 //               Arithmetic Operations
 // ****************************************************
+
+//! Sum a real matrix row
+template<typename T1, typename T2>
+T1 hwTMatrix<T1, T2>::RowSumReal(int i) const
+{
+    // client is responsible for bounds checking
+    T1 sum = static_cast<T1> (0);
+    T1* col = m_real + i;
+
+    for (int j = 0; j < m_nCols; ++j)
+    {
+        sum += (*col);
+        col += m_nRows;
+    }
+
+    return sum;
+}
+
+//! Sum a complex matrix row
+template<typename T1, typename T2>
+T2 hwTMatrix<T1, T2>::RowSumComplex(int i) const
+{
+    // client is responsible for bounds checking
+    T2* col = m_complex + i;
+    T2 sum;
+    
+    sum = static_cast<T1> (0);
+
+    for (int j = 0; j < m_nCols; ++j)
+    {
+        sum += (*col);
+        col += m_nRows;
+    }
+
+    return sum;
+}
 
 //! Add two matrices so that (*this) = A + B
 template<typename T1, typename T2>
@@ -4064,10 +4092,24 @@ bool hwTMatrix<T1, T2>::IsEqual(const hwTMatrix<T1, T2>& A, T1 tol) const
     {
         if (A.m_real)
         {
-            for (int i = 0; i < size; ++i)
+            if (!tol)  // Performance tuning
             {
-                if (!AreEqual(m_real[i], A.m_real[i], tol))
-                    return false;
+                for (int i = 0; i < size; ++i)
+                {
+                    if (IsNaN_T(m_real[i]) || IsNaN_T(A.m_real[i]) || 
+                        m_real[i] != A.m_real[i])
+                    {
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < size; ++i)
+                {
+                    if (!AreEqual(m_real[i], A.m_real[i], tol))
+                        return false;
+                }
             }
         }
         else if (A.m_complex)
@@ -6152,9 +6194,9 @@ hwMathStatus hwTMatrix<T1, T2>::Copy(const hwTMatrix<T1, T2>& source)
         int size = Size();
 
         if (m_real)
-            CopyData(m_real, size, source.m_real, size);
+            CopyData(m_real, source.m_real, size);
         else if (m_complex)
-            CopyData(m_complex, size, source.m_complex, size);
+            CopyData(m_complex, source.m_complex, size);
     }
     else if (m_nCols == source.m_nCols && m_nRows == source.m_nRows &&
              m_bits.realData == source.m_bits.realData)
@@ -6162,9 +6204,9 @@ hwMathStatus hwTMatrix<T1, T2>::Copy(const hwTMatrix<T1, T2>& source)
         int size = Size();
 
         if (m_real)
-            CopyData(m_real, size, source.m_real, size);
+            CopyData(m_real, source.m_real, size);
         else if (m_complex)
-            CopyData(m_complex, size, source.m_complex, size);
+            CopyData(m_complex, source.m_complex, size);
     }
     else
     {
@@ -6181,42 +6223,64 @@ void hwTMatrix<T1, T2>::CopyBlock(const T1* real, int m, int n, int row1, int ro
                                   int col1, int col2, int ii, int jj)
 {
     // This private function performs no bounds checks, but will not write beyond the *this bounds
-    // T1 is an m by n matrix that contains the submatrix to be copied
-    // row1 and row2 are the first and last rows the submatrix
-    // col1 and col2 are the first and last columns the submatrix
-    // ii and jj are the indices of the first element to which the submatrix will be copied
-    int m_max = _min(row1+m_nRows-1-ii, row2);
-    int n_max = _min(col1+m_nCols-1-jj, col2);
-    int offset_t;   // target offset
-    int offset_s;   // source offset
-    int numElems;
+    // T1 is an m by n matrix from which a submatrix is to be copied
+    // row1 and row2 are the first and last submatrix rows
+    // col1 and col2 are the first and last submatrix columns
+    // ii and jj are the indices of the first element of *this to which the submatrix will be copied
+    int m_max = _min(row1 + (m_nRows - 1 - ii), row2);
+    int n_max = _min(col1 + (m_nCols - 1 - jj), col2);
     int numRows = m_max - row1 + 1;
+    int numCols = n_max - col1 + 1;
+    T1* data_t;         // target data pointer
+    const T1* data_s;   // source data pointer
 
     if (numRows == m && numRows == m_nRows)  // contiguous memory for both source and target
     {
-        numElems = numRows * (n_max-col1+1);
+        int numElems = numRows * numCols;
 
         if (numElems)
         {
-            offset_t = jj * m_nRows;
-            offset_s = col1 * m;
-            CopyData(m_real + offset_t, numElems, real + offset_s, numElems);
+            data_t = m_real + jj * m_nRows;
+            data_s = real + col1 * m;
+            CopyData(data_t, data_s, numElems);
         }
     }
     else
     {
-        numElems = numRows;
+        data_t = m_real + jj * m_nRows + ii;
+        data_s = real + col1 * m + row1;
 
-        if (numElems)
+        if (numRows > numCols)
         {
-            offset_t = jj * m_nRows + ii;
-            offset_s = col1 * m + row1;
+            // copy by column
+            int numElems = numRows;
 
-            for (int i = col1; i <= n_max; ++i)
+            if (numElems)
             {
-                CopyData(m_real + offset_t, numElems, real + offset_s, numElems);
-                offset_t += m_nRows;
-                offset_s += m;
+                for (int j = col1; j <= n_max; ++j)
+                {
+                    CopyData(data_t, data_s, numElems);
+                    data_t += m_nRows;
+                    data_s += m;
+                }
+            }
+        }
+        else
+        {
+            // copy by row
+            int numElems = numCols;
+
+            if (numElems)
+            {
+                int stride_t = m_nRows;
+                int stride_s = m;
+
+                for (int i = row1; i <= m_max; ++i)
+                {
+                    CopyData(data_t, stride_t, data_s, stride_s, numElems);
+                    data_t++;
+                    data_s++;
+                }
             }
         }
     }
@@ -6228,45 +6292,64 @@ void hwTMatrix<T1, T2>::CopyBlock(const T2* cmplx, int m, int n, int row1, int r
                                   int col1, int col2, int ii, int jj)
 {
     // This private function performs no bounds checks, but will not write beyond the *this bounds
-    // T1 is an m by n matrix that contains the submatrix to be copied
-    // row1 and row2 are the first and last rows the submatrix
-    // col1 and col2 are the first and last columns the submatrix
+    // T1 is an m by n matrix from which a submatrix is to be copied
+    // row1 and row2 are the first and last submatrix rows
+    // col1 and col2 are the first and last submatrix columns
     // ii and jj are the indices of the first element to which the submatrix will be copied
-    int m_max = _min(row1+m_nRows-1-ii, row2);
-    int n_max = _min(col1+m_nCols-1-jj, col2);
-    int offset_t;   // target offset
-    int offset_s;   // source offset
-    int numElems;
+    int m_max = _min(row1 + (m_nRows-1-ii), row2);
+    int n_max = _min(col1 + (m_nCols-1-jj), col2);
     int numRows = m_max - row1 + 1;
+    int numCols = n_max - col1 + 1;
+    T2* data_t;         // target data pointer
+    const T2* data_s;   // source data pointer
 
     if (numRows == m && numRows == m_nRows)  // contiguous memory for both source and target
     {
-        numElems = numRows * (n_max-col1+1);
+        int numElems = numRows * numCols;
 
         if (numElems)
         {
-            offset_t = jj * m_nRows;
-            offset_s = col1 * m;
-            CopyData(m_complex + offset_t, numElems, cmplx + offset_s, numElems);
+            data_t = m_complex + jj * m_nRows;
+            data_s = cmplx + col1 * m;
+            CopyData(data_t, data_s, numElems);
         }
     }
     else
     {
-        numElems = numRows;
+        data_t = m_complex + jj * m_nRows + ii;
+        data_s = cmplx + col1 * m + row1;
 
-        if (numElems)
+        if (numRows > numCols)
         {
-            offset_t = jj * m_nRows + ii;
-            offset_s = col1 * m + row1;
+            // copy by column
+            int numElems = numRows;
 
-            T2* start_t = m_complex + offset_t;
-            T2* start_s = (T2*) cmplx + offset_s;
-
-            for (int i = col1; i <= n_max; ++i)
+            if (numElems)
             {
-                CopyData(start_t, numElems, start_s, numElems);
-                start_t += m_nRows;
-                start_s += m;
+                for (int i = col1; i <= n_max; ++i)
+                {
+                    CopyData(data_t, data_s, numElems);
+                    data_t += m_nRows;
+                    data_s += m;
+                }
+            }
+        }
+        else
+        {
+            // copy by row
+            int numElems = numCols;
+
+            if (numElems)
+            {
+                int stride_t = m_nRows;
+                int stride_s = m;
+
+                for (int i = row1; i <= m_max; ++i)
+                {
+                    CopyData(data_t, stride_t, data_s, stride_s, numElems);
+                    data_t++;
+                    data_s++;
+                }
             }
         }
     }
@@ -6274,7 +6357,7 @@ void hwTMatrix<T1, T2>::CopyBlock(const T2* cmplx, int m, int n, int row1, int r
 
 //! Copy data
 template<typename T1, typename T2>
-void hwTMatrix<T1, T2>::CopyData(void* dest, int arraySize, const void* src, int count)
+void hwTMatrix<T1, T2>::CopyData(void* dest, const void* src, int count)
 {
     // memcpy cannot be used here
     if (m_real)
@@ -6292,6 +6375,30 @@ void hwTMatrix<T1, T2>::CopyData(void* dest, int arraySize, const void* src, int
         
         for (int i = 0; i < count; ++i)
             destTemp[i] = srcTemp[i];
+    }
+}
+
+//! Copy data
+template<typename T1, typename T2>
+void hwTMatrix<T1, T2>::CopyData(void* dest, int stride_dest,
+                                 const void* src, int stride_src, int count)
+{
+    // memcpy cannot be used here
+    if (m_real)
+    {
+        T1* destTemp = reinterpret_cast<T1*>(dest);
+        const T1* srcTemp = reinterpret_cast<T1*>(const_cast<void*>(src));
+
+        for (int i = 0; i < count; ++i)
+            destTemp[i * stride_dest] = srcTemp[i * stride_src];
+    }
+    else if (m_complex)
+    {
+        T2* destTemp = reinterpret_cast<T2*>(dest);
+        const T2* srcTemp = reinterpret_cast<T2*>(const_cast<void*>(src));
+
+        for (int i = 0; i < count; ++i)
+            destTemp[i * stride_dest] = srcTemp[i * stride_src];
     }
 }
 

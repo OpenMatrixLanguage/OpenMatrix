@@ -67,14 +67,16 @@ struct BuiltinFunc
 	ALT_FUNCPTR alt_fptr;
 
 	FunctionMetaData md;
-    BuiltinFunc(FUNCPTR func, FunctionMetaData in_md) : fptr(func), alt_fptr(nullptr), md(in_md), locked(false), dll(nullptr), hierarchy(nullptr) {}
-    BuiltinFunc(ALT_FUNCPTR func, const std::string* context, const std::string* meta) : fptr(nullptr), alt_fptr(func), locked(false), dll(context), hierarchy(meta) {}
-	BuiltinFunc(ALT_FUNCPTR func, FunctionMetaData in_md, const std::string* context, const std::string* meta) : fptr(nullptr), alt_fptr(func), md(in_md), locked(false), dll(context), hierarchy(meta) {}
+    BuiltinFunc(FUNCPTR func, FunctionMetaData in_md) : fptr(func), alt_fptr(nullptr), md(in_md), locked(false), hidden(false), dll(nullptr), hierarchy(nullptr) {}
+    BuiltinFunc(ALT_FUNCPTR func, const std::string* context, const std::string* meta) : fptr(nullptr), alt_fptr(func), locked(false), hidden(false), dll(context), hierarchy(meta) {}
+	BuiltinFunc(ALT_FUNCPTR func, FunctionMetaData in_md, const std::string* context, const std::string* meta) : fptr(nullptr), alt_fptr(func), md(in_md), locked(false), hidden(false), dll(context), hierarchy(meta) {}
     BuiltinFunc() : fptr(nullptr), alt_fptr(nullptr), locked(false), dll(nullptr), hierarchy(nullptr) {}
 
-	void Lock() { locked = true; }
+	void Lock() { locked = true; hidden = true; }
+	void LockOnly() { locked = true; hidden = false; }
 
 	bool locked;
+	bool hidden;
 
 	const std::string* dll;
 	const std::string* hierarchy;
@@ -163,6 +165,7 @@ public:
 	void            ClearFunctionsFromFile(const std::string& filename);
 	void            ClearGlobals();
 	void            ClearVariables();
+	void            ClearClassesAndObjects();
 	int             RenameVariable(std::string old_name, std::string new_name);
 	bool            Contains(const std::string& varname) const;
 
@@ -183,7 +186,7 @@ public:
 	std::vector<std::string> GetKeywords() const;
 	std::vector<std::string> GetOperators() const;
 
-	int   GetContextEndValue() const;
+	int   GetContextEndValue(); // needed to remove the const for overloading
 	int   GetNargoutValue() const;
 	int   GetNarginValue() const;
 	void  PushNargValues(int argsin, int argsout);
@@ -243,6 +246,8 @@ public:
 	bool IsA(const Currency& target, const std::string& classname) const;
 	FunctionInfo* GetBaseClassFunctionInfo(const std::string* func_name, std::string* base_name, Currency* base_val);
 
+	ClassInfo* GetClassInfoFromName(const std::string& classname) const;
+
 	bool IsKeyword(const std::string& func_name) const;
 	bool IsOperator(const std::string& func_name) const;
 
@@ -264,7 +269,6 @@ public:
 	bool                    FindFileInPath(const std::string& file_plus_ext, std::string& filepath) const;
 	void                    RestorePath();
 
-	bool                     IsInPaths(const std::string &str) const;
 	std::vector<std::string> GetPaths() const;
 
 	// these assume the index is valid
@@ -299,6 +303,16 @@ public:
 	static void SetLastErrorMessage(const std::string& lasterr);
 	static std::string GetLastWarning();
 	static void SetLastWarning(const std::string& lastwarn);
+
+	void DisableWarning(const std::string& id);
+	void EnableWarning(const std::string& id);
+	bool IsWarningDisabled(const std::string& id);
+
+	bool IsInPaths(const std::string& path) const;
+
+	void RegisterLibraryAlias(const std::string& path, const std::string& alias);
+	std::string GetLibraryAlias(const std::string& path) const;
+
 	void ErrorCleanup();
 
 	inline bool IsUsedForEvalin() const { return is_for_evalin; }
@@ -482,19 +496,19 @@ public:
     //! Returns true if successful in locking built in function
     //! \param funcname Built in function which needs to be locked
     //!
-    bool LockBuiltInFunction(const std::string& funcname);
+	bool LockBuiltInFunction(const std::string& funcname, bool hide = true);
 
 	bool RemoveFunctionsInLibrary(const std::string& library);
 
 	MemoryScopeManager* GetMSM() const { return msm; }
-	
-	int SetNestedFunctionMarker(int new_val);
 
 	void SetNumberOfThreads(int num_threads) { _num_threads = num_threads; }
 
 	Currency GetProfileData() const;
 	void     ClearProfileData();
 	void     Profile(bool on) { _profiling = on; }
+
+	std::string GetFunctionArgumentName(int index);
 
 private:
 	Currency AddOperator(const Currency&, const Currency&);
@@ -668,6 +682,8 @@ private:
 
 	std::map<std::string, ENCRPTR> _decryptors;
 
+	std::map<std::string, std::string>*  _library_aliases;
+
 	bool IgnoreCoW(void*) const;
 
     void OnEvaluationEnd( const Currency& currency);
@@ -683,6 +699,8 @@ private:
 	std::vector<int> nargout_values;
 	std::vector<std::string> user_func_calls; // used for keeping track of which funcs to lock/unlock
 	int              assignment_nargout;
+
+	std::vector<OMLTree*> function_args;
 
 	int         current_statement_index;
 	OMLTree*    current_tree;
@@ -744,6 +762,8 @@ private:
 
     static std::string lasterrormsg;
     static std::string lastwarning;
+
+	std::vector<std::string> disabled_warnings;
 
 	std::vector<hwSliceArg> slices;
 	std::vector<int> indices;

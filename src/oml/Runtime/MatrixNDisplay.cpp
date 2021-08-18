@@ -319,6 +319,8 @@ std::string MatrixNDisplay::GetOutputForwardPagination(const OutputFormat* fmt) 
 
         os << std::endl << labels[i] << " = " << std::endl;
         m_linesPrinted ++;
+        int cachedLines = (m_paginate == PAGINATE_INTERACTIVE) ? m_linesPrinted : 0;
+
         if (canpaginate)
         {
             CurrencyDisplay* disp = cur.GetDisplay();
@@ -327,8 +329,8 @@ std::string MatrixNDisplay::GetOutputForwardPagination(const OutputFormat* fmt) 
                 disp->SetParentDisplay(const_cast<MatrixNDisplay*>(this));
             }
         }
-
         std::string tmp (cur.GetOutputString(fmt));
+        m_linesPrinted += cachedLines;
         StripEndline(tmp);
         os << tmp;
 

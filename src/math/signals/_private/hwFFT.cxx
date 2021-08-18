@@ -535,7 +535,7 @@ hwMathStatus hwFFTW::Compute(hwMatrix&       input,
 
             m_complexOutput = (fftw_complex*) output.GetComplexData();
         }
-        else    // m_direction == FFTW_BACKWARD
+        else    // file_plan_dir == FFTW_BACKWARD
         {
             if (m_fftSize == m_dataSize)
             {
@@ -664,6 +664,14 @@ hwMathStatus hwFFTW::Compute(hwMatrix&       input,
 //------------------------------------------------------------------------------
 hwMathStatus hwFFTW::Compute(const hwMatrix& input, int dim, hwMatrix& output)
 {
+    if (file_plan_dir == FFTW_BACKWARD && input.IsReal())
+    {
+        hwMatrix temp;
+        hwMathStatus status = temp.PackComplex(input);
+
+        return Compute(temp, dim, output);
+    }
+
     // clean up
     if (file_planR2C)
     {
@@ -685,7 +693,6 @@ hwMathStatus hwFFTW::Compute(const hwMatrix& input, int dim, hwMatrix& output)
 
     fftw_cleanup_threads();
     file_plan_fftsize = -1;
-    file_plan_dir = 0;
 
     // start over
     int rank = 1;
@@ -714,8 +721,6 @@ hwMathStatus hwFFTW::Compute(const hwMatrix& input, int dim, hwMatrix& output)
     }
 
     m_dataSize = m_fftSize;
-
-    DetermineType(input);
 
     if (file_plan_dir == FFTW_FORWARD)
     {

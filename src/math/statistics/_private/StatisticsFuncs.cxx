@@ -888,6 +888,110 @@ double ErrorFunc(double x)
     return hwNormal::Erf(x);
 }
 //------------------------------------------------------------------------------
+// Compute binomial combinations
+//------------------------------------------------------------------------------
+hwMathStatus NchooseK(int       n,
+                      int       k,
+                      double&   nCk)
+{
+    if (n < 1)
+        return hwMathStatus(HW_MATH_ERR_NONPOSINT, 1);
+
+    if (k < 0)
+        return hwMathStatus(HW_MATH_ERR_NEGATIVE, 2);
+
+    if (n < k)
+        return hwMathStatus(HW_MATH_ERR_ARG1LTARG2, 1, 2);
+
+    k = _min(k, n - k);
+    nCk = 1.0;
+    double kk = static_cast<double> (k);
+    double nn = static_cast<double> (n);
+
+    while (k--)
+    {
+        nCk *= nn / kk;
+        nn -= 1.0;
+        kk -= 1.0;
+    }
+
+    nCk = floor(nCk + 0.5);
+
+    if (nCk * 2.0 * k * MACHEP2 >= 0.5)
+        return hwMathStatus(HW_MATH_WARN_DOUBLEPRECLIMIT);
+
+    return hwMathStatus();
+}
+//------------------------------------------------------------------------------
+// Compute binomial combinations
+//------------------------------------------------------------------------------
+hwMathStatus NchooseK(const hwMatrix& N,
+                      int             k,
+                      hwMatrix&       nCk)
+{
+    hwMathStatus status;
+
+    if (!N.IsEmptyOrVector())
+        return status(HW_MATH_ERR_VECTOR);
+
+    int n = N.Size();
+    int m;
+    double mm;
+
+    if (k <= n)
+    {
+        status = NchooseK(n, k, mm);
+
+        if (!status.IsOk())
+            return status;
+
+        m = static_cast<int> (mm);
+    }
+    else
+    {
+        m = 0;
+    }
+
+    status = nCk.Dimension(m, k, hwMatrix::REAL);
+
+    if (!status.IsOk())
+        return status;
+
+    std::vector<int> idx(k);
+
+    for (int col = 0; col < k; ++col)
+        idx[col] = col;
+
+    for (int row = 0; row < m; ++row)
+    {
+        // write a row
+        for (int col = 0; col < k; ++col)
+        {
+            nCk(row, col) = N(idx[col]);
+        }
+
+        // update idx values
+        for (int col = k - 1; col >= 0; --col)
+        {
+            // increment last idx[col] that is not maxed out,
+            // and set values that follow it
+            if (idx[col] != n - k + col)
+            {
+                ++idx[col];
+
+                for (int col2 = col + 1; col2 < k; ++col2)
+                {
+                    idx[col2] = idx[col2 - 1] + 1;
+                }
+
+                break;
+            }
+        }
+    }
+
+    return status;
+}
+//------------------------------------------------------------------------------
 // Compute the mean of a real data vector
 //------------------------------------------------------------------------------
 hwMathStatus Mean(const hwMatrix& data, double& xBar)
@@ -1092,6 +1196,39 @@ hwMathStatus AvgDev(const hwMatrix& data, double& avgDev)
     }
 
     avgDev = sum / static_cast<double>(n);
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// Compute the median absolute deviation of a data vector
+//------------------------------------------------------------------------------
+hwMathStatus MedianDev(const hwMatrix& data, double& medianDev)
+{
+    if (!data.IsReal())
+    {
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 1);
+    }
+    if (!data.IsEmptyOrVector())
+    {
+        return hwMathStatus(HW_MATH_ERR_VECTOR, 1);
+    }
+    double median;
+    hwMathStatus status = Median(data, median);
+    if (!status.IsOk())
+    {
+        return status;
+    }
+
+    hwMatrix devs;
+
+    status = devs.Abs(data - median);
+
+    if (!status.IsOk())
+    {
+        return status;
+    }
+
+    status = Median(devs, medianDev);
 
     return status;
 }

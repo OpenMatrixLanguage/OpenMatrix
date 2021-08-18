@@ -1,7 +1,7 @@
 /**
 * @file CellNDisplay.h
 * @date January 2019
-* Copyright (C) 2019 Altair Engineering, Inc.
+* Copyright (C) 2019-2021 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -68,13 +68,38 @@ public:
 		                  std::vector<Currency>&    curs,
 		                  std::vector<std::string>& labels);
 
+protected:
+    //!
+    //! Sets data for forward pagination
+    //!
+    virtual void SetForwardDisplayData();
+    //!
+    //! Sets data for back pagination
+    //!
+    virtual void SetBackDisplayData();
+
+    //!
+    //! Gets number of rows that can be fit
+    //!
+    virtual int GetNumRowsToFit() const;
+
+    //!
+    //! Gets values as a string
+    //! \param fmt Output format
+    //!
+    virtual std::string GetValues(const OutputFormat* fmt) const;
+    //!
+    //! True if rows are being processed during pagination
+    //!
+    virtual bool IsPaginatingRows() const;
 	//!
-	//! Gets values as a string
-	//! \param fmt Output format
+	//! True if paginating
 	//!
-	virtual std::string GetValues(const OutputFormat* fmt) const;
+	virtual bool IsPaginating() const { return false; }
 
 private:
+    mutable bool _childPaginating;     //!< True if child currency is paginating
+	mutable int  _lastRowPrinted;      //!< Last row that was printed in interactive pagination
 	//!
 	//! Constructor - Only currency is allowed to construct
 	//! \param cur Currency associated with this display
@@ -90,6 +115,30 @@ private:
 	//! \param fmt Format
 	//!
 	std::string GetOutputNoPagination(const OutputFormat* fmt) const;
+    //!
+    //! Gets outputfor forward/down pagination
+    //! \param fmt Format
+    //!
+    std::string GetOutputForwardPagination(const OutputFormat* fmt) const;
+    //!
+    //! Gets outputfor back/up pagination
+    //! \param fmt Format
+    //!
+    std::string GetOutputBackPagination(const OutputFormat* fmt) const;
+    //!
+    //! Updates the number of rows to fit
+    //!
+    void UpdateNumLinesPrinted();
+    //!
+    //! True if this ND matrix has only empty slices
+    //! \param slices Slices
+    //!
+    bool HasOnlyEmptySlices(const std::vector<Currency>& slices) const;
+    //!
+    //! Gets display string if matrix ND has only empty slices
+    //! 
+    std::string GetOutputEmpty() const;
+
 	//!
 	//! Helper to slice a given ND cell array to 2D cells
 	//! \param cell   Given cell

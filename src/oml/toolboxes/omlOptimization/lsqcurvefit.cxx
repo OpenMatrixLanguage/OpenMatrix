@@ -273,20 +273,33 @@ bool OmlLsqcurvefit(EvaluatorInterface           eval,
     if (nargin > 5)
     {
         if (inputs[4].IsScalar() || inputs[4].IsMatrix())
+        {
             lowerBound = inputs[4].ConvertToMatrix();
-        else
-            throw OML_Error(OML_ERR_SCALARVECTOR, 5);
 
-        if (lowerBound->M() != 0 || lowerBound->N() != 0)
-            throw OML_Error(HW_ERROR_BOUNDNOTYETSUPP5THPAR);
+            if (lowerBound->M() == 0 && lowerBound->N() == 0)   // default: unbounded
+                lowerBound = nullptr;
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_SCALARVECTOR, 5);
+        }
 
         if (inputs[5].IsScalar() || inputs[5].IsMatrix())
+        {
             upperBound = inputs[5].ConvertToMatrix();
-        else
-            throw OML_Error(OML_ERR_SCALARVECTOR, 6);
 
-        if (upperBound->M() != 0 || upperBound->N() != 0)
-            throw OML_Error(HW_ERROR_BOUNDNOTYETSUPP6THPAR);
+            if (upperBound->M() == 0 && upperBound->N() == 0)   // default: unbounded
+                upperBound = nullptr;
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_SCALARVECTOR, 6);
+        }
+
+        if (lowerBound && !upperBound)
+            throw OML_Error(OML_ERR_ARRAYSIZE, 5, 6);
+        else if (!lowerBound && upperBound)
+            throw OML_Error(OML_ERR_ARRAYSIZE, 5, 6);
     }
 
     bool   displayHist        = false;
@@ -399,14 +412,14 @@ bool OmlLsqcurvefit(EvaluatorInterface           eval,
     if (analyticalJacobian)
     {
         status = NLCurveFit(NLCurveFitFunc, NLCurveFitJacobian, *optParam, *X, 
-            *y, maxIter, maxFuncEval, stats, yEst, tolf, tolx, objHist, 
-            designHist, userData);
+            *y, lowerBound, upperBound, maxIter, maxFuncEval, stats, yEst, tolf,
+            tolx, objHist, designHist, userData);
     }
     else
     {
         status = NLCurveFit(NLCurveFitFunc, (LSqFitFunc) NULL, *optParam, *X, 
-            *y, maxIter, maxFuncEval, stats, yEst, tolf, tolx, objHist, 
-            designHist, userData);
+            *y, lowerBound, upperBound, maxIter, maxFuncEval, stats, yEst, tolf,
+            tolx, objHist, designHist, userData);
     }
 
     // display history
@@ -464,7 +477,15 @@ bool OmlLsqcurvefit(EvaluatorInterface           eval,
             {
                 status.SetArg1(4);
             }
-            else if (status.GetArg1() > 5 && status.GetArg1() < 12)
+            else if (status.GetArg1() == 6)
+            {
+                status.SetArg1(5);
+            }
+            else if (status.GetArg1() == 7)
+            {
+                status.SetArg1(6);
+            }
+            else if (status.GetArg1() > 7 && status.GetArg1() < 12)
             {
                 status.SetArg1(7);
             }
@@ -480,6 +501,14 @@ bool OmlLsqcurvefit(EvaluatorInterface           eval,
             else if (status.GetArg2() == 5)
             {
                 status.SetArg2(4);
+            }
+            else if (status.GetArg2() == 6)
+            {
+                status.SetArg2(5);
+            }
+            else if (status.GetArg2() == 7)
+            {
+                status.SetArg2(6);
             }
 
             if (status.IsWarning())

@@ -114,7 +114,7 @@ public:
     //!
     //! True if rows are being processed during pagination
     //!
-    bool IsPaginatingRows() const;
+    virtual bool IsPaginatingRows() const;
     //!
     //! True if columns are being processed during pagination
     //!
@@ -175,7 +175,7 @@ public:
     //!
     //! Sets parent display
     //!
-    void SetParentDisplay(CurrencyDisplay* parent) { m_parentDisplay = parent; }
+    void SetParentDisplay(CurrencyDisplay*);
 
     //!
     //! Initialize
@@ -249,6 +249,10 @@ public:
     //! Returns true if parent is ND matrix
     //!
     virtual bool IsNDMatrixDisplay() const { return false; }
+    //!
+    //! Returns true if parent is ND cell
+    //!
+    virtual bool IsNDCellDisplay() const { return false; }
 
     //!
     //! Returns true if first line needs to be deleted in client before printing

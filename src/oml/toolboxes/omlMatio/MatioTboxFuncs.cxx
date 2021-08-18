@@ -29,7 +29,7 @@
 
 #include "matio.h"
 
-#define TBOXVERSION 2021.1
+#define TBOXVERSION 2021.2
 
 // Ascii files
 // Returns true after loading file in ascii format
@@ -640,7 +640,7 @@ bool SaveAsciiFile(EvaluatorInterface              eval,
 
         if (cur.IsScalar())
         {
-            fprintf(fp, "%s\n", CurrencyDisplay::NonFormattedDoubleToString(cur.Scalar()));
+            fprintf(fp, "%s\n", CurrencyDisplay::NonFormattedDoubleToString(cur.Scalar()).c_str());
         }
         else if (cur.IsMatrixOrString())
         {

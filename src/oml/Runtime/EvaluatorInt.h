@@ -1,7 +1,7 @@
 /**
 * @file EvaluatorInt.h
 * @date June 2014
-* Copyright (C) 2014-2020 Altair Engineering, Inc.  
+* Copyright (C) 2014-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -90,12 +90,17 @@ public:
    	Currency Analyze(const std::string& infile);
    	Currency GetMetadata(const std::string& infile);
 
+	std::vector<std::string> GetProperties(const std::string& classname);
+	std::vector<std::string> GetMethods(const std::string& classname);
+
     void ClearPath();
     bool RemovePath(std::string &pathname);
 	bool RemoveHiddenPath(std::string& pathname);
     void AddPath(std::string pathname, bool end);
 	void AddHiddenPath(std::string pathname);
 	void AddPath2(const std::string& pathname, const std::vector<std::string> funcs);
+	void RegisterLibraryAlias(const std::string& path, const std::string& alias);
+	std::string GetLibraryAlias(const std::string& path);
     std::vector<std::string> GetPaths() const;
     void ResetFuncSearchCache();
     
@@ -122,6 +127,7 @@ public:
     void ClearFunctions();
     void ClearGlobals();
     void ClearVariables();
+    void ClearClassesAndObjects();
 
 	bool RemoveLibrary(const std::string& lib_name);
 
@@ -158,11 +164,16 @@ public:
     static const hwMatrix* allocateColumn(const hwMatrix* mtx, int col);
 
 	static hwMatrixN* allocateMatrixN();
-	static hwMatrixN* allocateMatrixN(const hwMatrixN*);
+    static hwMatrixN* allocateMatrixN(const std::vector<int>& dims, const hwMatrixN::DataType& dataType);
+    static hwMatrixN* allocateMatrixN(const hwMatrixN*);
 
     static HML_CELLARRAY* allocateCellArray();
     static HML_CELLARRAY* allocateCellArray(int m, int n);
     static HML_CELLARRAY* allocateCellArray(const HML_CELLARRAY*);
+
+    static HML_ND_CELLARRAY* allocateNDCellArray();
+    static HML_ND_CELLARRAY* allocateNDCellArray(std::vector<int> dims);
+    static HML_ND_CELLARRAY* allocateNDCellArray(const HML_ND_CELLARRAY*);
 
     static StructData* allocateStruct(const StructData*);
     static StructData* allocateStruct();
@@ -189,13 +200,17 @@ public:
     void Unlock(const std::string& fname);
     bool IsCurrentLocked() const;
     bool IsLocked(const std::string& fname) const;
-    bool LockBuiltInFunction(const std::string& fname);
+    bool LockBuiltInFunction(const std::string& fname, bool hide = true);
 
     std::string GetCurrentFilename() const;
 	int         GetCurrentLinenumber() const;
 
 	void CacheLineInfomation();
 	void UncacheLineInfomation();
+
+	void DisableWarning(const std::string& id);
+	void EnableWarning(const std::string& id);
+	bool IsWarningDisabled(const std::string& id);
 
 	void SetDLLContext(const std::string& dll_name);
 	void SetDLLHierarchy(const std::string& dll_hierarchy);
@@ -274,6 +289,9 @@ public:
 
     //! True if an interrupt has been requested
     bool IsInterrupt() const;
+    //! Sets the interrupt flag
+    //! \parm True if evaluator is interrupted
+    void SetInterrupt(bool);
 
 	void RegisterOMLDecryptor(const std::string& extension, ENCRPTR ptr);
 
@@ -295,10 +313,12 @@ public:
 	void RemoveChildEvaluator();
 
 	void SetNumberOfThreads(int threads);
-	
+
 	Currency GetProfileData() const;
 	void     ClearProfileData();
 	void     Profile(bool on);
+
+    std::string GetFunctionArgumentName(int index);
 
     //!
     //! Returns diary filestream

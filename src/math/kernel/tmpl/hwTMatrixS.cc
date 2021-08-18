@@ -341,7 +341,7 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
     {
 		// rebuild matrix, removing summed zero values
 		std::vector<MKL_INT> nzCol(m_nCols);
-		hwMatrix copyV(m_values);
+        hwTMatrix<T1, T2> copyV(m_values);
 		std::vector<MKL_INT> copyR = m_rows;
 		m_rows.clear();
 		m_rows.resize(nDistinctIndices);
@@ -354,7 +354,7 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
 		if (m_values.IsReal())
 		{
 			T1* srcV = copyV.GetRealData();
-			status = m_values.Dimension(nDistinctIndices, 1, hwMatrix::REAL);
+			status = m_values.Dimension(nDistinctIndices, 1, hwTMatrix<T1, T2>::REAL);
 			T1* destV = m_values.GetRealData();
 
 			for (int ii = 0; ii < nDistinctIndices; ++ii)
@@ -406,7 +406,7 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
 		else
 		{
 			T2* srcV = copyV.GetComplexData();
-			status = m_values.Dimension(nDistinctIndices, 1, hwMatrix::COMPLEX);
+			status = m_values.Dimension(nDistinctIndices, 1, hwTMatrix<T1, T2>::COMPLEX);
 			T2* destV = m_values.GetComplexData();
 
 			for (int ii = 0; ii < nDistinctIndices; ++ii)
@@ -500,7 +500,7 @@ hwTMatrixS<T1, T2>::hwTMatrixS(const std::vector<int>&  ivec,
 		pairs.resize(firstZero);
 		sort(pairs.begin(), pairs.end(), compare3<T1, long long int>);
 
-		hwMathStatus status = m_values.Dimension(firstZero, 1, hwMatrix::REAL);
+		hwMathStatus status = m_values.Dimension(firstZero, 1, hwTMatrix<T1, T2>::REAL);
 		m_rows.clear();
 		m_rows.resize(firstZero);
 
@@ -4423,13 +4423,13 @@ void hwTMatrixS<T1, T2>::ConcatVertical(const hwTMatrixS<T1, T2>& A, const hwTMa
 {
     if (A.IsReal() && !B.IsReal())
     {
-        hwMatrixS AC;
+        hwTMatrixS<T1, T2> AC;
         AC.PackComplex(A);
         return ConcatVertical(AC, B);
     }
     else if (!A.IsReal() && B.IsReal())
     {
-        hwMatrixS BC;
+        hwTMatrixS<T1, T2> BC;
         BC.PackComplex(B);
         return ConcatVertical(A, BC);
     }
@@ -4537,13 +4537,13 @@ void hwTMatrixS<T1, T2>::ConcatHorizontal(const hwTMatrixS<T1, T2>& A, const hwT
 {
     if (A.IsReal() && !B.IsReal())
     {
-        hwMatrixS AC;
+        hwTMatrixS<T1, T2> AC;
         AC.PackComplex(A);
         return ConcatHorizontal(AC, B);
     }
     else if (!A.IsReal() && B.IsReal())
     {
-        hwMatrixS BC;
+        hwTMatrixS<T1, T2> BC;
         BC.PackComplex(B);
         return ConcatHorizontal(A, BC);
     }

@@ -62,6 +62,7 @@ class OMLInterface4 : public OMLInterface3
 {
 public:
 	virtual void RegisterHiddenFunction(const char*, ALT_FUNCPTR) = 0;
+	virtual const OMLCurrency* GetGlobalValue(const char*) = 0;
 };
 
 class OMLCurrency

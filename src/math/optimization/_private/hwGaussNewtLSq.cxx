@@ -13,14 +13,14 @@
 * Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
 * Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
-#include <hwGaussNewtLSq.h>
-#include <hwMatrix.h>
+#include "hwGaussNewtLSq.h"
+#include "hwMatrix.h"
 
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
 hwGaussNewtLSqFit::hwGaussNewtLSqFit(const hwMatrix& P, 
-                                     int             numEqns, 
+                                     int             numEqns,
                                      int             maxIter,
                                      int             maxFuncEval, 
                                      double          tolf, 
@@ -212,4 +212,3 @@ void hwGaussNewtLSqFit::EvalQuadModelFunc(double          f,
     // m_new = f - linearTerm + 0.5 * quadTerm;
     m_new = f - 2.0 * linearTerm + quadTerm;    // minus due to sign of Pstep in Compute()
 }
-

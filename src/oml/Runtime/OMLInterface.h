@@ -40,6 +40,8 @@ public:
 
 	int  Nargout() const;
 
+	const OMLCurrency* GetGlobalValue(const char*);
+
 	const OMLCurrency* CallFunction(const OMLFunctionHandle* handle, OMLCurrencyList* inputs);
 	const OMLCurrency* CallFunction(const char* name, OMLCurrencyList* inputs);
 

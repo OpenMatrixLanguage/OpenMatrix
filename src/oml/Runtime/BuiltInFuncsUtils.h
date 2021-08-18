@@ -483,6 +483,19 @@ public:
                            double&            rval,
                            double&            ival,
                            bool&              isscalar);
+    //!
+    //! Helper method to get plus operator
+    //!
+    static int GetPlusOperator();
+    //!
+    //! Helper method to get minus operator
+    //!
+    static int GetMinusOperator();
+    //!
+    //! Reads file contents if it exists, supports unicode. No errors are thrown if file is invalid
+    //! \param Filename
+    //!
+    static std::string GetFileContents(const std::string&);
 private: 
     //!
     //! Reads formatted input and returns true if successful
@@ -537,7 +550,6 @@ private:
     static bool IsValidStrtodResult(const std::string& in,
                                     const std::string& end,
                                     double             val);
-
 };
 //------------------------------------------------------------------------------
 //! Returns matrix (real/complex) from container

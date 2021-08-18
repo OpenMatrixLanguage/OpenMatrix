@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsElemMath.h
 * @date July 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -100,6 +100,15 @@ public:
                                       bool                   outputIdx,
                                       bool                   inputIdx,
                                       std::vector<Currency>& outputs);
+    //!
+    //! Sets the mask on the given matrix as single precision data [single]
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //!
+    static bool Single(EvaluatorInterface           eval,
+                       const std::vector<Currency>& inputs,
+                       std::vector<Currency>&       outputs);
 
 private:
     //!
@@ -110,7 +119,13 @@ private:
     //! Helper function for Unique with real Matrix
     //! \param mtx Input matrix
     //!
-    std::deque<double> UniqueHelperRealMtx( const hwMatrix* mtx);
+    static void UniqueHelperRealMtx(const hwMatrix*,
+                                    bool,
+                                    bool,
+                                    bool,
+                                    bool,
+                                    std::vector<Currency>&);
+
     //!
     //! Helper function for Unique with complex Matrix
     //! \param mtx Input matrix
@@ -126,14 +141,6 @@ private:
     //! \param mtx Input matrix
     //!
     std::deque<hwComplex> UniqueHelperComplexMtxN( const hwMatrixN* mtx);
-    //!
-    //! Gets indices of occurences of matrix elements(x) in values => y = x(i)
-    //! \param x       Matrix to search in
-    //! \param y       Given values
-    //! \param forward True if forward search
-    Currency GetMatrixIndices( const hwMatrix*           x, 
-                               const std::deque<double>& y, 
-                               bool                      forward);
     //!
     //! Gets indices of occurences of matrix elements(x) in values => y = x(i)
     //! \param x       Matrix to search in
@@ -161,13 +168,6 @@ private:
     Currency GetMatrixNIndices( const hwMatrixN*             x,
                                 const std::deque<hwComplex>& y,
                                 bool                         forward);
-    //!
-    //! Gets indices of occurences of values in a complex matrix => x = y(j)
-    //! \param x Matrix to search in
-    //! \param y Given values
-    //!
-    Currency GetValueIndices( const hwMatrix*           x,
-                              const std::deque<double>& y);
     //!
     //! Gets indices of occurences of values in a complex matrix => x = y(j)
     //! \param x Matrix to search in

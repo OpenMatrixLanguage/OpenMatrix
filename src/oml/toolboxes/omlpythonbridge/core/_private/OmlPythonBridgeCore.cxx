@@ -1,7 +1,7 @@
 /**
 * @file OmlPythonBridgeCore.cxx
 * @date February, 2015
-* Copyright (C) 2015-2019 Altair Engineering, Inc.
+* Copyright (C) 2015-2021 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -29,7 +29,7 @@
 
 // End defines/includes
 
-OmlPythonBridgeCore* OmlPythonBridgeCore::_instance = NULL;
+OmlPythonBridgeCore* OmlPythonBridgeCore::_instance = nullptr;
 
 OmlPythonBridgeCore* OmlPythonBridgeCore::GetInstance()
 {
@@ -43,7 +43,7 @@ OmlPythonBridgeCore* OmlPythonBridgeCore::GetInstance()
 void OmlPythonBridgeCore::ReleaseInstance()
 {
     delete _instance;
-    _instance = NULL;
+    _instance = nullptr;
 }
 
 //! Constructor
@@ -137,14 +137,14 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
             PyObject* dict = PyDict_New();
             bool status = true;
 
-            if (NULL != dict)
+            if (nullptr != dict)
             {
                 const std::map<std::string, int>& fieldnames = data->GetFieldNames();
 
                 for (std::map<std::string, int>::const_iterator it = fieldnames.begin(); it != fieldnames.end(); ++it)
                 {
                     const Currency& val = data->GetValue(0, 0, it->first);
-                    PyObject* value_obj = NULL;
+                    PyObject* value_obj = nullptr;
                     status = ConvertCurrencyToPyObject(value_obj, val);
 
                     if (!status)
@@ -183,11 +183,11 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
             int size = cell->N();
             PyObject* lst = PyList_New(size);
 
-            if (NULL != lst)
+            if (nullptr != lst)
             {
                 for (int index = 0; index < size; index++)
                 {
-                    PyObject* valueObj = NULL;
+                    PyObject* valueObj = nullptr;
                     const Currency& val = (*cell)(0, index);
                     status = ConvertCurrencyToPyObject(valueObj, val);
 
@@ -215,14 +215,91 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
         {
             PyObject* lst = PyList_New(0);
 
-            if (NULL != lst)
+            if (nullptr != lst)
             {
                 obj = lst;
             }
         }
         else
         {
-            SetErrorMessage("Multi dimension cell export is not supported.");
+            int m_size      = cell->M();
+            PyObject* m_lst = PyList_New(m_size);
+
+            if (nullptr != m_lst)
+            {
+                int n_size  = cell->N();
+                bool status = true;
+                PyObject* n_item = nullptr;
+                for (int m_index = 0; m_index < m_size; m_index++)
+                {
+                    n_item = nullptr;
+                    
+                    if (0 == n_size)
+                    {
+                        PyObject* lst = PyList_New(0);
+
+                        if (nullptr != lst)
+                        {
+                            n_item = lst;
+                        }
+                        else
+                        {
+                            status = false;
+                        }    
+                    }
+                    else
+                    {
+                        
+                        if (n_size > 1)
+                            n_item = PyList_New(n_size);
+                        
+                        for (int n_index = 0; n_index < n_size; n_index++)
+                        {
+                            PyObject* valueObj = nullptr;
+                            const Currency& val = (*cell)(m_index, n_index);
+                            status = ConvertCurrencyToPyObject(valueObj, val);
+
+                            if (!status)
+                            {
+                                Py_XDECREF(valueObj);
+                                break;
+                            }
+                            if (n_size > 1)
+                            {
+                                if (-1 == PyList_SetItem(n_item, n_index, valueObj))
+                                {
+                                    Py_XDECREF(n_item);
+                                    status = false;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                n_item = valueObj;
+                            }
+                        }
+                    }
+
+                    if (!status)
+                    {
+                        Py_XDECREF(m_lst);
+                        break;
+                    }
+                    
+                    if (-1 == PyList_SetItem(m_lst, m_index, n_item))
+                    {
+                        Py_XDECREF(m_lst);
+                        status = false;
+                        break;
+                    }
+                }
+
+                if (status)
+                {
+                    obj = m_lst;
+                }
+            }
+
         }
 
         //ToDo:implement when in need
@@ -271,7 +348,7 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
         //ToDo:implement when in need
     }
     
-    return (NULL != obj) ? (true) : (false);
+    return (nullptr != obj) ? (true) : (false);
 }
 
 PyObject* OmlPythonBridgeCore::ConvertSparseToPyObject(const hwMatrixS* spm)
@@ -291,12 +368,12 @@ PyObject* OmlPythonBridgeCore::ConvertSparseToPyObject(const hwMatrixS* spm)
     PyObject* data_pyobj = nullptr;
     PyObject* indices_pyobj = nullptr;
     PyObject* indptr_pyobj  = nullptr;
-    PyObject* numrows_pyobj = nullptr;
-    PyObject* numcols_pyobj = nullptr;
+    //ToDo: once oml interpreter supports true integer
+    //replace following i.e PyInt_FromLong with function ConvertCurrencyToPyObject call
+    PyObject* numrows_pyobj = PyInt_FromLong(num_rows);;
+    PyObject* numcols_pyobj = PyInt_FromLong(num_cols);;
     
-
-    if ( ConvertCurrencyToPyObject(numrows_pyobj, num_rows) &&
-        ConvertCurrencyToPyObject(numcols_pyobj, num_cols) )
+    if ((nullptr != numrows_pyobj) && (nullptr != numcols_pyobj))
     {
         import_array();
         double* dptr = nullptr;
@@ -669,16 +746,16 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
 
             int type = PyArray_TYPE((PyArrayObject *)obj);
             hwMatrixN* matN = EvaluatorInterface::allocateMatrixN();
-            NpyIter* iter = NULL;
+            NpyIter* iter = nullptr;
 
             if (!hasZeroDimSize)
-                iter = NpyIter_New((PyArrayObject *)obj, NPY_ITER_READONLY | NPY_ITER_ALIGNED, NPY_FORTRANORDER, NPY_NO_CASTING, NULL);
+                iter = NpyIter_New((PyArrayObject *)obj, NPY_ITER_READONLY | NPY_ITER_ALIGNED, NPY_FORTRANORDER, NPY_NO_CASTING, nullptr);
 
-            if (NULL != iter)
+            if (nullptr != iter)
             {
-                NpyIter_IterNextFunc* iternext = NpyIter_GetIterNext(iter, NULL);
+                NpyIter_IterNextFunc* iternext = NpyIter_GetIterNext(iter, nullptr);
 
-                if (NULL != iternext)
+                if (nullptr != iternext)
                 {
                     int i = 0;
                     char** dataptr = NpyIter_GetDataPtrArray(iter);
@@ -869,7 +946,7 @@ std::string OmlPythonBridgeCore::GetPyObjectAsString(PyObject* const& obj)
     
     PyObject* strobj = PyObject_Str(obj);
 
-    if (NULL != strobj)
+    if (nullptr != strobj)
     {
 #ifdef IS_PY3
         PyObject* bytesObj = PyUnicode_AsUTF8String(strobj);
@@ -891,14 +968,14 @@ std::string OmlPythonBridgeCore::GetPyObjectAsString(PyObject* const& obj)
 void OmlPythonBridgeCore::HandleException(void)
 {
     
-    PyObject * expn = NULL, *xval = NULL, *xtrc = NULL;
+    PyObject * expn = nullptr, *xval = nullptr, *xtrc = nullptr;
     PyErr_Fetch(&expn, &xval, &xtrc);
 
-    if (NULL != expn)
+    if (nullptr != expn)
     {
         std::string errorMessage = "Unknown Exception";
 
-        if (NULL != xval)
+        if (nullptr != xval)
         {
             errorMessage = GetPyObjectAsString(xval);
         }

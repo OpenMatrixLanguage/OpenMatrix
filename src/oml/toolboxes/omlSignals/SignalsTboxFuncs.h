@@ -112,6 +112,15 @@ bool OmlFftShift(EvaluatorInterface           eval,
                  const std::vector<Currency>& inputs,
                  std::vector<Currency>&       outputs);
 //!
+//! Reverse shift FFT related data to uncenter DC component
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlIFftShift(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs);
+//!
 //! Generates a vector of frequency locations
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs

@@ -85,6 +85,7 @@ protected:
 	void            HideGlobal(const std::string& varname);
 	void            ClearLocals();
 	void            ClearGlobals();
+	void            ClearObjects();
 	void            ClearFromGlobals(const std::string& varname);
 	bool            ClearFromGlobals(const std::regex& varname);
 	Currency&       GetMutableValue(const std::string& varname);
@@ -131,6 +132,7 @@ public:
 	bool            Remove(const std::regex& varname);
 	void            ClearLocals();
 	void            ClearGlobals();
+	void            ClearObjects();
 	void            ClearFromGlobals(const std::string& varname);
 	bool            ClearFromGlobals(const std::regex& varname);
 	void            HideGlobal(const std::string& varname);

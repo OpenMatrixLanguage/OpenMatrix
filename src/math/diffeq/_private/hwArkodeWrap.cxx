@@ -23,6 +23,9 @@
 static ARKRhsFn_client sysfunc_client       = nullptr;
 static ARKRootFn_client rootfunc_client     = nullptr;
 static ARKDenseJacFn_client jacDfunc_client = nullptr;
+static int* event_is_terminal               = nullptr;
+static int* event_directon_request          = nullptr;
+static int* event_directon_actual           = nullptr;
 
 //------------------------------------------------------------------------------
 // ARKODE functions called by Sundials, converting SUNDIALS to built-in types
@@ -57,30 +60,48 @@ static int jacDfunc_ARKODE(realtype  t,
     return jacDfunc_client(SM_COLUMNS_D(J), t, NV_DATA_S(y), NV_DATA_S(yp),
            jac_data, SM_COLS_D(J));
 }
-
+//------------------------------------------------------------------------------
+// Write event data
+//------------------------------------------------------------------------------
+void WriteEventDataARK(double* isterminal, double* direction, int nrtfn)
+{
+    for (int i = 0; i < nrtfn; ++i)
+    {
+        event_is_terminal[i] = static_cast<int> (isterminal[i]);
+        event_directon_request[i] = static_cast<int> (direction[i]);
+    }
+}
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
 hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
                      ARKRootFn_client     rootfunc,
+                     int                  nrtfn,
                      ARKDenseJacFn_client jacDfunc,
                      double               tin,
                      const hwMatrix&      y_,
                      double               reltol_,
                      const hwMatrix*      abstol_,
                      double               maxstep,
-                     const hwMatrix*      userData)
+                     const hwMatrix*      userData,
+                     hwMatrix*            pEventTime,
+                     hwMatrix*            pEventFnVal,
+                     hwMatrix*            pEventIndx)
     : hwDiffEqSolver(y_)
     , arkode_mem(nullptr)
     , y(nullptr)
     , A(nullptr)
     , LS(nullptr)
+    , m_nrtfn(nrtfn)
+    , m_pEventTime(pEventTime)
+    , m_pEventFnVal(pEventFnVal)
+    , m_pEventIndx(pEventIndx)
 {
     if (!m_status.IsOk())
     {
         if (m_status.GetArg1() == 1)
         {
-            m_status.SetArg1(8);
+            m_status.SetArg1(6);
         }
         else
         {
@@ -95,9 +116,14 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
         return;
     }
 
+    if (m_nrtfn < 0)
+    {
+        m_status(HW_MATH_ERR_INVALIDINPUT, 3);
+    }
+
     if (reltol_ < 0.0)
     {
-        m_status(HW_MATH_ERR_NONPOSITIVE, 6);
+        m_status(HW_MATH_ERR_NONPOSITIVE, 7);
         return;
     }
 
@@ -129,9 +155,46 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
     int flag = ARKodeInit(arkode_mem, sysfunc_ARKODE, NULL, tin, y);
     // if (Check_flag(&flag, "ARKodeInit", 1)) return(1);
 
-    int numEqns = m_y.Size();
+    // Allocate event function vectors
+    if (event_is_terminal)
+    {
+        delete[] event_is_terminal;
+        event_is_terminal = nullptr;
+    }
+
+    if (event_directon_request)
+    {
+        delete[] event_directon_request;
+        event_directon_request = nullptr;
+    }
+
+    if (event_directon_actual)
+    {
+        delete[] event_directon_actual;
+        event_directon_actual = nullptr;
+    }
+
+    if (m_nrtfn)
+    {
+        event_is_terminal = new int[m_nrtfn];
+        event_directon_request = new int[m_nrtfn];
+        event_directon_actual = new int[m_nrtfn];
+
+        for (int i = 0; i < m_nrtfn; ++i)
+            event_directon_actual[i] = 0;
+    }
+
+    // Set the root function to rootfunc_ARKODE with nrtfn events
+    if (rootfunc)
+    {
+        rootfunc_client = rootfunc;
+        flag = ARKodeRootInit(arkode_mem, nrtfn, rootfunc_ARKODE);
+        // if (Check_flag(&flag, "ARKodeRootInit", 1)) return(1);
+    }
 
     // Create dense SUNMatrix for use in linear solver
+    int numEqns = m_y.Size();
+
     A = SUNDenseMatrix(numEqns, numEqns);
     if (Check_flag((void *)A, "SUNDenseMatrix", 0))
     {
@@ -164,14 +227,6 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
         // if(Check_flag(&flag, "ARKDlsJacFn", 1)) return(1);
     }
 
-    // Call ARKodeRootInit to specify the root function rootfunc_ARKODE with 2 components
-    if (rootfunc)
-    {
-        rootfunc_client = rootfunc;
-        flag = ARKodeRootInit(arkode_mem, 2, rootfunc_ARKODE);
-        // if (Check_flag(&flag, "ARKodeRootInit", 1)) return(1);
-    }
-
     // Set the pointer to user-defined data
     if (userData)
     {
@@ -193,13 +248,13 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
         {
             if (!abstol_->IsReal())
             {
-                m_status(HW_MATH_ERR_COMPLEX, 7);
+                m_status(HW_MATH_ERR_COMPLEX, 8);
                 return;
             }
 
             if (!abstol_->IsVector())
             {
-                m_status(HW_MATH_ERR_VECTOR, 7);
+                m_status(HW_MATH_ERR_VECTOR, 8);
                 return;
             }
 
@@ -209,7 +264,7 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
 
                 if (abstol <= 0.0)
                 {
-                    m_status(HW_MATH_ERR_NONPOSITIVE, 7);
+                    m_status(HW_MATH_ERR_NONPOSITIVE, 8);
                     return;
                 }
 
@@ -222,7 +277,7 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
                 {
                     if ((*abstol_)(i) <= 0.0)
                     {
-                        m_status(HW_MATH_ERR_NONPOSITIVE, 7);
+                        m_status(HW_MATH_ERR_NONPOSITIVE, 8);
                         return;
                     }
                 }
@@ -247,7 +302,7 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
             }
             else
             {
-                m_status(HW_MATH_ERR_ARRAYSIZE, 5, 8);
+                m_status(HW_MATH_ERR_ARRAYSIZE, 6, 8);
                 return;
             }
         }
@@ -266,7 +321,61 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
     }
     else if (maxstep != -999.0)
     {
-        m_status(HW_MATH_ERR_NONPOSITIVE, 8);
+        m_status(HW_MATH_ERR_NONPOSITIVE, 9);
+    }
+
+    // Check for event function roots at the initial condition,
+    // since Sundials apparently does not.
+    if (rootfunc)
+    {
+        double t_init = tin;
+        hwMatrix y_temp(m_y);
+        hwMatrix gout1(m_nrtfn, 1, hwMatrix::REAL);
+        hwMatrix gout2(m_nrtfn, 1, hwMatrix::REAL);
+
+        // Check for events at I.C.
+        flag = rootfunc_client(tin, m_y.GetRealData(), gout1.GetRealData(), nullptr);
+
+        if (flag != 0)
+        {
+            m_status(HW_MATH_ERR_USERFUNCFAIL);
+            return;
+        }
+
+        // Take a small step
+        flag = ARKode(arkode_mem, tin + 0.0001, y, &t_init, ARK_NORMAL);
+
+        if (flag != ARK_SUCCESS)
+        {
+            m_status(HW_MATH_ERR_USERFUNCFAIL);
+            return;
+        }
+
+        // Check for events after small step
+        flag = rootfunc_client(t_init, m_y.GetRealData(), gout2.GetRealData(), nullptr);
+
+        if (flag != 0)
+        {
+            m_status(HW_MATH_ERR_USERFUNCFAIL);
+            return;
+        }
+
+        // Reset
+        m_y = y_temp;
+
+        // Set event direction flags
+        for (int i = 0; i < m_nrtfn; ++i)
+        {
+            if (gout1(i) == 0.0)
+            {
+                if (gout2(i) > 0.0)
+                    event_directon_actual[i] = 1;
+                else if (gout2(i) < 0.0)
+                    event_directon_actual[i] = -1;
+            }
+        }
+
+        flag = ManageEvents(tin, true);
     }
 }
 //------------------------------------------------------------------------------
@@ -293,6 +402,24 @@ hwArkWrap::~hwArkWrap()
     {
         SUNLinSolFree(LS);       // Free the linear solver memory
     }
+
+    if (event_is_terminal)
+    {
+        delete[] event_is_terminal;
+        event_is_terminal = nullptr;
+    }
+
+    if (event_directon_request)
+    {
+        delete[] event_directon_request;
+        event_directon_request = nullptr;
+    }
+
+    if (event_directon_actual)
+    {
+        delete[] event_directon_actual;
+        event_directon_actual = nullptr;
+    }
 }
 //------------------------------------------------------------------------------
 // Perform an integration step
@@ -314,6 +441,80 @@ void hwArkWrap::TakeStep(double& t, double tout, int& flag)
     {
         flag = ARKode(arkode_mem, tout, y, &t, ARK_NORMAL);
     }
+
+    if (flag == ARK_ROOT_RETURN && m_nrtfn)
+    {
+        flag = ManageEvents(t, false);
+    }
+    else if (flag == ARK_RHSFUNC_FAIL)
+    {
+        m_status(HW_MATH_ERR_USERFUNCFAIL, 111);
+    }
+    else if (flag == ARK_RTFUNC_FAIL)
+    {
+        m_status(HW_MATH_ERR_USERFUNCFAIL, 333);
+    }
+}
+//------------------------------------------------------------------------------
+// Respond to events that have returned zeros
+//------------------------------------------------------------------------------
+int hwArkWrap::ManageEvents(double t, bool init)
+{
+    int flag;
+
+    flag = ARKodeSetRootDirection(arkode_mem, event_directon_request);
+
+    if (flag != ARK_SUCCESS)
+        return flag;
+
+    if (!init)
+    {
+        flag = ARKodeGetRootInfo(arkode_mem, event_directon_actual);
+
+        if (flag != ARK_SUCCESS)
+            return flag;
+    }
+
+    for (int i = 0; i < m_nrtfn; ++i)
+    {
+        if (!event_directon_actual[i])
+            continue;
+
+        if ((event_directon_request[i] == 0) ||
+            (event_directon_request[i] == event_directon_actual[i]))
+        {
+            // record the event
+            int numZeros = m_pEventTime->Size();
+
+            if (numZeros == 0)
+            {
+                m_pEventTime->Dimension(1, hwMatrix::REAL);
+                m_pEventFnVal->Dimension(1, m_y.Size(), hwMatrix::REAL);
+                m_pEventIndx->Dimension(1, hwMatrix::REAL);
+            }
+            else
+            {
+                m_pEventTime->Resize(numZeros + 1, 1);
+                m_pEventFnVal->Resize(numZeros + 1, m_y.Size());
+                m_pEventIndx->Resize(numZeros + 1, 1);
+            }
+
+            (*m_pEventTime)(numZeros) = t;
+            m_y.Transpose();
+            m_pEventFnVal->WriteRow(numZeros, m_y);
+            m_y.Transpose();
+            (*m_pEventIndx)(numZeros) = static_cast<double> (i + 1);
+
+            if (event_is_terminal[i])
+            {
+                flag = -99;
+            }
+
+            break;
+        }
+    }
+
+    return flag;
 }
 //------------------------------------------------------------------------------
 // Returns true if successful
@@ -352,13 +553,17 @@ bool hwArkWrap::Continue(int flag)
     {
         switch (flag)
         {
-            case -1: m_status(HW_MATH_ERR_CVODE_WORKLOAD);  break;
-            case -2: m_status(HW_MATH_ERR_CVODE_ACCURACY);  break;
-            case -3: m_status(HW_MATH_ERR_CVODE_ERR);       break;
-            case -4: m_status(HW_MATH_ERR_CVODE_CONV);      break;
-            case -8: m_status(HW_MATH_ERR_USERFUNCFAIL, 1); break;
-            case -6: m_status(HW_MATH_ERR_USERFUNCFAIL, 2); break;
-            default: m_status(HW_MATH_ERR_USERFUNCFAIL);    break;
+            case  -1: m_status(HW_MATH_ERR_CVODE_WORKLOAD);  break;
+            case  -2: m_status(HW_MATH_ERR_CVODE_ACCURACY);  break;
+            case  -3: m_status(HW_MATH_ERR_CVODE_ERR);       break;
+            case  -4: m_status(HW_MATH_ERR_CVODE_CONV);      break;
+            case  -6: m_status(HW_MATH_ERR_USERFUNCFAIL, 2); break;
+            case  -8: m_status(HW_MATH_ERR_USERFUNCFAIL, 1); break;
+            case -99: m_status(HW_MATH_WARN_CVODE_EVENT);    break;
+            default:
+                if (m_status.GetArg1() < 100)
+                    m_status(HW_MATH_ERR_USERFUNCFAIL);
+                break;
         }
         return false;
     }
@@ -383,7 +588,7 @@ int hwArkWrap::Check_flag(void* flagvalue, const char* funcname, int opt)
     }
     else if (opt == 1)          // opt == 1 => Sundials returned a flag
     {
-        int* errflag = static_cast<int *>(flagvalue);
+        int* errflag = static_cast<int*>(flagvalue);
         if (errflag && *errflag < 0)
         {
             return 1;

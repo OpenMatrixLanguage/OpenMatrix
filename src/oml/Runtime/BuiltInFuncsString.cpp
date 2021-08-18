@@ -1186,6 +1186,52 @@ std::string BuiltInFuncsString::Complex2Str(const Currency&     cur,
     return out;
 }
 //------------------------------------------------------------------------------
+// Returns true and creates cell array from an input character vector e.g. string matrix [cellstr]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsString::CellStr(EvaluatorInterface           eval,
+	const std::vector<Currency>& inputs,
+	std::vector<Currency>& outputs)
+{
+	size_t nargin = (!inputs.empty()) ? inputs.size() : 0;
+	if (nargin < 1 || nargin > 1)
+		throw OML_Error(OML_ERR_NUMARGIN);
+
+	const Currency& cur = inputs[0];
+	if (!cur.IsString())
+		throw OML_Error(OML_ERR_STRINGVECTOR, 1, OML_VAR_TYPE);
+
+	const hwMatrix* mtx1 = cur.ConvertToMatrix();
+	int m = mtx1->M();
+
+	assert(mtx1);
+	if (!mtx1 || mtx1->Size() == 0)
+	{
+		outputs.push_back(EvaluatorInterface::allocateCellArray());
+		return true;
+	}
+
+#if 0
+	HML_CELLARRAY* cell1 = nullptr;
+	cell1 = EvaluatorInterface::allocateCellArray(m, 1);
+#endif 
+	std::unique_ptr<HML_CELLARRAY> cell1(EvaluatorInterface::allocateCellArray(m, 1));
+
+	BuiltInFuncsUtils utils;
+
+	
+	for (int i = 0; i < m; ++i)
+	{
+		std::unique_ptr<hwMatrix> row(EvaluatorInterface::allocateMatrix());
+		utils.CheckMathStatus(eval, mtx1->ReadRow(i, *row));
+		Currency tmp(row.release());
+		tmp.SetMask(Currency::MASK_STRING);
+		(*cell1)(i) = tmp;
+	}
+	outputs.push_back(cell1.release());
+	
+	return true;
+}
+//------------------------------------------------------------------------------
 // Returns true and creates single matrix from string inputs [str2mat]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsString::Str2mat(EvaluatorInterface           eval,
@@ -2044,8 +2090,7 @@ void BuiltInFuncsString::RightTrim(std::string&                    in,
         }
         insize = in.size();
     }
-}
-//------------------------------------------------------------------------------
+}//------------------------------------------------------------------------------
 // Returns true if successful in converting string to scalar/complex
 //------------------------------------------------------------------------------
 bool BuiltInFuncsString::IsNumber(const std::string& in, Currency& result)

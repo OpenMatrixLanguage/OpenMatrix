@@ -50,7 +50,6 @@ public:
     //! \param Params Parameters
     //!
     virtual void GetParams(hwMatrix& Params);
-
     //!
     //! Returns status after checking object validity. \todo: Should be virtual?
     //!
@@ -58,7 +57,7 @@ public:
     //!
     //! Compute parameters that minimize the objective function
     //!
-    hwMathStatus Compute();
+    virtual hwMathStatus Compute();
     //!
     //! Gets number of iterations
     //!
@@ -69,6 +68,7 @@ public:
     int FunctionEvals() const { return m_numFuncEvals; }
     //!
     //! Gets objective function value
+    //!
     double ObjFuncVal() const { return m_objFuncVal; }
     //!
     //! Sets design variable history 
@@ -84,7 +84,13 @@ public:
 protected:
     int          m_numParams;    //!<
     int          m_numFuncEvals; //!< number of function evals remaining
+    int          m_maxIter;      //!< Max number of iterations
+    int          m_numIter;      //!< iteration number
+    int          m_numHistPnts;  //!< number of history points
     double       m_numDeriv_eps; //!< used with numerical derivatives
+    double       m_tolf;         //!< function tolerance
+    double       m_tolx;         //!< step tolerance
+    double       m_objFuncVal;   //!<
     hwMatrix     P;              //!< parameters
     hwMatrix     G;    	         //!< gradient
     hwMatrix     B;	             //!< approximate Hessian
@@ -107,7 +113,6 @@ protected:
     //! \param Params Parameters
     //!
     virtual void SetParams(const hwMatrix& Params);
-
     //!
     //!  Get initial estimate of the parameter vector
     //! \param Params Parameters
@@ -140,7 +145,6 @@ protected:
     //! Resets gradient vector if step is rejected
     //!
     virtual void ResetGradient() {}
-
     //!
     //! Update iteration history
     //! \param Pcand
@@ -149,12 +153,6 @@ protected:
     void UpdateHistory(const hwMatrix& Pcand, 
                        double          f);
 private:
-    int       m_maxIter;     //!< Max number of iterations
-    int       m_numIter;     //!< iteration number
-    int       m_numHistPnts; //!< number of history points
-    double    m_tolf;        //!< function tolerance
-    double    m_tolx;        //!< step tolerance
-    double    m_objFuncVal;  //!<
     hwMatrix* Obj_history;   //!< objective variable history
     hwMatrix* DV_history;    //!< design variable history
 

@@ -1,7 +1,7 @@
 /**
 * @file omlmatio.cxx
 * @date August 2020
-* Copyright (C) 2020 Altair Engineering, Inc.
+* Copyright (C) 2020-2021 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -924,8 +924,13 @@ matvar_t* OmlMatio::CurrencyToMatVar(const char* name, const Currency& cur)
     if (cur.IsScalar())
     {
         double val = cur.Scalar();
-        return Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &val,
-            flags);
+        if (!cur.IsSingle())
+        {
+            return Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims,
+                &val, flags);
+        }
+        float f = static_cast<float>(val);
+        return Mat_VarCreate(name, MAT_C_SINGLE, MAT_T_SINGLE, 2, dims, &f, flags);
     }
     else if (cur.IsMatrix())
     {
@@ -950,11 +955,18 @@ matvar_t* OmlMatio::CurrencyToMatVar(const char* name, const Currency& cur)
     else if (cur.IsComplex())
     {
         hwComplex cplx = cur.Complex();
-        double real = cplx.Real();
-        double imag = cplx.Imag();
-
+        if (!cur.IsSingle())
+        {
+            double real = cplx.Real();
+            double imag = cplx.Imag();
+            mat_complex_split_t t = { &real, &imag };
+            return Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims,
+                (void*)&t, MAT_F_COMPLEX);
+        }
+        float real = static_cast<float>(cplx.Real());
+        float imag = static_cast<float>(cplx.Imag());
         mat_complex_split_t t = { &real, &imag };
-        return Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, 
+        return Mat_VarCreate(name, MAT_C_SINGLE, MAT_T_SINGLE, 2, dims,
             (void*)&t, MAT_F_COMPLEX);
     }
     else if (cur.IsCellArray())
@@ -1154,42 +1166,70 @@ matvar_t* OmlMatio::Currency2MatMatrix(const char* name, const Currency& cur)
     assert(cur.IsMatrix());
 
     const hwMatrix* mtx = cur.Matrix();
+
+    matio_classes ctype = MAT_C_DOUBLE;
+    matio_types   dtype = MAT_T_DOUBLE;
+    if (cur.IsSingle())
+    {
+        ctype = MAT_C_SINGLE;
+        dtype = MAT_T_SINGLE;
+    }
     if (!mtx || mtx->Size() == 0)
     {
         // If matrix is not created, there is a crash with Mat_VarCreate
         std::unique_ptr<hwMatrix> empty(EvaluatorInterface::allocateMatrix());
 
         size_t dims[2] = { 0, 0 };
-        return Mat_VarCreate(name, MAT_C_EMPTY, MAT_T_DOUBLE, 2, dims,
-            (void*)empty.get()->GetRealData(), 0);
+        
+        return Mat_VarCreate(name, MAT_C_EMPTY, dtype, 2, dims,
+                (void*)empty.get()->GetRealData(), 0);
     }
 
     size_t dims[2] = { static_cast<size_t>(mtx->M()), static_cast<size_t>(mtx->N()) };
     if (mtx->IsReal())
     {
         int flags = (cur.IsLogical()) ? MAT_F_LOGICAL : 0;
-        return Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims,
+        return Mat_VarCreate(name, ctype, dtype, 2, dims, 
             (void*)mtx->GetRealData(), flags);
     }
     int matsize = mtx->Size();
+    
 
-    std::vector<double> realdata;
-    std::vector<double> imagdata;
+    if (!cur.IsSingle())
+    {
+        std::vector<double> realdata;
+        std::vector<double> imagdata;
+        realdata.reserve(matsize);
+        imagdata.reserve(matsize);
+
+        for (int j = 0; j < matsize; ++j)
+        {
+            hwComplex cplx = mtx->z(j);
+            realdata.push_back(cplx.Real());
+            imagdata.push_back(cplx.Imag());
+        }
+
+        mat_complex_split_t t;
+        t.Re = realdata.data();
+        t.Im = imagdata.data();
+        return Mat_VarCreate(name, ctype, dtype, 2, dims, &t, MAT_F_COMPLEX);
+    }
+    std::vector<float> realdata;
+    std::vector<float> imagdata;
     realdata.reserve(matsize);
     imagdata.reserve(matsize);
 
     for (int j = 0; j < matsize; ++j)
     {
         hwComplex cplx = mtx->z(j);
-        realdata.push_back(cplx.Real());
-        imagdata.push_back(cplx.Imag());
+        realdata.push_back(static_cast<float>(cplx.Real()));
+        imagdata.push_back(static_cast<float>(cplx.Imag()));
     }
     mat_complex_split_t t;
     t.Re = realdata.data();
     t.Im = imagdata.data();
 
-    return Mat_VarCreate(name, MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &t,
-        MAT_F_COMPLEX);
+    return Mat_VarCreate(name, ctype, dtype, 2, dims, &t, MAT_F_COMPLEX);
 }
 //------------------------------------------------------------------------------
 // Converts currency to matvar of type matrix ND

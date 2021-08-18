@@ -83,6 +83,10 @@ public:
     bool IsRealData() const;
     //! Determine if the matrix is diagonal
     bool IsDiag() const;
+    //! Determine if the matrix is lower triagonal
+    bool IsLowerTriag() const;
+    //! Determine if the matrix is upper triagonal
+    bool IsUpperTriag() const;
     //! Return the data type
     DataType Type() const { return (m_bits.realData ? REAL : COMPLEX); }
     //! Set the data ownership
@@ -128,7 +132,7 @@ public:
     //! Determine if the matrix is a vector
     bool IsVector() const { return ((m_nCols == 1 || m_nRows == 1) ? true : false); }
     //! Determine if the matrix is empty or a vector
-    bool IsEmptyOrVector() const { return ((m_nCols < 2 || m_nRows < 2) ? true : false); }
+    bool IsEmptyOrVector() const { return ((m_nCols<2 || m_nRows<2) ? true : false); }
     //! Determine if the matrix is square
     bool IsSquare() const { return (m_nCols == m_nRows ? true : false); }
     //! Determine if the matrix is symmetric
@@ -335,6 +339,10 @@ public:
     //               Arithmetic Operations
     // ****************************************************
 
+    //! Sum a real matrix row
+    T1 RowSumReal(int i) const;
+    //! Sum a complex matrix row
+    T2 RowSumComplex(int i) const;
     //! Add two matrices, sum.Add(A,B)
     hwMathStatus Add(const hwTMatrix<T1, T2>& A, const hwTMatrix<T1, T2>& B);
     //! Add a matrix and a real number, sum.Add(A,real)
@@ -451,7 +459,7 @@ public:
     //! Eigen decomposition of a symmetric band matrix
     hwMathStatus EigenSB(int kd, hwTMatrix<double>& W, hwTMatrix<double>& Z) const;
     //! Generalized Eigen decomposition
-    hwMathStatus Eigen(const hwTMatrix<double>& A, const hwTMatrix<double>& B, hwTMatrix<double>& V, hwTMatrix<double>& D) const;
+    hwMathStatus Eigen(const hwTMatrix<double>& A, const hwTMatrix<double>& B, hwTMatrix<double>* V, hwTMatrix<double>& D) const;
     //! Singular Value Decomposition (A=U*S*VT, where A = *this)
     hwMathStatus SVD(int flagSvd, hwTMatrix<double>* U, hwTMatrix<double>& S, hwTMatrix<double>* V) const;
     //! QR decomposition (A=QR, where A = *this)
@@ -664,7 +672,10 @@ private:
     void CopyBlock(const T2* cmplx, int m, int n, int row1, int row2,
                    int col1, int col2, int ii, int jj);
     //! Copy data
-    void CopyData(void* dest, int arraySize, const void* src, int count);
+    void CopyData(void* dest, const void* src, int count);
+    //! Copy data
+    void CopyData(void* dest, int stride_dest,
+                  const void* src, int stride_src, int count);
     //! Set a submatrix of *this to zeros
     void ZeroBlock(int row1, int row2, int col1, int col2);
 
@@ -683,27 +694,27 @@ private:
     //! Real asymmetric Eigen decomposition with balance option
     hwMathStatus EigenDecompReal(bool balance, hwTMatrix<double>* V, hwTMatrix<double>& D) const;
     //! Real symmetric positive definite Eigen decomposition
-    hwMathStatus EigenDecompRealSPD(hwTMatrix<double>& V, hwTMatrix<double>& D) const;
+    hwMathStatus EigenDecompRealSPD(hwTMatrix<double>* V, hwTMatrix<double>& D) const;
     //! Complex non-Hermitian Eigen decomposition with balance option
     hwMathStatus EigenDecompComplex(bool balance, hwTMatrix<double>* V, hwTMatrix<double>& D) const;
     //! Complex Hermitian positive definite Eigen decomposition
-    hwMathStatus EigenDecompComplexHPD(hwTMatrix<double>& V, hwTMatrix<double>& D) const;
+    hwMathStatus EigenDecompComplexHPD(hwTMatrix<double>* V, hwTMatrix<double>& D) const;
     //! Balance real matrix
     hwMathStatus BalanceReal(bool noperm, hwTMatrix<double>& S, hwTMatrix<double>& P, hwTMatrix<double>& B) const;
     //! Balance complex matrix
     hwMathStatus BalanceComplex(bool noperm, hwTMatrix<double>& S, hwTMatrix<double>& P, hwTMatrix<double>& B) const;
     //! Generalized real asymmetric Eigen decomposition
     static hwMathStatus GeneralizedEigenDecompReal(const hwTMatrix<double>& A, const hwTMatrix<double>& B,
-                        hwTMatrix<double>& V, hwTMatrix<double>& D);
+                        hwTMatrix<double>* V, hwTMatrix<double>& D);
     //! Generalized complex non-Hermitian Eigen decomposition
     static hwMathStatus GeneralizedEigenDecompComplex(const hwTMatrix<double>& A,
-                        const hwTMatrix<double>& B, hwTMatrix<double>& V, hwTMatrix<double>& D);
+                        const hwTMatrix<double>& B, hwTMatrix<double>* V, hwTMatrix<double>& D);
     //! Generalized real symmetric positive definite Eigen decomposition
     static hwMathStatus GeneralizedEigenDecompRealSPD(const hwTMatrix<double>& A,
-                        const hwTMatrix<double>& B, hwTMatrix<double>& V, hwTMatrix<double>& D);
+                        const hwTMatrix<double>& B, hwTMatrix<double>* V, hwTMatrix<double>& D);
     //! Generalized complex Hermitian positive definite Eigen decomposition
     static hwMathStatus GeneralizedEigenDecompComplexHPD(const hwTMatrix<double>& A,
-                        const hwTMatrix<double>& B, hwTMatrix<double>& V, hwTMatrix<double>& D);
+                        const hwTMatrix<double>& B, hwTMatrix<double>* V, hwTMatrix<double>& D);
     //! enum to define Singular Value decomposition type
     enum SVDtype
     {

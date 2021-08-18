@@ -40,6 +40,8 @@ typedef hwMathStatus (*NelderMeadFunc)(const hwMatrix& X,
 //! \param P
 //! \param X
 //! \param y
+//! \param lowerBound
+//! \param upperBound
 //! \param stats
 //! \param yEst
 //! \param maxIter     Max iterations
@@ -55,6 +57,8 @@ HWOPTIMIZATION_DECLS hwMathStatus NLCurveFit(const LSqFitFunc pRespFunc,
                                              hwMatrix&        P,
                                              const hwMatrix&  X,
                                              const hwMatrix&  y,
+                                             const hwMatrix*  lowerBound,
+                                             const hwMatrix*  upperBound,
                                              int&             maxIter,
                                              int&             maxFuncEval,
                                              hwMatrix*        stats       = nullptr,

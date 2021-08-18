@@ -81,6 +81,9 @@ public:
 	//! \param[in] value     The default value for the property
 	void AddPropertyDefault(const std::string& name,  Currency value);
 
+	std::vector<std::string> GetPropertyNames() const;
+	std::vector<std::string> GetMethodNames() const;
+
 	Currency CreateEmpty() const;
 
 private:

@@ -24,6 +24,7 @@
 #include "Evaluator.h"
 #include "FunctionInfo.h"
 #include "SignalHandlerBase.h"
+#include "ClassInfo.h"
 
 // End defines/includes
 
@@ -268,6 +269,12 @@ void EvaluatorInterface::ClearGlobals()
     eval->ClearGlobals();
 }
 
+void EvaluatorInterface::ClearClassesAndObjects()
+{
+    eval->ClearClassesAndObjects();
+}
+
+
 Currency EvaluatorInterface::CallInternalFunction(FunctionInfo*fi, const std::vector<Currency>& param_values)
 {
 	FunctionInfo* temp = fi;
@@ -320,6 +327,16 @@ void EvaluatorInterface::AddHiddenPath(std::string pathname)
 void EvaluatorInterface::AddPath2(const std::string& pathname, const std::vector<std::string> funcs)
 {
 	eval->AddPath2(pathname, funcs);
+}
+
+void EvaluatorInterface::RegisterLibraryAlias(const std::string& pathname, const std::string& alias)
+{
+	eval->RegisterLibraryAlias(pathname, alias);
+}
+
+std::string EvaluatorInterface::GetLibraryAlias(const std::string& path)
+{
+	return eval->GetLibraryAlias(path);
 }
 
 std::vector<std::string> EvaluatorInterface::GetPaths() const
@@ -435,11 +452,6 @@ hwMatrix* EvaluatorInterface::allocateMatrix(int m, int n, hwComplex& value)
     return ExprTreeEvaluator::allocateMatrix(m, n, value);
 }
 
-const hwMatrix* EvaluatorInterface::allocateColumn(const hwMatrix* mtx, int col)
-{
-    return ExprTreeEvaluator::allocateColumn(mtx, col);
-}
-
 hwMatrix* EvaluatorInterface::allocateMatrix(int m, int n, hwComplex&& value)
 {
     return ExprTreeEvaluator::allocateMatrix(m, n, value);
@@ -454,9 +466,10 @@ hwMatrixI* EvaluatorInterface::allocateMatrix(int m, int n, int val)
 {
     return ExprTreeEvaluator::allocateMatrix(m, n, val);
 }
-HML_CELLARRAY* EvaluatorInterface::allocateCellArray()
+
+const hwMatrix* EvaluatorInterface::allocateColumn(const hwMatrix* mtx, int col)
 {
-    return ExprTreeEvaluator::allocateCellArray();
+    return ExprTreeEvaluator::allocateColumn(mtx, col);
 }
 
 hwMatrixN* EvaluatorInterface::allocateMatrixN()
@@ -464,9 +477,19 @@ hwMatrixN* EvaluatorInterface::allocateMatrixN()
     return ExprTreeEvaluator::allocateMatrixN();
 }
 
+hwMatrixN* EvaluatorInterface::allocateMatrixN(const std::vector<int>& dims, const hwMatrixN::DataType& dataType)
+{
+    return ExprTreeEvaluator::allocateMatrixN(dims, dataType);
+}
+
 hwMatrixN* EvaluatorInterface::allocateMatrixN(const hwMatrixN* mtx)
 {
     return ExprTreeEvaluator::allocateMatrixN(mtx);
+}
+
+HML_CELLARRAY* EvaluatorInterface::allocateCellArray()
+{
+    return ExprTreeEvaluator::allocateCellArray();
 }
 
 HML_CELLARRAY* EvaluatorInterface::allocateCellArray(int m, int n)
@@ -477,6 +500,21 @@ HML_CELLARRAY* EvaluatorInterface::allocateCellArray(int m, int n)
 HML_CELLARRAY* EvaluatorInterface::allocateCellArray(const HML_CELLARRAY* cell)
 {
     return ExprTreeEvaluator::allocateCellArray(cell);
+}
+
+HML_ND_CELLARRAY* EvaluatorInterface::allocateNDCellArray()
+{
+    return ExprTreeEvaluator::allocateNDCellArray();
+}
+
+HML_ND_CELLARRAY* EvaluatorInterface::allocateNDCellArray(std::vector<int> dims)
+{
+    return ExprTreeEvaluator::allocateNDCellArray(dims);
+}
+
+HML_ND_CELLARRAY* EvaluatorInterface::allocateNDCellArray(const HML_ND_CELLARRAY* cell)
+{
+    return ExprTreeEvaluator::allocateNDCellArray(cell);
 }
 
 StructData* EvaluatorInterface::allocateStruct(const StructData* strct)
@@ -894,9 +932,9 @@ void EvaluatorInterface::RemoveChildEvaluator()
 {
 	eval->RemoveChildEvaluator();
 }
-bool EvaluatorInterface::LockBuiltInFunction(const std::string& fname)
+bool EvaluatorInterface::LockBuiltInFunction(const std::string& fname, bool hide)
 {
-    return eval->LockBuiltInFunction(fname);
+    return eval->LockBuiltInFunction(fname, hide);
 }
 
 void EvaluatorInterface::SetNumberOfThreads(int threads) 
@@ -912,8 +950,7 @@ std::ofstream& EvaluatorInterface::GetDiary()
 void EvaluatorInterface::RegisterFunc(OMLTree* def)
 {
 	eval->RegisterFunction(def);
-}	
-
+}
 Currency EvaluatorInterface::GetProfileData() const
 {
 	return eval->GetProfileData();
@@ -927,4 +964,52 @@ void EvaluatorInterface::ClearProfileData()
 void EvaluatorInterface::Profile(bool on)
 {
 	return eval->Profile(on);
+}
+
+void EvaluatorInterface::DisableWarning(const std::string& id)
+{
+	eval->DisableWarning(id);
+}
+
+void EvaluatorInterface::EnableWarning(const std::string& id)
+{
+	eval->EnableWarning(id);
+}
+
+bool EvaluatorInterface::IsWarningDisabled(const std::string& id)
+{
+	return eval->IsWarningDisabled(id);
+}
+
+std::vector<std::string> EvaluatorInterface::GetProperties(const std::string& classname)
+{
+	std::vector<std::string> results;
+
+	ClassInfo* ci = eval->GetClassInfoFromName(classname);
+
+	if (ci)
+		return ci->GetPropertyNames();
+
+	return results;
+}
+
+std::vector<std::string> EvaluatorInterface::GetMethods(const std::string& classname)
+{
+	std::vector<std::string> results;
+
+	ClassInfo* ci = eval->GetClassInfoFromName(classname);
+
+	if (ci)
+		return ci->GetMethodNames();
+
+	return results;
+}
+std::string EvaluatorInterface::GetFunctionArgumentName(int index)
+{
+    return eval->GetFunctionArgumentName(index);
+}
+
+void EvaluatorInterface::SetInterrupt(bool value)
+{
+    eval->SetInterrupt(value);
 }

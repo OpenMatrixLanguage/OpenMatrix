@@ -75,7 +75,7 @@ bool OmlPdf(EvaluatorInterface           eval,
             const std::vector<Currency>& inputs,
             std::vector<Currency>&       outputs);
 //!
-//! Gets the error function of given scalar or real matrix [erf]
+//! Computes error function values [erf]
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
 //! \param outputs Vector of outputs
@@ -111,7 +111,6 @@ bool OmlRandn(EvaluatorInterface           eval,
 bool OmlRandom(EvaluatorInterface           eval, 
                const std::vector<Currency>& inputs, 
                std::vector<Currency>&       outputs);
-
 //!
 //! Computes beta distribution cumulative distribution values [betacdf]
 //! \param eval    Evaluator interface
@@ -157,7 +156,6 @@ bool OmlBetarnd(EvaluatorInterface           eval,
 bool OmlBetafit(EvaluatorInterface           eval, 
                 const std::vector<Currency>& inputs, 
                 std::vector<Currency>&       outputs);
-
 //!
 //! Computes chi-squared distribution cumulative distribution values [chi2cdf]
 //! \param eval    Evaluator interface
@@ -323,7 +321,15 @@ bool OmlGaminv(EvaluatorInterface           eval,
 bool OmlGamrnd(EvaluatorInterface           eval, 
                const std::vector<Currency>& inputs, 
                std::vector<Currency>&       outputs);
-
+//!
+//! Computes incomplete gamma function values [gammainc]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlGammaInc(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs);
 //!
 //! Computes lognormal distribution cumulative distribution values [logncdf]
 //! \param eval    Evaluator interface
@@ -677,7 +683,7 @@ bool OmlVariance(EvaluatorInterface           eval,
                  const std::vector<Currency>& inputs, 
                  std::vector<Currency>&       outputs);
 //!
-//! Gets the standard deviation of the given input [std]
+//! Computes standard deviation values [std]
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
 //! \param outputs Vector of outputs
@@ -704,13 +710,31 @@ bool OmlMeandev(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs, 
                 std::vector<Currency>&       outputs);
 //!
-//! Gets the mean of the given input [mean]
+//! Computes mean or median absolute deviation values [mad]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlMAD(EvaluatorInterface           eval, 
+            const std::vector<Currency>& inputs, 
+            std::vector<Currency>&       outputs);
+//!
+//! Computes mean values [mean]
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
 //! \param outputs Vector of outputs
 //!
 bool OmlMean(EvaluatorInterface           eval, 
              const std::vector<Currency>& inputs, 
+             std::vector<Currency>&       outputs);
+//!
+//! Computes mode values [mean]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlMode(EvaluatorInterface           eval,
+             const std::vector<Currency>& inputs,
              std::vector<Currency>&       outputs);
 //!
 //! Computes covariances [cov]
@@ -785,5 +809,14 @@ bool OmlDetrend(EvaluatorInterface           eval,
 bool OmlPolyfit(EvaluatorInterface           eval, 
                 const std::vector<Currency>& inputs, 
                 std::vector<Currency>&       outputs);
+//!
+//! Compute binomial combinations  [nchoosek]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlNchooseK(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs);
 
 #endif // __STATISTICSTBOXFUNCS_OML_H__

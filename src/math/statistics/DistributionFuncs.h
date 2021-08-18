@@ -25,6 +25,7 @@ template <typename T> class hwTComplex;
 template <typename T1, typename T2> class hwTMatrix;
 typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
 typedef hwTMatrix<int, hwTComplex<int> > hwMatrixI;
+typedef hwTMatrix<int64_t, hwTComplex<int64_t> > hwMatrixI64;
 
 //------------------------------------------------------------------------------
 //!
@@ -1022,16 +1023,25 @@ STATISTICS_DECLS hwMathStatus PoissonRnd(const hwMatrix&         lambda,
 
 // Misc functions
 //!
-//! Generate a random permutation vector on [min:max]
+//! Generate a random permutation vector on [1:max]
 //! \param max
 //! \param numPts
 //! \param permVec
 //!
-STATISTICS_DECLS hwMathStatus RandPerm(int                     min,
-                                       int                     max,
+STATISTICS_DECLS hwMathStatus RandPerm(int                     max,
                                        int                     numPts,
                                        hwMersenneTwisterState* pMTState,
                                        hwMatrixI&              permVec);
+//!
+//! Generate a random permutation vector on [1:max]
+//! \param max
+//! \param numPts
+//! \param permVec
+//!
+STATISTICS_DECLS hwMathStatus RandPerm(int64_t                 max,
+                                       int                     numPts,
+                                       hwMersenneTwisterState* pMTState,
+                                       hwMatrixI64&            permVec);
 //!
 //! D'Agostino-Pearson omnibus normality test
 //! \param data

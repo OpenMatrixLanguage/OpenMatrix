@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsElemMath.cpp
 * @date July 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -82,7 +82,7 @@ std::deque<double> BuiltInFuncsElemMath::UniqueHelperRealMtxN(const hwMatrixN* m
         else if (IsNaN_T(val))
             hasNan = true;
         else
-            vals.push_back(val);
+            vals.emplace_back(val);
     }
 
     if (!vals.empty() && vals.size() > 1)
@@ -462,40 +462,26 @@ void BuiltInFuncsElemMath::UniqueHelperFuncMtx(EvaluatorInterface&    eval,
     if (!mtx || mtx->IsEmpty())  // Handle empty matrices
     {
         outputs.push_back(EvaluatorInterface::allocateMatrix());
-        if (outputIdx)
-            outputs.push_back(EvaluatorInterface::allocateMatrix());
-        if (inputIdx)
-            outputs.push_back(EvaluatorInterface::allocateMatrix());
+        outputs.push_back(EvaluatorInterface::allocateMatrix());
+        outputs.push_back(EvaluatorInterface::allocateMatrix());
         return;
     }
     else if (mtx->Size() == 1)
     {
         outputs.push_back(x);
-        if (outputIdx)
-            outputs.push_back(1);
-        if (inputIdx)
-            outputs.push_back(1);
+        outputs.push_back(1);
+        outputs.push_back(1);
+        return;
+    }
+
+
+    if (mtx->IsReal())
+    {
+        UniqueHelperRealMtx(mtx, x.IsString(), forward, outputIdx, inputIdx, outputs);
         return;
     }
 
     BuiltInFuncsElemMath funcs;
-    if (mtx->IsReal())
-    {
-        std::deque<double> y (funcs.UniqueHelperRealMtx(mtx));
-
-        Currency out = BuiltInFuncsUtils::ContainerToMatrix(y, mtx->M() == 1);
-        if (x.IsString())
-            out.SetMask(Currency::MASK_STRING);
-        outputs.push_back(out);
-
-        if (outputIdx)
-            outputs.push_back(funcs.GetMatrixIndices(mtx, y, forward));
-
-        if (inputIdx)
-            outputs.push_back(funcs.GetValueIndices(mtx, y));
-        return;
-    }
-
     std::deque<hwComplex> y (funcs.UniqueHelperComplexMtx(mtx));
 
     outputs.push_back(BuiltInFuncsUtils::ContainerToMatrix(y, mtx->M() == 1));
@@ -553,60 +539,6 @@ std::deque<hwComplex> BuiltInFuncsElemMath::UniqueHelperComplexMtx(const hwMatri
         y.push_back(hwComplex(std::numeric_limits<double>::quiet_NaN(), 0));
 
     return y;
-}
-//------------------------------------------------------------------------------
-// Gets indices of occurences of matrix elements(x) in values => y = x(i)
-//------------------------------------------------------------------------------
-Currency BuiltInFuncsElemMath::GetMatrixIndices(const hwMatrix*           x, 
-                                                const std::deque<double>& y, 
-                                                bool                      forward)
-{
-    assert(x);
-    if (!x || y.empty()) return EvaluatorInterface::allocateMatrix();
-
-    int       mtxsize    = x->Size();
-    int       valsize    = static_cast<int>(y.size());
-    hwMatrix* indices = (x->M() == 1) ?
-        EvaluatorInterface::allocateMatrix(1, valsize, hwMatrix::REAL) :
-        EvaluatorInterface::allocateMatrix(valsize, 1, hwMatrix::REAL) ;
-
-    for (int i = 0; i < valsize; ++i)
-    {
-        double tofind   = y[i];
-        bool   isNegInf = false; // Handle -Inf/Inf/Nan
-        bool   isPosInf = false;
-        bool   isNan    = false;
-            
-        if (IsNegInf_T (tofind))
-            isNegInf = true;
-        else if (IsInf_T (tofind))
-            isPosInf = true;
-        else if (IsNaN_T(tofind))
-            isNan = true;
-
-        int index = forward ? 0 : mtxsize - 1;
-        while (1)
-        {
-            if ((forward  && index > mtxsize - 1) ||
-                (!forward && index < 0))
-                break;
-
-            double val = (*x)(index);
-            if ((isNegInf && IsNegInf_T (val)) ||
-                (isPosInf && IsInf_T(val))     ||
-                (isNan    && IsNaN_T(val))     ||
-                (AreEqual(val, tofind)))
-            {
-                (*indices)(i) = index + 1;
-                break;
-            }
-            if (forward)
-                index++;
-            else
-                index--;
-        }
-    }
-    return Currency(indices);
 }
 //------------------------------------------------------------------------------
 // Gets indices of occurences of matrix elements(x) in values => y = x(i)
@@ -675,6 +607,7 @@ Currency BuiltInFuncsElemMath::GetMatrixIndices(const hwMatrix*              x,
 Currency BuiltInFuncsElemMath::GetValueIndices(const hwMatrix*              x,
                                                const std::deque<hwComplex>& y)
 {
+    assert(x);
     if (!x || y.empty()) return EvaluatorInterface::allocateMatrix();
 
     int matsize = x->Size();
@@ -715,94 +648,6 @@ Currency BuiltInFuncsElemMath::GetValueIndices(const hwMatrix*              x,
     }
 
     return Currency(indices);
-}
-//------------------------------------------------------------------------------
-// Gets indices of occurences of values in a complex matrix => x = y(j)
-//------------------------------------------------------------------------------
-Currency BuiltInFuncsElemMath::GetValueIndices(const hwMatrix*           x,
-                                               const std::deque<double>& y)
-{
-    if (!x || y.empty()) return EvaluatorInterface::allocateMatrix();
-
-    int matsize = x->Size();
-    hwMatrix *indices = (x->M() == 1) ?
-        EvaluatorInterface::allocateMatrix(1, matsize, hwMatrix::REAL):
-        EvaluatorInterface::allocateMatrix(matsize, 1, hwMatrix::REAL);
-
-    size_t valsize = y.size();
-    for (int i = 0; i < matsize; ++i)
-    {
-        double ref      = (*x)(i);
-        bool   isNegInf = false; // Handle -Inf/Inf/Nan
-        bool   isPosInf = false;
-        bool   isNan    = false;
-            
-        if (IsNegInf_T (ref))
-            isNegInf = true;
-        else if (IsInf_T (ref))
-            isPosInf = true;
-        else if (IsNaN_T(ref))
-            isNan = true;
-
-        for (size_t j = 0; j < valsize; ++j)
-        {
-            double val = y[j];
-            if ((isNegInf && IsNegInf_T (val)) ||
-                (isPosInf && IsInf_T(val))     ||
-                (isNan    && IsNaN_T(val))     ||
-                 AreEqual(val, ref))
-            {
-                (*indices)(i) = static_cast<int>(j) + 1;
-                break;
-            }
-        }
-    }
-    return Currency(indices);
-}
-//------------------------------------------------------------------------------
-// Helper function for Unique, gets a deque of unique doubles
-//------------------------------------------------------------------------------
-std::deque<double> BuiltInFuncsElemMath::UniqueHelperRealMtx(const hwMatrix* mtx)
-{
-    assert (mtx);
-    assert(mtx->IsReal());
-
-    bool hasNegInf = false;
-    bool hasPosInf = false;
-    bool hasNan    = false;
-    int  numElem   = mtx->Size();
-
-    std::deque<double> vals;
-    for (int i = 0; i < numElem; ++i)
-    {
-        double val = (*mtx)(i);
-
-        if (IsNegInf_T (val))  // Handle -Inf/Inf/Nan
-            hasNegInf = true;
-        else if (IsInf_T(val))
-            hasPosInf = true;
-        else if (IsNaN_T(val))
-            hasNan = true;
-        else
-            vals.push_back(val);
-    }
-
-    if (!vals.empty() && vals.size() > 1)
-    {
-        std::sort(vals.begin(), vals.end());
-        vals.erase(std::unique(vals.begin(), vals.end()), vals.end());
-    }
-
-    if (hasNegInf)
-        vals.insert(vals.begin(), std::numeric_limits<double>::infinity() * -1);
-
-    if (hasPosInf)
-        vals.push_back(std::numeric_limits<double>::infinity());
-
-    if (hasNan)
-        vals.push_back(std::numeric_limits<double>::quiet_NaN());
-
-    return vals;
 }
 //------------------------------------------------------------------------------
 // Returns true after flipping matrix
@@ -957,4 +802,179 @@ bool BuiltInFuncsElemMath::Flipud(EvaluatorInterface           eval,
     newinputs.push_back(1);
 
     return Flip(eval, newinputs, outputs);
+}
+//------------------------------------------------------------------------------
+// Sets the mask on the given matrix as single precision data [single]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsElemMath::Single(EvaluatorInterface           eval,
+                                  const std::vector<Currency>& inputs,
+                                  std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 1)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsScalar() && !inputs[0].IsComplex() && !inputs[0].IsMatrix())
+    {
+        throw OML_Error(OML_ERR_SCALARCOMPLEXMTX, 1);
+    }
+
+    Currency cur(inputs[0]);
+    cur.SetMask(Currency::MASK_SINGLE);
+    std::string name(cur.GetOutputName());
+    eval.SetValue(name, cur);
+
+
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Helper function for Unique when the input is a real matrix
+//------------------------------------------------------------------------------
+void BuiltInFuncsElemMath::UniqueHelperRealMtx(const hwMatrix*        mtx, 
+                                               bool                   isString, 
+                                               bool                   forward,
+                                               bool                   outIdx, 
+                                               bool                   inIdx,
+                                               std::vector<Currency>& outputs)
+{
+    assert(mtx);
+    assert(mtx->IsReal());
+
+    outputs.reserve(3);
+
+    //int  neginfidx = -1;
+    bool hasNegInf = false;
+    bool hasPosInf = false;
+    bool hasNan    = false;
+    int  numElem   = mtx->Size();
+
+    std::deque<double> vals;
+    for (int i = 0; i < numElem; ++i)
+    {
+        double val = (*mtx)(i);
+
+        if (IsNegInf_T(val))
+        {
+            hasNegInf = true;
+        }
+        else if (IsInf_T(val))
+        {
+            hasPosInf = true;
+        }
+        else if (IsNaN_T(val))
+        {
+            hasNan = true;
+        }
+        else
+        {
+            vals.emplace_back(val);
+        }
+    }
+
+    if (!vals.empty() && vals.size() > 1)
+    {
+        std::sort(vals.begin(), vals.end());
+        vals.erase(std::unique(vals.begin(), vals.end()), vals.end());
+        vals.shrink_to_fit();
+    }
+
+    
+    int posinfidx = -1;
+    int nanidx    = -1;
+    if (hasNegInf)  // Insert as first value
+    {
+        vals.insert(vals.begin(), std::numeric_limits<double>::infinity() * -1);
+    }
+    if (hasPosInf)
+    {
+        vals.push_back(std::numeric_limits<double>::infinity());
+    }
+    if (hasNan)
+    {
+        vals.push_back(std::numeric_limits<double>::quiet_NaN());
+    }
+
+    if (vals.empty())
+    {
+        outputs.push_back(EvaluatorInterface::allocateMatrix());
+        outputs.push_back(EvaluatorInterface::allocateMatrix());
+        outputs.push_back(EvaluatorInterface::allocateMatrix());
+        return;
+    }
+
+    int ysize = static_cast<int>(vals.size());
+    int m = (mtx->M() == 1) ? 1     : ysize;
+    int n = (mtx->M() == 1) ? ysize : 1;
+
+    hwMatrix* m2 = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+    for (int i = 0; i < ysize; ++i)
+    {
+        (*m2)(i) = vals[i];
+    }
+    Currency out1(m2);
+    if (isString)
+    {
+        out1.SetMask(Currency::MASK_STRING);
+    }
+    outputs.push_back(out1);
+
+    if (!outIdx && !inIdx)
+    {
+        return;  // Done at this point
+    }
+
+    hwMatrix* idxMtx1 = (outIdx) ?
+        EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL) : nullptr;
+
+    hwMatrix* idxMtx2(nullptr);
+    if (inIdx)
+    {
+        int rows = (mtx->M() == 1) ? 1       : numElem;
+        int cols = (mtx->M() == 1) ? numElem : 1;
+        idxMtx2 = EvaluatorInterface::allocateMatrix(rows, cols, hwMatrix::REAL);
+    }
+
+    
+    int index1incr = forward ? 1 : -1;
+
+    for (int i = 0; i < ysize; ++i)
+    {
+        double tofind = vals[i];
+
+        bool   isNegInf = (hasNegInf && i == 0);
+        bool   isPosInf = (hasPosInf && (i == ysize - 1 || i == ysize - 2) && IsInf_T(tofind));
+        bool   isNan = (hasNan && i == ysize - 1);
+
+        int index1 = forward ? 0 : numElem - 1;
+        bool   foundIdx1 = (idxMtx1) ? false : true;
+
+        while (index1 >= 0 && index1 < numElem)
+        {
+            double val = (*mtx)(index1);
+            if (isNegInf && IsNegInf_T(val) || isPosInf && IsInf_T(val) ||
+                isNan && IsNaN_T(val) || val == tofind)
+            {
+                if (idxMtx2)
+                {
+                    (*idxMtx2)(index1) = i + 1;
+                }
+                if (!foundIdx1 && idxMtx1)
+                {
+                    (*idxMtx1)(i) = index1 + 1;
+                    foundIdx1 = true;
+                }
+            }
+            index1 += index1incr;
+        }
+    }
+    if (idxMtx1)
+    {
+        outputs.push_back(idxMtx1);
+    }
+    if (idxMtx2)
+    {
+        outputs.push_back(idxMtx2);
+    }
 }

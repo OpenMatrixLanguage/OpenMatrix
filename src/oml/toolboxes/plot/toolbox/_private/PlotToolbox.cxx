@@ -761,7 +761,7 @@ namespace omlplot{
             }
             else {
                 throw OML_Error(OML_ERR_OPTIONVAL, 1, OML_VAR_PARAMETER);
-            }
+	}
         }
         else if (inputs.size() == 2 && inputs[0].IsScalar() && inputs[1].IsString()) {
             cm->box(inputs[0].Scalar(), inputs[1].StringVal());

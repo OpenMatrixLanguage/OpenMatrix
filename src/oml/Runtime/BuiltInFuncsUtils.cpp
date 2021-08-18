@@ -51,6 +51,7 @@
 
 #include "ErrorInfo.h"
 #include "Evaluator.h"
+#include "ExprCppTreeParser.h"
 #include "MatrixNDisplay.h"
 #include "OML_Error.h"
 #include "SignalHandlerBase.h"
@@ -120,11 +121,14 @@ void BuiltInFuncsUtils::SetWarning(EvaluatorInterface& eval, const std::string& 
 {
     if (!str.empty())
     {
-        std::string warningstr = eval.FormatMessage(str);
-        Currency warn(warningstr);
-        warn.DispOutput();
-        eval.PrintResult(warn);
-        EvaluatorInterface::SetLastWarning(warningstr);
+		if (!eval.IsWarningDisabled("all"))
+		{
+			std::string warningstr = eval.FormatMessage(str);
+			Currency warn(warningstr);
+			warn.DispOutput();
+			eval.PrintResult(warn);
+			EvaluatorInterface::SetLastWarning(warningstr);
+		}
     }
 }
 //------------------------------------------------------------------------------
@@ -2116,4 +2120,68 @@ void BuiltInFuncsUtils::OpenOutputLogForAppend()
 bool BuiltInFuncsUtils::IsOutputLogOpen()
 {
     return CurrencyDisplay::GetOutputLog().is_open();
+}
+//------------------------------------------------------------------------------
+// Helper method to get plus operator
+//------------------------------------------------------------------------------
+int BuiltInFuncsUtils::GetPlusOperator()
+{
+    return PLUS;
+}
+//------------------------------------------------------------------------------
+// Helper method to get minus operator
+//------------------------------------------------------------------------------
+int BuiltInFuncsUtils::GetMinusOperator()
+{
+    return MINUS;
+}
+//------------------------------------------------------------------------------
+// Reads file contents if it exists, supports unicode
+//------------------------------------------------------------------------------
+std::string BuiltInFuncsUtils::GetFileContents(const std::string& fname)
+{
+    std::string contents;
+
+#ifdef OS_WIN
+    //BuiltInFuncsUtils utils;
+    std::wstring wdata;
+    std::wstring wname (StdString2WString(fname));
+    std::FILE* f = _wfopen(wname.c_str(), L"r, ccs=UTF-8");
+    if (f)
+    {
+        struct _stat fstat;
+        _wstat(wname.c_str(), &fstat);
+        long fsize = fstat.st_size;
+
+        // Read entire file contents in to memory
+        if (fsize > 0)
+        {
+            wdata.resize(fsize);
+            size_t numread = fread(&(wdata.front()), sizeof(wchar_t), fsize, f);
+            wdata.resize(numread);
+            wdata.shrink_to_fit();
+        }
+        fclose(f);
+        contents = WString2StdString(wdata);
+    }
+#else
+    std::ifstream ifs(fname.c_str());
+    if (!ifs.fail())
+    {
+        // Read the entire file
+        while (!ifs.eof())
+        {
+            std::string thisline;
+            std::getline(ifs, thisline);
+
+            if (!contents.empty())
+            {
+                contents += '\n';
+            }
+            contents += thisline;
+        }
+        ifs.close();
+    }
+#endif
+    return contents;
 }

@@ -137,8 +137,8 @@ bool Oml_SetPythonVariable(EvaluatorInterface eval, const std::vector<Currency>&
 
 
     if (!(inputs[0].IsString() || inputs[0].IsScalar() || inputs[0].IsComplex() || inputs[0].IsMatrix() 
-        || inputs[0].IsNDMatrix() || inputs[0].IsStruct() || inputs[0].IsCellArray()))
-        throw OML_Error("Supported OML types for export are numbers, strings, complex, struct, Cell and matrix, ndmatrix.");
+        || inputs[0].IsNDMatrix() || inputs[0].IsStruct() || inputs[0].IsCellArray() || inputs[0].IsSparse()))
+        throw OML_Error("Supported OML types for export are numbers, strings, complex, struct, Cell, matrix, ndmatrix and sparse matrix.");
 
 
     if (inputs[1].IsEmpty())

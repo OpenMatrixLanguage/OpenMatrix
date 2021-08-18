@@ -35,16 +35,10 @@ hwDiffEqSolver::hwDiffEqSolver(const hwMatrix& y)
     }
     else
     {
-        m_status = m_y.Dimension(y.M(), y.N(), hwMatrix::REAL);
+        m_y = y;
 
-        if (!m_status.IsOk())
-        {
-            m_status.ResetArgs();
-        }
-        else
-        {
-            m_y = y;
-        }
+        if (m_y.M() == 1)
+            m_y.Transpose();
     }
 }
 //------------------------------------------------------------------------------
@@ -232,11 +226,17 @@ hwMathStatus hwDiffEqSolver::FillMatrix(const hwMatrix& time,
 
         TakeStep(t, tout, flag);
 
-        if (Success(flag) == true)          // full interval completed
+        bool intervalComplete = Success(flag);
+        bool oneStepInProgress = intervalComplete ? false : Continue(flag);
+
+        if (flag == -99)
+            break;
+
+        if (intervalComplete || oneStepInProgress)
         {
             if (OneStepMode)
             {
-                m_status = timeSolution->Resize(i+1, 1);
+                m_status = timeSolution->Resize(i + 1, 1);
 
                 if (!m_status.IsOk())
                 {
@@ -244,7 +244,7 @@ hwMathStatus hwDiffEqSolver::FillMatrix(const hwMatrix& time,
                     return m_status;
                 }
 
-                m_status = ySolution.Resize(i+1, numEqns);
+                m_status = ySolution.Resize(i + 1, numEqns);
 
                 if (!m_status.IsOk())
                 {
@@ -253,40 +253,14 @@ hwMathStatus hwDiffEqSolver::FillMatrix(const hwMatrix& time,
                 }
 
                 (*timeSolution)(i, 0) = t;
+
+                if (!intervalComplete)
+                    ++numTimes;
             }
 
             for (int j = 0; j < numEqns; j++)
             {
                 ySolution(i, j) = m_y(j);
-            }
-        }
-        else if (Continue(flag) == true)    // more steps to take
-        {
-            if (OneStepMode)
-            {
-                m_status = timeSolution->Resize(i+1, 1);
-
-                if (!m_status.IsOk())
-                {
-                    m_status.SetArg1(2);
-                    return m_status;
-                }
-
-                m_status = ySolution.Resize(i+1, numEqns);
-
-                if (!m_status.IsOk())
-                {
-                    m_status.SetArg1(3);
-                    return m_status;
-                }
-
-                (*timeSolution)(i, 0) = t;
-
-                for (int j = 0; j < numEqns; j++)
-                {
-                    ySolution(i, j) = m_y(j);
-                }
-                ++numTimes;
             }
         }
         else
@@ -295,7 +269,7 @@ hwMathStatus hwDiffEqSolver::FillMatrix(const hwMatrix& time,
         }
     }
 
-    if (!m_status.IsOk())
+    if (!m_status.IsOk() && !m_status.IsWarning())
     {
         return m_status;
     }

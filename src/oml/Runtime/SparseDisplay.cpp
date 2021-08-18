@@ -22,10 +22,6 @@
 
 #include "CurrencyDisplay.h"
 #include "Interpreter.h"
-
-template <typename T1, typename T2> class hwTMatrixS;
-typedef hwTMatrixS<double, hwTComplex<double> > hwMatrixS;
-
 #include "hwMatrixS.h"
 // End defines/includes
 

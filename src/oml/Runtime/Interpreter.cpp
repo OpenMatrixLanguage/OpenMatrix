@@ -194,6 +194,12 @@ public:
     void LogInput(const std::string&); // Logs input  in diary
     void LogOutput(const Currency&);   // Logs output in diary
 
+	bool IsInPaths(const std::string& path);
+
+	Currency GetProfileData() const;
+	void     ClearProfileData();
+	void     Profile(bool on);
+
 	int         syntax_error_line;
 	std::string syntax_error_file;
 
@@ -243,6 +249,28 @@ int InterpreterImpl::RenameVariable(const std::string& oldname, const std::strin
 //! Reads file and returns results
 Currency InterpreterImpl::DoFile(const std::string& filename)
 {
+	_eval.SetDebugInfo(nullptr, 0);
+	size_t      dot_index = filename.rfind('.');
+	std::string extension = filename.substr(dot_index + 1);
+
+	if (_eval.IsExtensionEncrypted(extension))
+	{
+		try
+		{
+			_eval.RunEncryptedFile(extension, filename);
+		}
+		catch (const OML_Error& e)
+		{
+			std::string error_str = e.GetFormatMessage() ?
+				_eval.FormatErrorMessage(e.GetErrorMessage()) : e.GetErrorMessage();
+			_eval.SetLastErrorMessage(e.GetErrorMessage());
+			Currency cur(-1.0, error_str);
+			_eval.PushResult(cur);
+			return cur;
+		}
+		return _eval.GetLastResult();
+	}
+
 	pANTLR3_INPUT_STREAM input = ANTLRData::InputFromFilename(filename);
 
 	if (!input)
@@ -1051,7 +1079,7 @@ std::string InterpreterImpl::GetHelpDirectory(const std::string& funcName)
 
 std::string InterpreterImpl::GetHelpFilename(const std::string& funcName)
 {
-	// VSM-5943 std::string module = GetHelpModule(funcName);
+	// std::string module = GetHelpModule(funcName);
 	std::string module = GetHelpDirectory(funcName);
 
 	if (_eval.IsOperator(funcName))
@@ -1103,7 +1131,7 @@ std::string InterpreterImpl::GetHelpFilename(const std::string& funcName)
 	}
 	else
 	{
-		// VSM-5493 module += "/";
+		// module += "/";
 		module += DIRECTORY_DELIM;
 		module += funcName;
 		module += ".htm";
@@ -1391,6 +1419,34 @@ bool Interpreter::LockBuiltInFunction(const std::string& name)
     return _impl->LockBuiltInFunction(name);
 }
 //------------------------------------------------------------------------------
+// Returns true if path is in the list of paths
+//------------------------------------------------------------------------------
+bool Interpreter::IsInPaths(const std::string& path)
+{
+	return _impl->IsInPaths(path);
+}
+//------------------------------------------------------------------------------
+// Returns profile data
+//------------------------------------------------------------------------------
+Currency Interpreter::GetProfileData() const
+{
+	return _impl->GetProfileData();
+}
+//------------------------------------------------------------------------------
+// Clears profile data
+//------------------------------------------------------------------------------
+void Interpreter::ClearProfileData()
+{
+	_impl->ClearProfileData();
+}
+//------------------------------------------------------------------------------
+// Turn on the profile mode
+//------------------------------------------------------------------------------
+void Interpreter::Profile(bool on)
+{
+	_impl->Profile(on);
+}
+//------------------------------------------------------------------------------
 // Logs input in diary, if open
 //------------------------------------------------------------------------------
 void InterpreterImpl::LogInput(const std::string& in)
@@ -1421,6 +1477,24 @@ void InterpreterImpl::LogOutput(const Currency& cur)
         }
     }
 }
+bool InterpreterImpl::IsInPaths(const std::string& path)
+{
+	return _eval.IsInPaths(path);
+}
 
+Currency InterpreterImpl::GetProfileData() const
+{
+	return _eval.GetProfileData();
+}
+
+void InterpreterImpl::ClearProfileData()
+{
+	_eval.ClearProfileData();
+}
+
+void InterpreterImpl::Profile(bool on)
+{
+	_eval.Profile(on);
+}
 
 // End of file:

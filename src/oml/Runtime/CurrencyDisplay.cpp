@@ -114,6 +114,10 @@ bool CurrencyDisplay::CanPaginate(const Currency& cur)
         }
         return true;
     }
+    else if (cur.IsNDCellArray() && cur.CellArrayND())
+    {
+        return true;
+    }
     return false;
 }
 //------------------------------------------------------------------------------
@@ -1059,4 +1063,16 @@ std::string CurrencyDisplay::NonFormattedComplexToString(const hwComplex& val)
         out += "+" + NonFormattedDoubleToString(imagval) + "i";
     }
     return out;
+}
+//------------------------------------------------------------------------------
+// Sets parent display and display mode based on parent
+//------------------------------------------------------------------------------
+void CurrencyDisplay::SetParentDisplay(CurrencyDisplay* parent)
+{
+    m_parentDisplay = parent;
+    if (parent)
+    {
+        SetMode(parent->GetMode());
+        SetModeData();
+    }
 }

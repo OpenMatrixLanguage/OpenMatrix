@@ -1,7 +1,7 @@
 /**
 * @file OML_Error.h
 * @date November 2015
-* Copyright (C) 2015-2020 Altair Engineering, Inc.  
+* Copyright (C) 2015-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -74,11 +74,6 @@ enum omlMathErrCode
     OML_ERR_OPTIONVAL,                       // invalid option; is incorrectly specified
     OML_ERR_FUNCSWITCH,                      // invalid option; must be either 'on' or 'off'
     OML_ERR_NOBUILTIN,                       // built in function not supported in this context
-    OML_ERR_OBJSTRRET1,                      // invalid objective function; must have exactly 1 return
-    OML_ERR_CONSTRARG2,                      // invalid constraint function; argument 2 must be []
-    OML_ERR_CONSTRRET2,                      // invalid constraint function; can have at most 2 returns
-    OML_ERR_CONSTRRET4,                      // invalid constraint function; can have at most 4 returns
-    OML_ERR_ANALYTICGRADS,                   // invalid options; GradObj and GradConstr be set the same
     OML_ERR_UNSUPPORTDIM,                    // unsupported dimension; matrices with more than 2 dimensions are not currently allowed
     OML_ERR_FLAG_01,                         // must be 0 or 1
 	OML_ERR_FORMAT,                          // format(s) cannot be applied
@@ -145,7 +140,18 @@ enum omlMathErrCode
     OML_ERR_AUTHENTICATE,                    // authentication failure
     OML_ERR_UNICODE_FILENAME,                // file name cannot have Unicode characters
 
-	// plot codes
+    // optimization codes
+    OML_ERR_OBJSTRRET1,                      // invalid objective function; must have exactly 1 return
+    OML_ERR_CONSTRARG2,                      // invalid constraint function; argument 2 must be []
+    OML_ERR_CONSTRRET2,                      // invalid constraint function; can have at most 2 returns
+    OML_ERR_CONSTRRET4,                      // invalid constraint function; can have at most 4 returns
+    OML_ERR_ANALYTICGRADS,                   // invalid options; GradObj and GradConstr must be used together
+
+    // signal processing codes
+    OML_ERR_ESTIMATOR_STR,                   // invalid argument; 'Estimator' is expected
+    OML_ERR_ESTIMATOR_TYPE,                  // invalid estimator; 'H1', 'H2' or 'H3' is expected
+
+    // plot codes
     OML_ERR_PLOT_DIM_NOT_MATCH,              // invalid inputs; data dimensions do not match
     OML_ERR_PLOT_MISSING_VALUE,              // missing value for property
     OML_ERR_PLOT_UNMATCHED_AXES_TYPE,        // axes type are mismatched; turn hold off
@@ -231,6 +237,14 @@ enum omlMathErrCode
     OML_ERR_MENUAPI_INVALID_HANDLE,          // invalid handle
     OML_ERR_MENUAPI_INVALID_HANDLE_TYPE,     // invalid handle type
 
+    // Image codes
+    OML_ERR_IMAGE_ALPHA,                     // invalid handle; cannot retrieve alpha data
+    OML_ERR_IMAGE_GRAYSCALE,                 // invalid handle; cannot retrieve grayscale data
+    OML_ERR_IMAGE_RGB,                       // invalid handle; cannot retrieve RGB data
+    OML_ERR_IMAGE_HANDLE,                    // invalid handle; cannot retrieve image data
+
+    OML_ERR_REALVECTOR2,                     // must be a  real vector with 2 elements
+    OML_ERR_REALVECTOR3,                     // must be a  real vector with 3 elements
 
     OML_ERR_END
 };
