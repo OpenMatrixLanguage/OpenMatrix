@@ -1,0 +1,28 @@
+
+[CVODES WARNING]  CVode
+  At the end of the first step, there are still some root functions identically 0. This warning will not be issued again.
+
+te = [Matrix] 7 x 1
+ 0.00000
+ 4.60258
+ 6.24399
+10.99127
+12.56385
+17.27837
+18.84860
+ans = [Matrix] 7 x 2
+ 0.00000   0.00000
+-0.00000  -0.90809
+-0.99103   0.00000
+-0.00000  -1.00033
+-1.00212   0.00000
+-0.00000  -1.00058
+-1.00059   0.00000
+ie = [Matrix] 7 x 1
+2
+1
+2
+1
+2
+1
+2

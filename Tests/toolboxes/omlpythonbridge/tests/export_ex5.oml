@@ -2,3 +2,4 @@ addtoolbox omlpythonbridge
 disp('exporting string data')
 postring='String Data'; 
 [status, errorMessage]=exporttopython(postring,'opstring')
+getpythonvar('opstring')

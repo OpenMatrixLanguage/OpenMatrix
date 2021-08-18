@@ -1,1 +1,1 @@
-Error: invalid input type; must be scalar, complex, or a matrix in call to function gamma at line number 2 in file gamma7.oml
+Error: invalid input; type must be a scalar or matrix in call to function gamma at line number 2 in file gamma7.oml

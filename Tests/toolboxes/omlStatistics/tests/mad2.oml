@@ -1,0 +1,7 @@
+addToolbox omlstatistics
+
+data = logspace(-2,3,250) * 1000;
+data = data - floor(data);
+data = floor(1000 * data);
+a = reshape(data,10,25);
+mad(a(1,:), 1)

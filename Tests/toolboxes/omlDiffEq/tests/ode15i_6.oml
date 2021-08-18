@@ -1,0 +1,34 @@
+addtoolbox omldiffeq
+% compute the current in a series RLC circuit
+% L*d2i/dt2 + R*di/dt + c*i = 0
+
+% define system function
+function f = RLC(t,y,yp,v,R,L,C)
+   f = [0, 0, 0];
+   f(1) = (y(2)-y(3)) - L*yp(1);	% voltage drop over inductor
+   f(2) = y(1) - C*yp(3);		% current through capacitor
+   f(3) = (v-y(2)) - y(1)*R;		% voltage drop over resistor
+end
+
+function [position,isterminal,direction] = myEventsFcn(t,x,xp)
+    position = x;
+    isterminal = [0 0 0];
+    direction = [0 0 0];
+end
+
+v = 2.4; % volts
+R = 1.1; % resistor
+L = 1.6; % inductor
+C = 0.8; % capacitor
+
+handle = @(t,y,yp) RLC(t,y,yp,v,R,L,C);
+t = [0:0.2:12]; % time vector
+yi = [0, v, 0];
+ypi = [v/L, -R*v/L, 0.0];
+opt = odeset('Events',@myEventsFcn);
+
+[t,y,te,xe,ie] = ode15i(handle,t,yi,ypi,opt);
+
+te
+round (1000000 * xe) / 1000000
+ie

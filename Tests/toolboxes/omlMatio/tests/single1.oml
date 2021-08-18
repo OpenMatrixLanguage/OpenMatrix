@@ -1,0 +1,33 @@
+addlibrary('omlmatio')
+
+%Scalar
+s = pi;
+single(s);
+
+%Complex
+c = pi + 2i;
+single(c);
+
+% Empty matrix
+m1 = [];
+single(m1);
+
+%Real matrix
+m2 = eye(3);
+m2(1)=pi;
+single(m1);
+
+%Complex matrix
+m3 = eye(3);
+m3(1)=pi + 3i;
+single(m1);
+
+save('single1.mat');
+clear all
+load('single1.mat')
+s
+c
+m1
+m2
+m3
+delete('single1.mat')

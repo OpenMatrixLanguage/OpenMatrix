@@ -2,3 +2,4 @@ addtoolbox omlpythonbridge
 disp('exporting complex data')
 opcomp= 99+99i;
 [status, errorMessage]=exporttopython(opcomp,'opcomp')
+getpythonvar('opcomp')

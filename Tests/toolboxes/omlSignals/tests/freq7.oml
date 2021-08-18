@@ -1,2 +1,2 @@
 addtoolbox omlsignals
-f = freq(5, 90, 'onesided')
+f = freq(9, 90, 'onesided')

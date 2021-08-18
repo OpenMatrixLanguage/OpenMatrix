@@ -1,0 +1,5 @@
+addToolbox omlmathutils
+format('long')
+gammaln(-3.5)
+gammaln(10)
+gammaln(201)
