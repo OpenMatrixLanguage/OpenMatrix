@@ -43,6 +43,7 @@ goto :EOF
 rem =======================================================
 :eval_regression_test
 pushd %1
+set filestr=%1
 call :filecount *.log
 if /i %filecount% EQU 0 (
     set result_str= - OK
@@ -51,6 +52,8 @@ if /i %filecount% GTR 0 (
 	if defined evaluate_verbose (
 		echo.
 		dir *.log
+		echo.
+		for %%a in (*.log) do echo Failed %filestr%\%%a
 		echo.
 	)
     set result_str= - THIS TEST HAS FAILED

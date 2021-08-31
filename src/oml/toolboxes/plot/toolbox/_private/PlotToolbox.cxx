@@ -612,6 +612,16 @@ namespace omlplot{
     }
 
     bool axis(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs){
+        if (inputs.size() == 1 && inputs.front().IsString())
+        {
+            std::string inVal = inputs.front().StringVal();
+            if (inVal == "on" || inVal == "off" || inVal == "bestfit" || inVal == "cubical" ||
+                inVal == "equal" || inVal == "normal" || inVal == "square" || inVal == "unscaled") {
+                std::string warn = "Option [" + inVal + "] is not supported in OpenMatrix";
+                BuiltInFuncsUtils::SetWarning(eval, warn);
+                return true;
+            }
+        }
         std::unique_ptr<LimData> ld = dsm.getLimData(inputs);
         double h = ld->handle;
         if (h == 0){
@@ -821,6 +831,13 @@ namespace omlplot{
             std::vector<double> r = cm->colorbarRange(axesHandle);
             outputs.insert(outputs.end(), r.begin(), r.end());
         }
+
+        if (nargout == 1)
+        {
+            BuiltInFuncsUtils::SetWarning(eval, "Syntax 'h = colorbar()' is not supported in OpenMatrix");
+            outputs.push_back(-1);
+        }
+
 		return true;
 	}
 
@@ -924,8 +941,33 @@ namespace omlplot{
         return false;
     }
 
+    bool xline(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [xline] is not supported in OpenMatrix");
+        return false;
+    }
 
-#define TBOXVERSION 1.08
+    bool yline(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [yline] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool stem3(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [stem3] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool copystyle(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [copystyle] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool pastestyle(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [pastestyle] is not supported in OpenMatrix");
+        return false;
+    }
+
+
+#define TBOXVERSION 1.09
     extern "C" OMLPLOT_EXPORT
     double GetToolboxVersion(EvaluatorInterface eval){
         return TBOXVERSION;
@@ -997,6 +1039,11 @@ namespace omlplot{
             evl.RegisterBuiltInFunction("patch", patch, FunctionMetaData(-1, -1, "Plotting"));
             evl.RegisterBuiltInFunction("pcolor", pcolor, FunctionMetaData(-1, -1, "Plotting"));
             evl.RegisterBuiltInFunction("findobj", findobj, FunctionMetaData(-1, -1, "Plotting"));
+            evl.RegisterBuiltInFunction("xline", xline, FunctionMetaData(-1, -1, "Plotting"));
+            evl.RegisterBuiltInFunction("yline", yline, FunctionMetaData(-1, -1, "Plotting"));
+            evl.RegisterBuiltInFunction("stem3", stem3, FunctionMetaData(-1, -1, "Plotting"));
+            evl.RegisterBuiltInFunction("copystyle", copystyle, FunctionMetaData(-1, -1, "Plotting"));
+            evl.RegisterBuiltInFunction("pastestyle", pastestyle, FunctionMetaData(-1, -1, "Plotting"));
             return 0;
         }
 
@@ -1066,6 +1113,11 @@ namespace omlplot{
         evl.RegisterBuiltInFunction("patch", patch, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("pcolor", pcolor, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("findobj", findobj, FunctionMetaData(-1, -1, "Plotting"));
+        evl.RegisterBuiltInFunction("xline", xline, FunctionMetaData(-1, -1, "Plotting"));
+        evl.RegisterBuiltInFunction("yline", yline, FunctionMetaData(-1, -1, "Plotting"));
+        evl.RegisterBuiltInFunction("stem3", stem3, FunctionMetaData(-1, -1, "Plotting"));
+        evl.RegisterBuiltInFunction("copystyle", copystyle, FunctionMetaData(-1, -1, "Plotting"));
+        evl.RegisterBuiltInFunction("pastestyle", pastestyle, FunctionMetaData(-1, -1, "Plotting"));
         return 0;
     }
 
