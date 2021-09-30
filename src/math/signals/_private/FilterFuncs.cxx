@@ -401,6 +401,9 @@ hwMathStatus FirLS(int             order,
     int numPts = freq.Size();
     int numBands = numPts / 2;
 
+    if (numPts%2 != 0)
+        return hwMathStatus(HW_MATH_ERR_VECTOR2x, 2);
+
     if (mag.Size() != numPts)
         return hwMathStatus(HW_MATH_ERR_ARRAYSIZE, 2, 3);
 

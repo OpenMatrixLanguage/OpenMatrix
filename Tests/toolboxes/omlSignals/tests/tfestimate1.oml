@@ -17,5 +17,7 @@ overlap = 512;
 window = hann(1024, 'periodic');
 [tf_est,f] = tfestimate(signal1, signal2, window, overlap, 1024, fs, 'onesided');
 f([1:50:451])'
-angle(h(1:50:451)*(180/pi))
-angle(tf_est(1:50:451).'*(180/pi))
+abs(h(1:50:451))
+abs(tf_est(1:50:451)).'
+angle(h(1:50:451))*(180/pi)
+angle(tf_est(1:50:451)).'*(180/pi)

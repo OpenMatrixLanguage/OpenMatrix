@@ -1,0 +1,2 @@
+test = 'A Short Test';
+cellstr(test)

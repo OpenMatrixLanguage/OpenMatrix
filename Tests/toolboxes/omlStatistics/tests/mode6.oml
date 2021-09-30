@@ -1,0 +1,18 @@
+addToolbox omlstatistics
+p = [0.025:0.05:0.975];
+v1 = round(betainv(p,2,2) * 10) + 10;
+v2 = round(betainv(p,2,2) * 20) + 20;
+v3 = round(betainv(p,3,3) * 10) + 30;
+v4 = round(betainv(p,3,3) * 20) + 40;
+v5 = round(betainv(p,4,4) * 10) + 50;
+v6 = round(betainv(p,4,4) * 20) + 60;
+v7 = round(betainv(p,5,5) * 10) + 70;
+v8 = round(betainv(p,5,5) * 20) + 80;
+v9 = round(betainv(p,6,6) * 10) + 90;
+v10 = round(betainv(p,6,6) * 20) + 100;
+v11 = round(betainv(p,7,7) * 10) + 110;
+v12 = round(betainv(p,8,8) * 20) + 120;
+
+a = [v1, v2; v3, v4; v5, v6; v7, v8; v9, v10; v11, v12];
+a = permute(a, [3, 2, 1]);
+[m,f,c] = mode(a,2)

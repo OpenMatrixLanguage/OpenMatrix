@@ -2488,11 +2488,6 @@ hwMathStatus ContFrac(double     value,
                       double&    den,
                       hwMatrix&  cf)
 {
-    if (fabs(value) < MACHEP2 || fabs(value) * MACHEP2 > 1)
-    {
-        return hwMathStatus(HW_MATH_ERR_BADRANGE, 1);
-    }
-
     if (tol <= 0.0)
     {
         return hwMathStatus(HW_MATH_ERR_NONPOSITIVE, 2);

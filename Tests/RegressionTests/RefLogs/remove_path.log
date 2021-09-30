@@ -1,3 +1,3 @@
 z = 1.5
 ans = 1.5
-Unknown function: myfunc at line number 4 in file remove_path.oml
+Error: 'myfunc' is not defined at line number 4 in file remove_path.oml

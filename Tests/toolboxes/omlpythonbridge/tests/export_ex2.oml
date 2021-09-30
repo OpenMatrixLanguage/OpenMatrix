@@ -2,3 +2,4 @@ addtoolbox omlpythonbridge
 disp('exporting integer data')
 opint = 999;
 [status, errorMessage]=exporttopython(opint,'opint')
+getpythonvar('opint')

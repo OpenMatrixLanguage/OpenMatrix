@@ -1,0 +1,25 @@
+
+[CVODES WARNING]  CVode
+  At the end of the first step, there are still some root functions identically 0. This warning will not be issued again.
+
+te = [Matrix] 6 x 1
+ 0.00000
+ 3.01083
+ 7.83109
+ 9.41469
+14.13657
+15.70719
+ans = [Matrix] 6 x 2
+0.00000   0.00000
+0.86578   0.00000
+0.00000   0.98917
+1.00281  -0.00000
+0.00000   1.00123
+1.00128  -0.00000
+ie = [Matrix] 6 x 1
+1
+2
+1
+2
+1
+2

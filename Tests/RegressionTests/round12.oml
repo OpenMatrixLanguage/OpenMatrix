@@ -1,0 +1,6 @@
+format('long')
+a = 1 + eps
+rs1 = round(a, 51, 'sigbits')
+rs2 = round(a, 52, 'sigbits')
+rb1 = round(a, 50, 'binary')
+rb2 = round(a, 51, 'binary')

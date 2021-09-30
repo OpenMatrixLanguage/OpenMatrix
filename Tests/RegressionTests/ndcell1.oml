@@ -1,0 +1,6 @@
+nd_cell_with_strings=cell(2,3,4);
+nd_cell_with_strings{:,:,1} = {'first','string1','string2';'test1','test2','test3'};
+nd_cell_with_strings{:,:,2} = {'second','secondstring1','secondstring2';'secondtest1','secondtest2','secondtest3'};
+nd_cell_with_strings{:,:,3} = {'third','thirdstring1','thirdstring2';'thirdtest1','thirdtest2','thirdtest3'};
+nd_cell_with_strings{:,:,4} = {'fourth','fourstring1','fourstring2';'fourtest1','fourtest2','fourtest3'};
+s = struct('nd_cell_with_strings',nd_cell_with_strings)

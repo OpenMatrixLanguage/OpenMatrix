@@ -913,51 +913,95 @@ bool oml_MatrixN_sum(EvaluatorInterface eval, const std::vector<Currency>& input
     else
     {
         sum->SetElements(0.0);
-
-        // sum each dimension 1 vector into in specified dimension
         int numVecs = matrix->Size() / dims[0];
         std::vector<int> rhsMatrixIndex(numDim);
 
-        for (int i = 0; i < numVecs; ++i)
+        if (dims[0] > numVecs || dims[0] > 16)
         {
-            // set the rhsMatrix indices to the first index in each slice
-            int start1 = matrix->Index(rhsMatrixIndex);
-            int temp = rhsMatrixIndex[dim];
-            rhsMatrixIndex[dim] = 0;
-            int start2 = sum->Index(rhsMatrixIndex);
-            rhsMatrixIndex[dim] = temp;
-
-            if (matrix->IsReal())
+            // sum each dimension 1 vector into the specified dimension
+            for (int i = 0; i < numVecs; ++i)
             {
-                const double* realD = matrix->GetRealData() + start1;
-                const double* realS = sum->GetRealData() + start2;
-                hwMatrix dataVec(dims[0], 1, (void*)realD, hwMatrix::REAL);
-                hwMatrix sumVec(dims[0], 1, (void*)realS, hwMatrix::REAL);
+                // set the rhsMatrix indices to the first index in each slice
+                int start1 = matrix->Index(rhsMatrixIndex);
+                int temp = rhsMatrixIndex[dim];
+                rhsMatrixIndex[dim] = 0;
+                int start2 = sum->Index(rhsMatrixIndex);
+                rhsMatrixIndex[dim] = temp;
 
-                sumVec += dataVec;
-            }
-            else
-            {
-                const hwComplex* realD = matrix->GetComplexData() + start1;
-                const hwComplex* realS = sum->GetComplexData() + start2;
-                hwMatrix dataVec(dims[0], 1, (void*)realD, hwMatrix::COMPLEX);
-                hwMatrix sumVec(dims[0], 1, (void*)realS, hwMatrix::COMPLEX);
-
-                sumVec += dataVec;
-            }
-
-            // advance slice indices
-            for (int j = 1; j < numDim; ++j)
-            {
-                // increment index j if possible
-                if (rhsMatrixIndex[j] < static_cast<int> (dims[j]) - 1)
+                if (matrix->IsReal())
                 {
-                    ++rhsMatrixIndex[j];
-                    break;
+                    const double* realD = matrix->GetRealData() + start1;
+                    const double* realS = sum->GetRealData() + start2;
+                    hwMatrix dataVec(dims[0], 1, (void*)realD, hwMatrix::REAL);
+                    hwMatrix sumVec(dims[0], 1, (void*)realS, hwMatrix::REAL);
+
+                    sumVec += dataVec;
+                }
+                else
+                {
+                    const hwComplex* cmplxD = matrix->GetComplexData() + start1;
+                    const hwComplex* cmplxS = sum->GetComplexData() + start2;
+                    hwMatrix dataVec(dims[0], 1, (void*)cmplxD, hwMatrix::COMPLEX);
+                    hwMatrix sumVec(dims[0], 1, (void*)cmplxS, hwMatrix::COMPLEX);
+
+                    sumVec += dataVec;
                 }
 
-                // index j is maxed out, so reset and continue to j+1
-                rhsMatrixIndex[j] = 0;
+                // advance slice indices
+                for (int j = 1; j < numDim; ++j)
+                {
+                    // increment index j if possible
+                    if (rhsMatrixIndex[j] < static_cast<int> (dims[j]) - 1)
+                    {
+                        ++rhsMatrixIndex[j];
+                        break;
+                    }
+
+                    // index j is maxed out, so reset and continue to j+1
+                    rhsMatrixIndex[j] = 0;
+                }
+            }
+        }
+        else
+        {
+            // sum each vector along the dimension of interest
+            int numVecs = matrix->Size() / dims[dim];
+            int stride = matrix->Stride(dim);
+
+            for (int i = 0; i < numVecs; ++i)
+            {
+                // set the rhsMatrix indices to the first index in each slice
+                int start = matrix->Index(rhsMatrixIndex);
+
+                if (matrix->IsReal())
+                {
+                    const double* realD = matrix->GetRealData() + start;
+                    hwMatrix dataVec(stride, dims[dim], (void*)realD, hwMatrix::REAL);
+                    (*sum)(i) = dataVec.RowSumReal(0);
+                }
+                else
+                {
+                    const hwComplex* cmplxD = matrix->GetComplexData() + start;
+                    hwMatrix dataVec(stride, dims[dim], (void*)cmplxD, hwMatrix::COMPLEX);
+                    sum->z(i) = dataVec.RowSumComplex(0);
+                }
+
+                // advance slice indices
+                for (int j = 0; j < numDim; ++j)
+                {
+                    if (j == dim)
+                        continue;
+
+                    // increment index j if possible
+                    if (rhsMatrixIndex[j] < static_cast<int> (dims[j]) - 1)
+                    {
+                        ++rhsMatrixIndex[j];
+                        break;
+                    }
+
+                    // index j is maxed out, so reset and continue to j+1
+                    rhsMatrixIndex[j] = 0;
+                }
             }
         }
     }

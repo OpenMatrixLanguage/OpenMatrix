@@ -2,3 +2,4 @@ addtoolbox omlpythonbridge
 disp('exporting precision data')
 opfloat = 999.999;
 [status, errorMessage] = exporttopython(opfloat,'opfloat')
+getpythonvar('opfloat')

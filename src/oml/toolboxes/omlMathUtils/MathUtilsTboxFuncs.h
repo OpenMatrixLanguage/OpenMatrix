@@ -53,6 +53,15 @@ bool OmlBeta(EvaluatorInterface           eval,
              const std::vector<Currency>& inputs, 
              std::vector<Currency>&       outputs);
 //!
+//! Returns true after executing log beta function
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlBetaLn(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs);
+//!
 //! Returns true after executing gamma function
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
@@ -61,6 +70,15 @@ bool OmlBeta(EvaluatorInterface           eval,
 bool OmlGamma(EvaluatorInterface           eval,
               const std::vector<Currency>& inputs, 
               std::vector<Currency>&       outputs);
+//!
+//! Returns true after executing log gamma function
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlGammaLn(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs);
 //!
 //! Returns true after executing gamma function
 //! \param eval    Evaluator interface
@@ -88,26 +106,5 @@ bool OmlBins(EvaluatorInterface           eval,
 bool OmlRat(EvaluatorInterface           eval, 
             const std::vector<Currency>& inputs, 
             std::vector<Currency>&       outputs);
-//!
-//! Returns outputs after executing the beta function
-//! \param eval 
-//! \param inputs Vector of inputs
-//!
-std::vector<Currency> doBeta(EvaluatorInterface&          eval, 
-                             const std::vector<Currency>& inputs);
-//!
-//! Returns outputs after executing the gamma function
-//! \param eval 
-//! \param inputs Vector of inputs
-//!
-std::vector<Currency> doGamma(EvaluatorInterface&          eval, 
-                              const std::vector<Currency>& inputs);
-//!
-//! Returns outputs after executing the factorial function
-//! \param eval 
-//! \param inputs Vector of inputs
-//!
-std::vector<Currency> doFactorial(EvaluatorInterface&          eval,
-                                  const std::vector<Currency>& inputs);
 
 #endif // __MATHUTILSTBOXFUNCS_H__

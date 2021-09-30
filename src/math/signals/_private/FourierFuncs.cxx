@@ -161,7 +161,16 @@ hwMathStatus Freq(int         numPnts,
         return hwMathStatus(HW_MATH_ERR_NONPOSITIVE, 2);
     }
 
-    hwMathStatus status = freq.Dimension(numPnts, hwMatrix::REAL);
+    hwMathStatus status;
+    
+    if (!strcmp(option, "onesided"))
+    {
+        status = freq.Dimension(numPnts / 2 + 1, hwMatrix::REAL);
+    }
+    else
+    {
+        status = freq.Dimension(numPnts, hwMatrix::REAL);
+    }
 
     if (!status.IsOk())
     {
@@ -174,11 +183,11 @@ hwMathStatus Freq(int         numPnts,
 
     if (!strcmp(option, "onesided"))
     {
-        int n = 2 * (numPnts - 1) + numPnts % 2;
-        double delta_f = sampFreq / n;
+        int n = numPnts / 2 + 1;
+        double delta_f = sampFreq / numPnts;
         freq(0) = 0.0;
 
-        for (int i = 1; i < numPnts; ++i)
+        for (int i = 1; i < n; ++i)
         {
             freq(i) = freq(i - 1) + delta_f;
         }
@@ -923,7 +932,7 @@ hwMathStatus Ifft2(const hwMatrix& freqRes,
         fftw_destroy_plan(p);
 
         // normalize
-        hwMatrix tempC(signal.Size(), out, hwMatrix::REAL);
+        hwMatrix tempC(signal.Size(), out, hwMatrix::COMPLEX);
         tempC.DivideEquals(static_cast<double> (signal.Size()));
     }
 
@@ -1304,7 +1313,7 @@ hwMathStatus IfftN(const hwMatrixN& freqRes,
         fftw_destroy_plan(p);
 
         // normalize
-        hwMatrix tempC(signal.Size(), out, hwMatrix::REAL);
+        hwMatrix tempC(signal.Size(), out, hwMatrix::COMPLEX);
         tempC.DivideEquals(signal.Size());
     }
 

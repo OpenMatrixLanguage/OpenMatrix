@@ -203,6 +203,12 @@ public:
 	void* GetUserData()            { return _user_data; }
 	void  SetUserData(void* _data) { _user_data = _data; }
 
+	bool IsInPaths(const std::string& path);
+
+    Currency GetProfileData() const;
+    void     ClearProfileData();
+    void     Profile(bool on);
+
 private:
     friend class InterpreterImpl; //! Access private/protected members
     InterpreterImpl* _impl;       //! Internal implementation

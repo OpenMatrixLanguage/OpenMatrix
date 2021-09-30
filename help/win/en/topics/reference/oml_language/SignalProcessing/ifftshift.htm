@@ -1,0 +1,116 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="ifftshift" /><meta name="abstract" content="Shift frequency spectrum related vectors to uncenter the dc element to the first position." /><meta name="description" content="Shift frequency spectrum related vectors to uncenter the dc element to the first position." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Signal Processing Commands" /><meta name="indexterms" content="ifftshift" /><meta name="DC.subject" content="ifftshift" /><meta name="keywords" content="ifftshift" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/signalprocessing_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/fft.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/fftshift.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/freq.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>ifftshift</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/signalprocessing_commands.htm" title="Signal Processing Commands">Signal Processing Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/SignalProcessing/signalprocessing_commands.htm" title="Signal Processing Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Signal Processing Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">ifftshift</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Shift frequency spectrum related vectors to uncenter the dc element
+    to the first position.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">y = ifftshift<span class="ph var">(x)</span></span></p>
+
+      <p class="p"><span class="ph synph">y = ifftshift<span class="ph var">(x,dim)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">x</var></dt>
+
+          <dd class="dd pd">The frequency spectrum related vectors to shift.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | complex</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector | matrix</span></dd>
+
+        
+	
+          <dt class="dt pt dlterm"><var class="keyword varname">dim</var></dt>
+
+          <dd class="dd pd">The dimension on which to operate.</dd>
+
+          <dd class="dd pd ddexpand">(default: shift along every dimension.)</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">y</var></dt>
+
+          <dd class="dd pd">The shifted vectors.</dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+      <div class="p">Show that <span class="keyword cmdname">ifftshift</span> reverses the output of <span class="keyword cmdname">fftshift</span>.<pre class="pre codeblock"><code>
+x = fftshift([1:8])
+y = ifftshift(x)
+<code class="ph codeph">x = [Matrix] 1 x 8
+5  6  7  8  1  2  3  4
+y = [Matrix] 1 x 8
+1  2  3  4  5  6  7  8</code></code></pre>
+If <var class="keyword varname">x(5)</var> is the location of the dc frequency and <var class="keyword varname">x(1)</var> is the location of
+the negative Nyquist frequency, then <var class="keyword varname">y(1)</var> is the location of the dc frequency and
+<var class="keyword varname">y(5)</var> is the location of Nyquist frequency.</div>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p">After <span class="keyword cmdname">ifftshift</span>, if a vector has an even number of samples
+        the Nyquist frequency of the input will become centered in the output vector. </p>
+
+    </section>
+
+    <section class="section">
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/fft.htm" title="Fast Fourier Transform.">fft</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/fftshift.htm" title="Shift frequency spectrum related vectors to center the dc element">fftshift</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/freq.htm" title="Generate a vector of frequency locations.">freq</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/SignalProcessing/signalprocessing_commands.htm" title="Signal Processing Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Signal Processing Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2021)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

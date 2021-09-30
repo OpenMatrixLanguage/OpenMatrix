@@ -40,6 +40,7 @@
 #define HW_MATH_MSG_GAMAXITERS_W     "Warning: maximum iterations will be capped at 1000"
 #define HW_MATH_MSG_CONVIOLATEBEST   "Warning: the best reported design violates the constraint"
 #define HW_MATH_MSG_POORPOLYFIT      "Warning: if poor fit quality, consult the help document"
+#define HW_MATH_MSG_DOUBLEPRECLIMIT  "Warning: double precision accuracy limits may have been exceeded"
 // Signal processing warnings
 #define HW_MATH_MSG_FILTERORDERIRR  "Warning: high filter order; numerical accuracy may be diminished"
 #define HW_MATH_MSG_FILTERSIMPLOW   "Warning: syntax simplifies to low pass filter"
@@ -50,6 +51,10 @@
 #define HW_MATH_MSG_FILTERCFC       "Warning: invalid frequency; filter should not be used for CFC > 180"
 // Statistics warnings
 #define HW_MATH_MSG_STATTESTALPHA_W "Warning: invalid alpha; should be in the interval (0.0, 0.5)" 
+// CVODE warnings
+#define HW_MATH_MSG_CVODE_EVENT     "Warning: ODE solver terminated by Events function"
+// IDA warnings
+#define HW_MATH_MSG_IDA_EVENT       "Warning: DAE solver terminated by Events function"
 // Qhull warnings
 #define HW_MATH_MSG_QHULL_LEAK      "Warning: Qhull did not release all memory"
 
@@ -83,6 +88,7 @@
 #define HW_MATH_MSG_NONUNIQUE       "Error: invalid data; must contain all unique values"
 #define HW_MATH_MSG_CONSECUTIVE3    "Error: invalid data; must contain at most 2 consecutive identical values"
 #define HW_MATH_MSG_MINMAXVALUES    "Error: invalid values; maximum must be >= minimum"
+#define HW_MATH_MSG_ARG1LTARG2      "Error: invalid values; arg1 must be >= arg2"
 #define HW_MATH_MSG_BADRANGE        "Error: invalid data; value is out of range"
 #define HW_MATH_MSG_ZERORANGE       "Error: invalid data; has a range of zero"
 #define HW_MATH_MSG_BADFILE         "Error: file missing or could not be read;"
@@ -124,6 +130,7 @@
 #define HW_MATH_MSG_DIAGFAIL        "Error: invalid matrix; could not be diagonalized"
 #define HW_MATH_MSG_VECTOR12        "Error: invalid vector; length must be 1 or 2"
 #define HW_MATH_MSG_VECTOR2         "Error: invalid vector; must have a length 2"
+#define HW_MATH_MSG_VECTOR2x        "Error: invalid vector; must have an even length"
 #define HW_MATH_MSG_VECTOR          "Error: invalid matrix; must be non-empty vector"
 #define HW_MATH_MSG_NOVECTOR        "Error: invalid vector; must be a matrix"
 #define HW_MATH_MSG_KLUD            "Error: invalid index; must be a positive integer < #columns"
@@ -231,6 +238,7 @@ std::string GetHMathErrMsg(hwMathMsgCode code)
             case HW_MATH_WARN_GAMAXITERS:       retStr = HW_MATH_MSG_GAMAXITERS_W;      break;
             case HW_MATH_WARN_CONVIOLATEBEST:   retStr = HW_MATH_MSG_CONVIOLATEBEST;    break;
             case HW_MATH_WARN_POORPOLYFIT:      retStr = HW_MATH_MSG_POORPOLYFIT;       break;
+            case HW_MATH_WARN_DOUBLEPRECLIMIT:  retStr = HW_MATH_MSG_DOUBLEPRECLIMIT;   break;
             // signal processing warnings
             case HW_MATH_WARN_FILTERORDERIRR:   retStr = HW_MATH_MSG_FILTERORDERIRR;    break;
             case HW_MATH_WARN_FILTERSIMPLOW:    retStr = HW_MATH_MSG_FILTERSIMPLOW;     break;
@@ -241,6 +249,10 @@ std::string GetHMathErrMsg(hwMathMsgCode code)
             case HW_MATH_WARN_FILTERCFC:        retStr = HW_MATH_MSG_FILTERCFC;         break;
             // statistics warnings
             case HW_MATH_WARN_STATTESTALPHA:    retStr = HW_MATH_MSG_STATTESTALPHA_W;   break;
+            // CVODE warnings
+            case HW_MATH_WARN_CVODE_EVENT:      retStr = HW_MATH_MSG_CVODE_EVENT;       break;
+            // IDA warnings
+            case HW_MATH_WARN_IDA_EVENT:        retStr = HW_MATH_MSG_IDA_EVENT;         break;
             // Qhull warnings
             case HW_MATH_WARN_QHULL_LEAK:       retStr = HW_MATH_MSG_QHULL_LEAK;        break;
             // unknown error
@@ -285,6 +297,7 @@ std::string GetHMathErrMsg(hwMathMsgCode code)
             case HW_MATH_ERR_NONUNIQUE:             retStr = HW_MATH_MSG_NONUNIQUE;         break;
             case HW_MATH_ERR_CONSECUTIVE3:          retStr = HW_MATH_MSG_CONSECUTIVE3;      break;
             case HW_MATH_ERR_MINMAXVALUES:          retStr = HW_MATH_MSG_MINMAXVALUES;      break;
+            case HW_MATH_ERR_ARG1LTARG2:            retStr = HW_MATH_MSG_ARG1LTARG2;        break;
             case HW_MATH_ERR_BADRANGE:              retStr = HW_MATH_MSG_BADRANGE;          break;
             case HW_MATH_ERR_ZERORANGE:             retStr = HW_MATH_MSG_ZERORANGE;         break;
             case HW_MATH_ERR_BADFILE:               retStr = HW_MATH_MSG_BADFILE;           break;
@@ -326,6 +339,7 @@ std::string GetHMathErrMsg(hwMathMsgCode code)
             case HW_MATH_ERR_DIAGFAIL:              retStr = HW_MATH_MSG_DIAGFAIL;          break;
             case HW_MATH_ERR_VECTOR12:              retStr = HW_MATH_MSG_VECTOR12;          break;
             case HW_MATH_ERR_VECTOR2:               retStr = HW_MATH_MSG_VECTOR2;           break;
+            case HW_MATH_ERR_VECTOR2x:              retStr = HW_MATH_MSG_VECTOR2x;          break;
             case HW_MATH_ERR_VECTOR:                retStr = HW_MATH_MSG_VECTOR;            break;
             case HW_MATH_ERR_NOVECTOR:              retStr = HW_MATH_MSG_NOVECTOR;          break;
             case HW_MATH_ERR_KLUD:                  retStr = HW_MATH_MSG_KLUD;              break;

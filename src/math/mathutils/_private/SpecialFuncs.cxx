@@ -46,6 +46,16 @@
 //------------------------------------------------------------------------------
 double GammaFunc(double x)
 {
+    if (IsNaN_T(x) || IsNegInf_T(x))
+    {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+
+    if (IsInf_T(x))
+    {
+        return std::numeric_limits<double>::infinity();
+    }
+
     double P[] = {
         1.60119522476751861407E-4,
         1.19135147006586384913E-3,
@@ -137,7 +147,17 @@ double GammaFunc(double x)
 //------------------------------------------------------------------------------
 double GammaLog(double x)
 {
-	double pi    = acos(-1.0);
+    if (IsNaN_T(x) || IsNegInf_T(x))
+    {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+
+    if (IsInf_T(x))
+    {
+        return std::numeric_limits<double>::infinity();
+    }
+
+    double pi    = acos(-1.0);
 	double LS2PI = log(sqrt(2.0*pi));
 	
     double A[] = 
@@ -192,7 +212,8 @@ double GammaLog(double x)
 		{
 			if (u == 0.0)
             {
-				return 0.0;
+				// return 0.0;
+                return std::numeric_limits<double>::infinity();
             }
 
 			z /= u;
@@ -420,8 +441,8 @@ double Trigamma(double x)
 double BetaFunc(double x,
                 double y)
 {
-	double beta;
-				
+    double beta;
+
 	if (x + y < MAXGAM)
 	{
 		beta = GammaFunc(x) * GammaFunc(y) / GammaFunc(x + y);
@@ -448,7 +469,7 @@ double BetaFunc(double x,
 double BetaLog(double x,
                double y)
 {
-	double betaLog;
+    double betaLog;
 				
 	if (x + y < MAXGAM)
 	{

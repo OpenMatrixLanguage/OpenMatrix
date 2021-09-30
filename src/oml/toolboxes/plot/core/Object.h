@@ -367,7 +367,7 @@ namespace omlplot{
     class OMLPLOT_EXPORT Surface : public Drawable{
     public:
         Surface();
-        
+
         void init(const LineData& ld) override;
         string getUsingClause() override;
         string getWithClause(int) override;

@@ -554,7 +554,7 @@ bool BuiltInFuncsFile::Dlmwrite(EvaluatorInterface           eval,
             if (val == "unix")
                 rdelim = "\n";
             else if (val == "pc")
-                rdelim == "\r\n";
+                rdelim = "\r\n";
             else if (val == "mac")
                 rdelim = "\r";
             else 
@@ -2759,7 +2759,6 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
             {
                 break;  // End of file not detected on windows for empty file opened in wide mode
             }
-
             line = utils.WString2StdString(wline);
 #else
             if (useLinuxLineDelim)
@@ -2805,6 +2804,23 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
             {
                 line.pop_back();
             }
+            if (!line.empty())
+            {   // Some files could have junk characters
+                size_t len = line.length();
+                for (size_t i = 0; i < len; ++i)
+                {
+                    unsigned char ch = line[i];
+                    if (isprint(ch))
+                    {
+                        if (i > 0)
+                        {
+                            line = line.substr(i);
+                        }
+                        break;
+                    }
+                }
+            }
+
 
             if (line.empty())
             {

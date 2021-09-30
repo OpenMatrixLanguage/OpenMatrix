@@ -1,0 +1,5 @@
+addToolbox omlstatistics
+rand('seed', 2019);
+randperm(1e+10, 10)
+randperm(1e+10, 10)
+randperm(1e+10, 10)

@@ -31,5 +31,6 @@
 typedef hwTMatrix<double> hwMatrix;
 typedef hwTMatrix<float> hwMatrixF;
 typedef hwTMatrix<int> hwMatrixI;
+typedef hwTMatrix<int64_t> hwMatrixI64;
 
 #endif // _hwMatrix_h

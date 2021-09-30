@@ -1,2 +1,2 @@
 ans = -3
-Unknown function: function2 at line number 3 in file local_function.oml
+Error: 'function2' is not defined at line number 3 in file local_function.oml

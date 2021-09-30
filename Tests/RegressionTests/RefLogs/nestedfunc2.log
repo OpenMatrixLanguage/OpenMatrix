@@ -2,4 +2,4 @@
 4
 17
 17
-Unknown function: y in function outer4 at line number 17 in file nestedfunc2.oml
+Error: 'y' is not defined in function outer4 at line number 17 in file nestedfunc2.oml

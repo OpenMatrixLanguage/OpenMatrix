@@ -48,8 +48,10 @@ public:
     //! \param pJacFunc    Jacobian function
     //! \param X_
     //! \param y_
+    //! \param lowerBound
+    //! \param upperBound
     //! \param maxIter     Max iterations
-    //! \param maxFuncEval
+    //! \param maxFuncEval Max function evaluations
     //! \param tolf
     //! \param tolx
     //! \param userData
@@ -59,6 +61,8 @@ public:
                         const hwMatrix&  P,
                         const hwMatrix&  X_,
                         const hwMatrix&  y_,
+                        const hwMatrix*  lowerBound,
+                        const hwMatrix*  upperBound,
                         int              maxIter     = 200,
                         int              maxFuncEval = 400, 
                         double           tolf        = 1.0e-6,
@@ -89,6 +93,10 @@ public:
     //! Destructor
     //!
     virtual ~hwGenericFuncFitter();
+    //!
+    //! Compute parameters that minimize the objective function
+    //!
+    hwMathStatus Compute();
 
 protected:
     //!
@@ -105,14 +113,42 @@ protected:
     //! Evaluate Jacobian matrix
     //!
     void EvalJacobian();
+    //!
+    //! Evaluate approximate Hessian matrix
+    //!
+    void EvalHessian();
+    //!
+    //! Evaluate steepest descent step
+    //! \param Gstep
+    //!
+    void EvalSteepDescentStep(hwMatrix& Gstep);
+    //!
+    //! Evaluate Newton step
+    //! \param Nstep
+    //!
+    void EvalNewtonStep(hwMatrix& Nstep);
+    //!
+    //! Scale Matrix
+    //!
+    void ScaleMatrix();
+    //!
+    //! Enforce Bounds
+    //! \param Pcand
+    //! \param Pstep
+    //!
+    void EnforceBounds(const hwMatrix& Pcand, hwMatrix& Pstep);
 
 private:
-    LSqFitFunc      m_pObjFunc;  //!< objective function
-    LSqFitFunc      m_pJacFunc;  //!< Jacobian - if NULL use numerical derivatices
-    const hwMatrix* X;           //!< domain variable(s) for curve/surface fitting
-    const hwMatrix* y;           //!< range variable for curve/surface fitting
-    const hwMatrix* m_userData;  //!< User data
-
+    LSqFitFunc      m_pObjFunc;    //!< objective function
+    LSqFitFunc      m_pJacFunc;    //!< Jacobian - if NULL use numerical derivatices
+    const hwMatrix* X;             //!< domain variable(s) for curve/surface fitting
+    const hwMatrix* y;             //!< range variable for curve/surface fitting
+    const hwMatrix* m_lowerBound;  //!< lower parameter bounds
+    const hwMatrix* m_upperBound;  //!< upper parameter bounds
+    const hwMatrix* m_userData;    //!< User data
+    hwMatrix        D;             //!< Scale Matrix
+    hwMatrix        DinvSqrt;      //!< Scale Matrix
+    hwMatrix        M;             //!< Modified Hessian
 };
 
 #endif // _Optimization_hwGenericFuncFitter_h

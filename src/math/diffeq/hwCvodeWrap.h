@@ -46,6 +46,10 @@ typedef int (*CVDenseJacFn_client)(long int N,
                                    double*  yp,
                                    void*    jac_data,
                                    double** Jac);
+
+#include "DiffEqExports.h"
+DIFFEQ_DECLS void WriteEventDataCV(double* isterminal, double* direction, int nrtfn);
+
 //------------------------------------------------------------------------------
 //!
 //! \class hwCvodeWrap
@@ -58,6 +62,7 @@ public:
     //! Constructor
     //! \param sysfunc
     //! \param rootfunc
+    //! \param nrtfn
     //! \param jacDfunc
     //! \param tin
     //! \param y_
@@ -65,8 +70,12 @@ public:
     //! \param reltol      Real tolerance
     //! \param abstol      Absolute tolerance
     //! \param userData    Optional user data
+    //! \param pEventTime  Event function times
+    //! \param pEventFnVal Event function values
+    //! \param pEventIndx  Event function indices
     hwCvodeWrap(CVRhsFn_client      sysfunc,
                 CVRootFn_client     rootfunc,
+                int                 nrtfn,
                 CVDenseJacFn_client jacDfunc,
                 double              tin,
                 const hwMatrix&     y_,
@@ -74,7 +83,10 @@ public:
                 double              reltol   = 0.001,
                 const hwMatrix*     abstol   = nullptr,
                 double              maxstep  = -999.0,
-                const hwMatrix*     userData = nullptr);
+                const hwMatrix*     userData = nullptr,
+                hwMatrix*           pEventTime  = nullptr,
+                hwMatrix*           pEventFnVal = nullptr,
+                hwMatrix*           pEventIndx  = nullptr);
 
     //!
     //! Destructor
@@ -100,12 +112,21 @@ public:
     //! \param flag
     //!
     bool Continue(int flag);
+    //!
+    //! Respond to events that have returned zeros
+    //! \param flag
+    //!
+    int ManageEvents(double t, bool init);
 
 private:
-    void*           cvode_mem;  //!< SUNDIALS CVODE internal memory
-    N_Vector        y;          //!< SUNDIALS ODE output vector
-    SUNMatrix       A;          //!< SUNDIALS dense matrix
-    SUNLinearSolver LS;         //!< SUNDIALS linear solver memory
+    void*           cvode_mem;     //!< SUNDIALS CVODE internal memory
+    N_Vector        y;             //!< SUNDIALS ODE output vector
+    SUNMatrix       A;             //!< SUNDIALS dense matrix
+    SUNLinearSolver LS;            //!< SUNDIALS linear solver memory
+    int             m_nrtfn;       //!< SUNDIALS number of events
+    hwMatrix*       m_pEventTime;  //!< Event function times
+    hwMatrix*       m_pEventFnVal; //!< Event function values
+    hwMatrix*       m_pEventIndx;  //!< Event function indices
 
     //!
     //! Set stop time for one step mode

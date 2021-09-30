@@ -6,7 +6,6 @@ slice(:, :, 1) =
   [2,1] [Matrix] 0 x 0
   [2,2] [Matrix] 0 x 0
 }
-
 slice(:, :, 2) = 
 {
   [1,1] [Matrix] 0 x 0

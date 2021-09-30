@@ -110,7 +110,7 @@ hwMathStatus hwSAEFilter::Compute(const hwMatrix& input,
         if (output.M() > 1)
         {
             m_status = output.Resize(inputSize, 1, true);
-        }
+    }
         else
         {
             m_status = output.Resize(1, inputSize, true);

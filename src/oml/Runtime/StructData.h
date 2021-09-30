@@ -56,6 +56,8 @@ public:
 	void            DecrRefCount();
 	int             GetRefCount() const;
 
+	void            Transpose();
+
 	const std::map<std::string, int> GetFieldNames() const;
     const std::map<const std::string*, int>& GetFieldNamePtrs() const { return field_names; }
     hwMathStatus Reshape (int m, int n) { return field_values->Reshape(m, n); }

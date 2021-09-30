@@ -1,0 +1,176 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="getmousepos" /><meta name="abstract" content="Returns the mouse position in the figure area." /><meta name="description" content="Returns the mouse position in the figure area." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Plotting Commands" /><meta name="indexterms" content="getmousepos" /><meta name="DC.subject" content="getmousepos" /><meta name="keywords" content="getmousepos" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/figure.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/uicontrol.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/uipanel.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/uitab.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/waitforbuttonpress.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>getmousepos</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" title="Plotting Commands">Plotting Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" title="Plotting Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Plotting Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">getmousepos</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Returns the mouse position in the figure area.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      <p class="p"><span class="ph synph">[x, y] = getmousepos()</span></p>
+
+      <p class="p"><span class="ph synph">getmousepos<span class="ph var">('print', status)</span></span></p>
+
+      <p class="p"><span class="ph synph">getmousepos('print', <span class="ph var">status</span>, 'parent', <span class="ph var">handle</span>)</span></p>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml" id="reference_wpv_kyv_pr__parml_azt_dvl_vpb">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">status</var></dt>
+
+          <dd class="dd pd">If the value is <span class="ph synph">'on'</span>, the mouse position will be printed in the command
+            window, whenever there is a right mouse click in a figure that has only GUI elements and
+            no axes. This property is useful when building a gui as both the normalized and pixel
+            positions are printed. If the value is <span class="ph synph">'off'</span>, mouse position will not be
+            printed on right click.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">off_on</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">handle</var></dt>
+
+          <dd class="dd pd">Optional input which specifies the handle of a ui element that will be used as a
+            parent (reference) when calculating the normalized position printed. If no
+              <span class="ph synph">parent</span> property is given, the current &lt;cmdname&gt;gcf&lt;/cmdname&gt;
+            handle will be used as reference. If the mouse position is not contained in the parent
+              <var class="keyword varname">handle</var>, the normalized position will be <span class="ph synph">[NaN NaN]</span> in
+            the message printed.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+        
+      </dl>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">x, y</span></dt>
+
+          <dd class="dd pd">The position of the mouse.</dd>
+
+          <dd class="dd pd ddexpand">If the mouse is over a 2D plot, <var class="keyword varname">x</var> and <var class="keyword varname">y</var> are in
+            the plot's coordinates system, which is defined by the x and y axes.</dd>
+
+          <dd class="dd pd ddexpand">If the mouse is not over a 2D plot, then <var class="keyword varname">x</var> and <var class="keyword varname">y</var>
+            are in the figure's coordinate system where the axes exists, the (0,0) point is in the upper-left corner
+            of the figure window.</dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">In the following example, <span class="keyword cmdname">getmousepos</span> is used along with the
+        '<span class="keyword option">mouseclickcallback</span>' property to obtain the mouse position everytime you
+        click on the
+        plot:<pre class="pre codeblock"><code>close all;
+          plot(rand(100,1));
+          set(gca, 'mouseclickcallback',@get_mouse_pos);
+          
+          function get_mouse_pos(handle, callbackdata)
+          [x,y] = getmousepos() 
+          callbackdata
+          end</code></pre></div>
+
+      <div class="p">The next example demonstrates the two coordinate systems. The mouse coordinates are printed
+        in the console as the mouse moves over the
+        figure.<pre class="pre codeblock"><code>close all;
+          figure();
+          subplot(1,2,2);
+          plot(rand(10,1));
+          
+          ellipse(gcf,'pos',[0, 0, 20, 20], 'edgecolor', 'r','linewidth',2);
+          
+          for i=1:100 
+          [x,y] = getmousepos()
+          pause(1);
+          end</code></pre></div>
+
+      <div class="p"><span class="keyword cmdname">getmousepos</span> and the '<span class="keyword option">mouseclickcallback</span>' property are
+        combined in the following example to create new elements in the
+        figure:<pre class="pre codeblock"><code>clear all, close all;
+          axes('position',[0,0,0,0]);
+          set(gca,'mouseclickcallback',@mouseclicked);
+          
+          function mouseclicked(h,callbackdata)
+          [x,y]=getmousepos();
+          ellipse(gcf,'pos',[x-10, y-10, 20, 20]) 
+          end</code></pre></div>
+
+      <div class="p"><span class="keyword cmdname">getmousepos</span> with printing in a figure used for GUI elements only
+        <pre class="pre codeblock"><code>
+          getmousepos('print', 'on')
+          f = gcf();
+          % Right click in the figure once it is created. The following message will be printed
+          Mouse position: normalized [0.45 0.44], pixels [307 143], parent [1.000000]
+          getmousepos('print', 'off')</code></pre></div>
+
+      <div class="p"><span class="keyword cmdname">getmousepos</span> with printing in a figure used for GUI elements only, with a parent reference
+        <pre class="pre codeblock"><code>
+          getmousepos('print', 'on')
+          f = gcf();
+          % Right click in the figure once it is created. The following message will be printed
+          Mouse position: normalized [0.45 0.44], pixels [307 143], parent [1.000000]
+          % Use the normalized mouse position to create a frame inside gcf
+          frame1 = uipanel(gcf(), 'title', 'Frame1', 'units', 'normalized', 'position', [0.45 0.44 0.5 0.4]);
+          getmousepos('print', 'on', 'parent', frame1)
+          % Right click in the parent frame to get the position where a button needs to be created
+          Mouse position: normalized [0.12 0.38], pixels [348 193], parent [17.819334]
+          % Use the normalized mouse position to create a button inside parent object
+          button = uicontrol(frame1, 'style', 'pushbutton', 'string', 'Next', 'units', 'normalized', 'position', [0.12 0.38 0.25 0.18]);
+          getmousepos('print', 'off')</code></pre></div>
+
+      
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p">If the mouse is not inside the figure area when <span class="keyword cmdname">getmousepos</span> is called,
+        the outputs will be <span class="keyword cmdname">NaN</span>.</p>
+
+    </section>
+
+    <section class="section">
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/figure.htm" title="Creates a new figure for plotting and uicontrols.">figure</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/uicontrol.htm" title="Creates interactive graphical control objects in a figure. Use the 'style' property of uicontrol to create different types of control objects.">uicontrol</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/uipanel.htm" title="Creates a frame for interactive graphical control objects in a figure.">uipanel</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/uitab.htm" title="Creates a tab in a tabbed frame for interactive graphical control objects in a figure.">uitab</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/waitforbuttonpress.htm" title="Pauses the GUI until a mouse button/key is pressed in the current window.">waitforbuttonpress</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" title="Plotting Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Plotting Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2021)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

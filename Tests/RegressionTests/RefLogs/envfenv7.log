@@ -1,2 +1,2 @@
 A = 3
-Unknown function: A in function f at line number 9 in file envfenv7.oml
+Error: 'A' is not defined in function f at line number 9 in file envfenv7.oml

@@ -1,7 +1,7 @@
 /**
 * @file OML_Error.cpp
 * @date November 2015
-* Copyright (C) 2015-2020 Altair Engineering, Inc.  
+* Copyright (C) 2015-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -70,11 +70,6 @@
 #define OML_MSG_OPTIONVAL     "Error: invalid option; is incorrectly specified"
 #define OML_MSG_FUNCSWITCH    "Error: invalid option; must be either 'on' or 'off'"
 #define OML_MSG_NOBUILTIN     "Error: built in function not supported in this context"
-#define OML_MSG_OBJSTRRET1    "Error: invalid objective function; must have exactly 1 return"
-#define OML_MSG_CONSTRARG2    "Error: invalid constraint function; argument 2 must be []"
-#define OML_MSG_CONSTRRET2    "Error: invalid constraint function; can have at most 2 returns"
-#define OML_MSG_CONSTRRET4    "Error: invalid constraint function; can have at most 4 returns"
-#define OML_MSG_ANALYTICGRADS "Error: invalid options; GradObj and GradConstr be set the same"
 #define OML_MSG_UNSUPPORTDIM  "Error: unsupported dimension; matrices with more than 2 dimensions are not currently allowed"
 #define OML_MSG_FLAG_01       "Error: invalid input; must be 0 or 1"
 #define OML_MSG_FORMAT        "Error: invalid input; format(s) cannot be applied"
@@ -140,6 +135,17 @@
 #define OML_MSG_INTERNAL                    "Error: internal error"
 #define OML_MSG_AUTHENTICATE                "Error: authentication failure"
 #define OML_MSG_UNICODE_FILENAME            "Error: invalid input: file name cannot have Unicode characters"
+
+// optimization messages
+#define OML_MSG_OBJSTRRET1                  "Error: invalid objective function; must have exactly 1 return"
+#define OML_MSG_CONSTRARG2                  "Error: invalid constraint function; argument 2 must be []"
+#define OML_MSG_CONSTRRET2                  "Error: invalid constraint function; can have at most 2 returns"
+#define OML_MSG_CONSTRRET4                  "Error: invalid constraint function; can have at most 4 returns"
+#define OML_MSG_ANALYTICGRADS               "Error: invalid options; GradObj and GradConstr must be used together"
+
+// signal processing messages
+#define OML_MSG_ESTIMATOR_STR               "Error: invalid argument; 'Estimator' is expected"
+#define OML_MSG_ESTIMATOR_TYPE              "Error: invalid estimator; 'H1', 'H2' or 'H3' is expected"
 
 // plot messages
 #define OML_MSG_PLOT_DIM_NOT_MATCH              "Error: invalid inputs; data dimensions do not match"
@@ -228,6 +234,15 @@
 #define OML_MSG_MENUAPI_SYS_MOD                  "Error: cannot modify system ribbons."
 #define OML_MSG_MENUAPI_INVALID_HANDLE           "Error: invalid handle"
 #define OML_MSG_MENUAPI_INVALID_HANDLE_TYPE      "Error: invalid handle type"
+
+// Image codes
+#define OML_MSG_IMAGE_ALPHA                      "Error: invalid handle; cannot retrieve alpha data"
+#define OML_MSG_IMAGE_GRAYSCALE                  "Error: invalid handle; cannot retrieve grayscale data"
+#define OML_MSG_IMAGE_RGB                        "Error: invalid handle; cannot retrieve RGB data"
+#define OML_MSG_IMAGE_HANDLE                     "Error: invalid handle; cannot retrieve image data"
+
+#define OML_MSG_REALVECTOR2                      "Error: invalid input; must be a  real vector with 2 elements"
+#define OML_MSG_REALVECTOR3                      "Error: invalid input; must be a  real vector with 3 elements"
 
 // Variable type definitions
 #define OML_STR_MATRIX          "matrix"
@@ -520,11 +535,6 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode errCode) const
     case OML_ERR_OPTIONVAL:                     msgStr = OML_MSG_OPTIONVAL;                     break;
     case OML_ERR_FUNCSWITCH:                    msgStr = OML_MSG_FUNCSWITCH;                    break;
     case OML_ERR_NOBUILTIN:                     msgStr = OML_MSG_NOBUILTIN;                     break;
-    case OML_ERR_OBJSTRRET1:                    msgStr = OML_MSG_OBJSTRRET1;                    break;
-    case OML_ERR_CONSTRARG2:                    msgStr = OML_MSG_CONSTRARG2;                    break;
-    case OML_ERR_CONSTRRET2:                    msgStr = OML_MSG_CONSTRRET2;                    break;
-    case OML_ERR_CONSTRRET4:                    msgStr = OML_MSG_CONSTRRET4;                    break;
-    case OML_ERR_ANALYTICGRADS:                 msgStr = OML_MSG_ANALYTICGRADS;                 break;
     case OML_ERR_UNSUPPORTDIM:                  msgStr = OML_MSG_UNSUPPORTDIM;                  break;
     case OML_ERR_FLAG_01:                       msgStr = OML_MSG_FLAG_01;                       break;
     case OML_ERR_FORMAT:                        msgStr = OML_MSG_FORMAT;                        break;
@@ -591,7 +601,18 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode errCode) const
     case OML_ERR_AUTHENTICATE:                  msgStr = OML_MSG_AUTHENTICATE; break;
     case OML_ERR_UNICODE_FILENAME:              msgStr = OML_MSG_UNICODE_FILENAME; break;
 
-	// plot error messages:
+    // optimization error messages:
+    case OML_ERR_OBJSTRRET1:                    msgStr = OML_MSG_OBJSTRRET1;                    break;
+    case OML_ERR_CONSTRARG2:                    msgStr = OML_MSG_CONSTRARG2;                    break;
+    case OML_ERR_CONSTRRET2:                    msgStr = OML_MSG_CONSTRRET2;                    break;
+    case OML_ERR_CONSTRRET4:                    msgStr = OML_MSG_CONSTRRET4;                    break;
+    case OML_ERR_ANALYTICGRADS:                 msgStr = OML_MSG_ANALYTICGRADS;                 break;
+
+    // signal processing error messages:
+    case OML_ERR_ESTIMATOR_STR:                 msgStr = OML_MSG_ESTIMATOR_STR;                    break;
+    case OML_ERR_ESTIMATOR_TYPE:                msgStr = OML_MSG_ESTIMATOR_TYPE;                    break;
+        
+    // plot error messages:
     case OML_ERR_PLOT_DIM_NOT_MATCH:            msgStr = OML_MSG_PLOT_DIM_NOT_MATCH;            break;
     case OML_ERR_PLOT_MISSING_VALUE:            msgStr = OML_MSG_PLOT_MISSING_VALUE;            break;
     case OML_ERR_PLOT_UNMATCHED_AXES_TYPE:      msgStr = OML_MSG_PLOT_UNMATCHED_AXES_TYPE;      break;
@@ -675,6 +696,15 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode errCode) const
     case OML_ERR_MENUAPI_SYS_MOD:                msgStr = OML_MSG_MENUAPI_SYS_MOD;  break;
     case OML_ERR_MENUAPI_INVALID_HANDLE:         msgStr = OML_MSG_MENUAPI_INVALID_HANDLE; break;
     case OML_ERR_MENUAPI_INVALID_HANDLE_TYPE:    msgStr = OML_MSG_MENUAPI_INVALID_HANDLE_TYPE; break;
+
+    // Image codes
+    case OML_ERR_IMAGE_ALPHA:                    msgStr = OML_MSG_IMAGE_ALPHA;     break;
+    case OML_ERR_IMAGE_GRAYSCALE:                msgStr = OML_MSG_IMAGE_GRAYSCALE; break;
+    case OML_ERR_IMAGE_RGB:                      msgStr = OML_MSG_IMAGE_RGB;       break;
+    case OML_ERR_IMAGE_HANDLE:                   msgStr = OML_MSG_IMAGE_HANDLE;    break;
+
+    case OML_ERR_REALVECTOR2:                    msgStr = OML_MSG_REALVECTOR2; break;
+    case OML_ERR_REALVECTOR3:                    msgStr = OML_MSG_REALVECTOR3; break;
 
     default: break;
     }

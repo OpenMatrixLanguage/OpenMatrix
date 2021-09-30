@@ -23,6 +23,9 @@
 static CVRhsFn_client sysfunc_client       = nullptr;
 static CVRootFn_client rootfunc_client     = nullptr;
 static CVDenseJacFn_client jacDfunc_client = nullptr;
+static int* event_is_terminal              = nullptr;
+static int* event_directon_request         = nullptr;
+static int* event_directon_actual          = nullptr;
 
 //------------------------------------------------------------------------------
 // CVODE functions called by Sundials, converting SUNDIALS to built-in types
@@ -57,12 +60,23 @@ static int jacDfunc_CVODE(realtype  t,
     return jacDfunc_client(SM_COLUMNS_D(J), t, NV_DATA_S(y), NV_DATA_S(yp),
            jac_data, SM_COLS_D(J));
 }
-
+//------------------------------------------------------------------------------
+// Write event data
+//------------------------------------------------------------------------------
+void WriteEventDataCV(double* isterminal, double* direction, int nrtfn)
+{
+    for (int i = 0; i < nrtfn; ++i)
+    {
+        event_is_terminal[i] = static_cast<int> (isterminal[i]);
+        event_directon_request[i] = static_cast<int> (direction[i]);
+    }
+}
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
 hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc, 
                          CVRootFn_client     rootfunc, 
+                         int                 nrtfn,
                          CVDenseJacFn_client jacDfunc,
                          double              tin, 
                          const hwMatrix&     y_, 
@@ -70,18 +84,25 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
                          double              reltol_,
                          const hwMatrix*     abstol_, 
                          double              maxstep,
-                         const hwMatrix*     userData)
+                         const hwMatrix*     userData,
+                         hwMatrix*           pEventTime,
+                         hwMatrix*           pEventFnVal,
+                         hwMatrix*           pEventIndx)
     : hwDiffEqSolver(y_)
     , cvode_mem     (nullptr)
     , y             (nullptr)
     , A             (nullptr)
     , LS            (nullptr)
+    , m_nrtfn(nrtfn)
+    , m_pEventTime(pEventTime)
+    , m_pEventFnVal(pEventFnVal)
+    , m_pEventIndx(pEventIndx)
 {
     if (!m_status.IsOk())
     {
         if (m_status.GetArg1() == 1)
         {
-            m_status.SetArg1(8);
+            m_status.SetArg1(6);
         }
         else
         {
@@ -96,15 +117,20 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
         return;
     }
 
+    if (m_nrtfn < 0)
+    {
+        m_status(HW_MATH_ERR_INVALIDINPUT, 3);
+    }
+
     if (!job)
     {
-        m_status(HW_MATH_ERR_NULLPOINTER, 6);
+        m_status(HW_MATH_ERR_NULLPOINTER, 7);
         return;
     }
 
     if (reltol_ < 0.0)
     {
-        m_status(HW_MATH_ERR_NONPOSITIVE, 7);
+        m_status(HW_MATH_ERR_NONPOSITIVE, 8);
         return;
     }
 
@@ -191,11 +217,40 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
         }
     }
 
-    // Call CVodeRootInit to specify the root function rootfunc_CVODE with 2 components
+    // Allocate event function vectors
+    if (event_is_terminal)
+    {
+        delete[] event_is_terminal;
+        event_is_terminal = nullptr;
+    }
+
+    if (event_directon_request)
+    {
+        delete[] event_directon_request;
+        event_directon_request = nullptr;
+    }
+
+    if (event_directon_actual)
+    {
+        delete[] event_directon_actual;
+        event_directon_actual = nullptr;
+    }
+
+    if (m_nrtfn)
+    {
+        event_is_terminal = new int[m_nrtfn];
+        event_directon_request = new int[m_nrtfn];
+        event_directon_actual = new int[m_nrtfn];
+
+        for (int i = 0; i < m_nrtfn; ++i)
+            event_directon_actual[i] = 0;
+    }
+
+    // Set the root function to rootfunc_CVODE with nrtfn events
     if (rootfunc)
     {
         rootfunc_client = rootfunc;
-        flag = CVodeRootInit(cvode_mem, 2, rootfunc_CVODE);
+        flag = CVodeRootInit(cvode_mem, nrtfn, rootfunc_CVODE);
         // if (Check_flag(&flag, "CVodeRootInit", 1)) return(1);
     }
 
@@ -220,13 +275,13 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
         {
             if (!abstol_->IsReal())
             {
-                m_status(HW_MATH_ERR_COMPLEX, 8);
+                m_status(HW_MATH_ERR_COMPLEX, 9);
                 return;
             }
 
             if (!abstol_->IsVector())
             {
-                m_status(HW_MATH_ERR_VECTOR, 8);
+                m_status(HW_MATH_ERR_VECTOR, 9);
                 return;
             }
 
@@ -236,7 +291,7 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
 
                 if (abstol <= 0.0)
                 {
-                    m_status(HW_MATH_ERR_NONPOSITIVE, 8);
+                    m_status(HW_MATH_ERR_NONPOSITIVE, 9);
                     return;
                 }
 
@@ -249,7 +304,7 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
                 {
                     if ((*abstol_)(i) <= 0.0)
                     {
-                        m_status(HW_MATH_ERR_NONPOSITIVE, 8);
+                        m_status(HW_MATH_ERR_NONPOSITIVE, 9);
                         return;
                     }
                 }
@@ -274,7 +329,7 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
             }
             else
             {
-                m_status(HW_MATH_ERR_ARRAYSIZE, 5, 8);
+                m_status(HW_MATH_ERR_ARRAYSIZE, 6, 9);
                 return;
             }
         }
@@ -293,7 +348,61 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
     }
     else if (maxstep != -999.0)
     {
-        m_status(HW_MATH_ERR_NONPOSITIVE, 9);
+        m_status(HW_MATH_ERR_NONPOSITIVE, 10);
+    }
+
+    // Check for event function roots at the initial condition,
+    // since Sundials apparently does not.
+    if (rootfunc)
+    {
+        double t_init = tin;
+        hwMatrix y_temp(m_y);
+        hwMatrix gout1(m_nrtfn, 1, hwMatrix::REAL);
+        hwMatrix gout2(m_nrtfn, 1, hwMatrix::REAL);
+
+        // Check for events at I.C.
+        flag = rootfunc_client(tin, m_y.GetRealData(), gout1.GetRealData(), nullptr);
+
+        if (flag != 0)
+        {
+            m_status(HW_MATH_ERR_USERFUNCFAIL);
+            return;
+        }
+
+        // Take a small step
+        flag = CVode(cvode_mem, tin + 0.0001, y, &t_init, CV_NORMAL);
+
+        if (flag != CV_SUCCESS)
+        {
+            m_status(HW_MATH_ERR_USERFUNCFAIL);
+            return;
+        }
+
+        // Check for events after small step
+        flag = rootfunc_client(t_init, m_y.GetRealData(), gout2.GetRealData(), nullptr);
+
+        if (flag != 0)
+        {
+            m_status(HW_MATH_ERR_USERFUNCFAIL);
+            return;
+        }
+
+        // Reset
+        m_y = y_temp;
+
+        // Set event direction flags
+        for (int i = 0; i < m_nrtfn; ++i)
+        {
+            if (gout1(i) == 0.0)
+            {
+                if (gout2(i) > 0.0)
+                    event_directon_actual[i] = 1;
+                else if (gout2(i) < 0.0)
+                    event_directon_actual[i] = -1;
+            }
+        }
+
+        flag = ManageEvents(tin, true);
     }
 }
 //------------------------------------------------------------------------------
@@ -320,6 +429,24 @@ hwCvodeWrap::~hwCvodeWrap()
     {
         SUNLinSolFree(LS);         // Free the linear solver memory
     }
+
+    if (event_is_terminal)
+    {
+        delete[] event_is_terminal;
+        event_is_terminal = nullptr;
+    }
+
+    if (event_directon_request)
+    {
+        delete[] event_directon_request;
+        event_directon_request = nullptr;
+    }
+
+    if (event_directon_actual)
+    {
+        delete[] event_directon_actual;
+        event_directon_actual = nullptr;
+    }
 }
 //------------------------------------------------------------------------------
 // Perform an integration step
@@ -341,6 +468,80 @@ void hwCvodeWrap::TakeStep(double& t, double tout, int& flag)
     {
         flag = CVode(cvode_mem, tout, y, &t, CV_NORMAL);
     }
+
+    if (flag == CV_ROOT_RETURN && m_nrtfn)
+    {
+        flag = ManageEvents(t, false);
+    }
+    else if (flag == CV_RHSFUNC_FAIL)
+    {
+        m_status(HW_MATH_ERR_USERFUNCFAIL, 111);
+    }
+    else if (flag == CV_RTFUNC_FAIL)
+    {
+        m_status(HW_MATH_ERR_USERFUNCFAIL, 333);
+    }
+}
+//------------------------------------------------------------------------------
+// Respond to events that have returned zeros
+//------------------------------------------------------------------------------
+int hwCvodeWrap::ManageEvents(double t, bool init)
+{
+    int flag;
+
+    flag = CVodeSetRootDirection(cvode_mem, event_directon_request);
+    
+    if (flag != CV_SUCCESS)
+        return flag;
+
+    if (!init)
+    {
+        flag = CVodeGetRootInfo(cvode_mem, event_directon_actual);
+
+        if (flag != CV_SUCCESS)
+            return flag;
+    }
+
+    for (int i = 0; i < m_nrtfn; ++i)
+    {
+        if (!event_directon_actual[i])
+            continue;
+
+        if ((event_directon_request[i] == 0) ||
+            (event_directon_request[i] == event_directon_actual[i]))
+        {
+            // record the event
+            int numZeros = m_pEventTime->Size();
+
+            if (numZeros == 0)
+            {
+                m_pEventTime->Dimension(1, hwMatrix::REAL);
+                m_pEventFnVal->Dimension(1, m_y.Size(), hwMatrix::REAL);
+                m_pEventIndx->Dimension(1, hwMatrix::REAL);
+            }
+            else
+            {
+                m_pEventTime->Resize(numZeros + 1, 1);
+                m_pEventFnVal->Resize(numZeros + 1, m_y.Size());
+                m_pEventIndx->Resize(numZeros + 1, 1);
+            }
+
+            (*m_pEventTime)(numZeros) = t;
+            m_y.Transpose();
+            m_pEventFnVal->WriteRow(numZeros, m_y);
+            m_y.Transpose();
+            (*m_pEventIndx)(numZeros) = static_cast<double> (i + 1);
+
+            if (event_is_terminal[i])
+            {
+                flag = -99;
+            }
+
+            break;
+        }
+    }
+
+    return flag;
 }
 //------------------------------------------------------------------------------
 // Returns true if successful
@@ -379,13 +580,17 @@ bool hwCvodeWrap::Continue(int flag)
     {
         switch(flag)
         {
-            case -1: m_status(HW_MATH_ERR_CVODE_WORKLOAD);  break;
-            case -2: m_status(HW_MATH_ERR_CVODE_ACCURACY);  break;
-            case -3: m_status(HW_MATH_ERR_CVODE_ERR);       break;
-            case -4: m_status(HW_MATH_ERR_CVODE_CONV);      break;
-            case -8: m_status(HW_MATH_ERR_USERFUNCFAIL, 1); break;
-            case -6: m_status(HW_MATH_ERR_USERFUNCFAIL, 2); break;
-            default: m_status(HW_MATH_ERR_USERFUNCFAIL);    break;
+            case  -1: m_status(HW_MATH_ERR_CVODE_WORKLOAD);  break;
+            case  -2: m_status(HW_MATH_ERR_CVODE_ACCURACY);  break;
+            case  -3: m_status(HW_MATH_ERR_CVODE_ERR);       break;
+            case  -4: m_status(HW_MATH_ERR_CVODE_CONV);      break;
+            case  -8: m_status(HW_MATH_ERR_USERFUNCFAIL, 1); break;
+            case  -6: m_status(HW_MATH_ERR_USERFUNCFAIL, 2); break;
+            case -99: m_status(HW_MATH_WARN_CVODE_EVENT);    break;
+            default:
+                if (m_status.GetArg1() < 100)
+                    m_status(HW_MATH_ERR_USERFUNCFAIL);
+                break;
         }
         return false;
     }
@@ -410,7 +615,7 @@ int hwCvodeWrap::Check_flag(void* flagvalue, const char* funcname, int opt)
     }
     else if (opt == 1)          // opt == 1 => Sundials returned a flag
     {
-        int* errflag = static_cast<int *>(flagvalue);
+        int* errflag = static_cast<int*>(flagvalue);
         if (errflag && *errflag < 0)
         {
             return 1;

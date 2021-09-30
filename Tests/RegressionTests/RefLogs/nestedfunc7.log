@@ -1,1 +1,1 @@
-Unknown function: a in function baz at line number 11 in file nestedfunc7.oml
+Error: 'a' is not defined in function baz at line number 11 in file nestedfunc7.oml

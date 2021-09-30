@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="axis" /><meta name="abstract" content="Sets the scaling and range of x, y, and z axes (x by default). Called without arguments, axis turns autoscaling on." /><meta name="description" content="Sets the scaling and range of x, y, and z axes (x by default). Called without arguments, axis turns autoscaling on." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Plotting Commands" /><meta name="indexterms" content="axis" /><meta name="DC.subject" content="axis" /><meta name="keywords" content="axis" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>axis</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/skins/skin.css?buildId=2018042310" /><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="axis" /><meta name="abstract" content="Sets the scaling and range of x, y, and z axes (x by default). Called without arguments, axis turns autoscaling on." /><meta name="description" content="Sets the scaling and range of x, y, and z axes (x by default). Called without arguments, axis turns autoscaling on." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Plotting Commands" /><meta name="indexterms" content="axis" /><meta name="DC.subject" content="axis" /><meta name="keywords" content="axis" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>axis</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -113,6 +113,12 @@
 
               
               
+                <dt class="dt dlterm">'tight'</dt>
+
+                <dd class="dd">Sets the axes range equal to the data limits.</dd>
+
+              
+              
                 <dt class="dt dlterm">'unscaled'</dt>
 
                 <dd class="dd">The length of each axis is based on the axis values (3D plots only).</dd>
@@ -159,6 +165,20 @@ axis('square');</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr
         <span class="figcap"><span class="fig--title-label">Figure 3. </span>Square aspect ratio</span></figure>
 </div>
 
+        <div class="p"><span class="keyword cmdname">axis('tight')</span> example: <pre class="pre codeblock" id="reference_wpv_kyv_pr__codeblock_akg_btc_lqb"><code>clf;
+x=linspace(-pi,pi, 100);
+plot(x,sin(x));
+axis('tight');
+</code></pre></div>
+
+      <div class="p">
+        <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_bkg_btc_lqb">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_ckg_btc_lqb" src="../../../../images/math_solutions/plots/axisTight.png" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 4. </span>Tight fit to curve data</span></figure>
+
+      </div>
+
       <div class="p"><span class="keyword cmdname">axis('bestfit')</span>
           example:<pre class="pre codeblock"><code>clf;
 x=[0:0.1:2*pi];
@@ -168,13 +188,13 @@ s=surf(x, y, z)
 axis('bestfit');</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_xdm_n1l_mnb">
           
           <br /><img class="image" id="reference_wpv_kyv_pr__image_ydm_n1l_mnb" src="../../../../images/math_solutions/plots/axisBestfit.png" /><br />
-        <span class="figcap"><span class="fig--title-label">Figure 4. </span>Best fit axes</span></figure>
+        <span class="figcap"><span class="fig--title-label">Figure 5. </span>Best fit axes</span></figure>
 </div>
 
       <div class="p"><span class="keyword cmdname">axis('unscaled')</span> example:<figure class="fig fignone" id="reference_wpv_kyv_pr__fig_kdm_n1l_mnb">
           
           <br /><img class="image" id="reference_wpv_kyv_pr__image_ldm_n1l_mnb" src="../../../../images/math_solutions/plots/axisUnscaled.png" /><br />
-        <span class="figcap"><span class="fig--title-label">Figure 5. </span>Unscaled axes</span></figure>
+        <span class="figcap"><span class="fig--title-label">Figure 6. </span>Unscaled axes</span></figure>
 <pre class="pre codeblock"><code>clf;
 x=[0:0.1:2*pi];
 y=x;

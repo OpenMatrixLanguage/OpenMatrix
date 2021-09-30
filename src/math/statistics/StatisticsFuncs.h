@@ -100,6 +100,22 @@ STATISTICS_DECLS hwMathStatus Detrend(const hwMatrix& Y,
 //!
 STATISTICS_DECLS double ErrorFunc(double x);
 //!
+//! Compute binomial combinations
+//! \param n
+//! \param k
+//!
+STATISTICS_DECLS hwMathStatus NchooseK(int       n,
+                                       int       k,
+                                       double&   nCk);
+//!
+//! Compute binomial combinations
+//! \param N
+//! \param k
+//!
+STATISTICS_DECLS hwMathStatus NchooseK(const hwMatrix& N,
+                                       int             k,
+                                       hwMatrix&       nCk);
+//!
 //! Compute the mean of a real data vector
 //! \param data
 //! \param xBar
@@ -134,6 +150,13 @@ STATISTICS_DECLS hwMathStatus Median(const hwMatrix& A,
 //!
 STATISTICS_DECLS hwMathStatus AvgDev(const hwMatrix& data,
                                      double&         avgDev);
+//!
+//! Compute the median absolute deviation of a data vector
+//! \param data   Input
+//! \param avgDev Median absolute deviation
+//!
+STATISTICS_DECLS hwMathStatus MedianDev(const hwMatrix& data,
+                                        double&         medianDev);
 //!
 //! Compute the standard deviation of a data vector
 //! \param data      Input

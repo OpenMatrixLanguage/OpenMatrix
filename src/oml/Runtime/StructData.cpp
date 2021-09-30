@@ -363,3 +363,17 @@ const std::map<std::string, int> StructData::GetFieldNames() const
 
 	return ret;
 }
+
+void StructData::Transpose()
+{
+	HML_FIELDVALS* new_mtx = new HML_FIELDVALS(0, 0, HML_FIELDVALS::REAL);
+	new_mtx->Transpose(*field_values);
+
+	field_values->DecrRefCount();
+
+	if (field_values->GetRefCount() == 0)
+		delete field_values;
+
+	field_values = new_mtx;
+	field_values->IncrRefCount();
+}

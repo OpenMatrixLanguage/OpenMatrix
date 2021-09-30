@@ -1,10 +1,6 @@
-Available ODE options:
-RelTol
-AbsTol
-MaxStep
-Jacobian
 options = struct [
   AbsTol: 1.00000e-06
+  Events: [Matrix] 0 x 0
   Jacobian: [Matrix] 0 x 0
   MaxStep: Inf
   RelTol: 0.001

@@ -82,6 +82,7 @@ public:
 	Currency(const std::string& str);
 	Currency(const char* str);
 	Currency(const std::vector<double>& data);
+	Currency(const std::vector<std::string>& data);
 	Currency(bool logical_val);
 	Currency(hwMatrix* data);
 	Currency(hwMatrixN* data);
@@ -147,6 +148,7 @@ public:
 	bool  IsEmpty() const;
 	bool  IsInteger() const;
 	bool  IsPositiveInteger() const;
+	bool  IsPositiveInteger64() const;
 	bool  IsPositiveIntegralVector() const;
 	bool  IsPositiveIntegralMatrix() const;
 	bool  IsLinearRange() const;
@@ -155,6 +157,7 @@ public:
 	bool  IsCellList() const;
 	bool  IsPointer()       const { return type == TYPE_POINTER; }
     bool  IsBoundObject()   const { return type == TYPE_BOUNDOBJECT; }
+    bool  IsSingle() const;
 
 	void  MakeStruct();
 	void  MakeCell();
@@ -212,7 +215,7 @@ public:
 	void                SetLinearRange(bool);
 
 	enum CurrencyType { TYPE_SCALAR, TYPE_STRING, TYPE_MATRIX, TYPE_COLON, TYPE_COMPLEX, TYPE_CELLARRAY, TYPE_ERROR, TYPE_BREAK, TYPE_RETURN, TYPE_FUNCHANDLE, TYPE_STRUCT, TYPE_NOTHING, TYPE_FORMAT, TYPE_BREAKPOINT, TYPE_POINTER, TYPE_CONTINUE, TYPE_ND_MATRIX, TYPE_OBJECT, TYPE_BOUNDOBJECT, TYPE_ND_CELLARRAY, TYPE_SPARSE, TYPE_TREE };
-	enum MaskType { MASK_NONE, MASK_DOUBLE, MASK_STRING, MASK_LOGICAL, MASK_CELL_LIST, MASK_EXPLICIT_COMPLEX };
+	enum MaskType { MASK_NONE, MASK_DOUBLE, MASK_STRING, MASK_LOGICAL, MASK_CELL_LIST, MASK_EXPLICIT_COMPLEX, MASK_SINGLE };
 
 	static StringManager vm;
 	static StringManager pm;

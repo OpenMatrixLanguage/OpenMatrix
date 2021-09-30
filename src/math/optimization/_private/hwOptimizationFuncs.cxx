@@ -61,6 +61,8 @@ hwMathStatus NLCurveFit(const LSqFitFunc pRespFunc,
                         hwMatrix&        P,
                         const hwMatrix&  X,
                         const hwMatrix&  y,
+                        const hwMatrix*  lowerBound,
+                        const hwMatrix*  upperBound,
                         int&             maxIter,
                         int&             maxFuncEval,
                         hwMatrix*        stats,
@@ -71,7 +73,8 @@ hwMathStatus NLCurveFit(const LSqFitFunc pRespFunc,
                         hwMatrix*        designHist,
                         const hwMatrix*  userData)
 {
-    hwGenericFuncFitter fittedFunc(pRespFunc, pJacFunc, P, X, y, maxIter,
+    hwGenericFuncFitter fittedFunc(pRespFunc, pJacFunc, P, X, y,
+                                   lowerBound, upperBound, maxIter,
                                    maxFuncEval, tolf, tolx, userData);
 
     fittedFunc.RequestDesignHist(designHist);
@@ -83,8 +86,8 @@ hwMathStatus NLCurveFit(const LSqFitFunc pRespFunc,
     {
         switch (status.GetArg1())
         {
-            case 8:  status.SetArg1(10); break;
-            case 9:  status.SetArg1(11); break;
+            case 10: status.SetArg1(12); break;
+            case 11: status.SetArg1(13); break;
             default: break;
         }
 
@@ -118,7 +121,7 @@ hwMathStatus NLCurveFit(const LSqFitFunc pRespFunc,
         {
             if (status2.GetArg1() == 0)
             {
-                status2.SetArg1(6);
+                status2.SetArg1(10);
             }
             else
             {
@@ -134,7 +137,7 @@ hwMathStatus NLCurveFit(const LSqFitFunc pRespFunc,
             {
                 if (status2.GetArg1() == 0)
                 {
-                    status2.SetArg1(7);
+                    status2.SetArg1(11);
                 }
                 else
                 {
@@ -199,7 +202,7 @@ hwMathStatus NLCurveFit(const LSqFitFunc pRespFunc,
         {
             if (status2.GetArg1() == 0)
             {
-                status2.SetArg1(7);
+                status2.SetArg1(11);
             }
             else
             {

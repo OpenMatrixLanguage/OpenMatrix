@@ -424,6 +424,21 @@ bool MemoryScope::ClearFromGlobals(const std::regex& varname)
     return rv;
 }
 
+void MemoryScope::ClearObjects()
+{
+	std::vector<const std::string*> to_clear;
+	std::map<const std::string*, Currency>::iterator iter;
+	for (iter = scope.begin(); iter != scope.end(); ++iter)
+	{
+		if (iter->second.IsObject())
+			to_clear.push_back(iter->first);
+	}
+
+	for (size_t j = 0; j < to_clear.size(); j++)
+		Remove(*to_clear[j]);
+}
+
+
 void MemoryScope::HideGlobal(const std::string& str)
 {
     global_names.erase(str);
@@ -814,6 +829,12 @@ void MemoryScopeManager::ClearGlobals()
 {
 	for (int j=0; j<memory_stack.size(); ++j)
 		memory_stack[j]->ClearGlobals();
+}
+
+void MemoryScopeManager::ClearObjects()
+{
+	for (int j = 0; j < memory_stack.size(); ++j)
+		memory_stack[j]->ClearObjects();
 }
 
 void MemoryScopeManager::ClearFromGlobals(const std::string& varname)

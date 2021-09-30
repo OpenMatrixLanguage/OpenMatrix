@@ -142,6 +142,8 @@ public:
     std::vector<int> IndexVector(int index) const;
     //! Return the single index corresponding to an index vector
     int Index(const std::vector<int>& indexVec) const;
+    //! Return the stride in a dimension of interest
+    int Stride(int dim) const;
 
     // ****************************************************
     //         Access Functions for Real Elements
@@ -288,7 +290,10 @@ private:
     //! Copy matrix data from a source
     void Copy(const hwTMatrixN<T1, T2>& source);
     //! Copy data
-    void CopyData(void* dest, int arraySize, const void* src, int count) const;
+    void CopyData(void* dest, const void* src, int count) const;
+    //! Copy data
+    void CopyData(void* dest, int stride_dest,
+                  const void* src, int stride_src, int count) const;
     //! Ignore high dimension singleton indices
     int RelevantNumberOfSlices(const std::vector<hwSliceArg>& sliceArg,
                                bool matrixAssignment) const;

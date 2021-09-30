@@ -37,9 +37,9 @@ public:
     //! \param tolx
     //!
     hwGaussNewtLSqFit(const hwMatrix& P, 
-                      int             numEqns, 
+                      int             numEqns,
                       int             maxIter     = 200,
-                      int             maxFuncEval = 400, 
+                      int             maxFuncEval = 400,
                       double          tolf        = 1.0e-6, 
                       double          tolx        = 1.0e-6);
     //!
@@ -49,6 +49,7 @@ public:
 
 protected:
     int      m_numEqns; //!< Number of equations
+    hwMatrix F;         //!< Vector of fitting function residuals
     hwMatrix J;         //!< Jacobian of fitting functions
 
     //!
@@ -77,17 +78,17 @@ protected:
     //!
     //! Evaluate approximate Hessian matrix
     //!
-    void EvalHessian();
+    virtual void EvalHessian();
     //!
     //! Evaluate steepest descent step
     //! \param Gstep
     //!
-    void EvalSteepDescentStep(hwMatrix& Gstep);
+    virtual void EvalSteepDescentStep(hwMatrix& Gstep);
     //!
     //! Evaluate Newton step
     //! \param Nstep
     //!
-    void EvalNewtonStep(hwMatrix& Nstep);
+    virtual void EvalNewtonStep(hwMatrix& Nstep);
     //!
     //! Evaluate trust region quadratic model
     //! \param f
@@ -98,7 +99,6 @@ protected:
                            const hwMatrix& Pstep, 
                            double&         m_new);
 private:
-    hwMatrix F;         //!< Vector of fitting function residuals
     hwMatrix JT;        //!< Transposed Jacobian
 };
 

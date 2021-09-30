@@ -276,3 +276,30 @@ Currency ClassInfo::CreateEmpty() const
 
 	return cur;
 }
+
+std::vector<std::string> ClassInfo::GetPropertyNames() const
+{
+	std::vector<std::string> results;
+
+	std::vector<PropertyInfo*>::const_iterator iter;
+
+	for (iter = _properties.begin(); iter != _properties.end(); ++iter)
+	{
+		PropertyInfo* pi = *iter;
+		results.push_back(pi->Name());
+	}
+
+	return results;
+}
+
+std::vector<std::string> ClassInfo::GetMethodNames() const
+{
+	std::vector<std::string> results;
+
+	std::map<std::string, FunctionInfo*>::const_iterator iter;
+
+	for (iter = _methods.begin(); iter != _methods.end(); ++iter)
+		results.push_back(iter->first);
+
+	return results;
+}

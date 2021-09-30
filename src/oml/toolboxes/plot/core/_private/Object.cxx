@@ -575,6 +575,9 @@ namespace omlplot{
         m_ps.push_back(Property("xtickmethod", string("xtickmethod"), PropertyType::UNSUPPORTED));
         m_ps.push_back(Property("ytickmethod", string("ytickmethod"), PropertyType::UNSUPPORTED));
         m_ps.push_back(Property("ztickmethod", string("ztickmethod"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("xaxislocation", string("xaxislocation"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("yaxislocation", string("yaxislocation"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("colorbar", string("colorbar"), PropertyType::UNSUPPORTED));
     }
 
     void Axes::clear(){
@@ -1108,6 +1111,12 @@ namespace omlplot{
                 }
             }
         }
+        if (name == "xlim")
+            setAxisNeedRepaint(0);
+        else if (name == "ylim")
+            setAxisNeedRepaint(1);
+        else if (name == "zlim")
+            setAxisNeedRepaint(3);
         return ret;
     }
 

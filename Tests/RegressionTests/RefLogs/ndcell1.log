@@ -1,0 +1,39 @@
+s = struct [
+  nd_cell_with_strings: 
+slice(:, :, 1) = 
+{
+  [1,1] first
+  [1,2] string1
+  [1,3] string2
+  [2,1] test1
+  [2,2] test2
+  [2,3] test3
+}
+slice(:, :, 2) = 
+{
+  [1,1] second
+  [1,2] secondstring1
+  [1,3] secondstring2
+  [2,1] secondtest1
+  [2,2] secondtest2
+  [2,3] secondtest3
+}
+slice(:, :, 3) = 
+{
+  [1,1] third
+  [1,2] thirdstring1
+  [1,3] thirdstring2
+  [2,1] thirdtest1
+  [2,2] thirdtest2
+  [2,3] thirdtest3
+}
+slice(:, :, 4) = 
+{
+  [1,1] fourth
+  [1,2] fourstring1
+  [1,3] fourstring2
+  [2,1] fourtest1
+  [2,2] fourtest2
+  [2,3] fourtest3
+}
+]

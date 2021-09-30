@@ -6,10 +6,10 @@ c = struct [
 ]
 ans = 
 {
-  [1,1] a = struct [
+  [1,1] struct [
     b: 3
   ]
-  [1,2] c = struct [
+  [1,2] struct [
     b: 6
   ]
 }

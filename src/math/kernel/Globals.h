@@ -82,6 +82,7 @@ enum hwMathMsgCode
     HW_MATH_WARN_GAMAXITERS,           // maximum iterations will be capped at 1000
     HW_MATH_WARN_CONVIOLATEBEST,       // the best reported design violates the constraint
     HW_MATH_WARN_POORPOLYFIT,          // if poor fit quality, consult the help document
+    HW_MATH_WARN_DOUBLEPRECLIMIT,      // double precision accuracy limits may have been exceeded
     // Signal processing warnings
     HW_MATH_WARN_FILTERORDERIRR,       // high filter order; numerical accuracy may be diminished
     HW_MATH_WARN_FILTERSIMPLOW,        // syntax simplifies to low pass filter
@@ -92,6 +93,10 @@ enum hwMathMsgCode
     HW_MATH_WARN_FILTERCFC,            // invalid frequency; filter should not be used for CFC > 180
     // Statistics warnings
     HW_MATH_WARN_STATTESTALPHA,        // invalid alpha; should be in the interval (0.0, 0.5)
+    // CVODE warnings
+    HW_MATH_WARN_CVODE_EVENT,          // ODE solver terminated by Events function
+    // IDA warnings
+    HW_MATH_WARN_IDA_EVENT,            // DAE solver terminated by Events function
     // Qhull warnings                 
     HW_MATH_WARN_QHULL_LEAK,           // Error: Qhull did not release all memory
     // end of warning list
@@ -128,6 +133,7 @@ enum hwMathMsgCode
     HW_MATH_ERR_NONUNIQUE,             // invalid data; must contain all unique values
     HW_MATH_ERR_CONSECUTIVE3,          // invalid data; must contain at most 2 consecutive identical values
     HW_MATH_ERR_MINMAXVALUES,          // invalid values; maximum must be >= minimum
+    HW_MATH_ERR_ARG1LTARG2,            // invalid values; arg1 must be >= arg2
     HW_MATH_ERR_BADRANGE,              // invalid data; value is out of range
     HW_MATH_ERR_ZERORANGE,             // invalid data; has a range of zero
     HW_MATH_ERR_BADFILE,               // file missing or could not be read
@@ -169,6 +175,7 @@ enum hwMathMsgCode
     HW_MATH_ERR_DIAGFAIL,              // invalid matrix; could not be diagonalized
     HW_MATH_ERR_VECTOR12,              // invalid vector; length must be 1 or 2
     HW_MATH_ERR_VECTOR2,               // invalid vector; must have a length 2
+    HW_MATH_ERR_VECTOR2x,              // invalid vector; must have an even length
     HW_MATH_ERR_VECTOR,                // invalid matrix; must be non-empty vector
     HW_MATH_ERR_NOVECTOR,              // invalid vector; must be a matrix
     HW_MATH_ERR_KLUD,                  // invalid index; must be a positive integer < #columns

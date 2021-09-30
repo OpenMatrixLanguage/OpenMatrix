@@ -121,7 +121,24 @@ public:
     static bool Num2Str( EvaluatorInterface           eval,
                          const std::vector<Currency>& inputs,
                          std::vector<Currency>&       outputs);
-    //!
+	//!
+	//! Returns true and creates a cell array from an input string array [cellstr]
+	//! \param eval    Evaluator interface
+	//! \param inputs  Vector of inputs
+	//! \param outputs Vector of outputs
+	//!
+	static bool CellStr(EvaluatorInterface           eval,
+		const std::vector<Currency>& inputs,
+		std::vector<Currency>& outputs);
+	//! Returns true and creates a cell array from an input string array [cellstr2]
+	//! \param eval    Evaluator interface
+	//! \param inputs  Vector of inputs
+	//! \param outputs Vector of outputs
+	//!
+	static bool CellStr2(EvaluatorInterface           eval,
+		const std::vector<Currency>& inputs,
+		std::vector<Currency>& outputs);
+	//!
     //! Returns true and creates single matrix from string inputs [str2mat]
     //! \param eval    Evaluator interface
     //! \param inputs  Vector of inputs

@@ -428,7 +428,7 @@ void ConsoleWrapper::ProcessPagination()
             display = _displayStack.top();
             if (display && display->IsPaginatingCols() || display->IsPaginatingRows())
             {
-                if (!display->CanPrintRows())
+                if (!display->CanPrintRows() || CurrencyDisplay::IsPaginateInteractive())
                 {
                     PrintPaginationMessage(display->CanPaginateColumns());
                     return;  // Nothing more to print
@@ -467,6 +467,21 @@ void ConsoleWrapper::ProcessPagination()
             {
                 EndPagination(printmsg);
             }
+            if (!_displayStack.empty())
+            {
+                if (CurrencyDisplay::IsPaginateInteractive())
+                {
+                    display = GetCurrentDisplay();
+                    if (display && (
+                        (display->IsPaginatingRows() || display->IsPaginatingCols()) ||
+                        display->IsNDCellDisplay()))
+                    {
+                        PrintPaginationMessage(display->CanPaginateColumns());
+                        return;               // Done printing for pagination
+                    }
+                }
+            }
+
         }
     }
 

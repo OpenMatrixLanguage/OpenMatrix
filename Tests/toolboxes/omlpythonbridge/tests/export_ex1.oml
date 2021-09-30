@@ -2,3 +2,4 @@ addtoolbox omlpythonbridge
 disp('exporting logical data')
 opfalse = false;
 [status, errorMessage] = exporttopython(opfalse,'opfalse')
+getpythonvar('opfalse')

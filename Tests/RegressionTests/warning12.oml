@@ -1,0 +1,6 @@
+﻿warning('off', 'all');
+warning('foo')
+warning('query', 'all')
+warning('on', 'all');
+warning('goo')
+warning('query', 'all')

@@ -133,6 +133,23 @@ Currency::Currency(const std::vector<double>& in_data): type(TYPE_MATRIX), mask(
 	}
 }
 
+Currency::Currency(const std::vector<std::string>& in_data) : type(TYPE_CELLARRAY), mask(MASK_DOUBLE), out_name(NULL),
+_display(0), _outputType(OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false), _is_linear_range(false)
+{
+	if (!in_data.empty())
+	{
+		data.cells = ExprTreeEvaluator::allocateCellArray((int)in_data.size(), 1);
+
+		for (int j = 0; j < in_data.size(); ++j)
+			(*data.cells)(j) = in_data[j];
+	}
+	else
+	{
+		// not sure if this should be 0x1 or 0x0
+		data.cells = ExprTreeEvaluator::allocateCellArray();
+	}
+}
+
 Currency::Currency(hwMatrix* in_data): type (TYPE_MATRIX), mask(MASK_DOUBLE), out_name(NULL),
     _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false), _is_linear_range(false)
 {
@@ -971,6 +988,24 @@ bool Currency::IsPositiveInteger() const
 	return false;
 }
 
+bool Currency::IsPositiveInteger64() const
+{
+	if (IsScalar())
+	{
+		double value1 = Scalar();
+
+		if (value1 > 0.0)
+		{
+			int64_t value2 = static_cast<int64_t> (value1);
+
+			if (value1 == static_cast<double> (value2))
+				return true;
+		}
+	}
+
+	return false;
+}
+
 bool Currency::IsPositiveIntegralVector() const
 {
 	if (IsLogical())
@@ -984,6 +1019,9 @@ bool Currency::IsPositiveIntegralVector() const
 			return false;
 
 		if (mtx->IsEmpty())
+			return false;
+
+		if (mtx->Size() == 1) // treat as a scalar instead
 			return false;
 
 		if ((mtx->M() != 1) && (mtx->N() != 1))
@@ -1890,4 +1928,12 @@ StringManager::~StringManager()
          return true;
      }
      return (((int)_outputType & ref) != 0);  // Check for combination of outputs
+ }
+//------------------------------------------------------------------------------
+// Returns true if currency is type
+//------------------------------------------------------------------------------
+ bool Currency::IsSingle() const
+ {
+     return (mask == MASK_SINGLE &&
+            (IsScalar() || IsComplex() || type == TYPE_MATRIX));
  }

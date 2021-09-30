@@ -1,0 +1,54 @@
+addtoolbox omlstatistics
+addtoolbox omloptimization
+
+function z = BivariateGaussian(p, xy)
+	% p is the parameter vector
+	% xy contains the domain variables
+	meanX = p(1);
+	meanY = p(2);
+	sigmaX = p(3);
+	sigmaY = p(4);
+	rho = p(5);
+	x = (xy(:,1) - meanX) / sigmaX;
+	y = (xy(:,2) - meanY) / sigmaY;
+	z = (1 / (2*pi*sigmaX*sigmaY*sqrt(1-rho^2))) * exp((-1/(2*(1-rho^2))) * (x.^2 - 2*rho*(x.*y) + y.^2));
+end
+
+p = [8; 6; 3; 2; 0.25];
+[xx,yy] = meshgrid([4:2:12],[3:2:9]);
+xy = [xx(:), yy(:)];
+z = BivariateGaussian(p, xy);
+rand('seed', 2021);
+z = z .* unifrnd(0.8, 1.2, 20, 1);
+
+p0 = [7.4; 6.8; 2.8; 2.9; 0.2];
+options = optimset('MaxIter', 200);
+
+[p,resnorm,res,exitflag] = lsqcurvefit(@BivariateGaussian, p0, xy, z, [-inf -inf -inf -inf -inf], [inf, inf, inf, inf, inf], options);
+p'
+resnorm
+exitflag
+[p,resnorm,res,exitflag] = lsqcurvefit(@BivariateGaussian, p0, xy, z, [-inf -inf -inf -inf -inf], [7.5, inf, inf, inf, inf], options);
+p'
+resnorm
+exitflag
+[p,resnorm,res,exitflag] = lsqcurvefit(@BivariateGaussian, p0, xy, z, [-inf 6.2 -inf -inf -inf], [7.5, inf, inf, inf, inf], options);
+p'
+resnorm
+exitflag
+[p,resnorm,res,exitflag] = lsqcurvefit(@BivariateGaussian, p0, xy, z, [-inf 6.2 -inf 2.5 -inf], [7.5, inf, inf, inf, inf], options);
+p'
+resnorm
+exitflag
+[p,resnorm,res,exitflag] = lsqcurvefit(@BivariateGaussian, p0, xy, z, [-inf 6.2 -inf 2.5 -inf], [7.5, inf, 2.9, inf, inf], options);
+p'
+resnorm
+exitflag
+[p,resnorm,res,exitflag] = lsqcurvefit(@BivariateGaussian, p0, xy, z, [-inf 6.2 -inf 2.5 0.1], [7.5, inf, 2.9, inf, 0.22], options);
+p'
+resnorm
+exitflag
+[p,resnorm,res,exitflag] = lsqcurvefit(@BivariateGaussian, p0, xy, z, [-inf 6.2 -inf 2.5 0.1], [9, inf, 2.9, inf, 0.22], options);
+p'
+resnorm
+exitflag

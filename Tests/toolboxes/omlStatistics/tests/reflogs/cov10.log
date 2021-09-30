@@ -1,1 +1,1 @@
-Error: invalid input in argument 1; data must be real in call to function cov at line number 2 in file cov10.oml
+Error: invalid input in argument 1; data must be a real matrix in call to function cov at line number 2 in file cov10.oml

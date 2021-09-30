@@ -1,0 +1,7 @@
+a = round(-100.0, 2, 'significant')
+a = round(123.456789, 2, 'significant')
+a = round([23.4567, -1.23456, 123.456789], 3, 'significant')
+
+a = round(-100.0 * (1 + 20i), 2, 'significant')
+a = round(123.456789 * (1 + 20i), 2, 'significant')
+a = round([23.4567, -1.23456, 123.456789] * (1 + 20i), 3, 'significant')

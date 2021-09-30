@@ -138,6 +138,107 @@ hwTMatrixN<T1, T2>& hwTMatrixN<T1, T2>::operator=(const hwTMatrixN<T1, T2>& rhs)
 }
 
 // ****************************************************
+//                 Private Utilities
+// These function are placed high in the file to ensure
+// specialization prior to instantiation
+// ****************************************************
+
+//! Allocate memory for the matrix data
+template<>
+inline void hwTMatrixN<double>::Allocate(DataType dataType)
+{
+    ComputeSize();
+    SetCapacity(dataType);
+
+    if (m_capacity == 0)
+    {
+        return;
+    }
+
+    // allocate contiguous block
+    if (dataType == REAL)
+    {
+        if (m_real)
+        {
+            MakeEmpty();
+            throw hwMathException(HW_MATH_ERR_ALLOCFAILED);
+        }
+
+        try
+        {
+            m_real_memory = new char[(m_capacity + 8) * sizeof(double)];
+            m_real = reinterpret_cast<double*>
+                ((reinterpret_cast<std::ptrdiff_t> (m_real_memory) + 63) & ~0x3F);   // 64-byte alignment
+        }
+        catch (std::bad_alloc&)
+        {
+            Deallocate();
+            m_real_memory = nullptr;
+            throw;
+        }
+    }
+    else
+    {
+        if (m_complex)
+        {
+            MakeEmpty();
+            throw hwMathException(HW_MATH_ERR_ALLOCFAILED);
+        }
+
+        try
+        {
+            m_complex_memory = new char[(m_capacity + 4) * sizeof(hwTComplex<double>)];
+            m_complex = reinterpret_cast<hwTComplex<double>*>
+                ((reinterpret_cast<std::ptrdiff_t> (m_complex_memory) + 63) & ~0x3F);   // 64-byte alignment
+        }
+        catch (std::bad_alloc&)
+        {
+            Deallocate();
+            m_complex_memory = nullptr;
+            throw;
+        }
+    }
+}
+
+//! Copy data
+#ifdef _BLAS_LAPACK_h
+    template<>
+    inline void hwTMatrixN<double>::CopyData(void* dest, const void* src, int count) const
+    {
+        int inc = 1;
+
+        if (IsReal())
+            dcopy_((int*) &count, (double*) src, &inc, (double*) dest, &inc);
+        else
+            zcopy_((int*) &count, (complexD*) src, &inc, (complexD*) dest, &inc);
+    }
+#else
+    #include <memory.h>
+
+    template<>
+    inline void hwTMatrixN<double>::CopyData(void* dest, const void* src, int count) const
+    {
+        if (IsReal())
+            memcpy_s(dest, count * sizeof(double), src, count * sizeof(double));
+        else
+            memcpy_s(dest, count * sizeof(hwTComplex<double>), src, count * sizeof(hwTComplex<double>));
+    }
+#endif
+
+//! Copy data
+#ifdef _BLAS_LAPACK_h
+template<>
+inline void hwTMatrixN<double>::CopyData(void* dest, int stride_dest,
+                                         const void* src, int stride_src, int count) const
+{
+    if (IsReal())
+        dcopy_((int*)&count, (double*)src, &stride_src, (double*)dest, &stride_dest);
+    else
+        zcopy_((int*)&count, (complexD*)src, &stride_src, (complexD*)dest, &stride_dest);
+}
+#endif
+
+// ****************************************************
 //               Data Type, Ownership
 // ****************************************************
 
@@ -199,9 +300,9 @@ void hwTMatrixN<T1, T2>::ConvertNDto2D(hwTMatrix<T1, T2>& target, bool copyData)
         if (m_size > 0)
         {
             if (m_real)
-                CopyData(target.GetRealData(), m_size, m_real, m_size);
+                CopyData(target.GetRealData(), m_real, m_size);
             else if (m_complex)
-                CopyData(target.GetComplexData(), m_size, m_complex, m_size);
+                CopyData(target.GetComplexData(), m_complex, m_size);
         }
     }
     else    // borrow data without taking ownership
@@ -255,9 +356,9 @@ void hwTMatrixN<T1, T2>::ConvertNDto2D(hwTMatrix<T1, T2>& target, bool copyData)
         if (m_size > 0)
         {
             if (m_real)
-                CopyData(target.GetRealData(), m_size, m_real, m_size);
+                CopyData(target.GetRealData(), m_real, m_size);
             else if (m_complex)
-                CopyData(target.GetComplexData(), m_size, m_complex, m_size);
+                CopyData(target.GetComplexData(), m_complex, m_size);
         }
     }
     else    // borrow data, and transfer ownership (if applicable)
@@ -304,9 +405,9 @@ void hwTMatrixN<T1, T2>::Convert2DtoND(const hwTMatrix<T1, T2>& source, bool cop
         if (m_size > 0)
         {
             if (m_real)
-                CopyData(m_real, m_size, source.GetRealData(), m_size);
+                CopyData(m_real, source.GetRealData(), m_size);
             else if (m_complex)
-                CopyData(m_complex, m_size, source.GetComplexData(), m_size);
+                CopyData(m_complex, source.GetComplexData(), m_size);
         }
     }
     else    // borrow data without taking ownership
@@ -348,9 +449,9 @@ void hwTMatrixN<T1, T2>::Convert2DtoND(hwTMatrix<T1, T2>& source, bool copyData)
         if (m_size > 0)
         {
             if (m_real)
-                CopyData(m_real, m_size, source.GetRealData(), m_size);
+                CopyData(m_real, source.GetRealData(), m_size);
             else if (m_complex)
-                CopyData(m_complex, m_size, source.GetComplexData(), m_size);
+                CopyData(m_complex, source.GetComplexData(), m_size);
         }
     }
     else    // borrow data, and transfer ownership (if applicable)
@@ -739,6 +840,140 @@ void hwTMatrixN<T1, T2>::Reshape(const std::vector<int>& dim)
 }
 
 //! Reorder matrix dimensions, a generalized transpose
+template<>
+inline void hwTMatrixN<double>::Permute(const hwTMatrixN<double>& source, const std::vector<int>& permuteVec)
+{
+    PermuteCheck(permuteVec);
+
+    // dimension permuted matrix
+    MakeEmpty();
+    int numDims = static_cast<int> (permuteVec.size());
+    int sourceDims = static_cast<int> (source.m_dim.size());
+    int maxRHSdim = -1;
+    int maxLHSdim = -1;
+
+    if (sourceDims > numDims)
+        throw hwMathException(HW_MATH_ERR_PERMVEC1);
+
+    m_dim.resize(numDims);
+
+    for (int i = 0; i < numDims; ++i)
+    {
+        int k = permuteVec[i];
+
+        if (k < sourceDims)
+        {
+            m_dim[i] = source.m_dim[k];
+
+            if (maxRHSdim == -1 || source.m_dim[k] > source.m_dim[maxRHSdim])
+            {
+                maxLHSdim = i;
+                maxRHSdim = k;
+            }
+        }
+        else
+        {
+            m_dim[i] = 1;
+        }
+    }
+
+    Allocate(source.Type());
+    m_bits.realData = source.m_bits.realData;
+
+    // copy data
+    m_rhsMatrixIndex.clear();
+    m_rhsMatrixIndex.resize(numDims);
+    m_lhsMatrixIndex.clear();
+    m_lhsMatrixIndex.resize(numDims);
+    int strideRHS = source.Stride(maxRHSdim);
+    int strideLHS = Stride(maxLHSdim);
+    int numVecs = m_size / m_dim[maxLHSdim];
+
+    if (m_real)
+    {
+        for (int i = 0; i < numVecs; ++i)
+        {
+            int startRHS = source.Index(m_rhsMatrixIndex);
+            int startLHS = Index(m_lhsMatrixIndex);
+            const double* realRHS = source.GetRealData() + startRHS;
+            double* realLHS = m_real + startLHS;
+
+            CopyData(realLHS, strideLHS, realRHS, strideRHS, m_dim[maxLHSdim]);
+
+            // advance rhs and lhs matrix indices
+            for (int j = 0; j < numDims; ++j)
+            {
+                if (j == maxLHSdim)
+                {
+                    continue;
+                }
+
+                int k = permuteVec[j];
+
+                // increment index k if possible
+                if (k < sourceDims)
+                {
+                    if (m_lhsMatrixIndex[j] < m_dim[j] - 1)
+                    {
+                        ++m_rhsMatrixIndex[k];
+                        ++m_lhsMatrixIndex[j];
+                        break;
+                    }
+
+                    // index k is maxed out, so reset and continue to k+1
+                    m_rhsMatrixIndex[k] = 0;
+                    m_lhsMatrixIndex[j] = 0;
+                }
+            }
+        }
+    }
+    else if (m_complex)
+    {
+        for (int i = 0; i < numVecs; ++i)
+        {
+            int startRHS = source.Index(m_rhsMatrixIndex);
+            int startLHS = Index(m_lhsMatrixIndex);
+            const hwTComplex<double>* realRHS = source.GetComplexData() + startRHS;
+            hwTComplex<double>* realLHS = m_complex + startLHS;
+
+            CopyData(realLHS, strideLHS, realRHS, strideRHS, m_dim[maxLHSdim]);
+
+            // advance rhs matrix indices
+            for (int j = 0; j < numDims; ++j)
+            {
+                if (j == maxLHSdim)
+                {
+                    continue;
+                }
+
+                int k = permuteVec[j];
+
+                // increment index k if possible
+                if (k < sourceDims)
+                {
+                    if (m_lhsMatrixIndex[j] < m_dim[j] - 1)
+                    {
+                        ++m_rhsMatrixIndex[k];
+                        ++m_lhsMatrixIndex[j];
+                        break;
+                    }
+
+                    // index k is maxed out, so reset and continue to k+1
+                    m_rhsMatrixIndex[k] = 0;
+                    m_lhsMatrixIndex[j] = 0;
+                }
+            }
+        }
+    }
+
+    // discard any singleton dimensions that may have been created
+    while (m_dim.size() > 2 && m_dim.back() == 1)
+    {
+        m_dim.pop_back();
+    }
+}
+
+//! Reorder matrix dimensions, a generalized transpose
 template<typename T1, typename T2>
 void hwTMatrixN<T1, T2>::Permute(const hwTMatrixN<T1, T2>& source, const std::vector<int>& permuteVec)
 {
@@ -784,7 +1019,7 @@ void hwTMatrixN<T1, T2>::Permute(const hwTMatrixN<T1, T2>& source, const std::ve
                 // increment index k if possible
                 if (k < sourceDims)
                 {
-                    if (m_rhsMatrixIndex[k] < (int) source.m_dim[k]-1)
+                    if (m_rhsMatrixIndex[k] < source.m_dim[k] - 1)
                     {
                         ++m_rhsMatrixIndex[k];
                         break;
@@ -813,7 +1048,7 @@ void hwTMatrixN<T1, T2>::Permute(const hwTMatrixN<T1, T2>& source, const std::ve
                 // increment index k if possible
                 if (k < sourceDims)
                 {
-                    if (m_rhsMatrixIndex[k] < (int) source.m_dim[k]-1)
+                    if (m_rhsMatrixIndex[k] < source.m_dim[k] - 1)
                     {
                         ++m_rhsMatrixIndex[k];
                         break;
@@ -1616,6 +1851,26 @@ int hwTMatrixN<T1, T2>::Index(const std::vector<int>& indexVec) const
     return pos;
 }
 
+//! Return the stride in a dimension of interest
+template<typename T1, typename T2>
+int hwTMatrixN<T1, T2>::Stride(int dim) const
+{
+    int numDims = static_cast<int> (m_dim.size());
+    int stride = 1;
+
+    if (dim < 0)
+        throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+    dim = _min(dim, numDims);
+
+    for (int i = 1; i <= dim; ++i)
+    {
+        stride *= m_dim[i - 1];
+    }
+
+    return stride;
+}
+
 // ****************************************************
 //         Access Functions for Real Elements
 // ****************************************************
@@ -2020,18 +2275,12 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
     if (dim > 0 && numScalars == numSlices - 1)
     {
         int start = Index(m_rhsMatrixIndex);
-        ++m_rhsMatrixIndex[dim];
-        int stride = Index(m_rhsMatrixIndex) - start;
+        int stride = Stride(dim);
 
-        for (int i = 0; i < m_dim[dim]; ++i)
-        {
-            if (IsReal())
-                lhsMatrix(i) = (*this)(start);
-            else
-                lhsMatrix.z(i) = this->z(start);
-
-            start += stride;
-        }
+        if (IsReal())
+            CopyData(lhsMatrix.m_real, 1, m_real + start, stride, m_dim[dim]);
+        else
+            CopyData(lhsMatrix.m_complex, 1, m_complex + start, stride, m_dim[dim]);
 
         return;
     }
@@ -2531,18 +2780,12 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
     if (dim > 0 && numScalars == numSlices - 1)
     {
         int start = Index(m_lhsMatrixIndex);
-        ++m_lhsMatrixIndex[dim];
-        int stride = Index(m_lhsMatrixIndex) - start;
+        int stride = Stride(dim);
 
-        for (int i = 0; i < m_dim[dim]; ++i)
-        {
-            if (IsReal())
-                (*this)(start) = rhsMatrix(i);
-            else
-                this->z(start) = rhsMatrix.z(i);
-
-            start += stride;
-        }
+        if (IsReal())
+            CopyData(m_real + start, stride, rhsMatrix.m_real, 1, m_dim[dim]);
+        else
+            CopyData(m_complex + start, stride, rhsMatrix.m_complex, 1, m_dim[dim]);
 
         return;
     }
@@ -2888,8 +3131,7 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
     if (dim > 0 && numScalars == numSlices - 1)
     {
         int start = Index(m_lhsMatrixIndex);
-        ++m_lhsMatrixIndex[dim];
-        int stride = Index(m_lhsMatrixIndex) - start;
+        int stride = Stride(dim);
 
         for (int i = 0; i < m_dim[dim]; ++i)
         {
@@ -3186,8 +3428,7 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
     if (dim > 0 && numScalars == numSlices - 1)
     {
         int start = Index(m_lhsMatrixIndex);
-        ++m_lhsMatrixIndex[dim];
-        int stride = Index(m_lhsMatrixIndex) - start;
+        int stride = Stride(dim);
 
         for (int i = 0; i < m_dim[dim]; ++i)
         {
@@ -3476,63 +3717,6 @@ void hwTMatrixN<T1, T2>::SetCapacity(DataType dataType)
 }
 
 //! Allocate memory for the matrix data
-template<>
-inline void hwTMatrixN<double>::Allocate(DataType dataType)
-{
-    ComputeSize();
-    SetCapacity(dataType);
-
-    if (m_capacity == 0)
-    {
-        return;
-    }
-
-    // allocate contiguous block
-    if (dataType == REAL)
-    {
-        if (m_real)
-        {
-            MakeEmpty();
-            throw hwMathException(HW_MATH_ERR_ALLOCFAILED);
-        }
-
-        try
-        {
-            m_real_memory = new char[(m_capacity + 8) * sizeof(double)];
-            m_real = reinterpret_cast<double*>
-                ((reinterpret_cast<std::ptrdiff_t> (m_real_memory) + 63) & ~0x3F);   // 64-byte alignment
-        }
-        catch (std::bad_alloc&)
-        {
-            Deallocate();
-            m_real_memory = nullptr;
-            throw;
-        }
-    }
-    else
-    {
-        if (m_complex)
-        {
-            MakeEmpty();
-            throw hwMathException(HW_MATH_ERR_ALLOCFAILED);
-        }
-
-        try
-        {
-            m_complex_memory = new char[(m_capacity + 4) * sizeof(hwTComplex<double>)];
-            m_complex = reinterpret_cast<hwTComplex<double>*>
-                ((reinterpret_cast<std::ptrdiff_t> (m_complex_memory) + 63) & ~0x3F);   // 64-byte alignment
-        }
-        catch (std::bad_alloc&)
-        {
-            Deallocate();
-            m_complex_memory = nullptr;
-            throw;
-        }
-    }
-}
-
-//! Allocate memory for the matrix data
 template<typename T1, typename T2>
 void hwTMatrixN<T1, T2>::Allocate(DataType dataType)
 {
@@ -3646,16 +3830,16 @@ void hwTMatrixN<T1, T2>::Copy(const hwTMatrixN<T1, T2>& source)
         m_bits.ownData = 1;
 
         if (m_real)
-            CopyData(m_real, m_size, source.m_real, m_size);
+            CopyData(m_real, source.m_real, m_size);
         else if (m_complex)
-            CopyData(m_complex, m_size, source.m_complex, m_size);
+            CopyData(m_complex, source.m_complex, m_size);
     }
     else if (m_dim == source.m_dim && m_bits.realData == source.m_bits.realData)
     {
         if (m_real)
-            CopyData(m_real, m_size, source.m_real, m_size);
+            CopyData(m_real, source.m_real, m_size);
         else if (m_complex)
-            CopyData(m_complex, m_size, source.m_complex, m_size);
+            CopyData(m_complex, source.m_complex, m_size);
     }
     else
     {
@@ -3664,33 +3848,8 @@ void hwTMatrixN<T1, T2>::Copy(const hwTMatrixN<T1, T2>& source)
     }
 }
 
-//! Copy data
-#ifdef _BLAS_LAPACK_h
-    template<>
-    inline void hwTMatrixN<double>::CopyData(void* dest, int arraySize, const void* src, int count) const
-    {
-        int inc = 1;
-
-        if (IsReal())
-            dcopy_((int*) &count, (double*) src, &inc, (double*) dest, &inc);
-        else
-            zcopy_((int*) &count, (complexD*) src, &inc, (complexD*) dest, &inc);
-    }
-#else
-    #include <memory.h>
-
-    template<>
-    inline void hwTMatrixN<double>::CopyData(void* dest, int arraySize, const void* src, int count) const
-    {
-        if (IsReal())
-            memcpy_s(dest, arraySize * sizeof(double), src, count * sizeof(double));
-        else
-            memcpy_s(dest, arraySize * sizeof(hwTComplex<double>), src, count * sizeof(hwTComplex<double>));
-    }
-#endif
-
 template<typename T1, typename T2>
-void hwTMatrixN<T1, T2>::CopyData(void* dest, int arraySize, const void* src, int count) const
+void hwTMatrixN<T1, T2>::CopyData(void* dest, const void* src, int count) const
 {
     // memcpy cannot be used here
     if (m_real)
@@ -3708,6 +3867,30 @@ void hwTMatrixN<T1, T2>::CopyData(void* dest, int arraySize, const void* src, in
         
         for (int i = 0; i < count; ++i)
             destTemp[i] = srcTemp[i];
+    }
+}
+
+//! Copy data
+template<typename T1, typename T2>
+void hwTMatrixN<T1, T2>::CopyData(void* dest, int stride_dest,
+                                  const void* src, int stride_src, int count) const
+{
+    // memcpy cannot be used here
+    if (m_real)
+    {
+        T1* destTemp = reinterpret_cast<T1*>(dest);
+        const T1* srcTemp = reinterpret_cast<T1*>(const_cast<void*>(src));
+
+        for (int i = 0; i < count; ++i)
+            destTemp[i * stride_dest] = srcTemp[i * stride_src];
+    }
+    else if (m_complex)
+    {
+        T2* destTemp = reinterpret_cast<T2*>(dest);
+        const T2* srcTemp = reinterpret_cast<T2*>(const_cast<void*>(src));
+
+        for (int i = 0; i < count; ++i)
+            destTemp[i * stride_dest] = srcTemp[i * stride_src];
     }
 }
 
@@ -3834,9 +4017,9 @@ void hwTMatrixN<T1, T2>::CopyBlockRHS(int& pos, int sliceArg, hwTMatrixN<T1, T2>
     if (numVals > 0)
     {
         if (m_real)
-            CopyData(lhsMatrix.m_real+pos, numVals, m_real+m_pos, numVals);
+            CopyData(lhsMatrix.m_real+pos, m_real+m_pos, numVals);
         else if (m_complex)
-            CopyData(lhsMatrix.m_complex+pos, numVals, m_complex+m_pos, numVals);
+            CopyData(lhsMatrix.m_complex+pos, m_complex+m_pos, numVals);
     }
 
     pos += numVals;
@@ -3864,9 +4047,9 @@ void hwTMatrixN<T1, T2>::CopyBlockLHS(int& pos, int sliceArg, const hwTMatrixN<T
     if (numVals > 0)
     {
         if (m_real)
-            CopyData(m_real+m_pos, numVals, rhsMatrix.m_real+pos, numVals);
+            CopyData(m_real+m_pos, rhsMatrix.m_real+pos, numVals);
         else if (m_complex)
-            CopyData(m_complex+m_pos, numVals, rhsMatrix.m_complex+pos, numVals);
+            CopyData(m_complex+m_pos, rhsMatrix.m_complex+pos, numVals);
     }
 
     pos += numVals;

@@ -1,0 +1,179 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="ode113" /><meta name="abstract" content="Solve a system of non-stiff differential equations." /><meta name="description" content="Solve a system of non-stiff differential equations." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Differential Equations Commands" /><meta name="indexterms" content="ode113" /><meta name="DC.subject" content="ode113" /><meta name="keywords" content="ode113" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/DifferentialEquations/differentialequations_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/DifferentialEquations/odeset.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/DifferentialEquations/ode45.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/DifferentialEquations/ode15s.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/language_guides/anonymous_functions_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>ode113</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/DifferentialEquations/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/DifferentialEquations/differentialequations_commands.htm" title="Differential Equations Commands">Differential Equations Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/DifferentialEquations/differentialequations_commands.htm" title="Differential Equations Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Differential Equations Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">ode113</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Solve a system of non-stiff differential equations.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">[t,y] = ode113<span class="ph var">(@func,tin,y0)</span></span></p>
+
+      <p class="p"><span class="ph synph">[t,y] = ode113<span class="ph var">(@func,tin,y0,options)</span></span></p>
+
+      <p class="p"><span class="ph synph">[t,y,te,ye,ie] = ode113<span class="ph var">(...)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">func</var></dt>
+
+          <dd class="dd pd">The system of equations to solve.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">tin</var></dt>
+
+          <dd class="dd pd">The vector of times (or other domain variable) at which to report the solution. If the vector has two elements
+            then the solver will operate in single step mode and determine appropriate intermediate steps.
+          </dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">y0</var></dt>
+
+          <dd class="dd pd">The vector of initial conditions.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">options</var></dt>
+
+          <dd class="dd pd">A struct containing options settings specified via <span class="keyword cmdname">odeset</span>.</dd>
+
+          <dd class="dd pd ddexpand">The default relative and absolute tolerances are 1.0e-3 and 1.0e-6.</dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">t</span></dt>
+
+          <dd class="dd pd">The times at which the solution is computed.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">y</span></dt>
+
+          <dd class="dd pd">The solution matrix, with the solution at each time stored by row.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">te</span></dt>
+
+          <dd class="dd pd">The index of the event that recorded each zero value.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">ye</span></dt>
+
+          <dd class="dd pd">The system function values corresponding to each <span class="ph synph">te</span> value.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">ie</span></dt>
+
+          <dd class="dd pd">The event index corresponding to each zero value.</dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+      <p class="p">Find the transient current in a series RLC circuit.</p>
+
+      <pre class="pre codeblock"><code>function dy = RLC(t,y,R,L,C)
+  % y = [i, di/dt]
+  dy = [0, 0];
+  dy(1) = y(2);
+  dy(2) = -y(1)/(L*C) - y(2)*(R/L);
+end
+
+v = 2.4; % volts
+R = 1.1; % resistor
+L = 1.6; % inductor
+C = 0.8; % capacitor
+
+handle = @(t,y) RLC(t,y,R,L,C);
+t = [0:0.2:12]; % time vector
+yi = [0, v/L];
+[t,y] = ode113(handle,t,yi);
+i = y(:,1)'</code></pre>
+      <pre class="pre codeblock"><code><code class="ph codeph">i = [Matrix] 1 x 61
+0.00000  0.27884  0.51377  0.70351  0.84839  0.94995  1.01078  1.03433  1.02469
+ 0.98645  0.92434  0.84325  0.74801  0.64324  0.53316  0.42164  0.31224  0.20786
+ 0.11085  0.02308  -0.05406  -0.11968  -0.17334  -0.21506  -0.24514  -0.26416
+-0.27303  -0.27276  -0.26465  -0.24991  -0.22977  -0.20556  -0.17843  -0.14961
+-0.12013  -0.09095  -0.06290  -0.03664  -0.01271  0.00850  0.02673  0.04184
+0.05377  0.06262  0.06849  0.07160  0.07223  0.07066  0.06726  0.06234  0.05623
+0.04928  0.04178  0.03403  0.02628  0.01877  0.01168  0.00517  -0.00065  -0.00570
+-0.00994</code></code></pre>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p"><span class="keyword cmdname">ode113</span> solves the system using the Adams method algorithm
+        from the Sundials CVODE library.</p>
+
+      <p class="p">To pass additional parameters to a function argument, use an anonymous function.</p>
+
+      <div class="p">The <span class="keyword cmdname">odeset</span> options and defaults are as follows. <ul class="ul" id="reference_wpv_kyv_pr__ul_db4_b44_ldb">
+          <li class="li"><span class="keyword option">RelTol</span>: 1.0e-3</li>
+
+          <li class="li"><span class="keyword option">AbsTol</span>: 1.0e-6</li>
+
+        </ul>
+
+      </div>
+
+      <p class="p">The <span class="keyword option">'Events'</span> function used with the last three output arguments is specified
+        using <span class="keyword cmdname">odeset</span>.</p>
+
+    </section>
+
+    <section class="section">
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/DifferentialEquations/odeset.htm" title="Specify ordinary differential equation options.">odeset</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/DifferentialEquations/ode45.htm" title="Solve a system of non-stiff differential equations.">ode45</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/DifferentialEquations/ode15s.htm" title="Solve a system of stiff differential equations.">ode15s</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/language_guides/anonymous_functions_r.htm" title="Anonymous functions can be defined anywhere inside a script.">Anonymous Functions</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/DifferentialEquations/differentialequations_commands.htm" title="Differential Equations Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Differential Equations Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2021)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

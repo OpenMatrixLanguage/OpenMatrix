@@ -1,0 +1,2 @@
+test = [ 84; 69; 83; 84; ]
+cellstr(test)

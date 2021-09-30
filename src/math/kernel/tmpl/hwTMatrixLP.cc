@@ -195,7 +195,7 @@ extern "C" double dnrm2_(int* N,double* X, int* INCX);
 
 //! Copy data
 template<>
-inline void hwTMatrix<double>::CopyData(void* dest, int arraySize, const void* src, int count)
+inline void hwTMatrix<double>::CopyData(void* dest, const void* src, int count)
 {
     int inc = 1;
 
@@ -203,6 +203,80 @@ inline void hwTMatrix<double>::CopyData(void* dest, int arraySize, const void* s
         dcopy_((int*) &count, (double*) src, &inc, (double*) dest, &inc);
     else
         zcopy_((int*) &count, (complexD*) src, &inc, (complexD*) dest, &inc);
+}
+
+//! Copy data
+template<>
+inline void hwTMatrix<double>::CopyData(void* dest, int stride_dest,
+                                        const void* src, int stride_src, int count)
+{
+    if (IsReal())
+        dcopy_((int*) &count, (double*)src, &stride_src, (double*)dest, &stride_dest);
+    else
+        zcopy_((int*) &count, (complexD*)src, &stride_src, (complexD*)dest, &stride_dest);
+}
+
+//! Transpose the matrix
+template<>
+inline hwMathStatus hwTMatrix<double>::Transpose(const hwTMatrix<double>& source)
+{
+    hwMathStatus status = Dimension(source.m_nCols, source.m_nRows, source.Type());
+
+    if (IsReal())
+    {
+        const double* src = source.m_real;
+        double* dest = m_real;
+
+        if (source.m_nRows >= source.m_nCols)
+        {
+            // copy source columns to *this rows
+            for (int j = 0; j < source.m_nCols; ++j)
+            {
+                CopyData(dest, m_nRows, src, 1, source.m_nRows);
+                dest++;
+                src += source.m_nRows;
+            }
+        }
+        else
+        {
+            // copy source rows to *this columns
+            for (int i = 0; i < source.m_nRows; ++i)
+            {
+                CopyData(dest, 1, src, source.m_nRows, source.m_nCols);
+                dest += m_nRows;
+                src++;
+            }
+        }
+    }
+    else
+    {
+        // complex
+        const complexD* src = (complexD*) source.m_complex;
+        complexD* dest = (complexD*) m_complex;
+
+        if (source.m_nRows >= source.m_nCols)
+        {
+            // copy source columns to *this rows
+            for (int j = 0; j < source.m_nCols; ++j)
+            {
+                CopyData(dest, m_nRows, src, 1, source.m_nRows);
+                dest++;
+                src += source.m_nRows;
+            }
+        }
+        else
+        {
+            // copy source rows to *this columns
+            for (int i = 0; i < source.m_nRows; ++i)
+            {
+                CopyData(dest, 1, src, source.m_nRows, source.m_nCols);
+                dest += m_nRows;
+                src++;
+            }
+        }
+    }
+
+    return status;
 }
 
 //! Real Singular Value Decomposition
@@ -1608,13 +1682,8 @@ inline hwMathStatus hwTMatrix<double>::EigenDecompReal(bool balance, hwTMatrix<d
 
     char BALANC = 'N';
     char JOBVL = 'N';
-    char JOBVR;
+    char JOBVR = V ? 'V' : 'N';     // right Eigen vectors;
     char SENSE = 'N';
-
-    if (V)
-        JOBVR = 'V'; // right Eigen vectors
-    else
-        JOBVR = 'N';
 
     int LDA = n;
     double* VL = NULL;
@@ -1795,13 +1864,8 @@ inline hwMathStatus hwTMatrix<double>::EigenDecompComplex(bool balance, hwTMatri
     double ABNRM = 0.0;
     char BALANC = 'N';
     char JOBVL = 'N';
-    char JOBVR;
+    char JOBVR = V ? 'V' : 'N';     // right Eigen vectors;
     char SENSE = 'N';
-
-    if (V)
-        JOBVR = 'V'; // right Eigen vectors
-    else
-        JOBVR = 'N';
 
     complexD* VL = NULL;
 
@@ -2057,11 +2121,11 @@ inline hwMathStatus hwTMatrix<double>::BalanceComplex(bool noperm, hwTMatrix<dou
 //! Generalized real asymmetric Eigen decomposition
 template<>
 inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompReal(const hwTMatrix<double>& A,
-                    const hwTMatrix<double>& B, hwTMatrix<double>& V, hwTMatrix<double>& D)
+                    const hwTMatrix<double>& B, hwTMatrix<double>* V, hwTMatrix<double>& D)
 {
     hwMathStatus status;
     char JOBVL = 'N';
-    char JOBVR = 'V';
+    char JOBVR = V ? 'V' : 'N';     // right Eigen vectors
     int INFO = 0;
     int n = A.m_nCols;
     int LDA = n;
@@ -2079,22 +2143,27 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompReal(const hwTMatri
     hwTMatrix<double> ALPHAI(n, 1, REAL);
     hwTMatrix<double> BETA(n, 1, REAL);
 
-    status = V.Dimension(n, n, REAL);
-
-    if (!status.IsOk())
-    {
-        status.SetArg1(3);
-        return status;
-    }
-
     double* dA = A1.m_real;
     double* dB = B1.m_real;
-    double* dVR = V.m_real;
+    double* dVR = nullptr;
     double* dALPHAR = ALPHAR.m_real;
     double* dALPHAI = ALPHAI.m_real;
     double* dBeta = BETA.m_real;
 
-    if (!dA || !dB || !dVR || !dALPHAR || !dALPHAI || !dBeta)
+    if (V)
+    {
+        status = V->Dimension(n, n, REAL);
+
+        if (!status.IsOk())
+        {
+            status.SetArg1(3);
+            return status;
+        }
+
+        dVR = V->m_real;
+    }
+
+    if (!dA || !dB || !dALPHAR || !dALPHAI || !dBeta)
         return status(HW_MATH_ERR_ALLOCFAILED);
 
     dggev_(&JOBVL, &JOBVR, &n, dA, &LDA, dB, &LDB, dALPHAR, dALPHAI,
@@ -2161,7 +2230,7 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompReal(const hwTMatri
         }
     }
 
-    if (bIsComplex)
+    if (V && bIsComplex)
     {
         hwTMatrix<double> VC(n, n, COMPLEX);
         int j = -1;
@@ -2177,22 +2246,22 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompReal(const hwTMatri
             {
                 // real eigenvalue => v(j) = vr(j)
                 for (int i = 0; i < n; ++i)
-                    VC.z(i, j) = V(i, j);
+                    VC.z(i, j) = (*V)(i, j);
             }
             else
             {
                 // complex eigenvalue => conjugate pair of eigenvectors:
                 for (int i = 0; i < n; ++i)
                 {
-                    VC.z(i, j).Set(V(i, j), V(i, j + 1));
-                    VC.z(i, j + 1).Set(V(i, j), -V(i, j + 1));
+                    VC.z(i, j).Set((*V)(i, j), (*V)(i, j + 1));
+                    VC.z(i, j + 1).Set((*V)(i, j), -(*V)(i, j + 1));
                 }
 
                 j++;
             }
         }
 
-        V = VC;
+        (*V) = VC;
     }
 
     return status;
@@ -2201,11 +2270,11 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompReal(const hwTMatri
 //! Generalized complex Eigen decomposition
 template<>
 inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompComplex(const hwTMatrix<double>& A,
-                    const hwTMatrix<double>& B, hwTMatrix<double>& V, hwTMatrix<double>& D)
+                    const hwTMatrix<double>& B, hwTMatrix<double>* V, hwTMatrix<double>& D)
 {
     hwMathStatus status;
     char JOBVL = 'N';
-    char JOBVR = 'V';
+    char JOBVR = V ? 'V' : 'N';     // right Eigen vectors
     int n = A.m_nCols;
     int LDA = n;
     int LDB = n;
@@ -2240,14 +2309,6 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompComplex(const hwTMa
         }
     }
 
-    status = V.Dimension(n, n, COMPLEX);
-
-    if (!status.IsOk())
-    {
-        status.SetArg1(3);
-        return status;
-    }
-
     status = D.Dimension(n, 1, COMPLEX);
 
     if (!status.IsOk())
@@ -2263,12 +2324,25 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompComplex(const hwTMa
 
     complexD* dA = (complexD*) A1.m_complex;
     complexD* dB = (complexD*) B1.m_complex;
-    complexD* dV = (complexD*) V.m_complex;
+    complexD* dV = nullptr;
     double* dR = RWORK.m_real;
     complexD* dALPHA = (complexD*) ALPHA.m_complex;
     complexD* dBETA = (complexD*) BETA.m_complex;
 
-    if (!dA || !dB || !dV || !dR || !dALPHA || !dBETA)
+    if (V)
+    {
+        status = V->Dimension(n, n, COMPLEX);
+
+        if (!status.IsOk())
+        {
+            status.SetArg1(3);
+            return status;
+        }
+
+        dV = (complexD*)V->m_complex;
+    }
+
+    if (!dA || !dB || !dR || !dALPHA || !dBETA)
         return status(HW_MATH_ERR_ALLOCFAILED);
 
     // workspace query
@@ -2307,10 +2381,10 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompComplex(const hwTMa
 //! Generalized real symmetric positive definite Eigen decomposition
 template<>
 inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompRealSPD(const hwTMatrix<double>& A,
-                                       const hwTMatrix<double>& B, hwTMatrix<double>& V, hwTMatrix<double>& D)
+                                       const hwTMatrix<double>& B, hwTMatrix<double>* V, hwTMatrix<double>& D)
 {
     hwMathStatus status;
-    char JOBZ = 'V';
+    char JOBZ = V ? 'V' : 'N';     // right Eigen vectors;
     char UPLO = 'U';
     int ITYPE = 1;
     int N = A.m_nCols;
@@ -2328,11 +2402,22 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompRealSPD(const hwTMa
         return status;
     }
 
-    V = A;
+    bool deleteV;
+
+    if (V)
+    {
+        (*V) = A;
+        deleteV = false;
+    }
+    else
+    {
+        V = new hwTMatrix<double>(A);
+        deleteV = true;
+    }
 
     hwTMatrix<double> B1(B); // copy matrix
 
-    double* dVR = V.m_real;
+    double* dVR = V->m_real;
     double* dB = B1.m_real;
     double* dD = D.m_real;
 
@@ -2354,6 +2439,9 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompRealSPD(const hwTMa
     // decompose the matrix
     dsygv_(&ITYPE, &JOBZ, &UPLO, &N, dVR, &LDA, dB, &LDB, dD, dW, &LWORK, &INFO);
 
+    if (deleteV)
+        delete V;
+        
     if (INFO > N)
         return status;
 
@@ -2363,10 +2451,10 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompRealSPD(const hwTMa
 //! Generalized complex Hermitian positive definite Eigen decomposition
 template<>
 inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompComplexHPD(const hwTMatrix<double>& A,
-                    const hwTMatrix<double>& B, hwTMatrix<double>& V, hwTMatrix<double>& D)
+                    const hwTMatrix<double>& B, hwTMatrix<double>* V, hwTMatrix<double>& D)
 {
     hwMathStatus status;
-    char JOBZ = 'V';
+    char JOBZ = V ? 'V' : 'N';     // right Eigen vectors;
     char UPLO = 'U';
     int ITYPE = 1;
     int n = A.m_nCols;
@@ -2385,11 +2473,22 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompComplexHPD(const hw
         return status;
     }
 
-    V = A;
+    bool deleteV;
 
-    if (V.IsReal())
+    if (V)
     {
-        status = V.MakeComplex();
+        (*V) = A;
+        deleteV = false;
+    }
+    else
+    {
+        V = new hwTMatrix<double>(A);
+        deleteV = true;
+    }
+
+    if (V->IsReal())
+    {
+        status = V->MakeComplex();
 
         if (!status.IsOk())
         {
@@ -2415,7 +2514,7 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompComplexHPD(const hw
  
     hwTMatrix<double> WORK(LWORK, 1, COMPLEX);
 
-    complexD* dA = (complexD*) V.m_complex;
+    complexD* dA = (complexD*) V->m_complex;
     complexD* dB = (complexD*) Bin.m_complex;
     double* dD = D.m_real;
     double* dRWORK = RWORK.m_real;
@@ -2426,6 +2525,9 @@ inline hwMathStatus hwTMatrix<double>::GeneralizedEigenDecompComplexHPD(const hw
 
     zhegv_(&ITYPE, &JOBZ, &UPLO, &n, dA, &LDA, dB,
            &LDB, dD, dWORK, &LWORK, dRWORK, &INFO);
+
+    if (deleteV)
+        delete V;
 
     if (INFO > n)
         status(HW_MATH_ERR_DECOMPFAIL);
@@ -5170,11 +5272,11 @@ inline hwMathStatus hwTMatrix<double>::Eigen(bool balance, hwTMatrix<double>* V,
 
 //! Real symmetric Eigen decomposition
 template<>
-inline hwMathStatus hwTMatrix<double>::EigenDecompRealSPD(hwTMatrix<double>& V, hwTMatrix<double>& D) const
+inline hwMathStatus hwTMatrix<double>::EigenDecompRealSPD(hwTMatrix<double>* V, hwTMatrix<double>& D) const
 {
     hwMathStatus status;
 
-    if (this == &V)
+    if (this == V)
         return status(HW_MATH_ERR_NOTIMPLEMENT);
 
     if (this == &D)
@@ -5189,15 +5291,12 @@ inline hwMathStatus hwTMatrix<double>::EigenDecompRealSPD(hwTMatrix<double>& V, 
     if (A.m_nRows != n)
         return status(HW_MATH_ERR_MTXNOTSQUARE, 0);
 
-    char JOBZ = 'V';
+    char JOBZ = V ? 'V' : 'N';     // right Eigen vectors
     char UPLO = 'U';
-
     int LDA = n;
     int INFO = 0;
     double WORKSZE = 0.0;
     int LWORK = -1;
-
-    V = A;
 
     status = D.Dimension(n, REAL);
 
@@ -5207,11 +5306,21 @@ inline hwMathStatus hwTMatrix<double>::EigenDecompRealSPD(hwTMatrix<double>& V, 
         return status;
     }
 
-    double* dVR = V.m_real;
-    double* dD = D.m_real;
+    bool deleteV;
 
-    if (!dVR)
-        return status(HW_MATH_ERR_ALLOCFAILED);
+    if (V)
+    {
+        (*V) = A;
+        deleteV = false;
+    }
+    else
+    {
+        V = new hwTMatrix<double>(A);
+        deleteV = true;
+    }
+
+    double* dVR = V->m_real;
+    double* dD = D.m_real;
 
     // workspace query
     dsyev_(&JOBZ, &UPLO, &n, dVR, &LDA, dD, &WORKSZE, &LWORK, &INFO);
@@ -5230,6 +5339,9 @@ inline hwMathStatus hwTMatrix<double>::EigenDecompRealSPD(hwTMatrix<double>& V, 
     // decompose the matrix
     dsyev_(&JOBZ, &UPLO, &n, dVR, &LDA, dD, dWORK, &LWORK, &INFO);
 
+    if (deleteV)
+        delete V;
+    
     if (INFO < 0)
         return status(HW_MATH_ERR_DECOMPFAIL);
 
@@ -5238,11 +5350,11 @@ inline hwMathStatus hwTMatrix<double>::EigenDecompRealSPD(hwTMatrix<double>& V, 
 
 //! Complex Hermitian Eigen decomposition
 template<>
-inline hwMathStatus hwTMatrix<double>::EigenDecompComplexHPD(hwTMatrix<double>& V, hwTMatrix<double>& D) const
+inline hwMathStatus hwTMatrix<double>::EigenDecompComplexHPD(hwTMatrix<double>* V, hwTMatrix<double>& D) const
 {
     hwMathStatus status;
 
-    if (this == &V)
+    if (this == V)
         return status(HW_MATH_ERR_NOTIMPLEMENT);
 
     if (this == &D)
@@ -5254,7 +5366,7 @@ inline hwMathStatus hwTMatrix<double>::EigenDecompComplexHPD(hwTMatrix<double>& 
     if (A.m_nRows != n)
         return status(HW_MATH_ERR_MTXNOTSQUARE, 0);
 
-    char JOBZ = 'V';
+    char JOBZ = V ? 'V' : 'N';     // right Eigen vectors
     char UPLO = 'U';
     int LDA = n;
     int LWORK = -1;
@@ -5262,11 +5374,6 @@ inline hwMathStatus hwTMatrix<double>::EigenDecompComplexHPD(hwTMatrix<double>& 
 
     hwTMatrix<double> WORKSZE(1, 1, COMPLEX);
     hwTMatrix<double> RWORK(_max(1,3*A.m_nCols-2), 1, REAL);
-
-    V = A;
-
-    if (V.IsReal())
-        status = V.MakeComplex();
 
     if (!status.IsOk())
     {
@@ -5282,7 +5389,31 @@ inline hwMathStatus hwTMatrix<double>::EigenDecompComplexHPD(hwTMatrix<double>& 
         return status;
     }
 
-    complexD* dV = (complexD*) V.m_complex;
+    bool deleteV;
+
+    if (V)
+    {
+        (*V) = A;
+        deleteV = false;
+    }
+    else
+    {
+        V = new hwTMatrix<double>(A);
+        deleteV = true;
+    }
+
+    if (V->IsReal())
+    {
+        status = V->MakeComplex();
+
+        if (!status.IsOk())
+        {
+            status.ResetArgs();
+            return status;
+        }
+    }
+
+    complexD* dV = (complexD*) V->m_complex;
     double* dD = D.m_real;
     complexD* dWS = (complexD*) WORKSZE.m_complex;
     double* dRWK = RWORK.m_real;
@@ -5307,6 +5438,9 @@ inline hwMathStatus hwTMatrix<double>::EigenDecompComplexHPD(hwTMatrix<double>& 
 
     // decompose the matrix
     zheev_(&JOBZ, &UPLO, &n, dV, &LDA, dD, dW, &LWORK, dRWK, &INFO);
+
+    if (deleteV)
+        delete V;
 
     if (INFO < 0)
         return status(HW_MATH_ERR_DECOMPFAIL);
@@ -5369,9 +5503,9 @@ inline hwMathStatus hwTMatrix<double>::EigenSH(hwTMatrix<double>* V, hwTMatrix<d
         return status(HW_MATH_ERR_NONFINITEDATA, 0);
 
     if (IsReal())
-        status = EigenDecompRealSPD(*V, D);
+        status = EigenDecompRealSPD(V, D);
     else
-        status = EigenDecompComplexHPD(*V, D);
+        status = EigenDecompComplexHPD(V, D);
 
     return status;
 }
@@ -5505,7 +5639,7 @@ inline hwMathStatus hwTMatrix<double>::EigenSB(int kd, hwTMatrix<double>& W, hwT
 //! Generalized Eigen decomposition
 template<>
 inline hwMathStatus hwTMatrix<double>::Eigen(const hwTMatrix<double>& A, const hwTMatrix<double>& B,
-                    hwTMatrix<double>& V, hwTMatrix<double>& D) const
+                    hwTMatrix<double>* V, hwTMatrix<double>& D) const
 {
     hwMathStatus status;
 
@@ -5520,7 +5654,9 @@ inline hwMathStatus hwTMatrix<double>::Eigen(const hwTMatrix<double>& A, const h
 
     if (A.IsEmpty())
     {
-        status = V.Dimension(0, 0, REAL);
+        if (V)
+            status = V->Dimension(0, 0, REAL);
+
         status = D.Dimension(0, 0, REAL);
 
         return status;

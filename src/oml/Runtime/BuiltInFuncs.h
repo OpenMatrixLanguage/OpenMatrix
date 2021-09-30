@@ -113,6 +113,9 @@ bool oml_ismatrix(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
 bool oml_issymmetric(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_issquare(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_ishermitian(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_isdiag(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_istril(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_istriu(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_genvarname(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_sub2ind(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_intersect(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -212,9 +215,9 @@ bool oml_iscellstr(EvaluatorInterface eval, const std::vector<Currency>& inputs,
 //! Concatenates n-dimensional array objects along given dimension.
 bool oml_cat(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 bool oml_poly(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_permute(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_reshape(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_permute(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_ipermute(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_squeeze(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_norm(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_i(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -245,6 +248,7 @@ bool oml_eig(EvaluatorInterface, const std::vector<Currency>& inputs, std::vecto
 bool oml_chol(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_complex(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_transpose(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_ctranspose(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_eye(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_sign(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_dot(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -276,7 +280,9 @@ bool oml_cumsum(EvaluatorInterface, const std::vector<Currency>& inputs, std::ve
 bool oml_cumprod(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_accumarray(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_log2(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_max(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_nextpow2(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_round(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_max(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_min(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_print(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_inv(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -323,7 +329,10 @@ bool oml_logspace(EvaluatorInterface, const std::vector<Currency>& inputs, std::
 bool oml_rot90(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_rehash(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_verbose(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
+bool oml_properties(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_methods(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_parcluster(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
+bool oml_inputname(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 
 // Functions to build other functions w/o writing to disk
 bool oml_p_definefunction(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -425,7 +434,6 @@ bool iszero(const hwComplex &c);
 
 // input-reading methods
 OMLDLL_DECLS bool boolFromCur(const Currency& cur);
-OMLDLL_DECLS hwMatrix* matrixCopyFromInput(const Currency &input, bool allowString);
 OMLDLL_DECLS hwMatrix* safeMatrixCopyFromInput(const Currency& input, bool allowString);
 OMLDLL_DECLS int getFileFromInput(EvaluatorInterface &eval, const Currency &input);
 FILE* makeTempFile();
@@ -651,7 +659,6 @@ OMLDLL_DECLS inline Currency getTrue() { Currency True(1.0); True.SetMask(Curren
 OMLDLL_DECLS inline Currency getFalse() { Currency False(0.0); False.SetMask(Currency::MASK_LOGICAL); return False; }
 Currency unnest(Currency nested, const std::string &errmsg = std::string("Error: input must be a string"));
 void makeInt(hwComplex &c);
-Currency transpose(EvaluatorInterface& eval, const Currency &cur);
 hwMatrix *removePadding(const hwMatrix *mtx);
 hwMatrix *getInnerMatrix(const hwMatrix *mtx, int top, int bottom, int left, int right);
 std::deque<int> getprimes(int max);

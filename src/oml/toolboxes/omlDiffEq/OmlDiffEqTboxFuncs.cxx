@@ -53,16 +53,6 @@ bool OmlOdeset(EvaluatorInterface           eval,
 
     if (nargin == 0)
     {
-        std::string msg = "Available ODE options:\n";
-        msg += "RelTol\n";
-        msg += "AbsTol\n";
-        msg += "MaxStep\n";
-        msg += "Jacobian\n";
-
-        Currency cmsg (msg);
-        cmsg.DispOutput();
-        eval.PrintResult(cmsg);
-
         if (eval.GetNargoutValue() > 0)
         { 
             Currency out (EvaluatorInterface::allocateStruct());
@@ -71,8 +61,24 @@ bool OmlOdeset(EvaluatorInterface           eval,
             out.Struct()->SetValue(0, -1, "AbsTol",   1.0e-6);
             out.Struct()->SetValue(0, -1, "MaxStep",  std::numeric_limits<double>::infinity());
             out.Struct()->SetValue(0, -1, "Jacobian", Currency());
+            out.Struct()->SetValue(0, -1, "Events",   Currency());
             outputs.push_back(out);
         }
+        else
+        {
+            std::string msg = "Available ODE options:\n";
+            msg += "RelTol\n";
+            msg += "AbsTol\n";
+            msg += "MaxStep\n";
+            msg += "Jacobian\n";
+            msg += "Events\n";
+
+            // outputs.push_back(msg);
+            Currency cmsg(msg);
+            cmsg.DispOutput();
+            eval.PrintResult(cmsg);
+        }
+
         return true;
     }
 
@@ -91,7 +97,7 @@ bool OmlOdeset(EvaluatorInterface           eval,
             throw OML_Error(OML_ERR_STRING, i + 1);
         }
 
-        std::string val (cur.StringVal());
+        std::string val = cur.StringVal();
         if (val == "RelTol")
         {
             if (!inputs[i+1].IsScalar())
@@ -116,6 +122,13 @@ bool OmlOdeset(EvaluatorInterface           eval,
         else if (val == "Jacobian")
         {
             if (!inputs[i+1].IsFunctionHandle())
+            {
+                throw OML_Error(OML_ERR_HANDLE, i + 2, OML_VAR_JACOBIAN);
+            }
+        }
+        else if (val == "Events")
+        {
+            if (!inputs[i + 1].IsFunctionHandle())
             {
                 throw OML_Error(OML_ERR_HANDLE, i + 2, OML_VAR_JACOBIAN);
             }

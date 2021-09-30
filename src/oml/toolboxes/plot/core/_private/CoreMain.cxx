@@ -472,7 +472,7 @@ namespace omlplot{
         Object* obj = getObject(axes);
         Axes *pAxes = dynamic_cast<Axes *>(obj);
         if (pAxes) {
-            VALUETYPE c = pAxes->getPropertyValue("ylabel");
+        VALUETYPE c = pAxes->getPropertyValue("ylabel");
             text = (Text*)c.BoundObject();
         }
         else {
@@ -575,7 +575,7 @@ namespace omlplot{
         Object* obj = getObject(axes);
         Axes *pAxes = dynamic_cast<Axes *>(obj);
         if (pAxes) {
-            pAxes->setPropertyValue("ylim", limits);
+        pAxes->setPropertyValue("ylim", limits);
             pAxes->setAxisNeedRepaint(1);
         }
         else {

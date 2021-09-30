@@ -1,1 +1,1 @@
-Unknown function: testfunction at line number 5 in file run14.oml
+Error: 'testfunction' is not defined at line number 5 in file run14.oml

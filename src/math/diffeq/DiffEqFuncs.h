@@ -45,6 +45,8 @@
 //! \param abserr    Optional argument: absolute error
 //! \param userData  Optional argument
 //!
+/*
+/! 
 DIFFEQ_DECLS hwMathStatus RK45(ARKRhsFn_client      sysfunc,
                                ARKRootFn_client     rootfunc,
                                ARKDenseJacFn_client jacDfunc,
@@ -68,17 +70,22 @@ DIFFEQ_DECLS hwMathStatus RK45(ARKRhsFn_client      sysfunc,
 //! \param abserr       Optional argument: absolute error
 //! \param userData     Optional argument
 //!
+*/
 DIFFEQ_DECLS hwMathStatus RK45(ARKRhsFn_client      sysfunc,
                                ARKRootFn_client     rootfunc,
+                               int                  nrtfn,
                                ARKDenseJacFn_client jacDfunc,
                                const hwMatrix&      time,
                                const hwMatrix&      y,
                                hwMatrix*            timeSolution, 
                                hwMatrix&            ySolution, 
-                               double               relerr   = 0.001,
-                               const hwMatrix*      abserr   = nullptr, 
-                               double               maxstep  = -999.0,
-                               const hwMatrix*      userData = nullptr);
+                               double               relerr      = 0.001,
+                               const hwMatrix*      abserr      = nullptr, 
+                               double               maxstep     = -999.0,
+                               const hwMatrix*      userData    = nullptr,
+                               hwMatrix*            pEventTime  = nullptr,
+                               hwMatrix*            pEventFnVal = nullptr,
+                               hwMatrix*            pEventIndx  = nullptr);
 //!
 //! Differential equation solver which wraps CVODE functions
 //! \param sysfunc
@@ -95,6 +102,7 @@ DIFFEQ_DECLS hwMathStatus RK45(ARKRhsFn_client      sysfunc,
 //!
 hwMathStatus ODE(CVRhsFn_client      sysfunc,
                  CVRootFn_client     rootfunc,
+                 int                 nrtfn,
                  CVDenseJacFn_client jacDfunc,
                  const hwMatrix&     time,
                  const hwMatrix&     y,
@@ -102,9 +110,12 @@ hwMathStatus ODE(CVRhsFn_client      sysfunc,
                  hwMatrix&           ySolution,
                  const char*         job,
                  double              reltol,
-                 const               hwMatrix* abstol,
+                 const hwMatrix*     abstol,
                  double              maxstep,
-                 const               hwMatrix* userData);
+                 const hwMatrix*     userData,
+                 hwMatrix*           pEventTime,
+                 hwMatrix*           pEventFnVal,
+                 hwMatrix*           pEventIndx);
 
 //!
 //! Differential equation solver which wraps CVODE functions
@@ -120,6 +131,7 @@ hwMathStatus ODE(CVRhsFn_client      sysfunc,
 //!
 DIFFEQ_DECLS hwMathStatus ODE11(CVRhsFn_client  sysfunc,
                                 CVRootFn_client rootfunc,
+                                int             nrtfn,
                                 const hwMatrix& time,
                                 const hwMatrix& y,
                                 hwMatrix*       timeSolution,
@@ -127,7 +139,10 @@ DIFFEQ_DECLS hwMathStatus ODE11(CVRhsFn_client  sysfunc,
                                 double          reltol   = 0.001,
                                 const hwMatrix* abstol   = nullptr,
                                 double          maxstep  = -999.0,
-                                const hwMatrix* userData = nullptr);
+                                const hwMatrix* userData = nullptr,
+                                hwMatrix*       pEventTime  = nullptr,
+                                hwMatrix*       pEventFnVal = nullptr,
+                                hwMatrix*       pEventIndx  = nullptr);
 
 //!
 //! Differential equation solver which wraps CVODE functions
@@ -144,6 +159,7 @@ DIFFEQ_DECLS hwMathStatus ODE11(CVRhsFn_client  sysfunc,
 //!
 DIFFEQ_DECLS hwMathStatus ODE22a(CVRhsFn_client      sysfunc,
                                  CVRootFn_client     rootfunc,
+                                 int                 nrtfn,
                                  CVDenseJacFn_client jacDfunc,
                                  const hwMatrix&     time,
                                  const hwMatrix&     y,
@@ -152,7 +168,10 @@ DIFFEQ_DECLS hwMathStatus ODE22a(CVRhsFn_client      sysfunc,
                                  double              reltol   = 0.001,
                                  const hwMatrix*     abstol   = nullptr,
                                  double              maxstep  = -999.0,
-                                 const hwMatrix*     userData = nullptr);
+                                 const hwMatrix*     userData = nullptr,
+                                 hwMatrix*           pEventTime  = nullptr,
+                                 hwMatrix*           pEventFnVal = nullptr,
+                                 hwMatrix*           pEventIndx  = nullptr);
 
 //!
 //! Differential algrbraic Equation solver which wraps IDA functions
@@ -171,6 +190,7 @@ DIFFEQ_DECLS hwMathStatus ODE22a(CVRhsFn_client      sysfunc,
 //!
 hwMathStatus DAE(IDAResFn_client      sysfunc,
                  IDARootFn_client     rootfunc,
+                 int                  nrtfn,
                  IDADenseJacFn_client jacDfunc,
                  const hwMatrix&      time,
                  const hwMatrix&      y,
@@ -181,7 +201,10 @@ hwMathStatus DAE(IDAResFn_client      sysfunc,
                  double               reltol,
                  const hwMatrix*      abstol,
                  double               maxstep,
-                 const hwMatrix*      userData);
+                 const hwMatrix*      userData,
+                 hwMatrix*            pEventTime,
+                 hwMatrix*            pEventFnVal,
+                 hwMatrix*            pEventIndx);
 
 //!
 //! Differential equation solver which wraps CVODE functions
@@ -198,6 +221,7 @@ hwMathStatus DAE(IDAResFn_client      sysfunc,
 //!
 DIFFEQ_DECLS hwMathStatus DAE11a(IDAResFn_client      sysfunc,
                                  IDARootFn_client     rootfunc,
+                                 int                  nrtfn,
                                  IDADenseJacFn_client jacDfunc,
                                  const hwMatrix&      time,
                                  const hwMatrix&      y,
@@ -207,6 +231,9 @@ DIFFEQ_DECLS hwMathStatus DAE11a(IDAResFn_client      sysfunc,
                                  double               reltol   = 0.001,
                                  const hwMatrix*      abstol   = nullptr,
                                  double               maxstep  = -999.0,
-                                 const hwMatrix*      userData = nullptr);
+                                 const hwMatrix*      userData = nullptr,
+                                 hwMatrix*            pEventTime  = nullptr,
+                                 hwMatrix*            pEventFnVal = nullptr,
+                                 hwMatrix*            pEventIndx  = nullptr);
 
 #endif // _DiffEq_WrapperFuncs_h

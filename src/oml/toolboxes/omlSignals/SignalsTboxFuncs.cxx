@@ -44,6 +44,7 @@ int InitDll(EvaluatorInterface eval)
     eval.RegisterBuiltInFunction("fftn",        OmlFftN,       FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("ifftn",       OmlIfftN,      FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("fftshift",    OmlFftShift,   FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("ifftshift",   OmlIFftShift,  FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("freq",        OmlFreq,       FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("fold",        OmlFold,       FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("xcorr",       OmlXcorr,      FunctionMetaData(-3, 1, SIGN));
@@ -253,28 +254,35 @@ bool OmlIfft(EvaluatorInterface           eval,
         }
         else if (dim == 2)
         {
-            signal.reset(EvaluatorInterface::allocateMatrix(matrix->M(), fftSize, hwMatrix::REAL));
-
-            std::unique_ptr<hwMatrix> rowin(EvaluatorInterface::allocateMatrix());
-            std::unique_ptr<hwMatrix> rowout(EvaluatorInterface::allocateMatrix());
-
-            for (int i = 0; i < matrix->M(); i++)
+            if (fftSize == matrix->N())
             {
-                hwMathStatus stat = matrix->ReadRow(i, *rowin);
-                BuiltInFuncsUtils::CheckMathStatus(eval, stat);
-                if (rowin->IsReal())
+                hwMathStatus status = Ifft(*matrix, *signal, dim - 1, fftSize);
+            }
+            else
+            {
+                signal.reset(EvaluatorInterface::allocateMatrix(matrix->M(),
+                             fftSize, hwMatrix::REAL));
+                std::unique_ptr<hwMatrix> rowin(EvaluatorInterface::allocateMatrix());
+                std::unique_ptr<hwMatrix> rowout(EvaluatorInterface::allocateMatrix());
+
+                for (int i = 0; i < matrix->M(); i++)
                 {
-                    stat = rowin->MakeComplex();
+                    hwMathStatus stat = matrix->ReadRow(i, *rowin);
+                    BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+                    if (rowin->IsReal())
+                    {
+                        stat = rowin->MakeComplex();
+                        BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+                    }
+                    stat = Ifft(*rowin, *rowout, fftSize);
+                    BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+                    if (rowout->M() != 1)
+                    {
+                        rowout->Transpose();
+                    }
+                    stat = signal->WriteRow(i, *rowout);
                     BuiltInFuncsUtils::CheckMathStatus(eval, stat);
                 }
-                stat = Ifft(*rowin, *rowout, fftSize);
-                BuiltInFuncsUtils::CheckMathStatus(eval, stat);
-                if (rowout->M() != 1)
-                {
-                    rowout->Transpose();
-                }
-                stat = signal->WriteRow(i, *rowout);
-                BuiltInFuncsUtils::CheckMathStatus(eval, stat);
             }
         }
         else
@@ -478,15 +486,15 @@ bool OmlFft(EvaluatorInterface           eval,
         }
         else if (dim == 2)
         {
-            freq.reset(EvaluatorInterface::allocateMatrix(matrix->M(), fftSize,
-                hwMatrix::COMPLEX));
-
             if (fftSize == matrix->N())
             {
                 hwMathStatus status = Fft(*matrix, *freq, dim - 1, fftSize);
             }
             else
             {
+                freq.reset(EvaluatorInterface::allocateMatrix(matrix->M(),
+                           fftSize, hwMatrix::COMPLEX));
+
                 std::unique_ptr<hwMatrix> rowin(EvaluatorInterface::allocateMatrix());
                 std::unique_ptr<hwMatrix> rowout(EvaluatorInterface::allocateMatrix());
 
@@ -803,15 +811,16 @@ bool OmlFftShift(EvaluatorInterface           eval,
             int length = static_cast<int>(outputs2[0].Scalar());
             outputs2.clear();
             int dc = static_cast<int>(ceil(length / 2.0));
+            int offset = length - dc;
 
             // create index vector
             hwMatrix* index = new hwMatrix(length, hwMatrix::REAL);
 
-            for (int i = 0; i < length - dc; ++i)
+            for (int i = 0; i < offset; ++i)
                 (*index)(i) = i + dc + 1;
 
-            for (int i = length - dc; i < length; ++i)
-                (*index)(i) = i - (length - dc) + 1;
+            for (int i = offset; i < length; ++i)
+                (*index)(i) = i - offset + 1;
 
             // create slice arguments
             sliceArgs.push_back(index);
@@ -843,13 +852,14 @@ bool OmlFftShift(EvaluatorInterface           eval,
             {
                 int dc = static_cast<int> ((*dc_vec)(i));
                 int length = static_cast<int> ((*length_vec)(i));
+                int offset = length - dc;
                 hwMatrix* index = new hwMatrix(length, hwMatrix::REAL);
 
-                for (int j = 0; j < length - dc; ++j)
+                for (int j = 0; j < offset; ++j)
                     (*index)(j) = j + dc + 1;
 
-                for (int j = length - dc; j < length; ++j)
-                    (*index)(j) = j - (length - dc) + 1;
+                for (int j = offset; j < length; ++j)
+                    (*index)(j) = j - offset + 1;
 
                 sliceArgs.push_back(index);
             }
@@ -889,15 +899,159 @@ bool OmlFftShift(EvaluatorInterface           eval,
         // get dimension length and DC position
         int length = static_cast<int>((*dims.Matrix())(dim - 1));
         int dc = static_cast<int>(ceil(length / 2.0));
+        int offset = length - dc;
 
         // create index vector
         hwMatrix* index = new hwMatrix(length, hwMatrix::REAL);
 
-        for (int i = 0; i < length - dc; ++i)
+        for (int i = 0; i < offset; ++i)
             (*index)(i) = i + dc + 1;
 
-        for (int i = length - dc; i < length; ++i)
-            (*index)(i) = i - (length - dc) + 1;
+        for (int i = offset; i < length; ++i)
+            (*index)(i) = i - offset + 1;
+
+        // create slice arguments
+        for (int i = 0; i < dim - 1; ++i)
+            sliceArgs.push_back(Currency(0.0, Currency::TYPE_COLON));
+
+        sliceArgs.push_back(index);
+
+        for (int i = dim; i < numDims; ++i)
+            sliceArgs.push_back(Currency(0.0, Currency::TYPE_COLON));
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    // re-index
+    outputs.push_back(eval.VariableIndex(inputs[0], sliceArgs));
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Reverse shift FFT related data to uncenter DC component
+//------------------------------------------------------------------------------
+bool OmlIFftShift(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+    std::vector<Currency> inputs2;
+    std::vector<Currency> outputs2;
+    std::vector<Currency> sliceArgs;
+
+    if (nargin == 1)
+    {
+        inputs2.push_back(inputs[0]);
+        oml_isvector(eval, inputs2, outputs2);
+
+        if (outputs2[0].Scalar() == 1.0)    // vector case
+        {
+            // get vector length and DC position
+            outputs2.clear();
+            oml_length(eval, inputs2, outputs2);
+            int length = static_cast<int>(outputs2[0].Scalar());
+            outputs2.clear();
+            int dc = static_cast<int>(ceil(length / 2.0));
+            int offset = length - dc;
+
+            // create index vector
+            hwMatrix* index = new hwMatrix(length, hwMatrix::REAL);
+
+            for (int i = 0; i < offset; ++i)
+                (*index)(i + dc) = i + 1;
+
+            for (int i = offset; i < length; ++i)
+                (*index)(i - offset) = i + 1;
+
+            // create slice arguments
+            sliceArgs.push_back(index);
+        }
+        else
+        {
+            // get matrix dimension info
+            outputs2.clear();
+            oml_ndims(eval, inputs2, outputs2);
+            int numDims = static_cast<int> (outputs2[0].Scalar());
+            outputs2.clear();
+
+            outputs2 = eval.DoMultiReturnFunctionCall(oml_size, inputs2, 1, 1, true);
+            Currency lengths = outputs2[0];
+
+            // get DC positions
+            hwMatrix* length_vec = lengths.GetWritableMatrix();
+            hwMatrix* halfLen = new hwMatrix(1, numDims, hwMatrix::REAL);
+            (*halfLen) = (*length_vec) / 2.0;
+
+            inputs2.clear();
+            inputs2.push_back(halfLen);
+            outputs2.clear();
+            BuiltInFuncsMKL::Ceil(eval, inputs2, outputs2);
+            hwMatrix* dc_vec = outputs2[0].GetWritableMatrix();
+
+            // create index vectors and slice arguments
+            for (int i = 0; i < numDims; ++i)
+            {
+                int dc = static_cast<int> ((*dc_vec)(i));
+                int length = static_cast<int> ((*length_vec)(i));
+                int offset = length - dc;
+                hwMatrix* index = new hwMatrix(length, hwMatrix::REAL);
+
+                for (int j = 0; j < offset; ++j)
+                    (*index)(j + dc) = j + 1;
+
+                for (int j = offset; j < length; ++j)
+                    (*index)(j - offset) = j + 1;
+
+                sliceArgs.push_back(index);
+            }
+        }
+    }
+    else if (nargin == 2)
+    {
+        // get matrix dimension info
+        inputs2.push_back(inputs[0]);
+        oml_ndims(eval, inputs2, outputs2);
+        int numDims = static_cast<int> (outputs2[0].Scalar());
+        outputs2.clear();
+
+        outputs2 = eval.DoMultiReturnFunctionCall(oml_size, inputs2, 1, 1, true);
+        Currency dims = outputs2[0];
+        outputs2.clear();
+
+        // get dimension of interest
+        if (!inputs[1].IsPositiveInteger())
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_DIM);
+        }
+
+        int dim = static_cast<int> (inputs[1].Scalar());
+
+        if (dim < 1)
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_DIM);
+        }
+
+        if (dim > numDims)
+        {
+            outputs.push_back(inputs[0]);
+            return true;
+        }
+
+        // get dimension length and DC position
+        int length = static_cast<int>((*dims.Matrix())(dim - 1));
+        int dc = static_cast<int>(ceil(length / 2.0));
+        int offset = length - dc;
+
+        // create index vector
+        hwMatrix* index = new hwMatrix(length, hwMatrix::REAL);
+
+        for (int i = 0; i < offset; ++i)
+            (*index)(i + dc) = i + 1;
+
+        for (int i = offset; i < length; ++i)
+            (*index)(i - offset) = i + 1;
 
         // create slice arguments
         for (int i = 0; i < dim - 1; ++i)
@@ -1218,19 +1372,11 @@ bool OmlPwelch(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
-    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
-    {
-        throw OML_Error(OML_ERR_VECTOR, 1, OML_VAR_DATA);
-    }
+    const Currency& input1 = inputs[0];
 
-    const hwMatrix* signal = inputs[0].ConvertToMatrix();
-    if (!signal->IsVector())
+    if (!input1.IsMatrix() && !input1.IsNDMatrix() && !input1.IsScalar())
     {
-        throw OML_Error(OML_ERR_VECTOR, 1);
-    }
-    if (!signal->IsRealData())
-    {
-        throw OML_Error(OML_ERR_REAL, 1, OML_VAR_DATA);
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
     }
 
     // window argument
@@ -1291,14 +1437,21 @@ bool OmlPwelch(EvaluatorInterface           eval,
     if (windowSize == -1)
     {
         // 8 blocks
-        int dataSize = signal->Size();
+        int dataSize;
 
-#if 0   // Code which was there earlier
-        // if (signal->IsVector())
-            dataSize = signal->Size();
-        // else
-        //     dataSize = signal->M();
-#endif
+        if (input1.IsMatrix() || input1.IsScalar())
+        {
+            const hwMatrix* signal = input1.ConvertToMatrix();
+
+            if (signal->IsVector())
+                dataSize = signal->Size();
+            else
+                dataSize = signal->M();
+        }
+        else    // input1.IsMatrix()
+        {
+            dataSize = input1.MatrixN()->Dimensions()[0];
+        }
 
         if (numOverlapPts == -1)
         {
@@ -1381,126 +1534,121 @@ bool OmlPwelch(EvaluatorInterface           eval,
         }
     }
 
-    // calculate psd
+    // perform psd ops
     std::unique_ptr<hwMatrix> density(EvaluatorInterface::allocateMatrix());
 
-    hwMathStatus status = (window) ?
-        BlockPSD(*signal, *window, numOverlapPts, sampFreq, *density, fftSize) :
-        BlockPSD(*signal, *windowTemp, numOverlapPts, sampFreq, *density, fftSize);
-
-    BuiltInFuncsUtils::CheckMathStatus(eval, status);
-
-	// output
-	int nargout = eval.GetNargoutValue();
-
-    if (nargout == 0)
+    if (!input1.IsNDMatrix())
     {
-        std::vector<Currency> plotInput;
-		std::unique_ptr<hwMatrix> freqresult(EvaluatorInterface::allocateMatrix());
-		status = Freq(fftSize, sampFreq, *freqresult, "twosided");
-		BuiltInFuncsUtils::CheckMathStatus(eval, status);
+        const hwMatrix* matrix = input1.ConvertToMatrix();
 
-	    if (onesided)
-		{
-			status = freqresult->Resize(fftSize/2+1, 1);
-			BuiltInFuncsUtils::CheckMathStatus(eval, status);
-			plotInput.push_back(freqresult.release());
-
-	        std::unique_ptr<hwMatrix> one_sided(EvaluatorInterface::allocateMatrix());
-	        status = Fold(*density, *one_sided);
-		    BuiltInFuncsUtils::CheckMathStatus(eval, status);
-			plotInput.push_back(one_sided.release());
-		}
-		else
-		{
-			plotInput.push_back(freqresult.release());
-			plotInput.push_back(density.release());
-		}
-
-        FUNCPTR plotPtr = eval.GetStdFunction("plot");
-		return plotPtr(eval, plotInput, outputs);
-	}
-
-#if 0 // Commented code
-/*
-    // Not currently supporting matrix input
-    if (signal->IsVector())
-    {
-    }
-    else
-    {
-        std::unique_ptr<hwMatrix> col(EvaluatorInterface::allocateMatrix());
-        std::unique_ptr<hwMatrix> temp(EvaluatorInterface::allocateMatrix());
-        density.reset(EvaluatorInterface::allocateMatrix(fftSize, signal->N(), hwMatrix::REAL));
-
-        if (signal->N())
+        if (!matrix->IsReal())
         {
-            for (int i = 0; i < signal->N(); ++i)
+            throw OML_Error(OML_ERR_REAL, 1, OML_VAR_DATA);
+        }
+
+        std::unique_ptr<hwMatrix> freq(EvaluatorInterface::allocateMatrix());
+
+        if (matrix->IsVector())
+        {
+            hwMathStatus status = (window) ?
+                BlockPSD(*matrix, *window, numOverlapPts, sampFreq, *density, fftSize) :
+                BlockPSD(*matrix, *windowTemp, numOverlapPts, sampFreq, *density, fftSize);
+
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+            if (onesided)
             {
-                checkMathStatus(eval, signal->ReadColumn(i, *col));
-
-                if (window)
-                    checkMathStatus(eval, BlockPSD(*col, *window, numOverlapPts, sampFreq, *temp, fftSize));
-                else // windowTemp
-                    checkMathStatus(eval, BlockPSD(*col, *windowTemp, numOverlapPts, sampFreq, *temp, fftSize));
-
-                writeCol(eval, density.get(), temp.get(), i);
+                std::unique_ptr<hwMatrix> one_sided(EvaluatorInterface::allocateMatrix());
+                status = Fold(*density, *one_sided);
+                density.reset(one_sided.release());
+                BuiltInFuncsUtils::CheckMathStatus(eval, status);
             }
         }
         else
         {
-            density.reset(EvaluatorInterface::allocateMatrix());
+            if (onesided)
+            {
+                int fftSize2 = fftSize / 2 + 1;
+                density.reset(EvaluatorInterface::allocateMatrix(fftSize2, matrix->N(), hwMatrix::REAL));
+                double* signal = const_cast<double*> (matrix->GetRealData());
+                hwMatrix col_out(fftSize, 1, hwMatrix::REAL);
+                double* response = const_cast<double*> (col_out.GetRealData());
+                hwMatrix col_out2(fftSize2, 1, hwMatrix::REAL);
+
+                for (int i = 0; i < matrix->N(); ++i)
+                {
+                    hwMatrix col_in(matrix->M(), 1, reinterpret_cast<void*> (signal), hwMatrix::REAL);
+
+                    hwMathStatus status = (window) ?
+                        BlockPSD(col_in, *window, numOverlapPts, sampFreq, col_out, fftSize) :
+                        BlockPSD(col_in, *windowTemp, numOverlapPts, sampFreq, col_out, fftSize);
+
+                    status = Fold(col_out, col_out2);
+
+                    density->WriteColumn(i, col_out2);
+                    signal += matrix->M();
+                }
+            }
+            else
+            {
+                density.reset(EvaluatorInterface::allocateMatrix(fftSize, matrix->N(), hwMatrix::REAL));
+                double* response = density->GetRealData();
+                double* signal = const_cast<double*> (matrix->GetRealData());
+
+                for (int i = 0; i < matrix->N(); ++i)
+                {
+                    hwMatrix col_in(matrix->M(), 1, reinterpret_cast<void*> (signal), hwMatrix::REAL);
+                    hwMatrix col_out(fftSize, 1, reinterpret_cast<void*> (response), hwMatrix::REAL);
+
+                    hwMathStatus status = (window) ?
+                        BlockPSD(col_in, *window, numOverlapPts, sampFreq, col_out, fftSize) :
+                        BlockPSD(col_in, *windowTemp, numOverlapPts, sampFreq, col_out, fftSize);
+
+                    signal += matrix->M();
+                    response += fftSize;
+                }
+            }
         }
     }
-*/
-#endif
-
-    // process spectral output
-    if (onesided)
+    else        // ND case
     {
-        std::unique_ptr<hwMatrix> one_sided(EvaluatorInterface::allocateMatrix());
-        status = Fold(*density, *one_sided);
-        BuiltInFuncsUtils::CheckMathStatus(eval, status);
-        outputs.push_back(one_sided.release());
-
-#if 0
-/*
-        if (density->IsVector())
-        {
-        }
-        else
-        {
-            std::vector<Currency> inputs2;
-            inputs2.push_back(density.release());
-            oml_fold(eval, inputs2, outputs);
-        }
-*/
-#endif
+        throw OML_Error(OML_ERR_UNSUPPORTDIM, 1, OML_VAR_MATRIX);
+        // return oml_MatrixNUtil4(eval, inputs, outputs, OmlPwelch);
     }
-    else
+
+	// output
+	int nargout = eval.GetNargoutValue();
+
+    if (nargout != 0)
     {
         outputs.push_back(density.release());
     }
 
-    // process frequency output
-    if (nargout > 1)
+    if (nargout != 1)
     {
         std::unique_ptr<hwMatrix> freqresult(EvaluatorInterface::allocateMatrix());
-        status = Freq(fftSize, sampFreq, *freqresult, "twosided");
-	    BuiltInFuncsUtils::CheckMathStatus(eval, status);
 
         if (onesided)
         {
-	        status =  freqresult->Resize(fftSize/2+1, 1);
-            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+            hwMathStatus status = Freq(fftSize, sampFreq, *freqresult, "onesided");
         }
-
-        if (freqresult->M() == 1)
+        else
         {
-            status = freqresult->Transpose();
-            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+            hwMathStatus status = Freq(fftSize, sampFreq, *freqresult, "twosided");
         }
-        outputs.push_back(freqresult.release());
+        
+        if (nargout == 0)
+        {
+            std::vector<Currency> plotInput;
+            plotInput.push_back(freqresult.release());
+            plotInput.push_back(density.release());
+            FUNCPTR plotPtr = eval.GetStdFunction("plot");
+            return plotPtr(eval, plotInput, outputs);
+        }
+        else
+        {
+            outputs.push_back(freqresult.release());
+        }
     }
 
     return true;
@@ -1769,30 +1917,122 @@ bool OmlTFestimate(EvaluatorInterface           eval,
 				   const std::vector<Currency>& inputs, 
 				   std::vector<Currency>&       outputs)
 {
-	// cpsd(x,y)
-	int nargout = eval.GetNargoutValue();
-	std::vector<Currency> inputs1 = inputs;
-	std::vector<Currency> outputs1;
+    size_t nargin = inputs.size();
+    int nargout = eval.GetNargoutValue();
 
-	if (nargout)
-		outputs1 = eval.DoMultiReturnFunctionCall(OmlCpsd, inputs1, static_cast<int>(inputs1.size()), nargout, true);
-	else
-		outputs1 = eval.DoMultiReturnFunctionCall(OmlCpsd, inputs1, static_cast<int>(inputs1.size()), 2, true);
+    std::vector<Currency> inputs_copy = inputs;
+    std::string estimator = "H1";
 
-	hwMatrix* cpsd = outputs1[0].GetWritableMatrix();
+    if (nargin == 9)
+    {
+        if (!inputs[7].IsString() || inputs[7].StringVal() != "Estimator")
+        {
+            throw OML_Error(OML_ERR_ESTIMATOR_STR, 8);
+        }
 
-	// psd(x)
-	std::vector<Currency> inputs2 = inputs;
-	inputs2.erase(inputs2.begin() + 1);
-	std::vector<Currency> outputs2;
-	OmlPwelch(eval, inputs2, outputs2);
-    outputs2 = eval.DoMultiReturnFunctionCall(OmlPwelch, inputs2, static_cast<int>(inputs2.size()), 1, true);
-	hwMatrix* psd  = outputs2[0].GetWritableMatrix();
+        if (!inputs[8].IsString())
+        {
+            throw OML_Error(OML_ERR_ESTIMATOR_TYPE, 9, OML_VAR_STRING);
+        }
 
-	// tfestimate
-	hwMatrix* tf = new hwMatrix;
-	BuiltInFuncsUtils::CheckMathStatus(eval, tf->DivideByElems(*cpsd, *psd));
+        estimator = inputs[8].StringVal();
+        inputs_copy.erase(inputs_copy.end() - 1);
+        inputs_copy.erase(inputs_copy.end() - 1);
+    }
 
+    std::vector<Currency> outputs1;
+    hwMatrix* tf = new hwMatrix;
+
+    if (estimator == "H1")
+    {
+        // cpsd(x,y)
+        if (nargout)
+            outputs1 = eval.DoMultiReturnFunctionCall(OmlCpsd, inputs_copy, static_cast<int>(inputs_copy.size()), nargout, true);
+        else
+            outputs1 = eval.DoMultiReturnFunctionCall(OmlCpsd, inputs_copy, static_cast<int>(inputs_copy.size()), 2, true);
+
+        // psd(x)
+        inputs_copy.erase(inputs_copy.begin() + 1); // remove y
+        std::vector<Currency> outputs2;
+        outputs2 = eval.DoMultiReturnFunctionCall(OmlPwelch, inputs_copy, static_cast<int>(inputs_copy.size()), 1, true);
+
+        // tfestimate
+        hwMatrix* Pxy = outputs1[0].GetWritableMatrix();
+        hwMatrix* Pxx = outputs2[0].GetWritableMatrix();
+        BuiltInFuncsMKL::DivideByElems(*Pxy, *Pxx, *tf);
+    }
+    else if (estimator == "H2")
+    {
+        // psd(y)
+        inputs_copy.erase(inputs_copy.begin()); // remove x
+
+        if (nargout)
+            outputs1 = eval.DoMultiReturnFunctionCall(OmlPwelch, inputs_copy, static_cast<int>(inputs_copy.size()), nargout, true);
+        else
+            outputs1 = eval.DoMultiReturnFunctionCall(OmlPwelch, inputs_copy, static_cast<int>(inputs_copy.size()), 2, true);
+
+        // cpsd(y,x)
+        inputs_copy.insert(inputs_copy.begin() + 1, 1, inputs[0]);  // reinsert x after y
+        std::vector<Currency> outputs2;
+        outputs2 = eval.DoMultiReturnFunctionCall(OmlCpsd, inputs_copy, static_cast<int>(inputs_copy.size()), 1, true);
+
+        // tfestimate
+        hwMatrix* Pyy = outputs1[0].GetWritableMatrix();
+        hwMatrix* Pyx = outputs2[0].GetWritableMatrix();
+        BuiltInFuncsMKL::DivideByElems(*Pyy, *Pyx, *tf);
+    }
+    else if (estimator == "H3")
+    {
+        // cpsd(x,y)
+        if (nargout)
+            outputs1 = eval.DoMultiReturnFunctionCall(OmlCpsd, inputs_copy, static_cast<int>(inputs_copy.size()), nargout, true);
+        else
+            outputs1 = eval.DoMultiReturnFunctionCall(OmlCpsd, inputs_copy, static_cast<int>(inputs_copy.size()), 2, true);
+
+        // psd(x)
+        inputs_copy.erase(inputs_copy.begin() + 1); // remove y
+        std::vector<Currency> outputs2;
+        outputs2 = eval.DoMultiReturnFunctionCall(OmlPwelch, inputs_copy, static_cast<int>(inputs_copy.size()), 1, true);
+
+        // psd(y)
+        inputs_copy.erase(inputs_copy.begin()); // remove x
+        inputs_copy.insert(inputs_copy.begin(), 1, inputs[1]);  // reinsert y
+        std::vector<Currency> outputs4;
+        outputs4 = eval.DoMultiReturnFunctionCall(OmlPwelch, inputs_copy, static_cast<int>(inputs_copy.size()), 1, true);
+
+        // |cpsd(x,y)|
+        std::vector<Currency> inputs5;
+        inputs5.push_back(outputs1[0]);
+        std::vector<Currency> outputs5;
+        BuiltInFuncsMKL::Abs(eval, inputs5, outputs5);
+
+        //// tfestimate
+        hwMatrix* Pxy = outputs1[0].GetWritableMatrix();
+        hwMatrix* Pxx = outputs2[0].GetWritableMatrix();
+        hwMatrix* Pyy = outputs4[0].GetWritableMatrix();
+        hwMatrix* AbsPxy = outputs5[0].GetWritableMatrix();
+
+        // sqrt(psd(y) / psd(x))
+        hwMatrix* psdRatio = new hwMatrix;
+        BuiltInFuncsMKL::DivideByElems(*Pyy, *Pxx, *psdRatio);
+        std::vector<Currency> inputs6;
+        inputs6.push_back(psdRatio);
+        std::vector<Currency> outputs6;
+        BuiltInFuncsMKL::Sqrt(eval, inputs6, outputs6);
+        hwMatrix* psdSqrtRatio = outputs6[0].GetWritableMatrix();
+
+        // cpsd(x, y) / |cpsd(x,y)|
+        hwMatrix* PxyNormal = new hwMatrix;
+        BuiltInFuncsMKL::DivideByElems(*Pxy, *AbsPxy, *PxyNormal);
+
+        // sqrt(psd(y) / psd(x)) * cpsd(x, y) / |cpsd(x,y)|
+        BuiltInFuncsMKL::MultByElems(*psdSqrtRatio, *PxyNormal, *tf);
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_ESTIMATOR_TYPE, 9, OML_VAR_STRING);
+    }
+        
 	if (nargout == 0)
     {
 		std::vector<Currency> inputs2;

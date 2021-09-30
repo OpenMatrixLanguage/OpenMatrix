@@ -1,2 +1,2 @@
 addtoolbox omlsignals
-f = freq(6, 100, 'onesided')
+f = freq(10, 100, 'onesided')

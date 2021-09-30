@@ -1,1 +1,1 @@
-Unknown function: h at line number 1 in file parse_issue33.oml
+Error: 'h' is not defined at line number 1 in file parse_issue33.oml

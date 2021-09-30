@@ -17,6 +17,7 @@
 #include "DistributionFuncs.h"
 
 #include <sys/timeb.h>
+#include <unordered_map>
 
 #include "StatisticsFuncs.h"
 #include "hwMersenneTwister.h"
@@ -4427,30 +4428,27 @@ hwMathStatus PoissonRnd(const hwMatrix&         Lambda,
     return status;
 }
 //------------------------------------------------------------------------------
-// Generate a random permutation vector on [min:max]
+// Generate a random permutation vector on [1:max]
 //------------------------------------------------------------------------------
-hwMathStatus RandPerm(int                     min,
-                      int                     max,
+hwMathStatus RandPerm(int                     max,
                       int                     numPts,
                       hwMersenneTwisterState* pMTState,
                       hwMatrixI&              permVec)
 {
     // check inputs
+    if (max < 0)
+    {
+        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 1);
+    }
+
     if (numPts < 0)
     {
-        return hwMathStatus(HW_MATH_ERR_NONNONNEGINT, 3);
+        return hwMathStatus(HW_MATH_ERR_NONNONNEGINT, 2);
     }
 
-    int rng = max - min + 1;
-
-    if (rng < 0)
+    if (numPts > max)
     {
-        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 1, 2);
-    }
-
-    if (numPts > rng)
-    {
-        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 3);
+        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 2);
     }
 
     if (!pMTState || !pMTState->Initialized())
@@ -4468,10 +4466,10 @@ hwMathStatus RandPerm(int                     min,
         return status;
     }
 
-    if (numPts == rng)
+    if (numPts == max)
     {
-        for (int i = min; i <= max; ++i)
-            permVec(i - min) = i;
+        for (int i = 1; i <= numPts; ++i)
+            permVec(i - 1) = i;
 
         for (int i = 0; i < numPts - 1; ++i)
         {
@@ -4482,22 +4480,119 @@ hwMathStatus RandPerm(int                     min,
             permVec(i)    = temp;
         }
     }
-    else
+    else if (numPts >= max / 5)
     {
-        hwMatrixI index(rng, hwMatrixI::REAL);
+        hwMatrixI index(max, hwMatrixI::REAL);
 
-        for (int i = min; i <= max; ++i)
-            index(i - min) = i;
+        for (int i = 1; i <= max; ++i)
+            index(i - 1) = i;
 
         for (int i = 0; i < numPts; ++i)
         {
-            // get random integer on [i, rng-1] and reorder
-            int indx    = static_cast<int> (floor(uniDist.GetDeviate() * (rng - i))) + i;
+            // get random integer on [i, max-1] and reorder
+            int indx    = static_cast<int> (floor(uniDist.GetDeviate() * (max - i))) + i;
             int temp    = index(indx);
             index(indx) = index(i);
             permVec(i)  = temp;
         }
     }
+    else
+    {
+        // Entries > numPnts are tracked with a map
+        std::unordered_map<int, int> map(numPts);
+        std::vector<int> idx(numPts);
+
+        for (int i = 0; i < numPts; i++)
+            idx[i] = i;
+
+        for (int i = 0; i < numPts; i++)
+        {
+            int k = static_cast<int> (floor(uniDist.GetDeviate() * (max - i))) + i;
+
+            if (k < numPts)
+            {
+                std::swap(idx[i], idx[k]);
+            }
+            else
+            {
+                if (map.find(k) == map.end())
+                    map[k] = k;
+
+                std::swap(idx[i], map[k]);
+            }
+        }
+
+        for (int i = 0; i < numPts; i++)
+            permVec(i) = idx[i] + 1;
+    }
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// Generate a random permutation vector on [1:max]
+//------------------------------------------------------------------------------
+hwMathStatus RandPerm(int64_t                 max,
+                      int                     numPts,
+                      hwMersenneTwisterState* pMTState,
+                      hwMatrixI64&            permVec)
+{
+    // check inputs
+    if (max < 0)
+    {
+        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 1);
+    }
+
+    if (numPts < 0)
+    {
+        return hwMathStatus(HW_MATH_ERR_NONNONNEGINT, 2);
+    }
+
+    if (numPts > max)
+    {
+        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 2);
+    }
+
+    if (!pMTState || !pMTState->Initialized())
+    {
+        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 3);
+    }
+
+    // Fisher-Yates shuffle
+    hwUniform uniDist(pMTState);
+    hwMathStatus status = permVec.Dimension(1, numPts, hwMatrixI64::REAL);
+
+    if (!status.IsOk())
+    {
+        status.ResetArgs();
+        return status;
+    }
+
+    // Entries > numPnts are tracked with a map
+    std::unordered_map<int64_t, int64_t> map(numPts);
+    std::vector<int64_t> idx(numPts);
+
+    for (int i = 0; i < numPts; i++)
+        idx[i] = i;
+
+    for (int i = 0; i < numPts; i++)
+    {
+        int64_t k = static_cast<int64_t> (floor(uniDist.GetDeviate() * (max - i))) + i;
+
+        if (k < numPts)
+        {
+            std::swap(idx[i], idx[k]);
+        }
+        else
+        {
+            if (map.find(k) == map.end())
+                map[k] = k;
+
+            std::swap(idx[i], map[k]);
+        }
+    }
+
+    for (int i = 0; i < numPts; i++)
+        permVec(i) = idx[i] + 1;
 
     return status;
 }

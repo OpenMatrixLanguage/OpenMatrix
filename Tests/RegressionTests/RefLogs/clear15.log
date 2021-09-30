@@ -1,2 +1,2 @@
 foo
-Unknown function: foo at line number 7 in file clear15.oml
+Error: 'foo' is not defined at line number 7 in file clear15.oml

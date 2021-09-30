@@ -1,1 +1,1 @@
-Unknown function: x at line number 1 in file sourcefile6.script in call to function run at line number 1 in file sourcefile6.script
+Error: 'x' is not defined at line number 1 in file sourcefile6.script in call to function run at line number 1 in file sourcefile6.script

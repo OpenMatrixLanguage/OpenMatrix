@@ -41,7 +41,11 @@ int InitDll(EvaluatorInterface eval)
 {
     eval.RegisterBuiltInFunction("beta", OmlBeta, 
                                  FunctionMetaData(2, 1, STATAN));
-    eval.RegisterBuiltInFunction("gamma", OmlGamma, 
+    eval.RegisterBuiltInFunction("betaln", OmlBetaLn,
+                                 FunctionMetaData(2, 1, STATAN));
+    eval.RegisterBuiltInFunction("gamma", OmlGamma,
+                                 FunctionMetaData(1, 1, STATAN));
+    eval.RegisterBuiltInFunction("gammaln", OmlGammaLn,
                                  FunctionMetaData(1, 1, STATAN));
     eval.RegisterBuiltInFunction("factorial", OmlFactorial,
                                  FunctionMetaData(1, 1, STATAN));
@@ -61,40 +65,175 @@ bool OmlBeta(EvaluatorInterface           eval,
     if (inputs.size() != 2)
         throw OML_Error(OML_ERR_NUMARGIN);
 
-    if (inputs[0].IsScalar() && inputs[1].IsScalar())
-        outputs = doBeta(eval, inputs);
+    const Currency& input1 = inputs[0];
+    const Currency& input2 = inputs[1];
+
+    if (input1.IsScalar())
+    {
+        if (input2.IsScalar())
+        {
+            outputs.push_back(BetaFunc(input1.Scalar(), input2.Scalar()));
+        }
+        else if (input2.IsMatrix())
+        {
+            const hwMatrix* mtx2 = input2.Matrix();
+
+            if (!mtx2->IsReal())
+                throw OML_Error(OML_ERR_REAL, 2, OML_VAR_VALUE);
+
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx2->M(), mtx2->N(), hwMatrix::REAL);
+
+            for (int k = 0; k < mtx2->Size(); k++)
+                (*result)(k) = BetaFunc(input1.Scalar(), (*mtx2)(k));
+
+            outputs.push_back(result);
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_SCALARMATRIX, 2, OML_VAR_TYPE);
+        }
+    }
+    else if (input1.IsMatrix())
+    {
+        const hwMatrix* mtx1 = input1.Matrix();
+
+        if (!mtx1->IsReal())
+            throw OML_Error(OML_ERR_REAL, 1, OML_VAR_VALUE);
+
+        int m = mtx1->M();
+        int n = mtx1->N();
+
+        if (input2.IsScalar())
+        {
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+
+            for (int k = 0; k < mtx1->Size(); k++)
+                (*result)(k) = BetaFunc((*mtx1)(k), input2.Scalar());
+
+            outputs.push_back(result);
+        }
+        else if (input2.IsMatrix())
+        {
+            const hwMatrix* mtx2 = input2.Matrix();
+
+            if (!mtx2->IsReal())
+                throw OML_Error(OML_ERR_REAL, 2, OML_VAR_VALUE);
+
+            if (mtx2->M() != m || mtx2->N() != n)
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_VALUE);
+
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+
+            for (int k = 0; k < mtx1->Size(); k++)
+                (*result)(k) = BetaFunc((*mtx1)(k), (*mtx2)(k));
+
+            outputs.push_back(result);
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_SCALARMATRIX, 2, OML_VAR_TYPE);
+        }
+    }
+    else if (input1.IsNDMatrix() || input2.IsNDMatrix())
+    {
+        return oml_MatrixNUtil1(eval, inputs, outputs, OmlBeta);
+    }
     else
-        outputs.push_back(mtxFun(eval, inputs, 1, &doBeta)[0]);
+    {
+        throw OML_Error(OML_ERR_SCALARMATRIX, 1, OML_VAR_TYPE);
+    }
 
     return true;
 }
 //------------------------------------------------------------------------------
-// Executes the beta function and returns outputs
+// Log beta function
 //------------------------------------------------------------------------------
-std::vector<Currency> doBeta(EvaluatorInterface&          eval, 
-                             const std::vector<Currency>& inputs)
+bool OmlBetaLn(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs)
 {
-    if (!inputs[0].IsScalar())
-        throw OML_Error(OML_ERR_SCALAR, 1, OML_VAR_TYPE);
+    if (inputs.size() != 2)
+        throw OML_Error(OML_ERR_NUMARGIN);
 
-    if (!inputs[1].IsScalar())
-        throw OML_Error(OML_ERR_SCALAR, 2, OML_VAR_TYPE);
+    const Currency& input1 = inputs[0];
+    const Currency& input2 = inputs[1];
 
-    double d1 = inputs[0].Scalar();
-    double d2 = inputs[1].Scalar();
-    std::vector<Currency> result;
-
-    if (IsNaN_T<double>(d1) || isinfinity(d1) || 
-        IsNaN_T<double>(d2) || isinfinity(d2))
+    if (input1.IsScalar())
     {
-        result.push_back(std::numeric_limits<double>::quiet_NaN());
+        if (input2.IsScalar())
+        {
+            outputs.push_back(BetaLog(input1.Scalar(), input2.Scalar()));
+        }
+        else if (input2.IsMatrix())
+        {
+            const hwMatrix* mtx2 = input2.Matrix();
+
+            if (!mtx2->IsReal())
+                throw OML_Error(OML_ERR_REAL, 2, OML_VAR_VALUE);
+
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx2->M(), mtx2->N(), hwMatrix::REAL);
+
+            for (int k = 0; k < mtx2->Size(); k++)
+                (*result)(k) = BetaLog(input1.Scalar(), (*mtx2)(k));
+
+            outputs.push_back(result);
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_SCALARMATRIX, 2, OML_VAR_TYPE);
+        }
+    }
+    else if (input1.IsMatrix())
+    {
+        const hwMatrix* mtx1 = input1.Matrix();
+
+        if (!mtx1->IsReal())
+            throw OML_Error(OML_ERR_REAL, 1, OML_VAR_VALUE);
+
+        int m = mtx1->M();
+        int n = mtx1->N();
+
+        if (input2.IsScalar())
+        {
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+
+            for (int k = 0; k < mtx1->Size(); k++)
+                (*result)(k) = BetaLog((*mtx1)(k), input2.Scalar());
+
+            outputs.push_back(result);
+        }
+        else if (input2.IsMatrix())
+        {
+            const hwMatrix* mtx2 = input2.Matrix();
+
+            if (!mtx2->IsReal())
+                throw OML_Error(OML_ERR_REAL, 2, OML_VAR_VALUE);
+
+            if (mtx2->M() != m || mtx2->N() != n)
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_VALUE);
+
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+
+            for (int k = 0; k < mtx1->Size(); k++)
+                (*result)(k) = BetaLog((*mtx1)(k), (*mtx2)(k));
+
+            outputs.push_back(result);
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_SCALARMATRIX, 2, OML_VAR_TYPE);
+        }
+    }
+    else if (input1.IsNDMatrix() || input2.IsNDMatrix())
+    {
+        return oml_MatrixNUtil1(eval, inputs, outputs, OmlBeta);
     }
     else
     {
-        result.push_back(BetaFunc(d1, d2));
+        throw OML_Error(OML_ERR_SCALARMATRIX, 1, OML_VAR_TYPE);
     }
 
-    return result;
+    return true;
 }
 //------------------------------------------------------------------------------
 //  Gamma function
@@ -106,53 +245,83 @@ bool OmlGamma(EvaluatorInterface           eval,
     if (inputs.size() != 1)
         throw OML_Error(OML_ERR_NUMARGIN);
 
-    if (inputs[0].IsScalar())
-        outputs = doGamma(eval, inputs);
+    const Currency& input = inputs[0];
+
+    if (input.IsScalar())
+    {
+        outputs.push_back(GammaFunc(input.Scalar()));
+    }
+    else if (input.IsMatrix())
+    {
+        const hwMatrix* mtx = input.Matrix();
+
+        if (!mtx->IsReal())
+            throw OML_Error(OML_ERR_REAL, 1, OML_VAR_VALUE);
+
+        hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), hwMatrix::REAL);
+
+        for (int k = 0; k < mtx->Size(); k++)
+            (*result)(k) = GammaFunc((*mtx)(k));
+
+        outputs.push_back(result);
+    }
+    else if (input.IsNDMatrix())
+    {
+        return oml_MatrixNUtil1(eval, inputs, outputs, OmlGamma);
+    }
     else
-        outputs.push_back(mtxFun(eval, inputs, 1, &doGamma)[0]);
+    {
+        throw OML_Error(OML_ERR_SCALARMATRIX, -1, OML_VAR_TYPE);
+    }
 
     return true;
 }
 //------------------------------------------------------------------------------
-// Executes the gamma function and returns outputs
+//  Log gamma function
 //------------------------------------------------------------------------------
-std::vector<Currency> doGamma(EvaluatorInterface&          eval, 
-                              const std::vector<Currency>& inputs)
-{
-    if (!inputs[0].IsScalar())
-        throw OML_Error(OML_ERR_SCALAR, 1, OML_VAR_TYPE);
-
-    std::vector<Currency> result;
-    result.push_back(GammaFunc(inputs[0].Scalar()));
-    return result;
-}
-//------------------------------------------------------------------------------
-//  Factorial function
-//------------------------------------------------------------------------------
-bool OmlFactorial(EvaluatorInterface           eval,
-                  const std::vector<Currency>& inputs,
-                  std::vector<Currency>&       outputs)
+bool OmlGammaLn(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
 {
     if (inputs.size() != 1)
         throw OML_Error(OML_ERR_NUMARGIN);
 
-    if (inputs[0].IsScalar())
-        outputs = doFactorial(eval, inputs);
+    const Currency& input = inputs[0];
+
+    if (input.IsScalar())
+    {
+        outputs.push_back(GammaLog(input.Scalar()));
+    }
+    else if (input.IsMatrix())
+    {
+        const hwMatrix* mtx = input.Matrix();
+
+        if (!mtx->IsReal())
+            throw OML_Error(OML_ERR_REAL, 1, OML_VAR_VALUE);
+
+        hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), hwMatrix::REAL);
+
+        for (int k = 0; k < mtx->Size(); k++)
+            (*result)(k) = GammaLog((*mtx)(k));
+
+        outputs.push_back(result);
+    }
+    else if (input.IsNDMatrix())
+    {
+        return oml_MatrixNUtil1(eval, inputs, outputs, OmlGamma);
+    }
     else
-        outputs.push_back(mtxFun(eval, inputs, 1, &doFactorial)[0]);
+    {
+        throw OML_Error(OML_ERR_SCALARMATRIX, -1, OML_VAR_TYPE);
+    }
 
     return true;
 }
 //------------------------------------------------------------------------------
 // Executes the factorial function and returns outputs
 //------------------------------------------------------------------------------
-std::vector<Currency> doFactorial(EvaluatorInterface&          eval,
-                                  const std::vector<Currency>& inputs)
+double Factorial(double k)
 {
-    if (!inputs[0].IsInteger())
-        throw OML_Error(OML_ERR_NATURALNUM, 1, OML_VAR_TYPE);
-
-    double k = inputs[0].Scalar();
     double factorial;
 
     if (k < 0.0)
@@ -180,9 +349,48 @@ std::vector<Currency> doFactorial(EvaluatorInterface&          eval,
         factorial = floor(GammaFunc(k + 1.0) + 0.5);
     }
 
-    std::vector<Currency> result;
-    result.push_back(factorial);
-    return result;
+    return factorial;
+}
+//------------------------------------------------------------------------------
+//  Factorial function
+//------------------------------------------------------------------------------
+bool OmlFactorial(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 1)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    const Currency& input = inputs[0];
+
+    if (input.IsScalar())
+    {
+        outputs.push_back(Factorial(input.Scalar()));
+    }
+    else if (input.IsMatrix())
+    {
+        const hwMatrix* mtx = input.Matrix();
+
+        if (!mtx->IsReal())
+            throw OML_Error(OML_ERR_POSINTEGER, 1, OML_VAR_VALUE);
+
+        hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), hwMatrix::REAL);
+
+        for (int k = 0; k < mtx->Size(); k++)
+            (*result)(k) = Factorial((*mtx)(k));
+
+        outputs.push_back(result);
+    }
+    else if (input.IsNDMatrix())
+    {
+        return oml_MatrixNUtil1(eval, inputs, outputs, OmlFactorial);
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_SCALARMATRIX, -1, OML_VAR_TYPE);
+    }
+
+    return true;
 }
 //------------------------------------------------------------------------------
 // Divides range of data into given number of equal bins aand returns true
@@ -261,7 +469,7 @@ bool OmlRat(EvaluatorInterface           eval,
             #if defined(_DARWIN) || defined(LINUX)
               char* argChar;
             #else
-              char argChar[25];
+              char argChar[313];
             #endif
 
             if (cfTerms(0) != 0.0)
@@ -269,7 +477,7 @@ bool OmlRat(EvaluatorInterface           eval,
                 #if defined(_DARWIN) || defined(LINUX)
                   argChar = fcvt(cfTerms(0), 0, &decimal, &sign);
                 #else
-                  _fcvt_s(argChar, 25, cfTerms(0), 0, &decimal, &sign);
+                  _fcvt_s(argChar, 313, cfTerms(0), 0, &decimal, &sign);
                 #endif
 
                 if (!sign)
@@ -287,7 +495,7 @@ bool OmlRat(EvaluatorInterface           eval,
                 #if defined(_DARWIN) || defined(LINUX)
                   argChar = fcvt(cfTerms(i), 0, &decimal, &sign);
                 #else
-                  _fcvt_s(argChar, 25, cfTerms(i), 0, &decimal, &sign);
+                  _fcvt_s(argChar, 313, cfTerms(i), 0, &decimal, &sign);
                 #endif
 
                 if (!sign)
@@ -301,7 +509,7 @@ bool OmlRat(EvaluatorInterface           eval,
                 #if defined(_DARWIN) || defined(LINUX)
                   argChar = fcvt(cfTerms(cfsize - 1), 0, &decimal, &sign);
                 #else
-                  _fcvt_s(argChar, 25, cfTerms(cfsize - 1), 0, &decimal, &sign);
+                  _fcvt_s(argChar, 313, cfTerms(cfsize - 1), 0, &decimal, &sign);
                 #endif
 
                 if (!sign)
@@ -352,7 +560,7 @@ bool OmlRat(EvaluatorInterface           eval,
                 #if defined(_DARWIN) || defined(LINUX)
                   char* argChar;
                 #else
-                  char argChar[25];
+                  char argChar[313];
                 #endif
 
                 if (cfTerms(0) != 0.0)
@@ -360,7 +568,7 @@ bool OmlRat(EvaluatorInterface           eval,
                     #if defined(_DARWIN) || defined(LINUX)
                       argChar = fcvt(cfTerms(0), 0, &decimal, &sign);
                     #else
-                      _fcvt_s(argChar, 25, cfTerms(0), 0, &decimal, &sign);
+                      _fcvt_s(argChar, 313, cfTerms(0), 0, &decimal, &sign);
                     #endif
 
                     if (!sign)
@@ -378,7 +586,7 @@ bool OmlRat(EvaluatorInterface           eval,
                     #if defined(_DARWIN) || defined(LINUX)
                       argChar = fcvt(cfTerms(j), 0, &decimal, &sign);
                     #else
-                      _fcvt_s(argChar, 25, cfTerms(j), 0, &decimal, &sign);
+                      _fcvt_s(argChar, 313, cfTerms(j), 0, &decimal, &sign);
                     #endif
 
                     if (!sign)
@@ -392,7 +600,7 @@ bool OmlRat(EvaluatorInterface           eval,
                     #if defined(_DARWIN) || defined(LINUX)
                       argChar = fcvt(cfTerms(cfsize-1), 0, &decimal, &sign);
                     #else
-                      _fcvt_s(argChar, 25, cfTerms(cfsize-1), 0, &decimal, &sign);
+                      _fcvt_s(argChar, 313, cfTerms(cfsize-1), 0, &decimal, &sign);
                     #endif
 
                     if (!sign)
