@@ -610,7 +610,7 @@ bool BuiltInFuncsConvert::De2Bi(EvaluatorInterface           eval,
                                 const std::vector<Currency>& inputs,
                                 std::vector<Currency>&       outputs)
 {
-    if (inputs.empty()) 
+    if (inputs.empty())
     {
         throw OML_Error(OML_ERR_NUMARGIN);
     }
@@ -629,11 +629,7 @@ bool BuiltInFuncsConvert::De2Bi(EvaluatorInterface           eval,
         {
             throw OML_Error(OML_ERR_NATURALNUM, 1, OML_VAR_TYPE);
         }
-        double val = static_cast<int>(cur1.Scalar());
-        if (!IsValidNaturalNumber(val))
-        {
-            throw OML_Error(OML_ERR_NATURALNUM, 1, OML_VAR_TYPE);
-        }
+        double val = cur1.Scalar();
         mtx.reset(EvaluatorInterface::allocateMatrix(1, 1, val));
     }
     else
@@ -670,7 +666,7 @@ bool BuiltInFuncsConvert::De2Bi(EvaluatorInterface           eval,
             {
                 throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_TYPE);
             }
-        }        
+        }
     }
 
     int base = 2;
@@ -695,7 +691,7 @@ bool BuiltInFuncsConvert::De2Bi(EvaluatorInterface           eval,
         {
             throw OML_Error(OML_ERR_STRING, 4, OML_VAR_TYPE);
         }
-        std::string msb (inputs[3].StringVal());
+        std::string msb(inputs[3].StringVal());
         if (!msb.empty())
         {
             std::transform(msb.begin(), msb.end(), msb.begin(), ::tolower);
@@ -706,7 +702,7 @@ bool BuiltInFuncsConvert::De2Bi(EvaluatorInterface           eval,
         }
         else if (msb != "right-msb")
         {
-            std::string err ("Error: invalid option in argument 4; must be ");
+            std::string err("Error: invalid option in argument 4; must be ");
             err += "either 'right-msb' or 'left-msb'";
             throw OML_Error(err);
         }
@@ -716,95 +712,188 @@ bool BuiltInFuncsConvert::De2Bi(EvaluatorInterface           eval,
     int m = mtx->Size();
     int n = std::max(numcols, 1);
 
-    std::unique_ptr<hwMatrix> out (EvaluatorInterface::allocateMatrix(
-                                   m, n, hwMatrix::REAL));
+    std::unique_ptr<hwMatrix> out(EvaluatorInterface::allocateMatrix(
+                                  m, n, hwMatrix::REAL));
+
     out->SetElements(0);
 
-    for (int i = 0; i < m; ++i)
+    if (base <= 10)  // original code, uses string storage
     {
-        int val = static_cast<int>((*mtx)(i));
-        if (!IsValidNaturalNumber(val))
+        for (int i = 0; i < m; ++i)
         {
-            throw OML_Error(OML_ERR_NNINTVECTOR, 1, OML_VAR_VALUE);
-        }
-
-        // Convert the input
-        std::string strout;
-        int itr    = 1;
-        while (val != 0)
-        {
-            int rem = val % base;
-
-            val    /= base;
-            itr    *= 10;
-            strout += std::to_string(static_cast<long long>(rem));
-        }
-        if (strout.empty())
-        {
-            strout = "0";
-        }
-
-        if (leftmsb)
-        {
-            std::reverse(strout.begin(), strout.end());
-        }
-
-        // Get the correct number of bits to display if output dimensions are 
-        // specified
-        int len = static_cast<int>(strout.size());
-        if (leftmsb && numcols != -1 && len >= numcols)
-        {
-            strout = strout.substr(len - numcols);
-            len = static_cast<int>(strout.size());
-
-        }
-
-        // Push the output to the matrix
-        n = out->N();
-        if (numcols == -1 && len > n)
-        {
-            if (!leftmsb)
+            if (!IsValidNaturalNumber((*mtx)(i)))
             {
-                // Zeros will be padded to the right of existing data
-                utils.CheckMathStatus(eval, out->Resize(m, len, true));
+                if (m == 1)
+                    throw OML_Error(OML_ERR_NATURALNUM, 1, OML_VAR_VALUE);
+                else
+                    throw OML_Error(OML_ERR_NNINTVECTOR, 1, OML_VAR_TYPE);
             }
+            long long val = static_cast<long long>((*mtx)(i));
+
+            // Convert the input
+            std::string strout;
+            while (val != 0)
+            {
+                int rem = val % base;
+                val /= base;
+                strout += std::to_string(static_cast<int>(rem));
+            }
+            if (strout.empty())
+            {
+                strout = "0";
+            }
+
             if (leftmsb)
             {
-                // Zeros will be padded to the left, before existing data
-                hwMatrix* tmpmtx = EvaluatorInterface::allocateMatrix(out.get());
-                out.reset(EvaluatorInterface::allocateMatrix(m, len, 
-                    hwMatrix::REAL));
-                out->SetElements(0);
-                
-                int startcol = len - n;
-                for (int ii = 0; ii < i; ++ii)
-                {
-                    for (int jj = 0; jj < n; ++jj)
-                    {
-                        (*out)(ii, jj + startcol) = (*tmpmtx)(ii, jj);
-                    }
-                }
-                delete tmpmtx;
-                tmpmtx = nullptr;
+                std::reverse(strout.begin(), strout.end());
             }
-        }
 
-        n = out->N();
-        int startcol = 0;
-        if (leftmsb && n > len)
-        {
-            startcol = n - len;
-        }
-        for (int j = 0; j < len; ++j)
-        {
-            if (j + startcol >= n)
+            // Get the correct number of bits to display if output dimensions are 
+            // specified
+            int len = static_cast<int>(strout.size());
+            if (leftmsb && numcols != -1 && len >= numcols)
             {
-                break;
+                strout = strout.substr(len - numcols);
+                len = static_cast<int>(strout.size());
             }
-            int ival = int(strout[j]) - 48;  // Value of 0 is 48 in ascii
-            (*out)(i, j + startcol) = ival;
+
+            // Push the output to the matrix
+            n = out->N();
+            if (numcols == -1 && len > n)
+            {
+                if (!leftmsb)
+                {
+                    // Zeros will be padded to the right of existing data
+                    utils.CheckMathStatus(eval, out->Resize(m, len, true));
+                }
+                if (leftmsb)
+                {
+                    // Zeros will be padded to the left, before existing data
+                    hwMatrix* tmpmtx = EvaluatorInterface::allocateMatrix(out.get());
+                    out.reset(EvaluatorInterface::allocateMatrix(m, len,
+                        hwMatrix::REAL));
+                    out->SetElements(0);
+
+                    int startcol = len - n;
+                    for (int ii = 0; ii < i; ++ii)
+                    {
+                        for (int jj = 0; jj < n; ++jj)
+                        {
+                            (*out)(ii, jj + startcol) = (*tmpmtx)(ii, jj);
+                        }
+                    }
+                    delete tmpmtx;
+                    tmpmtx = nullptr;
+                }
+            }
+
+            n = out->N();
+            int startcol = 0;
+            if (leftmsb && n > len)
+            {
+                startcol = n - len;
+            }
+            for (int j = 0; j < len; ++j)
+            {
+                if (j + startcol >= n)
+                {
+                    break;
+                }
+
+                int ival = int(strout[j]) - 48;  // Value of 0 is 48 in ascii
+                (*out)(i, j + startcol) = ival;
+            }
         }
     }
+    else   // base > 9, uses vector storage
+    {
+        for (int i = 0; i < m; ++i)
+        {
+            if (!IsValidNaturalNumber((*mtx)(i)))
+            {
+                if (m == 1)
+                    throw OML_Error(OML_ERR_NATURALNUM, 1, OML_VAR_VALUE);
+                else
+                    throw OML_Error(OML_ERR_NNINTVECTOR, 1, OML_VAR_TYPE);
+            }
+            long long val = static_cast<long long>((*mtx)(i));
+
+            // Convert the input
+            std::vector<int> vecout;
+
+            while (val != 0)
+            {
+                int rem = val % base;
+                val /= base;
+                vecout.push_back(rem);
+            }
+            if (vecout.empty())
+            {
+                vecout.push_back(0);
+            }
+
+            if (leftmsb)
+            {
+                std::reverse(vecout.begin(), vecout.end());
+            }
+
+            // Get the correct number of bits to display if output dimensions are 
+            // specified
+            int len = static_cast<int>(vecout.size());
+            if (leftmsb && numcols != -1 && len >= numcols)
+            {
+                vecout.erase(vecout.begin(), vecout.begin() + (len - numcols));
+                len = static_cast<int>(vecout.size());
+            }
+
+            // Push the output to the matrix
+            n = out->N();
+            if (numcols == -1 && len > n)
+            {
+                if (!leftmsb)
+                {
+                    // Zeros will be padded to the right of existing data
+                    utils.CheckMathStatus(eval, out->Resize(m, len, true));
+                }
+                if (leftmsb)
+                {
+                    // Zeros will be padded to the left, before existing data
+                    hwMatrix* tmpmtx = EvaluatorInterface::allocateMatrix(out.get());
+                    out.reset(EvaluatorInterface::allocateMatrix(m, len,
+                        hwMatrix::REAL));
+                    out->SetElements(0);
+
+                    int startcol = len - n;
+                    for (int ii = 0; ii < i; ++ii)
+                    {
+                        for (int jj = 0; jj < n; ++jj)
+                        {
+                            (*out)(ii, jj + startcol) = (*tmpmtx)(ii, jj);
+                        }
+                    }
+                    delete tmpmtx;
+                    tmpmtx = nullptr;
+                }
+            }
+
+            n = out->N();
+            int startcol = 0;
+            if (leftmsb && n > len)
+            {
+                startcol = n - len;
+            }
+            for (int j = 0; j < len; ++j)
+            {
+                if (j + startcol >= n)
+                {
+                    break;
+                }
+
+                (*out)(i, j + startcol) = vecout[j];
+            }
+        }
+    }
+
     outputs.push_back(out.release());
     return true;
 } 

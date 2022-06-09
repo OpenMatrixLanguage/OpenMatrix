@@ -321,6 +321,7 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
             }
 
             m_linesPrinted++;
+            linesprinted = true;
             if (m_linesPrinted >= m_maxRows - 1 && i < totalrows - 1)
             {
                 totalrows = std::min(totalrows, i + 1);
@@ -332,7 +333,6 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
                 }
                 break;
             }
-            linesprinted = true;
         }
         if (quitearly)
         {
@@ -340,6 +340,7 @@ std::string MatrixDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
         }
         m_rowEnd = std::max(totalrows-1, 0);
         m_colEnd = std::max(totalcols-1, 0);
+
         lastrow  = m_rowEnd;
         lastcol  = m_colEnd;
         if (!skipFirstHeader)
@@ -546,10 +547,9 @@ std::string MatrixDisplay::GetOutputBackPagination(const OutputFormat* fmt) cons
                 int iwidth = GetImagWidth(j, isrealdata);
                 GetOutput(i, j, rwidth, iwidth, isReal, isrealdata, data);
                 
-                if (j != maxcols -1)
-                {
-                    data += _delimiter;
-                }
+                // Since this is back pagination, we always need delimiter
+                data += _delimiter;
+                
                 linesprinted = true;
             }
             data += '\n';
@@ -707,21 +707,23 @@ std::string MatrixDisplay::RealToString(double val, DisplayFormat fmt) const
 //------------------------------------------------------------------------------
 void MatrixDisplay::SetForwardDisplayData()
 {
-	if (IsPaginatingCols()) // Col pagination	
-		m_colBegin = m_colEnd + 1;
-
+    if (IsPaginatingCols()) // Col pagination	
+    {
+        m_colBegin = m_colEnd + 1;
+    }
 	else if (IsPaginatingRows()) // Row pagination
 	{
         m_colBegin = 0;    // Start row pagination
 		m_rowBegin = m_rowEnd + 1;
+
+        // Reset the end indices
+        m_colEnd = 0;
+        m_rowEnd = 0;
 	}
     // Make sure indices are positive
     m_rowBegin = std::max(m_rowBegin, 0);
     m_colBegin = std::max(m_colBegin, 0);
 
-    // Reset the end indices
-    m_colEnd = 0;
-    m_rowEnd = 0;
 
     // Figure out how many lines have been printed and set it
     //if (!m_parentDisplay ||                // First currency being paginated
@@ -749,6 +751,9 @@ void MatrixDisplay::SetBackDisplayData()
 		m_rowEnd = m_rowBegin - 1;
 		m_colEnd = numcols - 1; // Start row pagination
 	}
+    // Make sure indices are positive
+    m_rowBegin = std::max(m_rowBegin, 0);
+    m_colBegin = std::max(m_colBegin, 0);
 }
 //------------------------------------------------------------------------------
 // Sets indices for right pagination
@@ -925,7 +930,10 @@ int MatrixDisplay::GetNumColumnsToFit(int  refcol,
                 linewidth += colpadsize;
 
             linewidth += rwidth + signwidth + iwidth;
-            if (linewidth > m_maxCols) return colstofit;
+            if (linewidth >= m_maxCols - 2)
+            {
+                return colstofit; // Take into account the line delimiter
+            }
 
             colstofit++;
         }
@@ -1241,7 +1249,7 @@ std::string MatrixDisplay::GetOutputValues(const Currency&     in,
         double      ival = 0.0;
         std::string isign;
         GetComplexNumberVals(in.Complex(), rval, ival, isign);
-        std::string output = RealToString(rval, precisionreal) + isign;
+        std::string output = RealToString(rval, precisionreal) + isign +
                              RealToString(ival, precisionimag) + "i";
         return output;
     }
@@ -1480,20 +1488,32 @@ int MatrixDisplay::GetImagWidth(int idx, bool isreal) const
     return _imagwidth[idx];
 }
 //------------------------------------------------------------------------------
-// Utility which returns matrix values as string, without formatting output
+// Utility which writes matrix values, without formatting output
 //------------------------------------------------------------------------------
-std::string MatrixDisplay::GetNonFormattedOutputValues(const Currency& in,
-    const std::string& rdelim,
-    const std::string& cdelim,
-    int                 coffset)
+void MatrixDisplay::WriteNonFormattedOutputValues(const Currency&    in,
+                                                  const std::string& rdelim,
+                                                  const std::string& cdelim,
+                                                  int                coffset,
+                                                  std::FILE*         fp)
 {
+    assert(fp);
+    if (!fp)
+    {
+        return;
+    }
     if (in.IsScalar())
     {
-        return NonFormattedDoubleToString(in.Scalar());
+        std::string data(NonFormattedDoubleToString(in.Scalar()));
+        fwrite(data.c_str(), sizeof(char), data.size(), fp);
+        fflush(fp);
+        return ;
     }
     else if (in.IsComplex())
     {
-        return NonFormattedComplexToString(in.Complex());
+        std::string data(NonFormattedComplexToString(in.Complex()));
+        fwrite(data.c_str(), sizeof(char), data.size(), fp);
+        fflush(fp);
+        return;
     }
     else if (in.IsMatrix()) // Just get the values without format
     {
@@ -1502,10 +1522,10 @@ std::string MatrixDisplay::GetNonFormattedOutputValues(const Currency& in,
         int             ncols = mtx ? mtx->N() : 0;
         if (!mtx || nrows == 0 || ncols == 0)
         {
-            return "";
+            return;
+           //return "";
         }
 
-        std::string output;
         std::string coffsetstr;
         for (int k = 0; k < coffset && k < ncols; ++k)
         {
@@ -1517,7 +1537,7 @@ std::string MatrixDisplay::GetNonFormattedOutputValues(const Currency& in,
 
         for (int i = 0; i < nrows; ++i)
         {
-            output += coffsetstr;
+            std::string output (coffsetstr);
             for (int j = 0; j < ncols; ++j)
             {
                 if (isreal)
@@ -1538,10 +1558,12 @@ std::string MatrixDisplay::GetNonFormattedOutputValues(const Currency& in,
                 }
             }
             output += rdelim;
+
+            fwrite(output.c_str(), sizeof(char), output.size(), fp);
         }
-        return output;
+        fflush(fp);
     }
-    return "";
+    //return "";
 }
 
 // End of file

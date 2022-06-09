@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsUtils.h
 * @date November 2015
-* Copyright (C) 2015-2021 Altair Engineering, Inc.  
+* Copyright (C) 2015-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -103,6 +103,11 @@ public:
     //! \param path Given absolute path
     //!
     static bool IsDir( const std::string& path);
+    //!
+    //! Returns true if the given absolute path is a file
+    //! \param path Given absolute path
+    //!
+    static bool IsFile(const std::string& path);
     //! Returns base directory of the given path/file
     //! \param path Given path/file
     //!
@@ -364,6 +369,9 @@ public:
     //! \param path Given path
     //!
     void AddTrailingSlashW(std::wstring& path);
+
+    static std::wstring GetFileContentsW(const std::wstring&);
+
 #endif
     //!
     //! Returns extension for a given file name
@@ -496,6 +504,13 @@ public:
     //! \param Filename
     //!
     static std::string GetFileContents(const std::string&);
+    //!
+    //! Clears variable with default name "ans" from the current scope in the evaluator
+    //! \param Evaluator Interface
+    //! \param Variable name
+    //! 
+    static void ClearAnsVariable(EvaluatorInterface, const std::string&);
+
 private: 
     //!
     //! Reads formatted input and returns true if successful

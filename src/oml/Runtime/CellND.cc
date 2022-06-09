@@ -9,303 +9,156 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
 template<> inline
 void hwTMatrixN<Currency, void*>::CopyMatrixLHS(const hwTMatrixN<Currency, void*>& rhsMatrix)
 {
-	// determine dimension at which discontiguity occurs
-	int discontiguity = (int)rhsMatrix.m_dim.size();
+    // determine the best approach, depending on whether the slicing involves
+    // contiguous or equally spaced memory.
+    // 0. leading contiguous dimensions
+    // 1. largest equally spaced dimension
+    int S_case;
+    int keyDim[2]{ -1, -1 };
+    int keySize[2]{ 1,  1 };
 
-	for (int i = 0; i < rhsMatrix.m_dim.size(); ++i)
-	{
-		if (m_dim[i] != rhsMatrix.m_dim[i])
-		{
-			discontiguity = i;
-			break;
-		}
-	}
+    for (int i = 0; i < rhsMatrix.m_dim.size(); ++i)
+    {
+        if (i == keyDim[0] + 1 && m_dim[i] == rhsMatrix.m_dim[i])
+        {
+            keyDim[0] = i;
+            keySize[0] *= rhsMatrix.m_dim[i];
+        }
 
-	// simulate nested loops to iterate over the rhsMatrix elements
+        if (m_dim[i] >= keySize[1])
+        {
+            keyDim[1] = i;
+            keySize[1] = rhsMatrix.m_dim[i];
+        }
+    }
+
+    if (keySize[0] >= keySize[1])
+        S_case = 0;
+    else
+        S_case = 1;
+
+    // simulate nested loops to iterate over the rhsMatrix elements
 	// in order of contiguous memory location, copying blocks where possible
-	int size = rhsMatrix.Size();
+    m_lhsMatrixIndex.clear();
+    m_rhsMatrixIndex.clear();
+    m_lhsMatrixIndex.resize(m_dim.size());
+    m_rhsMatrixIndex.resize(rhsMatrix.m_dim.size());
 
-	m_rhsMatrixIndex.clear();
-	m_rhsMatrixIndex.resize(m_dim.size());
+    int size = rhsMatrix.Size();
+    int startIndx = (S_case == 0) ? keyDim[0] + 1 : 0;
+    int strideLHS = (S_case == 0) ? 1 : Stride(keyDim[S_case]);
+    int strideRHS = (S_case == 0) ? 1 : rhsMatrix.Stride(keyDim[S_case]);
 
 	for (int i = 0; i < size; ++i)
 	{
-		if (discontiguity == 0)
-		{
-			(*this)(m_rhsMatrixIndex) = rhsMatrix(i);
-		}
-		else
-		{
-			SetMemoryPosition(m_rhsMatrixIndex);    // update m_pos
-			CopyBlockLHS(i, discontiguity, rhsMatrix, false);
-			--i;
-		}
+        // determine the best approach, depending on whether the slicing involves
+        // contiguous or equally spaced memory.
+        // 0. leading contiguous dimensions
+        // 1. largest equally spaced dimension
+        int S_case;
+        int keyDim[2]{ -1, -1 };
+        int keySize[2]{ 1,  1 };
 
-		// advance rhs matrix indices
-		for (int j = discontiguity; j < rhsMatrix.m_dim.size(); ++j)
-		{
-			// increment index j if possible
-			if (m_rhsMatrixIndex[j] < (int)rhsMatrix.m_dim[j] - 1)
-			{
-				++m_rhsMatrixIndex[j];
-				break;
-			}
+        for (int i = 0; i < rhsMatrix.m_dim.size(); ++i)
+        {
+            if (i == keyDim[0] + 1 && m_dim[i] == rhsMatrix.m_dim[i])
+            {
+                keyDim[0] = i;
+                keySize[0] *= rhsMatrix.m_dim[i];
+            }
 
-			// index j is maxed out, so reset and continue to j+1
-			m_rhsMatrixIndex[j] = 0;
-		}
-	}
+            if (m_dim[i] >= keySize[1])
+            {
+                keyDim[1] = i;
+                keySize[1] = rhsMatrix.m_dim[i];
+            }
+        }
+
+        if (keySize[0] >= keySize[1])
+            S_case = 0;
+        else
+            S_case = 1;
+
+        // simulate nested loops to iterate over the rhsMatrix elements
+        // in order of contiguous memory location, copying blocks where possible
+        m_lhsMatrixIndex.clear();
+        m_rhsMatrixIndex.clear();
+        m_lhsMatrixIndex.resize(m_dim.size());
+        m_rhsMatrixIndex.resize(rhsMatrix.m_dim.size());
+
+        int size = rhsMatrix.Size();
+        int startIndx = (S_case == 0) ? keyDim[0] + 1 : 0;
+        int strideLHS = (S_case == 0) ? 1 : Stride(keyDim[S_case]);
+        int strideRHS = (S_case == 0) ? 1 : rhsMatrix.Stride(keyDim[S_case]);
+
+        for (int i = 0; i < size; ++i)
+        {
+            int startLHS = Index(m_lhsMatrixIndex);
+            int startRHS = rhsMatrix.Index(m_rhsMatrixIndex);
+
+            CopyData(m_real + startLHS, strideLHS, rhsMatrix.m_real + startRHS, strideRHS, keySize[S_case]);
+            i += keySize[S_case] - 1;
+
+            // advance rhs matrix indices
+            for (int j = startIndx; j < rhsMatrix.m_dim.size(); ++j)
+            {
+                // increment index j if possible
+                if (m_rhsMatrixIndex[j] < (int)rhsMatrix.m_dim[j] - 1)
+                {
+                    ++m_lhsMatrixIndex[j];
+                    ++m_rhsMatrixIndex[j];
+                    break;
+                }
+
+                // index j is maxed out, so reset and continue to j+1
+                m_lhsMatrixIndex[j] = 0;
+                m_rhsMatrixIndex[j] = 0;
+            }
+        }
+    }
 }
 
 //! Grow a matrix
 template<> inline
-void hwTMatrixN<Currency, void*>::GrowLHSMatrix(const std::vector<hwSliceArg>& sliceArg, int& numSlices,
-	const hwTMatrixN<Currency, void*>* rhsMatrix, bool rule2)
+void hwTMatrixN<Currency, void*>::GrowLHSMatrix(const std::vector<int>& newDim)
 {
 	// create matrix with expanded dimensions
-	int common = _min(numSlices, (int)m_dim.size());
-	int rhsIndex = 0;
-	std::vector<int> newDim(m_dim.size());
-
-	for (int i = 0; i < common; ++i)
-	{
-		if (sliceArg[i].IsScalar())
-		{
-			if (sliceArg[i].Scalar() > m_dim[i] - 1)
-				newDim[i] = sliceArg[i].Scalar() + 1;
-			else
-				newDim[i] = m_dim[i];
-		}
-		else if (sliceArg[i].IsColon())
-		{
-			if (rhsMatrix)
-			{
-				// get next non-singleton RHS dimension
-				while (rule2 && rhsIndex < rhsMatrix->m_dim.size() && rhsMatrix->m_dim[rhsIndex] == 1)
-					++rhsIndex;
-
-				if (rhsIndex < rhsMatrix->m_dim.size())
-				{
-					if (m_dim[i] == 0)
-						newDim[i] = rhsMatrix->m_dim[rhsIndex];
-					else if (m_dim[i] == rhsMatrix->m_dim[rhsIndex])
-						newDim[i] = m_dim[i];
-					else
-						throw hwMathException(HW_MATH_ERR_SLICE_INDEX);
-
-					++rhsIndex;
-				}
-				else if (m_dim[i] < 2)
-				{
-					newDim[i] = 1;
-				}
-				else
-				{
-					throw hwMathException(HW_MATH_ERR_SLICE_INDEX);
-				}
-			}
-			else
-			{
-				if (m_dim[i] == 0)
-					newDim[i] = 1;
-				else
-					newDim[i] = m_dim[i];
-			}
-		}
-		else if (sliceArg[i].IsVector())
-		{
-			if (rhsMatrix)
-			{
-				// get next non-singleton RHS dimension
-				while (rule2 && rhsIndex < rhsMatrix->m_dim.size() && rhsMatrix->m_dim[rhsIndex] == 1)
-					++rhsIndex;
-			}
-
-			int max = m_dim[i] - 1;
-
-			for (int j = 0; j < sliceArg[i].Vector().size(); ++j)
-			{
-				if (sliceArg[i].Vector()[j] > max)
-					max = sliceArg[i].Vector()[j];
-			}
-
-			if (max > m_dim[i] - 1)
-				newDim[i] = max + 1;
-			else
-				newDim[i] = m_dim[i];
-
-			if (rhsMatrix)
-				++rhsIndex;
-		}
-	}
-
-	for (int i = common; i < numSlices; ++i)
-	{
-		if (sliceArg[i].IsScalar())
-		{
-			newDim.push_back(sliceArg[i].Scalar() + 1);
-		}
-		else if (sliceArg[i].IsColon())
-		{
-			if (rhsMatrix)
-			{
-				// get next non-singleton RHS dimension
-				while (rule2 && rhsIndex < rhsMatrix->m_dim.size() && rhsMatrix->m_dim[rhsIndex] == 1)
-					++rhsIndex;
-
-				if (rhsIndex < rhsMatrix->m_dim.size())
-					newDim.push_back(rhsMatrix->m_dim[rhsIndex]);
-				else
-					newDim.push_back(1);
-			}
-			else
-			{
-				newDim.push_back(1);
-			}
-
-			if (rhsMatrix)
-				++rhsIndex;
-		}
-		else if (sliceArg[i].IsVector())
-		{
-			if (rhsMatrix)
-			{
-				// get next non-singleton RHS dimension
-				while (rule2 && rhsIndex < rhsMatrix->m_dim.size() && rhsMatrix->m_dim[rhsIndex] == 1)
-					++rhsIndex;
-			}
-
-			int max = -1;
-
-			for (int j = 0; j < sliceArg[i].Vector().size(); ++j)
-			{
-				if (sliceArg[i].Vector()[j] > max)
-					max = sliceArg[i].Vector()[j];
-			}
-
-			newDim.push_back(max + 1);
-
-			if (rhsMatrix)
-				++rhsIndex;
-		}
-	}
-
-	for (int i = numSlices; i < m_dim.size(); ++i)
-		newDim[i] = m_dim[i];
-
-	// discard any singleton dimensions that may have been created
-	// due to excess colon and "1" slices
-	while (newDim.size() > 2 && newDim.back() == 1)
-	{
-		newDim.pop_back();
-		numSlices--;
-	}
-
-	// this section should be in SetCapacity(), but getting it there
-	// requires rethinking the allocation/copy functionality.
-	// simply change dimensions if capacity is sufficient, and only
-	// zero or singleton dimensions beyond the first change are allowed
-	// and can also be changed (to ensure a simple contiguous copy).
 	int numDims = (int)m_dim.size();
-	int firstChangedDim = -1;
-	bool capacityIsOK = true;
 
-	for (int i = 0; i < numDims; ++i)
-	{
-		if (newDim[i] != m_dim[i])  // find first changed dimension
-		{
-			firstChangedDim = i;
-			break;
-		}
-	}
-
-	if (firstChangedDim != -1)
-	{
-		for (int i = firstChangedDim + 1; i < numDims; ++i)
-		{
-			if (m_dim[i] > 1) // zero or singleton dimensions only
-			{
-				capacityIsOK = false;
-				break;
-			}
-		}
-	}
-
-	if (newDim == m_dim)
-		return;
+	if (newDim.size() < numDims)
+		throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
 
 	std::vector<int> oldDim = m_dim;
 	m_dim = newDim;
 	ComputeSize();
 
-	if (m_size <= m_capacity)
+	if (m_real)
 	{
-		if (capacityIsOK && firstChangedDim > -1)
-		{
-			// set newly utilized elements to zero
-			std::vector<hwSliceArg> sliceArgs;
-
-			for (int i = 0; i < firstChangedDim; ++i)
-				sliceArgs.push_back(hwSliceArg());
-
-			for (int i = firstChangedDim; i < numDims; ++i)
-			{
-				if (m_dim[i] == 1)
-				{
-					sliceArgs.push_back(0);
-				}
-				else if (m_dim[i] == oldDim[i] + 1)
-				{
-					sliceArgs.push_back(oldDim[i]);
-				}
-				else
-				{
-					std::vector<int> vec(m_dim[i] - oldDim[i]);
-
-					for (int j = oldDim[i]; j < m_dim[i]; ++j)
-						vec.push_back(j);
-
-					sliceArgs.push_back(vec);
-				}
-			}
-
-			SliceLHS(sliceArgs, 0.0);
-			return;
-		}
-	}
-	else if (m_size < 0)
-	{
-		throw hwMathException(HW_MATH_ERR_ALLOCFAILED);
-	}
-
-	// reallocate because capacity was insufficient
-	if (m_bits.realData)
-	{
-        char* m_real_mem_old = m_real_memory;
+		char* m_real_mem_old = m_real_memory;
         Currency* m_real_old = m_real;
-        hwTMatrixN<Currency, void*> tempMatrix(oldDim, m_real_old, REAL);
-        m_real_memory = nullptr;
-        m_real = nullptr;
-        Allocate(REAL);
+		hwTMatrixN<Currency, void*> tempMatrix(oldDim, m_real_old, REAL);
+		m_real_memory = nullptr;
+		m_real = nullptr;
+		Allocate(REAL);
 
-        // copy zeros to the expanded matrix
-        // SetElements(0.0);
+		// copy zeros to the expanded matrix
+		// SetElements(0.0);
 
-        // copy old data to the expanded matrix
+		// copy old data to the expanded matrix
 		CopyMatrixLHS(tempMatrix);
 
-        if (m_bits.ownData)
-        {
-            if (m_real_mem_old)
-                delete[] m_real_mem_old;
-            else if (m_real_old)
-                delete[] m_real_old;
-        }
-        else
-        {
-            m_bits.ownData = 1;
-        }
-    }
+		if (m_bits.ownData)
+		{
+			if (m_real_mem_old)
+				delete[] m_real_mem_old;
+			else if (m_real_old)
+				delete[] m_real_old;
+		}
+		else
+		{
+			m_bits.ownData = 1;
+		}
+	}
 	else
 	{
 		// cannot allocate an empty matrix with GrowLHSMatrix
@@ -324,142 +177,306 @@ void hwTMatrixN<Currency, void*>::GrowLHSMatrix(const std::vector<hwSliceArg>& s
 template<> inline
 void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, Currency real)
 {
-	if (sliceArg.size() == 0)
-		throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
+    if (sliceArg.size() == 0)
+        throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
 
-	// ignore high singleton dimensions
-	int numSlices = RelevantNumberOfSlices(sliceArg, false);
+    // ignore high singleton dimensions
+    int numSlices = RelevantNumberOfSlices(sliceArg, false);
 
-	// manage single indexing assigment
-	if (numSlices == 1 && sliceArg[0].IsScalar())
-	{
-		int index = sliceArg[0].Scalar();
+    // manage single indexing assigment
+    if (numSlices == 1 && sliceArg[0].IsScalar())
+    {
+        int index = sliceArg[0].Scalar();
 
-		if (index < 0)
-			throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+        if (index < 0)
+            throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
-		if (index > m_size - 1)
-			throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+        if (index > m_size - 1)
+            throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
-		(*this)(index) = real;
+        (*this)(index) = real;
 
-		return;
-	}
+        return;
+    }
 
-	// perform implicit LHS reshape with reduced slices 
-	if (numSlices < m_dim.size())
-	{
-		std::vector<int> newDim(numSlices);
+    // perform implicit LHS reshape with reduced slices 
+    if (numSlices < m_dim.size())
+    {
+        std::vector<int> newDim(numSlices);
 
-		for (int i = 0; i < numSlices - 1; ++i)
-			newDim[i] = m_dim[i];
+        for (int i = 0; i < numSlices - 1; ++i)
+            newDim[i] = m_dim[i];
 
-		newDim[numSlices - 1] = -1;
-		void* dataPtr;
+        newDim[numSlices - 1] = -1;
+        void* dataPtr = (void*)m_real;
 
-		dataPtr = (void*) m_real;
+        hwTMatrixN<Currency, void*> reshaped(m_dim, dataPtr, Type());
 
-		hwTMatrixN<Currency, void*> reshaped(m_dim, dataPtr, Type());
+        try
+        {
+            if (numSlices == 1 && sliceArg[0].IsColon())    // handle a(:)
+            {
+                newDim.push_back(1);
+                std::vector<hwSliceArg> newSliceArg;
+                newSliceArg.push_back(hwSliceArg());
+                newSliceArg.push_back(0);
+                reshaped.Reshape(newDim);
+                reshaped.SliceLHS(newSliceArg, real);
+                return;
+            }
 
-		try
-		{
-			if (numSlices == 1 && sliceArg[0].IsColon())    // handle a(:)
-			{
-				newDim.push_back(1);
-				std::vector<hwSliceArg> newSliceArg;
-				newSliceArg.push_back(hwSliceArg());
-				newSliceArg.push_back(0);
-				reshaped.Reshape(newDim);
-				reshaped.SliceLHS(newSliceArg, real);
-				return;
-			}
+            reshaped.Reshape(newDim);
+            reshaped.SliceLHS(sliceArg, real);
 
-			reshaped.Reshape(newDim);
-			reshaped.SliceLHS(sliceArg, real);
+            if (reshaped.m_real != m_real)  // reallocation occurred
+            {
+                delete[] m_real;
+                m_real = reshaped.m_real;
+                reshaped.m_bits.ownData = 0;
 
-			if (reshaped.m_real != m_real)  // reallocation occurred
-			{
-				delete[] m_real;
-				m_real = reshaped.m_real;
-				reshaped.m_bits.ownData = 0;
+                for (int i = 0; i < numSlices - 1; ++i)
+                    m_dim[i] = reshaped.m_dim[i];
 
-				for (int i = 0; i < numSlices - 1; ++i)
-					m_dim[i] = reshaped.m_dim[i];
+                ComputeSize();
+            }
+        }
+        catch (hwMathException& except)
+        {
+            except.Status().ResetArgs();
+            throw;
+        }
 
-				ComputeSize();
-			}
-		}
-		catch (hwMathException& except)
-		{
-			except.Status().ResetArgs();
-			throw;
-		}
+        return;
+    }
 
-		return;
-	}
+    // map RHS dimensions to LHS dimensions
+    bool newMatrix = false;
 
-	// check LHS bounds, modify as needed
-	try
-	{
-		BoundsCheckLHS(sliceArg, numSlices);
-	}
-	catch (hwMathException& except)
-	{
-		except.Status().ResetArgs();
-		throw;
-	}
+    if (m_dim.size() == 2 && m_dim[0] == 0 && m_dim[1] == 0)
+        newMatrix = true;
 
-	if (m_dim.size() == 2 && m_dim[0] == 0 && m_dim[1] == 0)
-	{
-		std::vector<int> newDim(numSlices);
+    std::vector<int> newDim(numSlices);
+    int lhsDim = 0;
 
-		for (int i = 0; i < numSlices; ++i)
-		{
-			if (sliceArg[i].IsScalar())
-			{
-				newDim[i] = sliceArg[i].Scalar() + 1;
-			}
-			else if (sliceArg[i].IsColon())
-			{
-				newDim[i] = 1;
-			}
-			else if (sliceArg[i].IsVector())
-			{
-				int max = -1;
+    for (lhsDim = 0; lhsDim < numSlices; ++lhsDim)
+    {
+        if (sliceArg[lhsDim].IsScalar())
+        {
+            if (sliceArg[lhsDim].Scalar() < 0)
+                throw hwMathException(HW_MATH_ERR_SLICE_INDEX);
 
-				for (int j = 0; j < sliceArg[i].Vector().size(); ++j)
-				{
-					if (sliceArg[i].Vector()[j] > max)
-						max = sliceArg[i].Vector()[j];
-				}
+            if (newMatrix)
+                newDim[lhsDim] = sliceArg[lhsDim].Scalar() + 1;
+            else if (lhsDim < m_dim.size())
+                newDim[lhsDim] = _max(m_dim[lhsDim], static_cast<int> (sliceArg[lhsDim].Scalar()) + 1);
+            else
+                newDim[lhsDim] = static_cast<int> (sliceArg[lhsDim].Scalar()) + 1;
+        }
+        else if (sliceArg[lhsDim].IsColon())
+        {
+            if (newMatrix)
+            {
+                newDim[lhsDim] = 1;
+            }
+            else
+            {
+                newDim[lhsDim] = m_dim[lhsDim];
+            }
+        }
+        else // sliceArg[lhsDim].IsVector()
+        {
+            int maxVectorDim = -1;
 
-				newDim[i] = max + 1;
-			}
-		}
+            for (int i = 0; i < sliceArg[lhsDim].Vector().size(); ++i)
+            {
+                if (sliceArg[lhsDim].Vector()[i] < 0)
+                    throw hwMathException(HW_MATH_ERR_SLICE_INDEX, 1);
 
-		m_dim = newDim;
-		Allocate(REAL);
-		//SetElements(0.0);
-	}
-	else if (NeedToGrowLHS(sliceArg, numSlices))
-	{
-		try
-		{
-			GrowLHSMatrix(sliceArg, numSlices);
-		}
-		catch (hwMathException& except)
-		{
-			except.Status().ResetArgs();
-			throw;
-		}
-	}
+                maxVectorDim = _max(sliceArg[lhsDim].Vector()[i] + 1, maxVectorDim);
+            }
 
-    // set the lhsMatrix indices to the first index
-    // in each slice, then assign the first rhs matrix element
+            if (newMatrix)
+            {
+                newDim[lhsDim] = maxVectorDim;
+            }
+            else if (lhsDim < m_dim.size())
+            {
+                newDim[lhsDim] = _max(m_dim[lhsDim], maxVectorDim);
+            }
+            else
+            {
+                throw hwMathException(HW_MATH_ERR_SLICE_INDEX);
+            }
+        }
+    }
+
+    for (; lhsDim < numSlices; ++lhsDim)
+    {
+        if (sliceArg[lhsDim].IsScalar())
+        {
+            if (lhsDim < m_dim.size())
+                newDim[lhsDim] = _max(m_dim[lhsDim], static_cast<int> (sliceArg[lhsDim].Scalar() + 1));
+            else
+                newDim[lhsDim] = static_cast<int> (sliceArg[lhsDim].Scalar() + 1);
+        }
+        else if (sliceArg[lhsDim].IsColon())
+        {
+            newDim[lhsDim] = 1;
+        }
+        else // sliceArg[lhsDim].IsVector()
+        {
+            throw hwMathException(HW_MATH_ERR_SLICE_INDEX);
+        }
+    }
+
+    // discard any singleton dimensions that may have been created
+    // due to excess colon and "1" slices
+    while (newDim.size() > 2 && newDim.back() == 1)
+    {
+        newDim.pop_back();
+        numSlices--;
+    }
+
+    // dimension the matrix
+    if (newMatrix)
+    {
+        m_dim = newDim;
+        Allocate(REAL);
+        // SetElements(0.0);
+    }
+    else
+    {
+        bool resize = false;
+
+        if (newDim.size() > m_dim.size())
+        {
+            resize = true;
+        }
+        else
+        {
+            for (int i = 0; i < newDim.size(); ++i)
+            {
+                if (newDim[i] > m_dim[i])
+                {
+                    resize = true;
+                    break;
+                }
+            }
+        }
+
+        if (resize)
+        {
+            GrowLHSMatrix(newDim);
+        }
+    }
+
+    if (m_size == 0)
+        return;
+
+    int size = 1;
+
+    m_rhsMatrixIndex.clear();
+    m_rhsMatrixIndex.resize(numSlices);
+
+    for (int i = 0; i < numSlices; ++i)
+    {
+        if (sliceArg[i].IsScalar()) {}
+        else if (sliceArg[i].IsColon())
+            size *= m_dim[i];
+        else if (sliceArg[i].IsVector())
+            size *= (int)sliceArg[i].Vector().size();
+    }
+
+    if (size == 0)
+        return;
+
+    // determine the best approach, depending on whether the slicing involves
+    // contiguous or equally spaced memory.
+    // 0. leading contiguous dimensions (singleton dimensions, multiple colons)
+    // 1. at least one colon
+    // 2. at least one continguous vector
+    // 3. everything else
+    int S_case;
+    int keyDim[4]{ -1, -1, -1, -1 };
+    int keySize[3]{ 1,  1,  1 };
+
+    // analyze S_case = 0
+    for (int j = 0; j < numSlices; ++j)
+    {
+        // keyDim[0]  = last contiguous dimension
+        // keySize[0] = size of the leading contiguous dimensions
+        if (sliceArg[j].IsScalar())
+        {
+            if (m_dim[j] != 1)
+            {
+                // keyDim[0] = j - 1;
+                break;
+            }
+        }
+        else if (sliceArg[j].IsColon())
+        {
+            keyDim[0] = j;
+            keySize[0] *= m_dim[j];
+        }
+        else if (sliceArg[j].IsVector())
+        {
+            // keyDim[0] = j - 1;
+            break;
+        }
+    }
+
+    // analyze S_case = 1,2
+    for (int j = 0; j < numSlices; ++j)
+    {
+        // keyDim[j]  = dimension of largest contiguous vector or colon
+        // keySize[j] = size of dimension keyDim[j]
+        if (sliceArg[j].IsColon())
+        {
+            if (m_dim[j] > keySize[1])
+            {
+                keyDim[1] = j;
+                keySize[1] = m_dim[j];
+            }
+        }
+        else if (sliceArg[j].IsVector())
+        {
+            int vecLength = static_cast<int> (sliceArg[j].Vector().size());
+            int indx = sliceArg[j].Vector()[0];
+            bool contigVec = true;
+
+            for (int i = 1; i < vecLength; ++i)
+            {
+                if (sliceArg[j].Vector()[i] != ++indx)
+                {
+                    contigVec = false;
+                    break;
+                }
+            }
+
+            if (contigVec && vecLength > keySize[2])
+            {
+                keyDim[2] = j;
+                keySize[2] = vecLength;
+            }
+        }
+    }
+
+    if (keySize[0] >= keySize[1] && keySize[0] >= keySize[2])
+        S_case = 0;
+    else if (keySize[1] >= keySize[2])
+        S_case = 1;
+    else if (keySize[2] > 1)
+        S_case = 2;
+    else
+        S_case = 3;
+
+    // simulate nested loops to iterate over the rhsMatrix elements
+    // in order of contiguous memory location, copying blocks where possible
     m_lhsMatrixIndex.resize(numSlices);
 
     for (int i = 0; i < numSlices; ++i)
     {
+        // set the lhsMatrix indices to the first index in each slice
         if (sliceArg[i].IsScalar())
             m_lhsMatrixIndex[i] = sliceArg[i].Scalar();
         else if (sliceArg[i].IsColon())
@@ -468,127 +485,98 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
             m_lhsMatrixIndex[i] = sliceArg[i].Vector()[0];
     }
 
-    // handle equally spaced memory case
-    int numScalars = 0;
-    int dim = -1;
+    int startIndx = (S_case == 0) ? keyDim[0] + 1 : 0;
+    int strideLHS;
 
-    for (int i = 0; i < numSlices; ++i)
+    if (S_case != 3)
     {
-        if (sliceArg[i].IsScalar())
-            ++numScalars;
-        else if (sliceArg[i].IsColon())
-            dim = i;
+        strideLHS = (S_case == 0) ? 1 : Stride(keyDim[S_case]);
     }
 
-    if (dim > 0 && numScalars == numSlices - 1)
+    for (int i = 0; i < size; ++i)
     {
-        int start = Index(m_lhsMatrixIndex);
-        ++m_lhsMatrixIndex[dim];
-        int stride = Index(m_lhsMatrixIndex) - start;
-
-        for (int i = 0; i < m_dim[dim]; ++i)
+        switch (S_case)
         {
-            (*this)(start) = real;
-            start += stride;
+        case 0:
+        case 1:
+        case 2:
+        {
+            int startLHS = Index(m_lhsMatrixIndex);
+            Currency* dataPtr = m_real + startLHS;
+
+            for (int k = 0; k < keySize[S_case]; ++k)
+            {
+                *dataPtr = real;
+                dataPtr += strideLHS;
+            }
+
+            break;
+        }
+        case 3:
+        {
+            if (sliceArg[0].IsScalar())
+            {
+                (*this)(m_lhsMatrixIndex) = real;
+            }
+            else if (sliceArg[0].IsVector())
+            {
+                int vecLen = static_cast<int> (sliceArg[0].Vector().size());
+
+                m_lhsMatrixIndex[0] = 0;
+                int topOfDim = Index(m_lhsMatrixIndex);
+
+                for (int j = 0; j < vecLen; ++j)
+                {
+                    int pos = topOfDim + sliceArg[0].Vector()[j];
+                    (*this)(pos) = real;
+                }
+
+                m_lhsMatrixIndex[0] = sliceArg[0].Vector()[0];
+
+                i += vecLen - 1;
+                break;
+            }
+        }
         }
 
-        return;
+        // advance rhs matrix indices, as if the RHS is real*ones(slice_dims)
+        // there is probably a better way to do this
+        for (int j = startIndx; j < numSlices; ++j)
+        {
+            if (sliceArg[j].IsScalar() || j == keyDim[S_case])
+            {
+                continue;
+            }
+            else if (sliceArg[j].IsColon())
+            {
+                // increment index j if possible
+                if (m_lhsMatrixIndex[j] < (int)m_dim[j] - 1)
+                {
+                    ++m_lhsMatrixIndex[j];
+                    break;
+                }
+
+                // index j is maxed out, so reset and continue to j+1
+                m_lhsMatrixIndex[j] = 0;
+            }
+            else if (sliceArg[j].IsVector())
+            {
+                // increment index j if possible
+                int vecSize = (int)sliceArg[j].Vector().size();
+
+                if (m_rhsMatrixIndex[j] < vecSize - 1)
+                {
+                    ++m_rhsMatrixIndex[j];
+                    m_lhsMatrixIndex[j] = sliceArg[j].Vector()[m_rhsMatrixIndex[j]];
+                    break;
+                }
+
+                // index j is maxed out, so reset and continue to j+1
+                m_rhsMatrixIndex[j] = 0;
+                m_lhsMatrixIndex[j] = sliceArg[j].Vector()[0];
+            }
+        }
     }
-
-    // determine slice at which discontiguity occurs
-	int discontiguity = numSlices;
-
-	for (int j = 0; j < numSlices; ++j)
-	{
-		if (sliceArg[j].IsScalar())
-		{
-			if (m_dim[j] != 1)
-			{
-				discontiguity = j;
-				break;
-			}
-		}
-		else if (sliceArg[j].IsColon())
-		{
-		}
-		else // if (sliceArg[j].IsVector())
-		{
-			discontiguity = j;
-			break;
-		}
-	}
-
-
-	// simulate nested loops to iterate over the rhsMatrix elements
-	// in order of contiguous memory location, copying blocks where possible
-	int size = 1;
-
-	m_rhsMatrixIndex.clear();
-	m_rhsMatrixIndex.resize(numSlices);
-
-	for (int i = 0; i < numSlices; ++i)
-	{
-		if (sliceArg[i].IsScalar()) {}
-		else if (sliceArg[i].IsColon())
-			size *= m_dim[i];
-		else if (sliceArg[i].IsVector())
-			size *= (int)sliceArg[i].Vector().size();
-	}
-
-	if (m_size < size)
-		throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
-
-	for (int i = 0; i < size; ++i)
-	{
-		if (discontiguity == 0)
-		{
-			(*this)(m_lhsMatrixIndex) = real;
-		}
-		else
-		{
-			SetMemoryPosition(m_lhsMatrixIndex);    // update m_pos
-			CopyBlockLHS(i, discontiguity, real);
-			--i;
-		}
-
-		// advance rhs matrix indices, as if the RHS is real*ones(slice_dims)
-		// there is probably a better way to do this
-		for (int j = discontiguity; j < numSlices; ++j)
-		{
-			if (sliceArg[j].IsScalar())
-			{
-				continue;
-			}
-			else if (sliceArg[j].IsColon())
-			{
-				// increment index j if possible
-				if (m_lhsMatrixIndex[j] < (int)m_dim[j] - 1)
-				{
-					++m_lhsMatrixIndex[j];
-					break;
-				}
-
-				// index j is maxed out, so reset and continue to j+1
-				m_lhsMatrixIndex[j] = 0;
-			}
-			else if (sliceArg[j].IsVector())
-			{
-				// increment index j if possible
-				int vecSize = (int)sliceArg[j].Vector().size();
-
-				if (m_lhsMatrixIndex[j] < (int)sliceArg[j].Vector()[vecSize - 1])
-				{
-					++m_rhsMatrixIndex[j];
-					m_lhsMatrixIndex[j] = sliceArg[j].Vector()[m_rhsMatrixIndex[j]];
-					break;
-				}
-
-				// index j is maxed out, so reset and continue to j+1
-				m_rhsMatrixIndex[j] = 0;
-				m_lhsMatrixIndex[j] = sliceArg[j].Vector()[0];
-			}
-		}
-	}
 }
 
 //! Write to a matrix slice of the calling object, as if the calling object is being
@@ -598,257 +586,245 @@ template<> inline
 void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
 	const hwTMatrixN<Currency, void*>& rhsMatrix)
 {
-	if (sliceArg.size() == 0)
-		throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
+    if (sliceArg.size() == 0)
+        throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
 
-	// handle empty rhsMatrix
-	if (rhsMatrix.m_dim.size() == 2 && rhsMatrix.m_dim[0] == 0 && rhsMatrix.m_dim[1] == 0)
-	{
-		try
-		{
-			DeleteSlice(sliceArg);
-			return;
-		}
-		catch (hwMathException& except)
-		{
-			except.Status().ResetArgs();
-			throw;
-		}
-	}
+    // handle empty rhsMatrix
+    if (rhsMatrix.m_dim.size() == 2 && rhsMatrix.m_dim[0] == 0 && rhsMatrix.m_dim[1] == 0)
+    {
+        try
+        {
+            DeleteSlice(sliceArg);
+            return;
+        }
+        catch (hwMathException& except)
+        {
+            except.Status().ResetArgs();
+            throw;
+        }
+    }
 
-	// ignore singleton higher dimensions
-	int numSlices = RelevantNumberOfSlices(sliceArg, true);
+    // ignore singleton higher dimensions
+    int numSlices = RelevantNumberOfSlices(sliceArg, true);
 
-	// perform implicit LHS reshape with reduced slices 
-	if (numSlices < m_dim.size())
-	{
-		std::vector<int> newDim(numSlices);
+    // perform implicit LHS reshape with reduced slices 
+    if (numSlices < m_dim.size())
+    {
+        std::vector<int> newDim(numSlices);
 
-		for (int i = 0; i < numSlices - 1; ++i)
-			newDim[i] = m_dim[i];
+        for (int i = 0; i < numSlices - 1; ++i)
+            newDim[i] = m_dim[i];
 
-		newDim[numSlices - 1] = -1;
+        newDim[numSlices - 1] = -1;
+        void* dataPtr;
 
-		hwTMatrixN<Currency, void*> reshaped(m_dim, (void*) m_real, Type());
+        if (IsReal())
+            dataPtr = (void*)m_real;
+        else
+            dataPtr = (void*)m_complex;
 
-		try
-		{
-			if (numSlices == 1 && sliceArg[0].IsColon())    // handle a(:)
-			{
-				newDim.push_back(1);
-				std::vector<hwSliceArg> newSliceArg;
-				newSliceArg.push_back(hwSliceArg());
-				newSliceArg.push_back(0);
-				reshaped.Reshape(newDim);
-				reshaped.SliceLHS(newSliceArg, rhsMatrix);
-				return;
-			}
+        hwTMatrixN<Currency, void*> reshaped(m_dim, dataPtr, Type());
 
-			reshaped.Reshape(newDim);
-			reshaped.SliceLHS(sliceArg, rhsMatrix);
-		}
-		catch (hwMathException& except)
-		{
-			except.Status().ResetArgs();
-			throw;
-		}
+        try
+        {
+            if (numSlices == 1 && sliceArg[0].IsColon())    // handle a(:)
+            {
+                newDim.push_back(1);
+                std::vector<hwSliceArg> newSliceArg;
+                newSliceArg.push_back(hwSliceArg());
+                newSliceArg.push_back(0);
+                reshaped.Reshape(newDim);
+                reshaped.SliceLHS(newSliceArg, rhsMatrix);
+                return;
+            }
 
-		return;
-	}
+            reshaped.Reshape(newDim);
+            reshaped.SliceLHS(sliceArg, rhsMatrix);
+        }
+        catch (hwMathException& except)
+        {
+            except.Status().ResetArgs();
+            throw;
+        }
 
-	// check LHS bounds and data type, modify as needed
-	try
-	{
-		BoundsCheckLHS(sliceArg, numSlices);
-	}
-	catch (hwMathException& except)
-	{
-		except.Status().ResetArgs();
-		throw;
-	}
+        return;
+    }
 
-	// count the LHS slicing colons pick the initial slicing rule
-	// Rule 1: map the RHS dimensions to the LHS colons
-	// Rule 2: map the non-singleton RHS dimensions to the LHS colons
-	// Rule 3: attempt Rule2 if Rule 1 fails
-	bool rule2;
-	int numColons = 0;
-    int rhsIndex = 0;
+    // map RHS dimensions to LHS dimensions
+    bool newMatrix = false;
 
-	for (int i = 0; i < numSlices; ++i)
-	{
-		if (sliceArg[i].IsColon())
-			++numColons;
-	}
+    if (m_dim.size() == 2 && m_dim[0] == 0 && m_dim[1] == 0)
+        newMatrix = true;
 
-	if (numColons >= rhsMatrix.m_dim.size())
-	{
-		rule2 = false;
-	}
-	else // if (numColons < rhsMatrix.m_dim.size())
-	{
-		rule2 = true;
-	}
+    std::vector<int> newDim(numSlices);
+    std::vector<int> dimMap(numSlices);     // rhsDim = dimMap[lhsDim]
+    int lhsDim = 0;
+    int numColons = 0;
 
-	// populate slices
-	if (m_dim.size() == 2 && m_dim[0] == 0 && m_dim[1] == 0)
-	{
-		// dimension the matrix
-		std::vector<int> newDim(numSlices);
+    for (int i = 0; i < numSlices; ++i)
+    {
+        if (sliceArg[i].IsColon())
+            ++numColons;
+    }
 
-		for (int i = 0; i < numSlices; ++i)
-		{
-			if (sliceArg[i].IsScalar())
-			{
-				newDim[i] = sliceArg[i].Scalar() + 1;
+    for (int rhsDim = 0; rhsDim < rhsMatrix.m_dim.size(); ++rhsDim)
+    {
+        if (lhsDim >= sliceArg.size())
+            throw hwMathException(HW_MATH_ERR_SLICE_INDEX);
 
-				if (!rule2)
-					rule2 = true;
-			}
-			else if (sliceArg[i].IsColon())
-			{
-				// get next non-singleton RHS dimension
-				while (rule2 && rhsIndex < rhsMatrix.m_dim.size() && rhsMatrix.m_dim[rhsIndex] == 1)
-					++rhsIndex;
+        if (sliceArg[lhsDim].IsScalar())
+        {
+            if (sliceArg[lhsDim].Scalar() < 0)
+                throw hwMathException(HW_MATH_ERR_SLICE_INDEX);
 
-				if (rhsIndex < rhsMatrix.m_dim.size())
-					newDim[i] = rhsMatrix.m_dim[rhsIndex];
-				else
-					newDim[i] = 1;
+            if (newMatrix)
+                newDim[lhsDim] = sliceArg[lhsDim].Scalar() + 1;
+            else if (lhsDim < m_dim.size())
+                newDim[lhsDim] = _max(m_dim[lhsDim], static_cast<int> (sliceArg[lhsDim].Scalar()) + 1);
+            else
+                newDim[lhsDim] = static_cast<int> (sliceArg[lhsDim].Scalar()) + 1;
 
-				++rhsIndex;
-			}
-			else if (sliceArg[i].IsVector())
-			{
-				// get next non-singleton RHS dimension
-				while (rule2 && rhsIndex < rhsMatrix.m_dim.size() && rhsMatrix.m_dim[rhsIndex] == 1)
-					++rhsIndex;
+            if (rhsMatrix.m_dim[rhsDim] == 1)
+            {
+                dimMap[lhsDim++] = rhsDim;
+            }
+            else
+            {
+                dimMap[lhsDim++] = -1;
+                --rhsDim;
+            }
+        }
+        else if (sliceArg[lhsDim].IsColon())
+        {
+            if (newMatrix)
+            {
+                if (numColons == rhsMatrix.m_dim.size() || rhsMatrix.m_dim[rhsDim] != 1)
+                {
+                    newDim[lhsDim] = rhsMatrix.m_dim[rhsDim];
+                    dimMap[lhsDim++] = rhsDim;
+                }
+            }
+            else if (rhsMatrix.m_dim[rhsDim] == m_dim[lhsDim])
+            {
+                newDim[lhsDim] = rhsMatrix.m_dim[rhsDim];
+                dimMap[lhsDim++] = rhsDim;
+            }
+            else if (rhsMatrix.m_dim[rhsDim] == 1)
+            {
+                // effectively applies squeeze(rhsMatrix)
+            }
+            else if (m_dim[lhsDim] == 1)
+            {
+                // effectively applies squeeze(lhsMatrix)
+                newDim[lhsDim] = 1;
+                dimMap[lhsDim++] = -1;
+                --rhsDim;
+            }
+            else
+            {
+                throw hwMathException(HW_MATH_ERR_SLICE_INDEX);
+            }
+        }
+        else // sliceArg[lhsDim].IsVector()
+        {
+            int maxVectorDim = -1;
 
-				int max = -1;
+            for (int i = 0; i < sliceArg[lhsDim].Vector().size(); ++i)
+            {
+                if (sliceArg[lhsDim].Vector()[i] < 0)
+                    throw hwMathException(HW_MATH_ERR_SLICE_INDEX, 1);
 
-				for (int j = 0; j < sliceArg[i].Vector().size(); ++j)
-				{
-					if (sliceArg[i].Vector()[j] > max)
-						max = sliceArg[i].Vector()[j];
-				}
+                maxVectorDim = _max(sliceArg[lhsDim].Vector()[i] + 1, maxVectorDim);
+            }
 
-				newDim[i] = max + 1;
-				++rhsIndex;
+            if (newMatrix)
+            {
+                newDim[lhsDim] = maxVectorDim;
+                dimMap[lhsDim++] = rhsDim;
+            }
+            else if (rhsMatrix.m_dim[rhsDim] == sliceArg[lhsDim].Vector().size() &&
+                     lhsDim < m_dim.size())
+            {
+                newDim[lhsDim] = _max(m_dim[lhsDim], maxVectorDim);
+                dimMap[lhsDim++] = rhsDim;
+            }
+            else if (rhsMatrix.m_dim[rhsDim] == 1)
+            {
+                // effectively applies squeeze(rhsMatrix)
+            }
+            else
+            {
+                throw hwMathException(HW_MATH_ERR_SLICE_INDEX);
+            }
+        }
+    }
 
-				if (!rule2)
-					rule2 = true;
-			}
-		}
+    for (; lhsDim < numSlices; ++lhsDim)
+    {
+        if (sliceArg[lhsDim].IsScalar())
+        {
+            if (lhsDim < m_dim.size())
+                newDim[lhsDim] = _max(m_dim[lhsDim], static_cast<int> (sliceArg[lhsDim].Scalar() + 1));
+            else
+                newDim[lhsDim] = static_cast<int> (sliceArg[lhsDim].Scalar() + 1);
 
-		// discard any singleton dimensions that may have been created
-		// due to excess colon and "1" slices
-		while (newDim.size() > 2 && newDim.back() == 1)
-		{
-			newDim.pop_back();
-			numSlices--;
-		}
+            dimMap[lhsDim] = -1;
+        }
+        else if (sliceArg[lhsDim].IsColon())
+        {
+            if (!newMatrix && lhsDim < m_dim.size() && m_dim[lhsDim] != 1)
+                throw hwMathException(HW_MATH_ERR_SLICE_INDEX);
 
-		m_dim = newDim;
+            newDim[lhsDim] = 1;
+            dimMap[lhsDim] = -1;
+        }
+        else // sliceArg[lhsDim].IsVector()
+        {
+            throw hwMathException(HW_MATH_ERR_SLICE_INDEX);
+        }
+    }
 
-		Allocate(REAL);
-	}
-	else
-	{
-		if (NeedToGrowLHS(sliceArg, numSlices))
-		{
-			try
-			{
-				GrowLHSMatrix(sliceArg, numSlices, &rhsMatrix, rule2);
-			}
-			catch (hwMathException& except)
-			{
-				except.Status().ResetArgs();
-				throw;
-			}
-		}
+    // discard any singleton dimensions that may have been created
+    // due to excess colon and "1" slices
+    while (newDim.size() > 2 && newDim.back() == 1)
+    {
+        newDim.pop_back();
+        dimMap.pop_back();
+        numSlices--;
+    }
 
-		// verify that slice op is well defined
-		for (int i = 0; i < numSlices; ++i)
-		{
-			if (sliceArg[i].IsScalar())
-			{
-				if (rhsIndex < rhsMatrix.m_dim.size())
-				{
-					if (rhsMatrix.m_dim[rhsIndex] == 1)
-					{
-						++rhsIndex;
-						continue;
-					}
+    // dimension the matrix
+    if (newMatrix)
+    {
+        m_dim = newDim;
+        Allocate(REAL);
+        // SetElements(0.0);
+    }
+    else
+    {
+        bool resize = false;
 
-					if (!rule2)
-					{
-						rule2 = true;
-					}
-				}
-			}
-			else if (sliceArg[i].IsColon())
-			{
-				if (rule2)
-				{
-					// get next non-singleton RHS dimension
-					while (rhsIndex < rhsMatrix.m_dim.size() && rhsMatrix.m_dim[rhsIndex] == 1)
-						++rhsIndex;
-				}
+        if (newDim.size() > m_dim.size())
+        {
+            resize = true;
+        }
+        else
+        {
+            for (int i = 0; i < newDim.size(); ++i)
+            {
+                if (newDim[i] > m_dim[i])
+                {
+                    resize = true;
+                    break;
+                }
+            }
+        }
 
-				if (rhsIndex < rhsMatrix.m_dim.size())
-				{
-					if (rhsMatrix.m_dim[rhsIndex] > m_dim[i])
-					{
-						throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
-					}
-
-					++rhsIndex;
-				}
-				else
-				{
-					if (m_dim[i] != 1)
-						throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
-				}
-			}
-			else if (sliceArg[i].IsVector())
-			{
-				if (rhsMatrix.m_dim[rhsIndex] == sliceArg[i].Vector().size())
-				{
-					if (rule2)
-					{
-						// get next non-singleton RHS dimension
-						while (rhsIndex < rhsMatrix.m_dim.size() && rhsMatrix.m_dim[rhsIndex] == 1)
-							++rhsIndex;
-					}
-
-					if (rhsIndex < rhsMatrix.m_dim.size())
-					{
-						if (sliceArg[i].Vector().size() != rhsMatrix.m_dim[rhsIndex])
-							throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
-					}
-					else
-					{
-						throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
-					}
-
-					++rhsIndex;
-					continue;
-				}
-
-				if (!rule2)
-				{
-					rule2 = true;
-				}
-			}
-		}
-
-		// ensure that any remaining RHS higher dimensions are singletons
-		while (rhsIndex < rhsMatrix.m_dim.size() && rhsMatrix.m_dim[rhsIndex] == 1)
-			++rhsIndex;
-
-		if (rhsIndex != rhsMatrix.m_dim.size())
-			throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
-	}
+        if (resize)
+        {
+            GrowLHSMatrix(newDim);
+        }
+    }
 
     int size = rhsMatrix.Size();
 
@@ -858,11 +834,95 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
     if (m_size < size)
         throw hwMathException(HW_MATH_ERR_INVALIDINPUT);
 
-    // set the lhsMatrix indices to the first index in each slice
+    // determine the best approach, depending on whether the slicing involves
+    // contiguous or equally spaced memory.
+    // 0. leading contiguous dimensions (singleton dimensions, multiple colons)
+    // 1. at least one colon
+    // 2. at least one continguous vector
+    // 3. everything else
+    int S_case;
+    int keyDim[4]{ -1, -1, -1, -1 };
+    int keySize[3]{ 1,  1,  1 };
+
+    // analyze S_case = 0
+    for (int j = 0; j < numSlices; ++j)
+    {
+        // keyDim[0]  = last contiguous dimension
+        // keySize[0] = size of the leading contiguous dimensions
+        if (sliceArg[j].IsScalar())
+        {
+            if (m_dim[j] != 1)
+            {
+                // keyDim[0] = j - 1;
+                break;
+            }
+        }
+        else if (sliceArg[j].IsColon())
+        {
+            keyDim[0] = j;
+            keySize[0] *= m_dim[j];
+        }
+        else if (sliceArg[j].IsVector())
+        {
+            // keyDim[0] = j - 1;
+            break;
+        }
+    }
+
+    // analyze S_case = 1,2
+    for (int j = 0; j < numSlices; ++j)
+    {
+        // keyDim[j]  = dimension of largest contiguous vector or colon
+        // keySize[j] = size of dimension keyDim[j]
+        if (sliceArg[j].IsColon())
+        {
+            if (m_dim[j] > keySize[1])
+            {
+                keyDim[1] = j;
+                keySize[1] = m_dim[j];
+            }
+        }
+        else if (sliceArg[j].IsVector())
+        {
+            int vecLength = static_cast<int> (sliceArg[j].Vector().size());
+            int indx = sliceArg[j].Vector()[0];
+            bool contigVec = true;
+
+            for (int i = 1; i < vecLength; ++i)
+            {
+                if (sliceArg[j].Vector()[i] != ++indx)
+                {
+                    contigVec = false;
+                    break;
+                }
+            }
+
+            if (contigVec && vecLength > keySize[2])
+            {
+                keyDim[2] = j;
+                keySize[2] = vecLength;
+            }
+        }
+    }
+
+    if (keySize[0] >= keySize[1] && keySize[0] >= keySize[2])
+        S_case = 0;
+    else if (keySize[1] >= keySize[2])
+        S_case = 1;
+    else if (keySize[2] > 1)
+        S_case = 2;
+    else
+        S_case = 3;
+
+    // simulate nested loops to iterate over the rhsMatrix elements
+    // in order of contiguous memory location, copying blocks where possible
+    m_rhsMatrixIndex.clear();
+    m_rhsMatrixIndex.resize(numSlices);
     m_lhsMatrixIndex.resize(numSlices);
 
     for (int i = 0; i < numSlices; ++i)
     {
+        // set the lhsMatrix indices to the first index in each slice
         if (sliceArg[i].IsScalar())
             m_lhsMatrixIndex[i] = sliceArg[i].Scalar();
         else if (sliceArg[i].IsColon())
@@ -871,89 +931,34 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
             m_lhsMatrixIndex[i] = sliceArg[i].Vector()[0];
     }
 
-    // handle equally spaced memory case
-    int numScalars = 0;
-    int dim = -1;
+    int startIndx = (S_case == 0) ? keyDim[0] + 1 : 0;
+    int strideLHS;
+    int strideRHS;
 
-    for (int i = 0; i < numSlices; ++i)
+    if (S_case != 3)
     {
-        if (sliceArg[i].IsScalar())
-            ++numScalars;
-        else if (sliceArg[i].IsColon())
-            dim = i;
+        strideLHS = (S_case == 0) ? 1 : Stride(keyDim[S_case]);
+        strideRHS = (S_case == 0) ? 1 : rhsMatrix.Stride(dimMap[keyDim[S_case]]);
     }
 
-    if (dim > 0 && numScalars == numSlices - 1)
+    for (int i = 0; i < size; ++i)
     {
-        int start = Index(m_lhsMatrixIndex);
-        ++m_lhsMatrixIndex[dim];
-        int stride = Index(m_lhsMatrixIndex) - start;
-
-        for (int i = 0; i < m_dim[dim]; ++i)
+        switch (S_case)
         {
-            (*this)(start) = rhsMatrix(i);
-            start += stride;
-        }
-
-        return;
-    }
-
-    // determine slice at which discontiguity occurs
-	int discontiguity = numSlices;
-
-	for (int j = 0; j < numSlices; ++j)
-	{
-		if (sliceArg[j].IsScalar())
-		{
-			if (m_dim[j] != 1)
-			{
-				discontiguity = j;
-				break;
-			}
-		}
-		else if (sliceArg[j].IsColon())
-		{
-		}
-		else // if (sliceArg[j].IsVector())
-		{
-			discontiguity = j;
-			break;
-		}
-	}
-
-    // check for contiguous first slice argument
-    bool contigFirstVec = true;
-
-    if (discontiguity == 0 && sliceArg[0].IsVector())
-    {
-        int vecLength = static_cast<int> (sliceArg[0].Vector().size());
-        int indx = sliceArg[0].Vector()[0];
-
-        for (int i = 1; i < vecLength; ++i)
+        case 0:
+        case 1:
+        case 2:
         {
-            if (sliceArg[0].Vector()[i] != ++indx)
-            {
-                contigFirstVec = false;
-                break;
-            }
+            int startLHS = Index(m_lhsMatrixIndex);
+            int startRHS = rhsMatrix.Index(m_rhsMatrixIndex);
+
+            CopyData(m_real + startLHS, strideLHS, rhsMatrix.m_real + startRHS, strideRHS, keySize[S_case]);
+
+            i += keySize[S_case] - 1;
+            break;
         }
-
-        if (contigFirstVec)
-            discontiguity = 1;
-    }
-
-	// simulate nested loops to iterate over the rhsMatrix elements
-	// in order of contiguous memory location, copying blocks where possible
-	m_rhsMatrixIndex.clear();
-	m_rhsMatrixIndex.resize(numSlices);
-
-	for (int i = 0; i < size; ++i)
-	{
-        int nextSliceArg;
-
-        // copy data up to discontguity
-		if (discontiguity == 0)
-		{
+        case 3:
+        {
             if (sliceArg[0].IsScalar())
             {
                 (*this)(m_lhsMatrixIndex) = rhsMatrix(i);
@@ -962,77 +967,61 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
             {
                 int vecLen = static_cast<int> (sliceArg[0].Vector().size());
 
-                if (contigFirstVec)
+                m_lhsMatrixIndex[0] = 0;
+                int topOfDim = Index(m_lhsMatrixIndex);
+                int k = i;
+
+                for (int j = 0; j < vecLen; ++j)
                 {
-                    int start = Index(m_lhsMatrixIndex);
-                    const Currency* rhsData = rhsMatrix.GetRealData() + i;
-                    Currency* lhsData = GetRealData() + start;
-                    hwTMatrix<Currency, void*> rhsVec(vecLen, 1, (void*)rhsData, hwTMatrix<Currency, void*>::REAL);
-                    hwTMatrix<Currency, void*> lhsVec(vecLen, 1, (void*)lhsData, hwTMatrix<Currency, void*>::REAL);
-
-                    lhsVec = rhsVec;
+                    int pos = topOfDim + sliceArg[0].Vector()[j];
+                    (*this)(pos) = rhsMatrix(k++);
                 }
-                else
-                {
-                    m_lhsMatrixIndex[0] = 0;
-                    int start = Index(m_lhsMatrixIndex);
-                    int k = i;
 
-                    for (int j = 0; j < vecLen; ++j)
-                    {
-                        int pos = start + sliceArg[0].Vector()[j];
-                        (*this)(pos) = rhsMatrix(k++);
-                    }
-
-                    m_lhsMatrixIndex[0] = sliceArg[0].Vector()[0];
-                }
+                m_lhsMatrixIndex[0] = sliceArg[0].Vector()[0];
 
                 i += vecLen - 1;
             }
 
-            nextSliceArg = 1;
+            break;
         }
-        else    // if (sliceArg[0].IsColon())
+        }
+
+        // advance rhs matrix indices
+        for (int j = startIndx; j < numSlices; ++j)
         {
-            SetMemoryPosition(m_lhsMatrixIndex);    // update m_pos
-            CopyBlockLHS(i, discontiguity, rhsMatrix, rule2);
-            --i;
-            nextSliceArg = discontiguity;
+            if (sliceArg[j].IsScalar() || j == keyDim[S_case])
+            {
+                continue;
+            }
+            else if (sliceArg[j].IsColon())
+            {
+                // increment index j if possible
+                if (m_lhsMatrixIndex[j] < (int)m_dim[j] - 1)
+                {
+                    ++m_rhsMatrixIndex[dimMap[j]];
+                    ++m_lhsMatrixIndex[j];
+
+                    break;
+                }
+
+                // index j is maxed out, so reset and continue to j+1
+                m_rhsMatrixIndex[dimMap[j]] = 0;
+                m_lhsMatrixIndex[j] = 0;
+            }
+            else if (sliceArg[j].IsVector())
+            {
+                // increment index j if possible
+                if (m_rhsMatrixIndex[dimMap[j]] < (int)sliceArg[j].Vector().size() - 1)
+                {
+                    ++m_rhsMatrixIndex[dimMap[j]];
+                    m_lhsMatrixIndex[j] = sliceArg[j].Vector()[m_rhsMatrixIndex[dimMap[j]]];
+                    break;
+                }
+
+                // index j is maxed out, so reset and continue to j+1
+                m_rhsMatrixIndex[dimMap[j]] = 0;
+                m_lhsMatrixIndex[j] = sliceArg[j].Vector()[0];
+            }
         }
-
-		// advance rhs matrix indices
-		for (int j = discontiguity; j < numSlices; ++j)
-		{
-			if (sliceArg[j].IsScalar())
-			{
-				continue;
-			}
-			else if (sliceArg[j].IsColon())
-			{
-				// increment index j if possible
-				if (m_lhsMatrixIndex[j] < (int)m_dim[j] - 1)
-				{
-					++m_lhsMatrixIndex[j];
-					break;
-				}
-
-				// index j is maxed out, so reset and continue to j+1
-				m_lhsMatrixIndex[j] = 0;
-			}
-			else if (sliceArg[j].IsVector())
-			{
-				// increment index j if possible
-				if (m_rhsMatrixIndex[j] < (int)sliceArg[j].Vector().size() - 1)
-				{
-					++m_rhsMatrixIndex[j];
-					m_lhsMatrixIndex[j] = sliceArg[j].Vector()[m_rhsMatrixIndex[j]];
-					break;
-				}
-
-				// index j is maxed out, so reset and continue to j+1
-				m_rhsMatrixIndex[j] = 0;
-				m_lhsMatrixIndex[j] = sliceArg[j].Vector()[0];
-			}
-		}
-	}
+    }
 }

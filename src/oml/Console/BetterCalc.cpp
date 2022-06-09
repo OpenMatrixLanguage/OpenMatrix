@@ -1,7 +1,7 @@
 /**
 * @file BetterCalc.cpp
 * @date June 2014
-* Copyright (C) 2014-2021 Altair Engineering, Inc.  
+* Copyright (C) 2014-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -37,6 +37,9 @@
 // Shows new prompt on console
 // \param Interpreter wrapper
 void CallNewConsolePrompting(ConsoleWrapper*);
+// Runs input file(s)
+// \param String containing input files
+void RunInputFiles(const std::string&);
 
 // global variables
 Interpreter*    interp  = nullptr;
@@ -220,7 +223,7 @@ int main(int argc, char* argv[])
                 PrintBanner();
                 bannerprinted = true;
             }
-            interp->DoString(arg);
+            RunInputFiles(arg);
 			continueRequired = true;
 		}
 		else if (lower_str == "-f")
@@ -270,7 +273,7 @@ int main(int argc, char* argv[])
 
         if(!scriptPath.empty())
 	    {
-		    Currency output = interp->DoFile(scriptPath);	
+            RunInputFiles(scriptPath);
             std::cout << std::flush;
 		    continueRequired = true;
 	    }
@@ -466,7 +469,7 @@ void PrintBanner()
 
     std::cout << line << std::endl;
 	std::cout << GetVersion(interp->GetApplicationDir()) << std::endl;
-	std::cout << "(c) Altair Engineering, Inc. and Contributors. (2007-2021)"  << std::endl;
+	std::cout << "(c) Altair Engineering, Inc. and Contributors. (2007-2022)"  << std::endl;
 	std::cout << line << std::endl;
 #endif
 }
@@ -566,4 +569,37 @@ void RegisterBuiltInFuncs()
     }
     interp->RegisterBuiltInFunction("version",            OmlVersion, 
         FunctionMetaData(0, 1, "CoreMinimalInterpreter"));
+
+    // Lock api_utility functions
+    interp->LockBuiltInFunction("clearenvvalue");
+    interp->LockBuiltInFunction("cloneenv");
+    interp->LockBuiltInFunction("getbaseenv");
+    interp->LockBuiltInFunction("getcurrentenv");
+    interp->LockBuiltInFunction("getenvvalue");
+    interp->LockBuiltInFunction("getnewenv");
+    interp->LockBuiltInFunction("importenv");
+    interp->LockBuiltInFunction("importenvin");
+    interp->LockBuiltInFunction("setenvvalue");
+}//------------------------------------------------------------------------------
+// Runs input file(s)
+//------------------------------------------------------------------------------
+void RunInputFiles(const std::string& files)
+{
+    assert(interp);
+
+    std::string in(files);
+    while (!in.empty())
+    {
+        size_t pos = in.find(',');
+        if (pos == std::string::npos)
+        {
+            interp->DoFile(in);
+            std::cout << std::flush;
+            break;
+        }
+        std::string fileToRun(in.substr(0, pos));
+        interp->DoFile(fileToRun);
+        std::cout << std::flush;
+        in = in.substr(pos + 1);
+    }
 }

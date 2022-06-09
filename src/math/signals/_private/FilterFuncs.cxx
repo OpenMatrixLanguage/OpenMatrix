@@ -17,6 +17,7 @@
 #include "FilterFuncs.h"
 
 #include "hwMatrix.h"
+#include "GeneralFuncs.h"
 #include "PolynomFuncs.h"
 #include "MathUtilsFuncs.h"
 #include "StatisticsFuncs.h"
@@ -1019,6 +1020,181 @@ hwMathStatus UpSample(const hwMatrix& inSignal,
     hwFilterManager manager;
 
     return manager.UpSample(inSignal, outSignal, k, phase);
+}
+//------------------------------------------------------------------------------
+// Modulo function (need to relocate)
+//------------------------------------------------------------------------------
+static double mod(double x, double y)
+{
+    if (y == 0.0)
+        return x;
+    return x - y * floor(x / y);
+}
+//------------------------------------------------------------------------------
+// Resample a signal by a rational factor
+//------------------------------------------------------------------------------
+hwMathStatus Resample(const hwMatrix& inSignal,
+                      hwMatrix&       outSignal,
+                      int             p,
+                      int             q,
+                      const hwMatrix* h)
+{
+    // p/q should generally be reduced to lowest terms
+    if (!inSignal.IsReal())
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 1);
+
+    if (p < 1)
+        return hwMathStatus(HW_MATH_ERR_NONPOSINT, 3);
+
+    if (q < 1)
+        return hwMathStatus(HW_MATH_ERR_NONPOSINT, 4);
+
+    if (h && !h->IsReal())
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 5);
+
+    if (h && !h->IsVector())
+        return hwMathStatus(HW_MATH_ERR_VECTOR, 5);
+
+    const hwMatrix* hpad;
+
+    if (h)
+    {
+        hpad = h;
+    }
+    else
+    {
+        // compute filter length (Milic, eqn. 6.1, Oppenheim, eqn. 7.63)
+        double log10_delta = -3.0;
+        double A = -20.0 * log10_delta;
+        double f_stop = 1.0 / (2.0 * _max(p, q));
+        double delta_omega = 2.0 * PI * (f_stop / 10.0);
+        int M = static_cast<int> (ceil((A - 8.0) / (2.0 * 2.285 * delta_omega)));
+
+        // ideal sinc filter
+        hwMatrix ideal(2 * M + 1, hwMatrix::REAL);
+
+        ideal(M) = 2.0 * p * f_stop;
+
+        for (int i = 0; i < M; ++i)
+        {
+            int idx = i + 1;
+            double value = PI * static_cast<double> (idx);
+            ideal(M + idx) = p * sin(2.0 * f_stop * value) / value;
+            ideal(M - idx) = ideal(M + idx);
+        }
+
+        // generate Kaiser window (Oppenheim, eqn. 7.62)
+        double beta = 0.0;
+
+        if (A > 50.0)
+            beta = 0.1102 * (A - 8.7);
+        else if (A >= 21.0)
+            beta = 0.5842 * pow(A - 21.0, 0.4) + 0.07886 * (A - 21.0);
+
+        hwMatrix Kwindow(2 * M + 1, hwMatrix::REAL);
+        hwMathStatus status = KaiserBesselWin(Kwindow, beta, "symmetric");
+
+        // create filter
+        hwMatrix* filter = new hwMatrix(2 * M + 1, hwMatrix::REAL);
+
+        for (int i = 0; i < 2 * M + 1; ++i)
+            (*filter)(i) = Kwindow(i) * ideal(i);
+
+        hpad = filter;
+    }
+
+    hwMathStatus status = UpFirDown(inSignal, outSignal, p, q, *hpad);
+
+    if (!h)
+        delete hpad;
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// Resample a signal by a rational factor
+//------------------------------------------------------------------------------
+hwMathStatus UpFirDown(const hwMatrix& inSignal,
+                       hwMatrix&       outSignal,
+                       int             p,
+                       int             q,
+                       const hwMatrix& h)
+{
+    // p/q should generally be reduced to lowest terms
+    if (!inSignal.IsReal())
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 1);
+
+    if (p < 1)
+        return hwMathStatus(HW_MATH_ERR_NONPOSINT, 3);
+
+    if (q < 1)
+        return hwMathStatus(HW_MATH_ERR_NONPOSINT, 4);
+
+    if (!h.IsReal())
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 5);
+
+    // polyphase filtering
+    // The polyphase implementation reduces to simply omitting multiplications
+    // that involve upsampled zeros and upsampled convolutions that will be
+    // discarded when downsampling. The code requires paying close attention
+    // to the indices of four vectors:
+    // 1. The original signal
+    // 2. The upsampled signal
+    // 3. The downsampled signal
+    // 4. The impulse response of the filter
+    hwMathStatus status;
+
+    int numVecs;
+    int vecLength;
+
+    if (inSignal.IsVector())
+    {
+        numVecs = 1;
+        vecLength = inSignal.Size();
+    }
+    else
+    {
+        numVecs = inSignal.N();
+        vecLength = inSignal.M();
+    }
+
+    int k = (p * vecLength - 1) / q + 1; // Length of outsignal
+
+    status = outSignal.Dimension(k, numVecs, hwMatrix::REAL);
+
+    int filterHalfWidth = (h.Size() - 1) / 2;
+    double dp = static_cast<double>(p);
+
+    for (int ii = 0; ii < numVecs; ++ii)
+    {
+        for (int downSample = 0; downSample < k; ++downSample)
+        {
+            int upSample = downSample * q;
+            int leftSample = static_cast<int>(ceil((upSample - filterHalfWidth) / dp));
+            int rightSample = static_cast<int>(floor((upSample + filterHalfWidth) / dp));
+            leftSample = _max(leftSample, 0);
+            rightSample = _min(rightSample, vecLength - 1);
+            int sampleCount = rightSample - leftSample + 1;
+            int filterIndex = (leftSample * p - upSample) + filterHalfWidth;
+
+            const double* signal = inSignal.GetRealData() + ii * vecLength + leftSample;
+            const double* filterImpulse = h.GetRealData() + filterIndex;
+            double accum = 0.0;
+
+            while (sampleCount-- > 0)
+            {
+                accum += (*filterImpulse) * (*signal);
+                filterImpulse += p;
+                ++signal;
+            }
+
+            outSignal(downSample, ii) = accum;
+        }
+    }
+
+    if (inSignal.M() == 1)
+        outSignal.Transpose();
+
+    return status;
 }
 //------------------------------------------------------------------------------
 // Compute the response of a filter at specified frequencies using the transfer 

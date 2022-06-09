@@ -408,6 +408,30 @@ SIGNALS_DECLS hwMathStatus UpSample(const hwMatrix& inSignal,
                                     hwMatrix&       outSignal,
                                     int             k, 
                                     int             phase = 0);
+//!
+//! Resample a signal by a rational factor
+//! \param inSignal  Signal to be downsampled
+//! \param outSignal Resampled signal
+//! \param p         Upsample factor (numerator)
+//! \param q         Downsample factor (denominator)
+//!
+SIGNALS_DECLS hwMathStatus Resample(const hwMatrix& inSignal,
+                                    hwMatrix&       outSignal,
+                                    int             p,
+                                    int             q,
+                                    const hwMatrix* h);
+//!
+//! Resample a signal by a rational factor
+//! \param inSignal  Signal to be upsampled
+//! \param outSignal Resampled signal
+//! \param p         Upsample factor (numerator)
+//! \param q         Downsample factor (denominator)
+//!
+SIGNALS_DECLS hwMathStatus UpFirDown(const hwMatrix& inSignal,
+                                     hwMatrix&       outSignal,
+                                     int             p,
+                                     int             q,
+                                     const hwMatrix& h);
 
 // filter response
 

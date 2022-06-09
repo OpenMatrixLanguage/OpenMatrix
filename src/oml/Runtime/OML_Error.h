@@ -1,7 +1,7 @@
 /**
 * @file OML_Error.h
 * @date November 2015
-* Copyright (C) 2015-2021 Altair Engineering, Inc.  
+* Copyright (C) 2015-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -246,6 +246,27 @@ enum omlMathErrCode
     OML_ERR_REALVECTOR2,                     // must be a  real vector with 2 elements
     OML_ERR_REALVECTOR3,                     // must be a  real vector with 3 elements
 
+    // RPC Writer
+    OML_ERR_RPC_INVALID_TIME_MAT,            // time data should be 1xN
+    OML_ERR_RPC_INVALID_DATA_MAT,            // at least one row should be in the data matrix
+    OML_ERR_RPC_INVALID_TIME_DATA_MAT,       // number of columns in time and data matrix should match
+    OML_ERR_RPC_INVALID_HEADER,              // invalid header
+    OML_ERR_RPC_WRITE_FAILED,                // failed to write
+    OML_ERR_RPC_INVALID_CURVENAME,           // curve name should be a string
+    OML_ERR_RPC_LOAD_FAILED,                 // faild to load writer
+    OML_ERR_RPC_XVECT_NUM_POINTS,            // X vector should have at least two data points
+    OML_ERR_RPC_XVECT_SPREAD,                // X vector is not evenly distributed
+    
+    //ReadCAE Builder
+    OML_ERR_RCB_INVALID_TYPE,                // Invalid Datatype.
+    OML_ERR_RCB_INVALID_REQUEST,             // Invalid Requests.
+    OML_ERR_RCB_MISSING_COMPONENT,           // Missing component.
+    OML_ERR_RCB_INVALID_COMPONENT,           // Invalid component.
+    OML_ERR_RCB_MISSING_TIME,                // Missing time.
+    OML_ERR_RCB_FAIL_READER_INIT,            // Reader initialization failed.
+    OML_ERR_RCB_READING_FAILED,              // Problem reading file.
+    OML_ERR_RCB_INVALID_FILE_ENTRY,          // Filename cannot be an empty string. Specify a valid filename.
+
     OML_ERR_END
 };
 
@@ -370,7 +391,11 @@ public:
 	//! 
 	~OML_Error() {}
 
-	//!
+    //!
+    //! Gets error message object
+    //!
+    hwMathStatus& Status() const { return m_status; }
+    //!
 	//! Gets error message
 	//!
 	std::string GetErrorMessage() const;
@@ -429,8 +454,6 @@ private:
 #define HW_ERROR_ALREADYSETDIM "Error: already set dimension"
 #define HW_ERROR_ALREADYSETALPHA "Error: already set alpha value"
 
-#define HW_ERROR_BOUNDNOTYETSUPP5THPAR "Error: bounds are not yet supported, fifth input must be []"
-#define HW_ERROR_BOUNDNOTYETSUPP6THPAR "Error: bounds are not yet supported, sixth input must be []"
 #define HW_ERROR_POPINITRANGEINCSPEC "Error: 'PopInitRange' is incorrectly specified"
 #define HW_ERROR_INVINITPOPRANGE "Error: invalid initial population range"
 #define HW_ERROR_INITPOPINCSPEC "Error: 'InitialPopulation' is incorrectly specified"
@@ -523,11 +546,6 @@ private:
 #define HW_ERROR_INPONLY1STLASTORROWS "Error: input can only be 'first', 'last', or 'rows'"
 #define HW_ERROR_NOTCONVINPTOSTR "Error: error converting input to string"
 #define HW_ERROR_DELCELLINVAMTOFELE "Error: delimiter cell array had an invalid amount of elements"
-#define HW_ERROR_DELTYPESIMPORREGEX "Error: value for delimitertype must either be 'simple' or 'regularexpression'"
-#define HW_ERROR_ "Error: value for collapsedelimiters must be scalar"
-#define HW_ERROR_DELTYPEALLSET "Error: the value for delimitertype was already set"
-#define HW_ERROR_COLAPSDELALLSET "Error: the value for collapsedelimiters was already set"
-#define HW_ERROR_DELONLYSTR "Error: delimiters can only be strings"
 #define HW_ERROR_INVMODESTR "Error: invalid mode string"
 #define HW_ERROR_NOTFTELLONSTDINOUTERR "Error: cannot call ftell on stdin, stdout, or stderr"
 #define HW_ERROR_NOTFSEEKONSTDINOUTERR "Error: cannot call fseek on stdin, stdout, or stderr"
@@ -639,10 +657,9 @@ private:
 #define HW_ERROR_NOTCREATEMATRIX "Error: could not create matrix"
 #define HW_ERROR_NOTCREATECELLARRAY "Error: could not create cell array"
 #define HW_ERROR_INVMATRIXINP "Error: invalid matrix input"
-#define HW_ERROR_UNKOWNANTLR "Error: unknown ANTLR error"
 #define HW_ERROR_INVSWITCH "Error: invalid switchcase input"
-#define HW_ERROR_UNKOWNFUN "Error: unknown function"
-#define HW_ERROR_UNKOWNTYPE "Error: unknown type"
+#define HW_ERROR_UNKNOWNFUN "Error: unknown function"
+#define HW_ERROR_UNKNOWNTYPE "Error: unknown type"
 #define HW_ERROR_INVFUNCALL "Error: invalid function call"
 #define HW_ERROR_LOGOPCOMP "Error: cannot perform logical operation on a complex value"
 #define HW_ERROR_COMPMATUNSUP "Error: complex matrices not supported yet"

@@ -26,8 +26,8 @@
 #define HW_MATH_MSG_MATRIXDEPENDCOL  "Warning: rank deficient matrix; columns are not linearly independent"
 #define HW_MATH_MSG_NOSQRTM          "Warning: singular matrix; it may not have a square root"
 #define HW_MATH_MSG_MAXSQRTM         "Warning: maximum number of allowed square roots has been exceeded"
-#define HW_MATH_MSG_HANKEL           "Warning: arg1(end) ~= arg2(0); arg2(0) is ignored"
-#define HW_MATH_MSG_TOEPLITZ         "Warning: arg1(0) ~= arg2(0); arg2(0) is ignored"
+#define HW_MATH_MSG_HANKEL           "Warning: first element of arg2 ignored in favor of last element of arg1"
+#define HW_MATH_MSG_TOEPLITZ         "Warning: first element of arg2 ignored in favor of first element of arg1"
 // Algorithm warnings
 #define HW_MATH_MSG_MAXITERATE       "Warning: maximum iterations exceeded, returned last estimate"
 #define HW_MATH_MSG_MAXFUNCEVAL      "Warning: maximum number of function evaluations exceeded, returned last estimate"
@@ -143,6 +143,7 @@
 #define HW_MATH_MSG_UNDERDETSYS_E   "Error: invalid system; must have at least as many equations as parameters"
 #define HW_MATH_MSG_UNDERDETSYS_P   "Error: invalid system; must have at least as many points as parameters"
 #define HW_MATH_MSG_TOOFEWPOINTS_E  "Error: invalid input; does not contain enough data points"
+#define HW_MATH_MSG_TOOFEWPOINTS10  "Error: invalid input; must contain at least 10 data points"
 #define HW_MATH_MSG_DISTINCTVALS3   "Error: invalid input; must contain at least 3 distinct values"
 #define HW_MATH_MSG_TIGHTTOL        "Error: invalid tolerance; may be too small"
 #define HW_MATH_MSG_GAMAXITERS_E    "Error: requested maximum iterations has been exceeded"
@@ -352,6 +353,7 @@ std::string GetHMathErrMsg(hwMathMsgCode code)
             case HW_MATH_ERR_UNDERDETSYS_E:         retStr = HW_MATH_MSG_UNDERDETSYS_E;     break;
             case HW_MATH_ERR_UNDERDETSYS_P:         retStr = HW_MATH_MSG_UNDERDETSYS_P;     break;
             case HW_MATH_ERR_TOOFEWPOINTS:          retStr = HW_MATH_MSG_TOOFEWPOINTS_E;    break;
+            case HW_MATH_ERR_TOOFEWPOINTS10:        retStr = HW_MATH_MSG_TOOFEWPOINTS10;    break;
             case HW_MATH_ERR_DISTINCTVALS3:         retStr = HW_MATH_MSG_DISTINCTVALS3;     break;
             case HW_MATH_ERR_GAMAXITERS:            retStr = HW_MATH_MSG_GAMAXITERS_E;      break;
             case HW_MATH_ERR_TIGHTTOL:              retStr = HW_MATH_MSG_TIGHTTOL;          break;

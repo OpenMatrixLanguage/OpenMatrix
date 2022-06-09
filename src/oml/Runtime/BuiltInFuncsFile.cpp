@@ -477,24 +477,22 @@ bool BuiltInFuncsFile::Dlmwrite(EvaluatorInterface           eval,
     if (!cur1.IsString() && !cur1.IsPositiveInteger())
         throw OML_Error(OML_ERR_STRING_FILESTREAM, 1, OML_VAR_TYPE);
 
-    std::FILE*  fp = NULL;
+    std::FILE* fp = nullptr;
+    std::string filename;
+    bool     closefile = true;
 
     BuiltInFuncsUtils utils;
-    std::string filename;
-    std::wstring wfilename;
     if (cur1.IsString())
     {
-#ifdef OS_WIN
-        wfilename = utils.StdString2WString(cur1.StringVal());
-#else
         filename = cur1.StringVal();
-#endif
+
     }
-    else if (cur1.IsPositiveInteger())
+    else 
     {
         fp = eval.GetFile(static_cast<int>(cur1.Scalar()));
         if (!fp)
             throw OML_Error(OML_ERR_STRING_FILESTREAM, 1, OML_VAR_TYPE);
+        closefile = false;
     }
 
     // Second argument is matrix
@@ -504,8 +502,8 @@ bool BuiltInFuncsFile::Dlmwrite(EvaluatorInterface           eval,
 
     // Subsequent arguments specify options for writing
     BuiltInFuncsFile fileFuncs;
-    std::string rdelim = "\n";
-    std::string cdelim = " ";
+    std::string rdelim("\n");
+    std::string cdelim(" ");
     std::string precision;
 
     bool append     = false;
@@ -544,7 +542,7 @@ bool BuiltInFuncsFile::Dlmwrite(EvaluatorInterface           eval,
             else if (val == "off")
                 append = false;
             else 
-                throw OML_Error(OML_ERR_FUNCSWITCH, i, OML_VAR_TYPE);
+                throw OML_Error(OML_ERR_FUNCSWITCH, i + 1, OML_VAR_TYPE);
         }
         else if (key == "delimiter")    // Needs to follow with value
             cdelim = fileFuncs.GetStringValue(inputs, nargin, i);
@@ -575,13 +573,13 @@ bool BuiltInFuncsFile::Dlmwrite(EvaluatorInterface           eval,
             else if (val.IsInteger())
             {
                 int digits = static_cast<int>(val.Scalar());
-                if (digits < 0) throw OML_Error(OML_ERR_STRING_NATURALNUM, i, OML_VAR_TYPE);
+                if (digits < 0) throw OML_Error(OML_ERR_STRING_NATURALNUM, i + 1, OML_VAR_TYPE);
                 
                 precision = "%." + std::to_string(static_cast<long long>(digits))
                             + "g";
             }
             else
-                throw OML_Error(OML_ERR_STRING_NATURALNUM, i, OML_VAR_TYPE);
+                throw OML_Error(OML_ERR_STRING_NATURALNUM, i + 1, OML_VAR_TYPE);
         }
         else
             cdelim = key;
@@ -632,25 +630,38 @@ bool BuiltInFuncsFile::Dlmwrite(EvaluatorInterface           eval,
         }
     }
 
-    std::string vals;
+    if (!fp)
+    {
+        std::string mode = (append) ? "a" : "w";
+        fp = utils.FileOpen(filename, mode);
+        if (!fp)
+        {
+            throw (append) ? OML_Error(OML_ERR_FILE_CANNOTWRITE, 1) :
+                OML_Error(OML_ERR_FILE_CANNOTOPEN, 1);
+        }
+    }
+
+    fflush(fp);
+    if (!roffsetstr.empty())
+    {
+        fwrite(roffsetstr.c_str(), sizeof(char), roffsetstr.size(), fp);
+    }
+    fflush(fp);
+
+
     if (precision.empty())
     {
-        vals = MatrixDisplay::GetNonFormattedOutputValues(cur2, rdelim, cdelim, coffset);
+        MatrixDisplay::WriteNonFormattedOutputValues(cur2, rdelim, cdelim, coffset, fp);
     }
     else
     {
         int skipformat = CurrencyDisplay::GetSkipFormat();
         CurrencyDisplay::SetSkipFormat(-1);
-        vals = MatrixDisplay::GetOutputValues(cur2,
-            eval.GetOutputFormat(), rdelim, cdelim, precision, precision, coffset);
+        std::string vals (MatrixDisplay::GetOutputValues(cur2,
+            eval.GetOutputFormat(), rdelim, cdelim, precision, precision, coffset));
         CurrencyDisplay::SetSkipFormat(skipformat);
-    }
-    if (fp)
-    {
-        fflush(fp);
-        if (!roffsetstr.empty())
-            fwrite(roffsetstr.c_str(), sizeof(char), roffsetstr.size(), fp);
 
+        fflush(fp);
         if (!vals.empty())
         {
             fwrite(vals.c_str(), sizeof(char), vals.size(), fp);
@@ -658,39 +669,13 @@ bool BuiltInFuncsFile::Dlmwrite(EvaluatorInterface           eval,
                 fwrite(rdelim.c_str(), sizeof(char), rdelim.size(), fp);
         }
         fflush(fp);
-        return true;
     }
-
-    std::ios_base::openmode mode = std::ios_base::out;
-    if (append) 
-        mode |=std::ios_base::app;
-
-#ifdef OS_WIN
-    std::wofstream ofs(wfilename, mode);
-    if (!ofs) 
+    if (closefile)
     {
-        if (append)
-            throw OML_Error(OML_ERR_FILE_CANNOTWRITE, 1);
-        else
-            throw OML_Error(OML_ERR_FILE_CANNOTOPEN, 1);
+        fclose(fp);
     }
-    ofs << utils.StdString2WString(roffsetstr) << 
-        utils.StdString2WString(vals) << utils.StdString2WString(rdelim);
-    ofs.close();
-#else
-    std::ofstream ofs(filename, mode);
-    if (!ofs)
-    {
-        if (append)
-            throw OML_Error(OML_ERR_FILE_CANNOTWRITE, 1);
-        else
-            throw OML_Error(OML_ERR_FILE_CANNOTOPEN, 1);
-    }
-    ofs << roffsetstr << vals << rdelim;
-    ofs.close();
-#endif
-
     return true;
+
 }
 //------------------------------------------------------------------------------
 //! Returns string value of a currency, if applicable
@@ -704,10 +689,12 @@ std::string BuiltInFuncsFile::GetStringValue(const std::vector<Currency>& inputs
     if (index + 1 >= nargin) throw OML_Error(OML_ERR_NUMARGIN);
     ++index;
                 
-    const Currency& cur = inputs[index];
-    if (!cur.IsString()) throw OML_Error(OML_ERR_STRING, index, OML_VAR_TYPE);
+    if (!inputs[index].IsString())
+    {
+        throw OML_Error(OML_ERR_STRING, index + 1, OML_VAR_TYPE);
+    }
                 
-    return cur.StringVal();
+    return inputs[index].StringVal();
 }
 //------------------------------------------------------------------------------
 //! Returns integer value of a currency, if applicable
@@ -885,6 +872,332 @@ bool BuiltInFuncsFile::Copyfile(EvaluatorInterface           eval,
 
 #else
         msg += "Copy failed from [" + BuiltInFuncsUtils::Normpath(src);
+        msg += "] to [" + BuiltInFuncsUtils::Normpath(dst) + "]";
+#endif
+        outputs.push_back(0);
+        outputs.push_back(msg);
+        outputs.push_back(msgid);
+    }
+    else
+    {
+        outputs.push_back(1);
+        outputs.push_back("");
+        outputs.push_back("");
+    }
+    return true;
+}
+//------------------------------------------------------------------------------
+//! Returns true after moving files/directories [movefile]
+//------------------------------------------------------------------------------
+// #ifdef _DEBUG
+#if 1
+#    define DEBUG_PRINT(s) { std::cout << s << std::endl; }
+#else
+#    define DEBUG_PRINT(s)
+#endif // 0
+
+bool BuiltInFuncsFile::Movefile(EvaluatorInterface           eval,
+    const std::vector<Currency>& inputs,
+    std::vector<Currency>& outputs)
+{
+    std::string debugoutput;    // VSM-6719
+
+    size_t nargin = inputs.empty() ? 0 : inputs.size();
+    if (nargin < 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+    if (!inputs[0].IsString())
+    {
+        throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
+    }
+    std::string src(inputs[0].StringVal());
+    if (src.empty())
+    {
+        throw OML_Error(OML_ERR_NONEMPTY_STR, 1);
+    }
+    bool srcwildcard;
+    if (src.find_first_of("?*") != std::string::npos)
+    {
+        srcwildcard = true;
+    }
+    else
+    {
+        srcwildcard = false;
+    }
+    bool srcincludespath;
+    std::size_t src_path = src.find_last_of("/\\");
+    std::string src_object;  // this will be the src name, stripping any path elements
+    if (src_path != std::string::npos)
+    {
+        // source argument includes path delimiters.  
+        // This saves the last name in the path which needs to be checked for non force moves.
+        srcincludespath = true;
+        src_object = src.substr(src_path + 1, string::npos);
+    }
+    else
+    {
+        srcincludespath = false;
+        src_object = src;
+    }
+        
+
+
+
+
+    if (!inputs[1].IsString())
+    {
+        throw OML_Error(OML_ERR_STRING, 2, OML_VAR_TYPE);
+    }
+    std::string dst(inputs[1].StringVal());
+    if (dst.empty())
+    {
+        throw OML_Error(OML_ERR_NONEMPTY_STR, 2);
+    }
+
+    bool forcecopy = false;
+    bool testdisplay = false;
+    if (nargin > 2)
+    {
+        if (!inputs[2].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, 3, OML_VAR_TYPE);
+        }
+        std::string opt(inputs[2].StringVal());
+        if (!opt.empty())
+        {
+            std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
+        }
+        // if (opt != "f")
+        // {
+        //    throw OML_Error(OML_ERR_OPTION, 3, OML_VAR_VALUE);
+        // }
+        if (opt.find_first_of('f') != std::string::npos)
+        {
+            forcecopy = true;
+        }
+        if (opt.find_first_of('t') != std::string::npos)
+        {
+            testdisplay = true;
+        }
+        if (testdisplay)
+        {
+            if(forcecopy)
+                DEBUG_PRINT("FORCECOPY!")
+            else
+                DEBUG_PRINT("NO forcecopy")
+            if(srcwildcard)
+                DEBUG_PRINT("WILDCARD!")
+            else
+                DEBUG_PRINT("NO wildcard")
+        }
+        // forcecopy = true;
+    }
+
+    bool issrcdir = BuiltInFuncsUtils::IsDir(src);
+    bool isdstdir = BuiltInFuncsUtils::IsDir(dst);
+    bool srxexists = BuiltInFuncsUtils::FileExists(src);
+    if (testdisplay)
+    {
+        debugoutput = "movefile '" + src + "' " + (issrcdir ? " IsDirectory " : " Not Directory");
+        DEBUG_PRINT(debugoutput);
+        debugoutput = "movefile '" + dst + "' " + (isdstdir ? " IsDirectory " : " Not Directory");
+        DEBUG_PRINT(debugoutput);
+        debugoutput = "movefile '" + src + "' " + (srxexists ? " Source Exists " : " Source NOT Exists");
+        DEBUG_PRINT(debugoutput);
+    }
+
+
+#if 1
+    // Additional checks if not force copy otherwise application will wait for
+    // user input which should not happen
+    if (!forcecopy && srxexists)
+    {
+        std::string dstfile;
+        bool        dstexists = BuiltInFuncsUtils::FileExists(dst);
+
+
+        // Check if destination is a directory, src is a file. 
+        if (isdstdir && !issrcdir)
+        {
+            dstfile = dst + "/" + BuiltInFuncsUtils::GetBaseName(src);
+            dstexists = BuiltInFuncsUtils::FileExists(dstfile);
+        }
+
+        if (dstexists && !isdstdir)
+        {
+            std::string msg = "Error: cannot overwrite [";
+            if (!dstfile.empty())
+                msg += BuiltInFuncsUtils::Normpath(dstfile);
+            else
+                msg += BuiltInFuncsUtils::Normpath(dst);
+            msg += "] in argument 2; use 'f' option to force move";
+            // throw OML_Error(msg);
+            outputs.push_back(0);
+            outputs.push_back(msg);
+            outputs.push_back(0);
+        }
+    }
+#endif 
+    std::string strcmd;
+    int         returncode = 0;
+    bool        runcommand = true;  //  this will be turned off when the system command is run.
+
+
+#ifdef OS_WIN    
+    std::wstring tdisplay1, tdisplay2;
+    if (testdisplay)
+    {
+        tdisplay1 = L"";
+        tdisplay2 = L"";
+    }
+    else
+    {
+        // suppress output from the wsystem call.
+        tdisplay1 = L"@";
+        tdisplay2 = L" > nul ";
+    }
+
+    BuiltInFuncsUtils utils;
+    std::wstring str1(utils.StdString2WString(src));
+    std::wstring wsrc(utils.GetNormpathW(str1));
+    std::wstring str2(utils.StdString2WString(dst));
+    std::wstring wdst(utils.GetNormpathW(str2));
+    std::wstring wsrc_object(utils.StdString2WString(src_object));
+
+    std::wstring wcmd, wcmd1, wcmd2;
+    // if (srxexists && !issrcdir && !wdst.empty() && !utils.DoesPathExistW(wdst))
+    if(!srcwildcard)
+    {
+        //Windows no wildcard
+
+        if (forcecopy)
+        {
+            wcmd = tdisplay1 + L"move /Y \"" + wsrc + L"\" \"" + wdst + L"\"" + tdisplay2;
+            if(testdisplay)
+            {
+                std::string command_str(utils.WString2StdString(wcmd));
+                debugoutput = "BuiltInFuncsFile::Movefile force " + command_str;
+                DEBUG_PRINT(debugoutput);
+            }
+        }
+        else
+        {
+            if (isdstdir)
+            {
+                if (srcincludespath)
+                {
+                    wcmd = tdisplay1 + L"if not exist \"" + wdst + L"\\" + wsrc_object + L"\" move \"" + wsrc + L"\" \"" + wdst + L"\"" + tdisplay2;
+                }
+                else
+                {
+                    wcmd = tdisplay1 + L"if not exist \"" + wdst + L"\\" + wsrc + L"\" move \"" + wsrc + L"\" \"" + wdst + L"\"" + tdisplay2;
+                }
+            }
+            else
+            {
+                wcmd = tdisplay1 + L"if not exist \"" + wdst + L"\" move \"" + wsrc + L"\" \"" + wdst + L"\"" + tdisplay2;
+            }
+            if (testdisplay)
+            {
+                std::string command_str(utils.WString2StdString(wcmd));
+                debugoutput = "BuiltInFuncsFile::Movefile no force " + command_str;
+                DEBUG_PRINT(debugoutput);
+            }
+        }
+ 
+    }
+    else
+    {
+        // Windows Wildcard
+
+        // FILES AND DIRECTORIES 
+
+        if (forcecopy)
+        {
+            // wcmd = tdisplay1 + L"for %a in (\"" + wsrc + L"\") do move /Y %a \"" + wdst + L"\\%~nxa\" " + tdisplay2 +
+            //     L"& " + tdisplay1 + L"for /D %a in (\"" + wsrc + L"\") do move /Y %a \"" + wdst + L"\\%~nxa\"" + tdisplay2;
+            wcmd1 = tdisplay1 + L"for %a in (\"" + wsrc + L"\") do " + tdisplay1 + L"move /Y \"%a\" \"" + wdst + L"\\%~nxa\" " + tdisplay2;
+            int returncode1 = _wsystem(wcmd1.c_str());
+            wcmd2 = tdisplay1 + L"for /D %a in (\"" + wsrc + L"\") do " + tdisplay1 + L"move /Y \"%a\" \"" + wdst + L"\\%~nxa\"" + tdisplay2;
+            int returncode2 = _wsystem(wcmd2.c_str());
+            runcommand = false;  // This more complex move requires a pair of sysetm commands.  Do not need to run the standard system call
+            returncode = returncode1 || returncode2;
+        }
+        else
+        {
+            // When forcecopy is not enabled, we will never overwrite an existing file.
+            // For wildcard processing using system call with command for loop.
+            // Complexity here is a bit increased because separate "for" loops are requred to process files and directories.
+            // wcmd = tdisplay1 + L"for %a in (\"" + wsrc + L"\") do " + tdisplay1 + L"if not exist \"" + wdst + L"\\%~nxa\" move %a \"" + wdst + L"\\%~nxa\" " + tdisplay2 +
+            //    L"& " + tdisplay1 + L"for /D %a in (\"" + wsrc + L"\") do " + tdisplay1 + L"if not exist \"" + wdst + L"\\%~nxa\" move %a \"" + wdst + L"\\%~nxa\"" + tdisplay2;
+            wcmd1 = tdisplay1 + L"for %a in (\"" + wsrc + L"\") do " + tdisplay1 + L"if not exist \"" + wdst + L"\\%~nxa\" move \"%a\" \"" + wdst + L"\\%~nxa\" " + tdisplay2;
+            int returncode1 = _wsystem(wcmd1.c_str());
+            wcmd2 = tdisplay1 + L"for /D %a in (\"" + wsrc + L"\") do " + tdisplay1 + L"if not exist \"" + wdst + L"\\%~nxa\" move \"%a\" \"" + wdst + L"\\%~nxa\"" + tdisplay2;
+            int returncode2 = _wsystem(wcmd2.c_str());
+            runcommand = false;  // This more complex move requires a pair of sysetm commands.  Do not need to run the standard system call
+            returncode = returncode1 || returncode2;
+        }
+
+        if (testdisplay)
+        {
+            // std::string command_str3(wcmd.begin(), wcmd.end());
+            // debugoutput = "BuiltInFuncsFile::Movefile 2 Windows move command: '" + command_str3 + "'";
+            // DEBUG_PRINT(debugoutput);
+        }
+        
+        // End Windows wildcard
+    }
+    if( runcommand )  // run the standard system call if system calls have not previous been run.
+        returncode = _wsystem(wcmd.c_str());
+// End of Windows Block
+#else
+//Linux Block
+    strcmd = "mv ";
+    if (!forcecopy)
+        strcmd += "-n ";  // --no-clobber
+
+    if (src.find(' ') != std::string::npos && src.find('\"') == std::string::npos)
+    {
+        src = '\"' + src + '\"';
+    }
+
+    if (dst.find(' ') != std::string::npos && dst.find('\"') == std::string::npos)
+    {
+        dst = '\"' + dst + '\"';
+    }
+
+
+    strcmd += src + " " + dst;
+
+    if (testdisplay)
+    {
+        debugoutput = "BuiltInFuncsFile::Movefile  Linux MOVE command: '" + strcmd + "'";
+        DEBUG_PRINT(debugoutput);
+    }
+    returncode = system(strcmd.c_str());
+// End of Linux Block
+#endif
+
+    std::string msg;
+    int         msgid = 0;
+    if (returncode != 0)
+    {
+        msgid = (errno != 0) ? errno : returncode;
+
+        std::string err(strerror(errno));
+        if (!err.empty() && err != "No error")
+            msg = err;
+
+        if (!msg.empty())
+            msg += "\n";
+
+#ifdef OS_WIN
+        msg += "Move failed from [" + utils.WString2StdString(wsrc);
+        msg += "] to [" + utils.WString2StdString(wdst) + "]";
+
+#else
+        msg += "Move failed from [" + BuiltInFuncsUtils::Normpath(src);
         msg += "] to [" + BuiltInFuncsUtils::Normpath(dst) + "]";
 #endif
         outputs.push_back(0);
@@ -1821,7 +2134,7 @@ bool BuiltInFuncsFile::Textscan(EvaluatorInterface           eval,
                         std::string specstr = (pos != std::string::npos) ?
                                                 origfmt.substr(0, pos) : "";
                         specstr += "lf";
-                        char tmp[4096];
+                        char tmp[128];
                         sprintf(tmp, specstr.c_str(), val);
                         val = atof(tmp);
                     }
@@ -2109,7 +2422,7 @@ bool BuiltInFuncsFile::Fscanf(EvaluatorInterface           eval,
                     std::string specstr = (pos != std::string::npos) ?
                                             origfmt.substr(0, pos) : "";
                     specstr += "lf";
-                    char tmp[4096];
+                    char tmp[128];
                     memset(tmp, 0, sizeof(tmp));
                     sprintf(tmp, specstr.c_str(), dblVal);
                     dblVal = atof(tmp);
@@ -2475,7 +2788,8 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
     std::string       filename;
     std::wstring      wfile;
     int               fileid = -1;
-    
+    std::string       ext;
+
     if (!isString)
     {
         fileid = utils.GetFileId(eval, inputs[0], 1);
@@ -2491,6 +2805,7 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
         wfile = utils.StdString2WString(inputs[0].StringVal());
         exists = utils.DoesPathExistW(wfile);
         filename = (exists) ? utils.WString2StdString(wfile) : "";
+        ext = utils.WString2StdString(utils.GetFileExtensionW(wfile));
 #else
         filename = inputs[0].StringVal();
         exists = utils.DoesPathExist(filename);
@@ -2498,6 +2813,22 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
         if (!exists)
         {
             throw OML_Error(OML_ERR_FILE_NOTFOUND, 1);
+        }
+
+        ext = utils.GetFileExtension(filename);
+    }
+
+    if (IsExtXlsCompatible(ext))
+    {
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+        if (ext != "csv" && ext != "txt")
+        {
+            std::string err("Error: invalid input in argument 1; cannot read file; ");
+            err += "Excel files need to be imported as .csv";
+#ifdef OS_WIN
+            err += " or read with xlsread command";
+#endif
+            throw OML_Error(err);
         }
     }
 

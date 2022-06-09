@@ -201,6 +201,15 @@ SIGNALS_DECLS hwMathStatus Ifft(const hwMatrixN& signal,
                                 int              dim,
                                 int              fftSize);
 //!
+//! Short time FFT of a real or complex signal  
+//! \param signal 
+//! \param freqRes
+//! \param fftSize Optional argument
+//!
+SIGNALS_DECLS hwMathStatus Stft(const hwMatrix& signal,
+                                hwMatrix& freqRes,
+                                int             fftSize = 0);
+//!
 //! Circular convolution of a real signal pair for periodic signals 
 //! \param signal1 
 //! \param signal2 

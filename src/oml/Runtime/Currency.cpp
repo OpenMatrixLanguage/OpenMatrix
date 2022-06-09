@@ -1388,33 +1388,200 @@ const hwMatrix* Currency::ConvertToMatrix() const
 	return data.mtx;
 }
 
-const hwMatrix* Currency::ExpandMatrix(const hwMatrix* target) const
+void Currency::ExpandMatrixPair(const hwMatrix& src1, const hwMatrix& src2,
+								hwMatrix*& res1, hwMatrix*& res2)
 {
-	hwMatrix* result = NULL;
+	if (res1 != nullptr || res2 != nullptr)
+		return;
 
-	if (type == TYPE_MATRIX)
+	int m1 = src1.M();
+	int n1 = src1.N();
+	int m2 = src2.M();
+	int n2 = src2.N();
+
+	// reuse m and n values for the replication numbers
+	if (m1 == m2)
 	{
-		if (data.mtx->M() == 1)
-		{
-			result = EvaluatorInterface::allocateMatrix(target->M(), data.mtx->N(), data.mtx->Type());
+		m1 = 1;
+		m2 = 1;
+	}
+	else if (m1 == 1)
+	{
+		m1 = m2;
+		m2 = 1;
+	}
+	else if (m2 == 1)
+	{
+		m2 = m1;
+		m1 = 1;
+	}
+	else
+	{
+		// trigger an error
+		m1 = 1;
+		m2 = 1;
+	}
 
-			for (int j = 0; j < target->M(); ++j)
-				result->WriteRow(j, *data.mtx);
+	if (n1 == n2)
+	{
+		n1 = 1;
+		n2 = 1;
+	}
+	else if (n1 == 1)
+	{
+		n1 = n2;
+		n2 = 1;
+	}
+	else if (n2 == 1)
+	{
+		n2 = n1;
+		n1 = 1;
+	}
+	else
+	{
+		// trigger an error
+		n1 = 1;
+		n2 = 1;
+	}
+
+	res1 = ExprTreeEvaluator::allocateMatrix();
+	res2 = ExprTreeEvaluator::allocateMatrix();
+
+	hwMathStatus status;
+
+	status = res1->Repmat(src1, m1, n1);
+
+	if (!status.IsOk())
+		throw hwMathException(status.GetMsgCode());
+
+	status = res2->Repmat(src2, m2, n2);
+
+	if (!status.IsOk())
+		throw hwMathException(status.GetMsgCode());
+}
+
+void Currency::ExpandMatrixPair(const hwMatrixN& src1, const hwMatrixN& src2,
+								hwMatrixN*& res1, hwMatrixN*& res2)
+{
+	if (res1 != nullptr || res2 != nullptr)
+		return;
+
+	const std::vector<int>& dims_src1 = src1.Dimensions();
+	const std::vector<int>& dims_src2 = src2.Dimensions();
+	std::vector<int> dims_rep1;
+	std::vector<int> dims_rep2;
+
+	size_t minDim = _min(dims_src1.size(), dims_src2.size());
+
+	for (size_t i = 0; i < minDim; ++i)
+	{
+	    if (dims_src1[i] == dims_src2[i])
+	    {
+	    	dims_rep1.push_back(1);
+	    	dims_rep2.push_back(1);
+	    }
+		else if (dims_src1[i] == 1)
+		{
+			dims_rep1.push_back(dims_src2[i]);
+			dims_rep2.push_back(1);
 		}
-		else if (data.mtx->N() == 1)
+		else if (dims_src2[i] == 1)
 		{
-			result = EvaluatorInterface::allocateMatrix(data.mtx->M(), target->N(), data.mtx->Type());
-
-			for (int j = 0; j < target->N(); ++j)
-				result->WriteColumn(j, *data.mtx);
+			dims_rep1.push_back(1);
+			dims_rep2.push_back(dims_src1[i]);
 		}
 		else
 		{
-			result = EvaluatorInterface::allocateMatrix(data.mtx);
+			// trigger an error
+			dims_rep1.push_back(1);
+			dims_rep2.push_back(1);
 		}
 	}
 
-	return result;
+	for (size_t i = minDim; i < dims_src1.size(); ++i)
+	{
+		dims_rep1.push_back(1);
+	}
+
+	for (size_t i = minDim; i < dims_src2.size(); ++i)
+	{
+		dims_rep2.push_back(1);
+	}
+
+	res1 = ExprTreeEvaluator::allocateMatrixN();
+	res2 = ExprTreeEvaluator::allocateMatrixN();
+
+	res1->Repmat(src1, dims_rep1);
+	res2->Repmat(src2, dims_rep2);
+}
+
+void Currency::ExpandMatrixPair(const hwMatrix& src1, const hwMatrixN& src2,
+							    hwMatrixN*& res1, hwMatrixN*& res2)
+{
+	if (res1 != nullptr || res2 != nullptr)
+		return;
+
+	int m = src1.M();
+	int n = src1.N();
+	const std::vector<int>& dims_src2 = src2.Dimensions();
+	std::vector<int> dims_rep1;
+	std::vector<int> dims_rep2;
+
+	if (m == dims_src2[0])
+	{
+		dims_rep1.push_back(1);
+		dims_rep2.push_back(1);
+	}
+	else if (m == 1)
+	{
+		dims_rep1.push_back(dims_src2[0]);
+		dims_rep2.push_back(1);
+	}
+	else if (dims_src2[0] == 1)
+	{
+		dims_rep1.push_back(1);
+		dims_rep2.push_back(m);
+	}
+	else
+	{
+		// trigger an error
+		dims_rep1.push_back(1);
+		dims_rep2.push_back(1);
+	}
+
+	if (n == 1)
+	{
+		dims_rep1.push_back(dims_src2[1]);
+		dims_rep2.push_back(1);
+	}
+	else if (dims_src2[1] == 1)
+	{
+		dims_rep1.push_back(1);
+		dims_rep2.push_back(n);
+	}
+	else if (n == dims_src2[1])
+	{
+		dims_rep1.push_back(1);
+		dims_rep2.push_back(1);
+	}
+	else
+	{
+		// trigger an error
+		dims_rep1.push_back(1);
+		dims_rep2.push_back(1);
+	}
+
+	for (size_t i = 2; i < dims_src2.size(); ++i)
+	{
+		dims_rep1.push_back(dims_src2[i]);
+		dims_rep2.push_back(1);
+	}
+
+	res1 = ExprTreeEvaluator::allocateMatrixN();
+	res2 = ExprTreeEvaluator::allocateMatrixN();
+
+	res1->Repmat(src1, dims_rep1);
+	res2->Repmat(src2, dims_rep2);
 }
 
 HML_CELLARRAY* Currency::ConvertToCellArray()
@@ -1813,7 +1980,10 @@ void Currency::DeleteDisplay()
 
 void Currency::SetClass(const std::string& class_name)
 {
-	type = TYPE_OBJECT;
+	type        = TYPE_OBJECT;
+	mask        = MASK_NONE;
+	_outputType = OUTPUT_TYPE_DEFAULT;
+
 	classname = (std::string*)vm.GetStringPointer(class_name);
 }
 //------------------------------------------------------------------------------

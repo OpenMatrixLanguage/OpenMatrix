@@ -59,30 +59,47 @@ static hwMathStatus NLCurveFitFunc(const hwMatrix& P,
     inputs.push_back(P_temp);
     inputs.push_back(EvaluatorInterface::allocateMatrix(&X));
 
-    if (LSQCURVEFIT_oml_func_isanon)
+    try
     {
-        result = LSQCURVEFIT_eval_ptr->CallInternalFunction(
-            LSQCURVEFIT_oml_func, inputs);
+        LSQCURVEFIT_eval_ptr->Mark();
 
-        outputs.push_back(result);
+        if (LSQCURVEFIT_oml_func_isanon)
+        {
+            result = LSQCURVEFIT_eval_ptr->CallInternalFunction(
+                LSQCURVEFIT_oml_func, inputs);
+        
+            outputs.push_back(result);
+        }
+        else if (LSQCURVEFIT_oml_func)
+        {
+            outputs = LSQCURVEFIT_eval_ptr->DoMultiReturnFunctionCall(
+                LSQCURVEFIT_oml_func, inputs, static_cast<int>(inputs.size()), 
+                1, true);
+        }
+        else if (LSQCURVEFIT_oml_pntr)
+        {
+            outputs = LSQCURVEFIT_eval_ptr->DoMultiReturnFunctionCall(
+                LSQCURVEFIT_oml_pntr, inputs, static_cast<int>(inputs.size()), 
+                1, true);
+        }
+        else
+        {
+            return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
+        }
+
+        LSQCURVEFIT_eval_ptr->Unmark();
     }
-    else if (LSQCURVEFIT_oml_func)
+    catch (OML_Error&)
     {
-        outputs = LSQCURVEFIT_eval_ptr->DoMultiReturnFunctionCall(
-            LSQCURVEFIT_oml_func, inputs, static_cast<int>(inputs.size()), 
-            1, true);
-    }
-    else if (LSQCURVEFIT_oml_pntr)
-    {
-        outputs = LSQCURVEFIT_eval_ptr->DoMultiReturnFunctionCall(
-            LSQCURVEFIT_oml_pntr, inputs, static_cast<int>(inputs.size()), 
-            1, true);
-    }
-    else
-    {
+        LSQCURVEFIT_eval_ptr->Restore();
         return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
     }
-    
+    catch (hwMathException&)
+    {
+        LSQCURVEFIT_eval_ptr->Restore();
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
+    }
+
     if (outputs.size() == 1 || outputs.size() == 2)
     {
         Currency& resid = outputs[0];
@@ -140,18 +157,35 @@ static hwMathStatus NLCurveFitJacobian(const hwMatrix& P,
     inputs.push_back(P_temp);
     inputs.push_back(EvaluatorInterface::allocateMatrix(&X));
 
-    if (LSQCURVEFIT_oml_func)
+    try
     {
-        outputs = LSQCURVEFIT_eval_ptr->DoMultiReturnFunctionCall(
-            LSQCURVEFIT_oml_func, inputs, static_cast<int>(inputs.size()), 2, true);
+        LSQCURVEFIT_eval_ptr->Mark();
+
+        if (LSQCURVEFIT_oml_func)
+        {
+            outputs = LSQCURVEFIT_eval_ptr->DoMultiReturnFunctionCall(
+                LSQCURVEFIT_oml_func, inputs, static_cast<int>(inputs.size()), 2, true);
+        }
+        else if (LSQCURVEFIT_oml_pntr)
+        {
+            outputs = LSQCURVEFIT_eval_ptr->DoMultiReturnFunctionCall(
+                LSQCURVEFIT_oml_pntr, inputs, static_cast<int>(inputs.size()), 2, true);
+        }
+        else
+        {
+            return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+        }
+
+        LSQCURVEFIT_eval_ptr->Unmark();
     }
-    else if (LSQCURVEFIT_oml_pntr)
+    catch (OML_Error&)
     {
-        outputs = LSQCURVEFIT_eval_ptr->DoMultiReturnFunctionCall(
-            LSQCURVEFIT_oml_pntr, inputs, static_cast<int>(inputs.size()), 2, true);
+        LSQCURVEFIT_eval_ptr->Restore();
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
     }
-    else
+    catch (hwMathException&)
     {
+        LSQCURVEFIT_eval_ptr->Restore();
         return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
     }
 

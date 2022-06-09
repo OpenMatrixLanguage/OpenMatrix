@@ -314,6 +314,21 @@ int EvaluatorInterface::GetNumFiles()
     return eval->GetNumFiles();
 }
 
+void EvaluatorInterface::Mark()
+{
+    eval->Mark();
+}
+
+void EvaluatorInterface::Unmark()
+{
+    eval->Unmark();
+}
+
+void EvaluatorInterface::Restore()
+{
+    eval->Restore();
+}
+
 void EvaluatorInterface::AddPath(std::string pathname, bool end)
 {
     eval->AddPath(pathname, end);
@@ -447,12 +462,12 @@ hwMatrix* EvaluatorInterface::allocateMatrix(int m, int n, double value)
     return ExprTreeEvaluator::allocateMatrix(m, n, value);
 }
 
-hwMatrix* EvaluatorInterface::allocateMatrix(int m, int n, hwComplex& value)
+hwMatrix* EvaluatorInterface::allocateMatrix(int m, int n, const hwComplex& value)
 {
     return ExprTreeEvaluator::allocateMatrix(m, n, value);
 }
 
-hwMatrix* EvaluatorInterface::allocateMatrix(int m, int n, hwComplex&& value)
+hwMatrix* EvaluatorInterface::allocateMatrix(int m, int n, const hwComplex&& value)
 {
     return ExprTreeEvaluator::allocateMatrix(m, n, value);
 }
@@ -1007,9 +1022,7 @@ std::vector<std::string> EvaluatorInterface::GetMethods(const std::string& class
 std::string EvaluatorInterface::GetFunctionArgumentName(int index)
 {
     return eval->GetFunctionArgumentName(index);
-}
-
-void EvaluatorInterface::SetInterrupt(bool value)
+}void EvaluatorInterface::SetInterrupt(bool value)
 {
     eval->SetInterrupt(value);
 }

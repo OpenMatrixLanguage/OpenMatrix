@@ -1,7 +1,7 @@
 /**
 * @file PlotToolbox.cxx
 * @date March 2017
-* Copyright (C) 2017-2021 Altair Engineering, Inc.  
+* Copyright (C) 2017-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -966,8 +966,147 @@ namespace omlplot{
         return false;
     }
 
+    bool getframe(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [getframe] is not supported in OpenMatrix");
+        return false;
+    }
 
-#define TBOXVERSION 1.09
+    bool movie(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [movie] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool quiver(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [quiver] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool autumn(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [autumn] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool bone(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [bone] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool cividis(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [cividis] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool cool(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [cool] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool copper(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [copper] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool cubehelix(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [cubehelix] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool flag(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [flag] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool gray(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [gray] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool hot(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [hot] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool hsv(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [hsv] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool inferno(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [inferno] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool jet(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [jet] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool lines(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [lines] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool magma(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [magma] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool ocean(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [ocean] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool pink(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [pink] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool plasma(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [plasma] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool prism(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [prism] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool rainbow(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [rainbow] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool spring(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [spring] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool summer(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [summer] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool twilight(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [twilight] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool viridis(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [viridis] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool white(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [white] is not supported in OpenMatrix");
+        return false;
+    }
+
+    bool winter(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [winter] is not supported in OpenMatrix");
+        return false;
+    }
+
+#define TBOXVERSION 1.10
     extern "C" OMLPLOT_EXPORT
     double GetToolboxVersion(EvaluatorInterface eval){
         return TBOXVERSION;
@@ -1044,6 +1183,34 @@ namespace omlplot{
             evl.RegisterBuiltInFunction("stem3", stem3, FunctionMetaData(-1, -1, "Plotting"));
             evl.RegisterBuiltInFunction("copystyle", copystyle, FunctionMetaData(-1, -1, "Plotting"));
             evl.RegisterBuiltInFunction("pastestyle", pastestyle, FunctionMetaData(-1, -1, "Plotting"));
+            evl.RegisterBuiltInFunction("getframe", getframe, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("movie", movie, FunctionMetaData(-1, 0, "Plotting"));
+            evl.RegisterBuiltInFunction("quiver", quiver, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("autumn", autumn, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("bone", bone, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("cividis", cividis, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("cool", cool, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("copper", copper, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("cubehelix", cubehelix, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("flag", flag, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("gray", gray, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("hot", hot, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("hsv", hsv, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("inferno", inferno, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("jet", jet, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("lines", lines, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("magma", magma, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("ocean", ocean, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("pink", pink, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("plasma", plasma, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("prism", prism, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("rainbow", rainbow, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("spring", spring, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("summer", summer, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("twilight", twilight, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("viridis", viridis, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("white", white, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("winter", winter, FunctionMetaData(-1, 1, "Plotting"));
             return 0;
         }
 
@@ -1118,6 +1285,34 @@ namespace omlplot{
         evl.RegisterBuiltInFunction("stem3", stem3, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("copystyle", copystyle, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("pastestyle", pastestyle, FunctionMetaData(-1, -1, "Plotting"));
+        evl.RegisterBuiltInFunction("getframe", getframe, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("movie", movie, FunctionMetaData(-1, 0, "Plotting"));
+        evl.RegisterBuiltInFunction("quiver", quiver, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("autumn", autumn, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("bone", bone, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("cividis", cividis, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("cool", cool, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("copper", copper, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("cubehelix", cubehelix, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("flag", flag, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("gray", gray, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("hot", hot, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("hsv", hsv, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("inferno", inferno, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("jet", jet, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("lines", lines, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("magma", magma, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("ocean", ocean, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("pink", pink, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("plasma", plasma, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("prism", prism, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("rainbow", rainbow, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("spring", spring, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("summer", summer, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("twilight", twilight, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("viridis", viridis, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("white", white, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("winter", winter, FunctionMetaData(-1, 1, "Plotting"));
         return 0;
     }
 

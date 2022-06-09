@@ -1,7 +1,7 @@
 /**
 * @file CurrencyDisplay.cpp
 * @date January 2016
-* Copyright (C) 2016-2021 Altair Engineering, Inc.  
+* Copyright (C) 2016-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -135,9 +135,23 @@ CurrencyDisplay::CurrencyDisplay(const Currency&  cur)
     , m_signalHandler (NULL)
     , m_indent        (0)
     , m_deleteLine    (false)
+    , m_cachedPaginate(-1)
 {
     // This will be a copy of the currency, so set display explicitly
     m_currency.SetDisplay(this);
+}
+//------------------------------------------------------------------------------
+// Destructor
+//------------------------------------------------------------------------------
+CurrencyDisplay::~CurrencyDisplay()
+{
+    switch (m_cachedPaginate)
+    {
+    case PAGINATE_ON:          m_paginate = PAGINATE_ON;          break;
+    case PAGINATE_OFF:         m_paginate = PAGINATE_OFF;         break;
+    case PAGINATE_INTERACTIVE: m_paginate = PAGINATE_INTERACTIVE; break;
+    default: break;
+    }
 }
 //------------------------------------------------------------------------------
 // Sets indices and data for display mode
@@ -1075,4 +1089,14 @@ void CurrencyDisplay::SetParentDisplay(CurrencyDisplay* parent)
         SetMode(parent->GetMode());
         SetModeData();
     }
+}
+//------------------------------------------------------------------------------
+// Temporarily change the global paginate and reset once this currency is done
+//------------------------------------------------------------------------------
+void CurrencyDisplay::SetLocalPaginate()
+{
+    // Used to force print currency with paginate interactive mode. This is used for
+    // printing really large matrices in the console mode
+    m_cachedPaginate = m_paginate;
+    m_paginate = PAGINATE_INTERACTIVE;
 }

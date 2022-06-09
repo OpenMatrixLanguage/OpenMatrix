@@ -1,7 +1,7 @@
 /**
 * @file CurrencyDisplay.h
 * @date January 2016
-* Copyright (C) 2016-2021 Altair Engineering, Inc.  
+* Copyright (C) 2016-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -36,9 +36,10 @@ class OMLDLL_DECLS CurrencyDisplay
 public:
     friend class Currency; //!< Only currency is allowed to construct
 
+    //!
     //! Destructor 
-    virtual ~CurrencyDisplay() {}
-
+    //! 
+    virtual ~CurrencyDisplay();
     //!
     //! \enum PAGINATE
     //!
@@ -307,6 +308,12 @@ public:
     //!
     static std::string NonFormattedComplexToString(const hwComplex&);
 
+    //!
+    //! Update paginate locally to PAGINATE_ON, for this currency. Used
+    //! for slow printing of really large matrices in Console mode
+    //! 
+    void SetLocalPaginate();
+
 protected:  
     //!
     //! \enum DisplayFormat
@@ -338,7 +345,8 @@ protected:
     DISPLAYMODE        m_mode;           //!< Display mode
     CurrencyDisplay*   m_parentDisplay;  //!< Parent display - for nested currencies
     SignalHandlerBase* m_signalHandler;  //!< Signal handler - for client communication
-    mutable Currency           m_currency;       //!< Currency associated with this display
+    mutable Currency   m_currency;       //!< Currency associated with this display
+    mutable int        m_cachedPaginate; //!< Cached m_paginate value
 
     // Note: Currency is a copy and not a pointer because when results are 
     // displayed, the original currency could have already been destroyed

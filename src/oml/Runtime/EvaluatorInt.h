@@ -136,6 +136,10 @@ public:
 	int GetNarginValue() const;
     int	GetNumFiles();
 
+    void  Mark();
+    void  Unmark();
+    void  Restore();
+
     Currency EqualityOperator  (const Currency& lhs, const Currency&rhs, int op);
     Currency InequalityOperator(const Currency& lhs, const Currency&rhs, int op);
     Currency LogicalOperator   (const Currency& lhs, const Currency&rhs, int op);
@@ -154,8 +158,8 @@ public:
     static hwMatrix* allocateMatrix(int m, int n, void* data, hwMatrix::DataType type);
     static hwMatrix* allocateMatrix(int m, int n, hwMatrix::DataType type);
     static hwMatrix* allocateMatrix(int m, int n, double value);
-    static hwMatrix* allocateMatrix(int m, int n, hwComplex&  value);
-    static hwMatrix* allocateMatrix(int m, int n, hwComplex&& value);
+    static hwMatrix* allocateMatrix(int m, int n, const hwComplex&  value);
+    static hwMatrix* allocateMatrix(int m, int n, const hwComplex&& value);
 
 	// I would like to eliminate these two, but the statistics toolbox uses them
     static hwMatrixI* allocateMatrix(int m, int n, hwMatrixI::DataType type);

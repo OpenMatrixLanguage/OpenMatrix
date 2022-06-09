@@ -33,8 +33,8 @@ static std::vector<bool>                FMINUNC_oml_Prow_stack; // row vector ch
 //------------------------------------------------------------------------------
 // Wrapper for the objective function called in OmlFminunc by oml scripts
 //------------------------------------------------------------------------------
-static hwMathStatus FMinUnconFunc(const hwMatrix& P, 
-                                  const hwMatrix* userData, 
+static hwMathStatus FMinUnconFunc(const hwMatrix& P,
+                                  const hwMatrix* userData,
                                   double&         min)
 {
     EvaluatorInterface* FMINUNC_eval_ptr        = FMINUNC_eval_ptr_stack.back();
@@ -52,25 +52,42 @@ static hwMathStatus FMinUnconFunc(const hwMatrix& P,
 
     inputs.push_back(P_temp);
 
-    if (FMINUNC_oml_func_isanon)
+    try
     {
-        Currency result = FMINUNC_eval_ptr->CallInternalFunction(
-                          FMINUNC_oml_func, inputs);
-        outputs.push_back(result);
+        FMINUNC_eval_ptr->Mark();
+
+        if (FMINUNC_oml_func_isanon)
+        {
+            Currency result = FMINUNC_eval_ptr->CallInternalFunction(
+                FMINUNC_oml_func, inputs);
+            outputs.push_back(result);
+        }
+        else if (FMINUNC_oml_func)
+        {
+            outputs = FMINUNC_eval_ptr->DoMultiReturnFunctionCall(
+                FMINUNC_oml_func, inputs, 1, 1, true);
+        }
+        else if (FMINUNC_oml_pntr)
+        {
+            outputs = FMINUNC_eval_ptr->DoMultiReturnFunctionCall(
+                FMINUNC_oml_pntr, inputs, 1, 1, true);
+        }
+        else
+        {
+            return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
+        }
+
+        FMINUNC_eval_ptr->Unmark();
     }
-    else if (FMINUNC_oml_func)
+    catch (OML_Error&)
     {
-        outputs = FMINUNC_eval_ptr->DoMultiReturnFunctionCall(
-            FMINUNC_oml_func, inputs, 1, 1, true);
+        FMINUNC_eval_ptr->Restore();
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL);
     }
-    else if (FMINUNC_oml_pntr)
+    catch (hwMathException&)
     {
-        outputs = FMINUNC_eval_ptr->DoMultiReturnFunctionCall(
-            FMINUNC_oml_pntr, inputs, 1, 1, true);
-    }
-    else
-    {
-        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
+        FMINUNC_eval_ptr->Restore();
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL);
     }
 
     if (outputs.size() == 1 || outputs.size() == 2)
@@ -136,18 +153,35 @@ static hwMathStatus FMinUnconGradient(const hwMatrix& P,
 
     inputs.push_back(P_temp);
 
-    if (FMINUNC_oml_func)
+    try
     {
-        outputs = FMINUNC_eval_ptr->DoMultiReturnFunctionCall(FMINUNC_oml_func, 
-                  inputs, 1, 2, true);
+        FMINUNC_eval_ptr->Mark();
+
+        if (FMINUNC_oml_func)
+        {
+            outputs = FMINUNC_eval_ptr->DoMultiReturnFunctionCall(FMINUNC_oml_func, 
+                      inputs, 1, 2, true);
+        }
+        else if (FMINUNC_oml_pntr)
+        {
+            outputs = FMINUNC_eval_ptr->DoMultiReturnFunctionCall(FMINUNC_oml_pntr, 
+                      inputs, 1, 2, true);
+        }
+        else
+        {
+            return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+        }
+        
+        FMINUNC_eval_ptr->Unmark();
     }
-    else if (FMINUNC_oml_pntr)
+    catch (OML_Error&)
     {
-        outputs = FMINUNC_eval_ptr->DoMultiReturnFunctionCall(FMINUNC_oml_pntr, 
-                  inputs, 1, 2, true);
+        FMINUNC_eval_ptr->Restore();
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
     }
-    else
+    catch (hwMathException&)
     {
+        FMINUNC_eval_ptr->Restore();
         return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
     }
 

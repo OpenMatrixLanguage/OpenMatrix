@@ -104,6 +104,8 @@ void ClassInfo::AddClassMethod(const std::string& name, FunctionInfo* fi)
 {
     if (!name.empty())
         _methods[name] = fi;
+
+	fi->SetParentClass(this);
 }
 //------------------------------------------------------------------------------
 //! Adds class method
@@ -276,7 +278,6 @@ Currency ClassInfo::CreateEmpty() const
 
 	return cur;
 }
-
 std::vector<std::string> ClassInfo::GetPropertyNames() const
 {
 	std::vector<std::string> results;

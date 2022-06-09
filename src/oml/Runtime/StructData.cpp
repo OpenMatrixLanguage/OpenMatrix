@@ -363,7 +363,6 @@ const std::map<std::string, int> StructData::GetFieldNames() const
 
 	return ret;
 }
-
 void StructData::Transpose()
 {
 	HML_FIELDVALS* new_mtx = new HML_FIELDVALS(0, 0, HML_FIELDVALS::REAL);

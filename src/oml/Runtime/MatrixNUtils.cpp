@@ -243,7 +243,9 @@ bool oml_MatrixNUtil3(EvaluatorInterface eval, const std::vector<Currency>& inpu
 
     // dimension output
     std::vector<int> sliceDims(dims);
-    sliceDims[dim] = 1;
+
+    if (dims[dim] != 0)
+        sliceDims[dim] = 1;
 
     hwMatrixN* outMatrix1 = new hwMatrixN(sliceDims, matrix->Type());
     hwMatrixN* outMatrix2 = nullptr;
@@ -272,9 +274,16 @@ bool oml_MatrixNUtil3(EvaluatorInterface eval, const std::vector<Currency>& inpu
     int numVecs;
     
     if (dim < dims.size())
-        numVecs = matrix->Size() / dims[dim];
+    {
+        if (dims[dim] == 0)
+            numVecs = 0;
+        else
+            numVecs = matrix->Size() / dims[dim];
+    }
     else
+    {
         numVecs = matrix->Size();
+    }
 
     for (int i = 0; i < numVecs; ++i)
     {
@@ -418,9 +427,16 @@ bool oml_MatrixNUtil4(EvaluatorInterface eval, const std::vector<Currency>& inpu
     int numVecs;
 
     if (dim < dims.size())
-        numVecs = matrix->Size() / dims[dim];
+    {
+        if (dims[dim] == 0)
+            numVecs = 0;
+        else
+            numVecs = matrix->Size() / dims[dim];
+    }
     else
+    {
         numVecs = matrix->Size();
+    }
 
     for (int i = 0; i < numVecs; ++i)
     {
@@ -435,39 +451,43 @@ bool oml_MatrixNUtil4(EvaluatorInterface eval, const std::vector<Currency>& inpu
         std::vector<Currency> inputs2;
         std::vector<Currency> outputs2;
 
-        if (dimArg == 0)
+        switch (dimArg)
         {
-            for (int j = 0; j < ndArg-1; ++j)
+        case 0:
+            for (int j = 0; j < ndArg - 1; ++j)
                 inputs2.push_back(inputs[j]);           // interp1(x, ND, ...), filtfilt(b, a, ND)
 
             inputs2.push_back(slice2D);
-    
+
             for (int j = ndArg; j < nargin; ++j)
                 inputs2.push_back(inputs[j]);           // sort(ND, mode), circshift(ND, n)
-        }
-        else if (dimArg == 2)
-        {
+            break;
+        case 2:
             inputs2.push_back(slice2D);
 
             if (nargin == 3 && inputs[2].IsString())    // sort(ND, dim, mode)
                 inputs2.push_back(inputs[2]);
-        }
-        else if (dimArg == 3)
-        {
+            break;
+        case 3:
             inputs2.push_back(slice2D);
 
             if (nargin == 3 && inputs[1].IsInteger())   // circshift(ND, n, dim)
                 inputs2.push_back(inputs[1]);
-        }
-        else if (dimArg == 5)
-        {
-            for (int j = 0; j < ndArg-1; ++j)
+            break;
+        case 4:
+            inputs2.push_back(slice2D);                 // resample(ND, p, q)
+            inputs2.push_back(inputs[1]);               // implicitly, dim = 0
+            inputs2.push_back(inputs[2]);
+            break;
+        case 5:
+            for (int j = 0; j < ndArg - 1; ++j)
                 inputs2.push_back(inputs[j]);           // filter(b, a, ND, [], dim)
 
             inputs2.push_back(slice2D);
-    
-            for (int j = ndArg; j < dimArg-2; ++j)
+
+            for (int j = ndArg; j < dimArg - 2; ++j)
                 inputs2.push_back(inputs[j]);
+            break;
         }
 
         oml_func(eval, inputs2, outputs2);
@@ -522,13 +542,11 @@ bool oml_MatrixNUtil4(EvaluatorInterface eval, const std::vector<Currency>& inpu
     if (!numVecs)
     {
         // dimension output for the empty matrix case
-        // this needs to be enhanced if ever outdims[dim] != slice.Size()
-        std::vector<int> outdims(dims);
-
-        outMatrix1 = new hwMatrixN(outdims, hwMatrixN::REAL);
+        // this needs to be enhanced if ever dims[dim] != slice.Size()
+        outMatrix1 = new hwMatrixN(dims, hwMatrixN::REAL);
 
         if (nargout == 2)
-            outMatrix2 = new hwMatrixN(outdims, hwMatrixN::REAL);
+            outMatrix2 = new hwMatrixN(dims, hwMatrixN::REAL);
     }
 
     outputs.push_back(outMatrix1);
