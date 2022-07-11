@@ -1,0 +1,23 @@
+v5 results:
+ Attr Name       Size   Bytes Class 
+ ==== ====       ====   ===== ===== 
+      ASEP       1x1   274656 struct
+      Dateiname  1x140    140 char  
+      ErgGdrei   1x1     1293 struct
+      ErgGzwei   1x1     1293 struct
+      Fahrzeug   1x1   259247 struct
+      PBN_ECE_02 1x1      184 struct
+      PBN_ECE_03 1x1      616 struct
+
+
+v7.3 results:
+ Attr Name       Size   Bytes Class 
+ ==== ====       ====   ===== ===== 
+      ASEP       1x1   274656 struct
+      Dateiname  1x140    140 char  
+      ErgGdrei   1x1     1293 struct
+      ErgGzwei   1x1     1293 struct
+      Fahrzeug   1x1   259247 struct
+      PBN_ECE_02 1x1      184 struct
+      PBN_ECE_03 1x1      616 struct
+

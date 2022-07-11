@@ -1,0 +1,23 @@
+fname = 'whatever.txt';
+nzone = 1;
+varline0 = '"Text1","Text2","Text3","Text4","Text5","Text6","Text7", "Text8","Text9","Text10"';
+
+VARlist = cell(1,10);
+VARlist(1) = 'Text1';
+VARlist(2) = 'Text2';
+VARlist(3) = 'Text3';
+VARlist(4) = 'Text4';
+VARlist(5) = 'Text5';
+VARlist(6) = 'Text6';
+VARlist(7) = 'Text7';
+VARlist(8) = 'Text8';
+VARlist(9) = 'Text9';
+VARlist(10) = 'Text10';
+
+fprintf('===========================================\n');
+fprintf('Read file: %s',fname);
+fprintf('The line defining variables:\n%s\n',varline0);
+fprintf('The variables we get:\n');
+fprintf('%s, ',VARlist{:});
+fprintf('\n');
+fprintf('ZONE %d is a IJK ordered zone\n',nzone)

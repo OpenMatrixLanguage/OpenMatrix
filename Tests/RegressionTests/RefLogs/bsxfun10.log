@@ -1,0 +1,10 @@
+ans = 
+slice(:, :, 1) = 
+[Matrix] 2 x 3
+ 4 + 0i   7 + 2i  10 + 0i
+13 + 0i  16 + 0i  19 + 3i
+
+slice(:, :, 2) = 
+[Matrix] 2 x 3
+4 + 0i  5 + 2i  6 + 0i
+7 + 0i  8 + 0i  9 + 3i

@@ -1,61 +1,58 @@
 % unitary tests for 'lasterr' function
 %==============================================================================
-% initialize last error message
+% initialize last error message - Test 1
 lasterr('');
 msg = lasterr();
 if strcmp(msg, '') ~= 1
-	error('lasterr does not work.');
+	error('lasterr does not work - Test 1');
 end
 %==============================================================================
-% we raise an error
+% we raise an error - Test 2
 message_computed = '';
 try
 	eps('toto')
 catch
 	message_computed = lasterr();
 end
-expected_message = 'Error: invalid class name';
+expected_message = 'Error: invalid class name in call to function eps at line number 13 in file lasterr1.oml';
 if strcmp(message_computed, expected_message) ~= 1
-	error('lasterr does not work.');
+	error('lasterr does not work - Test 2');
 end
 %==============================================================================
-lasterr('');
+lasterr(''); % Test 3
 message_computed = '';
 try
 	lasterr(1);
 catch
 	message_computed = lasterr();
 end
-expected_message = 'Error: input must be a string';
+expected_message = 'Error: invalid input in argument 1; must be string in call to function lasterr at line number 25 in file lasterr1.oml';
 if strcmp(message_computed, expected_message) ~= 1
-	error('lasterr does not work.');
+	error('lasterr does not work - Test 3');
 end
 %==============================================================================
-lasterr('');
+lasterr(''); % Test 4 - no error message generated with incorrect num of inputs
 message_computed = '';
 try
 	[a,b] = lasterr();
 catch
 	message_computed = lasterr();
 end
-expected_message = 'Error: invalid function call; incorrect number of output arguments';
+expected_message = '';
 if strcmp(message_computed, expected_message) ~= 1
-	error('lasterr does not work.');
+	error('lasterr does not work - Test 4');
 end
 %==============================================================================
-lasterr('');
-message_computed = '';
-try
-	lasterr('msg1', 'msg2');
-catch
-	message_computed = lasterr();
-end
-expected_message = 'Error: invalid function call; incorrect number of input arguments';
+lasterr(''); % Test 5 - no error message generated with incorrect num of outputs
+lasterr('msg1', 'msg2');
+message_computed = lasterr;
+
+expected_message = 'msg1';
 if strcmp(message_computed, expected_message) ~= 1
-	error('lasterr does not work.');
+	error('lasterr does not work - Test 5');
 end
 %==============================================================================
-% check syntax error message
+% check syntax error message - Test 6
 lasterr('');
 message_computed = '';
 try
@@ -63,9 +60,9 @@ try
 catch
 	message_computed = lasterr();
 end
-expected_message = 'Syntax error at line number 1 near character position 1';
+expected_message = 'Syntax error at line number 1 near character position 1 in call to function eval at line number 59 in file lasterr1.oml';
 if strcmp(message_computed, expected_message) ~= 1
-	error('lasterr does not work.');
+	error('lasterr does not work - Test 6');
 end
 %==============================================================================
 % re-initialize error message at the end of this test

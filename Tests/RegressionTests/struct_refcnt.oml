@@ -1,0 +1,10 @@
+mystruct.a = {'a'};
+mystruct.b = {'b'};
+
+function test(mystruct)
+	mystruct(1) = struct();
+end
+
+test(mystruct)
+
+mystruct

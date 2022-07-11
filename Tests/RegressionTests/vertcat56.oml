@@ -1,0 +1,7 @@
+﻿A = struct('struct','A');
+B = struct('struct','B');
+Q = vertcat(A,B);
+Q(1)
+Q(2)
+
+

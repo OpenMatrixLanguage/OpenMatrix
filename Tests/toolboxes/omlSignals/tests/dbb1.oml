@@ -1,0 +1,4 @@
+addtoolbox omlsignals
+freq = logspace(1,5,20);
+mag = ones(1,length(freq));
+output = dbb(freq, mag)

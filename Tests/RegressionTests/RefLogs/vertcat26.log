@@ -17,4 +17,4 @@ A = struct [
   b: -4
   c: -3
 ]
-Error: inputs must have the same number of rows to be concatenated horizontally in call to function vertcat at line number 6 in file vertcat26.oml
+Error: inputs must have the same number of columns to be concatenated vertically in call to function vertcat at line number 6 in file vertcat26.oml

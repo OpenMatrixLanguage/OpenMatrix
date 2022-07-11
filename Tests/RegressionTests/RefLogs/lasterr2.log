@@ -1,0 +1,1 @@
+msg = Error: invalid slice; dimension is inconsistent or out of bounds in function test at line number 4 in file lasterr_2.oml

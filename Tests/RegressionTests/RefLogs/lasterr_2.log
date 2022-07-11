@@ -1,0 +1,9 @@
+struct [
+  message: Error: Raise an error
+  stack: struct [
+    file: lasterr_2.oml
+    line: 12
+    name: gg
+  ]
+]
+Error: Raise an error in function ff at line number 7 in file lasterr_2.oml

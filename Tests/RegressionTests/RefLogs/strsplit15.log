@@ -1,1 +1,1 @@
-Error: option 'collapsedelimiters' needs a value in call to function strsplit at line number 1 in file strsplit15.oml
+Error: invalid number of input arguments; [collapsedelimiters] needs a value in call to function strsplit at line number 1 in file strsplit15.oml

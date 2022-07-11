@@ -1,0 +1,4 @@
+This multi-cell test should return 0, 0, 0.
+command = isfile({ 'failtest', 0, '2222' } )
+ans = [Matrix] 1 x 3
+0  0  0

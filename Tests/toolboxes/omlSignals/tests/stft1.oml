@@ -1,0 +1,10 @@
+addtoolbox omlsignals
+f0 = 0;
+f1 = 10;
+T = 10;
+c = (f1 - f0) / T;
+t = [0:0.1:T-0.1];
+x = sin(2 * pi * ((c/2)*t.^2 + f0*t));
+% octave: st = stft(x, 20, 6, 16, 1)
+%st = stft(x, fs, window, overlap, nfft, range)
+st = abs(stft(x, 10, 20, 14, 32, 'twosided')([1:16],:))

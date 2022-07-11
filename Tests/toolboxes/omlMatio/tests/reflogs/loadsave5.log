@@ -1,0 +1,37 @@
+v5 results:
+VARlist = 
+{
+  [1,1] Tt
+  [1,2] Tr
+  [1,3] Tv
+  [1,4] Tave
+  [1,5] P
+  [1,6] Number of reactions
+  [1,7] Frac1
+  [1,8] Rate1 (cm<sup>3</sup>mol<sup>-1</sup>s<sup>-1</sup>)
+  [1,9] ColRate1 (cm<sup>3</sup>mol<sup>-1</sup>s<sup>-1</sup>)
+  [1,10] Ev<sub>rem</sub>1(eV)
+  [1,11] Ev<sub>rem</sub>1/D
+  [1,12] Ev2<sub>rem</sub>1(eV)
+  [1,13] Ev2<sub>rem</sub>1/D
+}
+varline0 = "Tt","Tr","Tv","Tave","P","Number of reactions","Frac1", "Rate1 (cm<sup>3</sup>mol<sup>-1</sup>s<sup>-1</sup>)","ColRate1 (cm<sup>3</sup>mol<sup>-1</sup>s<sup>-1</sup>)","Ev<sub>rem</sub>1(eV)", "Ev<sub>rem</sub>1/D", "Ev2<sub>rem</sub>1(eV)", "Ev2<sub>rem</sub>1/D"
+
+v7.3 results:
+VARlist = 
+{
+  [1,1] Tt
+  [1,2] Tr
+  [1,3] Tv
+  [1,4] Tave
+  [1,5] P
+  [1,6] Number of reactions
+  [1,7] Frac1
+  [1,8] Rate1 (cm<sup>3</sup>mol<sup>-1</sup>s<sup>-1</sup>)
+  [1,9] ColRate1 (cm<sup>3</sup>mol<sup>-1</sup>s<sup>-1</sup>)
+  [1,10] Ev<sub>rem</sub>1(eV)
+  [1,11] Ev<sub>rem</sub>1/D
+  [1,12] Ev2<sub>rem</sub>1(eV)
+  [1,13] Ev2<sub>rem</sub>1/D
+}
+varline0 = "Tt","Tr","Tv","Tave","P","Number of reactions","Frac1", "Rate1 (cm<sup>3</sup>mol<sup>-1</sup>s<sup>-1</sup>)","ColRate1 (cm<sup>3</sup>mol<sup>-1</sup>s<sup>-1</sup>)","Ev<sub>rem</sub>1(eV)", "Ev<sub>rem</sub>1/D", "Ev2<sub>rem</sub>1(eV)", "Ev2<sub>rem</sub>1/D"

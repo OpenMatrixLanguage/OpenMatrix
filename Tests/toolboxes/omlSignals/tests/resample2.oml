@@ -1,0 +1,19 @@
+addtoolbox omlsignals
+fs = 100;
+ts = 1/fs;
+n = 150;
+t = [0:ts:(n-1)*ts];
+omega = 2*pi*(3*fs/8);
+x = 8*cos(omega*t) - 60*sin(omega*t);
+
+p = 4;
+q = 3;
+xr1 = resample(x, p, q);
+
+t = (q/p)*[0:ts:(n*(p/q)-1)*ts];
+xr2 = 8*cos(omega*t) - 60*sin(omega*t);
+
+xr1(30:40)
+xr2(30:40)
+xr1(160:170)
+xr2(160:170)

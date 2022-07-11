@@ -1,0 +1,5 @@
+Line 1 - on a new line fprintf
+Line 2 - on a new line disp
+Line 3 - on a new line fprintf; continue fprintf on the same line
+Line 4 - fprintf on a new line
+Line 5 - disp on a new line

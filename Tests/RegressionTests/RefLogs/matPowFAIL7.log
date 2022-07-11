@@ -1,1 +1,1 @@
-Error: unsupported operation at line number 1 in file matPowFAIL7.oml
+Error: invalid matrix; must be square at line number 1 in file matPowFAIL7.oml

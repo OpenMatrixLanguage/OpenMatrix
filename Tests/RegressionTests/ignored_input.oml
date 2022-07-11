@@ -1,0 +1,5 @@
+function val = pick2nd(~, arg2)
+  val = arg2;
+end
+
+pick2nd(1,2)

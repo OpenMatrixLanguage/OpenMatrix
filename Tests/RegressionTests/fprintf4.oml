@@ -1,0 +1,6 @@
+fprintf('Line 1 - on a new line fprintf')
+disp('Line 2 - on a new line disp')
+fprintf('Line 3 - on a new line fprintf')
+fprintf('; continue fprintf on the same line\n')
+fprintf('Line 4 - fprintf on a new line')
+disp('Line 5 - disp on a new line')

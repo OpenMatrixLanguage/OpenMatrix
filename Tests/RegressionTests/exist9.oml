@@ -1,0 +1,42 @@
+returndir = pwd;
+cd FileManipulation
+
+disp('Create Q.oml test file')
+command = 'system(''echo %test1 > Q.oml'')'
+eval(command)
+cd(returndir)
+
+command = 'exist(''Q'')';
+printf('command %s, result %d, comment %s\n', command, eval(command), 'This should return 0 because Q.oml is not a function file.')
+
+% assign variable and check for exist
+printf('assign Q variable\n')
+Q = 1
+command = 'exist(''Q'')';
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'This should return 1 for variable')
+
+% declare local function
+printf('declare Q local function\n')
+function Q()
+	disp('local function Q')
+end
+command = 'exist(''Q'')';
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'This should still return 1 for variable')
+
+% clear variable
+printf('clear Q variable')
+clear Q
+command = 'exist(''Q'')';
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'This should return 103 for local function')
+
+% clear local function
+printf('clear Q local function')
+clear Q
+command = 'exist(''Q'')';
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'This should return 0, because Q.oml is not a function file')
+
+printf('delete the Q.oml file.\n')
+deletefile = [ 'FileManipulation' filesep 'Q.oml' ];
+if(isfile(deletefile))
+	delete(deletefile)
+end

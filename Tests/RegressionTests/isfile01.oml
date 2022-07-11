@@ -1,0 +1,38 @@
+printf('------------------------------------------------------------\n')
+disp('isdir() and isfile() function tests')
+
+command = 'isdir(''FileManipulation'')'
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'true.  this is a directory')
+
+command = 'isfile(''FileManipulation'')'
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'false.  this is a directory')
+
+command = 'isdir(''./FileManipulation'')'
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'true.  this is a directory')
+
+command = 'isfile(''./FileManipulation'')'
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'false.  this is a directory')
+
+command = 'isdir(''./FileManipulation/'')'
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'true.  this is a directory')
+
+command = 'isfile(''./FileManipulation/'')'
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'false.  this is a directory')
+
+command = 'isdir(''isfile01.oml'')'
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'false.  this is a file')
+
+command = 'isfile(''isfile01.oml'')'
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'true.  this is a file.')
+
+command = 'isdir(''./isfile01.oml'')'
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'false.  this is a file')
+
+command = 'isfile(''./isfile01.oml'')'
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'true.  this is a file.')
+
+command = 'isdir(''../RegressionTests/isfile01.oml'')'
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'false.  this is a file')
+
+command = 'isfile(''../RegressionTests/isfile01.oml'')'
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'true.  this is a file.')

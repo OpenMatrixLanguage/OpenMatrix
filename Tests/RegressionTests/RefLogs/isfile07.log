@@ -1,0 +1,6 @@
+This multi-cell test should return 0; 1; 0.
+command = isfile({ 'failtest'; 'isfile07.oml'; '2222' } )
+ans = [Matrix] 3 x 1
+0
+1
+0

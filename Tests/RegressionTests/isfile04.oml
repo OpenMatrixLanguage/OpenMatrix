@@ -1,0 +1,3 @@
+disp('This two cell test should return 0, 0.')
+command = 'isfile({ ''failtest'', ''2222'' } )'
+eval(command)

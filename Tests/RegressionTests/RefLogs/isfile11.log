@@ -1,0 +1,5 @@
+This multi-cell test should return 1, 0, 1; 1, 0, 0.
+command = isfile({ 'isfile11.oml', 'failtest', [ Filepath filesep Filename Fileext ]; 'isfile11.oml', '2222', 0} )
+ans = [Matrix] 2 x 3
+1  0  1
+1  0  0

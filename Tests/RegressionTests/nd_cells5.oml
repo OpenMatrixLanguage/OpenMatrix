@@ -1,0 +1,5 @@
+﻿c = {};
+c(:,:,1) = {'aaa', 'aba', 'aca'; 'baa', 'bba', 'bca'; 'caa', 'cba', 'cca'};
+c(:,:,2) = {'aab', 'abb', 'acb'; 'bab', 'bbb', 'bcb'; 'cab', 'cbb', 'ccb'};
+c(:,:,3) = {'aac', 'abc', 'acc'; 'bac', 'bbc', 'bcc'; 'cac', 'cbc', 'ccc'};
+[c112 c122 c132] = c{1,:,2}

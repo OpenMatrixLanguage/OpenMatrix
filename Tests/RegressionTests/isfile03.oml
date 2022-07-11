@@ -1,0 +1,3 @@
+disp('This single string test should return 0.')
+command = 'isfile({ ''failtest'' } )'
+eval(command)
