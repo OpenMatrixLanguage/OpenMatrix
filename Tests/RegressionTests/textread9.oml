@@ -1,2 +1,0 @@
-name = 'FileManipulation\fscanf_data1.txt';
-textread(name, '%f', 'delimiter', '\n')
