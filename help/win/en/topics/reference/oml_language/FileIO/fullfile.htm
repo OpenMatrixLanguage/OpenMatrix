@@ -1,0 +1,128 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="fullfile" /><meta name="abstract" content="Returns a filename from dir1...dirN and filename fname." /><meta name="description" content="Returns a filename from dir1...dirN and filename fname." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="File I/O Commands" /><meta name="indexterms" content="fullfile" /><meta name="DC.subject" content="fullfile" /><meta name="keywords" content="fullfile" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileparts.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>fullfile</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" title="File I/O Commands">File I/O Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" title="File I/O Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">File I/O Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">fullfile</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Returns a filename from<var class="keyword varname"> dir1...dirN </var>and filename
+      <var class="keyword varname">fname</var>.</p>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_xqq_p1m_5pb"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">R = fullfile<span class="ph var">('dir1','dir2',....'dirN','fname')</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_yqq_p1m_5pb"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml" id="reference_wpv_kyv_pr__parml_zqq_p1m_5pb">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">dir1,dirN,f</var></dt>
+
+          <dd class="dd pd">Zero, 1 or more directory names provided as components to a full pathname.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">fname</var></dt>
+
+          <dd class="dd pd">Filename with or without file extension. If <var class="keyword varname">fname</var> is a cell,
+              <var class="keyword varname">R</var> will be a cell of file paths.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">cell | string</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_arq_p1m_5pb"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml" id="reference_wpv_kyv_pr__parml_brq_p1m_5pb">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+          <dd class="dd pd">Full path to the file(s) specified by the components provided.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">cell | string</span></dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_crq_p1m_5pb"><h2 class="title sectiontitle">Example:</h2>
+      
+      <div class="p">Example including the <span class="keyword cmdname">fullfile </span>
+        function.<pre class="pre codeblock" id="reference_wpv_kyv_pr__codeblock_drq_p1m_5pb"><code>% create a pathname from drive, directories and filename.
+pathname = fullfile('c:', 'tests', 'A', 'testscript.oml')
+
+% nargout 0
+fileparts(pathname)
+
+% nargout 1 path 
+R = fileparts(pathname)
+
+% nargout 2 path and filename
+[R1, R2] = fileparts(pathname)
+
+% nargout 3 path, filename and file extension
+[R1, R2, R3] = fileparts(pathname)
+
+<code class="ph codeph">pathname = c:\tests\A\testscript.oml
+ans = c:\tests\A
+R = c:\tests\A
+R1 = c:\tests\A
+R2 = testscript
+R1 = c:\tests\A
+R2 = testscript
+R3 = .oml</code></code></pre></div>
+
+      <div class="p">Example with multiple file names <pre class="pre codeblock" id="reference_wpv_kyv_pr__codeblock_erq_p1m_5pb"><code>
+R = fullfile('c:\\Program files', 'test', {'file1.txt', 'file2path/'})
+<code class="ph codeph">
+R =
+{
+  [1,1] c:\Program files\test\file1.txt
+  [1,2] c:\Program files\test\file2path\
+}</code></code></pre></div>
+
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_frq_p1m_5pb"><h2 class="title sectiontitle">Version History</h2>
+      
+      <p class="p"><span class="keyword">1.0.10</span></p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/fileparts.htm" title="Returns the directory, name, and extension components of the file filepath.">fileparts</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" title="File I/O Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">File I/O Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

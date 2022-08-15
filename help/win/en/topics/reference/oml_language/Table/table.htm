@@ -1,0 +1,143 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="table" /><meta name="abstract" content="Writes the values of table object t to file, which is an Excel-compatible file. writetable is available only on Windows systems where Microsoft Excel is installed." /><meta name="description" content="Writes the values of table object t to file, which is an Excel-compatible file. writetable is available only on Windows systems where Microsoft Excel is installed." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Unsure" /><meta name="indexterms" content="table" /><meta name="DC.subject" content="table" /><meta name="keywords" content="table" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Table/table_commands_c.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Table/readtable.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Table/writetable.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>table</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Table/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Table/table_commands_c.htm" title="Table Commands">Table Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Table/table_commands_c.htm" title="Table Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Table Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">table</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Writes the values of table object <var class="keyword varname">t</var> to <var class="keyword varname">file</var>, which is an
+    Excel-compatible file. <span class="keyword cmdname">writetable</span> is available only on
+    Windows systems where Microsoft Excel is installed.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      <p class="p"><span class="ph synph">t = table<span class="ph var">(var1, var2, ...)</span></span></p>
+    
+	  <?STOP?></section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+		  
+			  <dt class="dt pt dlterm">
+				  <var class="keyword varname">t</var>
+			  </dt>
+
+			  <dd class="dd pd">
+				  A table object.
+			  </dd>
+
+			  <dd class="dd pd ddexpand"> Type: <span class="keyword">table</span></dd>
+
+		  
+		  
+          <dt class="dt pt dlterm"><var class="keyword varname">varn</var></dt>
+
+          <dd class="dd pd">Data from the session (either a cell array or matrix) to be included in the table.  The data must be one-dimensional.
+		      If a variable name is used to pass the data, that will be used as the heading for that column in the table.
+		      If varn is 'RowNames', the following data vector will be used as row identifiers for the table and listed first.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string | struct</span></dd>
+
+              
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+          <dd class="dd pd">A value of 1 indicates success and 0 indicates failure.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span></dd>
+
+        
+        </dl>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">Create a table from data in the session:
+				<pre class="pre codeblock"><code>Lake = {'Superior','Michigan','Huron','Erie','Ontario'};
+Area = [31700, 22300, 23000, 9910, 7340];
+Volume = [2900, 1180, 850, 116, 393];
+t = table(Lake, Area, Volume)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">Lake Area Volume
+____ ____ ______
+'Superior' 31700 2900
+'Michigan' 22300 1180
+'Huron' 23000 850
+'Erie' 9910 116
+'Ontario' 7340 393</code></code></pre></div>
+
+		<div class="p"> Create a table from data in the session using row names:
+				<pre class="pre codeblock"><code>Lake = {'Superior','Michigan','Huron','Erie','Ontario'};
+Area = [31700, 22300, 23000, 9910, 7340];
+Volume = [2900, 1180, 850, 116, 393];
+t = table('RowNames', Lake, Area, Volume)</code></pre><pre class="pre codeblock"><code>         Area Volume
+         ____ ______
+Superior 31700 2900
+Michigan 22300 1180
+Huron 23000 850
+Erie 9910 116
+Ontario 7340 393</code></pre>
+			</div>
+
+		<div class="p"> Create a table from data in the session using row names and extract a column:
+				<pre class="pre codeblock"><code>Lake = {'Superior','Michigan','Huron','Erie','Ontario'};
+Area = [31700, 22300, 23000, 9910, 7340];
+Volume = [2900, 1180, 850, 116, 393];
+t = table('RowNames', Lake, Area, Volume);
+t.Area</code></pre><pre class="pre codeblock"><code>ans = [Matrix] 1 x 5
+31700  22300  23000  9910  7340</code></pre>
+			</div>
+
+		<div class="p"> Create a table from data in the session and extract a single value:
+				<pre class="pre codeblock"><code>Lake = {'Superior','Michigan','Huron','Erie','Ontario'};
+Area = [31700, 22300, 23000, 9910, 7340];
+Volume = [2900, 1180, 850, 116, 393];
+t = table(Lake, Area, Volume);
+t(1,1)</code></pre><pre class="pre codeblock"><code>ans = Superior</code></pre>
+			</div>
+
+		<div class="p"> Create a table from a cell array:
+				<pre class="pre codeblock"><code>t = table({'A',1,2; 'B',3,4; 'C',5,6})</code></pre><pre class="pre codeblock"><code>'A' 1 2
+'B' 3 4
+'C' 5 6</code></pre>
+			</div>
+
+	</section>
+
+    <section class="section">
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also </strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Table/readtable.htm" title="Creates a table object from data, which is an Excel-compatible file. readtable is available only on Windows systems where Microsoft Excel is installed.">readtable</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Table/writetable.htm" title="Writes the values of table object t to file, which is an Excel-compatible file. writetable is available only on Windows systems where Microsoft Excel is installed.">writetable</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Table/table_commands_c.htm" title="Table Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Table Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

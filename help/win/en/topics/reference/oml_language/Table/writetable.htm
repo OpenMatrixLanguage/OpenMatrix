@@ -1,0 +1,134 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="writetable" /><meta name="abstract" content="Writes the values of table object t to file, which is an Excel-compatible file. writetable is available only on Windows systems where Microsoft Excel is installed." /><meta name="description" content="Writes the values of table object t to file, which is an Excel-compatible file. writetable is available only on Windows systems where Microsoft Excel is installed." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Unsure" /><meta name="indexterms" content="writetable" /><meta name="DC.subject" content="writetable" /><meta name="keywords" content="writetable" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Table/table_commands_c.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Table/table.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Table/readtable.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>writetable</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Table/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Table/table_commands_c.htm" title="Table Commands">Table Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Table/table_commands_c.htm" title="Table Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Table Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">writetable</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Writes the values of table object <var class="keyword varname">t</var> to <var class="keyword varname">file</var>, which is an
+    Excel-compatible file. <span class="keyword cmdname">writetable</span> is available only on
+    Windows systems where Microsoft Excel is installed.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      <p class="p"><span class="ph synph">R = writetable<span class="ph var">(t, file)</span></span></p>
+
+      <p class="p"><span class="ph synph">R = writetable<span class="ph var">(t, file, 'Sheet', w)</span></span></p>
+
+      <p class="p"><span class="ph synph">R = writetable<span class="ph var">(t, file, 'Sheet', w, 'Range', range)</span></span></p>
+      
+	  <?STOP?></section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+		  
+			  <dt class="dt pt dlterm">
+				  <var class="keyword varname">t</var>
+			  </dt>
+
+			  <dd class="dd pd">
+				  A table object t, that was created by either the table or readtable functions.
+			  </dd>
+
+			  <dd class="dd pd ddexpand"> Type: <span class="keyword">table</span>
+          </dd>
+
+		  
+		  
+          <dt class="dt pt dlterm"><var class="keyword varname">file</var></dt>
+
+          <dd class="dd pd">Name of the file to write. The file extension must be Excel compatible.  If <var class="keyword varname">file</var> does not exist, a new file is
+            created.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string | struct</span></dd>
+
+              
+		
+          <dt class="dt pt dlterm"><var class="keyword varname">w</var> (optional)</dt>
+
+          <dd class="dd pd">Worksheet name or number. If no <var class="keyword varname">w</var> is specified, the first worksheet
+            will be used to store the data. Empty worksheet(s) will be added to the right of the
+            last sheet if the worksheet number is less than what is existing in
+              <var class="keyword varname">file</var>.</dd>
+		  
+          <dd class="dd pd ddexpand">Type: <span class="keyword">int | string</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">range</var> (optional)</dt>
+
+          <dd class="dd pd">Specifies the range where the data needs to be written to. If the specified range is
+            greater than what exists in <var class="keyword varname">file</var>, additional cells will be created.
+            If there is no <var class="keyword varname">range</var> specified, data is added to the top left corner
+            of the worksheet.</dd>
+
+            <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+          
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+          <dd class="dd pd">A value of 1 indicates success and 0 indicates failure.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span></dd>
+
+        
+        </dl>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">Write an Excel-compatible file with defaults:
+        <pre class="pre codeblock"><code>t = table({'A',1,2; 'B',3,4; 'C',5,6});
+writetable(t, 'test.xlsx')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 1</code></code></pre></div>
+
+      
+    <div class="p">Write an Excel-compatible file with a worksheet name specified:
+        <pre class="pre codeblock"><code>t = table({'A',1,2; 'B',3,4; 'C',5,6});
+writetable(t, 'test.xls', 'Sheet', 'data')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 1</code></code></pre></div>
+
+    <div class="p">Write an Excel-compatible file with a worksheet number and range specified:
+        <pre class="pre codeblock"><code>t = table({'A',1,2; 'B',3,4; 'C',5,6});
+writetable(t, 'test.xls', 'Sheet', 3, 'Range', 'B3:D6')</code></pre><pre class="pre codeblock"><code>R = 1</code></pre></div>
+
+    </section>
+
+    <section class="section">
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also </strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Table/table.htm" title="Writes the values of table object t to file, which is an Excel-compatible file. writetable is available only on Windows systems where Microsoft Excel is installed.">table</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Table/readtable.htm" title="Creates a table object from data, which is an Excel-compatible file. readtable is available only on Windows systems where Microsoft Excel is installed.">readtable</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Table/table_commands_c.htm" title="Table Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Table Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

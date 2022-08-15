@@ -1,0 +1,132 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="copyfile" /><meta name="abstract" content="Returns R after copying file(s) or directories from src to dst." /><meta name="description" content="Returns R after copying file(s) or directories from src to dst." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="File I/O Commands" /><meta name="indexterms" content="copyfile" /><meta name="DC.subject" content="copyfile" /><meta name="keywords" content="copyfile" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>copyfile</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" title="File I/O Commands">File I/O Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" title="File I/O Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">File I/O Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">copyfile</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Returns <span class="ph synph">R</span> after copying file(s) or directories from <var class="keyword varname">src</var> to 
+    <var class="keyword varname">dst</var>.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      <p class="p"><span class="ph synph">R = copyfile<span class="ph var">(src, dst)</span></span></p>
+
+      <p class="p"><span class="ph synph">[R, msg, id] = copyfile <span class="ph var">(src, dst, 'f')</span></span></p>
+
+      <?STOP?></section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">src</var></dt>
+
+          <dd class="dd pd">Source file or directory which may contain wild cards.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+      </dl>
+
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">dst</var></dt>
+
+          <dd class="dd pd">Destination file or directory. If <var class="keyword varname">src</var> represents multiple files,
+              <var class="keyword varname">dst</var> must be a valid directory.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+      </dl>
+
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">'f'</var></dt>
+
+          <dd class="dd pd">Force copy flag which attempts to overwrite <var class="keyword varname">dst</var>, if it exists.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">char | string</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+          <dd class="dd pd"><samp class="ph systemoutput">1</samp> on success and <samp class="ph systemoutput">0</samp> 
+            on failure.</dd>
+
+            <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">msg</span> (optional)</dt>
+
+          <dd class="dd pd">System dependent message on failure.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">id</span> (optional)</dt>
+
+          <dd class="dd pd">System dependent message ID on failure, or empty string on success.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">int | string</span></dd>
+
+                  
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">Successful copy of a file to a destination directory:
+        <pre class="pre codeblock"><code>R = copyfile('foo.txt', 'c:\tests\A')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 1</code></code></pre></div>
+
+      <div class="p">Successful copy of source name with a wild card and force copy option
+        <pre class="pre codeblock"><code>[R, msg, id] = copyfile('fo*.txt', 'c:\tests\', 'f')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 1
+msg =
+id = </code></code></pre></div>
+        
+      <div class="p">Unsuccessful copy of a file, with a system message and ID:
+        <pre class="pre codeblock"><code>[R, msg, id] = copyfile('zzz.txt', 'c:\')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 0
+msg = No such file or directory
+Copy failed from [foo.txt] to [c:\]
+id = 2</code></code></pre></div>
+
+  </section>
+
+  <section class="section">
+    
+  </section>
+
+</div>
+
+<nav role="navigation" class="related-links"></nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" title="File I/O Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">File I/O Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

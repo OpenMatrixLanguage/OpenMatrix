@@ -1,0 +1,105 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="parfor loop" /><meta name="abstract" content="Parfor loops behave similarly to regular for loops except that they attempt to use multiple processors or threads to divide the loop space into chunks. The chunks are equally-sized (or as equal as possible)." /><meta name="description" content="Parfor loops behave similarly to regular for loops except that they attempt to use multiple processors or threads to divide the loop space into chunks. The chunks are equally-sized (or as equal as possible)." /><meta name="indexterms" content="parfor loop" /><meta name="DC.subject" content="parfor loop" /><meta name="keywords" content="parfor loop" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/flow_of_control_and_looping_r.htm" /><meta name="prodname" content="OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="parfor_loop_r" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>parfor loop</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="parfor_loop_r">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language.">Scripting Guide for OpenMatrix Language</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/flow_of_control_and_looping_r.htm" title="Loops are used to perform the same set of statements multiple times.">Flow of Control and Looping</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../topics/language_guides/flow_of_control_and_looping_r.htm" title="Loops are used to perform the same set of statements multiple times."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Flow of Control and Looping</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">parfor loop</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Parfor loops behave similarly to regular for loops except that they attempt to use
+    multiple processors or threads to divide the loop space into chunks. The chunks are
+    equally-sized (or as equal as possible). </p>
+
+    <section class="section" id="parfor_loop_r__section_stm_dcr_lrb">
+      <p class="p">The number of chunks is determined by the value set by the <span class="keyword cmdname">parcluster</span>
+        command. Your computer configuration will determine the number of chunks that can be
+        processed in parallel. For example, if your machine only has two cores, setting
+          <span class="keyword cmdname">parcluster(64)</span> will cause the loop to be executed in 64 chunks, but
+        only two of those will occur simultaneously.</p>
+
+      <p class="p">Display of variable values is disabled during a parfor loop.</p>
+
+      <p class="p">Special types of variables are inside a parfor loop: </p>
+
+    </section>
+
+    <section class="section" id="parfor_loop_r__section_kxm_dcr_lrb"><h2 class="title sectiontitle">Loop
+      Variable</h2><pre class="pre codeblock" id="parfor_loop_r__codeblock_c3r_lcr_lrb"><code>parfor j=1:64 
+
+end </code></pre>Where <code class="ph codeph">j</code> must be continuous.</section>
+
+    <section class="section" id="parfor_loop_r__section_sms_pcr_lrb"><h2 class="title sectiontitle">Broadcast
+      Variable</h2><pre class="pre codeblock" id="parfor_loop_r__codeblock_rbm_rcr_lrb"><code>b = 5; 
+parfor j=1:64 
+     b = j; 
+end 
+b </code></pre>Where <var class="keyword varname">b</var> will be printed in the command window as
+        <var class="keyword varname">5</var>, because broadcast variables are readable within the
+        <span class="keyword cmdname">parfor</span> loop, but any modifications to them are discarded once the loop
+      ends. </section>
+
+    <section class="section" id="parfor_loop_r__section_ijz_fdr_lrb"><h2 class="title sectiontitle">Local
+      Variable</h2><pre class="pre codeblock" id="parfor_loop_r__codeblock_jjz_fdr_lrb"><code>
+parfor j=1:64
+     a = j; 
+end 
+a </code></pre>In this case, <var class="keyword varname">a</var> will cause an error as an undefined variable,
+      because local variables only exist within the <span class="keyword cmdname">parfor</span> loop and are not
+      accessible after the loop completes itself. </section>
+
+    <section class="section" id="parfor_loop_r__section_imb_4dr_lrb"><h2 class="title sectiontitle">Sliced
+      Variable</h2><pre class="pre codeblock" id="parfor_loop_r__codeblock_jmb_4dr_lrb"><code>a = zeros(1,64);
+parfor j=1:64
+     a(j) = j; 
+end 
+a </code></pre>Where <var class="keyword varname">a</var> will be printed with each of its elements having the
+      value that has been assigned to it within the <span class="keyword cmdname">parfor</span> loop. Sliced variables
+      are indexed by the loop variable and each loop then processes a different part of the sliced
+        variable.<p class="p">For speed and safety, preallocate sliced variables using the
+          <code class="ph codeph">zeros</code> function or a similar method. </p>
+</section>
+
+    <section class="section" id="parfor_loop_r__section_cvp_b2r_lrb"><h2 class="title sectiontitle">Reduced
+      Variable</h2><pre class="pre codeblock" id="parfor_loop_r__codeblock_dvp_b2r_lrb"><code>sum = 0;
+parfor j=1:64
+     sum = sum + j; 
+end
+sum</code></pre>Where <var class="keyword varname">sum</var> will be printed in the command window as 2080.
+      Reduced variables are computed via calculations using the loop variable (directly or
+      indirectly). Only + and * are supported operations for reduced variables (as they are
+      commutative).<pre class="pre codeblock" id="parfor_loop_r__codeblock_qzw_32r_lrb"><code>sum = 0;
+parfor j=1:64
+     sumsq = sumsq + times(j, j);  
+end
+sumsq</code></pre>Where <var class="keyword varname">sumsq</var> will be printed in the command window as
+      89440. The reduced operation(s) can be functions of the loop variable. </section>
+
+    <section class="section" id="parfor_loop_r__section_bjf_p2r_lrb"><h2 class="title sectiontitle">Limitations</h2>The behavior of global variables in
+      a <span class="keyword cmdname">parfor</span> loop is not well-defined since multiple loops may be modifying the
+      variable concurrently. <p class="p">Certain functions are not thread-safe and will cause issues in a
+          <span class="keyword cmdname">parfor</span> loop. Currently there is not an exhaustive list of such
+        functions, but one example is <span class="keyword cmdname">readmultvectors</span> and any other function that
+        accesses a shared resource (for example, <span class="keyword cmdname">xlswrite</span>) also has potential to
+        be problematic. </p>
+</section>
+
+  </div>
+
+<nav role="navigation" class="related-links"></nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../topics/language_guides/flow_of_control_and_looping_r.htm" title="Loops are used to perform the same set of statements multiple times."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Flow of Control and Looping</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

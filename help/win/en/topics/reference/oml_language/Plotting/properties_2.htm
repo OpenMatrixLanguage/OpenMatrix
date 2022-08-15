@@ -1,0 +1,2488 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Graphics Object Properties" /><meta name="abstract" content="Properties for the graphics object in OML." /><meta name="description" content="Properties for the graphics object in OML." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Plotting Commands" /><meta name="indexterms" content="graphics object properties, properties - plotting commands" /><meta name="DC.subject" content="graphics object properties, properties - plotting commands" /><meta name="keywords" content="graphics object properties, properties - plotting commands" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Graphics Object Properties</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" title="Plotting Commands">Plotting Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" title="Plotting Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Plotting Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">Graphics Object Properties</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Properties for the graphics object in <span class="keyword">OML</span>.</p>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_tp2_nnq_p4b"><h2 class="title sectiontitle">Root Properties</h2>
+      
+      <dl class="dl table">
+        
+          <dt class="dthd"><strong>Property Name</strong></dt>
+
+          <dd class="ddhd"><strong>Description/Values</strong></dd>
+
+        
+        
+          <dt class="dt dlterm">children</dt>
+
+          <dd class="dd">A vector of figure handles, which are children of the root.</dd>
+
+        
+        
+          <dt class="dt dlterm">currentfigure</dt>
+
+          <dd class="dd">The handle of the current figure.</dd>
+
+        
+        
+          <dt class="dt dlterm">handle</dt>
+
+          <dd class="dd">The handle of the root, which is 0.</dd>
+
+          <dd class="dd ddexpand">0</dd>
+
+        
+        
+          <dt class="dt dlterm">parent</dt>
+
+          <dd class="dd">The parent handle; null for the root object.</dd>
+
+          <dd class="dd ddexpand">0</dd>
+
+        
+        
+          <dt class="dt dlterm">tag</dt>
+
+          <dd class="dd">A tag attached to the root object.</dd>
+
+          <dd class="dd ddexpand">String</dd>
+
+        
+        
+          <dt class="dt dlterm">type</dt>
+
+          <dd class="dd">The type of the root object.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'root'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">units</dt>
+
+          <dd class="dd">Units of measurement.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'pixels</span>' | '<span class="keyword option">normalized'</span></dd>
+
+        
+      </dl>
+
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_up2_nnq_p4b"><h2 class="title sectiontitle">Figure Properties</h2>
+      
+      <dl class="dl table">
+        
+          <dt class="dthd"><strong>Property Name</strong></dt>
+
+          <dd class="ddhd"><strong>Description/Values</strong></dd>
+
+        
+        
+          <dt class="dt dlterm">bottomlabel</dt>
+
+          <dd class="dd">Handle of the label that is placed on the bottom area of the figure.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> Use the <span class="keyword cmdname">set</span> command to set the contents of the label.</div>
+
+          </dd>
+
+          <dd class="dd ddexpand"><span class="keyword">string | cell</span></dd>
+
+        
+        
+          <dt class="dt dlterm">children</dt>
+
+          <dd class="dd">A vector of axes handles, which are the children of the figure.</dd>
+
+        
+        
+          <dt class="dt dlterm">currentaxes</dt>
+
+          <dd class="dd">Handle of the current axes of the figure.</dd>
+
+        
+        
+          <dt class="dt dlterm">handle</dt>
+
+          <dd class="dd">Handle of the figure object.</dd>
+
+          <dd class="dd ddexpand">Integer.</dd>
+
+        
+        
+          <dt class="dt dlterm">leftlabel</dt>
+
+          <dd class="dd">Handle of the label that is placed on the left area of the figure.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> Use the <span class="keyword cmdname">set</span> command to set the contents of the label.</div>
+
+          </dd>
+
+          <dd class="dd ddexpand"><span class="keyword">string | cell</span></dd>
+
+        
+        
+          <dt class="dt dlterm">name</dt>
+
+          <dd class="dd">Name of the figure.</dd>
+
+          <dd class="dd ddexpand">String</dd>
+
+        
+        
+          <dt class="dt dlterm">parent</dt>
+
+          <dd class="dd">Parent handle, which is always 0 (root).</dd>
+
+          <dd class="dd ddexpand">0</dd>
+
+        
+        
+          <dt class="dt dlterm">position</dt>
+
+          <dd class="dd">Location and size of the figure.</dd>
+
+          <dd class="dd ddexpand">The location is specified by the upper-left point, and the size is specified by the
+            width and height.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> This property is only valid for floating figure. If you change this property for a
+              docked figure, there will be no effect, but after undocking the figure, the
+              size/position will be updated accordingly.</div>
+
+          </dd>
+
+          <dd class="dd ddexpand">[<span class="keyword option">left</span>
+            <span class="keyword option">top</span>
+            <span class="keyword option">width</span>
+            <span class="keyword option">height</span>]</dd>
+
+        
+        
+          <dt class="dt dlterm">rightlabel</dt>
+
+          <dd class="dd">Handle of the label that is placed on the right area of the figure.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> Use the <span class="keyword cmdname">set</span> command to set the contents of the label.</div>
+
+          </dd>
+
+          <dd class="dd ddexpand"><span class="keyword">string | cell</span></dd>
+
+        
+        
+          <dt class="dt dlterm">toplabel</dt>
+
+          <dd class="dd">Handle of the label that is placed on the top area of the figure.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> Use the <span class="keyword cmdname">set</span> command to set the contents of the label.</div>
+
+          </dd>
+
+          <dd class="dd ddexpand"><span class="keyword">string | cell</span></dd>
+
+        
+        
+          <dt class="dt dlterm">tag</dt>
+
+          <dd class="dd">A tag attached to the figure object.</dd>
+
+          <dd class="dd ddexpand">String</dd>
+
+        
+        
+          <dt class="dt dlterm">type</dt>
+
+          <dd class="dd">Type of figure object.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'figure'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">units</dt>
+
+          <dd class="dd">Units of measurement.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'pixels</span>' | '<span class="keyword option">normalized'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">uicontextmenu</dt>
+
+          <dd class="dd">Handle of the uicontextmenu object associated with this figure, if it exists.</dd>
+
+        
+        
+          <dt class="dt dlterm">visible</dt>
+
+          <dd class="dd">Visibility of the figure.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'on</span>' | '<span class="keyword option">off'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">windowstyle</dt>
+
+          <dd class="dd">Display style of the figure window.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> The <span class="keyword option">'modal'</span> option will undock the figure window and bring it to
+              the front. Interaction with other windows of the application will be blocked until the
+              figure is closed.</div>
+
+          </dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'docked'</span> | <span class="keyword option">'undocked'</span> | <span class="keyword option">'modal'</span></dd>
+
+        
+      </dl>
+
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_vp2_nnq_p4b"><h2 class="title sectiontitle">Axes Properties</h2>
+      
+      <dl class="dl table">
+        
+          <dt class="dthd"><strong>Property Name</strong></dt>
+
+          <dd class="ddhd"><strong>Description/Values</strong></dd>
+
+        
+        
+          <dt class="dt dlterm">bargap (2D bar plot only)</dt>
+
+          <dd class="dd">Gap between bars.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">barlabels (2D bar chart plot only)</dt>
+
+          <dd class="dd">Show the value over each bar.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'off'</span> | <span class="keyword option">'on'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">barlabelsfontangle (2D bar chart plot only)</dt>
+
+          <dd class="dd">Font angle for the bar labels.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'regular'</span> | <span class="keyword option">'italic'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">barlabelsfontname (2D bar chart plot only)</dt>
+
+          <dd class="dd">Font name for the bar labels.</dd>
+
+          <dd class="dd ddexpand">Any available font from the system.</dd>
+
+        
+        
+          <dt class="dt dlterm">barlabelsfontsize (2D bar chart plot only)</dt>
+
+          <dd class="dd">Font size for the bar labels.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">barlabelsfontweight (2D bar chart plot only)</dt>
+
+          <dd class="dd">Font weight for the bar labels.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'normal'</span> | <span class="keyword option">'bold'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">barorientation (2D bar chart plot only)</dt>
+
+          <dd class="dd">Orientation of the bars.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'horizontal'</span> | <span class="keyword option">'vertical'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">children</dt>
+
+          <dd class="dd">A vector of handles, which are the children of the axes.</dd>
+
+        
+        
+          <dt class="dt dlterm">color</dt>
+
+          <dd class="dd">Background color of the axes.</dd>
+
+          <dd class="dd ddexpand">1*3 matrix of RGB | <span class="keyword option">colorname</span></dd>
+
+        
+        
+          <dt class="dt dlterm">colorbar</dt>
+
+          <dd class="dd">Handle of the colorbar object.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">colorbarscale</dt>
+
+          <dd class="dd">Scale of the colorbar values.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'linear</span>' | '<span class="keyword option">log</span>' | '<span class="keyword option">db10</span>' |
+              '<span class="keyword option">db20'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">colorlevels</dt>
+
+          <dd class="dd">The colorbar values.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> The <span class="keyword cmdname">set</span> command for this property accepts either an integer or
+              a real vector. Use a real vector to set custom values to the colorbar. Use an integer
+              to define the number of colors in the colorbar. In this case, the range and values of
+              the colorbar are automatically calculated.</div>
+
+          </dd>
+
+          <dd class="dd ddexpand">Integer or real vector.</dd>
+
+        
+        
+          <dt class="dt dlterm">contourtype</dt>
+
+          <dd class="dd">Type of contour.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'blended</span>' | '<span class="keyword option">discrete'</span> |
+            '<span class="keyword option">none'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">fontangle</dt>
+
+          <dd class="dd">Font angle of the axes.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'regular</span>' | '<span class="keyword option">italic'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">fontname</dt>
+
+          <dd class="dd">Axes font name.</dd>
+
+          <dd class="dd ddexpand">Any available font from the system.</dd>
+
+        
+        
+          <dt class="dt dlterm">fontsize</dt>
+
+          <dd class="dd">Font size of the axes.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">fontweight</dt>
+
+          <dd class="dd">Font weight of the axes.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'normal</span>' | '<span class="keyword option">bold'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">framecolor</dt>
+
+          <dd class="dd">Frame color.</dd>
+
+          <dd class="dd ddexpand">1*3 matrix of RGB.</dd>
+
+        
+        
+          <dt class="dt dlterm">gridcolor</dt>
+
+          <dd class="dd">Grid line color.</dd>
+
+          <dd class="dd ddexpand">1*3 matrix of RGB.</dd>
+
+        
+        
+          <dt class="dt dlterm">handle</dt>
+
+          <dd class="dd">Handle of the axes object.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">mouseclickcallback</dt>
+
+          <dd class="dd">Callback function triggered by a mouse click on a 2D plot.</dd>
+
+          <dd class="dd ddexpand">Function handle</dd>
+
+        
+        
+          <dt class="dt dlterm">parent</dt>
+
+          <dd class="dd">Handle of the parent figure.</dd>
+
+        
+        
+          <dt class="dt dlterm">plottiptotail (polar plot only)</dt>
+
+          <dd class="dd">Enable creation of a tip-to-tail curve.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'off</span>' | '<span class="keyword option">on'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">polarmethod (polar plot only)</dt>
+
+          <dd class="dd">The polar method of the plot.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'phasevsmag</span>' | '<span class="keyword option">vector'</span> |
+            '<span class="keyword option">radar'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">position</dt>
+
+          <dd class="dd">Location and size of the axes in the figure.</dd>
+
+          <dd class="dd ddexpand">Location is specified by the upper-left point; size is specified by the width and
+            height</dd>
+
+          <dd class="dd ddexpand">[<span class="keyword option">left</span>
+            <span class="keyword option">top</span>
+            <span class="keyword option">width</span>
+            <span class="keyword option">height</span>]</dd>
+
+        
+        
+          <dt class="dt dlterm">title</dt>
+
+          <dd class="dd">Handle of the title, which is a text object.</dd>
+
+        
+        
+          <dt class="dt dlterm">tag</dt>
+
+          <dd class="dd">A tag attached to the axes object.</dd>
+
+          <dd class="dd ddexpand">String</dd>
+
+        
+        
+          <dt class="dt dlterm">type</dt>
+
+          <dd class="dd">Type of axes object.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'axes'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">units</dt>
+
+          <dd class="dd">Units of measurement.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'normalized</span>' | '<span class="keyword option">pixels'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">visible</dt>
+
+          <dd class="dd">Visibility of the axes.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'on</span>' | '<span class="keyword option">off'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">xcategories (bar chart plots only)</dt>
+
+          <dd class="dd">Labels for the x category axis of a bar plot.</dd>
+
+          <dd class="dd ddexpand">Cell</dd>
+
+        
+        
+          <dt class="dt dlterm">xcolor</dt>
+
+          <dd class="dd">Color of the x axis.</dd>
+
+          <dd class="dd ddexpand">1*3 matrix of RGB | <span class="keyword option">colorname</span></dd>
+
+        
+        
+          <dt class="dt dlterm">xdb10reference (2D plots only)</dt>
+
+          <dd class="dd">Reference value for the x axis dB10 scale. Data values are scaled using the formula: value = 10*log10(original_value/reference)</dd>
+
+          <dd class="dd ddexpand">Scalar</dd>
+
+        
+        
+          <dt class="dt dlterm">xdb20reference (2D plots only)</dt>
+
+          <dd class="dd">Reference value for the x axis dB20 scale. Data values are scaled using the formula: value = 20*log10(original_value/reference)</dd>
+
+          <dd class="dd ddexpand">Scalar</dd>
+
+        
+        
+          <dt class="dt dlterm">xgrid</dt>
+
+          <dd class="dd">Status of the x axis grid lines.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'off</span>' | '<span class="keyword option">on'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">xlabel</dt>
+
+          <dd class="dd">Handle of the label of the x axis, which is a text object.</dd>
+
+        
+        
+          <dt class="dt dlterm">xlim</dt>
+
+          <dd class="dd">X axis limits.</dd>
+
+          <dd class="dd ddexpand">2-element vector</dd>
+
+        
+        
+          <dt class="dt dlterm">xaxislocation</dt>
+
+          <dd class="dd">X axis location.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'bottom'</span> | <span class="keyword option">'top'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">xminorgrid</dt>
+
+          <dd class="dd">Status of the x axis minor grid lines.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'off</span>' | '<span class="keyword option">on'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">xminortick</dt>
+
+          <dd class="dd">Number of ticks on the x minor axis.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">xnumericformat</dt>
+
+          <dd class="dd">Displays the format of the x axis values.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'auto'</span> | <span class="keyword option">'fixed'</span> |
+            <span class="keyword option">'scientific'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">xnumericprecision</dt>
+
+          <dd class="dd">Number of digits following the decimal point of the x axis values.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">xscale</dt>
+
+          <dd class="dd">Scale of the x axis.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'linear</span>' | '<span class="keyword option">log</span>' | '<span class="keyword option">db10</span>' |
+              '<span class="keyword option">db20'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">xtick</dt>
+
+          <dd class="dd">Number of ticks on the x axis or vector of tick values to display on the x axis. Custom tick values can be set only on the linear axis of 2D plots.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> If the axis scale is logarithmic, decibels, or dB10, this property refers to ticks
+              per decade. The accepted values are:<ul class="ul" id="reference_wpv_kyv_pr__ul_tjy_ntt_vnb">
+                <li class="li">0, 1, 2, 5, 9 or 18 for logarithmic.</li>
+
+                <li class="li">0, 1, 2, 4, 10 or 20 for decibels.</li>
+
+                <li class="li">0, 1, 2, 4 or 10 for dB10.</li>
+
+              </ul>
+</div>
+
+          </dd>
+
+          <dd class="dd ddexpand">Integer | Vector</dd>
+
+        
+        
+          <dt class="dt dlterm">xticklabel</dt>
+
+          <dd class="dd">Labels of the x axis ticks.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> The labels are set on the custom ticks that are specified by the xtick property.</div>
+
+          </dd>
+
+          <dd class="dd ddexpand">Cell of strings</dd>
+
+        
+        
+          <dt class="dt dlterm">xtickmethod</dt>
+
+          <dd class="dd">The method for calculating the number of ticks on the x axis.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'increment'</span> | <span class="keyword option">'ticks'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">xweighting (2D plots only)</dt>
+
+          <dd class="dd">Weighting method for the dB10 and dB20 x axis scale.<div class="p">
+            <div class="note note" id="reference_wpv_kyv_pr__note_prj_5qb_dsb"><span class="notetitle">Note:</span> For more information about the weighting methods refer to
+              the dba, dbb, dbc and dbu commands.</div>
+
+          </div>
+</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'none'</span> | <span class="keyword option">'a'</span> | <span class="keyword option">'b'</span> | <span class="keyword option">'c'</span> | <span class="keyword option">'u'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">ycategories (3D bar chart plots only)</dt>
+
+          <dd class="dd">Labels for the y category axis of a 3D bar chart plot.</dd>
+
+          <dd class="dd ddexpand">Cell</dd>
+
+        
+        
+          <dt class="dt dlterm">ycolor</dt>
+
+          <dd class="dd">Color of the y axis.</dd>
+
+          <dd class="dd ddexpand">1*3 matrix of RGB | <span class="keyword option">colorname</span></dd>
+
+        
+        
+          <dt class="dt dlterm">ydb10reference (2D plots only)</dt>
+
+          <dd class="dd">Reference value for the y axis dB10 scale. Data values are scaled using the formula: value = 10*log10(original_value/reference)</dd>
+
+          <dd class="dd ddexpand">Scalar</dd>
+
+        
+        
+          <dt class="dt dlterm">ydb20reference (2D plots only)</dt>
+
+          <dd class="dd">Reference value for the y axis dB20 scale. Data values are scaled using the formula: value = 20*log10(original_value/reference)</dd>
+
+          <dd class="dd ddexpand">Scalar</dd>
+
+        
+        
+          <dt class="dt dlterm">ygrid</dt>
+
+          <dd class="dd">Status of the y axis grid lines.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'off</span>' | '<span class="keyword option">on'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">ylabel</dt>
+
+          <dd class="dd">Handle of the label of y axis, which is a text object.</dd>
+
+        
+        
+          <dt class="dt dlterm">ylim</dt>
+
+          <dd class="dd">Y axis limits.</dd>
+
+          <dd class="dd ddexpand">2-element vector</dd>
+
+        
+        
+          <dt class="dt dlterm">yaxislocation</dt>
+
+          <dd class="dd">Y axis location.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'left'</span> | <span class="keyword option">'right'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">yminorgrid</dt>
+
+          <dd class="dd">Status of the y axis minor grid lines.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'off</span>' | '<span class="keyword option">on'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">yminortick</dt>
+
+          <dd class="dd">Number of ticks on the y minor axis.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">ynumericformat</dt>
+
+          <dd class="dd">Display format of the y axis values.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'auto'</span> | <span class="keyword option">'fixed'</span> |
+            <span class="keyword option">'scientific'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">ynumericprecision</dt>
+
+          <dd class="dd">Number of digits following the decimal point of the y axis values.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">yscale</dt>
+
+          <dd class="dd">Scale of the y axis.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'linear</span>' | '<span class="keyword option">log</span>' | '<span class="keyword option">db10</span>' |
+              '<span class="keyword option">db20'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">ytick</dt>
+
+          <dd class="dd">Number of ticks on the y axis or vector of tick values to display on the y axis. Custom tick values can be set only on the linear axis of 2D plots.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> If the axis scale is logarithmic, decibels, or dB10, this property refers to ticks
+              per decade and the accepted values are:<ul class="ul" id="reference_wpv_kyv_pr__ul_g2s_qtt_vnb">
+                <li class="li">0, 1, 2, 5, 9 or 18 for logarithmic.</li>
+
+                <li class="li">0, 1, 2, 4, 10 or 20 for decibels.</li>
+
+                <li class="li">0, 1, 2, 4 or 10 for dB10.</li>
+
+              </ul>
+</div>
+
+          </dd>
+
+          <dd class="dd ddexpand">Integer | Vector</dd>
+
+        
+        
+          <dt class="dt dlterm">yticklabel</dt>
+
+          <dd class="dd">Labels of the y axis ticks.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> The labels are set on the custom ticks that are specified by the ytick property.</div>
+
+          </dd>
+
+          <dd class="dd ddexpand">Cell of strings</dd>
+
+        
+        
+          <dt class="dt dlterm">ytickmethod</dt>
+
+          <dd class="dd">The method for calculating the number of ticks for the y axis.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'increment'</span> | <span class="keyword option">'ticks'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">yweighting (2D plots only)</dt>
+
+          <dd class="dd">Weighting method for the dB10 and dB20 y axis scale.<div class="p">
+            <div class="note note" id="reference_wpv_kyv_pr__note_s4p_sqb_dsb"><span class="notetitle">Note:</span> For more information about the weighting methods refer to
+              the dba, dbb, dbc and dbu commands.</div>
+
+          </div>
+</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'none'</span> | <span class="keyword option">'a'</span> | <span class="keyword option">'b'</span> | <span class="keyword option">'c'</span> | <span class="keyword option">'u'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">zcolor</dt>
+
+          <dd class="dd">Color of the z axis.</dd>
+
+          <dd class="dd ddexpand">1*3 matrix of RGB | <span class="keyword option">colorname</span></dd>
+
+        
+        
+          <dt class="dt dlterm">zerolinecolor</dt>
+
+          <dd class="dd">Zero line color.</dd>
+
+          <dd class="dd ddexpand">1*3 matrix of RGB.</dd>
+
+        
+        
+          <dt class="dt dlterm">zgrid</dt>
+
+          <dd class="dd">Status of the z axis grid lines.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'off</span>' | <span class="keyword option">'on'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">zlabel</dt>
+
+          <dd class="dd">Handle of the label of z axis, which is a text object.</dd>
+
+        
+        
+          <dt class="dt dlterm">zlim</dt>
+
+          <dd class="dd">Z axis limits.</dd>
+
+          <dd class="dd ddexpand">2-element vector</dd>
+
+        
+        
+          <dt class="dt dlterm">zminorgrid</dt>
+
+          <dd class="dd">Status of the z axis minor grid lines.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'off</span>' | '<span class="keyword option">on'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">zminortick</dt>
+
+          <dd class="dd">Number of ticks on the z minor axis.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">znumericformat</dt>
+
+          <dd class="dd">Display format of the z axis values.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'auto'</span> | <span class="keyword option">'fixed'</span> |
+            <span class="keyword option">'scientific'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">znumericprecision</dt>
+
+          <dd class="dd">Number of digits following the decimal point of the z axis values.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">zscale</dt>
+
+          <dd class="dd">Scale of the z axis.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'linear</span>' | '<span class="keyword option">log</span>' | '<span class="keyword option">db10</span>' |
+              '<span class="keyword option">db20'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">ztick</dt>
+
+          <dd class="dd">Number of tics on the z axis.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> If the axis scale is logarithmic, decibels, or dB10, this property refers to tics
+              per decade and the accepted values are:<ul class="ul" id="reference_wpv_kyv_pr__ul_zd2_ttt_vnb">
+                <li class="li">0, 1, 2, 5, 9 or 18 for logarithmic.</li>
+
+                <li class="li">0, 1, 2, 4, 10 or 20 for decibels.</li>
+
+                <li class="li">0, 1, 2, 4 or 10 for dB10.</li>
+
+              </ul>
+</div>
+
+          </dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">ztickmethod</dt>
+
+          <dd class="dd">The method for calculating the number of ticks for the z axis.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'increment'</span> | <span class="keyword option">'ticks'</span></dd>
+
+        
+      </dl>
+
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_kgs_knh_gjb"><h2 class="title sectiontitle">Y-axis Properties</h2>
+      
+      <div class="p">
+        <dl class="dl table">
+          
+            <dt class="dthd"><strong>Property Name</strong></dt>
+
+            <dd class="ddhd"><strong>Description/Values</strong></dd>
+
+          
+          
+            <dt class="dt dlterm">children</dt>
+
+            <dd class="dd">A vector of handles, which are the children of the axis.</dd>
+
+          
+          
+            <dt class="dt dlterm">fontangle</dt>
+
+            <dd class="dd">Font angle of the axis.</dd>
+
+            <dd class="dd ddexpand"><span class="keyword option">'regular'</span> | <span class="keyword option">'italic'</span></dd>
+
+          
+          
+            <dt class="dt dlterm">fontname</dt>
+
+            <dd class="dd">Font name of the axis.</dd>
+
+            <dd class="dd ddexpand">Any available font from system.</dd>
+
+          
+          
+            <dt class="dt dlterm">fontsize</dt>
+
+            <dd class="dd">Font size of the axis.</dd>
+
+            <dd class="dd ddexpand">Integer</dd>
+
+          
+          
+            <dt class="dt dlterm">fontweight</dt>
+
+            <dd class="dd">Font weight of the axis.</dd>
+
+            <dd class="dd ddexpand"><span class="keyword option">'normal'</span> | <span class="keyword option">'bold'</span></dd>
+
+          
+          
+            <dt class="dt dlterm">handle</dt>
+
+            <dd class="dd">Axis object handle.</dd>
+
+            <dd class="dd ddexpand">Double</dd>
+
+          
+          
+            <dt class="dt dlterm">parent</dt>
+
+            <dd class="dd">Parent axis object handle.</dd>
+
+          
+          
+            <dt class="dt dlterm">tag</dt>
+
+            <dd class="dd">A tag attached to the axis object.</dd>
+
+            <dd class="dd ddexpand">String</dd>
+
+          
+          
+            <dt class="dt dlterm">type</dt>
+
+            <dd class="dd">Type of the axis object.</dd>
+
+            <dd class="dd ddexpand"><span class="keyword option">'axes'</span></dd>
+
+          
+          
+            <dt class="dt dlterm">units</dt>
+
+            <dd class="dd">Units of measurement.</dd>
+
+            <dd class="dd ddexpand"><span class="keyword option">'normalized'</span> | <span class="keyword option">'pixels'</span></dd>
+
+          
+          
+            <dt class="dt dlterm">visible</dt>
+
+            <dd class="dd">Visibility of the axis.</dd>
+
+            <dd class="dd ddexpand"><span class="keyword option">'on'</span> | <span class="keyword option">'off'</span></dd>
+
+          
+          
+            <dt class="dt dlterm">ycolor</dt>
+
+            <dd class="dd">Axis color.</dd>
+
+            <dd class="dd ddexpand"><span class="keyword option">1*3 matrix of RGB</span> | <span class="keyword option">colorname</span></dd>
+
+          
+          
+            <dt class="dt dlterm">ydb10reference (2D plots only)</dt>
+
+            <dd class="dd">Reference value for the y axis dB10 scale. Data values are scaled using the formula: value = 10*log10(original_value/reference)</dd>
+
+            <dd class="dd ddexpand">Scalar</dd>
+
+          
+          
+            <dt class="dt dlterm">ydb20reference (2D plots only)</dt>
+
+            <dd class="dd">Reference value for the y axis dB20 scale. Data values are scaled using the formula: value = 20*log10(original_value/reference)</dd>
+
+            <dd class="dd ddexpand">Scalar</dd>
+
+          
+          
+            <dt class="dt dlterm">ylabel</dt>
+
+            <dd class="dd">Handle of the axis label, which is a text object.</dd>
+
+          
+          
+            <dt class="dt dlterm">yscale</dt>
+
+            <dd class="dd">Axis scale.</dd>
+
+            <dd class="dd ddexpand"><span class="keyword option">'linear'</span> | <span class="keyword option">'log'</span> | <span class="keyword option">'db10'</span> |
+                <span class="keyword option">'db20'</span></dd>
+
+          
+          
+            <dt class="dt dlterm">ytick</dt>
+
+            <dd class="dd">Number of ticks on the y axis or vector of tick values to display on the y axis. Custom tick values can be set only on the linear axis of 2D plots.</dd>
+
+            <dd class="dd ddexpand">
+              <div class="note note"><span class="notetitle">Note:</span> If the axis scale is logarithmic, decibels, or dB10, this property refers to
+                ticks per decade and the accepted values are:<ul class="ul" id="reference_wpv_kyv_pr__ul_hsb_j2b_rsb">
+                  <li class="li">0, 1, 2, 5, 9 or 18 for logarithmic.</li>
+
+                  <li class="li">0, 1, 2, 4, 10 or 20 for decibels.</li>
+
+                  <li class="li">0, 1, 2, 4 or 10 for dB10.</li>
+
+                </ul>
+</div>
+
+            </dd>
+
+            <dd class="dd ddexpand">Integer | Vector</dd>
+
+          
+          
+            <dt class="dt dlterm">yticklabel</dt>
+
+            <dd class="dd">Labels of the y axis ticks.</dd>
+
+            <dd class="dd ddexpand">
+              <div class="note note"><span class="notetitle">Note:</span> The labels are set on the custom ticks that are specified by the ytick property.</div>
+
+            </dd>
+
+            <dd class="dd ddexpand">Cell of strings</dd>
+
+        
+        
+          <dt class="dt dlterm">ytickmethod</dt>
+
+          <dd class="dd">The method for calculating the number of ticks for the y axis.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'increment'</span> | <span class="keyword option">'ticks'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">yweighting (2D plots only)</dt>
+
+          <dd class="dd">Weighting method for the dB10 and dB20 y axis scale.<div class="p">
+                <div class="note note" id="reference_wpv_kyv_pr__note_v3h_h2b_rsb"><span class="notetitle">Note:</span> For more information about the weighting methods refer
+                  to the dba, dbb, dbc and dbu commands.</div>
+
+              </div>
+</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'none'</span> | <span class="keyword option">'a'</span> | <span class="keyword option">'b'</span> | <span class="keyword option">'c'</span> | <span class="keyword option">'u'</span></dd>
+
+        
+        </dl>
+
+      </div>
+
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_wp2_nnq_p4b"><h2 class="title sectiontitle">Line Properties</h2>
+      
+      <dl class="dl table">
+        
+          <dt class="dthd"><strong>Property Name</strong></dt>
+
+          <dd class="ddhd"><strong>Description/Values</strong></dd>
+
+        
+        
+          <dt class="dt dlterm">children</dt>
+
+          <dd class="dd">Children of the line object, currently an empty matrix.</dd>
+
+        
+        
+          <dt class="dt dlterm">color</dt>
+
+          <dd class="dd">Line color.</dd>
+
+          <dd class="dd ddexpand">1*3 matrix of RGB | <span class="keyword option">colorname</span></dd>
+
+        
+        
+          <dt class="dt dlterm">dataxoffset</dt>
+
+          <dd class="dd">Shifts the data along the x axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">datayoffset</dt>
+
+          <dd class="dd">Shifts the data along the y axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">datazoffset</dt>
+
+          <dd class="dd">Shifts the data along the z axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">dataxscale</dt>
+
+          <dd class="dd">Scales the data in the x axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">datayscale</dt>
+
+          <dd class="dd">Scales the data in the y axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">datazscale</dt>
+
+          <dd class="dd">Scales the data in the z axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">handle</dt>
+
+          <dd class="dd">Handle of the line object.</dd>
+
+        
+        
+          <dt class="dt dlterm">linestyle</dt>
+
+          <dd class="dd">The line style.</dd>
+
+          <dd class="dd ddexpand">'<span class="keyword option">-</span>' | '<span class="keyword option">--</span>' | '<span class="keyword option">-.</span>' |
+              '<span class="keyword option">:</span>' | '<span class="keyword option">none'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">linewidth</dt>
+
+          <dd class="dd">Width of the line.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">marker</dt>
+
+          <dd class="dd">Line marker.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'s</span>' | '<span class="keyword option">square</span>' | '<span class="keyword option">^</span>' |
+              '<span class="keyword option">v</span>' | '<span class="keyword option">x</span>' | '<span class="keyword option">o</span>' |
+              '<span class="keyword option">d</span>' | '<span class="keyword option">diamond</span>' | '<span class="keyword option">+</span>' |
+              '<span class="keyword option">*</span>' | '<span class="keyword option">.</span>' | '<span class="keyword option">none'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">markerevery</dt>
+
+          <dd class="dd">Frequency of line markers.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">markerfacecolor</dt>
+
+          <dd class="dd">Color of the line marker.</dd>
+
+          <dd class="dd ddexpand">1*3 matrix of RGB | <span class="keyword option">colorname</span></dd>
+
+        
+        
+          <dt class="dt dlterm">markersize</dt>
+
+          <dd class="dd">Size of the marker.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">parent</dt>
+
+          <dd class="dd">Handle of the parent axes.</dd>
+
+          <dd class="dd ddexpand">0</dd>
+
+        
+        
+          <dt class="dt dlterm">tag</dt>
+
+          <dd class="dd">A tag attached to the line object.</dd>
+
+          <dd class="dd ddexpand">String</dd>
+
+        
+        
+          <dt class="dt dlterm">tiptotail (polar plot only)</dt>
+
+          <dd class="dd">Enables participation of the line in the tip-to-tail curve.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'on'</span> | <span class="keyword option">'off'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">type</dt>
+
+          <dd class="dd">The type of line object.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'line'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">units</dt>
+
+          <dd class="dd">Units of measurement.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'pixels</span>' | '<span class="keyword option">normalized'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">visible</dt>
+
+          <dd class="dd">Visibility of the line.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'on'</span> | <span class="keyword option">'off'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">xdata</dt>
+
+          <dd class="dd">Data values associated with the x axis.</dd>
+
+          <dd class="dd ddexpand">vector</dd>
+
+        
+        
+          <dt class="dt dlterm">ydata</dt>
+
+          <dd class="dd">Data values associated with the y axis.</dd>
+
+          <dd class="dd ddexpand">vector</dd>
+
+        
+        
+          <dt class="dt dlterm">zdata</dt>
+
+          <dd class="dd">Data values associated with the z axis (3D lines only).</dd>
+
+          <dd class="dd ddexpand">vector</dd>
+
+        
+      </dl>
+
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_xp2_nnq_p4b"><h2 class="title sectiontitle">Surface Properties</h2>
+      
+      <dl class="dl table">
+        
+          <dt class="dthd"><strong>Property Name</strong></dt>
+
+          <dd class="ddhd"><strong>Description/Values</strong></dd>
+
+        
+        
+          <dt class="dt dlterm">children</dt>
+
+          <dd class="dd">Children of the surface object, currently an empty matrix.</dd>
+
+        
+        
+          <dt class="dt dlterm">color</dt>
+
+          <dd class="dd">Surface color.</dd>
+
+          <dd class="dd ddexpand">1*3 matrix of RGB | <span class="keyword option">colorname</span></dd>
+
+        
+        
+          <dt class="dt dlterm">handle</dt>
+
+          <dd class="dd">Handle of the surface object.</dd>
+
+        
+        
+          <dt class="dt dlterm">meshlines</dt>
+
+          <dd class="dd">Visibility of the surface mesh lines.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'on'</span> | <span class="keyword option">'off'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">parent</dt>
+
+          <dd class="dd">Handle of the parent axes.</dd>
+
+          <dd class="dd ddexpand">0</dd>
+
+        
+        
+          <dt class="dt dlterm">tag</dt>
+
+          <dd class="dd">A tag attached to the surface object.</dd>
+
+          <dd class="dd ddexpand">String</dd>
+
+        
+        
+          <dt class="dt dlterm">type</dt>
+
+          <dd class="dd">Surface object type.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'surface'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">units</dt>
+
+          <dd class="dd">Units of measurement.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'pixels</span>' | '<span class="keyword option">normalized'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">visible</dt>
+
+          <dd class="dd">Visibility of the surface.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'on' </span>| <span class="keyword option">'off'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">xdata</dt>
+
+          <dd class="dd">Data values associated with the x axis.</dd>
+
+          <dd class="dd ddexpand">vector | matrix</dd>
+
+        
+        
+          <dt class="dt dlterm">ydata</dt>
+
+          <dd class="dd">Data values associated with the y axis.</dd>
+
+          <dd class="dd ddexpand">vector | matrix</dd>
+
+        
+        
+          <dt class="dt dlterm">zdata</dt>
+
+          <dd class="dd">Data values associated with the z axis.</dd>
+
+          <dd class="dd ddexpand">matrix</dd>
+
+        
+      </dl>
+
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_yp2_nnq_p4b"><h2 class="title sectiontitle">Text Properties</h2>
+      
+      <dl class="dl table">
+        
+          <dt class="dthd"><strong>Property Name</strong></dt>
+
+          <dd class="ddhd"><strong>Description/Values</strong></dd>
+
+        
+        
+          <dt class="dt dlterm">attached</dt>
+
+          <dd class="dd">Enables the attachement of the text box to a point. Supported in 2D plots only.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'on</span>' | '<span class="keyword option">off'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">borderwidth</dt>
+
+          <dd class="dd">The width of the text's border line.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">children</dt>
+
+          <dd class="dd">Children of the text object, currently an empty matrix.</dd>
+
+        
+        
+          <dt class="dt dlterm">color</dt>
+
+          <dd class="dd">The text color.</dd>
+
+          <dd class="dd ddexpand">1*3 matrix of RGB | <span class="keyword option">colorname</span></dd>
+
+        
+        
+          <dt class="dt dlterm">fontangle</dt>
+
+          <dd class="dd">The font angle of the text.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'regular</span>' | '<span class="keyword option">italic'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">fontname</dt>
+
+          <dd class="dd">The text's font name.</dd>
+
+          <dd class="dd ddexpand">Any available fonts from the system.</dd>
+
+        
+        
+          <dt class="dt dlterm">fontsize</dt>
+
+          <dd class="dd">The text's font size.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">fontweight</dt>
+
+          <dd class="dd">The font weight of the text.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'normal</span>' | '<span class="keyword option">bold'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">handle</dt>
+
+          <dd class="dd">The handle of the text object.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">horizontalalignment</dt>
+
+          <dd class="dd">The horizontal alignment of the text box relative to the given x,y coordinate.
+            Supported in 2D plots only.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'center</span>' | '<span class="keyword option">left'</span> | '<span class="keyword option">right'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">interpreter</dt>
+
+          <dd class="dd">The interpreter that will be used to process the text. Supported in 2D plots
+            only.</dd>
+
+          <dd class="dd ddexpand">
+            <div class="note note"><span class="notetitle">Note:</span> The 'tex' interpreter supports a subset of the TeX markup language and is
+              currently available in 2D plots for title, axis labels and text objects. Mathematical
+              expressions should be placed inside '$'. Examples may be found in the documation of
+              the <span class="keyword cmdname">text</span> command.</div>
+
+          </dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'none'</span> | <span class="keyword option">'tex'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">offset</dt>
+
+          <dd class="dd">The distance between the given x,y coordinate and the text box. Supported in 2D plots
+            only.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">parent</dt>
+
+          <dd class="dd">The handle of the parent object.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">string</dt>
+
+          <dd class="dd">The content of the text object.</dd>
+
+        
+        
+          <dt class="dt dlterm">tag</dt>
+
+          <dd class="dd">A tag attached to the text object.</dd>
+
+          <dd class="dd ddexpand">String</dd>
+
+        
+        
+          <dt class="dt dlterm">type</dt>
+
+          <dd class="dd">The text object type.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'text'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">units</dt>
+
+          <dd class="dd">The units of measurement.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'pixels</span>' | '<span class="keyword option">normalized'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">verticalalignment</dt>
+
+          <dd class="dd">The vertical alignment of the text box relative to the given x,y coordinate. Supported
+            in 2D plots only.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'middle</span>' | '<span class="keyword option">top'</span> | '<span class="keyword option">bottom'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">visible</dt>
+
+          <dd class="dd">Visibility of the text object.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'on</span>' | '<span class="keyword option">off'</span></dd>
+
+        
+      </dl>
+
+    </section>
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <section class="section" id="reference_wpv_kyv_pr__section_aq2_nnq_p4b"><h2 class="title sectiontitle">Hggroup Properties</h2>
+      
+      <dl class="dl table">
+        
+          <dt class="dthd"><strong>Property Name</strong></dt>
+
+          <dd class="ddhd"><strong>Description/Values</strong></dd>
+
+        
+        
+          <dt class="dt dlterm">areagroup (area plot only)</dt>
+
+          <dd class="dd">A vector of handles, which point to area groups.</dd>
+
+        
+        
+          <dt class="dt dlterm">autoscale (quiver plot only)</dt>
+
+          <dd class="dd">Enables the scaling of the quiver plot vectors.</dd>
+
+          <dd class="dd ddexpand">'on' | 'off'</dd>
+
+        
+        
+          <dt class="dt dlterm">autoscalefactor (quiver plot only)</dt>
+
+          <dd class="dd">The scaling factor of the quiver plot vectors. Default value is 0.9.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">basevalue (area plot only)</dt>
+
+          <dd class="dd">Base value of the shading.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">bargroup (bar chart plot only)</dt>
+
+          <dd class="dd">A vector of handles, which point to bar groups.</dd>
+
+        
+        
+          <dt class="dt dlterm">barlayout (bar chart plot only)</dt>
+
+          <dd class="dd">The bar layout style.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'grouped'</span> | <span class="keyword option">'stacked'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">barstyle (bar chart plot only)</dt>
+
+          <dd class="dd">The bar style.</dd>
+
+          <dd class="dd ddexpand">Integer in the range [0,4]</dd>
+
+        
+        
+          <dt class="dt dlterm">barwidth (bar chart plot only)</dt>
+
+          <dd class="dd">The width of the bars.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">children</dt>
+
+          <dd class="dd">The children of the hggroup object.</dd>
+
+        
+        
+          <dt class="dt dlterm">color (quiver plot only)</dt>
+
+          <dd class="dd">Color of the quiver plot vectors.</dd>
+
+          <dd class="dd ddexpand">1*3 matrix of RGB | <span class="keyword option">colorname</span></dd>
+
+        
+        
+          <dt class="dt dlterm">dataxoffset</dt>
+
+          <dd class="dd">Shifts the data along the x axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">datayoffset</dt>
+
+          <dd class="dd">Shifts the data along the y axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">datazoffset</dt>
+
+          <dd class="dd">Shifts the data along the z axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">dataxscale</dt>
+
+          <dd class="dd">Scales the data in the x axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">datayscale</dt>
+
+          <dd class="dd">Scales the data in the y axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">datazscale</dt>
+
+          <dd class="dd">Scales the data in the z axis.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">facecolor</dt>
+
+          <dd class="dd">The object color.</dd>
+
+          <dd class="dd ddexpand">1*3 matrix of RGB | <span class="keyword option">colorname</span></dd>
+
+        
+        
+          <dt class="dt dlterm">handle</dt>
+
+          <dd class="dd">The handle of the hggroup object.</dd>
+
+        
+        
+          <dt class="dt dlterm">imgrid (imagesc plot only)</dt>
+
+          <dd class="dd">Visibility of the image grid.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'off'</span> |<span class="keyword option"> 'on'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">linestyle (quiver plot only)</dt>
+
+          <dd class="dd">The vector line style.</dd>
+
+          <dd class="dd ddexpand">'<span class="keyword option">-</span>' | '<span class="keyword option">--</span>' | '<span class="keyword option">-.</span>' |
+              '<span class="keyword option">:</span>' | '<span class="keyword option">none'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">linewidth (quiver plot only)</dt>
+
+          <dd class="dd">The vector line width.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">marker (scatter and quiver plot only)</dt>
+
+          <dd class="dd">marker style</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'s'</span> | <span class="keyword option">'square'</span> | <span class="keyword option">'^'</span> |
+              <span class="keyword option">'v'</span> | <span class="keyword option">'x'</span> | <span class="keyword option">'o'</span> |
+              <span class="keyword option">'d'</span> | <span class="keyword option">'diamond'</span> | <span class="keyword option">'+'</span> |
+              <span class="keyword option">'*'</span> | <span class="keyword option">'.'</span> | <span class="keyword option">'none'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">markerfacecolor (scatter and quiver plot only)</dt>
+
+          <dd class="dd">The marker color.</dd>
+
+          <dd class="dd ddexpand">1*3 matrix of RGB | <span class="keyword option">colorname</span></dd>
+
+        
+        
+          <dt class="dt dlterm">markersize (scatter and quiver plot only)</dt>
+
+          <dd class="dd">Size of the marker.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">maxheadsize (quiver plot only)</dt>
+
+          <dd class="dd">The scaling factor of the quiver plot arrow head. Default value is 0.3.</dd>
+
+          <dd class="dd ddexpand">Double</dd>
+
+        
+        
+          <dt class="dt dlterm">parent</dt>
+
+          <dd class="dd">The handle of the parent axes.</dd>
+
+          <dd class="dd ddexpand">0</dd>
+
+        
+        
+          <dt class="dt dlterm">showarrowhead (quiver plot only)</dt>
+
+          <dd class="dd">Sets the arrow head visible.</dd>
+
+          <dd class="dd ddexpand">'on' | 'off'</dd>
+
+        
+        
+          <dt class="dt dlterm">tag</dt>
+
+          <dd class="dd">A tag attached to the hggroup object.</dd>
+
+          <dd class="dd ddexpand">String</dd>
+
+        
+        
+          <dt class="dt dlterm">type</dt>
+
+          <dd class="dd">The type of the hggroup object.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'hggroup'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">udata (quiver plot only)</dt>
+
+          <dd class="dd">Data values of the vector u component.</dd>
+
+          <dd class="dd ddexpand">vector | matrix</dd>
+
+        
+        
+          <dt class="dt dlterm">units</dt>
+
+          <dd class="dd">The units of measurement, currently not used.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'pixels'</span> | <span class="keyword option">'normalized'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">vdata (quiver plot only)</dt>
+
+          <dd class="dd">Data values of the vector v component.</dd>
+
+          <dd class="dd ddexpand">vector | matrix</dd>
+
+        
+        
+          <dt class="dt dlterm">visible</dt>
+
+          <dd class="dd">Visibility of the hggroup object.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'on'</span> |<span class="keyword option"> 'off'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">xdata</dt>
+
+          <dd class="dd">Data values associated with the x axis.</dd>
+
+          <dd class="dd ddexpand">vector | matrix</dd>
+
+        
+        
+          <dt class="dt dlterm">ydata</dt>
+
+          <dd class="dd">Data values associated with the y axis.</dd>
+
+          <dd class="dd ddexpand">vector | matrix</dd>
+
+        
+        
+          <dt class="dt dlterm">zdata</dt>
+
+          <dd class="dd">Data values associated with the z axis (3D bar or scatter only).</dd>
+
+          <dd class="dd ddexpand">vector | matrix</dd>
+
+        
+      </dl>
+
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_bq2_nnq_p4b"><h2 class="title sectiontitle">Image Properties</h2>
+      
+      <dl class="dl table">
+        
+          <dt class="dthd"><strong>Property Name</strong></dt>
+
+          <dd class="ddhd"><strong>Description/Values</strong></dd>
+
+        
+        
+          <dt class="dt dlterm">children</dt>
+
+          <dd class="dd">The children of the image object, currently an empty matrix.</dd>
+
+        
+        
+          <dt class="dt dlterm">filepath</dt>
+
+          <dd class="dd">The filepath.</dd>
+
+        
+        
+          <dt class="dt dlterm">handle</dt>
+
+          <dd class="dd">The handle of the image object.</dd>
+
+        
+        
+          <dt class="dt dlterm">parent</dt>
+
+          <dd class="dd">The handle of the parent object.</dd>
+
+          <dd class="dd ddexpand">0</dd>
+
+        
+        
+          <dt class="dt dlterm">position</dt>
+
+          <dd class="dd">The location and size of the image in the figure. The location is specified by the
+            upper-left point, and the size is specified by the width and height.</dd>
+
+          <dd class="dd ddexpand">[<span class="keyword option">left</span>
+            <span class="keyword option">top</span>
+            <span class="keyword option">width</span>
+            <span class="keyword option">height</span>]</dd>
+
+        
+        
+          <dt class="dt dlterm">tag</dt>
+
+          <dd class="dd">A tag attached to the image object.</dd>
+
+          <dd class="dd ddexpand">String</dd>
+
+        
+        
+          <dt class="dt dlterm">type</dt>
+
+          <dd class="dd">The image object type.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'image'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">units</dt>
+
+          <dd class="dd">Units of measurement (not yet used).</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'pixels'</span> | <span class="keyword option">'normalized'</span></dd>
+
+        
+      </dl>
+
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_ejw_fnh_gjb"><h2 class="title sectiontitle">Shape Properties</h2>
+      
+      <div class="p">
+        <dl class="dl table">
+          
+            <dt class="dthd"><strong>Property Name</strong></dt>
+
+            <dd class="ddhd"><strong>Description/Values</strong></dd>
+
+          
+          
+            <dt class="dt dlterm">children</dt>
+
+            <dd class="dd">Children of the shape object; an empty matrix for now.</dd>
+
+          
+          
+            <dt class="dt dlterm">curvature</dt>
+
+            <dd class="dd">Curvature for the horizontal and vertical edge.</dd>
+
+            <dd class="dd ddexpand">[<span class="keyword option">h-curvature</span>
+              <span class="keyword option">v-curvature</span>]</dd>
+
+          
+          
+            <dt class="dt dlterm">edgecolor</dt>
+
+            <dd class="dd">Color of the shape's border.</dd>
+
+            <dd class="dd ddexpand"><span class="keyword option">1*3 matrix of RGB</span> | <span class="keyword option">colorname</span></dd>
+
+          
+          
+            <dt class="dt dlterm">facecolor</dt>
+
+            <dd class="dd">Color to fill the shape.</dd>
+
+            <dd class="dd ddexpand"><span class="keyword option">1*3 matrix of RGB</span> | <span class="keyword option">colorname</span></dd>
+
+          
+          
+            <dt class="dt dlterm">handle</dt>
+
+            <dd class="dd">Handle of the shape object.</dd>
+
+            <dd class="dd ddexpand">Double</dd>
+
+          
+          
+            <dt class="dt dlterm">linestyle</dt>
+
+            <dd class="dd">Edge style.</dd>
+
+            <dd class="dd ddexpand">'<span class="keyword option">-</span>' | '<span class="keyword option">--</span>' | '<span class="keyword option">-.</span>' |
+                '<span class="keyword option">:</span>' | '<span class="keyword option">none</span>'</dd>
+
+          
+          
+            <dt class="dt dlterm">linewidth</dt>
+
+            <dd class="dd">Edge width.</dd>
+
+            <dd class="dd ddexpand">Integer</dd>
+
+          
+          
+            <dt class="dt dlterm">parent</dt>
+
+            <dd class="dd">handle of the parent object, which is a handle of the figure.</dd>
+
+            <dd class="dd ddexpand">Integer</dd>
+
+          
+          
+            <dt class="dt dlterm">position</dt>
+
+            <dd class="dd">Location and size of the shape in the figure. Location is specified by the
+              upper-left point, size is specified by the width and height.</dd>
+
+            <dd class="dd ddexpand">[<span class="keyword option">left</span>
+              <span class="keyword option">top</span>
+              <span class="keyword option">width</span>
+              <span class="keyword option">height</span>]</dd>
+
+          
+          
+            <dt class="dt dlterm">tag</dt>
+
+            <dd class="dd">A tag attached to the shape.</dd>
+
+            <dd class="dd ddexpand">String</dd>
+
+          
+          
+            <dt class="dt dlterm">type</dt>
+
+            <dd class="dd">Shape object type.</dd>
+
+            <dd class="dd ddexpand">'<span class="keyword option">hggroug</span>'</dd>
+
+          
+          
+            <dt class="dt dlterm">units</dt>
+
+            <dd class="dd">Units of measurement, (currently not used).</dd>
+
+            <dd class="dd ddexpand">'<span class="keyword option">pixels</span>' | '<span class="keyword option">normalized</span>'</dd>
+
+          
+          
+            <dt class="dt dlterm">visible</dt>
+
+            <dd class="dd">Shape visibility.</dd>
+
+            <dd class="dd ddexpand">'<span class="keyword option">on</span>' | '<span class="keyword option">off</span>'</dd>
+
+          
+        </dl>
+
+      </div>
+
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_y1k_pz3_kqb"><h2 class="title sectiontitle">Colorbar Properties</h2>
+      
+      <div class="p">
+        <dl class="dl table" id="reference_wpv_kyv_pr__dl_evg_qz3_kqb">
+          
+            <dt class="dthd"><strong>Property Name</strong></dt>
+
+            <dd class="ddhd"><strong>Description/Values</strong></dd>
+
+          
+          
+            <dt class="dt dlterm">children</dt>
+
+            <dd class="dd">Children of the colobar object; an empty matrix for now.</dd>
+
+          
+          
+            <dt class="dt dlterm">clim</dt>
+
+            <dd class="dd">Range of the colorbar.</dd>
+
+            <dd class="dd ddexpand">2-element vector</dd>
+
+          
+          
+            <dt class="dt dlterm">colorbarscale</dt>
+
+            <dd class="dd">Scale of the colorbar values.</dd>
+
+            <dd class="dd ddexpand"><span class="keyword option">'linear</span>' | '<span class="keyword option">log</span>' | '<span class="keyword option">db10</span>' |
+                '<span class="keyword option">db20'</span></dd>
+
+          
+          
+            <dt class="dt dlterm">colorlevels</dt>
+
+            <dd class="dd">The colorbar values.</dd>
+
+            <dd class="dd ddexpand">
+              <div class="note note" id="reference_wpv_kyv_pr__note_fvg_qz3_kqb"><span class="notetitle">Note:</span> The <span class="keyword cmdname">set</span> command for this property
+                accepts either an integer or a real vector. Use a real vector to set custom values
+                to the colorbar. Use an integer to define the number of colors in the colorbar. In
+                this case, the range and values of the colorbar are automatically calculated.</div>
+
+            </dd>
+
+            <dd class="dd ddexpand">Integer or real vector.</dd>
+
+          
+          
+            <dt class="dt dlterm">colormap</dt>
+
+            <dd class="dd">The color map of the plot.</dd>
+
+            <dd class="dd ddexpand">matrix</dd>
+
+          
+          
+            <dt class="dt dlterm">fontname</dt>
+
+            <dd class="dd">The font name of the colorbar tick labels.</dd>
+
+            <dd class="dd ddexpand">Any available font from the system.</dd>
+
+          
+          
+            <dt class="dt dlterm">fontsize</dt>
+
+            <dd class="dd">The font size of the colorbar tick labels.</dd>
+
+            <dd class="dd ddexpand">Integer</dd>
+
+          
+          
+            <dt class="dt dlterm">handle</dt>
+
+            <dd class="dd">Handle of the colorbar object.</dd>
+
+            <dd class="dd ddexpand">Double</dd>
+
+          
+          
+            <dt class="dt dlterm">location</dt>
+
+            <dd class="dd">Location of the colorbar.</dd>
+
+            <dd class="dd ddexpand">'<span class="keyword option">northeast</span>' | '<span class="keyword option">northwest</span>' |
+                '<span class="keyword option">southeast</span>' | '<span class="keyword option">southwest</span>'</dd>
+
+          
+          
+            <dt class="dt dlterm">numericformat</dt>
+
+            <dd class="dd">The format of the colorbar tick labels.</dd>
+
+            <dd class="dd ddexpand"><span class="keyword option">'scientific'</span> | <span class="keyword option">'fixed'</span></dd>
+
+          
+          
+            <dt class="dt dlterm">numericprecision</dt>
+
+            <dd class="dd">The precision of the colorbar tick labels.</dd>
+
+            <dd class="dd ddexpand">Integer</dd>
+
+          
+          
+            <dt class="dt dlterm">parent</dt>
+
+            <dd class="dd">Handle of the parent axes object.</dd>
+
+            <dd class="dd ddexpand">Double</dd>
+
+          
+          
+            <dt class="dt dlterm">tag</dt>
+
+            <dd class="dd">A tag attached to the colorbar object.</dd>
+
+            <dd class="dd ddexpand">String</dd>
+
+          
+          
+            <dt class="dt dlterm">type</dt>
+
+            <dd class="dd">Object type.</dd>
+
+            <dd class="dd ddexpand">'<span class="keyword option">colorbar</span>'</dd>
+
+          
+          
+            <dt class="dt dlterm">units</dt>
+
+            <dd class="dd">Units of measurement (currently not used).</dd>
+
+            <dd class="dd ddexpand">'<span class="keyword option">pixels</span>' | '<span class="keyword option">normalized</span>'</dd>
+
+          
+          
+            <dt class="dt dlterm">visible</dt>
+
+            <dd class="dd">Colorbar visibility.</dd>
+
+            <dd class="dd ddexpand">'<span class="keyword option">on</span>' | '<span class="keyword option">off</span>'</dd>
+
+          
+        </dl>
+
+      </div>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Legend Properties</h2>
+      
+      <div class="p">
+        <dl class="dl table" id="reference_wpv_kyv_pr__dl_evg_qz3_borders">
+          
+            <dt class="dthd"><strong>Property Name</strong></dt>
+
+            <dd class="ddhd"><strong>Description/Values</strong></dd>
+
+          
+          
+            <dt class="dt dlterm">bordercolor</dt>
+
+            <dd class="dd">Legend border color.</dd>
+
+            <dd class="dd ddexpand">1*3 matrix of RGB | <span class="keyword option">colorname</span></dd>
+
+          
+          
+            <dt class="dt dlterm">borderwidth</dt>
+
+            <dd class="dd">Legend border width.</dd>
+
+            <dd class="dd ddexpand">Integer</dd>
+
+          
+          
+            <dt class="dt dlterm">children</dt>
+
+            <dd class="dd">Children of the legend object; an empty matrix for now.</dd>
+
+          
+          
+            <dt class="dt dlterm">fontangle (2D plots only)</dt>
+
+            <dd class="dd">The font angle of the legend tick labels.</dd>
+
+            <dd class="dd ddexpand"><span class="keyword option">'regular'</span> | <span class="keyword option">'italic'</span></dd>
+
+          
+          
+            <dt class="dt dlterm">fontname</dt>
+
+            <dd class="dd">The font name of the legend tick labels.</dd>
+
+            <dd class="dd ddexpand">Any available font in the system.</dd>
+
+          
+          
+            <dt class="dt dlterm">fontsize</dt>
+
+            <dd class="dd">The font size of the legend tick labels.</dd>
+
+            <dd class="dd ddexpand">Integer</dd>
+
+          
+          
+            <dt class="dt dlterm">fontweight (2D plots only)</dt>
+
+            <dd class="dd">The font weight of the legend tick labels.</dd>
+
+            <dd class="dd ddexpand"><span class="keyword option">'normal'</span> | <span class="keyword option">'bold'</span></dd>
+
+          
+          
+            <dt class="dt dlterm">handle</dt>
+
+            <dd class="dd">Handle of the legend object.</dd>
+
+            <dd class="dd ddexpand">Double</dd>
+
+          
+          
+            <dt class="dt dlterm">location</dt>
+
+            <dd class="dd">Location of the legend. Refer to the <span class="keyword cmdname">legend</span> documentation page for valid options.</dd>
+
+            <dd class="dd ddexpand">String | 2-element vector</dd>
+
+          
+          
+            <dt class="dt dlterm">parent</dt>
+
+            <dd class="dd">Handle of the parent axes object.</dd>
+
+            <dd class="dd ddexpand">Double</dd>
+
+          
+          
+            <dt class="dt dlterm">tag</dt>
+
+            <dd class="dd">A tag attached to the legend object.</dd>
+
+            <dd class="dd ddexpand">String</dd>
+
+          
+          
+            <dt class="dt dlterm">type</dt>
+
+            <dd class="dd">Object type.</dd>
+
+            <dd class="dd ddexpand">'<span class="keyword option">legend</span>'</dd>
+
+          
+          
+            <dt class="dt dlterm">units</dt>
+
+            <dd class="dd">Units of measurement (currently not used).</dd>
+
+            <dd class="dd ddexpand">'<span class="keyword option">pixels</span>' | '<span class="keyword option">normalized</span>'</dd>
+
+          
+          
+            <dt class="dt dlterm">visible</dt>
+
+            <dd class="dd">Legend visibility.</dd>
+
+            <dd class="dd ddexpand">'<span class="keyword option">on</span>' | '<span class="keyword option">off</span>'</dd>
+
+          
+        </dl>
+
+      </div>
+
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_shs_kz3_waitbar"><h2 class="title sectiontitle">Waitbar Properties</h2>
+      
+      <div class="p">
+        <dl class="dl table" id="reference_wpv_kyv_pr__dl_bxg_4z3_kqb">
+          
+            <dt class="dthd"><strong>Property Name</strong></dt>
+
+            <dd class="ddhd"><strong>Description/Values</strong></dd>
+
+          
+          
+            <dt class="dt dlterm">handle</dt>
+
+            <dd class="dd">Handle of the waitbar.</dd>
+
+          
+          
+            <dt class="dt dlterm">height</dt>
+
+            <dd class="dd">Height of the waitbar in pixels.</dd>
+
+          
+          
+            <dt class="dt dlterm">message</dt>
+
+            <dd class="dd">Message displayed in the waitbar.</dd>
+
+          
+          
+            <dt class="dt dlterm">title</dt>
+
+            <dd class="dd">Title of the waitbar.</dd>
+
+          
+          
+            <dt class="dt dlterm">Value</dt>
+
+            <dd class="dd">Fractional value of the progress of the waitbar.</dd>
+
+          
+          
+            <dt class="dt dlterm">visible</dt>
+
+            <dd class="dd"><span class="keyword option">1</span> if waitbar is visible and <span class="keyword option">0</span> if waitbar is
+              hidden.</dd>
+
+          
+          
+            <dt class="dt dlterm">width</dt>
+
+            <dd class="dd">Width of the waitbar in pixels.</dd>
+
+          
+        </dl>
+
+      </div>
+
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_cq2_nnq_p4b">
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links"></nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" title="Plotting Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Plotting Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

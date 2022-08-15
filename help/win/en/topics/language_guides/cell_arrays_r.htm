@@ -1,0 +1,69 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Cell Arrays" /><meta name="abstract" content="Cell arrays are generic data containers." /><meta name="description" content="Cell arrays are generic data containers." /><meta name="indexterms" content="cell arrays" /><meta name="DC.subject" content="cell arrays" /><meta name="keywords" content="cell arrays" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/data_types_header_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/structures_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/collections_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/indexing_r.htm" /><meta name="prodname" content="OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_d3t_3mm_vt" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Cell Arrays</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_d3t_3mm_vt">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language.">Scripting Guide for OpenMatrix Language</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/data_types_header_r.htm" title="Data types are items that are constant throughout the life of the application and are built into the OpenMatrix language.">Data Types</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../topics/language_guides/data_types_header_r.htm" title="Data types are items that are constant throughout the life of the application and are built into the OpenMatrix language."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Data Types</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">Cell Arrays</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Cell arrays are generic data containers.</p>
+
+    <section class="section">
+      <p class="p">They are similar to matrices in that they have rows and columns, and specific elements can
+        be accessed via one or more indices. The major difference is that the data in cell arrays
+        does not have to be homogeneous. A cell can store a matrix, string, scalar, or even another
+        cell array.</p>
+
+      <div class="p">Cell arrays are defined using the {} operators. Elements in cell arrays are separated by
+        commas (or spaces) and semi-colons (or newlines), just like
+          matrices.<pre class="pre codeblock"><code>a={ [1,2;3,4], 'hello'; 5,[1,2,3] }</code></pre><var class="keyword varname">a</var> is
+        a 2x2 cell array.</div>
+
+      <div class="p">To access the contents of a particular cell, the {} operators are used
+        again.<pre class="pre codeblock"><code>a{2,1} =&gt; 5</code></pre></div>
+
+      <div class="p">Elements can be directly assigned into cells using two different syntaxes, both involving
+        the {} operators.<pre class="pre codeblock"><code>a(2,2) = { [1,2,3]}
+a{2,2} = [1,2,3]</code></pre>These two
+        statements are equivalent.</div>
+
+      <p class="p">The <span class="keyword cmdname">size</span> function can be used to determine the number of rows and
+        columns in a cell array (just like for other entities).</p>
+
+      <div class="p">To delete cells in a cell array, set the index (using the () index) of the spot being
+        deleted to [ ].<pre class="pre codeblock"><code>a(2,2) = {[]}</code></pre></div>
+
+      <div class="p">To set a cell to an empty matrix, set the index (using the {} index) of the stop being set
+        to an empty matrix to [ ].  <pre class="pre codeblock"><code>a{2,2} = []</code></pre></div>
+
+      <div class="p">An empty cell is created using just curly braces ({})<pre class="pre codeblock"><code>a={}</code></pre></div>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/structures_r.htm" title="Structures are a data type similar to cells. However, where cells use numeric indices to refer to specific pieces of data, structures use strings.">Structures</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/collections_r.htm" title="A collection is an ordered grouping of elements (which may be literals or other collections).">Collections</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/indexing_r.htm" title="Indexing is used to retrieve one or more specific values out of a collection.">Indexing</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../topics/language_guides/data_types_header_r.htm" title="Data types are items that are constant throughout the life of the application and are built into the OpenMatrix language."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Data Types</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

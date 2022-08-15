@@ -1,0 +1,110 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="If" /><meta name="abstract" content="OpenMatrix language supports conditional execution of statements using the if/elseif/else construct." /><meta name="description" content="OpenMatrix language supports conditional execution of statements using the if/elseif/else construct." /><meta name="indexterms" content="if" /><meta name="DC.subject" content="if" /><meta name="keywords" content="if" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/flow_of_control_and_looping_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/for_loop_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/break_r.htm" /><meta name="prodname" content="OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_x1m_yrf_vt" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>If</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_x1m_yrf_vt">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language.">Scripting Guide for OpenMatrix Language</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/flow_of_control_and_looping_r.htm" title="Loops are used to perform the same set of statements multiple times.">Flow of Control and Looping</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../topics/language_guides/flow_of_control_and_looping_r.htm" title="Loops are used to perform the same set of statements multiple times."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Flow of Control and Looping</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">If</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc"><span class="keyword">OpenMatrix</span> language supports conditional execution of
+    statements using the if/elseif/else construct.</p>
+
+    <section class="section">
+      <div class="p">
+        <pre class="pre codeblock"><code>if condition1
+  block1
+elseif condition2 
+  block2
+elseif conditionN
+  blockN
+else
+  blockElse
+end</code></pre>
+      </div>
+
+      <p class="p">Each condition is an expression. If the expression evaluates to a non-zero (for example,
+        true) value, the code in that block is executed. The conditions are tested in order. At
+        most, one block is executed for each set of <span class="keyword cmdname">if</span> statements. The
+          <span class="keyword cmdname">elseif</span> and <span class="keyword cmdname">else</span> statements are optional. The
+          <span class="keyword cmdname">blockElse</span> is run only if no other blocks were run.</p>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example 1</h2>
+      
+      <div class="p">
+        <pre class="pre codeblock"><code>x= 4
+     if x == 4
+           disp('hello 4')
+     end</code></pre>
+      </div>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example 2</h2>
+      
+      <div class="p">
+        <pre class="pre codeblock"><code>x= 5
+if x == 4
+      disp('hello 4')
+elseif x == 5
+      disp('hello 5')
+end	</code></pre>
+      </div>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example 3</h2>
+      
+      <div class="p">
+        <pre class="pre codeblock"><code>x= 3
+if x == 4
+      disp('hello 4')
+else
+      disp('hello number')
+end</code></pre>
+      </div>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example 4</h2>
+      
+      <div class="p">
+        <pre class="pre codeblock"><code>x= 3
+if x == 4
+      disp('hello 4')
+elseif x == 5
+      disp('hello 5')
+else
+      disp('hello number')
+end	</code></pre>
+      </div>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/for_loop_r.htm" title="Loops are used to perform the same set of statements multiple times. The for loop runs the statements a set number of times based on the number of elements in the collection found on the first line of the for loop.">for loop</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/break_r.htm" title="The break keyword immediately terminates a for or while loop.">break</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../topics/language_guides/flow_of_control_and_looping_r.htm" title="Loops are used to perform the same set of statements multiple times."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Flow of Control and Looping</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

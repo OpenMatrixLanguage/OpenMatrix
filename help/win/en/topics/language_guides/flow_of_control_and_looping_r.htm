@@ -1,0 +1,57 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Flow of Control and Looping" /><meta name="abstract" content="Loops are used to perform the same set of statements multiple times." /><meta name="description" content="Loops are used to perform the same set of statements multiple times." /><meta name="indexterms" content="flow of control and looping" /><meta name="DC.subject" content="flow of control and looping" /><meta name="keywords" content="flow of control and looping" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/language_guide_intro_header_c.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/for_loop_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/parfor_loop_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/break_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/while_loop_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/if_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/switch_case_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/try_catch_r.htm" /><meta name="prodname" content="OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_xmj_xcg_vt" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Flow of Control and Looping</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_xmj_xcg_vt">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/../../topics/reference/oml_language/oml_ref_guide.htm" title="Reference guides are available for functions and commands supported by OML.">Reference Guides</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language.">Scripting Guide for OpenMatrix Language</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Scripting Guide for OpenMatrix Language</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">Flow of Control and Looping</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Loops are used to perform the same set of statements multiple times. </p>
+
+    <section class="section">
+      <p class="p">The <span class="keyword">OpenMatrix</span> Language supports two types of loops: for and
+        while.</p>
+
+      <p class="p">Flow of control controls which statements are executed. <span class="keyword">OML</span> supports
+        four types of flow of control: break, if, switch, and try/catch. </p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<ul class="ullinks">
+<li class="link ulchildlink"><strong><a href="../../topics/language_guides/for_loop_r.htm">for loop</a></strong><br />
+Loops are used to perform the same set of statements multiple times. The for loop runs     the statements a set number of times based on the number of elements in the collection found on     the first line of the for loop. </li>
+<li class="link ulchildlink"><strong><a href="../../topics/language_guides/parfor_loop_r.htm">parfor loop</a></strong><br />
+Parfor loops behave similarly to regular for loops except that they attempt to use     multiple processors or threads to divide the loop space into chunks. The chunks are     equally-sized (or as equal as possible). </li>
+<li class="link ulchildlink"><strong><a href="../../topics/language_guides/break_r.htm">break</a></strong><br />
+The <span class="keyword cmdname">break</span> keyword immediately terminates a for or while     loop.</li>
+<li class="link ulchildlink"><strong><a href="../../topics/language_guides/while_loop_r.htm">while loop</a></strong><br />
+Loops are used to perform the same set of statements multiple times.  The while loop     runs the statement until a condition is no longer met. </li>
+<li class="link ulchildlink"><strong><a href="../../topics/language_guides/if_r.htm">If</a></strong><br />
+<span class="keyword">OpenMatrix</span> language supports conditional execution of     statements using the if/elseif/else construct.</li>
+<li class="link ulchildlink"><strong><a href="../../topics/language_guides/switch_case_r.htm">switch/case</a></strong><br />
+<span class="keyword">OpenMatrix</span> Language also supports a variant of this using     switch/case/otherwise.</li>
+<li class="link ulchildlink"><strong><a href="../../topics/language_guides/try_catch_r.htm">Try/Catch</a></strong><br />
+The try /catch block allows you to stop errors from being returned, and allows another     block of code to execute instead of the error. </li>
+</ul>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Scripting Guide for OpenMatrix Language</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

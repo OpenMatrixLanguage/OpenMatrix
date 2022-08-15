@@ -1,0 +1,193 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="saefilt95" /><meta name="abstract" content="Filters a signal with an SAE class filter." /><meta name="description" content="Filters a signal with an SAE class filter." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="CAE Commands" /><meta name="indexterms" content="saefilt95" /><meta name="DC.subject" content="saefilt95" /><meta name="keywords" content="saefilt95" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CAE/cae_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CAE/iso6487.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CAE/saefilter.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>saefilt95</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CAE/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CAE/cae_commands.htm" title="CAE Commands">CAE Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/CAE/cae_commands.htm" title="CAE Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">CAE Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">saefilt95</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Filters a signal with an SAE class filter.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      <p class="p"><span class="ph synph">y=saefilt95<span class="ph var">(x,fs,cfc)</span></span></p>
+
+      <p class="p"><span class="ph synph">y=saefilt95<span class="ph var">(x,fs,cfc,pad,dir)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">x</var></dt>
+
+          <dd class="dd pd">The signal to be filtered. If <var class="keyword varname">x</var> is a matrix, each column is
+            filtered.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector | matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">fs</var></dt>
+
+          <dd class="dd pd">The sampling frequency.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">class</var></dt>
+
+          <dd class="dd pd">The channel frequency class of the filter (typically 60 or 180).</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">pad</var></dt>
+
+          <dd class="dd pd">The padding method.</dd>
+
+          <dd class="dd pd ddexpand">The available options are as follows: <ul class="ul" id="reference_wpv_kyv_pr__ul_ev3_jsb_x2b">
+              <li class="li">0: no padding.</li>
+
+              <li class="li">-N: pad N zeros to each end of a signal vector.</li>
+
+              <li class="li">N: pad N mirrored values to each end of a signal vector.</li>
+
+            </ul>
+
+          </dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">dir</var></dt>
+
+          <dd class="dd pd">The direction in which to filter.</dd>
+
+          <dd class="dd pd ddexpand">The available options are as follows: <ul class="ul" id="reference_wpv_kyv_pr__ul_dmx_tsb_x2b">
+              <li class="li">1: forward only.</li>
+
+              <li class="li">2: backward only.</li>
+
+              <li class="li">3: forward, then backward.</li>
+
+              <li class="li">4: backward, then forward.</li>
+
+            </ul>
+</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">y</span></dt>
+
+          <dd class="dd pd">The filtered signal.</dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_nt2_3tb_x2b"><h2 class="title sectiontitle">Example</h2>
+      
+      <div class="p">Filter a 100 Hz signal bi-directionally with no padding, sampled at 10,000 Hz, with a class
+        60
+        filter.<pre class="pre codeblock"><code>t = [0:0.0001:0.02];
+input = sin(2*pi*100*t);
+plot(t,input);
+hold on;
+output = saefilt95(input, 10000, 60, 0, 3);
+plot(t,output);
+legend('input','output');</code></pre></div>
+
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_ot2_3tb_x2b">
+      <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_t5n_v4r_bt">
+        
+        <br /><img class="image" id="reference_wpv_kyv_pr__image_pt2_3tb_x2b" src="../../../../images/math_solutions/plots/saefilt95_help_figure1.png" height="297" width="393" /><br />
+      <span class="figcap"><span class="fig--title-label">Figure 1. </span>filter figure 1</span></figure>
+
+    </section>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_vlr_5cc_jfb"><h2 class="title sectiontitle">Example</h2>
+      
+      <div class="p">Filter a 100 Hz signal bi-directionally with 100 pads, sampled at 10,000 Hz, with a class
+        60
+          filter.<pre class="pre codeblock"><code>t = [0:0.0001:0.02];
+input = sin(2*pi*100*t);
+plot(t,input);
+hold on;
+output = saefilt95(input, 10000, 60, 100, 3);
+plot(t,output);
+legend('input','output');</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_qt2_3tb_x2b">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_rdj_gtb_x2b" src="../../../../images/math_solutions/plots/saefilt95_help_figure2.png" height="295" width="393" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 2. </span>filter figure 1</span></figure>
+</div>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p"><span class="keyword cmdname">saefilt95</span> is based on the SAE J211-1 (1995) standard. It uses a
+        second order low pass Butterworth filter. The <var class="keyword varname">cfc</var> is approximately
+        60% of the 3dB cutoff frequency when used bi-directionally.</p>
+
+      <p class="p"><var class="keyword varname">fs</var> should be at least 10 times <var class="keyword varname">cfc</var>.</p>
+
+    </section>
+
+    <section class="section">
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CAE/iso6487.htm" title="Filters a signal with an ISO6487 filter.">iso6487</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CAE/saefilter.htm" title="Filters a signal with an SAE filter.">saefilter</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/CAE/cae_commands.htm" title="CAE Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">CAE Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

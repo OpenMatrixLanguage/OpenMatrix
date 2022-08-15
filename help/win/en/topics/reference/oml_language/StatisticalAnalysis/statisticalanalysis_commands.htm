@@ -1,0 +1,213 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Statistical Analysis Commands" /><meta name="abstract" content="" /><meta name="description" content="" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/oml_reference_guide_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/bbdesign.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/beta.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/betacdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/betafit.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/betainc.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/betainv.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/betaln.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/betapdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/betarnd.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/bins.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/cdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/chi2cdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/chi2inv.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/chi2pdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/chi2rnd.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/corr.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/cov.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/cpsd.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/detrend.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/erf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/expcdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/expfit.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/expinv.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/exppdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/exprnd.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/factorial.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/fcdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/finv.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/fpdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/frnd.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/fullfact.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/gamcdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/gamfit.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/gaminv.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/gamma.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/gammaln.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/gammainc.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/gampdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/gamrnd.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/icdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/kurtosis.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/logncdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/lognfit.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/logninv.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/lognpdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/lognrnd.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/mad.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/mean.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/meandev.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/median.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/mode.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/nchoosek.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/normcdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/normfit.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/norminv.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/normpdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/normrnd.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/pdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/poisscdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/poissfit.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/poissinv.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/poisspdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/poissrnd.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/polyfit.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/rand.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/randn.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/random.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/randperm.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/regress.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/rms.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/skewness.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/std.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/tcdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/tinv.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/tpdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/trnd.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/ttest.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/ttest2.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/unifcdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/unifinv.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/unifit.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/unifpdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/unifrnd.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/var.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/vartest.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/vartest2.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/wblcdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/wblfit.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/wblinv.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/wblpdf.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/wblrnd.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/ztest.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_pv1_4pr_cv" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Statistical Analysis Commands</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_pv1_4pr_cv">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/../../../topics/reference/oml_language/oml_ref_guide.htm" title="Reference guides are available for functions and commands supported by OML.">Reference Guides</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Reference Guide for OpenMatrix Language Functions</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">Statistical Analysis Commands</h1>
+
+  <p class="shortdesc"></p>
+
+<nav role="navigation" class="related-links">
+<ul class="ullinks">
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/bbdesign.htm">bbdesign</a></strong><br />
+Generates a design matrix for Box-Behnken with specified number of factors       <var class="keyword varname">f</var>.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/beta.htm">beta</a></strong><br />
+Beta function.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/betacdf.htm">betacdf</a></strong><br />
+Compute beta distribution cumulative distribution function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/betafit.htm">betafit</a></strong><br />
+Fit a beta distribution to a data sample.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/betainc.htm">betainc</a></strong><br />
+Compute incomplete beta function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/betainv.htm">betainv</a></strong><br />
+Compute beta distribution inverse cumulative distribution function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/betaln.htm">betaln</a></strong><br />
+Log beta function.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/betapdf.htm">betapdf</a></strong><br />
+Compute beta distribution probability density function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/betarnd.htm">betarnd</a></strong><br />
+Generate random data from a beta distribution.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/bins.htm">bins</a></strong><br />
+Divides the range of data <var class="keyword varname">d</var> into <var class="keyword varname">n</var> equal     bins.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/cdf.htm">cdf</a></strong><br />
+Compute cumulative distribution function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/chi2cdf.htm">chi2cdf</a></strong><br />
+Compute chi-squared distribution cumulative distribution function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/chi2inv.htm">chi2inv</a></strong><br />
+Compute chi-squared distribution inverse cumulative distribution function     values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/chi2pdf.htm">chi2pdf</a></strong><br />
+Compute chi-squared distribution probability density function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/chi2rnd.htm">chi2rnd</a></strong><br />
+Generate random data from a chi-squared distribution.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/corr.htm">corr</a></strong><br />
+Compute correlation coefficients.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/cov.htm">cov</a></strong><br />
+Compute covariances.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/cpsd.htm">cpsd</a></strong><br />
+Compute cross spectral densities.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/detrend.htm">detrend</a></strong><br />
+Removes the mean or best fit line from a data vector. </li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/erf.htm">erf</a></strong><br />
+Returns the error function of <var class="keyword varname">x</var>.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/expcdf.htm">expcdf</a></strong><br />
+Compute exponential distribution cumulative distribution function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/expfit.htm">expfit</a></strong><br />
+Fit an exponential distribution to a data sample.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/expinv.htm">expinv</a></strong><br />
+Compute exponential distribution inverse cumulative distribution function     values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/exppdf.htm">exppdf</a></strong><br />
+Compute exponential distribution probability density function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/exprnd.htm">exprnd</a></strong><br />
+Generate random data from an exponential distribution.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/factorial.htm">factorial</a></strong><br />
+Factorial function.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/fcdf.htm">fcdf</a></strong><br />
+Compute F distribution cumulative distribution function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/finv.htm">finv</a></strong><br />
+Compute F distribution inverse cumulative distribution function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/fpdf.htm">fpdf</a></strong><br />
+Compute F distribution probability density function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/frnd.htm">frnd</a></strong><br />
+Generate random data from an F distribution.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/fullfact.htm">fullfact</a></strong><br />
+Generate the full factorial design matrices.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/gamcdf.htm">gamcdf</a></strong><br />
+Compute gamma distribution cumulative distribution function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/gamfit.htm">gamfit</a></strong><br />
+Fit a gamma distribution to a data sample.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/gaminv.htm">gaminv</a></strong><br />
+Compute gamma distribution inverse cumulative distribution function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/gamma.htm">gamma</a></strong><br />
+Gamma function.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/gammaln.htm">gammaln</a></strong><br />
+Log gamma function.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/gammainc.htm">gammainc</a></strong><br />
+Compute incomplete gamma function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/gampdf.htm">gampdf</a></strong><br />
+Compute gamma distribution probability density function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/gamrnd.htm">gamrnd</a></strong><br />
+Generate random data from a gamma distribution.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/icdf.htm">icdf</a></strong><br />
+Compute inverse cumulative distribution function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/kurtosis.htm">kurtosis</a></strong><br />
+Compute kurtosis values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/logncdf.htm">logncdf</a></strong><br />
+Compute lognormal distribution cumulative distribution function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/lognfit.htm">lognfit</a></strong><br />
+Fit a lognormal distribution to a data sample.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/logninv.htm">logninv</a></strong><br />
+Compute lognormal distribution inverse cumulative distribution function     values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/lognpdf.htm">lognpdf</a></strong><br />
+Compute lognormal distribution probability density function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/lognrnd.htm">lognrnd</a></strong><br />
+Generate random data from a normal distribution.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/mad.htm">mad</a></strong><br />
+Compute mean or median absolute deviation values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/mean.htm">mean</a></strong><br />
+Computes mean values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/meandev.htm">meandev</a></strong><br />
+Compute mean absolute deviation values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/median.htm">median</a></strong><br />
+Compute median values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/mode.htm">mode</a></strong><br />
+Compute mode values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/nchoosek.htm">nchoosek</a></strong><br />
+Combinatorial function for selecting from a set of items.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/normcdf.htm">normcdf</a></strong><br />
+Compute normal distribution cumulative distribution function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/normfit.htm">normfit</a></strong><br />
+Fit a normal distribution to a data sample.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/norminv.htm">norminv</a></strong><br />
+Compute normal distribution inverse cumulative distribution function     values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/normpdf.htm">normpdf</a></strong><br />
+Compute normal distribution probability density function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/normrnd.htm">normrnd</a></strong><br />
+Generate random data from a normal distribution.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/pdf.htm">pdf</a></strong><br />
+Compute probability density function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/poisscdf.htm">poisscdf</a></strong><br />
+Compute Poisson distribution cumulative distribution function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/poissfit.htm">poissfit</a></strong><br />
+Fit a Poisson distribution to a data sample.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/poissinv.htm">poissinv</a></strong><br />
+Compute Poisson distribution inverse cumulative distribution function     values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/poisspdf.htm">poisspdf</a></strong><br />
+Compute Poisson distribution probability density function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/poissrnd.htm">poissrnd</a></strong><br />
+Generate random data from a Poisson distribution.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/polyfit.htm">polyfit</a></strong><br />
+Fit a polynomial to a set of paired data.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/rand.htm">rand</a></strong><br />
+Generate uniform random values on the interval (0,1).</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/randn.htm">randn</a></strong><br />
+Generate standard normal random values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/random.htm">random</a></strong><br />
+Generate random samples from a distribution.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/randperm.htm">randperm</a></strong><br />
+Generates a random permutation vector.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/regress.htm">regress</a></strong><br />
+ Perform multiple linear regression using the model <span class="ph synph">y = X * beta + e</span>. </li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/rms.htm">rms</a></strong><br />
+Compute root mean square values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/skewness.htm">skewness</a></strong><br />
+Compute skewness values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/std.htm">std</a></strong><br />
+Returns the standard deviation of <var class="keyword varname">x</var>.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/tcdf.htm">tcdf</a></strong><br />
+Compute Student t distribution cumulative distribution function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/tinv.htm">tinv</a></strong><br />
+Compute Student t distribution inverse cumulative distribution function     values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/tpdf.htm">tpdf</a></strong><br />
+Compute Student t distribution probability density function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/trnd.htm">trnd</a></strong><br />
+Generate random data from a Student t distribution.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/ttest.htm">ttest</a></strong><br />
+Hypothesis test for the mean of a sample with unknown standard deviation.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/ttest2.htm">ttest2</a></strong><br />
+Hypothesis test for the means of two samples with unknown and equal standard deviations.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/unifcdf.htm">unifcdf</a></strong><br />
+Compute uniform distribution cumulative distribution function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/unifinv.htm">unifinv</a></strong><br />
+Compute uniform distribution inverse cumulative distribution function     values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/unifit.htm">unifit</a></strong><br />
+Fit a uniform distribution to a data sample.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/unifpdf.htm">unifpdf</a></strong><br />
+Compute uniform distribution probability density function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/unifrnd.htm">unifrnd</a></strong><br />
+Generate random data from a uniform distribution.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/var.htm">var</a></strong><br />
+Compute variance values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/vartest.htm">vartest</a></strong><br />
+Hypothesis test for the variance of a sample.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/vartest2.htm">vartest2</a></strong><br />
+Hypothesis test for the variances of two samples. </li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/wblcdf.htm">wblcdf</a></strong><br />
+Compute Weibull distribution cumulative distribution function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/wblfit.htm">wblfit</a></strong><br />
+Fits a Weibull distribution to a data sample.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/wblinv.htm">wblinv</a></strong><br />
+Compute Weibull distribution inverse cumulative distribution function     values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/wblpdf.htm">wblpdf</a></strong><br />
+Compute Weibull distribution probability density function values.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/wblrnd.htm">wblrnd</a></strong><br />
+Generate random data from a Weibull distribution.</li>
+<li class="link ulchildlink"><strong><a href="../../../../topics/reference/oml_language/StatisticalAnalysis/ztest.htm">ztest</a></strong><br />
+Hypothesis test for the mean of a sample with known standard deviation.</li>
+</ul>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Reference Guide for OpenMatrix Language Functions</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

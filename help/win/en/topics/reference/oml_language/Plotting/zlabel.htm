@@ -1,0 +1,143 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="zlabel" /><meta name="abstract" content="Annotates the z-axis." /><meta name="description" content="Annotates the z-axis." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Plotting Commands" /><meta name="indexterms" content="zlabel" /><meta name="DC.subject" content="zlabel" /><meta name="keywords" content="zlabel" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/title.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/xlabel.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/ylabel.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/properties.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>zlabel</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" title="Plotting Commands">Plotting Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" title="Plotting Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Plotting Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">zlabel</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Annotates the z-axis.</p>
+
+    <section class="section" id="reference_wpv_kyv_pr__section_fdr_ckl_lmb"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">handle = zlabel<span class="ph var">(str)</span></span></p>
+
+      <p class="p"><span class="ph synph">handle = zlabel<span class="ph var">(hAxis, str)</span></span></p>
+
+      <p class="p"><span class="ph synph">h = zlabel<span class="ph var">(..., property, value, ...)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">str</var></dt>
+
+          <dd class="dd pd">Name of the z-axis.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">char | string</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">hAxes</var></dt>
+
+          <dd class="dd pd"><span class="keyword"> Axis handle. </span></dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">property</var></dt>
+
+          <dd class="dd pd"><span class="keyword">Properties that control the appearance or behavior of the graphics object.</span></dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">value</var></dt>
+
+          <dd class="dd pd"><span class="keyword">Value of the properties.</span></dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer | string</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">h</span></dt>
+
+          <dd class="dd pd">Handle of the label graphics object.</dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">Simple <span class="keyword cmdname">zlabel</span>
+          example.<pre class="pre codeblock"><code>clf;
+x=[0:0.1:2*pi];
+y=x;
+z=sin(x')*cos(y);
+s=surf(x, y, z)
+handle = zlabel('this is zlabel')</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_zdl_skl_lmb">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_a2l_skl_lmb" src="../../../../images/math_solutions/plots/zlabel.PNG" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 1. </span>Simple zlabel example</span></figure>
+</div>
+
+      <div class="p">Optional arguments
+          example:<pre class="pre codeblock"><code>clf;
+x=[0:0.1:2*pi];
+y=x;
+z=sin(x')*cos(y);
+s=surf(x, y, z)
+handle = zlabel('this is zlabel', 'fontsize', 12, 'fontweight', 'bold')</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_gd3_vkl_lmb">
+          
+          <br /><img class="image" id="reference_wpv_kyv_pr__image_hd3_vkl_lmb" src="../../../../images/math_solutions/plots/zlabelOptionalArgs.png" height="300" width="430" /><br />
+        <span class="figcap"><span class="fig--title-label">Figure 2. </span>Optional arguments in the <span class="keyword cmdname">zlabel</span> command</span></figure>
+</div>
+
+    </section>
+
+    <section class="section">
+      
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/title.htm" title="Sets the title of the plot.">title</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/xlabel.htm" title="Annotates the x-axis.">xlabel</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/ylabel.htm" title="Annotates the y-axis.">ylabel</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/properties.htm" title="Properties for the graphics object in OML.">Graphics Object Properties</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" title="Plotting Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Plotting Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

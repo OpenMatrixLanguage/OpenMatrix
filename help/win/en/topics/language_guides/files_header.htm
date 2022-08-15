@@ -1,0 +1,84 @@
+<?workdir /C:\eenyeart_c\webhelp_1_0_10_OpenMatrix_temp\oxygen_dita_temp\topics/language_guides?><?workdir-uri file:/C:/eenyeart_c/webhelp_1_0_10_OpenMatrix_temp/oxygen_dita_temp/topics/language_guides/?><?path2rootmap-uri ./?><?path2project ../../?><?path2project-uri ../../?>
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Files" /><meta name="abstract" content="This section describes files that can be manipulated by the OpenMatrix Language." /><meta name="description" content="This section describes files that can be manipulated by the OpenMatrix Language." /><meta name="indexterms" content="files, i/o and file operations" /><meta name="DC.subject" content="files, i/o and file operations" /><meta name="keywords" content="files, i/o and file operations" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/language_guide_intro_header_c.htm" /><meta name="prodname" content="OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_pv1_4pr_cv" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Files</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/../../topics/reference/oml_language/oml_ref_guide.htm" title="Reference guides are available for functions and commands supported by OML.">Reference Guides</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language.">Scripting Guide for OpenMatrix Language</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Scripting Guide for OpenMatrix Language</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1"><?workdir /C:\eenyeart_c\webhelp_1_0_10_OpenMatrix_temp\oxygen_dita_temp\topics\language_guides\topics/language_guides?><?workdir-uri file:/C:/eenyeart_c/webhelp_1_0_10_OpenMatrix_temp/oxygen_dita_temp/topics/language_guides/?><?path2project ..\..\?><?path2project-uri ../../?><?path2rootmap-uri ../../?><article class="nested0" aria-labelledby="ariaid-title1" id="reference_pv1_4pr_cv">
+  <h1 class="title topictitle1" id="ariaid-title1">Files</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">This section describes files that can be manipulated by the <span class="keyword">OpenMatrix</span> Language.</p>
+
+    <section class="section">
+      <p class="p"><span class="keyword">OML</span> uses .<span class="keyword">oml</span> files to store scripts
+        and functions as a collection of OML statements. <span class="keyword">OML</span> can read or write
+        data from/to external files using commands acting on external files.</p>
+
+    </section>
+
+  </div>
+
+<?workdir /C:\eenyeart_c\webhelp_1_0_10_OpenMatrix_temp\oxygen_dita_temp\topics\language_guides\topics/language_guides?><?workdir-uri file:/C:/eenyeart_c/webhelp_1_0_10_OpenMatrix_temp/oxygen_dita_temp/topics/language_guides/?><?path2project ..\..\?><?path2project-uri ../../?><?path2rootmap-uri ../../?><nav role="navigation" class="related-links"></nav><article class="topic reference nested1" aria-labelledby="ariaid-title2" id="reference_arl_y4v_tt">
+  <h2 class="title topictitle2" id="ariaid-title2">I/O and File Operations</h2>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc"> The OpenMatrix language includes a variety of functions to operate on
+    files.</p>
+
+    <section class="section">
+      <p class="p">I/O and File Operations functions can act on pure ASCII files or on binary files. They can
+        also be used to either read or write files.</p>
+
+      <div class="p">Compose includes read and write support for the following file types:<ul class="ul" id="reference_arl_y4v_tt__ul_lhl_mht_2qb">
+          <li class="li"> Binary files</li>
+
+          <li class="li">ABF (Altair Binary Format) files</li>
+
+          <li class="li">CAE files from Altair solvers and other vendors</li>
+
+          <li class="li">Excel-compatible files</li>
+
+          <li class="li">Column-delimited files</li>
+
+          <li class="li">HDF5 files</li>
+
+          <li class="li">MAT files</li>
+
+          <li class="li">Generic text files or format-specific files</li>
+
+        </ul>
+</div>
+
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/reference/oml_language/FileIO/fileio_commands.htm" title="File I/O Commands">File I/O Commands</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/reference/oml_language/CAEReaders/caereaders_commands.htm" title="CAE Reader Commands">CAE Reader Commands</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/reference/oml_language/CAEWriters/cae_writer_commands.htm" title="CAE Writer Commands">CAE Writer Commands</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/reference/oml_language/ABF/abf_commands.htm" title="ABF Commands">ABF Commands</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/reference/oml_language/HDF5Reader/hdf5reader_commands.htm" title="HDF5 Reader Commands">HDF5 Reader Commands</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/reference/oml_language/HDF5Writer/hdf5writer_commands.htm" title="HDF5 Writer Commands">HDF5 Writer Commands</a></div></div>
+</nav></article>
+</article>
+</article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Scripting Guide for OpenMatrix Language</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>
