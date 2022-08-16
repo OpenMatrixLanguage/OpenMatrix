@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
                 PrintBanner();
                 bannerprinted = true;
             }
-            RunInputFiles(arg);
+			interp->DoString(arg);
 			continueRequired = true;
 		}
 		else if (lower_str == "-f")
