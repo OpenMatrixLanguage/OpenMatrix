@@ -1,0 +1,157 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="resample" /><meta name="abstract" content="Resample a real signal by a rational factor using a polyphase FIR filter." /><meta name="description" content="Resample a real signal by a rational factor using a polyphase FIR filter." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Signal Processing Commands" /><meta name="indexterms" content="resample" /><meta name="DC.subject" content="resample" /><meta name="keywords" content="resample" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/signalprocessing_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/downsample.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/fft.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/fir1.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/ifft.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/kaiser.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/upsample.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>resample</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/signalprocessing_commands.htm" title="Signal Processing Commands">Signal Processing Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/SignalProcessing/signalprocessing_commands.htm" title="Signal Processing Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Signal Processing Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">resample</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Resample a real signal by a rational factor using a polyphase FIR filter.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      <p class="p"><span class="ph synph">output = resample<span class="ph var">(x,p,q)</span></span></p>
+
+      <p class="p"><span class="ph synph">output = resample<span class="ph var">(x,p,q,h)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">x</var></dt>
+
+          <dd class="dd pd">The signal to be resampled. If <var class="keyword varname">x</var> is a matrix then each column is
+            resampled.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector | matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">p</var></dt>
+
+          <dd class="dd pd">The upsample (numerator) factor.</dd>
+
+          <dd class="dd pd ddexpand">Type: integer</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">q</var></dt>
+
+          <dd class="dd pd">The downsample (denominator) factor.</dd>
+
+          <dd class="dd pd ddexpand">Type: integer</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">h</var></dt>
+
+          <dd class="dd pd">The impulse response of the FIR filter (optional).</dd>
+
+          <dd class="dd pd ddexpand">The default filter is a lowpass filter designed with a Kaiser window. See Comments.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">output</span></dt>
+
+          <dd class="dd pd">The resampled signal.</dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+        <p class="p">Resample a curve by a factor of 4/3.</p>
+
+<pre class="pre codeblock"><code>% define signal
+fs = 100;
+ts = 1/fs;
+n = 60;
+t = [0:ts:(n-1)*ts];
+omega = 2*pi*(fs/4);
+x = 8*cos(0.6*omega*t) - 20*sin(0.4*omega*t);
+
+% upsample by a factor of 4/3
+p = 4;
+q = 3;
+ts = (q/p) * ts;
+n = (p/q) * n;
+tr = [0:ts:(n-1)*ts];
+xr = resample(x, p, q);
+
+% plot results
+plot(t,x);
+hold on;
+scatter(t,x);
+scatter(tr,xr);
+legend('original curve', 'original data', 'resampled data');
+</code></pre>
+      <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_t5n_v4r_bt">
+        
+        <br /><img class="image" src="images/resampled_help_figure1.png" /><br />
+      <span class="figcap"><span class="fig--title-label">Figure 1. </span>resample figure 1</span></figure>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+    <p class="p">The default Kaiser window is described in chapter 7 of A. V. Oppenheim, R. W. Schafer and J. R. Buck,
+      Discrete-time signal processing, Signal processing series, Prentice-Hall, 1999.</p>
+
+    </section>
+
+    <section class="section">
+      
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/downsample.htm" title="Downsample a signal.">downsample</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/fft.htm" title="Fast Fourier Transform.">fft</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/fir1.htm" title="Create a digital FIR filter.">fir1</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/ifft.htm" title="Inverse Fast Fourier transform.">ifft</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/kaiser.htm" title="Kaiser-Bessel window.">kaiser</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/upsample.htm" title="Upsample a signal.">upsample</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/SignalProcessing/signalprocessing_commands.htm" title="Signal Processing Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Signal Processing Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

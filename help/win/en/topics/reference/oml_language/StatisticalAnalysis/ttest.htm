@@ -1,0 +1,144 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="ttest" /><meta name="abstract" content="Hypothesis test for the mean of a sample with unknown standard deviation." /><meta name="description" content="Hypothesis test for the mean of a sample with unknown standard deviation." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Statistical Analysis Commands" /><meta name="indexterms" content="ttest" /><meta name="DC.subject" content="ttest" /><meta name="keywords" content="ttest" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/statisticalanalysis_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>ttest</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/StatisticalAnalysis/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/StatisticalAnalysis/statisticalanalysis_commands.htm" title="Statistical Analysis Commands">Statistical Analysis Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/StatisticalAnalysis/statisticalanalysis_commands.htm" title="Statistical Analysis Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Statistical Analysis Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">ttest</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Hypothesis test for the mean of a sample with unknown standard deviation.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">[h,pvalue,ci] = ttest<span class="ph var">(x,m)</span></span></p>
+
+      <p class="p"><span class="ph synph">[h,pvalue,ci] = ttest<span class="ph var">(x,m,name,value)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">x</var></dt>
+
+          <dd class="dd pd">Data sample to be tested.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector | matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">m</var></dt>
+
+          <dd class="dd pd">Hypothesis mean.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">name</var></dt>
+
+          <dd class="dd pd">Name of an option whose value follows. Multiple name/value pairs are allowed. The
+            supported options are <span class="keyword option">alpha</span> and <span class="keyword option">dim</span>.</dd>
+
+          <dd class="dd pd ddexpand"><span class="keyword option">alpha</span> is the level of significance (default: 0.05).</dd>
+
+          <dd class="dd pd ddexpand"><span class="keyword option">dim</span> is the dimension on which the test is performed (default: first
+            non-singular dimension).</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">value</var></dt>
+
+          <dd class="dd pd">Value for the preceeding option name.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">h</span></dt>
+
+          <dd class="dd pd"><samp class="ph systemoutput">0</samp> if the null hypothesis is accepted.
+              <samp class="ph systemoutput">1</samp> if the null hypothesis is rejected.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">pvalue</span></dt>
+
+          <dd class="dd pd">The p-value of the test.</dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">ci</span></dt>
+
+          <dd class="dd pd">A 100*(1-alpha)% confidence interval for the population mean.</dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+      <p class="p">Vector <span class="keyword cmdname">ttest</span> example.</p>
+
+      <pre class="pre codeblock"><code>x = [7.3 9.4 5.9 6.5 5.5 7 5.3 7.3 2.6 8.7 8.1 2.5 3.9 1.4 0.2 4 6 6.1 10.3 1.2];
+[h,pvalue,ci] = ttest(x,5)</code></pre>
+      <pre class="pre codeblock"><code><code class="ph codeph">h = 0
+pvalue = 0.47499
+ci = [Matrix] 1 x 2
+4.139 6.781</code></code></pre>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+    <p class="p"><span class="keyword cmdname">ttest</span> is a 1 sample t test and assumes that the sample comes from a
+        normally distributed population. The null hypothesis is that the hypothesized mean is the
+        population mean.</p>
+
+    <p class="p">The paired t test is not supported by <span class="keyword cmdname">ttest</span> at this time.</p>
+
+    </section>
+
+    <section class="section">
+      
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links"></nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/StatisticalAnalysis/statisticalanalysis_commands.htm" title="Statistical Analysis Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Statistical Analysis Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

@@ -1,0 +1,234 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Short Circuit" /><meta name="abstract" content="Short Circuit includes &amp;&amp; (short circuit and) and || (short circuit or). They are both logical operators." /><meta name="description" content="Short Circuit includes &amp;&amp; (short circuit and) and || (short circuit or). They are both logical operators." /><meta name="indexterms" content="short circuit" /><meta name="DC.subject" content="short circuit" /><meta name="keywords" content="short circuit" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/operator_descriptions_tables_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/logical_operators_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/logical_operators_tables_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/operators_header_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/operator_descriptions_tables_r.htm" /><meta name="prodname" content="OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_bms_nkv_fv" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Short Circuit</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_bms_nkv_fv">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language.">Scripting Guide for OpenMatrix Language</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator.">Operator Descriptions (tables)</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Operator Descriptions (tables)</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">Short Circuit</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Short Circuit includes &amp;&amp; (short circuit and) and || (short circuit or). They
+    are both logical operators.</p>
+
+    <section class="section" id="reference_bms_nkv_fv__section_afz_d4z_qlb">
+      <p class="p">Depending on whether A is square, under determined, or over determined, the way to solve
+        this solution is different. When A is square, x = A*inv(B) is used to solve the solution. If
+        A is over determined, the least squares solution is produced. If A is underdetermined, then
+        a least squares solution with the maximum number of zeros is produced.</p>
+
+      <div class="p">
+        
+<div class="tablenoborder"><table cellpadding="4" cellspacing="0" summary="" id="reference_bms_nkv_fv__table_wtd_vvw_xv" class="table" frame="border" border="1" rules="all"><caption><span class="tablecap"><span class="table--title-label">Table 1. </span></span></caption><colgroup><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /></colgroup><thead class="thead" style="text-align:left;">
+              <tr>
+                <th class="entry cellrowborder" id="d15932e58">&amp;&amp;</th>
+
+                <th class="entry cellrowborder" id="d15932e61">Scalar</th>
+
+                <th class="entry cellrowborder" id="d15932e64">Row Vector</th>
+
+                <th class="entry cellrowborder" id="d15932e67">Column Vector</th>
+
+                <th class="entry cellrowborder" id="d15932e70">Matrix</th>
+
+              </tr>
+
+            </thead>
+<tbody class="tbody">
+              <tr>
+                <td class="entry cellrowborder" headers="d15932e58 ">Scalar</td>
+
+                <td class="entry cellrowborder" headers="d15932e61 ">If any conditions going from left to right are false, no more comparisons are
+                  made. Returns a true or false value (1 or 0) based on whether both expressions are
+                  true. Ex: b~=0 &amp;&amp; b/a &gt; 3</td>
+
+                <td class="entry cellrowborder" headers="d15932e64 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e67 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e70 "> </td>
+
+              </tr>
+
+              <tr>
+                <td class="entry cellrowborder" headers="d15932e58 ">Row Vector</td>
+
+                <td class="entry cellrowborder" headers="d15932e61 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e64 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e67 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e70 "> </td>
+
+              </tr>
+
+              <tr>
+                <td class="entry cellrowborder" headers="d15932e58 ">Column Vector</td>
+
+                <td class="entry cellrowborder" headers="d15932e61 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e64 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e67 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e70 "> </td>
+
+              </tr>
+
+              <tr>
+                <td class="entry cellrowborder" headers="d15932e58 ">Matrix</td>
+
+                <td class="entry cellrowborder" headers="d15932e61 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e64 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e67 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e70 "> </td>
+
+              </tr>
+
+            </tbody>
+</table>
+</div>
+
+      </div>
+
+      <div class="p">
+        
+<div class="tablenoborder"><table cellpadding="4" cellspacing="0" summary="" id="reference_bms_nkv_fv__table_svy_yvw_xv" class="table" frame="border" border="1" rules="all"><caption><span class="tablecap"><span class="table--title-label">Table 2. </span></span></caption><colgroup><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /></colgroup><thead class="thead" style="text-align:left;">
+              <tr>
+                <th class="entry cellrowborder" id="d15932e161">||</th>
+
+                <th class="entry cellrowborder" id="d15932e164">Scalar</th>
+
+                <th class="entry cellrowborder" id="d15932e167">Row Vector</th>
+
+                <th class="entry cellrowborder" id="d15932e170">Column Vector</th>
+
+                <th class="entry cellrowborder" id="d15932e173">Matrix</th>
+
+              </tr>
+
+            </thead>
+<tbody class="tbody">
+              <tr>
+                <td class="entry cellrowborder" headers="d15932e161 ">Scalar</td>
+
+                <td class="entry cellrowborder" headers="d15932e164 ">Returns a true or false value (1 or 0) based on whether one or both
+                  expressions are true.</td>
+
+                <td class="entry cellrowborder" headers="d15932e167 ">Returns a true or false value (1 or 0) based on whether one or both
+                  expressions are true. The first expression must be true scalar or an error will
+                  occur. This comparison will also only work if there is only one Or statement being
+                  used.</td>
+
+                <td class="entry cellrowborder" headers="d15932e170 ">Returns a true or false value (1 or 0) based on whether one or both
+                  expressions are true. The first expression must be a true scalar or an error will
+                  occur. This comparison will also only work if there is only one Or statement being
+                  used.</td>
+
+                <td class="entry cellrowborder" headers="d15932e173 ">Returns a true or false value (1 or 0) based on whether one or both
+                  expressions are true. The first expression must be a true scalar or an error will
+                  occur. This comparison will also only work if there is only one Or statement being
+                  used.</td>
+
+              </tr>
+
+              <tr>
+                <td class="entry cellrowborder" headers="d15932e161 ">Row Vector</td>
+
+                <td class="entry cellrowborder" headers="d15932e164 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e167 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e170 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e173 "> </td>
+
+              </tr>
+
+              <tr>
+                <td class="entry cellrowborder" headers="d15932e161 ">Column Vector</td>
+
+                <td class="entry cellrowborder" headers="d15932e164 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e167 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e170 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e173 "> </td>
+
+              </tr>
+
+              <tr>
+                <td class="entry cellrowborder" headers="d15932e161 ">Matrix</td>
+
+                <td class="entry cellrowborder" headers="d15932e164 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e167 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e170 "> </td>
+
+                <td class="entry cellrowborder" headers="d15932e173 "> </td>
+
+              </tr>
+
+            </tbody>
+</table>
+</div>
+
+      </div>
+
+      <p class="p">&amp;&amp; ( short circuit and): If any of the conditions working from left to right are
+        false, a false value is returned and no more comparisons are made. This can be a convenient
+        way to prevent errors.</p>
+
+    </section>
+
+    <section class="section" id="reference_bms_nkv_fv__section_bfz_d4z_qlb"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">
+        <pre class="pre codeblock"><code>a=4
+if (exist('b') &amp;&amp; (b~=0))
+      a=b
+end</code></pre>
+      </div>
+
+      <p class="p">If b was not defined, then checking the value of b would generate an error.</p>
+
+      <p class="p">|| (short circuit or): Similarly, if any of the conditions working from left to right are
+        true, a true value is returned and no more comparisons are made.</p>
+
+    </section>
+
+    <section class="section">
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/logical_operators_r.htm" title="Logical operators include and, or, and not, for example.">Logical Operators</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/logical_operators_tables_r.htm" title="All inequality operators return logical values (either 0/false or 1/true).">Logical Operators (tables)</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/operators_header_r.htm" title="Operators are used to combine operands.">Operators</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator.">Operator Descriptions (tables)</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Operator Descriptions (tables)</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

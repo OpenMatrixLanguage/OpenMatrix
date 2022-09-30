@@ -1,0 +1,140 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Matrix Multiplication" /><meta name="abstract" content="Matrix Multiplication is defined as the multiplication of two matrices." /><meta name="description" content="Matrix Multiplication is defined as the multiplication of two matrices." /><meta name="indexterms" content="matrix multiplication" /><meta name="DC.subject" content="matrix multiplication" /><meta name="keywords" content="matrix multiplication" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/operator_descriptions_tables_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/logical_operators_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/arithmetic_operators_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/multiplication_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/operators_header_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/operator_descriptions_tables_r.htm" /><meta name="prodname" content="OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_bms_nkv_fv" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Matrix Multiplication</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_bms_nkv_fv">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language.">Scripting Guide for OpenMatrix Language</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator.">Operator Descriptions (tables)</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Operator Descriptions (tables)</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">Matrix Multiplication</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Matrix Multiplication is defined as the multiplication of two matrices.</p>
+
+    <section class="section" id="reference_bms_nkv_fv__section_k5h_lkz_qlb">
+      <p class="p">It requires the number of columns in the first matrix to equal the number of rows in the
+        second matrix. The resulting matrix will have the same number of rows as the first matrix,
+        and the same number of columns as the second matrix.</p>
+
+      <div class="p">
+        
+<div class="tablenoborder"><table cellpadding="4" cellspacing="0" summary="" id="reference_bms_nkv_fv__table_zt5_ttw_xv" class="table" frame="border" border="1" rules="all"><caption><span class="tablecap"><span class="table--title-label">Table 1. </span></span></caption><colgroup><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /></colgroup><thead class="thead" style="text-align:left;">
+              <tr>
+                <th class="entry cellrowborder" id="d8974e58">*</th>
+
+                <th class="entry cellrowborder" id="d8974e61">Scalar</th>
+
+                <th class="entry cellrowborder" id="d8974e64">Row Vector</th>
+
+                <th class="entry cellrowborder" id="d8974e67">Column Vector</th>
+
+                <th class="entry cellrowborder" id="d8974e70">Matrix</th>
+
+              </tr>
+
+            </thead>
+<tbody class="tbody">
+              <tr>
+                <td class="entry cellrowborder" headers="d8974e58 ">Scalar</td>
+
+                <td class="entry cellrowborder" headers="d8974e61 ">Multiplies the two scalar values.</td>
+
+                <td class="entry cellrowborder" headers="d8974e64 ">Multiplies the scalar with each element in the row vector.</td>
+
+                <td class="entry cellrowborder" headers="d8974e67 ">Multiplies the scalar with each element in the column vector.</td>
+
+                <td class="entry cellrowborder" headers="d8974e70 ">Multiplies the scalar with each element in the matrix.</td>
+
+              </tr>
+
+              <tr>
+                <td class="entry cellrowborder" headers="d8974e58 ">Row Vector</td>
+
+                <td class="entry cellrowborder" headers="d8974e61 ">Multiplies the scalar with each element in the column vector.</td>
+
+                <td class="entry cellrowborder" headers="d8974e64 "> </td>
+
+                <td class="entry cellrowborder" headers="d8974e67 ">Use matrix multiplication.</td>
+
+                <td class="entry cellrowborder" headers="d8974e70 ">Use matrix multiplication.</td>
+
+              </tr>
+
+              <tr>
+                <td class="entry cellrowborder" headers="d8974e58 ">Column Vector</td>
+
+                <td class="entry cellrowborder" headers="d8974e61 ">Multiplies the scalar with each element in the column vector.</td>
+
+                <td class="entry cellrowborder" headers="d8974e64 ">Use matrix multiplication.</td>
+
+                <td class="entry cellrowborder" headers="d8974e67 "> </td>
+
+                <td class="entry cellrowborder" headers="d8974e70 ">Use matrix multiplication.</td>
+
+              </tr>
+
+              <tr>
+                <td class="entry cellrowborder" headers="d8974e58 ">Matrix</td>
+
+                <td class="entry cellrowborder" headers="d8974e61 ">Multiplies the scalar with each element in the matrix.</td>
+
+                <td class="entry cellrowborder" headers="d8974e64 ">Use matrix multiplication.</td>
+
+                <td class="entry cellrowborder" headers="d8974e67 ">Use matrix multiplication.</td>
+
+                <td class="entry cellrowborder" headers="d8974e70 ">Use matrix multiplication.</td>
+
+              </tr>
+
+            </tbody>
+</table>
+</div>
+
+      </div>
+
+    </section>
+
+    <section class="section" id="reference_bms_nkv_fv__section_l5h_lkz_qlb"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">
+        <pre class="pre codeblock"><code>3 * 3
+ans = 9 
+
+[1 5 4] * [3; 5; 7]
+ans = 56
+  
+[3 4; 5 8] * [4; 7]
+ans = [40 ; 76]</code></pre>
+      </div>
+
+      <div class="p">Invalid examples:<pre class="pre codeblock"><code>[3 5 4] * [3 6 7]
+[3 4] * [1 4;3 6; 10 2]</code></pre></div>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/logical_operators_r.htm" title="Logical operators include and, or, and not, for example.">Logical Operators</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/arithmetic_operators_r.htm" title="Arithmetic operators include addition, subtraction, and multiplication, for example.">Arithmetic Operators</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/multiplication_r.htm" title="This type of multiplication is different from Matrix Multiplication in that the multiplication is performed on each pair of corresponding elements.">Multiplication</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/operators_header_r.htm" title="Operators are used to combine operands.">Operators</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator.">Operator Descriptions (tables)</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Operator Descriptions (tables)</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

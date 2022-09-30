@@ -1,0 +1,144 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="saefilter" /><meta name="abstract" content="Filters a signal with an SAE filter." /><meta name="description" content="Filters a signal with an SAE filter." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Signal Processing Commands" /><meta name="indexterms" content="saefilter" /><meta name="DC.subject" content="saefilter" /><meta name="keywords" content="saefilter" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CAE/cae_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/fft.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/ifft.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CAE/iso6487.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CAE/saefilt95.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>saefilter</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CAE/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CAE/cae_commands.htm" title="CAE Commands">CAE Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/CAE/cae_commands.htm" title="CAE Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">CAE Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">saefilter</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Filters a signal with an SAE filter.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      <p class="p"><span class="ph synph">y = saefilter<span class="ph var">(x,fs,class)</span></span></p>
+
+      <p class="p"><span class="ph synph">y = saefilter<span class="ph var">(x,fs,class,fftsize)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">x</var></dt>
+
+          <dd class="dd pd">The signal to be filtered. If <var class="keyword varname">x</var> is a matrix each column is
+            filtered.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector | matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">fs</var></dt>
+
+          <dd class="dd pd">The sampling frequency.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">class</var></dt>
+
+          <dd class="dd pd">The SAE class of the filter (typically 60, 180, 600 or 1000).</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">fftsize</var></dt>
+
+          <dd class="dd pd">Size of the fft. (optional)</dd>
+
+          <dd class="dd pd ddexpand">Type: integer</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">y</span></dt>
+
+          <dd class="dd pd">The filtered signal.</dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+      <p class="p">Filter a 200 Hz signal, sampled at 10,000 Hz, with a class 60 filter.</p>
+
+      <pre class="pre codeblock"><code>t = [0:0.0001:0.02-0.0001];
+input = sin(2*pi*200*t);
+plot(t,input);
+hold on;</code></pre>
+      <pre class="pre codeblock"><code><samp class="ph systemoutput">output = saefilter(input, 10000, 60);
+plot(t,output);
+legend('input','output');</samp></code></pre>
+      <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_t5n_v4r_bt">
+        
+        <br /><img class="image" src="../../../../images/math_solutions/plots/saefilter_help_figure1.png" height="140" width="252" /><br />
+      <span class="figcap"><span class="fig--title-label">Figure 1. </span>filter</span></figure>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p"><span class="keyword cmdname">saefilter</span> is based on SAE paper #810813, "Digital and Analog
+        Filters for Processing Impact Test Data." It uses a frequency domain filter that
+        attenuates 10dB/octave, beginning at 1.65*<var class="keyword varname">class</var>.</p>
+
+      <p class="p"><var class="keyword varname">fs</var> should be at least 10 times <var class="keyword varname">class</var>, and will
+        not be accepted if less than 3.3 times as large.</p>
+
+      <p class="p">The signal can be zero-padded if desired using <var class="keyword varname">fftsize</var>.</p>
+
+    </section>
+
+    <section class="section">
+      
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/fft.htm" title="Fast Fourier Transform.">fft</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/ifft.htm" title="Inverse Fast Fourier transform.">ifft</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CAE/iso6487.htm" title="Filters a signal with an ISO6487 filter.">iso6487</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CAE/saefilt95.htm" title="Filters a signal with an SAE class filter.">saefilt95</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/CAE/cae_commands.htm" title="CAE Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">CAE Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

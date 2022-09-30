@@ -1,0 +1,167 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Right Division" /><meta name="abstract" content="This type of division is different from Right Matrix Division in that the division is performed on each pair of corresponding elements." /><meta name="description" content="This type of division is different from Right Matrix Division in that the division is performed on each pair of corresponding elements." /><meta name="indexterms" content="right division" /><meta name="DC.subject" content="right division" /><meta name="keywords" content="right division" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/operator_descriptions_tables_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/arithmetic_operators_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/left_division_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/left_matrix_division_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/right_matrix_division_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/operators_header_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/operator_descriptions_tables_r.htm" /><meta name="prodname" content="OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_bms_nkv_fv" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Right Division</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_bms_nkv_fv">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/../../topics/language_guides/language_guide_intro_header_c.htm" title="OpenMatrix is a mathematical scripting language.">Scripting Guide for OpenMatrix Language</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator.">Operator Descriptions (tables)</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Operator Descriptions (tables)</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">Right Division</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">This type of division is different from Right Matrix Division in that the division is
+    performed on each pair of corresponding elements.</p>
+
+    <section class="section" id="reference_bms_nkv_fv__section_zlr_plz_qlb">
+      <p class="p">Each index of the first matrix is divided by the same index of the second matrix, with the
+        quotient, and put into a new matrix in the same position. Only matrices with the same
+        dimensions can be multiplied this way.</p>
+
+      <div class="p">
+        
+<div class="tablenoborder"><table cellpadding="4" cellspacing="0" summary="" id="reference_bms_nkv_fv__table_sgr_m1z_xv" class="table" frame="border" border="1" rules="all"><caption><span class="tablecap"><span class="table--title-label">Table 1. </span></span></caption><colgroup><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /></colgroup><thead class="thead" style="text-align:left;">
+              <tr>
+                <th class="entry cellrowborder" id="d14710e58">./</th>
+
+                <th class="entry cellrowborder" id="d14710e61">Scalar</th>
+
+                <th class="entry cellrowborder" id="d14710e64">Row Vector</th>
+
+                <th class="entry cellrowborder" id="d14710e67">Column Vector</th>
+
+                <th class="entry cellrowborder" id="d14710e70">Matrix</th>
+
+              </tr>
+
+            </thead>
+<tbody class="tbody">
+              <tr>
+                <td class="entry cellrowborder" headers="d14710e58 ">Scalar</td>
+
+                <td class="entry cellrowborder" headers="d14710e61 ">Divides the first scalar by the second scalar.</td>
+
+                <td class="entry cellrowborder" headers="d14710e64 ">Divides the scalar by each element of the row vector. Produces a vector the
+                  same size as the row vector.</td>
+
+                <td class="entry cellrowborder" headers="d14710e67 ">Divides the scalar by each element of the column vector Produces a vector the
+                  same size as the column vector.</td>
+
+                <td class="entry cellrowborder" headers="d14710e70 ">Divides the scalar by each element of the matrix. Produces a vector the same
+                  size as the matrix.</td>
+
+              </tr>
+
+              <tr>
+                <td class="entry cellrowborder" headers="d14710e58 ">Row Vector</td>
+
+                <td class="entry cellrowborder" headers="d14710e61 ">Divides each element in the row vector by the scalar. The resulting vector is
+                  the same size as the original vector.</td>
+
+                <td class="entry cellrowborder" headers="d14710e64 ">Requires the vectors to be the same size. Divides each entity of the first
+                  vector by the corresponding entity of the second vector. The resulting vector is
+                  the same size as the original vectors.</td>
+
+                <td class="entry cellrowborder" headers="d14710e67 ">Each row/column vector is implicitly replicated until the two arguments have
+                  the same dimensions. Regular right division is then performed.</td>
+
+                <td class="entry cellrowborder" headers="d14710e70 ">The row vector is implicitly replicated until the two arguments have the same
+                  number of rows. Regular right division is then performed.</td>
+
+              </tr>
+
+              <tr>
+                <td class="entry cellrowborder" headers="d14710e58 ">Column Vector</td>
+
+                <td class="entry cellrowborder" headers="d14710e61 ">Divides each element in the column vector by the scalar. The resulting vector
+                  is the same size as the original vector.</td>
+
+                <td class="entry cellrowborder" headers="d14710e64 ">Each row/column vector is implicitly replicated until the two arguments have
+                  the same dimensions. Regular right division is then performed.</td>
+
+                <td class="entry cellrowborder" headers="d14710e67 ">Requires the vectors to be the same size. Divides each entity of the first
+                  vector by the corresponding entity of the second vector. The resulting vector is
+                  the same size as the original vectors.</td>
+
+                <td class="entry cellrowborder" headers="d14710e70 ">The column vector is implicitly replicated until the two arguments have the
+                  same number of columns. Regular right division is then performed.</td>
+
+              </tr>
+
+              <tr>
+                <td class="entry cellrowborder" headers="d14710e58 ">Matrix</td>
+
+                <td class="entry cellrowborder" headers="d14710e61 ">Divides each element in the matrix by the scalar. The resulting vector is the
+                  same size as the original matrix.</td>
+
+                <td class="entry cellrowborder" headers="d14710e64 ">The row vector is implicitly replicated until the two arguments have the same
+                  number of rows. Regular right division is then performed.</td>
+
+                <td class="entry cellrowborder" headers="d14710e67 ">The column vector is implicitly replicated until the two arguments have the
+                  same number of columns. Regular right division is then performed.</td>
+
+                <td class="entry cellrowborder" headers="d14710e70 ">Requires the matrices to be the same size. Divides each entity of the first
+                  matrix by the corresponding entity of the second matrix. The resulting matrix is
+                  the same size as the original matrices.</td>
+
+              </tr>
+
+            </tbody>
+</table>
+</div>
+
+      </div>
+
+    </section>
+
+    <section class="section" id="reference_bms_nkv_fv__section_amr_plz_qlb"><h2 class="title sectiontitle">Examples</h2>
+      
+      <div class="p">
+        <pre class="pre codeblock"><code>3 ./ 4
+ans = 0.75
+ 
+7 ./ [6; 2; 2]
+ans = [1.1667; 3.5; 3.5]
+
+[5 4 3] ./ [4 6 3]
+ans = [1.25 0.6667 1]</code></pre>
+      </div>
+
+      <div class="p">Invalid examples:<pre class="pre codeblock"><code>[6; 4; 2] ./ [6 8 5; 3 9 2]</code></pre></div>
+
+    </section>
+
+    <section class="section" id="reference_bms_nkv_fv__section_wsc_zlz_qlb"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p">The implicit replication of a vector to fill other dimensions is a generalization of
+        operating on a scalar/vector pair. This capability is not yet available for multidimensional
+        and sparse matrices.</p>
+
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/arithmetic_operators_r.htm" title="Arithmetic operators include addition, subtraction, and multiplication, for example.">Arithmetic Operators</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/left_division_r.htm" title="This type of division is different from Left Matrix Division in that the division is performed on each pair of corresponding elements.">Left Division</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/left_matrix_division_r.htm" title="Left Matrix Division (A\B) is defined as solving the equation Ax = B.">Left Matrix Division</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/right_matrix_division_r.htm" title="Right Matrix Division (B/A) is defined as solving the equation xA = B.">Right Matrix Division</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/operators_header_r.htm" title="Operators are used to combine operands.">Operators</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator.">Operator Descriptions (tables)</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../topics/language_guides/operator_descriptions_tables_r.htm" title="Each operator in this section is explained with the operations of scalars, vectors, and matrices that are allowed for said operator."><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Operator Descriptions (tables)</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

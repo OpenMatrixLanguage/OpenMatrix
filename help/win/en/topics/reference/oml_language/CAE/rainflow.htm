@@ -1,0 +1,177 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="rainflow" /><meta name="abstract" content="Rainflow counting fatigue analysis." /><meta name="description" content="Rainflow counting fatigue analysis." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="CAE Commands" /><meta name="indexterms" content="rainflow" /><meta name="DC.subject" content="rainflow" /><meta name="keywords" content="rainflow" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CAE/cae_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>rainflow</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CAE/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/CAE/cae_commands.htm" title="CAE Commands">CAE Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/CAE/cae_commands.htm" title="CAE Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">CAE Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">rainflow</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Rainflow counting fatigue analysis.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      <p class="p"><span class="ph synph">R = rainflow<span class="ph var">(signal,numbins,minrange,maxrange,output)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">signal</var></dt>
+
+          <dd class="dd pd">The stress history.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">numbins</var></dt>
+
+          <dd class="dd pd">Total number of bins specified.</dd>
+
+          <dd class="dd pd ddexpand">Type: integer</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">minrange</var></dt>
+
+          <dd class="dd pd">Minimum value a bin can have for its range of real time data.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">maxrange</var></dt>
+
+          <dd class="dd pd">Maximum value a bin can have for its range of real time data.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">output</var></dt>
+
+          <dd class="dd pd">Indicate the type of data returned.</dd>
+
+          <dd class="dd pd ddexpand">The available options are as follows: <ul class="ul" id="reference_wpv_kyv_pr__ul_exm_lq3_ws">
+            <li class="li"><span class="keyword option">0</span>: Range</li>
+
+            <li class="li"><span class="keyword option">1</span>: Mean</li>
+
+            <li class="li"><span class="keyword option">2</span>: Z range/mean matrix</li>
+
+            <li class="li"><span class="keyword option">3</span>: Sum across range</li>
+
+            <li class="li"><span class="keyword option">4</span>: Sum across mean</li>
+</ul>
+</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+          <dd class="dd pd">The reduced stress history.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">vector</span></dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+      <p class="p">Compute the rainflow output of a stress history.</p>
+
+      <pre class="pre codeblock"><code>h = [0,1,2,3,4,5,6,5,4,3,4,5,6,7,8,9,10];
+R = rainflow(h, 3, 2.5, 8.5, 1)</code></pre>
+      <pre class="pre codeblock"><code><samp class="ph systemoutput">R = [Matrix] 1 x 3
+3.50000  5.50000  7.50000</samp></code></pre>
+	  <p class="p">Use a 3D bar plot to visualize the mean x range x cycle results of a signal.</p>
+
+      <pre class="pre codeblock"><code>f=5; %frequency [Hz]
+t1 = (0:1/(f*100):2); %first time vector
+t2 = (t1(end):1/(f*100):t1(end)+1); %second time vector
+a = 1; %amplitude
+phi = 0; %phase
+y1 = a*sin(2*pi*f*t1+phi); %first signal
+y2 = 5*sin(2*pi*f*t2+phi); %second signal
+y = [y1 y2]; %append the two signals
+t = [t1 t2]; %append the two time vectors
+
+Signal=y;
+nbin = 19;
+R2=rainflow(Signal,nbin, min(Signal), max(Signal),2);
+
+bar3(R2);
+xlabel('Range'); 
+ylabel('Mean');
+zlabel('cycles');</code></pre>
+<figure class="fig fignone">
+        
+        <img class="image" src="images/rainflow.png" />
+      <span class="figcap"><span class="fig--title-label">Figure 1. </span>rainflow</span></figure>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p">A gate input to control hysteresis slope reversal and remove points
+        due to external noise is currently unsupported.</p>
+
+<p class="p">The three point cycle counting rule uses three consecutive points in a load time history to determine whether a cycle is formed.</p>
+
+<p class="p">The three consecutive stress points (S1, S2, S3) define the two consecutive ranges as DS1 = |S1
+        S2| and DS2 = |S2 S3|. If DS1 &lt; =  DS2, one cycle from S1 to S2 is extracted, and if DS1
+        is &gt;  than DS2, no cycle is counted.</p>
+
+<p class="p">The three point cycle counting method requires that the stress time
+history be rearranged so that it contains only the peaks and valleys and it starts with either the highest peak or the lowest valley, whichever is greater in absolute magnitude.</p>
+
+<p class="p">Then, the cycle identification rule is applied to check every three consecutive points from the beginning until a closed loop is defined. The two points forming the cycle are discarded and the remaining
+points are connected to each other. This procedure is repeated from the beginning until the remaining data are exhausted.</p>
+
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links"></nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/CAE/cae_commands.htm" title="CAE Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">CAE Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>
