@@ -1,0 +1,4 @@
+dv = [2 3];
+i = 2;
+c = cell(size(dv));
+[c{:}] = ind2sub(dv,i)

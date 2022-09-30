@@ -1,0 +1,37 @@
+------------------------------------------------------------
+isdir() and isfile() function tests
+command = isdir('FileManipulation')
+command isdir('FileManipulation'), result 1, comment true.  this is a directory
+
+command = isfile('FileManipulation')
+command isfile('FileManipulation'), result 0, comment false.  this is a directory
+
+command = isdir('./FileManipulation')
+command isdir('./FileManipulation'), result 1, comment true.  this is a directory
+
+command = isfile('./FileManipulation')
+command isfile('./FileManipulation'), result 0, comment false.  this is a directory
+
+command = isdir('./FileManipulation/')
+command isdir('./FileManipulation/'), result 1, comment true.  this is a directory
+
+command = isfile('./FileManipulation/')
+command isfile('./FileManipulation/'), result 0, comment false.  this is a directory
+
+command = isdir('isfile01.oml')
+command isdir('isfile01.oml'), result 0, comment false.  this is a file
+
+command = isfile('isfile01.oml')
+command isfile('isfile01.oml'), result 1, comment true.  this is a file.
+
+command = isdir('./isfile01.oml')
+command isdir('./isfile01.oml'), result 0, comment false.  this is a file
+
+command = isfile('./isfile01.oml')
+command isfile('./isfile01.oml'), result 1, comment true.  this is a file.
+
+command = isdir('../RegressionTests/isfile01.oml')
+command isdir('../RegressionTests/isfile01.oml'), result 0, comment false.  this is a file
+
+command = isfile('../RegressionTests/isfile01.oml')
+command isfile('../RegressionTests/isfile01.oml'), result 1, comment true.  this is a file.

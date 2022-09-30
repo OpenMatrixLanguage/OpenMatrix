@@ -1,0 +1,6 @@
+str = 'aaa.bbb.ccc.ddd';
+[~, ~, ~, match1, ~, ~, ~] = regexp(str, '[^\.]*')
+
+
+[~, ~, ~, match2, ~, ~, ~] = regexp(str, '[^\.]*','emptymatch')
+	

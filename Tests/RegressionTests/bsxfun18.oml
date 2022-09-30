@@ -1,0 +1,4 @@
+function C = myfun(a,b,k)
+	C = 2*a+b+k;
+end
+bsxfun(@myfun, [1 2;3 4], [10 11;12 13])

@@ -1,0 +1,5 @@
+Warning: first element of arg2 ignored in favor of last element of arg1 in call to function hankel at line number 3 in file hankel2.oml
+h = [Matrix] 3 x 4
+1  2  3   8
+2  3  8   9
+3  8  9  10

@@ -2622,13 +2622,13 @@ void BuiltInFuncsMKL::PowerByElems(const hwMatrix& A,
         int count = sizeA;
         const double* pA = A.GetRealData();
         const double* pP = P.GetRealData();
-        bool A_ge_zero = true;
+        bool A_gt_zero = true;
 
         while (count--)
         {
-            if (*pA < 0.0)
+            if (*pA <= 0.0)
             {
-                A_ge_zero = false;
+                A_gt_zero = false;
                 break;
             }
 
@@ -2637,7 +2637,7 @@ void BuiltInFuncsMKL::PowerByElems(const hwMatrix& A,
 
         pA = A.GetRealData();
 
-        if (A_ge_zero)
+        if (A_gt_zero)
         {
             hwMathStatus status = B.Dimension(m, n, hwMatrix::REAL);
             double* pB = B.GetRealData();

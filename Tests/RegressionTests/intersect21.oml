@@ -1,0 +1,1 @@
+[c, ia, ib] = intersect([4,1,3,2],[5,3,6,4],'sorted')

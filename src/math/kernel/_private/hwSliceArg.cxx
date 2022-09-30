@@ -22,6 +22,8 @@
 //
 //:---------------------------------------------------------------------------
 #include <hwSliceArg.h>
+#include <hwMathException.h>
+#include <GeneralFuncs.h>
 
 //! Constructor for colon argument
 hwSliceArg::hwSliceArg(): m_type(TYPE_COLON)
@@ -31,11 +33,18 @@ hwSliceArg::hwSliceArg(): m_type(TYPE_COLON)
 //! Constructor for integer argument
 hwSliceArg::hwSliceArg(int index): m_type(TYPE_SCALAR), m_index(index)
 {
+    if (index < 0)
+        throw hwMathException(HW_MATH_ERR_SLICE_INDEX);
 }
 
 //! Constructor for vector argument
 hwSliceArg::hwSliceArg(const std::vector<int>& indexVec): m_type(TYPE_VECTOR), m_indexVec(indexVec)
 {
+    for (int i = 0; i < indexVec.size(); ++i)
+    {
+        if (indexVec[i] < 0)
+            throw hwMathException(HW_MATH_ERR_SLICE_INDEX);
+    }
 }
 
 // utility function used when deleting slices from hwTMatrixN objects

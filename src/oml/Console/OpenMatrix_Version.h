@@ -1,7 +1,7 @@
 /**
 * @file OpenMatrix_Version.h
-* @date December 2020
-* Copyright (C) 2015-2021 Altair Engineering, Inc.  
+* @date December 2022
+* Copyright (C) 2015-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -17,7 +17,7 @@
 #ifndef __OPENMATRIX_VERSION_H__
 #define __OPENMATRIX_VERSION_H__
 
-#define OML_VERSION "1.0.9"
+#define OML_VERSION "1.0.10"
 
 #endif
 

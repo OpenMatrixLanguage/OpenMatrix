@@ -68,8 +68,8 @@ enum hwMathMsgCode
     HW_MATH_WARN_MATRIXDEPENDCOL,      // rank deficient matrix; columns are not linearly independent
     HW_MATH_WARN_NOSQRTM,              // singular matrix; the square root may not exist
     HW_MATH_WARN_MAXSQRTM,             // maximum number of allowed square roots has been exceeded
-    HW_MATH_WARN_HANKEL,               // arg1(end) ~= arg2(0); arg2(0) is ignored
-    HW_MATH_WARN_TOEPLITZ,             // arg1(0) ~= arg2(0); arg2(0) is ignored
+    HW_MATH_WARN_HANKEL,               // first element of arg2 ignored in favor of last element of arg1
+    HW_MATH_WARN_TOEPLITZ,             // first element of arg2 ignored in favor of first element of arg1
     // Algorithm warnings
     HW_MATH_WARN_MAXITERATE,           // maximum iterations exceeded, returned last estimate
     HW_MATH_WARN_MAXFUNCEVAL,          // maximum number of function evaluations exceeded, returned last estimate
@@ -188,6 +188,7 @@ enum hwMathMsgCode
     HW_MATH_ERR_UNDERDETSYS_E,         // invalid system; must have at least as many equations as parameters
     HW_MATH_ERR_UNDERDETSYS_P,         // invalid system; must have at least as many points as parameters
     HW_MATH_ERR_TOOFEWPOINTS,          // invalid input; does not contain enough data points
+    HW_MATH_ERR_TOOFEWPOINTS10,        // invalid input; must contain at least 10 data points
     HW_MATH_ERR_DISTINCTVALS3,         // invalid input; must contain at least 3 distinct values
     HW_MATH_ERR_TIGHTTOL,              // invalid tolerance; may be too small
     HW_MATH_ERR_GAMAXITERS,            // requested maximum iterations has been exceeded

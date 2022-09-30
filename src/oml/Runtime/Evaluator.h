@@ -240,7 +240,7 @@ public:
 	inline bool IsUserFunction(const std::string& func_name) { return functions->find(func_name) != functions->end(); }
 	inline bool IsStdFunction(const std::string& func_name) { return std_functions->find(func_name) != std_functions->end(); }
 	FUNCPTR GetStdFunction(const std::string& func_name) const;
-	std::string GetHelpModule(const std::string& func_name);
+	std::string GetHelpModule(const std::string& func_name, const bool& loadLibraryBrowser = false);
 	std::string GetHelpDirectory(const std::string& func_name);
 
 	bool IsA(const Currency& target, const std::string& classname) const;
@@ -323,7 +323,7 @@ public:
 	static hwMatrix*       allocateMatrix(int m, int n, void* data, hwMatrix::DataType type);
 	static hwMatrix*       allocateMatrix(int m, int n, hwMatrix::DataType type);
 	static hwMatrix*       allocateMatrix(int m, int n, double value);
-	static hwMatrix*       allocateMatrix(int m, int n, hwComplex& value);
+	static hwMatrix*       allocateMatrix(int m, int n, const hwComplex& value);
 	static hwMatrixI*      allocateMatrix(int m, int n, hwMatrixI::DataType type);
 	static hwMatrixI*      allocateMatrix(int m, int n, int val);
 
@@ -490,8 +490,7 @@ public:
 	void RegisterFunction(OMLTree* tree);
 
 	void RegisterChildEvaluator(ExprTreeEvaluator* eval) { child_interps.push_back(eval); }
-	void RemoveChildEvaluator() { child_interps.pop_back(); }
-
+	void RemoveChildEvaluator();
     //!
     //! Returns true if successful in locking built in function
     //! \param funcname Built in function which needs to be locked
@@ -672,6 +671,7 @@ private:
 	std::vector<void*> loaded_dlls;
 
     std::vector<std::string> *not_found_functions;
+	std::vector<std::string> parfor_exclusion_functions;
 
 	std::string        _script_name;
 	const std::string* _dll_context;
@@ -747,7 +747,10 @@ private:
 	
     std::vector<UserFile>* userFileStreams;
     std::vector<std::string>* paths;
-	std::vector<std::string> hidden_paths;
+	std::vector<std::string>* hidden_paths;
+	std::vector<std::string>* restore_paths;		// VSM-5385  Adding capability to restore a multidirectory default path
+	std::vector<std::string>* restore_hidden_paths;	// VSM-5385
+
 
 	EXTPTR ext_var_ptr;
 	std::vector<Currency> _externals;

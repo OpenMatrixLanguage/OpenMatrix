@@ -47,7 +47,7 @@ hwMathStatus hwISO6487::Filter(const hwMatrix& response,
     {
         return status(HW_MATH_ERR_VECTOR, 1);
     }
-    if (sampFreq <= 0.0)
+    if (sampFreq <= 0.0 || !IsFinite_T(sampFreq))
     {
         return status(HW_MATH_ERR_NONPOSITIVE, 2);
     }
@@ -65,6 +65,11 @@ hwMathStatus hwISO6487::Filter(const hwMatrix& response,
     // allocate padded input
     double delta      = 1.0 / sampFreq;
     int    vectorsize = response.Size();
+
+    if (vectorsize < 10)
+    {
+        return status(HW_MATH_ERR_TOOFEWPOINTS10, 1);
+    }
 
     int numberOfAdditionalPoints = static_cast<int>(0.01 / delta);
     if (numberOfAdditionalPoints < 100)

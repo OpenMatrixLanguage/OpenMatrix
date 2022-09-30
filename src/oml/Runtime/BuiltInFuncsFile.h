@@ -43,6 +43,15 @@ public:
 	                     const std::vector<Currency>& inputs,
 		                 std::vector<Currency>&       outputs);
     //!
+    //! Returns true after moving files/directories (movefile command)
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //! 
+    static bool Movefile(EvaluatorInterface           eval,
+        const std::vector<Currency>& inputs,
+        std::vector<Currency>& outputs);
+    //!
     //! Returns true after writing a matrix to a file (dlmwrite command)
     //! \param eval    Evaluator interface
     //! \param inputs  Vector of inputs

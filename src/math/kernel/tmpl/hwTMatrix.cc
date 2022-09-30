@@ -5774,12 +5774,12 @@ hwMathStatus hwTMatrix<T1, T2>::Hankel(const hwTMatrix<T1, T2>& C, const hwTMatr
             if (R->IsReal())
             {
                 if ((*R)(0) != C(m - 1))
-                    statusW(HW_MATH_WARN_HANKEL, 1, 2);
+                    statusW(HW_MATH_WARN_HANKEL);
             }
             else
             {
                 if (R->z(0) != C(m - 1))
-                    statusW(HW_MATH_WARN_HANKEL, 1, 2);
+                    statusW(HW_MATH_WARN_HANKEL);
             }
         }
         else
@@ -5787,12 +5787,12 @@ hwMathStatus hwTMatrix<T1, T2>::Hankel(const hwTMatrix<T1, T2>& C, const hwTMatr
             if (R->IsReal())
             {
                 if (C.z(m - 1) != (*R)(0))
-                    statusW(HW_MATH_WARN_HANKEL, 1, 2);
+                    statusW(HW_MATH_WARN_HANKEL);
             }
             else
             {
                 if (C.z(m - 1) != R->z(0))
-                    statusW(HW_MATH_WARN_HANKEL, 1, 2);
+                    statusW(HW_MATH_WARN_HANKEL);
             }
         }
 
@@ -5871,12 +5871,12 @@ hwMathStatus hwTMatrix<T1, T2>::Toeplitz(const hwTMatrix<T1, T2>& C, const hwTMa
             if (R->IsReal())
             {
                 if ((*R)(0) != C(0))
-                    statusW(HW_MATH_WARN_TOEPLITZ, 1, 2);
+                    statusW(HW_MATH_WARN_TOEPLITZ);
             }
             else
             {
                 if (R->z(0) != C(0))
-                    statusW(HW_MATH_WARN_TOEPLITZ, 1, 2);
+                    statusW(HW_MATH_WARN_TOEPLITZ);
             }
         }
         else
@@ -5884,12 +5884,12 @@ hwMathStatus hwTMatrix<T1, T2>::Toeplitz(const hwTMatrix<T1, T2>& C, const hwTMa
             if (R->IsReal())
             {
                 if (C.z(0) != (*R)(0))
-                    statusW(HW_MATH_WARN_TOEPLITZ, 1, 2);
+                    statusW(HW_MATH_WARN_TOEPLITZ);
             }
             else
             {
                 if (C.z(0) != R->z(0))
-                    statusW(HW_MATH_WARN_TOEPLITZ, 1, 2);
+                    statusW(HW_MATH_WARN_TOEPLITZ);
             }
         }
 

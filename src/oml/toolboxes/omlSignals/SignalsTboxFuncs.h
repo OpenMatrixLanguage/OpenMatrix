@@ -103,6 +103,33 @@ bool OmlIfftN(EvaluatorInterface           eval,
               const std::vector<Currency>& inputs,
               std::vector<Currency>&       outputs);
 //!
+//! Short-time Fourier transform
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlStft(EvaluatorInterface           eval,
+             const std::vector<Currency>& inputs,
+             std::vector<Currency>&       outputs);
+//!
+//! Inverse short-time Fourier transform
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlIstft(EvaluatorInterface           eval,
+              const std::vector<Currency>& inputs,
+              std::vector<Currency>&       outputs);
+//!
+//! Spectrogram
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlSpectrogram(EvaluatorInterface           eval,
+                    const std::vector<Currency>& inputs,
+                    std::vector<Currency>&       outputs);
+//!
 //! Shift FFT related data to center DC component
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
@@ -463,6 +490,24 @@ bool OmlDownsample(EvaluatorInterface           eval,
                    const std::vector<Currency>& inputs, 
                    std::vector<Currency>&       outputs);
 //!
+//! Resamples a signal [resample command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlResample(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs);
+//!
+//! Resamples a signal [upfirdn command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlUpFirDn(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs);
+//!
 //! Find peaks of a signal [findpeaks command]
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
@@ -471,5 +516,41 @@ bool OmlDownsample(EvaluatorInterface           eval,
 bool OmlFindPeaks(EvaluatorInterface           eval, 
                   const std::vector<Currency>& inputs, 
                   std::vector<Currency>&       outputs);
+//!
+//! Computes A-weighted acoustic function [dba command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmldbA(EvaluatorInterface           eval,
+            const std::vector<Currency>& inputs,
+            std::vector<Currency>&       outputs);
+//!
+//! Computes B-weighted acoustic function [dbb command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmldbB(EvaluatorInterface           eval,
+            const std::vector<Currency>& inputs,
+            std::vector<Currency>&       outputs);
+//!
+//! Computes C-weighted acoustic function [dbc command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmldbC(EvaluatorInterface           eval,
+            const std::vector<Currency>& inputs,
+            std::vector<Currency>&       outputs);
+//!
+//! Computes U-weighted acoustic function [dbu command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmldbU(EvaluatorInterface           eval,
+            const std::vector<Currency>& inputs,
+            std::vector<Currency>&       outputs);
 
 #endif // __SIGNALSTBOXFUNCS_OML_H__         

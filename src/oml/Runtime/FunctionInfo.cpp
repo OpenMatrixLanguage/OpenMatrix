@@ -38,6 +38,7 @@ FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*
 	_help_string      = help_str;
 	_refcnt           = 1;
 	_parent_fi        = NULL;
+	_parent_class     = NULL;
 
 	// the persistent scope doesn't have a FunctionInfo* (and therefore its own persistent), otherwise
 	// you'll be in an infinite loop looking for persistents forever
@@ -62,6 +63,7 @@ FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*
 	_anon_scope       = NULL;
 	_refcnt           = 1;
 	_parent_fi        = NULL;
+	_parent_class     = NULL;
 
 	// the persistent scope doesn't have a FunctionInfo* (and therefore its own persistent), otherwise
 	// you'll be in an infinite loop looking for persistents forever
@@ -90,6 +92,7 @@ FunctionInfo::FunctionInfo(std::string func_name, FUNCPTR builtin_func)
 	nested_functions  = NULL;
 	_refcnt           = 1;
 	_parent_fi        = NULL;
+	_parent_class     = NULL;
 }
 
 FunctionInfo::FunctionInfo(std::string func_name, ALT_FUNCPTR alt_func)
@@ -108,6 +111,7 @@ FunctionInfo::FunctionInfo(std::string func_name, ALT_FUNCPTR alt_func)
 	nested_functions = NULL;
 	_refcnt = 1;
 	_parent_fi = NULL;
+	_parent_class = NULL;
 }
 
 FunctionInfo::FunctionInfo()
@@ -126,6 +130,7 @@ FunctionInfo::FunctionInfo()
 	nested_functions  = NULL;
 	_refcnt           = 1;
 	_parent_fi        = NULL;
+	_parent_class     = NULL;
 }
 
 FunctionInfo::~FunctionInfo()
@@ -180,6 +185,7 @@ FunctionInfo::FunctionInfo(const FunctionInfo& in)
 	_parameters = in._parameters;
 	_refcnt = 1;
 	_parent_fi = in._parent_fi;
+	_parent_class = in._parent_class;
 
     if (in._statements)
     {

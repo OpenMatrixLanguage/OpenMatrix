@@ -24,6 +24,7 @@
 #include <array>
 #include <regex>
 #include <deque>
+#include <cstdint>
 #include "EvaluatorInt.h"
 #include "Currency.h"
 #include "ErrorInfo.h"
@@ -60,6 +61,7 @@ bool oml_bitand(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
 bool oml_bitor(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_bitxor(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_isdir(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_isfile(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_rmfield(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_ispc(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_ismac(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -74,13 +76,13 @@ bool oml_and(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
 bool oml_or(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_uplus(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_not(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_uminus(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_uminus(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_rdivide(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_ldivide(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_mldivide(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_mrdivide(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_plus(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_times(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_times(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_mtimes(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_minus(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_power(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -134,7 +136,7 @@ bool oml_isspace(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
 bool oml_horzcat(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 //! Recursively displays contents of cell array
 bool oml_celldisp(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
-bool oml_gcd(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_gcd(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_pathsep(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_func2str(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_str2func(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -211,6 +213,8 @@ bool oml_lcm(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
 bool oml_polyval(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_triu(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_tril(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_hankel(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_toeplitz(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_iscellstr(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 //! Concatenates n-dimensional array objects along given dimension.
 bool oml_cat(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
@@ -270,8 +274,8 @@ bool oml_zeros(EvaluatorInterface, const std::vector<Currency>& inputs, std::vec
 bool oml_trace(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_det(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_rcond(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_imag(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_real(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_imag(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_real(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_exp(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 OMLDLL_DECLS bool oml_conj(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_prod(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -313,6 +317,8 @@ bool oml_writepfile(EvaluatorInterface, const std::vector<Currency>& inputs, std
 bool oml_analyze(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_getmetadata(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_help(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_getsyntax(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_bsxfun(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_helptest(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_helpmodule(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 //! Throws an error without stack information [errormsgonly]
@@ -537,9 +543,9 @@ int gcd(int x, int y, int *s, int *t);
 hwComplex gcd(hwComplex x, hwComplex y, hwComplex *s, hwComplex *t);
 hwComplex signum(const hwComplex &cplx);
 Currency curMultElems(Currency &x, Currency &y);
-inline int bitAnd(int x, int y) { return x & y; }
-inline int bitOr (int x, int y) { return x | y; }
-inline int bitXor(int x, int y) { return x ^ y; }
+inline int64_t bitAnd(int64_t x, int64_t y) { return x & y; }
+inline int64_t bitOr (int64_t x, int64_t y) { return x | y; }
+inline int64_t bitXor(int64_t x, int64_t y) { return x ^ y; }
 
 // sort-related methods
 

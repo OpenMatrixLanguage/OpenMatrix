@@ -1836,14 +1836,14 @@ bool OmlNormrnd(EvaluatorInterface           eval,
 
                 hwMatrix* Mu = (isScalarM) ?
                     EvaluatorInterface::allocateMatrix(m, n, cur1.Scalar()) :
-                EvaluatorInterface::allocateMatrix(cur1.Matrix());
+                    EvaluatorInterface::allocateMatrix(cur1.Matrix());
 
                 if (!isScalarS && (!cur2.IsMatrix() || !cur2.Matrix()->IsReal()))
                     throw OML_Error(OML_ERR_SCALAR_REALMTX, 2, OML_VAR_PARAMETER);
 
                 hwMatrix* Sigma = (isScalarS) ?
                     EvaluatorInterface::allocateMatrix(m, n, cur2.Scalar()) :
-                EvaluatorInterface::allocateMatrix(cur2.Matrix());
+                    EvaluatorInterface::allocateMatrix(cur2.Matrix());
 
                 hwMatrix*    result = EvaluatorInterface::allocateMatrix();
                 hwMathStatus mstat  = NormRnd(*Mu, *Sigma, twister, nullptr, *result);
@@ -9521,6 +9521,9 @@ bool OmlMAD(EvaluatorInterface           eval,
 {
     size_t nargin = inputs.size();
 
+    if (nargin < 1 || nargin > 3)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
     int opt = 0;
 
     if (nargin > 1)
@@ -9544,9 +9547,6 @@ bool OmlMAD(EvaluatorInterface           eval,
 
         return OmlMeandev(eval, inputs2, outputs);
     }
-
-    if (nargin < 1 || nargin > 3)
-        throw OML_Error(OML_ERR_NUMARGIN);
 
     if (inputs[0].IsNDMatrix())
     {
@@ -10667,10 +10667,45 @@ void RNG_numRowsAndCols(const EvaluatorInterface&    eval,
 {
     size_t nargin = inputs.size();
 
-    if (firstDimArg < 1 || firstDimArg > nargin)
+    if (!nargin)
     {
         m = 1;
         n = 1;
+    }
+    else if (firstDimArg < 1 || firstDimArg > nargin)
+    {
+        if (inputs[0].IsScalar())
+        {
+            if (inputs[1].IsScalar())
+            {
+                m = 1;
+                n = 1;
+            }
+            else if (inputs[1].IsMatrix())
+            {
+                m = inputs[1].Matrix()->M();
+                n = inputs[1].Matrix()->N();
+            }
+        }
+        else if (inputs[1].IsScalar())
+        {
+            if (inputs[0].IsMatrix())
+            {
+                m = inputs[0].Matrix()->M();
+                n = inputs[0].Matrix()->N();
+            }
+        }
+        else
+        {
+            m = inputs[0].Matrix()->M();
+            n = inputs[0].Matrix()->N();
+
+            if (inputs[1].Matrix()->M() != m)
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
+
+            if (inputs[1].Matrix()->N() != n)
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
+        }
     }
     else if (nargin == firstDimArg)
     {

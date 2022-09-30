@@ -101,6 +101,10 @@ public:
     void Permute(const hwTMatrixN<T1, T2>& source, const std::vector<int>& permuteVec);
     //! Verify permutation vector validity
     static void PermuteCheck(const std::vector<int>& permuteVec);
+    //! Replicate an ND matrix in each dimension
+    void Repmat(const hwTMatrixN<T1, T2>& source, const std::vector<int>& reps);
+    //! Replicate a 2D matrix in each dimension
+    void Repmat(const hwTMatrix<T1, T2>& source, const std::vector<int>& reps);
 
     // ****************************************************
     //                  Matrix Properties
@@ -116,23 +120,12 @@ public:
     bool IsVector() const;
     //! Determine if the matrix is empty or a vector
     bool IsEmptyOrVector() const;
-    //! Bounds check - lower only, since LHS ops allow resizing
-    void BoundsCheckLHS(const std::vector<int>& indexVec) const;
     //! Bounds check - upper and lower
     void BoundsCheckRHS(const std::vector<int>& indexVec) const;
-    //! Bounds check - lower only, since LHS ops allow resizing
-    void BoundsCheckLHS(const std::vector<hwSliceArg>& sliceArg, int numSlices = 0) const;
     //! Bounds check - upper and lower
     void BoundsCheckRHS(const std::vector<hwSliceArg>& sliceArg, int numSlices = 0) const;
-    //! Need to grow a matrix, for use with LHS indexing
-    bool NeedToGrowLHS(const std::vector<int>& indexVec);
-    //! Need to grow a matrix, for use with LHS slicing
-    bool NeedToGrowLHS(const std::vector<hwSliceArg>& sliceArg, int numSlices) const;
     //! Grow a matrix
-    void GrowLHSMatrix(const std::vector<int>& indexVec);
-    //! Grow a matrix
-    void GrowLHSMatrix(const std::vector<hwSliceArg>& sliceArg, int& numSlices,
-                       const hwTMatrixN<T1, T2>* rhsMatrix = NULL, bool rule2 = false);
+    void GrowLHSMatrix(const std::vector<int>& newDim);
 
     // ****************************************************
     //               Indexing Functions
@@ -260,8 +253,6 @@ private:
     T1* m_real;
     //! Contiguous block of memory to store data of type T2, which is hwTComplex<T> by default
     T2* m_complex;
-    //! The cached memory index of the last accessed data element
-    mutable int m_pos;
     //! Copy On Write reference counter
     int m_refCount;
     //! Utility vector for left hand side indexing
@@ -285,8 +276,6 @@ private:
     void Deallocate();
     //! Set matrix to empty condition
     void MakeEmpty();
-    //! Set memory position corresponding to an index vector
-    int SetMemoryPosition(const std::vector<int>& indexVec) const;
     //! Copy matrix data from a source
     void Copy(const hwTMatrixN<T1, T2>& source);
     //! Copy data
@@ -299,19 +288,6 @@ private:
                                bool matrixAssignment) const;
     //! Delete a matrix slice
     void DeleteSlice(const std::vector<hwSliceArg>& sliceArg);
-    //! Read a contiguous block from the calling object, as if the calling
-    //! object is being sliced on the the right hand side of an equals sign
-    void CopyBlockRHS(int& pos, int sliceArg, hwTMatrixN<T1, T2>& lhsMatrix) const;
-    //! Write a contiguous block to the calling object, as if the calling
-    //! object is being sliced on the the left hand side of an equals sign
-    void CopyBlockLHS(int& pos, int sliceArg, const hwTMatrixN<T1, T2>& rhsMatrix,
-                      bool rule2);
-    //! Write a contiguous block to the calling object, as if the calling
-    //! object is being sliced on the the left hand side of an equals sign
-    void CopyBlockLHS(int& pos, int sliceArg, T1 real);
-    //! Write a contiguous block to the calling object, as if the calling
-    //! object is being sliced on the the left hand side of an equals sign
-    void CopyBlockLHS(int& pos, int sliceArg, const T2& cmplx);
     //! Write a contiguous block to the calling object, as if the calling
     //! object is being sliced on the the left hand side of an equals sign
     void CopyMatrixLHS(const hwTMatrixN<T1, T2>& rhsMatrix);

@@ -1,0 +1,20 @@
+m3 = 
+slice(:, :, 1) = 
+[Matrix] 2 x 3
+1  0  0
+0  0  0
+
+slice(:, :, 2) = 
+[Matrix] 2 x 3
+0  1  0
+0  0  0
+
+slice(:, :, 3) = 
+[Matrix] 2 x 3
+0  0  1
+0  0  0
+
+slice(:, :, 4) = 
+[Matrix] 2 x 3
+0  0  0
+0  0  0

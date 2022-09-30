@@ -114,6 +114,8 @@ public:
     hwMathStatus Resize(int m, int n, bool initZero = false);
     //! Change the dimensions of a matrix while maintaining the same number of elements
     hwMathStatus Reshape(int m, int n);
+    //! Replicate a matrix in each dimension
+    hwMathStatus Repmat(const hwTMatrix<T1, T2>& source, int repm, int repn);
 
     // ****************************************************
     //                  Matrix Properties
@@ -542,10 +544,8 @@ public:
     static hwMathStatus Dot(const hwTMatrix<T1, T2>& A, const hwTMatrix<T1, T2>& B, T1& dot);
     //! Dot product of two vectors, either real or complex
     static hwMathStatus Dot(const hwTMatrix<T1, T2>& A, const hwTMatrix<T1, T2>& B, T2& dot);
-
     //! Kronecker product of two matrices
     hwMathStatus Kronecker(const hwTMatrix<T1, T2>& A, const hwTMatrix<T1, T2>& B);
-
     //! Cross product of two vectors
     hwMathStatus Cross(const hwTMatrix<T1, T2>& A, const hwTMatrix<T1, T2>& B);
     //! Linear convolution of two vectors in the time domain

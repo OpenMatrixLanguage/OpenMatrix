@@ -1485,7 +1485,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
         {
             int row = sliceArg[0].Scalar();
 
-            if (row < 0 || row >= m_nRows)
+            if (row >= m_nRows)
                 throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
             if (sliceArg[1].IsScalar())
@@ -1555,7 +1555,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                     int col     = sliceArg[1].Vector()[index];
                     int col_nnz = 0;
 
-                    if (col < 0 || col >= m_nCols)
+                    if (col >= m_nCols)
                         throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                     for (int k = m_pointerB[col]; k < m_pointerE[col]; ++k)
@@ -1603,7 +1603,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
             {
                 int col = sliceArg[1].Scalar();
 
-                if (col < 0 || col >= m_nCols)
+                if (col >= m_nCols)
                     throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                 int start = m_pointerB[col];
@@ -1655,7 +1655,7 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                 {
                     int col = sliceArg[1].Vector()[index];
 
-                    if (col < 0 || col >= m_nCols)
+                    if (col >= m_nCols)
                         throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                     for (int k = m_pointerB[col]; k < m_pointerE[col]; ++k)
@@ -1704,14 +1704,14 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                 lhsMatrix.m_pointerB[0] = 0;
                 int nnz = 0;
 
-                if (col < 0 || col >= m_nCols)
+                if (col >= m_nCols)
                     throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                 for (int index = 0; index < lhsMatrix.m_nRows; ++index)
                 {
                     int row = sliceArg[0].Vector()[index];
 
-                    if (row < 0 || row >= m_nRows)
+                    if (row >= m_nRows)
                         throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                     for (int k = m_pointerB[col]; k < m_pointerE[col]; ++k)
@@ -1813,44 +1813,88 @@ void hwTMatrixS<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
                 lhsMatrix.m_pointerB[0] = 0;
                 int nnz = 0;
 
+                std::vector<std::pair<int, int>> pairs(lhsMatrix.m_nRows);
+
+                for (int rowIndex = 0; rowIndex < lhsMatrix.m_nRows; ++rowIndex)
+                {
+                    pairs[rowIndex].first = rowIndex;
+                    pairs[rowIndex].second = sliceArg[0].Vector()[rowIndex];
+                }
+
+                std::sort(pairs.begin(), pairs.end(), compare3<int, int>);
+
                 for (int colIndex = 0; colIndex < lhsMatrix.m_nCols; ++colIndex)
                 {
                     int col = sliceArg[1].Vector()[colIndex];
                     int col_nnz = 0;
 
-                    if (col < 0 || col >= m_nCols)
+                    if (col >= m_nCols)
                         throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
+
+                    int rhsIndex = m_pointerB[col];
 
                     for (int rowIndex = 0; rowIndex < lhsMatrix.m_nRows; ++rowIndex)
                     {
-                        int row = sliceArg[0].Vector()[rowIndex];
+                        if (rhsIndex == m_pointerE[col])
+                            break;
 
-                        if (row < 0 || row >= m_nRows)
-                            throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
-
-                        for (int k = m_pointerB[col]; k < m_pointerE[col]; ++k)
+                        if (pairs[rowIndex].second == m_rows[rhsIndex])
                         {
-                            if (m_rows[k] < row)
-                                continue;
-
-                            if (m_rows[k] > row)
-                                break;
-
-                            lhsMatrix.m_rows.push_back(rowIndex);
+                            lhsMatrix.m_rows.push_back(pairs[rowIndex].first);
                             ++nnz;
                             ++col_nnz;
                             status = lhsMatrix.m_values.Resize(nnz);
 
                             if (m_values.IsReal())
                             {
-                                lhsMatrix.m_values(nnz - 1) = m_values(k);
+                                lhsMatrix.m_values(nnz - 1) = m_values(rhsIndex);
                             }
                             else
                             {
-                                lhsMatrix.m_values.z(nnz - 1) = m_values.z(k);
+                                lhsMatrix.m_values.z(nnz - 1) = m_values.z(rhsIndex);
                             }
                         }
+                        else if (pairs[rowIndex].second > m_rows[rhsIndex])
+                        {
+                            ++rhsIndex;
+                            --rowIndex;
+                        }
                     }
+
+                    /* Alternate search.
+                     * May be better when lhsMatrix.m_nRows < m_pointerE[col] - m_pointerB[col].
+                     * Also consider std::set_intersection.
+
+                     int rowIndex = 0;
+
+                     for (int rhsIndex = m_pointerB[col]; rhsIndex < m_pointerE[col]; ++rhsIndex)
+                     {
+                         if (rowIndex == lhsMatrix.m_nRows)
+                             break;
+
+                         if (m_rows[rhsIndex] == pairs[rowIndex].second)
+                         {
+                             lhsMatrix.m_rows.push_back(pairs[rowIndex].first);
+                             ++nnz;
+                             ++col_nnz;
+                             status = lhsMatrix.m_values.Resize(nnz);
+
+                             if (m_values.IsReal())
+                             {
+                                 lhsMatrix.m_values(nnz - 1) = m_values(rhsIndex);
+                             }
+                             else
+                             {
+                                 lhsMatrix.m_values.z(nnz - 1) = m_values.z(rhsIndex);
+                             }
+                         }
+                         else if (m_rows[rhsIndex] > pairs[rowIndex].second)
+                         {
+                             ++rowIndex;
+                             --rhsIndex;
+                         }
+                     }
+                    */
 
                     lhsMatrix.m_pointerE[colIndex] = col_nnz;    // not cumulative
                 }
@@ -1949,7 +1993,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                 {
                     int index = sliceArg[0].Vector()[ii];
 
-                    if (index < 0 || index >= size)
+                    if (index >= size)
                         throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                     if (rhsMatrix.IsReal())
@@ -2001,7 +2045,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
         {
             int row = sliceArg[0].Scalar();
 
-            if (row < 0 || row >= m_nRows)
+            if (row >= m_nRows)
                 throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
             if (sliceArg[1].IsScalar())
@@ -2110,7 +2154,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                         {
                             int col = sliceArg[1].Vector()[colIndex];
 
-                            if (col < 0 || col >= m_nCols)
+                            if (col >= m_nCols)
                                 throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                             if (rhsMatrix.IsReal())
@@ -2170,7 +2214,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
             {
                 int col = sliceArg[1].Scalar();
 
-                if (col < 0 || col >= m_nCols)
+                if (col >= m_nCols)
                     throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                 if (rhsMatrix.IsVector())
@@ -2324,7 +2368,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                     {
                         int col = sliceArg[1].Vector()[jj];
 
-                        if (col < 0 || col >= m_nCols)
+                        if (col >= m_nCols)
                             throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                         for (int ii = 0; ii < m_nRows; ++ii)
@@ -2423,7 +2467,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                         {
                             int row = sliceArg[0].Vector()[rowIndex];
 
-                            if (row < 0 || row >= m_nRows)
+                            if (row >= m_nRows)
                                 throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                             if (rhsMatrix.IsReal())
@@ -2486,7 +2530,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                         {
                             int row = sliceArg[0].Vector()[ii];
 
-                            if (row < 0 || row >= m_nRows)
+                            if (row >= m_nRows)
                                 throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                             if (rhsMatrix.IsReal())
@@ -2584,14 +2628,14 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                     {
                         int col = sliceArg[1].Vector()[jj];
 
-                        if (col < 0 || col >= m_nCols)
+                        if (col >= m_nCols)
                             throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                         for (int ii = 0; ii < rhsMatrix.M(); ++ii)
                         {
                             int row = sliceArg[0].Vector()[ii];
 
-                            if (row < 0 || row >= m_nRows)
+                            if (row >= m_nRows)
                                 throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                             if (rhsMatrix.IsReal())
@@ -2743,7 +2787,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                 {
                     int index = sliceArg[0].Vector()[ii];
 
-                    if (index < 0 || index >= size)
+                    if (index >= size)
                         throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                     if (rhsMatrix.IsReal())
@@ -2795,7 +2839,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
         {
             int row = sliceArg[0].Scalar();
 
-            if (row < 0 || row >= m_nRows)
+            if (row >= m_nRows)
                 throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
             if (sliceArg[1].IsScalar())
@@ -2904,7 +2948,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                         {
                             int col = sliceArg[1].Vector()[colIndex];
 
-                            if (col < 0 || col >= m_nCols)
+                            if (col >= m_nCols)
                                 throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                             if (rhsMatrix.IsReal())
@@ -2964,7 +3008,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
             {
                 int col = sliceArg[1].Scalar();
 
-                if (col < 0 || col >= m_nCols)
+                if (col >= m_nCols)
                     throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                 if (rhsMatrix.IsVector())
@@ -3118,7 +3162,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                     {
                         int col = sliceArg[1].Vector()[jj];
 
-                        if (col < 0 || col >= m_nCols)
+                        if (col >= m_nCols)
                             throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                         for (int ii = 0; ii < m_nRows; ++ii)
@@ -3217,7 +3261,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                         {
                             int row = sliceArg[0].Vector()[rowIndex];
 
-                            if (row < 0 || row >= m_nRows)
+                            if (row >= m_nRows)
                                 throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                             if (rhsMatrix.IsReal())
@@ -3280,7 +3324,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                         {
                             int row = sliceArg[0].Vector()[ii];
 
-                            if (row < 0 || row >= m_nRows)
+                            if (row >= m_nRows)
                                 throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                             if (rhsMatrix.IsReal())
@@ -3378,14 +3422,14 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
                     {
                         int col = sliceArg[1].Vector()[jj];
 
-                        if (col < 0 || col >= m_nCols)
+                        if (col >= m_nCols)
                             throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                         for (int ii = 0; ii < rhsMatrix.M(); ++ii)
                         {
                             int row = sliceArg[0].Vector()[ii];
 
-                            if (row < 0 || row >= m_nRows)
+                            if (row >= m_nRows)
                                 throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                             if (rhsMatrix.IsReal())
@@ -3504,9 +3548,9 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
 
             for (int ii = 0; ii < vecSize; ++ii)
             {
-                int index = static_cast<int> (sliceArg[0].Vector()[ii]);
+                int index = sliceArg[0].Vector()[ii];
 
-                if (index < 0 || index >= size)
+                if (index >= size)
                     throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                 if (real != static_cast<T1> (0))
@@ -3530,7 +3574,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
         {
             int row = sliceArg[0].Scalar();
 
-            if (row < 0 || row >= m_nRows)
+            if (row >= m_nRows)
                 throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
             if (sliceArg[1].IsScalar())
@@ -3576,7 +3620,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
                 {
                     int col = sliceArg[1].Vector()[colIndex];
 
-                    if (col < 0 || col >= m_nCols)
+                    if (col >= m_nCols)
                         throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                     if (real != static_cast<T1> (0))
@@ -3600,7 +3644,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
             {
                 int col = sliceArg[1].Scalar();
 
-                if (col < 0 || col >= m_nCols)
+                if (col >= m_nCols)
                     throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                 if (real != static_cast<T1> (0))
@@ -3658,7 +3702,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
                     {
                         int col = sliceArg[1].Vector()[jj];
 
-                        if (col < 0 || col >= m_nCols)
+                        if (col >= m_nCols)
                             throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                         for (int ii = 0; ii < m_nRows; ++ii)
@@ -3674,7 +3718,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
                     {
                         int col = sliceArg[1].Vector()[jj];
 
-                        if (col < 0 || col >= m_nCols)
+                        if (col >= m_nCols)
                             throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                         for (int ii = 0; ii < m_nRows; ++ii)
@@ -3704,7 +3748,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
                 {
                     int row = sliceArg[0].Vector()[rowIndex];
 
-                    if (row < 0 || row >= m_nRows)
+                    if (row >= m_nRows)
                         throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                     if (real != static_cast<T1> (0))
@@ -3731,7 +3775,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
                         {
                             int row = sliceArg[0].Vector()[ii];
 
-                            if (row < 0 || row >= m_nRows)
+                            if (row >= m_nRows)
                                 throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                             operator()(row, jj) = real;
@@ -3749,7 +3793,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
                         {
                             int row = sliceArg[0].Vector()[ii];
 
-                            if (row < 0 || row >= m_nRows)
+                            if (row >= m_nRows)
                                 throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                             if (const_this->operator()(row, jj) != static_cast<T1> (0))
@@ -3773,14 +3817,14 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
                 {
                     int col = sliceArg[1].Vector()[jj];
 
-                    if (col < 0 || col >= m_nCols)
+                    if (col >= m_nCols)
                         throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                     for (int ii = 0; ii < sliceArg[0].Vector().size(); ++ii)
                     {
                         int row = sliceArg[0].Vector()[ii];
 
-                        if (row < 0 || row >= m_nRows)
+                        if (row >= m_nRows)
                             throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                         if (real != static_cast<T1> (0))
@@ -3875,9 +3919,9 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
 
             for (int ii = 0; ii < vecSize; ++ii)
             {
-                int index = static_cast<int> (sliceArg[0].Vector()[ii]);
+                int index = sliceArg[0].Vector()[ii];
 
-                if (index < 0 || index >= size)
+                if (index >= size)
                     throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                 if (cmplx != static_cast<T1> (0))
@@ -3901,7 +3945,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
         {
             int row = sliceArg[0].Scalar();
 
-            if (row < 0 || row >= m_nRows)
+            if (row >= m_nRows)
                 throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
             if (sliceArg[1].IsScalar())
@@ -3947,7 +3991,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
                 {
                     int col = sliceArg[1].Vector()[colIndex];
 
-                    if (col < 0 || col >= m_nCols)
+                    if (col >= m_nCols)
                         throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                     if (cmplx != static_cast<T1> (0))
@@ -3971,7 +4015,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
             {
                 int col = sliceArg[1].Scalar();
 
-                if (col < 0 || col >= m_nCols)
+                if (col >= m_nCols)
                     throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                 if (cmplx != static_cast<T1> (0))
@@ -4029,7 +4073,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
                     {
                         int col = sliceArg[1].Vector()[jj];
 
-                        if (col < 0 || col >= m_nCols)
+                        if (col >= m_nCols)
                             throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                         for (int ii = 0; ii < m_nRows; ++ii)
@@ -4045,7 +4089,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
                     {
                         int col = sliceArg[1].Vector()[jj];
 
-                        if (col < 0 || col >= m_nCols)
+                        if (col >= m_nCols)
                             throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                         for (int ii = 0; ii < m_nRows; ++ii)
@@ -4075,7 +4119,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
                 {
                     int row = sliceArg[0].Vector()[rowIndex];
 
-                    if (row < 0 || row >= m_nRows)
+                    if (row >= m_nRows)
                         throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                     if (cmplx != static_cast<T1> (0))
@@ -4102,7 +4146,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
                         {
                             int row = sliceArg[0].Vector()[ii];
 
-                            if (row < 0 || row >= m_nRows)
+                            if (row >= m_nRows)
                                 throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                             z(row, jj) = cmplx;
@@ -4120,7 +4164,7 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
                         {
                             int row = sliceArg[0].Vector()[ii];
 
-                            if (row < 0 || row >= m_nRows)
+                            if (row >= m_nRows)
                                 throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                             if (const_this->z(row, jj) != static_cast<T1> (0))
@@ -4144,14 +4188,14 @@ void hwTMatrixS<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
                 {
                     int col = sliceArg[1].Vector()[jj];
 
-                    if (col < 0 || col >= m_nCols)
+                    if (col >= m_nCols)
                         throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                     for (int ii = 0; ii < sliceArg[0].Vector().size(); ++ii)
                     {
                         int row = sliceArg[0].Vector()[ii];
 
-                        if (row < 0 || row >= m_nRows)
+                        if (row >= m_nRows)
                             throw hwMathException(HW_MATH_ERR_INVALIDINDEX);
 
                         if (cmplx != static_cast<T1> (0))

@@ -1,0 +1,44 @@
+returndir = pwd;
+cd FileManipulation
+
+disp('Create sin.oml test file')
+command = 'system(''echo %test1 > sin.oml'')'
+eval(command)
+cd(returndir)
+
+command = 'exist(''sin'')';
+printf('command %s, result %d, comment %s\n', command, eval(command), 'This should return 5 because sin is a builtin function.')
+printf('The non-function file sin.oml should not break the return of 5.\n\n')
+
+% assign variable and check for exist
+printf('assign sin variable\n')
+sin = 1
+command = 'exist(''sin'')';
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'This should return 1 for variable')
+
+% declare local function
+printf('declare local sin function\n')
+function sin()
+	disp('local function sin')
+end
+command = 'exist(''sin'')';
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'This should still return 1 for variable')
+
+% clear variable
+printf('clear sin variable\n')
+clear sin
+command = 'exist(''sin'')';
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'This should return 103 for local function')
+
+% clear local function
+printf('clear sin local function\n')
+clear sin
+command = 'exist(''sin'')';
+printf('command %s, result %d, comment %s\n\n', command, eval(command), 'This should return 5, because sin is a built-in function.')
+printf('The non-function file sin.oml should not break the return of 5.\n\n')
+
+printf('delete sin.oml file.\n')
+deletefile = [ 'FileManipulation' filesep 'sin.oml' ];
+if(isfile(deletefile))
+	delete(deletefile)
+end

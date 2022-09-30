@@ -1,0 +1,6 @@
+str = 'a';
+[~, ~, ~, match1, ~, ~, ~] = regexp(str, 'b*')
+
+
+[~, ~, ~, match2, ~, ~, ~] = regexp(str, 'b*','emptymatch')
+	

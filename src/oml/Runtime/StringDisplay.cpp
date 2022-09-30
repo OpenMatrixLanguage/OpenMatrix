@@ -1,7 +1,7 @@
 /**
 * @file StringDisplay.cpp
 * @date February 2018
-* Copyright (C) 2018 Altair Engineering, Inc.  
+* Copyright (C) 2018-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -198,6 +198,7 @@ std::string StringDisplay::GetOutputForwardPagination(const OutputFormat* fmt,
     int         totalrows  = m_linesPrinted + linestofit;
 
     bool printedNonNewlineChar = false;
+    bool lastcharisnewline     = false;
     for (size_t i = 0; i < len && m_linesPrinted < totalrows; ++i, ++m_rowEnd)
     {
         char ch = sub[i];
@@ -209,6 +210,7 @@ std::string StringDisplay::GetOutputForwardPagination(const OutputFormat* fmt,
         if (ch == '\n' || ch == '\r')
 #endif
         {
+            lastcharisnewline = true;
             if (printedNonNewlineChar)
             {
                 ++m_linesPrinted;
@@ -217,7 +219,15 @@ std::string StringDisplay::GetOutputForwardPagination(const OutputFormat* fmt,
         else
         {
             printedNonNewlineChar = true;
+            lastcharisnewline     = false;
         }
+    }
+
+
+    if (IsPaginatingRows() && lastcharisnewline)
+    {
+        // Next pagination will automatically be printed on the next line
+        output.pop_back();
     }
     std::string out = os.str() + output;
 

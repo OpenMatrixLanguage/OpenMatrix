@@ -1,7 +1,7 @@
 /**
 * @file omlmatio.cxx
 * @date August 2020
-* Copyright (C) 2020-2021 Altair Engineering, Inc.
+* Copyright (C) 2020-2022 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -297,7 +297,7 @@ Currency OmlMatio::Sparse2Currency(matvar_t* var)
     if (!var->isComplex)  // Real
     {
         return new hwMatrixS(m, n, begincount.data(), endcount.data(),
-            sparse->ir, (double*)sparse->data);
+            (mat_int32_t *)sparse->ir, (double*)sparse->data);
     }
 
     std::vector<hwComplex> vec;
@@ -309,14 +309,15 @@ Currency OmlMatio::Sparse2Currency(matvar_t* var)
         double* ip = (double*)cdata->Im;
 
         vec.reserve(sparse->ndata);
-        for (int j = 0; j < sparse->ndata; ++j)
+        int numdata = static_cast<int>(sparse->ndata);
+        for (int j = 0; j < numdata; ++j)
         {
             vec.push_back(hwComplex(*(rp + j), *(ip + j)));
         }
     }
 
     hwMatrixS* mtx = new hwMatrixS(m, n, begincount.data(), endcount.data(),
-        sparse->ir, vec.data());
+        (mat_int32_t *)sparse->ir, vec.data());
 
     return mtx;
 }
@@ -392,7 +393,6 @@ Currency OmlMatio::MatVarToCurrency(matvar_t* var, EvaluatorInterface eval)
             {
                 return IntReal2Currency(var);
             }
-            break;
             return IntComplex2Currency(var);
         }
         case MAT_C_OBJECT:    // [3]  Object 
@@ -629,6 +629,10 @@ Currency OmlMatio::Number2Currency(matvar_t* var, const std::string& name)
             if (val)
             {
                 result = Currency(*val);
+                if (var->isLogical)
+                {
+                    result.SetMask(Currency::MASK_LOGICAL);
+                }
                 hasval = true;
             }
         }
@@ -791,7 +795,15 @@ Currency OmlMatio::IntReal2Currency(matvar_t* var)
                 }
                 case MAT_T_INT16: 
                 {
-                    val = *(mat_int16_t*)var->data;
+                    if (var->isLogical)
+                    {
+                        unsigned char* myval = (unsigned char*)var->data;
+                        val = (int)*myval;
+                    }
+                    else
+                    {
+                        val = *(mat_int16_t*)var->data;
+                    }
                     break;
                 }
                 case MAT_T_UINT16: 
@@ -1083,7 +1095,8 @@ matvar_t* OmlMatio::Currency2MatSparse(const char* name, const Currency& cur)
     sparse.nzmax = nnz;  // Max non-zero elements
 
                          // Array of size nzmax where ir[k] is the row of data[k].
-    sparse.ir = (mat_int32_t*)spm->rows();
+	sparse.ir = (mat_int32_t*)spm->rows();
+    // sparse.ir = (mat_uint32_t*)spm->rows();
     sparse.nir = nnz; // Number of elements in ir
 
                       // Array size n + 1 with jc[k] being the index into ir / data of the
@@ -1091,7 +1104,8 @@ matvar_t* OmlMatio::Currency2MatSparse(const char* name, const Currency& cur)
                       // of pointerB with last element of pointerE
     std::vector<int> jc(spm->pointerB(), spm->pointerB() + n);
     jc.push_back(*(spm->pointerE() + n - 1));
-    sparse.jc = (mat_int32_t*)jc.data();
+	sparse.jc = (mat_int32_t*)jc.data();
+    // sparse.jc = (mat_uint32_t*)jc.data();
     sparse.njc = n + 1;
 
     sparse.ndata = nnz;                       // Number of values

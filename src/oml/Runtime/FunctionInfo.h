@@ -65,6 +65,8 @@ public:
 	FUNCPTR                          Builtin() const { return _builtin; }
 	ALT_FUNCPTR                      AltBuiltin() const { return _alt_fptr; }
 	MemoryScope*                     AnonScope() const { return _anon_scope; }
+	void                             SetParentClass(ClassInfo* ci) { _parent_class = ci; }
+	ClassInfo*                       GetParentClass() const { return _parent_class; }
 
 	const std::vector<const std::string*>* ParametersPtr() const { return &(_parameters); }
 
@@ -109,6 +111,8 @@ private:
 	bool          _is_encrypted;
 	bool          _is_constructor;
 	FunctionInfo* _parent_fi;
+
+	ClassInfo*    _parent_class;
 }; 
 
 #endif

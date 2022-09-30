@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsCore.cpp
 * @date February 2016
-* Copyright (C) 2016-2020 Altair Engineering, Inc.  
+* Copyright (C) 2016-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -73,30 +73,51 @@ bool BuiltInFuncsCore::Input(EvaluatorInterface           eval,
 	                         const std::vector<Currency>& inputs, 
 			                 std::vector<Currency>&       outputs)
 {
-    if (inputs.empty()) throw OML_Error(OML_ERR_NUMARGIN);
-
-    size_t numInputs = inputs.size();
-
-    const Currency &inputCur = inputs[0];
-	if (!inputCur.IsString()) throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
+    size_t nargin = (!inputs.empty()) ? inputs.size() : 0;
+    if (nargin < 1)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+    else if (!inputs[0].IsString())
+    {
+        throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
+    }
 
     std::string userInput;
-	std::string prompt (inputCur.StringVal());
-    std::string type;
-    if (numInputs > 1)
-    {
-        const Currency &typeCur = inputs[1];
-        if (typeCur.IsString())
-            type = typeCur.StringVal();
-    }
+	std::string prompt (inputs[0].StringVal());
+
+    bool       stringInput = (nargin > 1 && inputs[1].IsMatrixOrString());
+    std::string type       = (stringInput) ? "s" : "";
 	
-    Interpreter interp(eval);  // Create a new interp as this is in middle of an eval
+    // Create a new interp as this is in middle of an eval
+    Interpreter interp(eval);  
     eval.OnUserInput(prompt, type, userInput);
 
     Currency result = interp.DoString(userInput);
-    // Return empty matrix if there is an error or user did no input anything
-    if (result.IsError() || result.IsNothing() || result.IsEmpty())
-        result = eval.allocateMatrix(); 
+
+    if (stringInput)
+    {
+        if (result.IsNothing() || result.IsEmpty())
+        {
+            result = "";
+        }
+        else if (result.IsError())
+        {
+            // Just show what the user typed as is
+            if (!userInput.empty() && userInput.size() > 2 &&
+                userInput.front() == '\'' && userInput.back() == '\'')
+            {
+                userInput.pop_back();
+                userInput.erase(userInput.begin());
+            }
+            result = userInput;
+        }
+    }
+    else if (result.IsNothing() || result.IsEmpty() || result.IsError())
+    {
+        // Return empty matrix if there is an error or user did no input anything
+        result = EvaluatorInterface::allocateMatrix();
+    }
 
 	outputs.push_back(result);
 	return true;
@@ -556,7 +577,7 @@ bool BuiltInFuncsCore::Class(EvaluatorInterface eval, const std::vector<Currency
     BuiltInFuncsCore funcs;
     std::string strclass (funcs.GetCurrencyClass(inputs[0]));
     if (strclass.empty())
-        throw OML_Error(HW_ERROR_UNKOWNTYPE);
+        throw OML_Error(HW_ERROR_UNKNOWNTYPE);
 
     outputs.push_back(strclass);
     return true;
@@ -768,7 +789,7 @@ void BuiltInFuncsCore::Finalize(void* handle)
 }
 
 //------------------------------------------------------------------------------
-// Returns true after adding a toolbox [addtoolbox command]
+// Returns true after adding a toolbox [addtoolbox]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsCore::AddToolbox(EvaluatorInterface           eval,
 	const std::vector<Currency>& inputs,
@@ -1053,28 +1074,36 @@ std::string BuiltInFuncsCore::GetBuildNumber(const std::string& versionfile)
     return "";
 }
 //------------------------------------------------------------------------------
-// Returns true after getting current file name being processed [omlfilename command]
+// Returns true after getting current file name being processed [omlfilename]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsCore::Omlfilename(EvaluatorInterface           eval, 
                                    const std::vector<Currency>& inputs, 
                                    std::vector<Currency>&       outputs)
 {
     std::string option;
+    bool        isfullpath = false;
 
-    size_t nargin = inputs.size();
-    if (nargin > 0)
+    if (!inputs.empty())
     {
-        Currency cur = inputs[0];
-        if (!cur.IsString())
+        if (!inputs[0].IsString())
+        {
             throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
-        option = cur.StringVal();
-        if (option != "fullpath" && option != "fullpathext")
-            throw OML_Error(OML_ERR_OPTION, 1, OML_VAR_VALUE);
+        }
+        option = inputs[0].StringVal();
+        std::transform(option.begin(), option.end(), option.begin(), ::tolower);
+        isfullpath = (option == "fullpath");
+        if (!isfullpath && option != "fullpathext")
+        {
+            throw OML_Error(
+                "Error: invalid option in argument 1; must be 'fullpath' or 'fullpathext'");
+        }
     }
 
-    std::string currfile (eval.GetCurrentFilename());
+    std::string currfile(eval.GetCurrentFilename());
+    bool isdummyfile = (currfile == "dummy");
+
     bool        isbeingedited = false;
-    if (currfile.empty() || currfile == "dummy")
+    if (currfile.empty() || isdummyfile)
     {
         SignalHandlerBase* handler = eval.GetSignalHandler();
         assert(handler);
@@ -1082,7 +1111,7 @@ bool BuiltInFuncsCore::Omlfilename(EvaluatorInterface           eval,
         isbeingedited = true;
     }
 
-    if (currfile.empty() || (!isbeingedited && currfile == "dummy"))
+    if (currfile.empty() || (!isbeingedited && isdummyfile))
     {
         outputs.push_back("");
         return true;
@@ -1151,13 +1180,12 @@ bool BuiltInFuncsCore::Exist(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
-    Currency c1 = inputs[0];
-    if (!c1.IsString())
+    if (!inputs[0].IsString())
     {
         throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
     }
 
-    std::string name (c1.StringVal());
+    std::string name (inputs[0].StringVal());
     if (name.empty())
     {
         outputs.push_back(0);  // Name does not exist
@@ -1169,12 +1197,15 @@ bool BuiltInFuncsCore::Exist(EvaluatorInterface           eval,
     int         returncode = 0; // Does not exist
     if (nargin > 1)
     {
-        Currency c2 = inputs[1];
-        if (!c2.IsString())
+        if (!inputs[1].IsString())
         {
             throw OML_Error(OML_ERR_STRING, 2, OML_VAR_TYPE);
         }
-        type = c2.StringVal();
+        type = inputs[1].StringVal(); 
+        if (!type.empty())
+        {
+            std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+        }
         if (type == "var" || type == "builtin" || type == "file" || type == "dir")
         {
             notype = false; // Valid options
@@ -1206,11 +1237,34 @@ bool BuiltInFuncsCore::Exist(EvaluatorInterface           eval,
     if (notype || type == "builtin")
     {
         FUNCPTR fptr = nullptr;
-        eval.FindFunctionByName(name, &fi, &fptr, NULL);
-        returncode = fptr ? 5 : 0;    // Built-in function
+        // VSM-8200 try/catch to reduce unwanted error for exist check.
+        std::string error, formaterr;
+        try 
+        {
+            eval.FindFunctionByName(name, &fi, &fptr, NULL);
+        }
+        catch (OML_Error& e)
+        {
+            error = e.GetErrorMessage();
+            std::size_t suppress_error_check = error.find("cannot have executable statements");
+            // suppress thrown error when this error is NOT located
+            if (suppress_error_check == std::string::npos)
+                throw e;
+            // If a rejected file is not a function file, check if name matches a standard function to adjust the return.
+            if (eval.IsStdFunction(name))
+                returncode = 5;
+        }
+        if(returncode == 0)
+            returncode = fptr ? 5 : 0;    // Built-in function
         if (returncode != 0 || !notype)
         {
             outputs.push_back(returncode);  
+            return true;
+        }
+
+        if (fi)
+        {
+            outputs.push_back(103); // Any other function
             return true;
         }
     }
@@ -1221,32 +1275,55 @@ bool BuiltInFuncsCore::Exist(EvaluatorInterface           eval,
         name += "/";            // Add trailing slash if this is a drive letter
 #endif
 
-	std::string absIfPath = BuiltInFuncsUtils::GetAbsolutePath(name);
-    if (notype || type == "dir" || type == "file")
+    std::string absIfPath(BuiltInFuncsUtils::Normpath(name));
+	absIfPath = BuiltInFuncsUtils::GetAbsolutePath(absIfPath);
+
+    bool filefound = false;
+    if (notype || type == "file" || type == "dir")
     {
-        returncode = (BuiltInFuncsUtils::IsDir(absIfPath)) ? 7 : 0; // Directory
-        if (returncode != 0 || (!notype && type != "file"))
+        returncode = BuiltInFuncsUtils::IsDir(absIfPath) ? 7 : 0; // Dir in current directory, return immediately
+        if (returncode != 0)
         {
-            outputs.push_back(returncode);  
+            outputs.push_back(returncode);
+            return true;
+        }
+        if (BuiltInFuncsUtils::FileExists(absIfPath))
+        {
+            filefound = true; // File in current directory, but check for directory 
+        }
+        // Search the OML search path for a matching directory or file name.
+        // Return 7 if a directory is found in the current directory or anywhere in the path.
+        // Return 2 if a file is found in the currect directory or anywhere in the path.
+        std::vector<std::string> paths = eval.GetPaths();
+        std::vector<std::string>::const_iterator iter = paths.cbegin();
+        std::string FileSearchPath;
+        while (iter != paths.cend())
+        {
+            FileSearchPath = *iter++ + "/" + name;
+            if (BuiltInFuncsUtils::IsDir(FileSearchPath))
+            {
+                returncode = 7;  
+                if (notype || type == "dir")
+                {
+                    // immediately push back the results when a directory is found.
+                    outputs.push_back(returncode);
+                    return true;
+                }
+            }
+            // If a file is located save the result, which will be returned unless a directory is located.
+            if(BuiltInFuncsUtils::FileExists(FileSearchPath))
+            {
+                filefound = true; // File in current directory, but check for directory 
+            }
+        }
+        if (filefound)  // if a file was located in the search, 2 will be returned here.
+        {
+            returncode = 2;
+            outputs.push_back(returncode);
             return true;
         }
     }
 
-    if (notype || type == "file")
-    {
-        returncode = BuiltInFuncsUtils::FileExists(absIfPath) ? 2 : 0; // File
-        if (returncode != 0 || !notype)
-        {
-            outputs.push_back(returncode);  
-            return true;
-        }
-    }
-
-    if (fi)
-    {
-        outputs.push_back(103); // Any other function
-        return true;
-    }
 
     outputs.push_back(returncode);
     return true;
@@ -1623,5 +1700,181 @@ bool BuiltInFuncsCore::Exit(EvaluatorInterface           eval,
     }
     eval.SetQuit(true);
     eval.OnSaveOnExit(returnCode);
+    return true;
+}
+//------------------------------------------------------------------------------
+// Helper method to load default libraries. This can be done at startup to save
+// time.
+//------------------------------------------------------------------------------
+void BuiltInFuncsCore::LoadDefaultLibraries(EvaluatorInterface              eval,
+                                            const std::vector<std::string>& tboxes,
+                                            const std::vector<std::string>& scripts)
+{
+    eval.SuspendFuncListUpdate(); // Suspend function list update till done
+    
+    try
+    {
+        for (std::vector<std::string>::const_iterator itr = tboxes.begin();
+            itr != tboxes.end(); ++itr)
+        {
+            std::string name(*itr);
+            try
+            {
+                void* vResult = DyLoadLibrary(name);
+
+#ifndef OS_WIN
+                if (!vResult)
+                {
+                    name += ".so";
+                    vResult = DyLoadLibrary(name);
+                }
+                if (!vResult)
+                {
+                    name = "lib" + name;
+                    vResult = DyLoadLibrary(name);
+                }
+#endif
+
+                if (vResult)
+                {
+                    libs[name] = vResult;
+
+                    void* symbol = DyGetFunction(vResult, "InitDll");
+                    if (symbol) // Additional version check for toolboxes
+                    {
+                        // Adding additional check only for omlziptoolbox now
+                        if (!DyGetFunction(vResult, "GetToolboxVersion"))
+                        {
+                        }
+                    }
+                    else  // Check if this is being loaded using oml wrappers
+                    {
+                        symbol = DyGetFunction(vResult, "InitDllOmlWrap");
+                    }
+
+                    bool isAltFP = false;
+                    if (!symbol)
+                    {
+                        symbol = DyGetFunction(vResult, "InitToolbox");
+                        if (symbol)
+                        {
+                            isAltFP = true;
+                            initAltFP fp = (initAltFP)symbol;
+                            OMLInterfaceImpl impl(&eval);
+
+                            eval.RegisterDLL(vResult);
+#ifdef OS_WIN
+                            eval.SetDLLContext(DyGetLibraryPath(vResult));
+#else
+                            eval.SetDLLContext(DyGetLibraryPath(symbol));
+#endif
+                            fp(&impl);
+                            eval.SetDLLContext("");
+                        }
+                    }
+
+                    if (!isAltFP)
+                    {
+                        initModuleFP fp = (initModuleFP)symbol;
+                        if (fp)
+                        {
+                            eval.RegisterDLL(vResult);
+                            fp(eval);
+                        }
+                    }
+                }
+            }
+            catch (const OML_Error&) 
+            {
+            }
+        }
+
+        std::vector<Currency> scriptname = { Currency() };
+        for (std::vector<std::string>::const_iterator itr = scripts.begin();
+            itr != scripts.end(); ++itr)
+        {
+            scriptname[0] = *itr;
+            try
+            {
+                eval.CallFunction("run", scriptname);
+            }
+            catch (const OML_Error&) // Load silently
+            {
+            }
+        }
+    }
+    catch (const OML_Error&) // Load silently
+    {
+    }
+
+    eval.UnsuspendFuncListUpdate(); // Update function list
+    eval.OnUpdateFuncList();
+}
+//------------------------------------------------------------------------------
+// Executes keyboard command to allow the user to evaluate strings [keyboard]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsCore::Keyboard(EvaluatorInterface           eval,
+                                const std::vector<Currency>& inputs,
+                                std::vector<Currency>&       outputs)
+{
+    SignalHandlerBase* parentHandler = eval.GetSignalHandler();
+    if (!parentHandler || parentHandler->IsInBatchMode())
+    {
+        return true;
+    }
+    std::string prompt("debug> ");
+    if (!inputs.empty())
+    {
+        if (!inputs[0].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, 1);
+        }
+        prompt = inputs[0].StringVal();
+    }
+
+    std::string type;
+    
+
+    // Don't to interactive pagination
+    CurrencyDisplay::PAGINATE cachedPaginate = CurrencyDisplay::GetPaginate();
+    bool resetPagination = CurrencyDisplay::IsPaginateInteractive();
+    if (resetPagination)
+    {
+        CurrencyDisplay::SetPaginate(CurrencyDisplay::PAGINATE_ON);
+    }
+
+    std::vector<Currency> kinput = { Currency() };
+    while (!eval.IsInterrupt())
+    {
+        std::string userInput;
+        eval.OnUserInput(prompt, type, userInput);
+
+        std::string lower(userInput);
+        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+        if (lower == "return" || lower == "dbcont")
+        {
+            break;  // End of keyboard
+        }
+        else if (lower == "keyboard" || lower.find("keyboard") == 0)
+        {
+            continue;
+        }
+
+        kinput[0] = userInput;
+        try
+        {
+            Currency result = eval.CallFunction("eval", kinput);
+            eval.PushResult(result);
+        }
+        catch (const OML_Error& e)
+        {
+            Currency cur(Currency::TYPE_ERROR, e.GetErrorMessage());
+            eval.PushResult(cur);
+        }
+    }
+    if (resetPagination)
+    {
+        CurrencyDisplay::SetPaginate(cachedPaginate);
+    }
     return true;
 }

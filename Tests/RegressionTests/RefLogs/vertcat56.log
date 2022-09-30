@@ -1,0 +1,6 @@
+ans = struct [
+  struct: A
+]
+ans = struct [
+  struct: B
+]

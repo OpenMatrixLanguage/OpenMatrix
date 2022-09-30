@@ -1,0 +1,4 @@
+This two cell test should return 0, 0.
+command = isfile({ 'failtest', '2222' } )
+ans = [Matrix] 1 x 2
+0  0

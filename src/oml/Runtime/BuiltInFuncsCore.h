@@ -1,7 +1,7 @@
 	/**
 * @file BuiltInFuncsCore.h
 * @date February 2016
-* Copyright (C) 2016-2020 Altair Engineering, Inc.  
+* Copyright (C) 2016-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -272,6 +272,22 @@ public:
     static bool Exit(EvaluatorInterface,
                      const std::vector<Currency>&,
                      std::vector<Currency>&);
+    //!
+    //! Loads the default libraries
+    //! \param Evaluator
+    //! \param List of libraries to load
+    //! \param List of oml scripts to run
+    //! 
+    static void LoadDefaultLibraries(EvaluatorInterface,
+                                     const std::vector<std::string>&,
+                                     const std::vector<std::string>&);
+    //!
+    //! Executes keyboard command to allow the user to evaluate strings [keyboard]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //!
+    static bool Keyboard(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 
 private:
     //!
@@ -298,6 +314,7 @@ private:
     //! \param cur Given currency
     //!
     unsigned long long GetsBytesUsed( const Currency& cur) const;
+
 
 	static std::map<std::string, void*> libs;
 };

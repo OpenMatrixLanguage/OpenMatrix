@@ -1,0 +1,6 @@
+disp('This multi-cell test should return 1, 0, 1; 1, 0, 0.')
+% full path to the current test file
+[Filepath, Filename, Fileext] = fileparts(omlfilename('fullpathext'));
+
+command = 'isfile({ ''isfile11.oml'', ''failtest'', [ Filepath filesep Filename Fileext ]; ''isfile11.oml'', ''2222'', 0} )'
+eval(command)

@@ -1,4 +1,0 @@
-addToolbox omlmathutils
-
-lastwarn('Warning')
-lastwarn()

@@ -1,7 +1,7 @@
 /**
 * @file Interpreter.cpp
 * @date February 2015
-* Copyright (C) 2015-2020 Altair Engineering, Inc.  
+* Copyright (C) 2015-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -45,6 +45,12 @@
 #endif
 std::map< void *, ErrorInfo > errMap;
 // End defines/includes
+
+#if 0
+#    define DEBUG_PRINT(s) { std::cout << s << std::endl; }
+#else
+#    define DEBUG_PRINT(s)
+#endif
 
 //------------------------------------------------------------------------------
 //! Interpreter implementation
@@ -149,9 +155,8 @@ public:
 		
 	void RegisterExternalVariableFunction(EXTPTR ep) {_eval.RegisterExternalVariableFunction(ep); }
 
-    //! Function callback
-	Currency CallFunction(const std::string&           funcname, 
-                           const std::vector<Currency>& inputs);
+    // Function callback
+	Currency CallFunction(const std::string&, const std::vector<Currency>&, bool = true);
 
 	//! Function callback
 	Currency CallFunctionInCurrentScope(FunctionInfo* finfo,
@@ -179,7 +184,7 @@ public:
     //! \param[in] val Sets to true if the evaluator is in experimental mode
     void SetExperimental(bool val) { _eval.SetExperimental(val); }
 
-	std::string GetHelpModule(const std::string&);
+	std::string GetHelpModule(const std::string&, const bool&);
 	std::string GetHelpDirectory(const std::string& funcName);
 	std::string GetHelpFilename(const std::string&);
 
@@ -465,12 +470,21 @@ bool InterpreterImpl::IsValidVarname(const std::string& name) const
 	return is_valid;
 }
 //------------------------------------------------------------------------------
-//! Function callback
-Currency InterpreterImpl::CallFunction(const std::string& funcname, const std::vector<Currency>& inputs)
+// Calls the function of the given name
+//------------------------------------------------------------------------------
+Currency InterpreterImpl::CallFunction(const std::string&           funcname, 
+	                                   const std::vector<Currency>& inputs,
+	                                   bool                         printError)
 {
     GetOutputCurrencyList(true); // clear any outputs this may have generated
 
     _eval.Mark();
+
+	std::string dbg_file = (printError) ? _eval.GetCurrentDebugFile() : "";
+	int         dbg_line = (printError) ? _eval.GetCurrentDebugLine() : 0;
+	 
+	const std::string* dbg_file_ptr = Currency::pm.GetStringPointer(dbg_file);
+
     
     // Need a try-catch block to close scopes properly in case of any error
     try
@@ -481,14 +495,18 @@ Currency InterpreterImpl::CallFunction(const std::string& funcname, const std::v
     }
 	catch (OML_Error& error)
 	{
-		std::string error_str = error.GetFormatMessage() ? 
+		std::string error_str = (error.GetFormatMessage() && printError) ? 
             _eval.FormatErrorMessage(error.GetErrorMessage()) : error.GetErrorMessage();
         _eval.SetLastErrorMessage(error.GetErrorMessage());
+		_eval.SetDebugInfo(dbg_file_ptr, dbg_line);
+
 		Currency cur(-1.0, error_str);
 
-		_eval.PushResult(cur);
+		if (printError)
+		{
+			_eval.PushResult(cur);
+		}
 		_eval.Restore();
-
 		return cur;
 	}
 
@@ -847,9 +865,9 @@ static void wildcardFileMatch_win(const char* target)
 	}
 }
 #endif
-std::string Interpreter::GetHelpModule (std::string funcName)
+std::string Interpreter::GetHelpModule (std::string funcName, bool loadLibraryBrowser)
 {
-	return _impl->GetHelpModule(funcName);
+	return _impl->GetHelpModule(funcName, loadLibraryBrowser);
 }
 
 std::string Interpreter::GetHelpDirectory(std::string funcName)
@@ -1006,11 +1024,12 @@ std::vector<DebugStateInfo> Interpreter::GetCallStack() const
 	return _impl->GetCallStack(); 
 }
 //------------------------------------------------------------------------------
-//! Function callback
+// Function callback
 Currency Interpreter::CallFunction(const std::string&           funcname,  
-                                       const std::vector<Currency>& inputs)
+                                   const std::vector<Currency>& inputs,
+	                               bool                         printError)
 {
-	return _impl->CallFunction(funcname, inputs);
+	return _impl->CallFunction(funcname, inputs, printError);
 }
 
 //------------------------------------------------------------------------------
@@ -1057,14 +1076,14 @@ void Interpreter::RegisterExternalVariableFunction(EXTPTR ep)
     return _impl->RegisterExternalVariableFunction(ep);
 }
 
-std::string InterpreterImpl::GetHelpModule(const std::string& funcName)
+std::string InterpreterImpl::GetHelpModule(const std::string& funcName, const bool& loadLibraryBrowser)
 {
 	if (_eval.IsKeyword(funcName))
 		return "CoreMinimalInterpreter";
 	else if (_eval.IsOperator(funcName))
 		return "CoreMinimalInterpreter";
 	else
-		return _eval.GetHelpModule(funcName);
+		return _eval.GetHelpModule(funcName, loadLibraryBrowser);
 }
 
 std::string InterpreterImpl::GetHelpDirectory(const std::string& funcName)
@@ -1079,7 +1098,6 @@ std::string InterpreterImpl::GetHelpDirectory(const std::string& funcName)
 
 std::string InterpreterImpl::GetHelpFilename(const std::string& funcName)
 {
-	// std::string module = GetHelpModule(funcName);
 	std::string module = GetHelpDirectory(funcName);
 
 	if (_eval.IsOperator(funcName))
