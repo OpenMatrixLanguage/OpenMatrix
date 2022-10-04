@@ -1,0 +1,4 @@
+function C = myfun(a,b)
+	C = 2*a+b;
+end
+bsxfun(@myfun, 'one', [1 2 3])

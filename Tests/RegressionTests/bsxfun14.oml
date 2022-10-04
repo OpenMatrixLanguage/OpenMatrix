@@ -1,0 +1,6 @@
+function C = myfun(a,b)
+	C = 2*a+b;
+end
+A = sparse([1 2 2],[1 2 3],[1 2 3]);
+B = [2 3 4;5 6 7];
+bsxfun(@myfun, A, B)

@@ -1,1 +1,1 @@
-Error: unsupported operation in call to function mpower at line number 1 in file mpower93.oml
+Error: invalid matrix; must be square in call to function mpower at line number 1 in file mpower93.oml

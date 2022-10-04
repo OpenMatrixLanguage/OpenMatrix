@@ -102,6 +102,13 @@ public:
 	virtual bool IsSparseMatrix() const = 0;
 };
 
+class OMLCurrency4 : public OMLCurrency3
+{
+public:
+	virtual bool IsLogical() const = 0;
+	virtual bool GetLogical() const = 0;
+};
+
 class OMLComplex
 {
 public:
@@ -256,6 +263,13 @@ public:
 
 	virtual OMLNDCellArray*  CreateNDCellArray(int num_dims, int* dims) = 0;
 	virtual OMLSparseMatrix* CreateSparseMatrix(int num_vals, int* ivec, int* jvec, double* vals, int rows, int cols) = 0;
+};
+
+class OMLCurrencyList3 : public OMLCurrencyList2
+{
+public:
+	virtual void AddLogical(bool) = 0;
+	virtual OMLCellArray* CreateTemporaryCellArray(int rows, int cols) = 0;
 };
 
 #endif

@@ -187,7 +187,7 @@
 #define OML_MSG_ABF_WRITE_IN_PROGRESS  "Error: data write is in progress"
 
 // HW reader messages
-#define OML_MSG_HWREADER_TIMECHANNELS_COMPARE    "Time channels does not match"
+#define OML_MSG_HWREADER_TIMECHANNELS_COMPARE    "Error: Time channels does not match"
 #define OML_MSG_HWREADER_SUBCASE_INVALID_RANGE   "Error: invalid input; subcase index out of range;"
 
 // HDF5 reader messages
@@ -243,6 +243,27 @@
 
 #define OML_MSG_REALVECTOR2                      "Error: invalid input; must be a  real vector with 2 elements"
 #define OML_MSG_REALVECTOR3                      "Error: invalid input; must be a  real vector with 3 elements"
+
+// RPC Writer
+#define OML_MSG_RPC_INVALID_TIME_MAT             "Error: time data should be 1xN"
+#define OML_MSG_RPC_INVALID_DATA_MAT             "Error: at least one row should be in the data matrix"
+#define OML_MSG_RPC_INVALID_TIME_DATA_MAT        "Error: number of columns in time and data matrix should match"
+#define OML_MSG_RPC_INVALID_HEADER               "Error: invalid header"
+#define OML_MSG_RPC_WRITE_FAILED                 "Error: failed to write"
+#define OML_MSG_RPC_INVALID_CURVENAME            "Error: curve name should be a string"
+#define OML_MSG_RPC_LOAD_FAILED                  "Error: faild to load writer"
+#define OML_MSG_RPC_XVECT_NUM_POINTS             "Error: X vector should have at least two data points"
+#define OML_MSG_RPC_XVECT_SPREAD                 "Error: X vector is not evenly distributed"
+
+//ReadCAE Builder
+#define OML_MSG_RCB_INVALID_TYPE                 "Error: Invalid Datatype"
+#define OML_MSG_RCB_INVALID_REQUEST              "Error: Invalid Requests"
+#define OML_MSG_RCB_MISSING_COMPONENT            "Error: Missing component"
+#define OML_MSG_RCB_INVALID_COMPONENT            "Error: Invalid component"
+#define OML_MSG_RCB_MISSING_TIME                 "Error: Missing time"
+#define OML_MSG_RCB_FAIL_READER_INIT             "Error: Reader initialization failed"
+#define OML_MSG_RCB_READING_FAILED               "Error: Problem reading file"
+#define OML_MSG_RCB_INVALID_FILE_ENTRY           "Error: Filename cannot be an empty string. Specify a valid filename"
 
 // Variable type definitions
 #define OML_STR_MATRIX          "matrix"
@@ -705,6 +726,27 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode errCode) const
 
     case OML_ERR_REALVECTOR2:                    msgStr = OML_MSG_REALVECTOR2; break;
     case OML_ERR_REALVECTOR3:                    msgStr = OML_MSG_REALVECTOR3; break;
+
+    // RPC Writer
+    case OML_ERR_RPC_INVALID_TIME_MAT:           msgStr = OML_MSG_RPC_INVALID_TIME_MAT; break;
+    case OML_ERR_RPC_INVALID_DATA_MAT:           msgStr = OML_MSG_RPC_INVALID_DATA_MAT; break;
+    case OML_ERR_RPC_INVALID_TIME_DATA_MAT:      msgStr = OML_MSG_RPC_INVALID_TIME_DATA_MAT; break;
+    case OML_ERR_RPC_INVALID_HEADER:             msgStr = OML_MSG_RPC_INVALID_HEADER; break;
+    case OML_ERR_RPC_WRITE_FAILED:               msgStr = OML_MSG_RPC_WRITE_FAILED; break;
+    case OML_ERR_RPC_INVALID_CURVENAME:          msgStr = OML_MSG_RPC_INVALID_CURVENAME; break;
+    case OML_ERR_RPC_LOAD_FAILED:                msgStr = OML_MSG_RPC_LOAD_FAILED; break;
+    case OML_ERR_RPC_XVECT_NUM_POINTS:           msgStr = OML_MSG_RPC_XVECT_NUM_POINTS; break;
+    case OML_ERR_RPC_XVECT_SPREAD:               msgStr = OML_MSG_RPC_XVECT_SPREAD; break;
+
+    // ReadCAE Builder
+    case OML_ERR_RCB_INVALID_TYPE:               msgStr = OML_MSG_RCB_INVALID_TYPE; break;
+    case OML_ERR_RCB_INVALID_REQUEST:            msgStr = OML_MSG_RCB_INVALID_REQUEST; break;
+    case OML_ERR_RCB_MISSING_COMPONENT:          msgStr = OML_MSG_RCB_MISSING_COMPONENT; break;
+    case OML_ERR_RCB_INVALID_COMPONENT:          msgStr = OML_MSG_RCB_INVALID_COMPONENT; break;
+    case OML_ERR_RCB_MISSING_TIME:               msgStr = OML_MSG_RCB_MISSING_TIME; break;
+    case OML_ERR_RCB_FAIL_READER_INIT:           msgStr = OML_MSG_RCB_FAIL_READER_INIT; break;
+    case OML_ERR_RCB_READING_FAILED:             msgStr = OML_MSG_RCB_READING_FAILED; break;
+    case OML_ERR_RCB_INVALID_FILE_ENTRY:         msgStr = OML_MSG_RCB_INVALID_FILE_ENTRY; break;
 
     default: break;
     }

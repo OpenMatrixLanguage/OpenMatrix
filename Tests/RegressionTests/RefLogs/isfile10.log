@@ -1,0 +1,7 @@
+This multi-cell test should return 1; 0; 0; 1.
+command = isfile({ 'isfile10.oml'; 0; ''; 'isfile10.oml' } )
+ans = [Matrix] 4 x 1
+1
+0
+0
+1

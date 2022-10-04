@@ -1,7 +1,7 @@
 /**
 * @file MatioTboxFuncs.cxx
 * @date November 2015
-* Copyright (C) 2015-2021 Altair Engineering, Inc.  
+* Copyright (C) 2015-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -29,7 +29,7 @@
 
 #include "matio.h"
 
-#define TBOXVERSION 2021.2
+#define TBOXVERSION 2022
 
 // Ascii files
 // Returns true after loading file in ascii format
@@ -80,6 +80,36 @@ bool OmlLoad(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
+    if (!inputs[0].IsString())
+    {
+        throw OML_Error(OML_ERR_STRING, 1);
+    }
+    std::string filename(inputs[0].StringVal());
+    if (filename.empty())
+    {
+        throw OML_Error(OML_ERR_FILE_NOTFOUND, 1);
+    }
+
+    BuiltInFuncsUtils utils;
+    std::string ext(utils.GetFileExtension(filename));
+    if (ext.empty())
+    {
+        filename += ".mat";
+    }
+#ifdef OS_WIN
+    if (utils.HasWideChars(filename))
+    {
+        throw OML_Error(OML_ERR_UNICODE_FILENAME, 1);
+    }
+#endif
+    if (!utils.FileExists(filename))
+    {
+        if (!eval.FindFileInPath(filename, filename))
+        {
+            throw OML_Error(OML_ERR_FILE_NOTFOUND, 1);
+        }
+    }
+
     int nargin = static_cast<int>(inputs.size());
 
 	std::vector<std::string> target_variables;
@@ -99,7 +129,12 @@ bool OmlLoad(EvaluatorInterface           eval,
             std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
             if (lower == "-ascii")
             {
-                return LoadTxtFile(eval, inputs, outputs);
+                std::vector<Currency> intxt(inputs);
+                if (!intxt.empty())
+                {
+                    intxt[0] = filename; // Use the updated filename
+                }
+                return LoadTxtFile(eval, intxt, outputs);
             }
         }
 
@@ -113,10 +148,6 @@ bool OmlLoad(EvaluatorInterface           eval,
 		}
 	}
 
-    if (!inputs[0].IsString())
-    {
-        throw OML_Error(OML_ERR_STRING, 1);
-    }
 
 	int nargout = eval.GetNargoutValue();
     std::unique_ptr<StructData> out_sd = nullptr;
@@ -125,14 +156,6 @@ bool OmlLoad(EvaluatorInterface           eval,
     {
         out_sd.reset(EvaluatorInterface::allocateStruct());
     }
-    std::string filename(inputs[0].StringVal());
-    BuiltInFuncsUtils utils;
-#ifdef OS_WIN
-    if (utils.HasWideChars(filename))
-    {
-        throw OML_Error(OML_ERR_UNICODE_FILENAME, 1);
-    }
-#endif
 
     OMLMATIO_SHOWERRORS; // Causes a crash in release if there are wide strings
 
@@ -141,7 +164,12 @@ bool OmlLoad(EvaluatorInterface           eval,
     {
         try  // Try reading as an txt before quitting
         {
-            return LoadTxtFile(eval, inputs, outputs);
+            std::vector<Currency> intxt(inputs);
+            if (!intxt.empty())
+            {
+                intxt[0] = filename; // Use the updated filename
+            }
+            return LoadTxtFile(eval, intxt, outputs);
         }
         catch (const OML_Error& e)
         {
@@ -159,7 +187,7 @@ bool OmlLoad(EvaluatorInterface           eval,
     size_t numvars = (target_variables.empty()) ? 0 : target_variables.size();
     bool   hasvars = (!target_variables.empty());
 
-    OmlMatio omlMatio(filename, eval.GetVerbose(), OmlMatio::MATFILEVERSION_73);
+    OmlMatio omlMatio(filename, eval.GetVerbose(), OmlMatio::MATFILEVERSION_5);
 
     bool loadedVars = false;
     while (1)
@@ -270,7 +298,7 @@ bool OmlSave(EvaluatorInterface           eval,
 #endif
     bool isascii = false;  // Saves as binary files by default
 
-    mat_ft            version     = MAT_FT_MAT73;         // Default version
+    mat_ft            version     = MAT_FT_MAT5;         // Default version
     matio_compression compression = MAT_COMPRESSION_ZLIB; // Default compression
     int               cmpidx      = -1;
 
@@ -297,7 +325,14 @@ bool OmlSave(EvaluatorInterface           eval,
 
         // Processing matio options
         std::transform(val.begin(), val.end(), val.begin(), ::tolower);
-        if (val == "-v7" || val == "-7" || val == "-v7.3" || val == "-7.3")
+        if (val == "-v7" || val == "-7")
+        {
+            BuiltInFuncsUtils::SetWarning(eval,
+                "Warning: unsupported format in argument " +
+                std::to_string(i + 1) + "; saving file in v5 format");
+            version = MAT_FT_MAT5;
+        }
+        else if (val == "-v7.3" || val == "-7.3")
         {
             version = MAT_FT_MAT73;
         }
@@ -307,11 +342,8 @@ bool OmlSave(EvaluatorInterface           eval,
         }
         else if (val == "-v4" || val == "-4")
         {
-            std::string msg = "Error: unsupported format. Valid formats are ";
-            msg += "-v5 and -v7 in argument " + 
-                    std::to_string(static_cast<long long>(i + 1));
-            throw OML_Error(msg);
-
+            throw OML_Error("Error: unsupported format in argument " +
+                std::to_string(i + 1) + ". Valid formats are -v5(default) and -v7.3");
         }
         else if (val == "-nozip")
         {
@@ -333,8 +365,9 @@ bool OmlSave(EvaluatorInterface           eval,
         return SaveAsciiFile(eval, filename, target_variables);
     }
 		
-    OmlMatio::MATFILEVERSION omlMatVer = (version == MAT_FT_MAT5) ?
-        OmlMatio::MATFILEVERSION_5 : OmlMatio::MATFILEVERSION_73;
+    OmlMatio::MATFILEVERSION omlMatVer = (version == MAT_FT_MAT73) ?
+        OmlMatio::MATFILEVERSION_73 : OmlMatio::MATFILEVERSION_5;
+
     OmlMatio omlMatio(filename, eval.GetVerbose(), omlMatVer);
 
     if (version != MAT_FT_MAT5 && compression != MAT_COMPRESSION_ZLIB)
@@ -465,7 +498,15 @@ bool LoadTxtFile(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
     }
 		
-    std::string file (inputs[0].StringVal());	
+    std::string file(inputs[0].StringVal());
+
+    if (!BuiltInFuncsUtils::FileExists(file))
+    {
+        if (!eval.FindFileInPath(file, file))
+        {
+            throw OML_Error(OML_ERR_FILE_NOTFOUND, 1);
+        }
+    }
 
 	std::ifstream ifs;
 	ifs.open(file, std::ifstream::in);
@@ -664,9 +705,7 @@ bool SaveAsciiFile(EvaluatorInterface              eval,
                     continue;
                 }
             }
-            std::string data(MatrixDisplay::GetNonFormattedOutputValues(
-                cur, "\n", " ", -1));
-            fprintf(fp, "%s", data.c_str());
+            MatrixDisplay::WriteNonFormattedOutputValues(cur, "\n", " ", -1, fp);
         }
         else
         {

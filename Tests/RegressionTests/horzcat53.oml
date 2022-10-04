@@ -1,0 +1,5 @@
+﻿A = struct('struct','A');
+B = struct('struct','B');
+C = horzcat(A,B);
+C(1)
+C(2)

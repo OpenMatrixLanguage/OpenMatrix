@@ -203,7 +203,14 @@ public:
 	void                ReplaceComplex(hwComplex new_value);
 
 	const hwMatrix*     ConvertToMatrix() const;
-	const hwMatrix*     ExpandMatrix(const hwMatrix*) const;
+
+	static void         ExpandMatrixPair(const hwMatrix&, const hwMatrix&,
+								 		 hwMatrix*&, hwMatrix*&);
+	static void         ExpandMatrixPair(const hwMatrixN&, const hwMatrixN&,
+										 hwMatrixN*&, hwMatrixN*&);
+	static void         ExpandMatrixPair(const hwMatrix&, const hwMatrixN&,
+									  	 hwMatrixN*&, hwMatrixN*&);
+
 	HML_CELLARRAY*      ConvertToCellArray();
 
 	OMLTree*            ConvertToTree() const;

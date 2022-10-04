@@ -1,0 +1,3 @@
+disp('This single string test should return 1.')
+command = 'isfile(''isfile02.oml'')'
+eval(command)

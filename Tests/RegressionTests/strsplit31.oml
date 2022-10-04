@@ -1,0 +1,2 @@
+str = 'abc \n def';
+strsplit(str, '\n')

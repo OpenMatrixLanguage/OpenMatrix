@@ -1,0 +1,10 @@
+addtoolbox omlsignals
+f0 = 0;
+f1 = 10;
+T = 10;
+c = (f1 - f0) / T;
+t = [0:0.1:T-0.1];
+x = sin(2 * pi * ((c/2)*t.^2 + f0*t));
+%st = stft(x,window,overlap,nfft,fs,range)
+[st, t, f] = stft(x, 10, 20, 14, 32, 'onesided')
+

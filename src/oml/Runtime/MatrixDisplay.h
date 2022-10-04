@@ -119,10 +119,11 @@ public:
     //! \param Column delimiter
     //! \param Number of columns which need col delim prepended - col offset
     //!
-    static std::string GetNonFormattedOutputValues(const Currency&,
-                                                   const std::string&,
-                                                   const std::string&,
-                                                   int);
+    static void WriteNonFormattedOutputValues(const Currency&,
+                                              const std::string&,
+                                              const std::string&,
+                                              int,
+                                              std::FILE*);
     //!
     //! Gets values as a string
     //! \param fmt Output format

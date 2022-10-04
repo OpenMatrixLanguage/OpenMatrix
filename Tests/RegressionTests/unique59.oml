@@ -1,0 +1,4 @@
+x = [10 6 10 8 8 7 10 8 4];
+[R,idx,idy] = unique(x,'stable')
+c1 = x(idx) - R
+c2 = R(idy) - x

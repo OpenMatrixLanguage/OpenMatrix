@@ -1,10 +1,15 @@
 addtoolbox('omlmatio')
+
 a = true;
 b = false;
-save('logical1.mat')
-class(a)
-class(b)
+save('logical1_test.mat')
 clear all
-load('logical1.mat')
-class(a)
-class(b)
+load('logical1_test.mat')
+printf('Mat version 5: a [%d] %s, b[%d] %s', a, class(a), b, class(b))
+delete('logical1_test.mat');
+
+save('logical1_test.mat', '-v7.3')
+clear all
+load('logical1_test.mat')
+printf('\nMat version 7.3: a [%d] %s, b[%d] %s', a, class(a), b, class(b))
+delete('logical1_test.mat');

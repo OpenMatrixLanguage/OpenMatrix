@@ -1,0 +1,3 @@
+fprintf('===========================================\n');
+fprintf('Read file: %s','foo');
+disp('Show disp output on a new line')

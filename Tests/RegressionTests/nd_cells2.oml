@@ -1,0 +1,7 @@
+﻿c = {}
+c(:,:,1) = {'aaa', 'aba', 'aca'; 'baa', 'bba', 'bca'; 'caa', 'cba', 'cca'};
+c(:,:,2) = {'aab', 'abb', 'acb'; 'bab', 'bbb', 'bcb'; 'cab', 'cbb', 'ccb'};
+c(:,:,3) = {'aac', 'abc', 'acc'; 'bac', 'bbc', 'bcc'; 'cac', 'cbc', 'ccc'};
+d1 = c(:,:,1)
+d2 = c(:,:,2)
+d3 = c(:,:,3)

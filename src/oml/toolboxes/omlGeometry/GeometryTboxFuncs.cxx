@@ -375,7 +375,28 @@ bool OmlDelaunay(EvaluatorInterface           eval,
     if (numDim == nargin - 1)
         inputs2.push_back(inputs[nargin - 1]);
 
-    return OmlDelaunayn(eval, inputs2, outputs);
+    try
+    {
+        return OmlDelaunayn(eval, inputs2, outputs);
+    }
+    catch (OML_Error& err)
+    {
+        if (err.Status() == HW_MATH_ERR_NONFINITEDATA)
+        {
+            // find the faulty dimension
+            for (int i = 0; i < numDim; ++i)
+            {
+                const hwMatrix* v = inputs[i].Matrix();
+
+                if (!v->IsFinite())
+                {
+                    err.Status().SetArg1(i + 1);
+                }
+            }
+        }
+
+        throw err;
+    }
 }
 //------------------------------------------------------------------------------
 // Computes the ND Delaunayn triangulation [delaunayn command]

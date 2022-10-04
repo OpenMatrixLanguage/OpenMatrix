@@ -1,7 +1,7 @@
 /**
 * @file Interpreter.h
 * @date February 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2021 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -139,8 +139,12 @@ public:
     void TriggerPause(bool state);   
 
     //! Function callback
+    //! \param Function name
+    //! \param Inputs
+    //! \param Optional argument which if true will print any error to command window/console
 	Currency CallFunction(const std::string&           funcname, 
-                           const std::vector<Currency>& inputs);
+                          const std::vector<Currency>& inputs,
+                          bool                         printError = true);
     //! Function callback
 	Currency CallFunction(FunctionInfo*                  finfo, 
                            const std::vector<Currency>& inputs);
@@ -170,7 +174,7 @@ public:
     void SetExperimental(bool val);
 
 	//! Search User Docs
-	std::string GetHelpModule(std::string funcName);
+	std::string GetHelpModule(std::string funcName, bool loadLibraryBrowser = false);
 	std::string GetHelpDirectory(std::string funcName);
 	std::string GetHelpFilename(std::string funcName);
 

@@ -1448,6 +1448,15 @@ hwMathStatus Ifft(const hwMatrixN& freqRes,
     return status;
 }
 //------------------------------------------------------------------------------
+// Short time FFT of a real or complex signal
+//------------------------------------------------------------------------------
+hwMathStatus Stft(const hwMatrix& signal,
+                  hwMatrix&       freqRes,
+                  int             fftSize)
+{
+    return hwMathStatus();
+}
+//------------------------------------------------------------------------------
 // Circular convolution of a real signal pair for periodic signals 
 //------------------------------------------------------------------------------
 hwMathStatus ConvCirc(const hwMatrix& signal1, 

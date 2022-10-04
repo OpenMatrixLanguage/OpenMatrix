@@ -1,4 +1,2 @@
-ans = logical
-ans = logical
-ans = logical
-ans = logical
+Mat version 5: a [1] logical, b[0] logical
+Mat version 7.3: a [1] logical, b[0] logical

@@ -57,23 +57,40 @@ static hwMathStatus NLSolveFuncs(const hwMatrix& P,
 
     inputs.push_back(P_temp);
 
-    if (FSOLVE_oml_func_isanon)
+    try
     {
-        result = FSOLVE_eval_ptr->CallInternalFunction(FSOLVE_oml_func, inputs);
-        outputs.push_back(result);
+        FSOLVE_eval_ptr->Mark();
+
+        if (FSOLVE_oml_func_isanon)
+        {
+            result = FSOLVE_eval_ptr->CallInternalFunction(FSOLVE_oml_func, inputs);
+            outputs.push_back(result);
+        }
+        else if (FSOLVE_oml_func)
+        {
+            outputs = FSOLVE_eval_ptr->DoMultiReturnFunctionCall(FSOLVE_oml_func,
+                inputs, static_cast<int>(inputs.size()), 1, true);
+        }
+        else if (FSOLVE_oml_pntr)
+        {
+            outputs = FSOLVE_eval_ptr->DoMultiReturnFunctionCall(FSOLVE_oml_pntr, 
+                inputs, static_cast<int>(inputs.size()), 1, true);
+        }
+        else
+        {
+            return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
+        }
+
+        FSOLVE_eval_ptr->Unmark();
     }
-    else if (FSOLVE_oml_func)
+    catch (OML_Error&)
     {
-        outputs = FSOLVE_eval_ptr->DoMultiReturnFunctionCall(FSOLVE_oml_func,
-            inputs, static_cast<int>(inputs.size()), 1, true);
+        FSOLVE_eval_ptr->Restore();
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
     }
-    else if (FSOLVE_oml_pntr)
+    catch (hwMathException&)
     {
-        outputs = FSOLVE_eval_ptr->DoMultiReturnFunctionCall(FSOLVE_oml_pntr, 
-            inputs, static_cast<int>(inputs.size()), 1, true);
-    }
-    else
-    {
+        FSOLVE_eval_ptr->Restore();
         return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
     }
 
@@ -132,18 +149,35 @@ static hwMathStatus NLSolveJacobian(const hwMatrix& P,
 
     inputs.push_back(P_temp);
 
-    if (FSOLVE_oml_func)
+    try
     {
-        outputs = FSOLVE_eval_ptr->DoMultiReturnFunctionCall(FSOLVE_oml_func, 
-            inputs, static_cast<int>(inputs.size()), 2, true);
+        FSOLVE_eval_ptr->Mark();
+
+        if (FSOLVE_oml_func)
+        {
+            outputs = FSOLVE_eval_ptr->DoMultiReturnFunctionCall(FSOLVE_oml_func, 
+                inputs, static_cast<int>(inputs.size()), 2, true);
+        }
+        else if (FSOLVE_oml_pntr)
+        {
+            outputs = FSOLVE_eval_ptr->DoMultiReturnFunctionCall(FSOLVE_oml_pntr, 
+                inputs, static_cast<int>(inputs.size()), 2, true);
+        }
+        else
+        {
+            return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+        }
+
+        FSOLVE_eval_ptr->Unmark();
     }
-    else if (FSOLVE_oml_pntr)
+    catch (OML_Error&)
     {
-        outputs = FSOLVE_eval_ptr->DoMultiReturnFunctionCall(FSOLVE_oml_pntr, 
-            inputs, static_cast<int>(inputs.size()), 2, true);
+        FSOLVE_eval_ptr->Restore();
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
     }
-    else
+    catch (hwMathException&)
     {
+        FSOLVE_eval_ptr->Restore();
         return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
     }
 
@@ -519,6 +553,8 @@ bool OmlFsolve(EvaluatorInterface           eval,
                  status == HW_MATH_WARN_MAXFUNCEVAL ||
                  status == HW_MATH_WARN_NOTCONVERGE)
             outputs.push_back(0.0);
+        else if (status == HW_MATH_WARN_NOSOLUTION)
+            outputs.push_back(-2.0);
         else if (status == HW_MATH_INFO_SMALLTRUST)
             outputs.push_back(-3.0);
     }

@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="setxor" /><meta name="abstract" content="Returns the elements exclusive to a or b." /><meta name="description" content="Returns the elements exclusive to a or b." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="indexterms" content="setxor" /><meta name="DC.subject" content="setxor" /><meta name="keywords" content="setxor" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/intersect.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/ismember.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/setdiff.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/union.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/unique.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>setxor</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="setxor" /><meta name="abstract" content="Returns the elements contained in either of two sets, but not in their intersection." /><meta name="description" content="Returns the elements contained in either of two sets, but not in their intersection." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="indexterms" content="setxor" /><meta name="DC.subject" content="setxor" /><meta name="keywords" content="setxor" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/intersect.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/ismember.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/setdiff.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/union.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/unique.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>setxor</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -15,38 +15,57 @@
 
   
   
-  <div class="body refbody"><p class="shortdesc">Returns the elements exclusive to <var class="keyword varname">a</var> or
-    <var class="keyword varname">b</var>.</p>
+  <div class="body refbody"><p class="shortdesc">Returns the elements contained in either of two sets, but not in their intersection.</p>
 
     <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       <p class="p"><span class="ph synph">setxor<span class="ph var">(a,b)</span></span></p>
 
-	  <p class="p"><span class="ph synph">setxor<span class="ph var">(a,b,'rows')</span></span></p>
+      <p class="p"><span class="ph synph">setxor<span class="ph var">(a,b,'sorted')</span></span></p>
 
-	  <p class="p"><span class="ph synph">[c,ia,ib]=setxor<span class="ph var">(a,b)</span></span></p>
-<?STOP?></section>
+      <p class="p"><span class="ph synph">setxor<span class="ph var">(a,b,'stable')</span></span></p>
+
+      <p class="p"><span class="ph synph">setxor<span class="ph var">(a,b,'rows')</span></span></p>
+
+      <p class="p"><span class="ph synph">[c,ia,ib]=setxor<span class="ph var">(a,b)</span></span></p>
+
+      <?STOP?>
+    </section>
 
     <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
       
       <dl class="dl parml">
         
-          <dt class="dt pt dlterm"><var class="keyword varname">a,b</var></dt>
+          <dt class="dt pt dlterm"><var class="keyword varname">a, b</var></dt>
 
-		  <dd class="dd pd">The sets of elements.</dd>
+          <dd class="dd pd">The sets whose exclusive union is to be formed.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer | char | string | logical | struct | cell</span></dd>
 
           <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | string | vector | matrix</span></dd>
 
         
-		
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">'sorted'</var></dt>
+
+          <dd class="dd pd">Returns elements of the exclusive union in ascending order.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">'stable'</var></dt>
+
+          <dd class="dd pd">Returns elements of the exclusive union in their original order.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+	
           <dt class="dt pt dlterm"><var class="keyword varname">'rows'</var></dt>
 
-		  <dd class="dd pd">Find the set difference along the rows as opposed to the elements.</dd>
+          <dd class="dd pd">Returns distinct rows as opposed to distinct elements.</dd>
 
-          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer | char | string | logical | struct | cell</span></dd>
-
-          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | string | vector | matrix</span></dd>
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
 
         
       </dl>
@@ -60,15 +79,14 @@
         
           <dt class="dt pt dlterm"><span class="ph synph">c</span></dt>
 
-          <dd class="dd pd">Elements exclusive to <var class="keyword varname">a</var> or <var class="keyword varname">b</var> in ascending
-            order.</dd>
+          <dd class="dd pd">The exclusive union of <var class="keyword varname">a</var> and <var class="keyword varname">b</var>.</dd>
 
         
-		
+	
           <dt class="dt pt dlterm"><span class="ph synph">ia, ib</span></dt>
 
-          <dd class="dd pd"><span class="ph synph">a(ia)</span> and <span class="ph synph">b(ib)</span> are disjoint sets that compose
-              <span class="ph synph">c</span>.</dd>
+          <dd class="dd pd"><span class="ph synph">a(ia)</span> and <span class="ph synph">b(ib)</span> are disjoint sets whose union is
+            <span class="ph synph">c</span>.</dd>
 
         
       </dl>
@@ -78,21 +96,21 @@
 
 	<section class="section"><h2 class="title sectiontitle">Examples</h2>
       
-      <div class="p">Simple <span class="keyword cmdname">setxor</span>
-        example:<pre class="pre codeblock"><code>setxor([1,5,2;6,2,6],[9;0;1;2])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">ans = [Matrix] 4 x 1
+      <div class="p">Single return case:
+<pre class="pre codeblock"><code>setxor([1,5,2;6,2,6],[9;0;1;2])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">ans = [Matrix] 4 x 1
 0
 5
 6
 9</code></code></pre></div>
 
-      <div class="p">Simple <span class="keyword cmdname">setxor</span> example with '<span class="keyword option">rows</span>'
-        option:<pre class="pre codeblock"><code>setxor([1,5,2;6,2,6],[9 0 1],'rows')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">ans = [Matrix] 3 x 3
+      <div class="p">Single return case with '<span class="keyword option">rows</span>' option:
+<pre class="pre codeblock"><code>setxor([1,5,2;6,2,6],[9 0 1],'rows')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">ans = [Matrix] 3 x 3
 1  5  2
 6  2  6
 9  0  1</code></code></pre></div>
 
-      <div class="p">Simple <span class="keyword cmdname">setxor</span> example with multiple
-        return:<pre class="pre codeblock"><code>[c,ia,ib]=setxor([1,5,2;6,2,6],[9;0;1;2])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">c = [Matrix] 4 x 1
+      <div class="p">Multi-return case:
+<pre class="pre codeblock"><code>[c,ia,ib]=setxor([1,5,2;6,2,6],[9;0;1;2])</code></pre><pre class="pre codeblock"><code><code class="ph codeph">c = [Matrix] 4 x 1
 0
 5
 6
@@ -106,6 +124,12 @@ ib = [Matrix] 2 x 1
 
     </section>
 
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p">When repeated elements occur in an input, the last index will be used.</p>
+
+    </section>
+
     <section class="section">
       
       
@@ -116,16 +140,16 @@ ib = [Matrix] 2 x 1
 <nav role="navigation" class="related-links">
 <div class="linklist linklist"><strong>See Also </strong><br />
 
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/ElementaryMath/intersect.htm" title="Returns the elements in both a and b.">intersect</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/ElementaryMath/intersect.htm" title="Returns the elements that are common to two sets, without duplication.">intersect</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/ElementaryMath/ismember.htm" title="Determine which elements of the first argument exist in the second argument.">ismember</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/ElementaryMath/setdiff.htm" title="Returns a matrix of the elements in matrix that are not in another specified matrix.">setdiff</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/ElementaryMath/union.htm" title="Returns the elements that are in matrices x and y. If 'rows' is provided then each row will be considered its on set.">union</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/ElementaryMath/unique.htm" title="Returns the unique elements in the input x">unique</a></div></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/ElementaryMath/setdiff.htm" title="Returns the subset of the first set that does not belong to the second set.">setdiff</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/ElementaryMath/union.htm" title="Returns the elements contained in either of two sets, without duplication.">union</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/ElementaryMath/unique.htm" title="Returns the elements of a set, without duplication.">unique</a></div></div>
 </nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" title="Elementary Math Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Elementary Math Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         
         <div>
-            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2021)</p>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
                
         </div>
     </div></footer></body>

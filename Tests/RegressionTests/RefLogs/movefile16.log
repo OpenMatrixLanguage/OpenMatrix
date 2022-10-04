@@ -1,0 +1,81 @@
+move file with spaces with force overwrite
+command = movefile('test1.txt', 'test 1.txt', 'f')
+ans = 1
+[.]
+[..]
+[dir1]
+[dir2]
+test 1.txt
+test2.txt
+move second file with spaces with force overwrite
+command = r1 = movefile('test2.txt', 'test 2.txt', 'f')
+r1 = 1
+[.]
+[..]
+[dir1]
+[dir2]
+test 1.txt
+test 2.txt
+move wildcard files with spaces to dir1 with force overwrite
+command = r1 = movefile('test*.txt', 'dir1', 'f')
+r1 = 1
+[.]
+[..]
+[dir1]
+[dir2]
+command = dir dir1
+[.]
+[..]
+test 1.txt
+test 2.txt
+command = dir dir2
+[.]
+[..]
+move wildcard files with spaces from dir1 to dir 2 with force overwrite
+command = r1 = movefile('dir1/test*.txt', 'dir2', 'f')
+r1 = 1
+[.]
+[..]
+[dir1]
+[dir2]
+command = dir dir1
+[.]
+[..]
+command = dir dir2
+[.]
+[..]
+test 1.txt
+test 2.txt
+move wildcard files with spaces from dir2 to current dir with force overwrite
+command = r1 = movefile('dir2/test*.txt', '.', 'f')
+r1 = 1
+[.]
+[..]
+[dir1]
+[dir2]
+test 1.txt
+test 2.txt
+command = dir dir1
+[.]
+[..]
+command = dir dir2
+[.]
+[..]
+move file with spaces to remove spaces with force overwrite
+command = movefile('test 1.txt', 'test1.txt', 'f')
+ans = 1
+[.]
+[..]
+[dir1]
+[dir2]
+test 2.txt
+test1.txt
+move second file with spaces to remove spaces with force overwrite
+command = r1 = movefile('test 2.txt', 'test2.txt', 'f')
+r1 = 1
+[.]
+[..]
+[dir1]
+[dir2]
+test1.txt
+test2.txt

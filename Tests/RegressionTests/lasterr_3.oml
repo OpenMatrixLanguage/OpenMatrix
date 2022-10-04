@@ -1,0 +1,15 @@
+verbose(1);
+function ff()
+               try 
+                              gg()
+               catch ee
+                              disp(ee)
+                              error(ee.message);
+               end
+end
+
+function gg()
+               error('Raise an error');
+end
+
+ff();

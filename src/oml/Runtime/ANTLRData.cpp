@@ -351,6 +351,12 @@ int ANTLRData::PreprocessMatrixOrCell(pANTLR3_COMMON_TOKEN_STREAM& tokens, int s
 						tok_prev = (pANTLR3_COMMON_TOKEN)vec->get(vec, k - 3);
 				}
 
+				if (tok2_type == CONT)
+				{
+					k = PreprocessContinue(tokens, k + 1);
+					tok2 = (pANTLR3_COMMON_TOKEN)vec->get(vec, k);
+				}
+
 				int prev_type = tok_prev->getType(tok_prev);
 				int next_type = tok2_type;
 

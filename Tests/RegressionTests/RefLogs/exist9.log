@@ -1,0 +1,16 @@
+Create Q.oml test file
+command = system('echo %test1 > Q.oml')
+ans = 0
+command exist('Q'), result 0, comment This should return 0 because Q.oml is not a function file.
+assign Q variable
+Q = 1
+command exist('Q'), result 1, comment This should return 1 for variable
+
+declare Q local function
+command exist('Q'), result 1, comment This should still return 1 for variable
+
+clear Q variablecommand exist('Q'), result 103, comment This should return 103 for local function
+
+clear Q local functioncommand exist('Q'), result 0, comment This should return 0, because Q.oml is not a function file
+
+delete the Q.oml file.

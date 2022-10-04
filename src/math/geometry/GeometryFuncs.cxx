@@ -65,6 +65,16 @@ hwMathStatus ConvexHull(const hwMatrix&    x,
         return hwMathStatus(HW_MATH_ERR_QHULL_PNTS, 1, 2);
     }
 
+    if (!x.IsFinite())
+    {
+        return hwMathStatus(HW_MATH_ERR_NONFINITEDATA, 1);
+    }
+
+    if (!y.IsFinite())
+    {
+        return hwMathStatus(HW_MATH_ERR_NONFINITEDATA, 2);
+    }
+
     // call Qhull
     qhT qh_qh;                // Qhull's data structure.  First argument of most calls
     qhT* qh = &qh_qh;
@@ -210,6 +220,11 @@ hwMathStatus ConvexHulln(const hwMatrix&    P,
         return hwMathStatus(HW_MATH_ERR_QHULL_PNTS, 1);
     }
 
+    if (!P.IsFinite())
+    {
+        return hwMathStatus(HW_MATH_ERR_NONFINITEDATA, 1);
+    }
+
     // call Qhull
     qhT qh_qh;                // Qhull's data structure.  First argument of most calls
     qhT* qh = &qh_qh;
@@ -337,6 +352,11 @@ hwMathStatus Delaunayn(const hwMatrix&    P,
     if (numPts < 3)
     {
         return hwMathStatus(HW_MATH_ERR_QHULL_PNTS, 1);
+    }
+
+    if (!P.IsFinite())
+    {
+        return hwMathStatus(HW_MATH_ERR_NONFINITEDATA, 1);
     }
 
     // call Qhull

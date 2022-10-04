@@ -218,6 +218,180 @@ inline void hwTMatrix<double>::CopyData(void* dest, int stride_dest,
 
 //! Transpose the matrix
 template<>
+inline hwMathStatus hwTMatrix<double>::Repmat(const hwTMatrix<double>& source, int repm, int repn)
+{
+    // function needs to be optimized
+    if (repm == 1 && repn == 1)
+    {
+        (*this) = source;
+        return hwMathStatus();
+    }
+
+    hwMathStatus status;
+    const hwTMatrix<double>* base = &source;
+    int m = base->M() * repm;
+    int n = base->N() * repn;
+
+    hwTMatrix<double>* result = this;
+    status = result->Dimension(m, n, base->Type());
+
+    if (!status.IsOk())
+        return status;
+
+    int M = base->M();
+    int N = base->N();
+
+    if (base->M() == 1 && repn == 1)
+    {
+        for (int i = 0; i < repm; ++i)
+            status = result->WriteRow(i, *base);
+
+        return status;
+    }
+
+    if (base->N() == 1 && repm == 1)
+    {
+        for (int j = 0; j < repn; ++j)
+            status = result->WriteColumn(j, *base);
+
+        return status;
+    }
+
+    if (base->Size() == 1)
+    {
+        if (base->IsReal())
+            result->SetElements((*base)(0));
+        else
+            result->SetElements(base->z(0));
+    }
+    else if (result->IsReal() && !result->IsEmpty())
+    {
+        // copy base to result
+        int numBytesToCopy = M * sizeof(double);
+        double* src = const_cast<double*> (base->GetRealData());
+        double* dest = result->GetRealData();
+
+        if (M == 1)
+        {
+            for (int j = 0; j < N; ++j)
+            {
+                (*dest) = src[j];
+                dest += m;
+            }
+        }
+        else
+        {
+            for (int j = 0; j < N; ++j)
+            {
+                memcpy_s(dest, numBytesToCopy, src, numBytesToCopy);
+                src += M;
+                dest += m;
+            }
+        }
+
+        // replicate the copied base in both dimensions
+        for (int j = 0; j < N; ++j)
+        {
+            src = result->GetRealData() + j * m;
+            dest = src;
+
+            if (M == 1)
+            {
+                for (int k = 1; k < m / M; ++k)
+                {
+                    ++dest;
+                    (*dest) = (*src);
+                }
+            }
+            else
+            {
+                for (int k = 1; k < m / M; ++k)
+                {
+                    dest += M;
+                    memcpy_s(dest, numBytesToCopy, src, numBytesToCopy);
+                    src = dest;
+                }
+            }
+        }
+
+        src = result->GetRealData();
+        dest = src;
+        numBytesToCopy = m * N * sizeof(double);
+
+        for (int k = 1; k < n / N; ++k)
+        {
+            dest += m * N;
+            memcpy_s(dest, numBytesToCopy, src, numBytesToCopy);
+            src = dest;
+        }
+    }
+    else if (!result->IsEmpty())  // complex
+    {
+        // copy base to result
+        int numBytesToCopy = M * sizeof(hwTComplex<double>);
+        hwTComplex<double>* src = const_cast<hwTComplex<double>*> (base->GetComplexData());
+        hwTComplex<double>* dest = result->GetComplexData();
+
+        if (M == 1)
+        {
+            for (int j = 0; j < N; ++j)
+            {
+                (*dest) = src[j];
+                dest += m;
+            }
+        }
+        else
+        {
+            for (int j = 0; j < N; ++j)
+            {
+                memcpy_s(dest, numBytesToCopy, src, numBytesToCopy);
+                src += M;
+                dest += m;
+            }
+        }
+
+        // replicate the copied base in both dimensions
+        for (int j = 0; j < N; ++j)
+        {
+            src = result->GetComplexData() + j * m;
+            dest = src;
+
+            if (M == 1)
+            {
+                for (int k = 1; k < m / M; ++k)
+                {
+                    ++dest;
+                    (*dest) = (*src);
+                }
+            }
+            else
+            {
+                for (int k = 1; k < m / M; ++k)
+                {
+                    dest += M;
+                    memcpy_s(dest, numBytesToCopy, src, numBytesToCopy);
+                    src = dest;
+                }
+            }
+        }
+
+        src = result->GetComplexData();
+        dest = src;
+        numBytesToCopy = m * N * sizeof(hwComplex);
+
+        for (int k = 1; k < n / N; ++k)
+        {
+            dest += m * N;
+            memcpy_s(dest, numBytesToCopy, src, numBytesToCopy);
+            src = dest;
+        }
+    }
+
+    return status;
+}
+
+//! Transpose the matrix
+template<>
 inline hwMathStatus hwTMatrix<double>::Transpose(const hwTMatrix<double>& source)
 {
     hwMathStatus status = Dimension(source.m_nCols, source.m_nRows, source.Type());

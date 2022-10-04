@@ -1,0 +1,6 @@
+c = [Matrix] 1 x 6
+1  2  3  4  5  6
+ia = [Matrix] 1 x 2
+2  4
+ib = [Matrix] 1 x 4
+4  2  1  3

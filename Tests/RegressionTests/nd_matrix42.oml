@@ -1,6 +1,9 @@
 m(:,:,:,1) = [1 2 3]
 sz=size(m)
-% result does not agree with Octave, but may be better.
-% all of these should be the same?
+% The rule is to match the RHS dimensions to the LHS dimensions if there is
+% a clear 1:1 correspondence. In cases that have a mismatch or excess colons,
+% use a squeeze strategy to map dimensions from the RHS to the LHS by skipping
+% over singleton dimensions.
+% The case above will use the squeeze strategy, but the case below will not,
+% and will therefore produce a different result.
 % m(:,:,1,1) = [1 2 3]
-% m(:,:,:,:) = [1 2 3]

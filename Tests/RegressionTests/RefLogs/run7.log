@@ -1,1 +1,1 @@
-Error: 'a' is not defined at line number 3 in file run7.oml
+Error: invalid input in argument 1; cannot find file in call to function run at line number 2 in file run7.oml

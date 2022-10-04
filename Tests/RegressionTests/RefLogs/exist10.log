@@ -1,0 +1,22 @@
+Create sin.oml test file
+command = system('echo %test1 > sin.oml')
+ans = 0
+command exist('sin'), result 5, comment This should return 5 because sin is a builtin function.
+The non-function file sin.oml should not break the return of 5.
+
+assign sin variable
+sin = 1
+command exist('sin'), result 1, comment This should return 1 for variable
+
+declare local sin function
+command exist('sin'), result 1, comment This should still return 1 for variable
+
+clear sin variable
+command exist('sin'), result 103, comment This should return 103 for local function
+
+clear sin local function
+command exist('sin'), result 5, comment This should return 5, because sin is a built-in function.
+
+The non-function file sin.oml should not break the return of 5.
+
+delete sin.oml file.

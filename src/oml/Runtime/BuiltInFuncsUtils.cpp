@@ -762,15 +762,13 @@ std::string BuiltInFuncsUtils::GetCurrentWorkingDir()
     std::string workingdir;
 
 #ifdef OS_WIN
-    int   expectedSize = GetCurrentDirectory(0, nullptr);
-    char* cwd          = new char[expectedSize+1];
-    memset(cwd, 0, sizeof(char)*(expectedSize+1));
-    if (!GetCurrentDirectory(expectedSize, cwd))
+    wchar_t wpath[MAX_PATH];
+    // Get the current working directory
+    if (!GetCurrentDirectoryW(_countof(wpath), wpath))
+    {
         throw OML_Error(HW_ERROR_NOTFINDCURWORKDIR);
-
-    workingdir = cwd;
-    delete [] cwd;
-    cwd = NULL;
+    }
+    return WString2StdString(wpath);
 #else
     char *cwd = getcwd(nullptr, 0);
     if (!cwd)
@@ -948,6 +946,54 @@ bool BuiltInFuncsUtils::IsDir(const std::string& path)
         return false;
     }
     returncode = S_ISDIR(file_stat.st_mode);
+#endif
+
+    if (returncode == 0)
+    {
+        return false;
+    }
+    return true;
+}
+//------------------------------------------------------------------------------
+// Returns true if the given absolute path is a file
+//------------------------------------------------------------------------------
+bool BuiltInFuncsUtils::IsFile(const std::string& path)
+{
+    if (path.empty())
+    {
+        return false;
+    }
+
+    int returncode = 0;
+
+#ifdef OS_WIN
+    BuiltInFuncsUtils utils;
+
+    std::wstring wfile(utils.GetNormpathW(utils.StdString2WString(path)));
+    wfile = utils.StripTrailingSlashW(wfile);
+    struct _stat64i32 file_stat;
+    if (_wstat(wfile.c_str(), &file_stat) == -1)
+    {
+        return false;
+    }
+    returncode = (file_stat.st_mode & _S_IFREG);      // File type mask  _S_IFMT
+#else
+    std::string file (Normpath(path));
+    if (file == "/")
+    {
+        return true;
+    }
+    {
+        StripTrailingSlash(file);
+    }
+    struct stat file_stat;
+    if (stat(file.c_str(), &file_stat) == -1)
+    {
+        return false;
+    }
+    // returncode = S_ISDIR(file_stat.st_mode);
+    returncode = S_ISREG(file_stat.st_mode);  // This macro returns non-zero if the file is a regular file.
+    
 #endif
 
     if (returncode == 0)
@@ -1632,8 +1678,14 @@ std::wstring BuiltInFuncsUtils::StdString2WString(const std::string& input)
     {
         return std::wstring();
     }
-
 #ifdef OS_WIN
+#if 0
+    // This is a better way of doing in C++ but this had some issues with an
+    // earlier compiler on some machines
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::wstring out = converter.from_bytes(input);
+    return out;
+#  endif
     int len = MultiByteToWideChar(CP_UTF8, 0, input.c_str(), -1, NULL, 0);
 
     assert(len != 0);
@@ -1648,11 +1700,12 @@ std::wstring BuiltInFuncsUtils::StdString2WString(const std::string& input)
 
     delete[] widestr;
     widestr = nullptr;
-#else
-    std::wstring out(input.begin(), input.end());
-#endif
 
     return out;
+#else
+    std::wstring out(input.begin(), input.end());
+    return out;
+#endif
 }
 //------------------------------------------------------------------------------
 // Converts std::wstring to std::string, supports Unicode
@@ -2134,8 +2187,7 @@ int BuiltInFuncsUtils::GetPlusOperator()
 int BuiltInFuncsUtils::GetMinusOperator()
 {
     return MINUS;
-}
-//------------------------------------------------------------------------------
+}//------------------------------------------------------------------------------
 // Reads file contents if it exists, supports unicode
 //------------------------------------------------------------------------------
 std::string BuiltInFuncsUtils::GetFileContents(const std::string& fname)
@@ -2185,3 +2237,46 @@ std::string BuiltInFuncsUtils::GetFileContents(const std::string& fname)
 #endif
     return contents;
 }
+//------------------------------------------------------------------------------
+// Clears variable with default name "ans" from the current scope in the evaluator
+//------------------------------------------------------------------------------
+void BuiltInFuncsUtils::ClearAnsVariable(EvaluatorInterface eval, 
+                                         const std::string& name)
+{
+    if (name == "ans")
+    {
+        eval.ClearFromVariables("ans");
+    }
+}
+//------------------------------------------------------------------------------
+// Reads file contents if it exists, supports unicode
+//------------------------------------------------------------------------------
+#ifdef OS_WIN
+std::wstring BuiltInFuncsUtils::GetFileContentsW(const std::wstring& in)
+{
+    std::wstring wname(in);
+    std::wstring contents;
+    if (!wname.empty())
+    {
+        std::replace(wname.begin(), wname.end(), L'/', L'\\');
+    }
+
+    std::wstring wdata;
+    std::FILE* f = _wfopen(wname.c_str(), L"r, ccs=UTF-8");
+    if (f)
+    {
+        struct _stat fstat;
+        _wstat(wname.c_str(), &fstat);
+        long fsize = fstat.st_size;
+
+        // Read entire file contents in to memory
+        if (fsize > 0)
+        {
+            contents.resize(fsize + 1);
+            fread(&(contents.front()), sizeof(wchar_t), fsize, f);
+        }
+        fclose(f);
+    }
+    return contents;
+}
+#endif

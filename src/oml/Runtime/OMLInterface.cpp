@@ -148,6 +148,16 @@ double OMLCurrencyImpl::GetScalar() const
 	return _cur.Scalar();
 }
 
+bool OMLCurrencyImpl::IsLogical() const
+{
+	return _cur.IsLogical();
+}
+
+bool OMLCurrencyImpl::GetLogical() const
+{
+	return _cur.Scalar() ? true : false;
+}
+
 const char* OMLCurrencyImpl::GetString() const
 {
 	std::string temp = _cur.StringVal();
@@ -474,6 +484,12 @@ void OMLCurrencyListImpl::AddString(const char* str)
 	_list[_count-1] = new OMLCurrencyImpl(str);
 }
 
+void OMLCurrencyListImpl::AddLogical(bool logical_val)
+{
+	Expand();
+	_list[_count - 1] = new OMLCurrencyImpl(logical_val);
+}
+
 void OMLCurrencyListImpl::AddMatrix(OMLMatrix* mtx)
 {
 	Expand();
@@ -563,6 +579,12 @@ OMLCellArray* OMLCurrencyListImpl::CreateCellArray(int rows, int cols)
 	return new OMLCellArrayImpl(cells);
 }
 
+OMLCellArray* OMLCurrencyListImpl::CreateTemporaryCellArray(int rows, int cols)
+{
+	HML_CELLARRAY* cells = new HML_CELLARRAY(rows, cols, HML_CELLARRAY::REAL);
+	return new OMLCellArrayImpl(cells, true);
+}
+
 OMLStruct* OMLCurrencyListImpl::CreateStruct(int rows, int cols)
 {
 	StructData* sd = new StructData();
@@ -585,6 +607,7 @@ OMLNDMatrix* OMLCurrencyListImpl::CreateNDMatrix(int num_dims, int* dims, double
 		dim_vec.push_back(dims[j]);
 
 	hwMatrixN* mtx = new hwMatrixN(dim_vec, data, hwMatrixN::REAL);
+	mtx->OwnData(1);
 	return new OMLNDMatrixImpl(mtx);
 }
 
@@ -597,7 +620,9 @@ OMLNDMatrix* OMLCurrencyListImpl::CreateNDMatrix(int num_dims, int* dims, double
 
 	hwMatrixN mtx_1(dim_vec, real, hwMatrixN::REAL);
 	hwMatrixN mtx_2(dim_vec, imag, hwMatrixN::REAL);
-	
+	mtx_1.OwnData(1);
+	mtx_2.OwnData(1);
+
 	hwMatrixN* result = new hwMatrixN;
 
 	result->PackComplex(mtx_1, &mtx_2);

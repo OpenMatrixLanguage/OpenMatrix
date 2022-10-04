@@ -1,7 +1,7 @@
 /**
 * @file Object.cxx
 * @date May 2018
-* Copyright (C) 2018-2021 Altair Engineering, Inc.  
+* Copyright (C) 2018-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -321,6 +321,7 @@ namespace omlplot{
         m_ps.push_back(Property("name", string("name"), PropertyType::UNSUPPORTED));
         m_ps.push_back(Property("numbertitle", string("numbertitle"), PropertyType::UNSUPPORTED));
         m_ps.push_back(Property("uicontextmenu", string("uicontextmenu"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("windowstyle", string("windowstyle"), PropertyType::UNSUPPORTED));
     }
 
     Figure::~Figure(){
@@ -578,6 +579,21 @@ namespace omlplot{
         m_ps.push_back(Property("xaxislocation", string("xaxislocation"), PropertyType::UNSUPPORTED));
         m_ps.push_back(Property("yaxislocation", string("yaxislocation"), PropertyType::UNSUPPORTED));
         m_ps.push_back(Property("colorbar", string("colorbar"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("legend", string("legend"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("zerolinecolor", string("zerolinecolor"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("framecolor", string("framecolor"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("gridcolor", string("gridcolor"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("xminortick", string("xminortick"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("yminortick", string("yminortick"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("zminortick", string("zminortick"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("xdb10reference", string("xdb10reference"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("ydb10reference", string("ydb10reference"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("xdb20reference", string("xdb20reference"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("ydb20reference", string("ydb20reference"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("xweighting", string("xweighting"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("yweighting", string("yweighting"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("xticklabel", string("xticklabel"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("yticklabel", string("yticklabel"), PropertyType::UNSUPPORTED));
     }
 
     void Axes::clear(){
@@ -2346,6 +2362,7 @@ namespace omlplot{
 		// not yet supported properties
 		m_ps.push_back(Property("borderwidth", string("borderwidth"), PropertyType::UNSUPPORTED));
         m_ps.push_back(Property("units", string("units"), PropertyType::UNSUPPORTED));
+        m_ps.push_back(Property("interpreter", string("interpreter"), PropertyType::UNSUPPORTED));
     }
 
     void Text::update(GnuplotOutput *out){

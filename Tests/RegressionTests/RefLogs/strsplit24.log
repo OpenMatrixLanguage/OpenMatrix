@@ -1,1 +1,1 @@
-Invalid option 'badoption' in call to function strsplit at line number 1 in file strsplit24.oml
+Error: unsupported option in argument 4; see help for valid options in call to function strsplit at line number 1 in file strsplit24.oml
