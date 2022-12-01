@@ -32,8 +32,8 @@ script:
 - export LD_LIBRARY_PATH=$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/mkl/lib/intel64_lin:$LD_LIBRARY_PATH
 - export LD_LIBRARY_PATH=$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/compiler/lib/intel64_lin:$LD_LIBRARY_PATH
 - export LD_LIBRARY_PATH=$OML_THIRDPARTY/fftw/fftw-3.2.2/.libs:$OML_THIRDPARTY/ANTLR/libantlr3c-3.4/.libs:$LD_LIBRARY_PATH
-- export LD_LIBRARY_PATH=$OML_THIRDPARTY/matio/matio-1.5.12/src/.libs:$OML_THIRDPARTY/hdf5/hdf5-1.10.1/hdf5/lib:$LD_LIBRARY_PATH
-- export LD_LIBRARY_PATH=$OML_THIRDPARTY/sundials/sundials-3.1.0-install/lib:$OML_THIRDPARTY/qhull/qhull-2015.2/lib:$LD_LIBRARY_PATH
+- export LD_LIBRARY_PATH=$OML_THIRDPARTY/matio/matio-1.5.19/linux64/lib64:$OML_THIRDPARTY/hdf/hdf5-1.12.0/linux64/lib:$LD_LIBRARY_PATH
+- export LD_LIBRARY_PATH=$OML_THIRDPARTY/sundials/sundials-6.2.0/linux64/lib:$OML_THIRDPARTY/qhull/qhull-2015.2/lib:$LD_LIBRARY_PATH
 - export LD_LIBRARY_PATH=$OML_ROOT/src/bin/linux64:$LD_LIBRARY_PATH
 - export LD_LIBRARY_PATH=/usr/bin:/usr/lib:/usr/lib64:/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 - g++ --version
