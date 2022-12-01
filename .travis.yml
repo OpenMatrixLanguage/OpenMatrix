@@ -54,7 +54,7 @@ script:
 - echo $PATH
 - cd $OML_ROOT/src
 - ls -alF
-- make -f makefile.open
+- make -f makefile.open -k
 after_success:
 - ls -alF $OML_ROOT/src/bin/linux64
 - ldd $OML_ROOT/src/bin/linux64/omlconsole
