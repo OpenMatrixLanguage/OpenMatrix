@@ -1,7 +1,7 @@
 /**
 * @file DataStateMachine.cxx
 * @date May 2018
-* Copyright (C) 2018 Altair Engineering, Inc.  
+* Copyright (C) 2018-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -403,12 +403,16 @@ namespace omlplot{
         std::shared_ptr<hwMatrix> x;
         std::shared_ptr<hwMatrix> y;
         int count = 0;
+        Currency xCategories;
 
         do {
             // this is the only state to quit the machine.
             if (pos == inputSize){  // reach the end of input
                 if (state == GET_X){
-                    ExtractData(x.get(), y.get(), res, count);
+                    if (x.get())
+                        ExtractData(x.get(), y.get(), res, count);
+                    else
+                        throw OML_Error(OML_ERR_PLOT_MATXY_NOT_MATCH);
                 }
                 break;
             }
@@ -430,8 +434,20 @@ namespace omlplot{
                 if (input.IsScalar() || input.IsComplex() ||
                     input.IsMatrix() || input.IsNDMatrix() ){
                     x = GetMatrix(input);
-                    pos += 1;
+                    ++pos;
                     state = GET_X;
+                } else if (input.IsCellArray()) {
+                    HML_CELLARRAY* c = input.CellArray();
+                    int count = c->Size();
+                    for (int i = 0; i < count; ++i) {
+                        Currency cur = (*c)(i);
+                        if (!cur.IsString()) {
+                            throw OML_Error("Error: invalid input; must be a cell array of strings");
+                        }
+                    }
+                    xCategories = input;
+                    state = GET_X;
+                    ++pos;
                 } else {
                     state = STATE_ERROR;
                 }
@@ -439,9 +455,11 @@ namespace omlplot{
             case GET_X:
                 if (input.IsScalar() || input.IsComplex() ||
                     input.IsMatrix() || input.IsNDMatrix() ){
-                    if (input.IsScalar() && (x->Size() > 1) ){
+                    
+                    if (input.IsScalar() && x.get() && x->Size() > 1){
                         //this input is width
                         ExtractData(x.get(), y.get(), res, count);
+
                         size_t end = res.size(), start = end - count;
                         for (size_t i = start; i < end; i++){
                             res[i].properties.push_back("barwidth");
@@ -449,17 +467,36 @@ namespace omlplot{
                         }
                         ++pos;
                         state = GET_WIDTH;
-                        break;
                     }
-                    y = GetMatrix(input);
-                    ExtractData(x.get(), y.get(), res, count);
-                    
-                    pos += 1;
-                    state = GET_Y;
+                    else {
+                        if (xCategories.IsCellArray()) {
+                            y = GetMatrix(input);
+                            if (y->N() != xCategories.CellArray()->Size())
+                                throw OML_Error("Error: length of categories must match the number of columns of y");
+                            y->Transpose();
+                            ExtractData(y.get(), x.get(), res, count);
+                            size_t end = res.size(), start = end - count;
+                            for (size_t i = start; i < end; i++) {
+                                res[i].xCategories = xCategories;
+                            }
+                        }
+                        else {
+                            y = GetMatrix(input);
+                            ExtractData(x.get(), y.get(), res, count);
+                        }
+                        ++pos;
+                        state = GET_Y;
+                    }
                 } else {
                     // no y input
-                    ExtractData(x.get(), y.get(), res, count);
-                    state = GET_Y;
+                    if (x.get()) {
+                        ExtractData(x.get(), y.get(), res, count);
+                        state = GET_Y;
+                    }
+                    else {
+                        state = STATE_ERROR;
+                    }
+
                 }
 				break;
             case GET_Y:
@@ -678,7 +715,7 @@ namespace omlplot{
         do {
             // this is the only state to quit the machine.
             if (pos == inputSize){  // reach the end of input
-                if (state == GET_Z){
+                if (state == GET_Z || state == GET_PROP_VALUE){
                     break;
                 } else {
                     throw OML_Error(OML_ERR_OPT_UNSUPPORTED, pos + 1);
@@ -758,7 +795,8 @@ namespace omlplot{
                     state = GET_COLOR_MAT;
                 } else if (input.IsString()){
                     string strInput = input.StringVal();
-                    if (cm->isObjectPropertyName<Surface>(strInput)){
+                    if (strInput == "curves" || strInput == "text" ||
+                        cm->isObjectPropertyName<Surface>(strInput)){
                         if ((pos + 1) >= inputSize){
                             // out of range
                             throw OML_Error(OML_ERR_PLOT_MISSING_VALUE, pos + 1);
@@ -779,7 +817,8 @@ namespace omlplot{
             case GET_PROP_VALUE:
                 if (input.IsString()){
                     string strInput = input.StringVal();
-                    if (cm->isObjectPropertyName<Surface>(strInput)){
+                    if (strInput == "curves" || strInput == "text" || 
+                        cm->isObjectPropertyName<Surface>(strInput)){
                         if ((pos + 1) >= inputSize){
                             // out of range
                             throw OML_Error(OML_ERR_PLOT_MISSING_VALUE, pos + 1);
@@ -822,10 +861,20 @@ namespace omlplot{
             switch (state){
             case START:
                 if (input.IsString()){
-                    ld->legends.push_back(input.StringVal());
-                    ++pos;
-                    state = GET_LEGEND;
+                    string str = input.StringVal();
+                    if(cm->isObjectPropertyName<Legend>(str)) {
+                        state = GET_PROP_VALUE;;
+                    }
+                    else {
+                        ld->legends.push_back(input.StringVal());
+                        ++pos;
+                        state = GET_LEGEND;
+                    }
                 } else if (input.IsMatrix()){
+                    if ((pos + 1) >= inputSize) {
+                        // out of range
+                        throw OML_Error(OML_ERR_PLOT_MISSING_VALUE, pos + 1);
+                    }
                     std::shared_ptr<hwMatrix> h = GetMatrix(input);
                     int matSize = h->Size();
                     ++pos;
@@ -867,9 +916,15 @@ namespace omlplot{
                 break;
             case GET_LEGEND:
                 if (input.IsString()){
-                    ld->legends.push_back(input.StringVal());
-                    ++pos;
-                    state = GET_LEGEND;
+                    string str = input.StringVal();
+                    if (cm->isObjectPropertyName<Legend>(str)) {
+                        state = GET_PROP_VALUE;
+                    }
+                    else {
+                        ld->legends.push_back(input.StringVal());
+                        ++pos;
+                        state = GET_LEGEND;
+                    }
                 } else if (input.IsCellArray()){
                     HML_CELLARRAY *c = input.CellArray();
                     int count = c->Size();
@@ -885,8 +940,25 @@ namespace omlplot{
                 }
                 break;
             case GET_PROP_VALUE:
-                // ignore property and value
-                ++pos;
+                if (input.IsString()) {
+                    string str = input.StringVal();
+                    if (cm->isObjectPropertyName<Legend>(str)) {
+                        if ((pos + 1) >= inputSize) {
+                            // out of range
+                            throw OML_Error(OML_ERR_PLOT_MISSING_VALUE, pos + 1);
+                        }
+                        ld->properties.push_back(str);
+                        ld->values.push_back(inputs[++pos]);
+                        ++pos;
+                        state = GET_PROP_VALUE;
+                    }
+                    else {
+                        state = STATE_ERROR;
+                    }
+                }
+                else {
+                    state = STATE_ERROR;
+                }
                 break;
             case STATE_ERROR:
                 throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
@@ -894,6 +966,257 @@ namespace omlplot{
             }
         } while (true);
         return ld;
+    }
+
+    std::unique_ptr<ColorbarData> DataStateMachine::getColorbarData(const std::vector<Currency>& inputs)
+    {
+        int pos = 0;
+        size_t inputSize = inputs.size();
+        Currency input;
+        std::unique_ptr<ColorbarData> data(new ColorbarData);
+
+        if (pos == inputSize)
+        {
+            // reach the end of input
+            data->toggleVisibility = true;
+            return data;
+        }
+
+        State state = START;
+
+        do {
+            // this is the only state to quit the machine.
+            if (pos == inputSize)
+            {
+                // reach the end of input
+                break;
+            }
+            input = getNextInput(inputs, pos);
+
+            switch (state)
+            {
+            case START:
+            {
+                if (input.IsScalar())
+                {
+                    // axis handle -> go to next input
+                    ++pos;
+                    break;
+                }
+                else if (input.IsString())
+                {
+                    std::string val = input.StringVal();
+                    if (val == "on" || val == "off")
+                    {
+                        data->properties.push_back(std::string("visible"));
+                        data->values.push_back(input);
+                        pos++;
+                    }
+                    state = GET_PROP_VALUE;
+                    break;
+                }
+                else
+                {
+                    if (!input.IsVector() || !input.IsRealVector() ||
+                        (input.IsVector() && input.Vector().size() != 2))
+                    {
+                        throw OML_Error(OML_ERR_VECTOR2, pos + 1);
+                    }
+                    data->properties.push_back(std::string("visible"));
+                    data->values.push_back(Currency("on"));
+                    data->properties.push_back(std::string("clim"));
+                    data->values.push_back(input);
+                    state = GET_PROP_VALUE;
+                    pos += 1;
+                    break;
+                }
+                state = STATE_ERROR;
+                pos += 1;
+                break;
+            }
+            case GET_PROP_VALUE:
+                if (input.IsString())
+                {
+                    std::string str = input.StringVal();
+                    if ((pos + 1) >= inputSize)
+                    {
+                        throw OML_Error(OML_ERR_PLOT_MISSING_VALUE, pos + 1);
+                    }
+                    data->properties.push_back(str);
+                    data->values.push_back(inputs[++pos]);
+                    ++pos;
+                    state = GET_PROP_VALUE;
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                break;
+            case STATE_ERROR:
+                throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
+                break;
+            default:
+                throw OML_Error(OML_ERR_NUMARGIN);
+            }
+        } while (true);
+        return data;
+    }
+
+    std::vector<LineData> DataStateMachine::getQuiverData(const std::vector<Currency>& inputs)
+    {
+        int pos = 0;
+        size_t inputSize = inputs.size();
+        Currency input;
+        LineData pd;
+        vector<LineData> res;
+        State state = START;
+        std::shared_ptr<hwMatrix> x;
+        std::shared_ptr<hwMatrix> y;
+        std::shared_ptr<hwMatrix> u;
+        std::shared_ptr<hwMatrix> v;
+        int count = 0;
+
+        bool hasXYValues = false;
+        int inputS = static_cast<int>(inputs.size());
+        do {
+            // this is the only state to quit the machine.
+            if (pos == inputSize){
+                if (pd.x.empty())
+                    throw OML_Error(OML_ERR_NUMARGIN);
+                break;
+            }
+                
+
+            input = getNextInput(inputs, pos);
+
+            switch (state)
+            {
+            case START:
+                if (input.IsScalar() && cm->isAxes(input.Scalar())) {
+                    pd.parent = input.Scalar();
+                    ++pos;
+                    hasXYValues = inputS >= 5;
+                }
+                else {
+                    hasXYValues = inputS >= 4;
+                }
+                state = GET_HANDLE;
+                break;
+            case GET_HANDLE:
+                if (input.IsScalar() || input.IsMatrix())
+                {
+                    if (hasXYValues)
+                    {
+                        x = GetMatrix(input);
+                        state = GET_X;
+                    }
+                    else
+                    {
+                        u = GetMatrix(input);
+                        state = GET_U;
+                    }
+                    pos += 1;
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_X:
+                if (input.IsScalar() || input.IsMatrix() && hasXYValues)
+                {
+                    y = GetMatrix(input);
+                    pos += 1;
+                    state = GET_Y;
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_Y:
+                if (input.IsScalar() || input.IsMatrix())
+                {
+                    u = GetMatrix(input);
+                    pos += 1;
+                    state = GET_U;
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_U:
+                if (input.IsScalar() || input.IsMatrix())
+                {
+                    v = GetMatrix(input);
+                    pos += 1;
+                    state = GET_V;
+
+                    // end of x, y, u, v input - validate
+                    int M = u->M();
+                    int N = u->N();
+
+                    if (M != v->M() || N != v->N())
+                        throw OML_Error(OML_ERR_PLOT_DIM_NOT_MATCH);
+
+                    pd.u = MatrixToVector(u.get());
+                    pd.v = MatrixToVector(v.get());
+
+                    if (hasXYValues) {
+                        if (x->M() != M || x->N() != N ||
+                            y->M() != M || y->N() != N)
+                            throw OML_Error(OML_ERR_PLOT_DIM_NOT_MATCH);
+
+                        pd.x = MatrixToVector(x.get());
+                        pd.y = MatrixToVector(y.get());
+                    }
+                    else {
+                        Currency newx(new hwMatrix(M, N, hwMatrix::REAL));
+                        Currency newy(new hwMatrix(M, N, hwMatrix::REAL));
+                        hwMatrix* newxMat = newx.GetWritableMatrix();
+                        hwMatrix* newyMat = newy.GetWritableMatrix();
+                        for (int i = 0; i < M; ++i)
+                        {
+                            for (int j = 0; j < N; ++j)
+                            {
+                                (*newxMat)(i, j) = j + 1;
+                                (*newyMat)(i, j) = i + 1;
+                            }
+                        }
+                        pd.x = MatrixToVector(newxMat);
+                        pd.y = MatrixToVector(newyMat);
+                    }
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_V:
+                if (input.IsScalar())
+                {
+                    pd.properties.push_back("autoscalefactor");
+                    pd.values.push_back(input);
+                    ++pos;
+                }
+                else if (input.IsString())
+                {
+                    pd.style = input.StringVal();
+                    ++pos;
+                }
+                else
+                {
+                    throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
+                }
+                break;
+            case STATE_ERROR:
+                throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
+                break;
+            }
+        } while (true);
+        res.push_back(pd);
+        return res;
     }
 
     std::unique_ptr<TextData> DataStateMachine::getTextData(const std::vector<Currency> &inputs){
@@ -965,7 +1288,7 @@ namespace omlplot{
                 break;
             case GET_Z:
                 if (input.IsString()){
-                    string s = inputs[2].StringVal();
+                    string s = input.StringVal();
                     for (int i = 0; i < td->zpos.size(); i++){
                         td->text.push_back(s);
                     }                    
@@ -1001,9 +1324,20 @@ namespace omlplot{
                 break;
             case GET_TEXT:
             case GET_PROP_VALUE:
-                // ignore property and value
-                ++pos;
-                state = GET_PROP_VALUE;
+                if (input.IsString()) {
+                    string strInput = input.StringVal();
+                    if ((pos + 1) >= inputSize) {
+                        // out of range
+                        throw OML_Error(OML_ERR_PLOT_MISSING_VALUE, pos + 1);
+                    }
+                    td->properties.push_back(strInput);
+                    td->values.push_back(inputs[++pos]);
+                    state = GET_PROP_VALUE;
+                    ++pos;
+                }
+                else {
+                    state = STATE_ERROR;
+                }
                 break;
             case STATE_ERROR:
                 throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
@@ -1163,6 +1497,99 @@ namespace omlplot{
         return res;
     }
 
+    std::vector<LineData> DataStateMachine::getXLineData(const std::vector<Currency>& inputs)
+    {
+        int pos = 0;
+        size_t inputSize = inputs.size();
+        Currency input;
+        LineData pd;
+        vector<LineData> res;
+        State state = START;
+        std::shared_ptr<hwMatrix> x;
+        std::shared_ptr<hwMatrix> y;
+        int count = 0;
+
+        do {
+            // this is the only state to quit the machine.
+            if (pos == inputSize)
+                break;
+            
+            input = getNextInput(inputs, pos);
+
+            switch (state) {
+            case START:
+                if (input.IsScalar()) {
+                    double h = input.Scalar();
+                    if (cm->isAxes(h)) {
+                        pd.parent = h;
+                        _temp_parent = h;
+                        ++pos;
+                    }
+                }
+                state = GET_HANDLE;
+                break;
+            case GET_HANDLE:
+                if (input.IsScalar() || input.IsComplex() ||
+                    input.IsMatrix() || input.IsNDMatrix()) {
+                    x = GetMatrix(input);
+                    pos += 1;
+                    ExtractData(x.get(), y.get(), res, count);
+                    state = GET_X;
+                }
+                else {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_X:
+                if (input.IsString()) {
+                    string strInput = input.StringVal();
+                    while (true) {   // get every string inputs
+                        if (cm->isObjectPropertyName<Line>(strInput)) {
+                            if ((pos + 1) >= inputSize) {
+                                // out of range
+                                throw OML_Error(OML_ERR_PLOT_MISSING_VALUE, pos + 1);
+                            }
+                            string propertyName = strInput;
+                            Currency propertyValue = inputs[++pos];
+
+                            size_t end = res.size(), start = end - count;
+                            for (size_t i = start; i < end; i++) {
+                                res[i].properties.push_back(propertyName);
+                                res[i].values.push_back(propertyValue);
+                            }
+                        }
+                        else {
+                            throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
+                        }
+
+                        // there are more string input
+                        if (((pos + 1) < inputSize) &&
+                            inputs[pos + 1].IsString()) {
+                            ++pos;
+                            strInput = inputs[pos].StringVal();
+                        }
+                        else {    // no more string inputs
+                            break;  // exit while loop
+                        }
+                    }
+
+                    // line info saved in res, use pd again to save next info
+                    pos += 1;
+                }
+                else {
+                    state = STATE_ERROR;
+                }
+                break;
+            case STATE_ERROR:
+                throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
+                break;
+            }
+        } while (true);
+
+        _temp_parent = 0;
+        return res;
+    }
+
     void DataStateMachine::GetHistData(const hwMatrix& data, const int numBins, hwMatrix &bin, hwMatrix &freq){
         double temp_max = data(0);
         double temp_min = data(0);
@@ -1256,6 +1683,427 @@ namespace omlplot{
         return ld;
     }
 
+    QueryData::SEARCH_OP GetSearchOperator(const std::string& op)
+    {
+        if (op == "-and")
+        {
+            return QueryData::OP_AND;
+        }
+        else if (op == "-or")
+        {
+            return QueryData::OP_OR;
+        }
+        else if (op == "-xor")
+        {
+            return QueryData::OP_XOR;
+        }
+        else if (op == "-not")
+        {
+            return QueryData::OP_NOT;
+        }
+        return QueryData::OP_INV;
+    }
+
+    std::unique_ptr<QueryData> DataStateMachine::getQueryData(const std::vector<Currency>& inputs)
+    {
+        int pos = 0;
+        size_t inputSize = inputs.size();
+        Currency input;
+
+        std::unique_ptr<QueryData> data(new QueryData);
+        State state = START;
+
+        if (inputSize == 0)
+            throw OML_Error(OML_ERR_NUMARGIN);
+
+        do
+        {
+            if (pos == inputSize)
+            {  // reach the end of input
+                if (state != GET_PROP_VALUE && state != GET_SINGLE_PROP)
+                    throw OML_Error(OML_ERR_NUMARGIN);
+                break;
+            }
+            input = getNextInput(inputs, pos);
+
+            switch (state)
+            {
+            case START:
+                if (input.IsScalar())
+                {
+                    data->handles.push_back(input.Scalar());
+                    ++pos;
+                    state = GET_HANDLE;
+                }
+                else if (input.IsVector())
+                {
+                    std::vector<double> xx = input.Vector();
+                    for (int i = 0; i < xx.size(); i++)
+                        data->handles.push_back(xx[i]);
+                    ++pos;
+                    state = GET_HANDLE;
+                }
+                else if (input.IsString())
+                {
+                    std::string val = input.StringVal();
+                    if (val == "-property")
+                    {
+                        state = GET_SINGLE_PROP;
+                    }
+                    else if (val == "-depth")
+                    {
+                        state = GET_SEARCH_DEPTH;
+                    }
+                    else if (val == "flat")
+                    {
+                        data->m_depth = 0;
+                        state = GET_HANDLE;
+                        ++pos;
+                    }
+                    else
+                    {
+                        // check if operator
+                        QueryData::SEARCH_OP op = GetSearchOperator(val);
+                        if (op != QueryData::OP_INV)
+                        {
+                            data->ops.push_back(op);
+                            state = GET_HANDLE;
+                            ++pos;
+                        }
+                        else
+                        {
+                            state = GET_HANDLE;
+                        }
+                    }
+                }
+                break;
+            case GET_HANDLE:
+            case GET_PROP_VALUE:
+                if (input.IsString())
+                {
+                    std::string str = input.StringVal();
+                    if (str == "-property")
+                    {
+                        state = GET_SINGLE_PROP;
+                        break;
+                    }
+                    else if (str == "-depth")
+                    {
+                        state = GET_SEARCH_DEPTH;
+                        break;
+                    }
+                    else if (str == "flat")
+                    {
+                        data->m_depth = 0;
+                        state = GET_HANDLE;
+                        ++pos;
+                    }
+                    else
+                    {
+                        // check if operator
+                        QueryData::SEARCH_OP op = GetSearchOperator(str);
+                        if (op != QueryData::OP_INV)
+                        {
+                            data->ops.push_back(op);
+                            state = GET_HANDLE;
+                            ++pos;
+                        }
+                        else
+                        {
+                            if ((pos + 1) >= inputSize)
+                            {
+                                throw OML_Error(OML_ERR_PLOT_MISSING_VALUE, pos + 1);
+                            }
+                            data->properties.push_back(str);
+                            data->values.push_back(inputs[++pos]);
+                            ++pos;
+                            state = GET_PROP_VALUE;
+                        }
+                    }
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_SINGLE_PROP:
+                // check there is a property
+                if ((pos + 1) >= inputSize)
+                {
+                    throw OML_Error(OML_ERR_PLOT_MISSING_VALUE, pos + 1);
+                }
+                ++pos;
+                if (inputs[pos].IsString())
+                {
+                    data->m_onlyProperty = true;
+                    data->properties.push_back(inputs[pos].StringVal());
+                    state = GET_SINGLE_PROP;
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                // if there are more arguments throw error
+                if ((pos + 1) < inputSize)
+                {
+                    throw OML_Error(OML_ERR_NUMARGIN);
+                }
+                ++pos;
+                break;
+            case GET_SEARCH_DEPTH:
+                // check there is a value
+                if ((pos + 1) >= inputSize)
+                {
+                    throw OML_Error(OML_ERR_PLOT_MISSING_VALUE, pos + 1);
+                }
+                ++pos;
+                if (inputs[pos].IsScalar())
+                {
+                    int d = static_cast<int>(inputs[pos].Scalar());
+                    if (d < 0)
+                    {
+                        throw OML_Error(OML_ERR_POSINTEGER, pos + 1);
+                    }
+                    data->m_depth = d;
+                    state = GET_PROP_VALUE;
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                ++pos;
+                break;
+            case STATE_ERROR:
+                throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
+                break;
+            }
+        } while (true);
+
+        if (!data->ops.empty() && data->ops.size() != ((int)data->properties.size() - 1))
+            throw OML_Error(OML_ERR_NUMARGIN);
+
+        return data;
+    }
+
+    std::vector<LineData> DataStateMachine::getShapeData(const std::vector<Currency>& inputs, 
+        const std::string& shape) {
+        int pos = 0;
+        size_t inputSize = inputs.size();
+        Currency input;
+
+        std::vector<LineData> vd;
+        LineData data;// (new LineData);
+        State state = START;
+
+        if (inputSize == 0) {
+            throw OML_Error(OML_ERR_NUMARGIN);
+        }
+
+        do {
+            if (pos == inputSize) {  // reach the end of input
+                break;
+            }
+            input = getNextInput(inputs, pos);
+
+            switch (state) {
+            case START:
+                if (input.IsScalar()) {
+                    data.parent = input.Scalar();
+                    ++pos;
+                }
+                else {
+                    data.parent = -1;
+                }
+                state = GET_HANDLE;
+                break;
+            case GET_HANDLE:
+            case GET_PROP_VALUE:
+                if (input.IsString()) {
+                    string str = input.StringVal();
+                    if ((shape == "ellipse" && cm->isObjectPropertyName<Ellipse>(str)) ||
+                        (shape == "rectangle" && cm->isObjectPropertyName<Rectangle>(str))) {
+                        if ((pos + 1) >= inputSize) {
+                            throw OML_Error(OML_ERR_PLOT_MISSING_VALUE, pos + 1);
+                        }
+                        data.properties.push_back(str);
+                        data.values.push_back(inputs[++pos]);
+                        ++pos;
+                        state = GET_PROP_VALUE;
+                    }
+                    else {
+                        state = STATE_ERROR;
+                    }
+                }
+                else {
+                    state = STATE_ERROR;
+                }
+                break;
+            case STATE_ERROR:
+                throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
+                break;
+            }
+        } while (true);
+        vd.push_back(data);
+        return vd;
+    }
+
+    std::vector<LineData> DataStateMachine::getPatchData(const std::vector<Currency>& inputs)
+    {
+        int pos = 0;
+        size_t inputSize = inputs.size();
+        Currency input;
+        LineData data;
+        std::vector<LineData> res;
+        State state = START;
+        std::shared_ptr<hwMatrix> x;
+        std::shared_ptr<hwMatrix> y;
+        std::shared_ptr<hwMatrix> z;
+
+        do {
+            // this is the only state to quit the machine.
+            if (pos == inputSize) {  // reach the end of input
+                if (state == GET_COLOR_MAT || state == GET_PROP_VALUE) {
+                    break;
+                }
+                else {
+                    throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
+                }
+            }
+            input = getNextInput(inputs, pos);
+
+            switch (state) {
+            case START:
+                if (input.IsScalar() || input.IsMatrix()) {
+                    x = GetMatrix(input);
+                    data.x = MatrixToVector(x.get());
+                    if (x->IsVector())
+                        data.xcolcount = 1;
+                    else
+                        data.xcolcount = x->N();
+                    pos += 1;
+                    state = GET_X;
+                }
+                else if (input.IsString())
+                {
+                    state = GET_COLOR_MAT;
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_X:
+                if (input.IsScalar() || input.IsMatrix()) {
+                    y = GetMatrix(input);
+                    data.y = MatrixToVector(y.get());
+                    if (y->IsVector())
+                        data.ycolcount = 1;
+                    else
+                        data.ycolcount = y->N();
+                    pos += 1;
+                    state = GET_Y;
+                }
+                else {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_Y:
+                if (input.IsMatrix()) {
+                    z = GetMatrix(input);
+                    data.z = MatrixToVector(z.get());
+                    if (z->IsVector())
+                        data.zcolcount = 1;
+                    else
+                        data.zcolcount = z->N();
+                    pos += 1;
+                    state = GET_Z;
+                }
+                else if (input.IsString()) {
+                    string strInput = input.StringVal();
+                    data.style = strInput;
+                    pos += 1;
+                    state = GET_COLOR_MAT;
+                }
+                else {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_Z:
+                if (input.IsString()) {
+                    string strInput = input.StringVal();
+                    data.style = strInput;
+                    pos += 1;
+                    state = GET_COLOR_MAT;
+                }
+                else {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_COLOR_MAT:
+                if (input.IsScalar() || input.IsMatrix()) {
+                    res.push_back(data);
+
+                    data = LineData();
+                    x = GetMatrix(input);
+                    data.x = MatrixToVector(x.get());
+                    if (x->IsVector())
+                        data.xcolcount = 1;
+                    else
+                        data.xcolcount = x->N();
+                    pos += 1;
+                    state = GET_X;
+                }
+                else if (input.IsString()) {
+                    string strInput = input.StringVal();
+                    if (cm->isObjectPropertyName<Patch>(strInput) || 
+                        strInput =="vertices" || strInput == "faces") {
+                        if ((pos + 1) >= inputSize) {
+                            // out of range
+                            throw OML_Error(OML_ERR_PLOT_MISSING_VALUE, pos + 1);
+                        }
+                        data.properties.push_back(strInput);
+                        data.values.push_back(inputs[++pos]);
+                        ++pos;
+                        state = GET_PROP_VALUE;
+                    }
+                    else {
+                        throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
+                    }
+                }
+                else {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_PROP_VALUE:
+                if (input.IsString()) {
+                    string strInput = input.StringVal();
+                    if (cm->isObjectPropertyName<Patch>(strInput) ||
+                        strInput == "vertices" || strInput == "faces") {
+                        if ((pos + 1) >= inputSize) {
+                            // out of range
+                            throw OML_Error(OML_ERR_PLOT_MISSING_VALUE, pos + 1);
+                        }
+                        data.properties.push_back(strInput);
+                        data.values.push_back(inputs[++pos]);
+                        ++pos;
+                        state = GET_PROP_VALUE;
+                    }
+                    else {
+                        throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
+                    }
+                }
+                else {
+                    state = STATE_ERROR;
+                }
+                break;
+            case STATE_ERROR:
+                throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
+                break;
+            }
+        } while (true);
+        res.push_back(data);
+        return res;
+    }
 
     std::shared_ptr<hwMatrix> DataStateMachine::GetMatrix(const Currency &c){
         std::shared_ptr<hwMatrix> mat;

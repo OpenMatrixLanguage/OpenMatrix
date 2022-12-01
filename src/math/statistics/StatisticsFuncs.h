@@ -17,14 +17,18 @@
 #define _Stats_StatisticsFuncs_h
 
 #include "StatisticsExports.h"
+#include <string>
 
 // forward declarations
 class hwMathStatus;
 class hwMersenneTwisterState;
 template <typename T> class hwTComplex;
+typedef hwTComplex<double> hwComplex;
 template <typename T1, typename T2> class hwTMatrix;
 typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
 typedef hwTMatrix<int, hwTComplex<int> > hwMatrixI;
+template <typename T1, typename T2> class hwTMatrixN;
+typedef hwTMatrixN<double, hwTComplex<double> > hwMatrixN;
 
 //------------------------------------------------------------------------------
 //!
@@ -130,6 +134,18 @@ STATISTICS_DECLS hwMathStatus Mean(const hwMatrix& data,
 STATISTICS_DECLS hwMathStatus Mean(const hwMatrix& A,
                                    hwMatrix&       xBar);
 //!
+//! \param A    Input
+//! \param nb   number of points to the left
+//! \param na   number of points to the right
+//! \param dim  dimension on which to operate
+//! \param xBar
+STATISTICS_DECLS hwMathStatus MovMean(const hwMatrixN&   A,
+                                      int                nb,
+                                      int                na,
+                                      int                dim,
+                                      const std::string& endproperty,
+                                      hwComplex          userVal,
+                                      hwMatrixN&         xBar);
 //! Compute the median of a data vector
 //! \param data   Input
 //! \param median Median

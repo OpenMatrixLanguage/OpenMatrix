@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsUtils.cpp
 * @date November 2015
-* Copyright (C) 2015-2021 Altair Engineering, Inc.  
+* Copyright (C) 2015-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 
 #ifdef OS_WIN
+#    define NOMINMAX
 #    include <io.h>
 #include <locale>
 #include <codecvt>
@@ -57,7 +58,7 @@
 #include "SignalHandlerBase.h"
 #include "utf8utils.h"
 
-#include <hwMatrix.h>
+#include "hwMatrix.h"
 
 // End defines/includes
 
@@ -77,7 +78,7 @@ Currency BuiltInFuncsUtils::ReadRow(EvaluatorInterface& eval,
         loc = EvaluatorInterface::allocateMatrix();
     }
 
-    std::unique_ptr<hwMatrix>row(EvaluatorInterface::allocateMatrix(1, loc->N(), loc->Type()));
+    std::unique_ptr<hwMatrix>row(EvaluatorInterface::allocateMatrix(1, loc->N(), loc->IsReal()));
 
     if (index < loc->M())
     {
@@ -158,7 +159,7 @@ Currency BuiltInFuncsUtils::FormatOutput(const std::vector<std::string>& in,
     }
 
     // Pad output with leading zeros to width of largest element
-    hwMatrix* out = EvaluatorInterface::allocateMatrix(rows, cols, hwMatrix::REAL);
+    hwMatrix* out = EvaluatorInterface::allocateMatrix(rows, cols, true);
     for (int i = 0; i < rows; ++i)
     {
         std::string tmp (in[i]);
@@ -653,9 +654,15 @@ void BuiltInFuncsUtils::ReadFormattedInput(const std::string&              input
 //------------------------------------------------------------------------------
 // Returns true if file exists - works with wide characters
 //------------------------------------------------------------------------------
-bool BuiltInFuncsUtils::FileExists(const std::string& name)
+bool BuiltInFuncsUtils::FileExists(const std::string& in)
 {
-    if (name.empty()) return false;
+    if (in.empty())
+    {
+        return false;
+    }
+
+    std::string name(BuiltInFuncsUtils::Normpath(in));
+    
 
 #ifdef OS_WIN
     BuiltInFuncsUtils utils;
@@ -687,10 +694,12 @@ void BuiltInFuncsUtils::SetMatrixNSlice(const hwMatrix* mtx, size_t index, hwMat
 //------------------------------------------------------------------------------
 // Returns true if given file path is absolute
 //------------------------------------------------------------------------------
-bool BuiltInFuncsUtils::IsAbsolutePath(const std::string& path)
+bool BuiltInFuncsUtils::IsAbsolutePath(const std::string& in)
 {
-    if (path.empty()) 
+    if (in.empty()) 
         return false;
+
+    std::string path(Normpath(in));
 
     char ch = path[0];
 #if OS_WIN
@@ -729,8 +738,11 @@ std::string BuiltInFuncsUtils::GetAbsolutePath(const std::string& path)
 
 #ifdef OS_WIN
     BuiltInFuncsUtils utils;
-    std::wstring abspath(utils.GetAbsolutePathW(utils.StdString2WString(path)));
-    return utils.WString2StdString(abspath);
+    std::wstring abspathw(utils.GetAbsolutePathW(utils.StdString2WString(path)));
+    std::string abspath(utils.WString2StdString(abspathw));
+
+    return Normpath(abspath);
+
 #else
     char* tmp = realpath(path.c_str(), NULL); 
     if (!tmp)
@@ -740,6 +752,7 @@ std::string BuiltInFuncsUtils::GetAbsolutePath(const std::string& path)
     free(tmp);
     tmp = NULL;
 
+    abspath = BuiltInFuncsUtils::Normpath(abspath);
     return abspath;
 #endif
 }
@@ -971,8 +984,8 @@ bool BuiltInFuncsUtils::IsFile(const std::string& path)
 
     std::wstring wfile(utils.GetNormpathW(utils.StdString2WString(path)));
     wfile = utils.StripTrailingSlashW(wfile);
-    struct _stat64i32 file_stat;
-    if (_wstat(wfile.c_str(), &file_stat) == -1)
+    struct _stat64    file_stat;
+    if (_wstat64(wfile.c_str(), &file_stat) == -1)
     {
         return false;
     }
@@ -2280,3 +2293,24 @@ std::wstring BuiltInFuncsUtils::GetFileContentsW(const std::wstring& in)
     return contents;
 }
 #endif
+//------------------------------------------------------------------------------
+// Returns true if there are wide characters
+//------------------------------------------------------------------------------
+bool BuiltInFuncsUtils::HasWideChars(const hwMatrix* mtx)
+{
+    if (!mtx || !mtx->IsReal())
+    {
+        return false;
+    }
+
+    int len = mtx->Size();
+    for (int i = 0; i < len; ++i)
+    {
+        unsigned char ch = (*mtx)(i);
+        if (utf8_get_char_size(&ch) > 1)
+        {
+            return true;
+        }
+    }
+    return false;
+}

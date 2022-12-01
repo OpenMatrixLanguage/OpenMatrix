@@ -17,6 +17,7 @@
 #include "MemoryScope.h"
 #include "FunctionInfo.h"
 #include "OML_Error.h"
+#include "ClassInfo.h"
 #include <algorithm>
 
 std::map<std::string, Currency> MemoryScope::globals;
@@ -29,7 +30,8 @@ int MemoryScopeManager::_env_counter = 0;
 MemoryScope::MemoryScope(FunctionInfo* info)
     : fi(info)
     , debug_line(0)
-    , debug_filename(NULL) 
+    , debug_filename(NULL)
+	, break_on_continue(false)
 {
     if (fi)
     {
@@ -377,6 +379,194 @@ bool MemoryScope::Remove(const std::regex& varname)
     return rv;
 }
 
+#if 0
+#define DEBUG_PRINT(s) { std::cout << s << std::endl; }
+#else
+#define DEBUG_PRINT(s)
+#endif
+bool MemoryScope::RemoveVariablesExcept(	const std::vector<std::string>& varnames,
+								const std::vector<std::regex>& varwildnames,
+								const std::vector<std::string>& exceptnames,
+								const std::vector<std::regex>& exceptwildnames)
+{
+	bool rv = false;
+	bool delete_var;
+	std::vector<std::string>::const_iterator itervarnames = varnames.begin();
+	std::vector<std::regex>::const_iterator itervarwildnames = varwildnames.begin();
+	std::vector<std::string>::const_iterator iterexceptnames = exceptnames.begin();
+	std::vector<std::regex>::const_iterator iterexceptwildnames = exceptwildnames.begin();
+	DEBUG_PRINT("------------------------------")
+
+	std::smatch results;
+	// std::vector<std::string>::iterator iter;
+	// for (iter = scope.begin(); iter != scope.end();)		// for each variable
+	for (auto iter = scope.begin(); iter != scope.end();)		// for each variable
+	{
+		std::string test = *(iter->first);
+
+		DEBUG_PRINT("Check variable '" + test + "'")
+		std::string test2;
+
+		delete_var = false;
+		// check if this variable should be deleted
+		for (itervarnames = varnames.begin(); itervarnames != varnames.end();)
+		{
+			// test2 = *(itervarnames->first);
+			test2 = *(itervarnames);
+			if (*(iter->first) == *(itervarnames))
+			{
+				DEBUG_PRINT("  Delete specified '" + *(itervarnames) + "'")
+				delete_var = true;
+				break;
+			}
+			else
+				itervarnames++;
+		}
+		if(!delete_var)
+			for (itervarwildnames = varwildnames.begin(); itervarwildnames != varwildnames.end();)
+			{
+				if (std::regex_match(*(iter->first), results, *(itervarwildnames)))
+				{
+					DEBUG_PRINT("  Delete specified " " by wildcard")
+					delete_var = true;
+					break;
+				}
+				else
+					itervarwildnames++;
+			}
+		// check if this variable should be -except'ed
+		if (delete_var)
+		{
+			for (iterexceptnames = exceptnames.begin(); iterexceptnames != exceptnames.end();)
+				if (*(iter->first) == *(iterexceptnames))
+				{
+					DEBUG_PRINT("  EXCEPT specified '" + *(iterexceptnames) + "'")
+					delete_var = false;  // don't delete this variable
+					break;
+				}
+				else
+					iterexceptnames++;
+		}
+		if (delete_var)  // if delete is still on
+			for (iterexceptwildnames = exceptwildnames.begin(); iterexceptwildnames != exceptwildnames.end();)
+				if (std::regex_match(*(iter->first), results, *(iterexceptwildnames)))
+				{
+					DEBUG_PRINT("  EXCEPT specified" " by wildcard")
+					delete_var = false;  // don't delete this variable
+					break;
+				}
+				else
+					iterexceptwildnames++;
+		// check if this variable should be deleted
+		if (delete_var)
+		{
+			rv = true;
+			DEBUG_PRINT("  DELETING '" + *(iter->first))
+			scope.erase(iter++);
+		}
+		else
+		{
+			DEBUG_PRINT("  NO DELETE '" + *(iter->first))
+				iter++;
+		}
+	}
+	return rv;
+}
+
+bool MemoryScope::RemoveGlobalsExcept(const std::vector<std::string>& varnames,
+	const std::vector<std::regex>& varwildnames,
+	const std::vector<std::string>& exceptnames,
+	const std::vector<std::regex>& exceptwildnames)
+{
+	bool rv = false;
+	bool delete_var;
+	std::vector<std::string>::const_iterator itervarnames = varnames.begin();
+	std::vector<std::regex>::const_iterator itervarwildnames = varwildnames.begin();
+	std::vector<std::string>::const_iterator iterexceptnames = exceptnames.begin();
+	std::vector<std::regex>::const_iterator iterexceptwildnames = exceptwildnames.begin();
+	DEBUG_PRINT("------------------------------")
+
+	std::smatch results;
+	// for (auto iter = scope.begin(); iter != scope.end();)		// for each variable
+	for (auto iter = globals.begin(); iter != globals.end();)
+	{
+		//DEL std::string test = *(iter->first);
+		std::string test = iter->first;
+
+		DEBUG_PRINT("Check variable '" + test + "'")
+			std::string test2;
+
+		delete_var = false;
+		// check if this variable should be deleted
+		for (itervarnames = varnames.begin(); itervarnames != varnames.end();)
+		{
+			// test2 = *(itervarnames->first);
+			test2 = *(itervarnames);
+			//DEL if (*(iter->first) == *(itervarnames))
+			if (iter->first == *(itervarnames))
+			{
+				DEBUG_PRINT("  Delete specified '" + *(itervarnames)+"'")
+					delete_var = true;
+				break;
+			}
+			else
+				itervarnames++;
+		}
+		if (!delete_var)
+			for (itervarwildnames = varwildnames.begin(); itervarwildnames != varwildnames.end();)
+			{
+				//DELif (std::regex_match(*(iter->first), results, *(itervarwildnames)))
+				if (std::regex_match(iter->first, results, *(itervarwildnames)))
+				{
+					DEBUG_PRINT("  Delete specified " " by wildcard")
+						delete_var = true;
+					break;
+				}
+				else
+					itervarwildnames++;
+			}
+		// check if this variable should be -except'ed
+		if (delete_var)
+		{
+			for (iterexceptnames = exceptnames.begin(); iterexceptnames != exceptnames.end();)
+				//DEL if (*(iter->first) == *(iterexceptnames))
+				if (iter->first == *(iterexceptnames))
+				{
+					DEBUG_PRINT("  EXCEPT specified '" + *(iterexceptnames)+"'")
+						delete_var = false;  // don't delete this variable
+					break;
+				}
+				else
+					iterexceptnames++;
+		}
+		if (delete_var)  // if delete is still on
+			for (iterexceptwildnames = exceptwildnames.begin(); iterexceptwildnames != exceptwildnames.end();)
+				//DEL if (std::regex_match(*(iter->first), results, *(iterexceptwildnames)))
+				if (std::regex_match(iter->first, results, *(iterexceptwildnames)))
+				{
+					DEBUG_PRINT("  EXCEPT specified" " by wildcard")
+					delete_var = false;  // don't delete this variable
+					break;
+				}
+				else
+					iterexceptwildnames++;
+		// check if this variable should be deleted
+		if (delete_var)
+		{
+			rv = true;
+			DEBUG_PRINT("  DELETING '" + *(iter->first))
+			global_names.erase(iter->first);
+			globals.erase(iter++);
+		}
+		else
+		{
+			DEBUG_PRINT("  NO DELETE '" + *(iter->first))
+			iter++;
+		}
+	}
+	return rv;
+}
+
 void MemoryScope::Reset()
 {
 	scope.clear();
@@ -536,10 +726,23 @@ FunctionInfo* MemoryScope::GetLocalFunction(const std::string* func_name)
     {
         return nullptr;
     }
+
     if (fi->local_functions->find(func_name) != fi->local_functions->end())
     {
         return (*fi->local_functions)[func_name];
     }
+
+	if (fi->GetParentClass())
+	{
+		FunctionInfo* cfi = fi->GetParentClass()->GetConstructorFunctionInfo();
+
+		if (cfi && cfi->local_functions)
+		{
+			if (cfi->local_functions->find(func_name) != cfi->local_functions->end())
+				return (*cfi->local_functions)[func_name];
+		}
+	}
+
     return nullptr;
 }
 
@@ -818,6 +1021,22 @@ void MemoryScopeManager::Remove(const std::string& varname)
 bool MemoryScopeManager::Remove(const std::regex& varname)
 {
 	return GetCurrentScope()->Remove(varname);
+}
+
+bool MemoryScopeManager::RemoveVariablesExcept(const std::vector<std::string>& varnames,
+	const std::vector<std::regex>& varwildnames,
+	const std::vector<std::string>& exceptnames,
+	const std::vector<std::regex>& exceptwildnames)
+{
+	return GetCurrentScope()->RemoveVariablesExcept(varnames, varwildnames, exceptnames, exceptwildnames);
+}
+
+bool MemoryScopeManager::RemoveGlobalsExcept(const std::vector<std::string>& varnames,
+	const std::vector<std::regex>& varwildnames,
+	const std::vector<std::string>& exceptnames,
+	const std::vector<std::regex>& exceptwildnames)
+{
+	return GetCurrentScope()->RemoveGlobalsExcept(varnames, varwildnames, exceptnames, exceptwildnames);
 }
 
 void MemoryScopeManager::ClearLocals()
@@ -1141,7 +1360,6 @@ void MemoryScopeManager::ClearEnv(MemoryScope* ms)
 	if (temp != _rev_envs.end())
 	{
 		int idx = temp->second;
-		_rev_envs.erase(temp);
 
 		std::map<int, MemoryScope*>::const_iterator temp2;
 		temp2 = _envs.find(idx);
@@ -1153,6 +1371,8 @@ void MemoryScopeManager::ClearEnv(MemoryScope* ms)
 			_allocated_envs.erase(iter);
 			delete temp->first;
 		}
+
+		_rev_envs.erase(temp);
 	}
 }
 

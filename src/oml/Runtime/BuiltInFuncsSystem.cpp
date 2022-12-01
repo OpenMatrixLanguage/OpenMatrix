@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsSystem.cpp
 * @date October 2016
-* Copyright (C) 2016-2021 Altair Engineering, Inc.  
+* Copyright (C) 2016-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -241,6 +241,7 @@ void BuiltInFuncsSystem::IsDirectoryOrFile(const std::string& path,
         return;
 
     std::string in(path);
+    in = BuiltInFuncsUtils::Normpath(in);
     BuiltInFuncsUtils utils;
     if (utils.IsRootDir(path))
         in += "/";
@@ -300,11 +301,16 @@ bool BuiltInFuncsSystem::Dir(EvaluatorInterface           eval,
         dir = cur.StringVal();
     }
 
+    dir = utils.Normpath(dir);
+
     bool isdir  = false;
     bool isfile = false;
     utils.StripTrailingSlash(dir);
     if (utils.IsRootDir(dir))
-        dir += "\\"; 
+    {
+        dir += "\\";
+        dir = utils.Normpath(dir);
+    }
 
     BuiltInFuncsSystem funcs;
     funcs.IsDirectoryOrFile(dir, isdir, isfile);
@@ -376,19 +382,29 @@ bool BuiltInFuncsSystem::Dir(EvaluatorInterface           eval,
         std::string fullname (startupPath + name);
         struct stat st;
         std::string timestr;
-        int         numbytes = 0;
+        long long      numbytes = 0;
         int         isdir    = 0;
 
         int result = stat(fullname.c_str(), &st);
         if (result == 0)
         {
             timestr  = funcs.GetTimeString(st.st_mtime);
-            numbytes = static_cast<int>(st.st_size);
-            if (st.st_mode & S_IFDIR)
-                isdir = 1;
+            numbytes = static_cast<long long>(st.st_size);
+            isdir = (st.st_mode & S_IFDIR) ? 1 : 0;
+        }
+        else // (errno == 132) // File maybe too big
+        {
+            // Try and open the file
+            std::ifstream ifs(fullname, std::ios::binary);
+            if (ifs.is_open())
+            {
+                ifs.seekg(0, std::ios::end);
+                numbytes = static_cast<long long>(ifs.tellg());
+                ifs.close();
+            }
         }
         sd->SetValue(i, 0, "date",  timestr);
-        sd->SetValue(i, 0, "bytes", numbytes);
+        sd->SetValue(i, 0, "bytes", static_cast<double>(numbytes));
         sd->SetValue(i, 0, "isdir", isdir);
     }
     outputs.push_back(sd.release());
@@ -649,8 +665,10 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
         while (!feof(pipe))
         {
             wint_t c = fgetwc(pipe);
-            if (c == L'\r' || c == L'\n')
+            if (c == L'\r' || c == L'\n' || c == WEOF)
             {
+                if (c == WEOF && line.empty())
+                    continue;
                 std::string buf(utils.WString2StdString(line));
                 output += buf + "\n";
                 line = L""; // Reset line
@@ -1074,6 +1092,7 @@ bool BuiltInFuncsSystem::Cd(EvaluatorInterface           eval,
             throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
         }
         std::string val(inputs[0].StringVal());
+        val = utils.Normpath(val);
         std::string dir;
 
 #ifdef OS_WIN
@@ -1196,7 +1215,7 @@ bool BuiltInFuncsSystem::Rmdir(EvaluatorInterface           eval,
     BuiltInFuncsUtils utils;
     std::string dir(inputs[0].StringVal());
     dir = utils.GetAbsolutePath(dir);
-
+    dir = utils.Normpath(dir);
 
 #ifndef OS_WIN
     if (utils.GetCurrentWorkingDir() == dir)
@@ -1377,6 +1396,7 @@ bool BuiltInFuncsSystem::Genpath(EvaluatorInterface           eval,
 
     BuiltInFuncsUtils utils;
     std::string path (inputs[0].StringVal());
+    path = utils.Normpath(path);
     if (!utils.DoesPathExist(path))
     {
         outputs.push_back("");
@@ -1645,6 +1665,7 @@ bool BuiltInFuncsSystem::MakeAbsFilename(EvaluatorInterface           eval,
     std::wstring abspath = utils.GetAbsolutePathW(wstr); // Does not need path to exist
 
     path = utils.WString2StdString(abspath);
+    path = utils.Normpath(path);
 #else
     path = utils.GetAbsolutePath(in); // Needs path to exist
     if (path.empty())

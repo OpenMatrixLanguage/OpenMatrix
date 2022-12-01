@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsData.cpp
 * @date June 2016
-* Copyright (C) 2016-2020 Altair Engineering, Inc.  
+* Copyright (C) 2016-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -476,8 +476,7 @@ Currency BuiltInFuncsData::GetMatrixElement(EvaluatorInterface         eval,
     int m = (index.second < 0) ? 1 : index.first;
     int n = (index.second < 0) ? index.first : index.second;
 
-    hwMatrix::DataType type = in.IsScalar() ? hwMatrix::REAL : hwMatrix::COMPLEX;
-    hwMatrix*          mat  = EvaluatorInterface::allocateMatrix(m, n, type);
+    hwMatrix*          mat  = EvaluatorInterface::allocateMatrix(m, n, in.IsScalar());
 
     mat->SetElements(0.0);
 
@@ -580,7 +579,7 @@ bool BuiltInFuncsData::Mat2Cell(EvaluatorInterface           eval,
              itr2 != v2.end(); ++itr2, ++j)
         {
             int       cols = *itr2;
-            hwMatrix* mtx  = EvaluatorInterface::allocateMatrix(rows, cols, data->IsReal() ? hwMatrix::REAL : hwMatrix::COMPLEX);
+            hwMatrix* mtx  = EvaluatorInterface::allocateMatrix(rows, cols, data->IsReal());
 
             for (int n = 0; n < cols && datacolidx+n < dataN; ++n)
             {
@@ -675,7 +674,7 @@ bool BuiltInFuncsData::IsRow(EvaluatorInterface           eval,
                              const std::vector<Currency>& inputs,
                              std::vector<Currency>&       outputs)
 {
-    if (inputs.empty())
+    if (inputs.size() != 1)
     {
         throw OML_Error(OML_ERR_NUMARGIN);
     }
@@ -948,8 +947,6 @@ bool BuiltInFuncsData::Num2Cell(EvaluatorInterface           eval,
     int m = (dim == 1) ? rows : 1;
     int n = (dim == 1) ? 1 : cols;
 
-    hwMatrix::DataType type = (isReal) ? hwMatrix::REAL : hwMatrix::COMPLEX;
-
     for (int i = 0; i < rows; ++i)
     {
         for (int j = 0; j < cols; ++j)
@@ -961,7 +958,7 @@ bool BuiltInFuncsData::Num2Cell(EvaluatorInterface           eval,
 
             if (valindex == 0)    // Create all the sub matrices
             {
-                val.reset(EvaluatorInterface::allocateMatrix(m, n, type));
+                val.reset(EvaluatorInterface::allocateMatrix(m, n, isReal));
             }
             else
             {
@@ -1024,8 +1021,7 @@ bool BuiltInFuncsData::Sortrows(EvaluatorInterface           eval,
     int m = data->M();
     int n = data->N();
 
-    std::unique_ptr<hwMatrix> dims(EvaluatorInterface::allocateMatrix(1, 1,
-                                   hwMatrix::REAL));
+    std::unique_ptr<hwMatrix> dims(EvaluatorInterface::allocateMatrix(1, 1, true));
     (*dims)(0) = 1;  // Defaults to first column, 1-based index
 
     if (inputs.size() > 1)
@@ -1055,7 +1051,7 @@ bool BuiltInFuncsData::Sortrows(EvaluatorInterface           eval,
     std::unique_ptr<hwMatrix> idx = nullptr;
     if (nargout > 1)
     {
-        idx.reset(EvaluatorInterface::allocateMatrix(m, 1, hwMatrix::REAL));
+        idx.reset(EvaluatorInterface::allocateMatrix(m, 1, true));
     }
 
     BuiltInFuncsUtils utils;
@@ -1080,7 +1076,7 @@ bool BuiltInFuncsData::Sortrows(EvaluatorInterface           eval,
         col = abs(col) - 1;
 
         std::unique_ptr<hwMatrix> out(EvaluatorInterface::allocateMatrix(m, n,
-                                      mtx->Type()));
+                                      mtx->IsReal()));
         if (isreal)
         {
             std::vector< std::pair<double, int> > tmp;
@@ -1102,7 +1098,7 @@ bool BuiltInFuncsData::Sortrows(EvaluatorInterface           eval,
                 int sortedidx = tmp[j].second;
 
                 std::unique_ptr<hwMatrix> row (
-                    EvaluatorInterface::allocateMatrix(1, n, mtx->Type()));
+                    EvaluatorInterface::allocateMatrix(1, n, mtx->IsReal()));
                 utils.CheckMathStatus(eval, mtx->ReadRow(sortedidx, *row));
                 utils.CheckMathStatus(eval, out->WriteRow(j, *row));
                 if (idx && i == 0)
@@ -1110,7 +1106,7 @@ bool BuiltInFuncsData::Sortrows(EvaluatorInterface           eval,
                     for (int k = 0; k < m; ++k)
                     {
                         std::unique_ptr<hwMatrix> r1(
-                            EvaluatorInterface::allocateMatrix(1, n, hwMatrix::REAL));
+                            EvaluatorInterface::allocateMatrix(1, n, true));
                         utils.CheckMathStatus(eval, m1->ReadRow(k, *r1));
                         if (row->IsEqual(*r1))
                         {
@@ -1141,7 +1137,7 @@ bool BuiltInFuncsData::Sortrows(EvaluatorInterface           eval,
                 int sortedidx = tmp[j].second;
 
                 std::unique_ptr<hwMatrix> row(
-                    EvaluatorInterface::allocateMatrix(1, n, mtx->Type()));
+                    EvaluatorInterface::allocateMatrix(1, n, mtx->IsReal()));
                 utils.CheckMathStatus(eval, mtx->ReadRow(sortedidx, *row));
                 utils.CheckMathStatus(eval, out->WriteRow(j, *row));
 
@@ -1150,7 +1146,7 @@ bool BuiltInFuncsData::Sortrows(EvaluatorInterface           eval,
                     for (int k = 0; k < m; ++k)
                     {
                         std::unique_ptr<hwMatrix> r1(
-                            EvaluatorInterface::allocateMatrix(1, n, m1->Type()));
+                            EvaluatorInterface::allocateMatrix(1, n, m1->IsReal()));
                         utils.CheckMathStatus(eval, m1->ReadRow(k, *r1));
                         if (row->IsEqual(*r1))
                         {

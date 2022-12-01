@@ -215,7 +215,7 @@ Currency BuiltInFuncsElemMath::GetMatrixNIndices(const std::deque<double>& vals,
 {
     assert(in);
     if (!in || in->Size() <= 0) 
-        return EvaluatorInterface::allocateMatrix(0, 0, hwMatrix::REAL);
+        return EvaluatorInterface::allocateMatrix();
 
     std::vector<int> dims = in->Dimensions();
 
@@ -229,7 +229,7 @@ Currency BuiltInFuncsElemMath::GetMatrixNIndices(const std::deque<double>& vals,
         cols = valsize;
     }
 
-    hwMatrix* indices = EvaluatorInterface::allocateMatrix(rows, cols, hwMatrix::REAL);
+    hwMatrix* indices = EvaluatorInterface::allocateMatrix(rows, cols, true);
 
     for (int i = 0; i < valsize; ++i)
     {
@@ -276,7 +276,7 @@ Currency BuiltInFuncsElemMath::GetValueIndicesND(const std::deque<double>& vals,
                                                  const hwMatrixN*          in)
 {
     if (!in || vals.empty()) 
-        return EvaluatorInterface::allocateMatrix(0, 0, hwMatrix::REAL);
+        return EvaluatorInterface::allocateMatrix();
         
     size_t valsize = vals.size();
 
@@ -289,7 +289,7 @@ Currency BuiltInFuncsElemMath::GetValueIndicesND(const std::deque<double>& vals,
         cols = mtxsize;
     }
 
-    hwMatrix* indices = EvaluatorInterface::allocateMatrix(rows, cols, hwMatrix::REAL);
+    hwMatrix* indices = EvaluatorInterface::allocateMatrix(rows, cols, true);
 
     for (int i = 0; i < mtxsize; ++i)
     {
@@ -337,7 +337,7 @@ Currency BuiltInFuncsElemMath::GetValueIndicesND(const hwMatrixN*             x,
         cols = matsize;
     }
 
-    hwMatrix* indices = EvaluatorInterface::allocateMatrix(rows, cols, hwMatrix::REAL);
+    hwMatrix* indices = EvaluatorInterface::allocateMatrix(rows, cols, true);
 
     size_t valsize = y.size();
     for (int i = 0; i < matsize; ++i)
@@ -401,7 +401,7 @@ Currency BuiltInFuncsElemMath::GetMatrixNIndices(const hwMatrixN*             x,
         rows = 1;
         cols = valsize;
     }
-    hwMatrix* indices = EvaluatorInterface::allocateMatrix(rows, cols, hwMatrix::REAL);
+    hwMatrix* indices = EvaluatorInterface::allocateMatrix(rows, cols, true);
 
     for (int i = 0; i < valsize; ++i)
     {
@@ -553,8 +553,8 @@ Currency BuiltInFuncsElemMath::GetMatrixIndices(const hwMatrix*              x,
     int       mtxsize = x->Size();
     int       valsize = static_cast<int>(y.size());
     hwMatrix* indices = (x->M() == 1) ?
-        EvaluatorInterface::allocateMatrix(1, valsize, hwMatrix::REAL) :
-        EvaluatorInterface::allocateMatrix(valsize, 1, hwMatrix::REAL) ;
+        EvaluatorInterface::allocateMatrix(1, valsize, true) :
+        EvaluatorInterface::allocateMatrix(valsize, 1, true) ;
 
     for (int i = 0; i < valsize; ++i)
     {
@@ -612,8 +612,8 @@ Currency BuiltInFuncsElemMath::GetValueIndices(const hwMatrix*              x,
 
     int matsize = x->Size();
     hwMatrix *indices = (x->M() == 1) ?
-        EvaluatorInterface::allocateMatrix(1, matsize, hwMatrix::REAL):
-        EvaluatorInterface::allocateMatrix(matsize, 1, hwMatrix::REAL);
+        EvaluatorInterface::allocateMatrix(1, matsize, true):
+        EvaluatorInterface::allocateMatrix(matsize, 1, true);
 
     size_t valsize = y.size();
     for (int i = 0; i < matsize; ++i)
@@ -724,7 +724,7 @@ hwMatrix* BuiltInFuncsElemMath::FlipHelper(const hwMatrix* in, int dim)
 
     int       m   = in->M();
     int       n   = in->N();
-    hwMatrix* out = EvaluatorInterface::allocateMatrix(m, n, in->Type());
+    hwMatrix* out = EvaluatorInterface::allocateMatrix(m, n, in->IsReal());
     assert(out);
 
     bool isreal = in->IsReal();
@@ -908,7 +908,7 @@ void BuiltInFuncsElemMath::UniqueHelperRealMtx(const hwMatrix*        mtx,
     int m = (mtx->M() == 1) ? 1     : ysize;
     int n = (mtx->M() == 1) ? ysize : 1;
 
-    hwMatrix* m2 = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+    hwMatrix* m2 = EvaluatorInterface::allocateMatrix(m, n, true);
     for (int i = 0; i < ysize; ++i)
     {
         (*m2)(i) = vals[i];
@@ -926,14 +926,14 @@ void BuiltInFuncsElemMath::UniqueHelperRealMtx(const hwMatrix*        mtx,
     }
 
     hwMatrix* idxMtx1 = (outIdx) ?
-        EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL) : nullptr;
+        EvaluatorInterface::allocateMatrix(m, n, true) : nullptr;
 
     hwMatrix* idxMtx2(nullptr);
     if (inIdx)
     {
         int rows = (mtx->M() == 1) ? 1       : numElem;
         int cols = (mtx->M() == 1) ? numElem : 1;
-        idxMtx2 = EvaluatorInterface::allocateMatrix(rows, cols, hwMatrix::REAL);
+        idxMtx2 = EvaluatorInterface::allocateMatrix(rows, cols, true);
     }
 
     

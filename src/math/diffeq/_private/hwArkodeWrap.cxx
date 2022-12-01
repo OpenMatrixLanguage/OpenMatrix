@@ -17,7 +17,8 @@
 #include "stdlib.h"                 // to free N_Vectors
 #include "hwArkodeWrap.h"
 #include "nvector/nvector_serial.h"
-#include "arkode/arkode_direct.h"     // access ARKDls interface
+#include "arkode/arkode_erkstep.h"      // access ERKStep interface
+#include "sunmatrix/sunmatrix_dense.h"
 
 // Client function pointers
 static ARKRhsFn_client sysfunc_client       = nullptr;
@@ -58,7 +59,7 @@ static int jacDfunc_ARKODE(realtype  t,
 {
     // dense Jacobian - J is the output
     return jacDfunc_client(SM_COLUMNS_D(J), t, NV_DATA_S(y), NV_DATA_S(yp),
-           jac_data, SM_COLS_D(J));
+                           jac_data, SM_COLS_D(J));
 }
 //------------------------------------------------------------------------------
 // Write event data
@@ -80,6 +81,7 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
                      ARKDenseJacFn_client jacDfunc,
                      double               tin,
                      const hwMatrix&      y_,
+                     const char*          job,
                      double               reltol_,
                      const hwMatrix*      abstol_,
                      double               maxstep,
@@ -121,25 +123,23 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
         m_status(HW_MATH_ERR_INVALIDINPUT, 3);
     }
 
-    if (reltol_ < 0.0)
+    if (!job)
     {
-        m_status(HW_MATH_ERR_NONPOSITIVE, 7);
+        m_status(HW_MATH_ERR_NULLPOINTER, 7);
         return;
     }
 
-    // ARKodeCreate
-    arkode_mem = ARKodeCreate();
-
-    if (Check_flag((void *)arkode_mem, "ARKodeCreate", 0))
+    if (reltol_ < 0.0)
     {
-        m_status(HW_MATH_ERR_ALLOCFAILED);
+        m_status(HW_MATH_ERR_NONPOSITIVE, 8);
         return;
     }
 
     // Create serial vector of length NEQ for I.C.
-    y = N_VNew_Serial(m_y.Size());
+    int numEqns = m_y.Size();
+    y = N_VNew_Serial(numEqns, sunctx);
 
-    if (Check_flag((void *)y, "N_VNew_Serial", 0))
+    if (!y)
     {
         m_status(HW_MATH_ERR_ALLOCFAILED);
         return;
@@ -149,11 +149,77 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
     NV_OWN_DATA_S(y) = false;
     NV_DATA_S(y) = m_y.GetRealData();
 
-    // Initialize and populate ARKODE object
+    // Initialize and populate ARKStep/ERKStep object
     sysfunc_client = sysfunc;
 
-    int flag = ARKodeInit(arkode_mem, sysfunc_ARKODE, NULL, tin, y);
-    // if (Check_flag(&flag, "ARKodeInit", 1)) return(1);
+    if (!strcmp(job, "45"))
+    {
+        arkode_mem = ERKStepCreate(sysfunc_ARKODE, tin, y, sunctx);
+    }
+    else
+    {
+        // only ode45 is currently implemented
+        m_status(HW_MATH_ERR_INVALIDINPUT);
+        return;
+    }
+
+    if (!arkode_mem)
+    {
+        m_status(HW_MATH_ERR_ALLOCFAILED);
+        return;
+    }
+/*
+    // Create dense SUNMatrix for use in linear solver
+    A = SUNDenseMatrix(numEqns, numEqns, sunctx);
+
+    if (!A)
+    {
+        m_status(HW_MATH_ERR_ALLOCFAILED);
+        return;
+    }
+
+    // Create dense SUNLinearSolver object for use by ARKode
+    LS = SUNLinSol_Dense(y, A, sunctx);
+
+    if (!LS)
+    {
+        m_status(HW_MATH_ERR_ALLOCFAILED);
+        return;
+    }
+
+    // Call ARKDlsSetLinearSolver to attach the matrix and linear solver to ARKode
+    int64_t flag = ERKStepSetLinearSolver(arkode_mem, LS, A);
+
+    if (flag < 0)
+    {
+        m_status(HW_MATH_ERR_INTERNALERROR);
+        return;
+    }
+*/
+
+    int64_t flag;
+
+    // Set the Jacobian routine to jacDfunc_ARKODE (user-supplied)
+    if (jacDfunc)
+    {
+        if (!strcmp(job, "45"))
+        {
+            // explicit method does not use Jacobian
+            m_status(HW_MATH_ERR_NOTALLOWED);
+            return;
+        }
+/*
+        // For use with implicit methods
+        jacDfunc_client = jacDfunc;
+        flag = ARKStepSetJacFn(arkode_mem, (ARKLsJacFn)jacDfunc_ARKODE);
+
+        if (flag < 0)
+        {
+            m_status(HW_MATH_ERR_INTERNALERROR);
+            return;
+        }
+*/
+    }
 
     // Allocate event function vectors
     if (event_is_terminal)
@@ -188,50 +254,26 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
     if (rootfunc)
     {
         rootfunc_client = rootfunc;
-        flag = ARKodeRootInit(arkode_mem, nrtfn, rootfunc_ARKODE);
-        // if (Check_flag(&flag, "ARKodeRootInit", 1)) return(1);
-    }
+        flag = ERKStepRootInit(arkode_mem, nrtfn, rootfunc_ARKODE);
 
-    // Create dense SUNMatrix for use in linear solver
-    int numEqns = m_y.Size();
 
-    A = SUNDenseMatrix(numEqns, numEqns);
-    if (Check_flag((void *)A, "SUNDenseMatrix", 0))
-    {
-        m_status(HW_MATH_ERR_ALLOCFAILED);
-        return;
-    }
-
-    // Create dense SUNLinearSolver object for use by ARKode
-    LS = SUNDenseLinearSolver(y, A);
-    if (Check_flag((void *)LS, "SUNDenseLinearSolver", 0))
-    {
-        m_status(HW_MATH_ERR_ALLOCFAILED);
-        return;
-    }
-
-    // Call ARKDlsSetLinearSolver to attach the matrix and linear solver to ARKode
-    flag = ARKDlsSetLinearSolver(arkode_mem, LS, A);
-    // if(Check_flag(&flag, "ARKDlsSetLinearSolver", 1)) return(1);
-
-    // Set the Jacobian routine to jacDfunc_ARKODE (user-supplied)
-    if (jacDfunc)
-    {
-        jacDfunc_client = jacDfunc;
-        flag = ARKDlsSetJacFn(arkode_mem, (ARKDlsJacFn)jacDfunc_ARKODE);
-        // if(Check_flag(&flag, "ARKDlsJacFn", 1)) return(1);
-    }
-    else
-    {
-        flag = ARKDlsSetJacFn(arkode_mem, nullptr);
-        // if(Check_flag(&flag, "ARKDlsJacFn", 1)) return(1);
+        if (flag < 0)
+        {
+            m_status(HW_MATH_ERR_INTERNALERROR);
+            return;
+        }
     }
 
     // Set the pointer to user-defined data
     if (userData)
     {
-        flag = ARKodeSetUserData(arkode_mem, (void*)userData);
-        // if (Check_flag(&flag, "ARKodeSetFdata", 1)) return(1);
+        flag = ERKStepSetUserData(arkode_mem, (void*)userData);
+
+        if (flag < 0)
+        {
+            m_status(HW_MATH_ERR_INTERNALERROR);
+            return;
+        }
     }
 
     // Manage tolerances
@@ -241,20 +283,25 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
         {
             double abstol = 1.0e-6;
 
-            flag = ARKodeSStolerances(arkode_mem, reltol_, abstol);
-            // if (Check_flag(&flag, "ARKodeSStolerances", 1)) return(1);
+            flag = ERKStepSStolerances(arkode_mem, reltol_, abstol);
+
+            if (flag < 0)
+            {
+                m_status(HW_MATH_ERR_INTERNALERROR);
+                return;
+            }
         }
         else
         {
             if (!abstol_->IsReal())
             {
-                m_status(HW_MATH_ERR_COMPLEX, 8);
+                m_status(HW_MATH_ERR_COMPLEX, 9);
                 return;
             }
 
             if (!abstol_->IsVector())
             {
-                m_status(HW_MATH_ERR_VECTOR, 8);
+                m_status(HW_MATH_ERR_VECTOR, 9);
                 return;
             }
 
@@ -264,12 +311,17 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
 
                 if (abstol <= 0.0)
                 {
-                    m_status(HW_MATH_ERR_NONPOSITIVE, 8);
+                    m_status(HW_MATH_ERR_NONPOSITIVE, 9);
                     return;
                 }
 
-                flag = ARKodeSStolerances(arkode_mem, reltol_, abstol);
-                // if (Check_flag(&flag, "ARKodeSStolerances", 1)) return(1);
+                flag = ERKStepSStolerances(arkode_mem, reltol_, abstol);
+
+                if (flag < 0)
+                {
+                    m_status(HW_MATH_ERR_INTERNALERROR);
+                    return;
+                }
             }
             else if (abstol_->Size() == numEqns)
             {
@@ -277,15 +329,15 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
                 {
                     if ((*abstol_)(i) <= 0.0)
                     {
-                        m_status(HW_MATH_ERR_NONPOSITIVE, 8);
+                        m_status(HW_MATH_ERR_NONPOSITIVE, 9);
                         return;
                     }
                 }
 
                 // Create serial vector of length NEQ for abstol
-                N_Vector abstol = N_VNew_Serial(numEqns);
+                N_Vector abstol = N_VNew_Serial(numEqns, sunctx);
 
-                if (Check_flag((void *)abstol, "N_VNew_Serial", 0))
+                if (!abstol)
                 {
                     m_status(HW_MATH_ERR_ALLOCFAILED);
                     return;
@@ -295,14 +347,19 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
                 NV_OWN_DATA_S(abstol) = false;
                 NV_DATA_S(abstol) = const_cast<double*>(abstol_->GetRealData());
 
-                flag = ARKodeSVtolerances(arkode_mem, reltol_, abstol);
-                // if (Check_flag(&flag, "ARKodeSVtolerances", 1)) return(1);
+                flag = ERKStepSVtolerances(arkode_mem, reltol_, abstol);
+
+                if (flag < 0)
+                {
+                    m_status(HW_MATH_ERR_INTERNALERROR);
+                    return;
+                }
 
                 N_VDestroy_Serial(abstol);           // Free abstol vector
             }
             else
             {
-                m_status(HW_MATH_ERR_ARRAYSIZE, 6, 8);
+                m_status(HW_MATH_ERR_ARRAYSIZE, 6, 9);
                 return;
             }
         }
@@ -311,13 +368,18 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
     {
         double abstol = 1.0e-6;
 
-        flag = ARKodeSStolerances(arkode_mem, reltol_, abstol);
-        // if (Check_flag(&flag, "ARKodeSStolerances", 1)) return(1);
+        flag = ERKStepSStolerances(arkode_mem, reltol_, abstol);
+
+        if (flag < 0)
+        {
+            m_status(HW_MATH_ERR_INTERNALERROR);
+            return;
+        }
     }
 
     if (maxstep > 0.0)
     {
-        ARKodeSetMaxStep(arkode_mem, maxstep);
+        flag = ERKStepSetMaxStep(arkode_mem, maxstep);
     }
     else if (maxstep != -999.0)
     {
@@ -343,7 +405,7 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
         }
 
         // Take a small step
-        flag = ARKode(arkode_mem, tin + 0.0001, y, &t_init, ARK_NORMAL);
+        flag = ERKStepEvolve(arkode_mem, tin + 0.0001, y, &t_init, ARK_NORMAL);
 
         if (flag != ARK_SUCCESS)
         {
@@ -385,7 +447,7 @@ hwArkWrap::~hwArkWrap()
 {
     if (arkode_mem)
     {
-        ARKodeFree(&arkode_mem); // Free integrator memory
+        ERKStepFree(&arkode_mem); // Free integrator memory
     }
 
     if (y)
@@ -435,11 +497,11 @@ void hwArkWrap::TakeStep(double& t, double tout, int& flag)
     // Advance y from t to tout if possible
     if (OneStepMode)
     {
-        flag = ARKode(arkode_mem, tout, y, &t, ARK_ONE_STEP);
+        flag = ERKStepEvolve(arkode_mem, tout, y, &t, ARK_ONE_STEP);
     }
     else
     {
-        flag = ARKode(arkode_mem, tout, y, &t, ARK_NORMAL);
+        flag = ERKStepEvolve(arkode_mem, tout, y, &t, ARK_NORMAL);
     }
 
     if (flag == ARK_ROOT_RETURN && m_nrtfn)
@@ -462,14 +524,14 @@ int hwArkWrap::ManageEvents(double t, bool init)
 {
     int flag;
 
-    flag = ARKodeSetRootDirection(arkode_mem, event_directon_request);
+    flag = ERKStepSetRootDirection(arkode_mem, event_directon_request);
 
     if (flag != ARK_SUCCESS)
         return flag;
 
     if (!init)
     {
-        flag = ARKodeGetRootInfo(arkode_mem, event_directon_actual);
+        flag = ERKStepGetRootInfo(arkode_mem, event_directon_actual);
 
         if (flag != ARK_SUCCESS)
             return flag;
@@ -575,29 +637,11 @@ bool hwArkWrap::Continue(int flag)
 //------------------------------------------------------------------------------
 void hwArkWrap::SetStopTime(double tstop)
 {
-    int flag = ARKodeSetStopTime(arkode_mem, tstop);
-}
-//------------------------------------------------------------------------------
-// Check ARKODE flag
-//------------------------------------------------------------------------------
-int hwArkWrap::Check_flag(void* flagvalue, const char* funcname, int opt)
-{
-    if (opt == 0 && !flagvalue) // opt == 0 => Sundials allocated memory
-    {
-        return 1;               // No memory was allocated by Sundials
-    }
-    else if (opt == 1)          // opt == 1 => Sundials returned a flag
-    {
-        int* errflag = static_cast<int*>(flagvalue);
-        if (errflag && *errflag < 0)
-        {
-            return 1;
-        }
-    }
-    else if (opt == 2 && !flagvalue) // opt == 2 => Sundials allocated memory
-    {
-        return 1;                    // No memory was allocated by Sundials
-    }
+    int flag = ERKStepSetStopTime(arkode_mem, tstop);
 
-    return 0;
+        if (flag < 0)
+    {
+        m_status(HW_MATH_ERR_INTERNALERROR);
+        return;
+    }
 }

@@ -20,7 +20,10 @@
 
 #include "Currency.h"
 #include "EvaluatorInt.h" 
-#include "hwMatrixS.h"
+
+template <typename T> class hwTComplex;
+template <typename T1, typename T2> class hwTMatrixS;
+typedef hwTMatrixS<double, hwTComplex<double> > hwMatrixS;
 
 #ifndef PyObject_HEAD
 struct _object;
@@ -107,6 +110,9 @@ private:
     hwMatrixS* ConvertPyObjectToSparse(PyObject* const& obj, bool& status);
     PyObject* ConvertSparseToPyObject(const hwMatrixS* spm);
 
+    PyObject* GetSparseCscCls(std::string modulename = "scipy.sparse.csc");
+    bool IsSparseCsc(PyObject* obj);
+    void ClearPyError();
     static OmlPythonBridgeCore* _instance;
     std::string m_errorMessagePython;
 };

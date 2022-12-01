@@ -18,6 +18,7 @@
 
 #include "hwDiffEqSolver.h"
 #include "cvode/cvode.h"
+#include "sundials/sundials_context.h"
 #include "sundials/sundials_dense.h"   // access dense SUNMatrix
 #include "sunlinsol/sunlinsol_dense.h" // access dense SUNLinearSolver
 
@@ -40,7 +41,7 @@ typedef int (*CVRootFn_client)(double  t,
 //!
 //! \typedef CVDenseJacFn_client
 //!
-typedef int (*CVDenseJacFn_client)(long int N,
+typedef int (*CVDenseJacFn_client)(int64_t  N,
                                    double   t,
                                    double*  y,
                                    double*  yp,
@@ -119,6 +120,7 @@ public:
     int ManageEvents(double t, bool init);
 
 private:
+    sundials::Context sunctx;        //!< SUNDIALS context
     void*           cvode_mem;     //!< SUNDIALS CVODE internal memory
     N_Vector        y;             //!< SUNDIALS ODE output vector
     SUNMatrix       A;             //!< SUNDIALS dense matrix
@@ -133,15 +135,6 @@ private:
     //! \param tstop Stop time
     //!
     void SetStopTime(double tstop);
-    //!
-    //! Check IDA flag
-    //! \param flagvalue
-    //! \param funcname  Function name
-    //! \param opt       Function return value
-    //!
-    int Check_flag(void*       flagvalue,
-                   const char* funcname,
-                   int         opt);
 };
 
 #endif // _DiffEq_CVODE_h

@@ -108,20 +108,20 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; MATIOHML2TBOX_EXPORT</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\oml\Runtime;$(OML_MATIODIR)\src;$(OML_MATIODIR)\visual_studio</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\oml\Runtime;$(OML_MATIODIR)\src;$(OML_MATIODIR)\win64\include;$(OML_ROOT)\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_LIBDIR);$(OML_MATIODIR)\visual_studio\x64\Release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_LIBDIR);$(OML_MATIODIR)\win64\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>mathcore.lib; oml.lib; libmatio.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; MATIOHML2TBOX_EXPORT</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\oml\Runtime;$(OML_MATIODIR)\src;$(OML_MATIODIR)\visual_studio</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\oml\Runtime;$(OML_MATIODIR)\src;$(OML_MATIODIR)\win64\include;$(OML_ROOT)\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_LIBDIR);$(OML_MATIODIR)\visual_studio\x64\Release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_LIBDIR);$(OML_MATIODIR)\win64\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>mathcore.lib; oml.lib; libmatio.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

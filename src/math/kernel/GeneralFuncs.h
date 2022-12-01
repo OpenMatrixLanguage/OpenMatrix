@@ -17,8 +17,8 @@
 #define _GeneralFuncs_h
 
 #include <limits>
-#include <MathCoreExports.h>
-#include <hwMathStatus.h>
+#include "MathCoreExports.h"
+#include "hwMathStatus.h"
 
 #ifndef OS_WIN
   #include <stdlib.h>

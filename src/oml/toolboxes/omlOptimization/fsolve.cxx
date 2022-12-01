@@ -19,6 +19,7 @@
 #include "FunctionInfo.h"
 #include "OML_Error.h"
 #include "StructData.h"
+#include "hwMathException.h"
 
 #include "hwOptimizationFuncs.h"
 
@@ -534,7 +535,7 @@ bool OmlFsolve(EvaluatorInterface           eval,
     {
         hwMatrix dummy;
         hwMatrix* fval = EvaluatorInterface::allocateMatrix(numEqns, 1,
-                         hwMatrix::REAL);
+                         true);
         hwMathStatus status2 = NLSolveFuncs(*optPoint, dummy, userData, *fval);
         outputs.push_back(fval);
     }

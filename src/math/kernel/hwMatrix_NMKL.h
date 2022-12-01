@@ -1,5 +1,5 @@
 /**
-* @file hwMatrixNLP.h
+* @file hwMatrix_NMKL.h
 * @date December 2012
 * Copyright (C) 2012-2018 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
@@ -17,16 +17,16 @@
 //:-----------------------------------------------------------------
 //:Description
 //
-//  hwTMatrix include file for matrices with no LAPACK dependency
+//  hwTMatrix include file for matrices with No MKL dependency
 //
 //:-----------------------------------------------------------------
-#ifndef _hwMatrixNLP_h
-#define _hwMatrixNLP_h
+#ifndef _hwMatrix_NMKL_h
+#define _hwMatrix_NMKL_h
 
-#include <tmpl/hwTMatrix.h>     // class definition
+#include "tmpl/hwTMatrix.h"     // class definition
 
 typedef hwTMatrix<double> hwMatrix;
 typedef hwTMatrix<float> hwMatrixF;
 typedef hwTMatrix<int> hwMatrixI;
 
-#endif // _hwMatrixNLP_h
+#endif // _hwMatrix_NMKL_h

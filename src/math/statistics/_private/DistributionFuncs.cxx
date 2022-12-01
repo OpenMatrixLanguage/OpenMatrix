@@ -295,7 +295,7 @@ hwMathStatus UnifRnd(double                  A,
                      unsigned long*          seed,
                      double&                 value)
 {
-    if (B - A < nearZero)
+    if (B - A < 0.0)
     {
         return hwMathStatus(HW_MATH_ERR_INVALIDINTERVAL, 1, 2);
     }
@@ -339,7 +339,7 @@ hwMathStatus UnifRnd(double                  A,
                      unsigned long*          seed, 
                      hwMatrix&               matrix)
 {
-    if (B - A < nearZero)
+    if (B - A < 0.0)
     {
         return hwMathStatus(HW_MATH_ERR_INVALIDINTERVAL, 1, 2);
     }
@@ -449,7 +449,7 @@ hwMathStatus UnifRnd(const hwMatrix&         A,
     for (int i = 0; i < size; ++i)
     {
         width = B(i) - A(i);
-        if (width < nearZero)
+        if (width < 0.0)
         {
             if (createState)
             {

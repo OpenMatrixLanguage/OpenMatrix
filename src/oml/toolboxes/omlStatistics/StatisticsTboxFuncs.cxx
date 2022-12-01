@@ -26,6 +26,8 @@
 #include "MatrixNUtils.h"
 #include "OML_Error.h"
 
+#include "hwMatrix.h"
+#include "hwMatrixN.h"
 #include "DistributionFuncs.h"
 #include "StatisticsFuncs.h"
 #include "StatUtilFuncs.h"
@@ -174,6 +176,7 @@ int InitDll(EvaluatorInterface eval)
     eval.RegisterBuiltInFunction("mad",      &OmlMAD,      FunctionMetaData(-2, 1, STATAN));
     eval.RegisterBuiltInFunction("mean",     &OmlMean,     FunctionMetaData(-2, 1, STATAN));
     eval.RegisterBuiltInFunction("mode",     &OmlMode,     FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("movmean",  &OmlMovMean,  FunctionMetaData(-2, 1, STATAN));
     eval.RegisterBuiltInFunction("cov",      &OmlCov,      FunctionMetaData(1, 1, STATAN));
     eval.RegisterBuiltInFunction("corr",     &OmlCorr,     FunctionMetaData(1, 1, STATAN));
     eval.RegisterBuiltInFunction("detrend",  &OmlDetrend,  FunctionMetaData(2, 1, STATAN));
@@ -233,7 +236,7 @@ bool OmlUnifpdf(EvaluatorInterface           eval,
                 const hwMatrix* b      = cur3.Matrix();
                 int             bsize  = b->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         b->M(), b->N(), hwMatrix::REAL);
+                                         b->M(), b->N(), true);
 
                 for (int i = 0; i < bsize; ++i)
                 {
@@ -256,7 +259,7 @@ bool OmlUnifpdf(EvaluatorInterface           eval,
             {
                 double    b = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -275,7 +278,7 @@ bool OmlUnifpdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -303,7 +306,7 @@ bool OmlUnifpdf(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -338,7 +341,7 @@ bool OmlUnifpdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -363,7 +366,7 @@ bool OmlUnifpdf(EvaluatorInterface           eval,
             {
                 double b = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -382,7 +385,7 @@ bool OmlUnifpdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -450,7 +453,7 @@ bool OmlUnifcdf(EvaluatorInterface           eval,
                 const hwMatrix* b      = cur3.Matrix();
                 int             bsize  = b->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         b->M(), b->N(), hwMatrix::REAL);
+                                         b->M(), b->N(), true);
 
                 for (int i = 0; i < bsize; ++i)
                 {
@@ -473,7 +476,7 @@ bool OmlUnifcdf(EvaluatorInterface           eval,
             {
                 double    b = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -492,7 +495,7 @@ bool OmlUnifcdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -520,7 +523,7 @@ bool OmlUnifcdf(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -555,7 +558,7 @@ bool OmlUnifcdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -580,7 +583,7 @@ bool OmlUnifcdf(EvaluatorInterface           eval,
             {
                 double b = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -599,7 +602,7 @@ bool OmlUnifcdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -670,7 +673,7 @@ bool OmlUnifinv(EvaluatorInterface           eval,
                 const hwMatrix* b      = cur3.Matrix();
                 int             bsize  = b->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         b->M(), b->N(), hwMatrix::REAL);
+                                         b->M(), b->N(), true);
 
                 for (int i = 0; i < bsize; ++i)
                 {
@@ -693,7 +696,7 @@ bool OmlUnifinv(EvaluatorInterface           eval,
             {
                 double    b = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -712,7 +715,7 @@ bool OmlUnifinv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -740,7 +743,7 @@ bool OmlUnifinv(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -775,7 +778,7 @@ bool OmlUnifinv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -800,7 +803,7 @@ bool OmlUnifinv(EvaluatorInterface           eval,
             {
                 double b = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -819,7 +822,7 @@ bool OmlUnifinv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -880,7 +883,7 @@ bool OmlUnifrnd(EvaluatorInterface           eval,
         }
         else
         {
-            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
             hwMathStatus mstat  = UnifRnd(a, b, twister, nullptr, *result);
             BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
             outputs.push_back(result);
@@ -902,7 +905,7 @@ bool OmlUnifrnd(EvaluatorInterface           eval,
             EvaluatorInterface::allocateMatrix(m, n, cur2.Scalar()) :
             EvaluatorInterface::allocateMatrix(cur2.Matrix());
 
-        hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+        hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
         hwMathStatus mstat  = UnifRnd(*A, *B, twister, nullptr, *result);
         delete A;
         delete B;
@@ -990,7 +993,7 @@ bool OmlNormpdf(EvaluatorInterface           eval,
                 const hwMatrix* sigma      = cur3.Matrix();
                 int             sigmasize  = sigma->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         sigma->M(), sigma->N(), hwMatrix::REAL);
+                                         sigma->M(), sigma->N(), true);
 
                 for (int i = 0; i < sigmasize; ++i)
                 {
@@ -1015,7 +1018,7 @@ bool OmlNormpdf(EvaluatorInterface           eval,
             {
                 double    sigma = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   mu->M(), mu->N(), hwMatrix::REAL);
+                                   mu->M(), mu->N(), true);
 
                 for (int i = 0; i < musize; ++i)
                 {
@@ -1034,7 +1037,7 @@ bool OmlNormpdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   mu->M(), mu->N(), hwMatrix::REAL);
+                                   mu->M(), mu->N(), true);
 
                 for (int i = 0; i < musize; ++i)
                 {
@@ -1062,7 +1065,7 @@ bool OmlNormpdf(EvaluatorInterface           eval,
             {
                 double    sigma      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -1097,7 +1100,7 @@ bool OmlNormpdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -1122,7 +1125,7 @@ bool OmlNormpdf(EvaluatorInterface           eval,
             {
                 double sigma = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -1141,7 +1144,7 @@ bool OmlNormpdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -1209,7 +1212,7 @@ bool OmlNormcdf(EvaluatorInterface           eval,
                 const hwMatrix* sigma      = cur3.Matrix();
                 int             sigmasize  = sigma->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         sigma->M(), sigma->N(), hwMatrix::REAL);
+                                         sigma->M(), sigma->N(), true);
 
                 for (int i = 0; i < sigmasize; ++i)
                 {
@@ -1232,7 +1235,7 @@ bool OmlNormcdf(EvaluatorInterface           eval,
             {
                 double    sigma = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   mu->M(), mu->N(), hwMatrix::REAL);
+                                   mu->M(), mu->N(), true);
 
                 for (int i = 0; i < musize; ++i)
                 {
@@ -1251,7 +1254,7 @@ bool OmlNormcdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   mu->M(), mu->N(), hwMatrix::REAL);
+                                   mu->M(), mu->N(), true);
 
                 for (int i = 0; i < musize; ++i)
                 {
@@ -1279,7 +1282,7 @@ bool OmlNormcdf(EvaluatorInterface           eval,
             {
                 double    sigma      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -1314,7 +1317,7 @@ bool OmlNormcdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -1339,7 +1342,7 @@ bool OmlNormcdf(EvaluatorInterface           eval,
             {
                 double sigma = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -1358,7 +1361,7 @@ bool OmlNormcdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -1426,7 +1429,7 @@ bool OmlNorminv(EvaluatorInterface           eval,
                 const hwMatrix* sigma      = cur3.Matrix();
                 int             sigmasize  = sigma->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         sigma->M(), sigma->N(), hwMatrix::REAL);
+                                         sigma->M(), sigma->N(), true);
 
                 for (int i = 0; i < sigmasize; ++i)
                 {
@@ -1449,7 +1452,7 @@ bool OmlNorminv(EvaluatorInterface           eval,
             {
                 double    sigma = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   mu->M(), mu->N(), hwMatrix::REAL);
+                                   mu->M(), mu->N(), true);
 
                 for (int i = 0; i < musize; ++i)
                 {
@@ -1468,7 +1471,7 @@ bool OmlNorminv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   mu->M(), mu->N(), hwMatrix::REAL);
+                                   mu->M(), mu->N(), true);
 
                 for (int i = 0; i < musize; ++i)
                 {
@@ -1496,7 +1499,7 @@ bool OmlNorminv(EvaluatorInterface           eval,
             {
                 double    sigma      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -1531,7 +1534,7 @@ bool OmlNorminv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -1556,7 +1559,7 @@ bool OmlNorminv(EvaluatorInterface           eval,
             {
                 double sigma = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -1575,7 +1578,7 @@ bool OmlNorminv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -1613,19 +1616,6 @@ bool OmlNormrnd(EvaluatorInterface           eval,
     if (nargin == 1)
     {
         throw OML_Error(OML_ERR_NUMARGIN);
-    }
-
-    if (nargin > 2)
-    {
-        if (!inputs[0].IsScalar())
-        {
-            throw OML_Error(OML_ERR_ARRAYSIZE, 1, static_cast<int>(nargin));
-        }
-
-        if (!inputs[1].IsScalar())
-        {
-            throw OML_Error(OML_ERR_ARRAYSIZE, 2, static_cast<int>(nargin));
-        }
     }
 
     if (nargin)
@@ -1823,7 +1813,7 @@ bool OmlNormrnd(EvaluatorInterface           eval,
                 }
                 else
                 {
-                    hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+                    hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
                     hwMathStatus mstat = NormRnd(mu, sigma, twister, nullptr, *result);
                     BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
                     outputs.push_back(result);
@@ -1955,7 +1945,7 @@ bool OmlBetapdf(EvaluatorInterface           eval,
                 const hwMatrix* b      = cur3.Matrix();
                 int             bsize  = b->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         b->M(), b->N(), hwMatrix::REAL);
+                                         b->M(), b->N(), true);
 
                 for (int i = 0; i < bsize; ++i)
                 {
@@ -1978,7 +1968,7 @@ bool OmlBetapdf(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();                
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -1997,7 +1987,7 @@ bool OmlBetapdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -2026,7 +2016,7 @@ bool OmlBetapdf(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(x->M(), 
-                                   x->N(), hwMatrix::REAL);
+                                   x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -2061,7 +2051,7 @@ bool OmlBetapdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(x->M(), 
-                                   x->N(), hwMatrix::REAL);
+                                   x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -2086,7 +2076,7 @@ bool OmlBetapdf(EvaluatorInterface           eval,
             {
                 double b = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(x->M(), 
-                                   x->N(), hwMatrix::REAL);
+                                   x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -2107,7 +2097,7 @@ bool OmlBetapdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -2165,7 +2155,7 @@ bool OmlBetacdf(EvaluatorInterface           eval,
                 const hwMatrix* b      = cur3.Matrix();
                 int             bsize  = b->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         b->M(), b->N(), hwMatrix::REAL);
+                                         b->M(), b->N(), true);
 
                 for (int i = 0; i < bsize; ++i)
                 {
@@ -2188,7 +2178,7 @@ bool OmlBetacdf(EvaluatorInterface           eval,
             {
                 double    b = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -2207,7 +2197,7 @@ bool OmlBetacdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -2235,7 +2225,7 @@ bool OmlBetacdf(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -2270,7 +2260,7 @@ bool OmlBetacdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -2295,7 +2285,7 @@ bool OmlBetacdf(EvaluatorInterface           eval,
             {
                 double b = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -2314,7 +2304,7 @@ bool OmlBetacdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -2372,7 +2362,7 @@ bool OmlBetainv(EvaluatorInterface           eval,
                 const hwMatrix* b      = cur3.Matrix();
                 int             bsize  = b->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         b->M(), b->N(), hwMatrix::REAL);
+                                         b->M(), b->N(), true);
 
                 for (int i = 0; i < bsize; ++i)
                 {   
@@ -2395,7 +2385,7 @@ bool OmlBetainv(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -2414,7 +2404,7 @@ bool OmlBetainv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -2443,7 +2433,7 @@ bool OmlBetainv(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -2478,7 +2468,7 @@ bool OmlBetainv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -2504,7 +2494,7 @@ bool OmlBetainv(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -2524,7 +2514,7 @@ bool OmlBetainv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -2585,7 +2575,7 @@ bool OmlBetarnd(EvaluatorInterface           eval,
         }
         else
         {
-            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
             hwMathStatus mstat  = BetaRnd(a, b, twister, nullptr, *result);
             BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
             outputs.push_back(result);
@@ -2607,7 +2597,7 @@ bool OmlBetarnd(EvaluatorInterface           eval,
             EvaluatorInterface::allocateMatrix(m, n, cur2.Scalar()) :
             EvaluatorInterface::allocateMatrix(cur2.Matrix());
 
-        hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+        hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
         hwMathStatus mstat  = BetaRnd(*A, *B, twister, nullptr, *result);
         delete A;
         delete B;
@@ -2685,7 +2675,7 @@ bool OmlGampdf(EvaluatorInterface           eval,
                 const hwMatrix* b      = cur3.Matrix();
                 int             bsize  = b->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         b->M(), b->N(), hwMatrix::REAL);
+                                         b->M(), b->N(), true);
 
                 for (int i = 0; i < bsize; ++i)
                 {
@@ -2708,7 +2698,7 @@ bool OmlGampdf(EvaluatorInterface           eval,
             {
                 double b = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -2726,7 +2716,7 @@ bool OmlGampdf(EvaluatorInterface           eval,
                 if (!sameSize(a, b))
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
-                hwMatrix* result = EvaluatorInterface::allocateMatrix(a->M(), a->N(), hwMatrix::REAL);
+                hwMatrix* result = EvaluatorInterface::allocateMatrix(a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -2755,7 +2745,7 @@ bool OmlGampdf(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -2790,7 +2780,7 @@ bool OmlGampdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -2816,7 +2806,7 @@ bool OmlGampdf(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -2836,7 +2826,7 @@ bool OmlGampdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -2894,7 +2884,7 @@ bool OmlGamcdf(EvaluatorInterface           eval,
                 const hwMatrix* b      = cur3.Matrix();
                 int             bsize  = b->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         b->M(), b->N(), hwMatrix::REAL);
+                                         b->M(), b->N(), true);
 
                 for (int i = 0; i < bsize; ++i)
                 {
@@ -2917,7 +2907,7 @@ bool OmlGamcdf(EvaluatorInterface           eval,
             {
                 double b = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -2935,7 +2925,7 @@ bool OmlGamcdf(EvaluatorInterface           eval,
                 if (!sameSize(a, b))
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
-                hwMatrix* result = EvaluatorInterface::allocateMatrix(a->M(), a->N(), hwMatrix::REAL);
+                hwMatrix* result = EvaluatorInterface::allocateMatrix(a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -2964,7 +2954,7 @@ bool OmlGamcdf(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -2999,7 +2989,7 @@ bool OmlGamcdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -3025,7 +3015,7 @@ bool OmlGamcdf(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -3045,7 +3035,7 @@ bool OmlGamcdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -3103,7 +3093,7 @@ bool OmlGaminv(EvaluatorInterface           eval,
                 const hwMatrix* b      = cur3.Matrix();
                 int             bsize  = b->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         b->M(), b->N(), hwMatrix::REAL);
+                                         b->M(), b->N(), true);
 
                 for (int i = 0; i < bsize; ++i)
                 {
@@ -3126,7 +3116,7 @@ bool OmlGaminv(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -3144,7 +3134,7 @@ bool OmlGaminv(EvaluatorInterface           eval,
                 if (!sameSize(a, b))
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
-                hwMatrix* result = EvaluatorInterface::allocateMatrix(a->M(), a->N(), hwMatrix::REAL);
+                hwMatrix* result = EvaluatorInterface::allocateMatrix(a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -3173,7 +3163,7 @@ bool OmlGaminv(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -3208,7 +3198,7 @@ bool OmlGaminv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -3234,7 +3224,7 @@ bool OmlGaminv(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -3254,7 +3244,7 @@ bool OmlGaminv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -3315,7 +3305,7 @@ bool OmlGamrnd(EvaluatorInterface           eval,
         }
         else
         {
-            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
             hwMathStatus mstat  = GammaRnd(a, b, twister, nullptr, *result);
             BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
             outputs.push_back(result);
@@ -3337,7 +3327,7 @@ bool OmlGamrnd(EvaluatorInterface           eval,
             EvaluatorInterface::allocateMatrix(m, n, cur2.Scalar()) :
             EvaluatorInterface::allocateMatrix(cur2.Matrix());
 
-        hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+        hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
         hwMathStatus mstat  = GammaRnd(*A, *B, twister, nullptr, *result);
         delete A;
         delete B;
@@ -3474,7 +3464,7 @@ bool OmlExppdf(EvaluatorInterface           eval,
             const hwMatrix* a      = cur2.Matrix();
             int             asize  = a->Size();
             hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                     a->M(), a->N(), hwMatrix::REAL);
+                                     a->M(), a->N(), true);
 
             for (int i = 0; i < asize; ++i)
             {
@@ -3497,7 +3487,7 @@ bool OmlExppdf(EvaluatorInterface           eval,
         {
             double    a      = cur2.Scalar();
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               x->M(), x->N(), hwMatrix::REAL);
+                               x->M(), x->N(), true);
 
             if (x->IsReal())
             {
@@ -3532,7 +3522,7 @@ bool OmlExppdf(EvaluatorInterface           eval,
                 throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               a->M(), a->N(), hwMatrix::REAL);
+                               a->M(), a->N(), true);
 
             for (int i = 0; i < xsize; ++i)
             {
@@ -3581,7 +3571,7 @@ bool OmlExpcdf(EvaluatorInterface           eval,
             const hwMatrix* a      = cur2.Matrix();
             int             asize  = a->Size();
             hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                     a->M(), a->N(), hwMatrix::REAL);
+                                     a->M(), a->N(), true);
 
             for (int i = 0; i < asize; ++i)
             {
@@ -3604,7 +3594,7 @@ bool OmlExpcdf(EvaluatorInterface           eval,
         {
             double    a      = cur2.Scalar();
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               x->M(), x->N(), hwMatrix::REAL);
+                               x->M(), x->N(), true);
 
             if (x->IsReal())
             {
@@ -3639,7 +3629,7 @@ bool OmlExpcdf(EvaluatorInterface           eval,
                 throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               a->M(), a->N(), hwMatrix::REAL);
+                               a->M(), a->N(), true);
 
             for (int i = 0; i < xsize; ++i)
             {
@@ -3688,7 +3678,7 @@ bool OmlExpinv(EvaluatorInterface           eval,
             const hwMatrix* a      = cur2.Matrix();
             int             asize  = a->Size();
             hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                     a->M(), a->N(), hwMatrix::REAL);
+                                     a->M(), a->N(), true);
 
             for (int i = 0; i < asize; ++i)
             {
@@ -3711,7 +3701,7 @@ bool OmlExpinv(EvaluatorInterface           eval,
         {
             double    a      = cur2.Scalar();
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               x->M(), x->N(), hwMatrix::REAL);
+                               x->M(), x->N(), true);
 
             if (x->IsReal())
             {
@@ -3746,7 +3736,7 @@ bool OmlExpinv(EvaluatorInterface           eval,
                 throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               a->M(), a->N(), hwMatrix::REAL);
+                               a->M(), a->N(), true);
 
             for (int i = 0; i < xsize; ++i)
             {
@@ -3800,7 +3790,7 @@ bool OmlExprnd(EvaluatorInterface           eval,
         }
         else
         {
-            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
             hwMathStatus mstat  = ExpRnd(a, twister, nullptr, *result);
             BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
             outputs.push_back(result);
@@ -3812,7 +3802,7 @@ bool OmlExprnd(EvaluatorInterface           eval,
             throw OML_Error(OML_ERR_SCALAR_REALMTX, 1, OML_VAR_PARAMETER);
 
         const hwMatrix* A      = cur1.Matrix();
-        hwMatrix*       result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+        hwMatrix*       result = EvaluatorInterface::allocateMatrix(m, n, true);
         hwMathStatus    mstat  = ExpRnd(*A, twister, nullptr, *result);
         BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
         outputs.push_back(result);
@@ -3882,7 +3872,7 @@ bool OmlChi2pdf(EvaluatorInterface           eval,
             const hwMatrix* n      = cur2.Matrix();
             int             nsize  = n->Size();
             hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                     n->M(), n->N(), hwMatrix::REAL);
+                                     n->M(), n->N(), true);
 
             for (int i = 0; i < nsize; ++i)
             {
@@ -3912,7 +3902,7 @@ bool OmlChi2pdf(EvaluatorInterface           eval,
             int n = static_cast<int>(cur2.Scalar());
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               x->M(), x->N(), hwMatrix::REAL);
+                               x->M(), x->N(), true);
 
             if (x->IsReal())
             {
@@ -3946,7 +3936,7 @@ bool OmlChi2pdf(EvaluatorInterface           eval,
             if (!sameSize(x, n))
                 throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
-            hwMatrix* result = EvaluatorInterface::allocateMatrix(n->M(), n->N(), hwMatrix::REAL);
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(n->M(), n->N(), true);
 
             for (int i = 0; i < xsize; ++i)
             {
@@ -4002,7 +3992,7 @@ bool OmlChi2cdf(EvaluatorInterface           eval,
             const hwMatrix* n      = cur2.Matrix();
             int             nsize  = n->Size();
             hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                     n->M(), n->N(), hwMatrix::REAL);
+                                     n->M(), n->N(), true);
 
             for (int i = 0; i < nsize; ++i)
             {
@@ -4032,7 +4022,7 @@ bool OmlChi2cdf(EvaluatorInterface           eval,
             int n = static_cast<int>(cur2.Scalar());
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               x->M(), x->N(), hwMatrix::REAL);
+                               x->M(), x->N(), true);
 
             if (x->IsReal())
             {
@@ -4067,7 +4057,7 @@ bool OmlChi2cdf(EvaluatorInterface           eval,
                 throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               n->M(), n->N(), hwMatrix::REAL);
+                               n->M(), n->N(), true);
 
             for (int i = 0; i < xsize; ++i)
             {
@@ -4123,7 +4113,7 @@ bool OmlChi2inv(EvaluatorInterface           eval,
             const hwMatrix* n      = cur2.Matrix();
             int             nsize  = n->Size();
             hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                     n->M(), n->N(), hwMatrix::REAL);
+                                     n->M(), n->N(), true);
 
             for (int i = 0; i < nsize; ++i)
             {
@@ -4154,7 +4144,7 @@ bool OmlChi2inv(EvaluatorInterface           eval,
             int n = static_cast<int>(cur2.Scalar());
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               x->M(), x->N(), hwMatrix::REAL);
+                               x->M(), x->N(), true);
 
             if (x->IsReal())
             {
@@ -4189,7 +4179,7 @@ bool OmlChi2inv(EvaluatorInterface           eval,
                 throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               n->M(), n->N(), hwMatrix::REAL);
+                               n->M(), n->N(), true);
 
             for (int i = 0; i < xsize; ++i)
             {
@@ -4247,7 +4237,7 @@ bool OmlChi2rnd(EvaluatorInterface           eval,
         }
         else
         {
-            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
             hwMathStatus mstat  = Chi2Rnd(ndof, twister, nullptr, *result);
             BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
             outputs.push_back(result);
@@ -4269,7 +4259,7 @@ bool OmlChi2rnd(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_INTEGER_INTMTX, 1, OML_VAR_PARAMETER);
             }
 
-            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
             hwMathStatus mstat  = Chi2Rnd(N, twister, nullptr, *result);
             BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
             outputs.push_back(result);
@@ -4313,7 +4303,7 @@ bool OmlTpdf(EvaluatorInterface           eval,
             const hwMatrix* n      = cur2.Matrix();
             int             nsize  = n->Size();
             hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                     n->M(), n->N(), hwMatrix::REAL);
+                                     n->M(), n->N(), true);
 
             for (int i = 0; i < nsize; ++i)
             {
@@ -4343,7 +4333,7 @@ bool OmlTpdf(EvaluatorInterface           eval,
             int n = static_cast<int>(cur2.Scalar());
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               x->M(), x->N(), hwMatrix::REAL);
+                               x->M(), x->N(), true);
 
             if (x->IsReal())
             {
@@ -4378,7 +4368,7 @@ bool OmlTpdf(EvaluatorInterface           eval,
                 throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               n->M(), n->N(), hwMatrix::REAL);
+                               n->M(), n->N(), true);
 
             for (int i = 0; i < xsize; ++i)
             {
@@ -4434,7 +4424,7 @@ bool OmlTcdf(EvaluatorInterface           eval,
             const hwMatrix* n      = cur2.Matrix();
             int             nsize  = n->Size();
             hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                     n->M(), n->N(), hwMatrix::REAL);
+                                     n->M(), n->N(), true);
 
             for (int i = 0; i < nsize; ++i)
             {
@@ -4464,7 +4454,7 @@ bool OmlTcdf(EvaluatorInterface           eval,
             int n = static_cast<int>(cur2.Scalar());
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               x->M(), x->N(), hwMatrix::REAL);
+                               x->M(), x->N(), true);
 
             if (x->IsReal())
             {
@@ -4499,7 +4489,7 @@ bool OmlTcdf(EvaluatorInterface           eval,
                 throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               n->M(), n->N(), hwMatrix::REAL);
+                               n->M(), n->N(), true);
 
             for (int i = 0; i < xsize; ++i)
             {
@@ -4555,7 +4545,7 @@ bool OmlTinv(EvaluatorInterface           eval,
             const hwMatrix* n      = cur2.Matrix();
             int             nsize  = n->Size();
             hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                     n->M(), n->N(), hwMatrix::REAL);
+                                     n->M(), n->N(), true);
 
             for (int i = 0; i < nsize; ++i)
             {
@@ -4585,7 +4575,7 @@ bool OmlTinv(EvaluatorInterface           eval,
             int n = static_cast<int>(cur2.Scalar());
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               x->M(), x->N(), hwMatrix::REAL);
+                               x->M(), x->N(), true);
 
             if (x->IsReal())
             {
@@ -4620,7 +4610,7 @@ bool OmlTinv(EvaluatorInterface           eval,
                 throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               n->M(), n->N(), hwMatrix::REAL);
+                               n->M(), n->N(), true);
 
             for (int i = 0; i < xsize; ++i)
             {
@@ -4679,7 +4669,7 @@ bool OmlTrnd(EvaluatorInterface           eval,
         }
         else
         {
-            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
             hwMathStatus mstat  = T_Rnd(ndof, twister, nullptr, *result);
             BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
             outputs.push_back(result);
@@ -4701,7 +4691,7 @@ bool OmlTrnd(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_INTEGER_INTMTX, 1, OML_VAR_PARAMETER);
             }
 
-            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
             hwMathStatus mstat  = T_Rnd(N, twister, nullptr, *result);
             BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
             outputs.push_back(result);
@@ -4753,7 +4743,7 @@ bool OmlFpdf(EvaluatorInterface           eval,
                 const hwMatrix* n      = cur3.Matrix();
                 int             nsize  = n->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         n->M(), n->N(), hwMatrix::REAL);
+                                         n->M(), n->N(), true);
 
                 for (int i = 0; i < nsize; ++i)
                 {
@@ -4783,7 +4773,7 @@ bool OmlFpdf(EvaluatorInterface           eval,
 
                 int n = static_cast<int>(cur3.Scalar());
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   m->M(), m->N(), hwMatrix::REAL);
+                                   m->M(), m->N(), true);
 
                 for (int i = 0; i < msize; ++i)
                 {
@@ -4805,7 +4795,7 @@ bool OmlFpdf(EvaluatorInterface           eval,
                 if (!sameSize(m, n))
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
-                hwMatrix* result = EvaluatorInterface::allocateMatrix(m->M(), m->N(), hwMatrix::REAL);
+                hwMatrix* result = EvaluatorInterface::allocateMatrix(m->M(), m->N(), true);
 
                 for (int i = 0; i < msize; ++i)
                 {
@@ -4847,7 +4837,7 @@ bool OmlFpdf(EvaluatorInterface           eval,
 
                 int       n      = static_cast<int>(cur3.Scalar());
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -4882,7 +4872,7 @@ bool OmlFpdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -4914,7 +4904,7 @@ bool OmlFpdf(EvaluatorInterface           eval,
 
                 int       n      = static_cast<int>(cur3.Scalar());
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -4937,7 +4927,7 @@ bool OmlFpdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -5008,7 +4998,7 @@ bool OmlFcdf(EvaluatorInterface           eval,
                 const hwMatrix* n      = cur3.Matrix();
                 int             nsize  = n->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         n->M(), n->N(), hwMatrix::REAL);
+                                         n->M(), n->N(), true);
 
                 for (int i = 0; i < nsize; ++i)
                 {
@@ -5038,7 +5028,7 @@ bool OmlFcdf(EvaluatorInterface           eval,
 
                 int n = static_cast<int>(cur3.Scalar());
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   m->M(), m->N(), hwMatrix::REAL);
+                                   m->M(), m->N(), true);
 
                 for (int i = 0; i < msize; ++i)
                 {
@@ -5060,7 +5050,7 @@ bool OmlFcdf(EvaluatorInterface           eval,
                 if (!sameSize(m, n))
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
-                hwMatrix* result = EvaluatorInterface::allocateMatrix(m->M(), m->N(), hwMatrix::REAL);
+                hwMatrix* result = EvaluatorInterface::allocateMatrix(m->M(), m->N(), true);
 
                 for (int i = 0; i < msize; ++i)
                 {
@@ -5102,7 +5092,7 @@ bool OmlFcdf(EvaluatorInterface           eval,
 
                 int       n      = static_cast<int>(cur3.Scalar());
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -5137,7 +5127,7 @@ bool OmlFcdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -5169,7 +5159,7 @@ bool OmlFcdf(EvaluatorInterface           eval,
 
                 int       n      = static_cast<int>(cur3.Scalar());
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -5192,7 +5182,7 @@ bool OmlFcdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -5263,7 +5253,7 @@ bool OmlFinv(EvaluatorInterface           eval,
                 const hwMatrix* n      = cur3.Matrix();
                 int             nsize  = n->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         n->M(), n->N(), hwMatrix::REAL);
+                                         n->M(), n->N(), true);
 
                 for (int i = 0; i < nsize; ++i)
                 {
@@ -5293,7 +5283,7 @@ bool OmlFinv(EvaluatorInterface           eval,
 
                 int n = static_cast<int>(cur3.Scalar());
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   m->M(), m->N(), hwMatrix::REAL);
+                                   m->M(), m->N(), true);
 
                 for (int i = 0; i < msize; ++i)
                 {
@@ -5315,7 +5305,7 @@ bool OmlFinv(EvaluatorInterface           eval,
                 if (!sameSize(m, n))
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
-                hwMatrix* result = EvaluatorInterface::allocateMatrix(m->M(), m->N(), hwMatrix::REAL);
+                hwMatrix* result = EvaluatorInterface::allocateMatrix(m->M(), m->N(), true);
 
                 for (int i = 0; i < msize; ++i)
                 {
@@ -5357,7 +5347,7 @@ bool OmlFinv(EvaluatorInterface           eval,
 
                 int       n      = static_cast<int>(cur3.Scalar());
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -5392,7 +5382,7 @@ bool OmlFinv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -5424,7 +5414,7 @@ bool OmlFinv(EvaluatorInterface           eval,
 
                 int       n      = static_cast<int>(cur3.Scalar());
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -5447,7 +5437,7 @@ bool OmlFinv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -5515,7 +5505,7 @@ bool OmlFrnd(EvaluatorInterface           eval,
         }
         else
         {
-            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
             hwMathStatus mstat  = F_Rnd(mdof, ndof, twister, nullptr, *result);
             BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
             outputs.push_back(result);
@@ -5528,13 +5518,13 @@ bool OmlFrnd(EvaluatorInterface           eval,
         if (cur1.IsInteger())
         {
             int mdof = static_cast<int>(cur1.Scalar());
-            M = EvaluatorInterface::allocateMatrix(m, n, mdof);
+            M = EvaluatorInterface::allocateMatrixI(m, n, mdof);
         }
         else if (cur1.IsMatrix() && cur1.Matrix()->IsReal())
         {
             const hwMatrix* temp = cur1.Matrix();
             int size = temp->Size();
-            M = EvaluatorInterface::allocateMatrix(m, n, hwMatrixI::REAL);
+            M = EvaluatorInterface::allocateMatrixI(m, n, true);
 
             for (int i = 0; i < size; ++i)
             {
@@ -5553,13 +5543,13 @@ bool OmlFrnd(EvaluatorInterface           eval,
         if (cur2.IsInteger())
         {
             int ndof = static_cast<int>(cur2.Scalar());
-            N = EvaluatorInterface::allocateMatrix(m, n, ndof);
+            N = EvaluatorInterface::allocateMatrixI(m, n, ndof);
         }
         else if (cur2.IsMatrix() && cur2.Matrix()->IsReal())
         {
             const hwMatrix* temp = cur2.Matrix();
             int size = temp->Size();
-            N = EvaluatorInterface::allocateMatrix(m, n, hwMatrixI::REAL);
+            N = EvaluatorInterface::allocateMatrixI(m, n, true);
 
             for (int i = 0; i < size; ++i)
             {
@@ -5572,7 +5562,7 @@ bool OmlFrnd(EvaluatorInterface           eval,
         else
             throw OML_Error(OML_ERR_INTEGER_INTMTX, 2, OML_VAR_PARAMETER);
 
-        hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+        hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
         hwMathStatus mstat  = F_Rnd(*M, *N, twister, nullptr, *result);
         delete M;
         delete N;
@@ -5627,7 +5617,7 @@ bool OmlLognpdf(EvaluatorInterface           eval,
                 const hwMatrix* sigma      = cur3.Matrix();
                 int             sigmasize  = sigma->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         sigma->M(), sigma->N(), hwMatrix::REAL);
+                                         sigma->M(), sigma->N(), true);
 
                 for (int i = 0; i < sigmasize; ++i)
                 {
@@ -5650,7 +5640,7 @@ bool OmlLognpdf(EvaluatorInterface           eval,
             {
                 double    sigma = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   mu->M(), mu->N(), hwMatrix::REAL);
+                                   mu->M(), mu->N(), true);
 
                 for (int i = 0; i < musize; ++i)
                 {
@@ -5669,7 +5659,7 @@ bool OmlLognpdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   mu->M(), mu->N(), hwMatrix::REAL);
+                                   mu->M(), mu->N(), true);
 
                 for (int i = 0; i < musize; ++i)
                 {
@@ -5697,7 +5687,7 @@ bool OmlLognpdf(EvaluatorInterface           eval,
             {
                 double    sigma      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -5732,7 +5722,7 @@ bool OmlLognpdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -5757,7 +5747,7 @@ bool OmlLognpdf(EvaluatorInterface           eval,
             {
                 double sigma = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -5776,7 +5766,7 @@ bool OmlLognpdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -5845,7 +5835,7 @@ bool OmlLogncdf(EvaluatorInterface           eval,
                 const hwMatrix* sigma      = cur3.Matrix();
                 int             sigmasize  = sigma->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         sigma->M(), sigma->N(), hwMatrix::REAL);
+                                         sigma->M(), sigma->N(), true);
 
                 for (int i = 0; i < sigmasize; ++i)
                 {
@@ -5868,7 +5858,7 @@ bool OmlLogncdf(EvaluatorInterface           eval,
             {
                 double    sigma = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   mu->M(), mu->N(), hwMatrix::REAL);
+                                   mu->M(), mu->N(), true);
 
                 for (int i = 0; i < musize; ++i)
                 {
@@ -5887,7 +5877,7 @@ bool OmlLogncdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   mu->M(), mu->N(), hwMatrix::REAL);
+                                   mu->M(), mu->N(), true);
 
                 for (int i = 0; i < musize; ++i)
                 {
@@ -5915,7 +5905,7 @@ bool OmlLogncdf(EvaluatorInterface           eval,
             {
                 double    sigma      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -5950,7 +5940,7 @@ bool OmlLogncdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -5975,7 +5965,7 @@ bool OmlLogncdf(EvaluatorInterface           eval,
             {
                 double sigma = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -5994,7 +5984,7 @@ bool OmlLogncdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -6063,7 +6053,7 @@ bool OmlLogninv(EvaluatorInterface           eval,
                 const hwMatrix* sigma      = cur3.Matrix();
                 int             sigmasize  = sigma->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         sigma->M(), sigma->N(), hwMatrix::REAL);
+                                         sigma->M(), sigma->N(), true);
 
                 for (int i = 0; i < sigmasize; ++i)
                 {
@@ -6086,7 +6076,7 @@ bool OmlLogninv(EvaluatorInterface           eval,
             {
                 double    sigma = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   mu->M(), mu->N(), hwMatrix::REAL);
+                                   mu->M(), mu->N(), true);
 
                 for (int i = 0; i < musize; ++i)
                 {
@@ -6105,7 +6095,7 @@ bool OmlLogninv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   mu->M(), mu->N(), hwMatrix::REAL);
+                                   mu->M(), mu->N(), true);
 
                 for (int i = 0; i < musize; ++i)
                 {
@@ -6133,7 +6123,7 @@ bool OmlLogninv(EvaluatorInterface           eval,
             {
                 double    sigma      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -6168,7 +6158,7 @@ bool OmlLogninv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -6193,7 +6183,7 @@ bool OmlLogninv(EvaluatorInterface           eval,
             {
                 double sigma = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -6212,7 +6202,7 @@ bool OmlLogninv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -6273,7 +6263,7 @@ bool OmlLognrnd(EvaluatorInterface           eval,
         }
         else
         {
-            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
             hwMathStatus mstat = LogNormRnd(mu, sigma, twister, nullptr, *result);
             BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
             outputs.push_back(result);
@@ -6295,7 +6285,7 @@ bool OmlLognrnd(EvaluatorInterface           eval,
             EvaluatorInterface::allocateMatrix(m, n, cur2.Scalar()) :
             EvaluatorInterface::allocateMatrix(cur2.Matrix());
 
-        hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+        hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
         hwMathStatus mstat  = LogNormRnd(*Mu, *Sigma, twister, nullptr, *result);
         delete Mu;
         delete Sigma;
@@ -6387,7 +6377,7 @@ bool OmlWeibullpdf(EvaluatorInterface           eval,
                 const hwMatrix* b      = cur3.Matrix();
                 int             bsize  = b->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         b->M(), b->N(), hwMatrix::REAL);
+                                         b->M(), b->N(), true);
 
                 for (int i = 0; i < bsize; ++i)
                 {
@@ -6410,7 +6400,7 @@ bool OmlWeibullpdf(EvaluatorInterface           eval,
             {
                 double    b = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -6429,7 +6419,7 @@ bool OmlWeibullpdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -6457,7 +6447,7 @@ bool OmlWeibullpdf(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -6492,7 +6482,7 @@ bool OmlWeibullpdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -6517,7 +6507,7 @@ bool OmlWeibullpdf(EvaluatorInterface           eval,
             {
                 double b = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -6536,7 +6526,7 @@ bool OmlWeibullpdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -6609,7 +6599,7 @@ bool OmlWeibullcdf(EvaluatorInterface           eval,
                 const hwMatrix* b      = cur3.Matrix();
                 int             bsize  = b->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         b->M(), b->N(), hwMatrix::REAL);
+                                         b->M(), b->N(), true);
 
                 for (int i = 0; i < bsize; ++i)
                 {
@@ -6632,7 +6622,7 @@ bool OmlWeibullcdf(EvaluatorInterface           eval,
             {
                 double    b = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -6651,7 +6641,7 @@ bool OmlWeibullcdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -6679,7 +6669,7 @@ bool OmlWeibullcdf(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -6714,7 +6704,7 @@ bool OmlWeibullcdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -6739,7 +6729,7 @@ bool OmlWeibullcdf(EvaluatorInterface           eval,
             {
                 double b = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -6758,7 +6748,7 @@ bool OmlWeibullcdf(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -6830,7 +6820,7 @@ bool OmlWeibullinv(EvaluatorInterface           eval,
                 const hwMatrix* b      = cur3.Matrix();
                 int             bsize  = b->Size();
                 hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                         b->M(), b->N(), hwMatrix::REAL);
+                                         b->M(), b->N(), true);
 
                 for (int i = 0; i < bsize; ++i)
                 {
@@ -6853,7 +6843,7 @@ bool OmlWeibullinv(EvaluatorInterface           eval,
             {
                 double    b = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -6872,7 +6862,7 @@ bool OmlWeibullinv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   a->M(), a->N(), hwMatrix::REAL);
+                                   a->M(), a->N(), true);
 
                 for (int i = 0; i < asize; ++i)
                 {
@@ -6900,7 +6890,7 @@ bool OmlWeibullinv(EvaluatorInterface           eval,
             {
                 double    b      = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 if (x->IsReal())
                 {
@@ -6935,7 +6925,7 @@ bool OmlWeibullinv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -6960,7 +6950,7 @@ bool OmlWeibullinv(EvaluatorInterface           eval,
             {
                 double b = cur3.Scalar();
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -6979,7 +6969,7 @@ bool OmlWeibullinv(EvaluatorInterface           eval,
                     throw OML_Error(OML_ERR_ARRAYSIZE, 1, 3);
 
                 hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                                   x->M(), x->N(), hwMatrix::REAL);
+                                   x->M(), x->N(), true);
 
                 for (int i = 0; i < xsize; ++i)
                 {
@@ -7040,7 +7030,7 @@ bool OmlWeibullrnd(EvaluatorInterface           eval,
         }
         else
         {
-            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
             hwMathStatus mstat  = WeibullRnd(a, b, twister, nullptr, *result);
             BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
             outputs.push_back(result);
@@ -7062,7 +7052,7 @@ bool OmlWeibullrnd(EvaluatorInterface           eval,
             EvaluatorInterface::allocateMatrix(m, n, cur2.Scalar()) :
             EvaluatorInterface::allocateMatrix(cur2.Matrix());
 
-        hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+        hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
         hwMathStatus mstat  = WeibullRnd(*A, *B, twister, nullptr, *result);
         delete A;
         delete B;
@@ -7139,7 +7129,7 @@ bool OmlPoisspdf(EvaluatorInterface           eval,
             const hwMatrix* a      = cur2.Matrix();
             int             asize  = a->Size();
             hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                     a->M(), a->N(), hwMatrix::REAL);
+                                     a->M(), a->N(), true);
 
             for (int i = 0; i < asize; ++i)
             {
@@ -7162,7 +7152,7 @@ bool OmlPoisspdf(EvaluatorInterface           eval,
         {
             double    a      = cur2.Scalar();
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               x->M(), x->N(), hwMatrix::REAL);
+                               x->M(), x->N(), true);
 
             if (x->IsReal())
             {
@@ -7205,7 +7195,7 @@ bool OmlPoisspdf(EvaluatorInterface           eval,
                 throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               a->M(), a->N(), hwMatrix::REAL);
+                               a->M(), a->N(), true);
 
             for (int i = 0; i < xsize; ++i)
             {
@@ -7259,7 +7249,7 @@ bool OmlPoisscdf(EvaluatorInterface           eval,
             const hwMatrix* a      = cur2.Matrix();
             int             asize  = a->Size();
             hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                     a->M(), a->N(), hwMatrix::REAL);
+                                     a->M(), a->N(), true);
 
             for (int i = 0; i < asize; ++i)
             {
@@ -7282,7 +7272,7 @@ bool OmlPoisscdf(EvaluatorInterface           eval,
         {
             double    a      = cur2.Scalar();
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               x->M(), x->N(), hwMatrix::REAL);
+                               x->M(), x->N(), true);
 
             if (x->IsReal())
             {
@@ -7316,7 +7306,7 @@ bool OmlPoisscdf(EvaluatorInterface           eval,
             if (!sameSize(x, a))
                 throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
-            hwMatrix* result = EvaluatorInterface::allocateMatrix(a->M(), a->N(), hwMatrix::REAL);
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(a->M(), a->N(), true);
 
             for (int i = 0; i < xsize; ++i)
             {
@@ -7365,7 +7355,7 @@ bool OmlPoissinv(EvaluatorInterface           eval,
             const hwMatrix* a      = cur2.Matrix();
             int             asize  = a->Size();
             hwMatrix*       result = EvaluatorInterface::allocateMatrix(
-                                     a->M(), a->N(), hwMatrix::REAL);
+                                     a->M(), a->N(), true);
 
             for (int i = 0; i < asize; ++i)
             {
@@ -7388,7 +7378,7 @@ bool OmlPoissinv(EvaluatorInterface           eval,
         {
             double a = cur2.Scalar();
             hwMatrix* result = EvaluatorInterface::allocateMatrix(
-                               x->M(), x->N(), hwMatrix::REAL);
+                               x->M(), x->N(), true);
 
             if (x->IsReal())
             {
@@ -7422,7 +7412,7 @@ bool OmlPoissinv(EvaluatorInterface           eval,
             if (!sameSize(x, a))
                 throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
 
-            hwMatrix* result = EvaluatorInterface::allocateMatrix(a->M(), a->N(), hwMatrix::REAL);
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(a->M(), a->N(), true);
 
             for (int i = 0; i < xsize; ++i)
             {
@@ -7480,7 +7470,7 @@ bool OmlPoissrnd(EvaluatorInterface           eval,
             hwMathStatus mstat  = PoissonRnd(a, twister, nullptr, result);
 
             hwMatrix* dresult = EvaluatorInterface::allocateMatrix(result.M(), 
-                result.N(), hwMatrix::REAL);
+                result.N(), true);
 
             int dsize = result.Size();
 
@@ -7502,7 +7492,7 @@ bool OmlPoissrnd(EvaluatorInterface           eval,
         BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
 
         hwMatrix* dresult = EvaluatorInterface::allocateMatrix(result.M(), 
-            result.N(), hwMatrix::REAL);
+            result.N(), true);
 
         int dsize = result.Size();
 
@@ -7903,7 +7893,7 @@ bool OmlRand(EvaluatorInterface           eval,
         }
         else
         {
-            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
             hwMathStatus status = UnifRnd(0.0, 1.0, twister, nullptr, *result);
             BuiltInFuncsUtils::CheckMathStatus(eval, status);
             outputs.push_back(result);
@@ -8079,7 +8069,7 @@ bool OmlRandn(EvaluatorInterface           eval,
         }
         else
         {
-            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix*    result = EvaluatorInterface::allocateMatrix(m, n, true);
             hwMathStatus status = NormRnd(0.0, 1.0, twister, nullptr, *result);
             BuiltInFuncsUtils::CheckMathStatus(eval, status);
             outputs.push_back(result);
@@ -8122,7 +8112,7 @@ bool OmlErf(EvaluatorInterface           eval,
     else if (input.IsMatrix())
     {
         const hwMatrix* m = input.Matrix();
-        hwMatrix* out = EvaluatorInterface::allocateMatrix(m->M(), m->N(), hwMatrix::REAL);
+        hwMatrix* out = EvaluatorInterface::allocateMatrix(m->M(), m->N(), true);
 
         if (m->IsReal())
         {
@@ -8175,9 +8165,9 @@ bool OmlTtest(EvaluatorInterface           eval,
     bool   reject;
     int    max = (dim == 1) ? data->N() : data->M();
 
-    hwMatrix* result = EvaluatorInterface::allocateMatrix(1, max, hwMatrix::REAL);
-    hwMatrix* p      = EvaluatorInterface::allocateMatrix(1, max, hwMatrix::REAL);
-    hwMatrix* CI     = EvaluatorInterface::allocateMatrix(2, max, hwMatrix::REAL);
+    hwMatrix* result = EvaluatorInterface::allocateMatrix(1, max, true);
+    hwMatrix* p      = EvaluatorInterface::allocateMatrix(1, max, true);
+    hwMatrix* CI     = EvaluatorInterface::allocateMatrix(2, max, true);
 
     hwMatrix* piece    = EvaluatorInterface::allocateMatrix();
     hwMatrix* interval = EvaluatorInterface::allocateMatrix();
@@ -8264,9 +8254,9 @@ bool OmlChi2test(EvaluatorInterface           eval,
 
     int max = (dim == 1) ? data->N() : data->M();
 
-    hwMatrix* result = EvaluatorInterface::allocateMatrix(1, max, hwMatrix::REAL);
-    hwMatrix* p      = EvaluatorInterface::allocateMatrix(1, max, hwMatrix::REAL);
-    hwMatrix* CI     = EvaluatorInterface::allocateMatrix(2, max, hwMatrix::REAL);
+    hwMatrix* result = EvaluatorInterface::allocateMatrix(1, max, true);
+    hwMatrix* p      = EvaluatorInterface::allocateMatrix(1, max, true);
+    hwMatrix* CI     = EvaluatorInterface::allocateMatrix(2, max, true);
 
     hwMatrix* piece    = EvaluatorInterface::allocateMatrix();
     hwMatrix* interval = EvaluatorInterface::allocateMatrix();
@@ -8391,9 +8381,9 @@ bool OmlFtest(EvaluatorInterface           eval,
             throw OML_Error(HW_ERROR_INPMATSAMESIZEALONGSPECDIMEN);
     }
 
-    hwMatrix* result = EvaluatorInterface::allocateMatrix(1, max, hwMatrix::REAL);
-    hwMatrix* p      = EvaluatorInterface::allocateMatrix(1, max, hwMatrix::REAL);
-    hwMatrix* CI     = EvaluatorInterface::allocateMatrix(2, max, hwMatrix::REAL);
+    hwMatrix* result = EvaluatorInterface::allocateMatrix(1, max, true);
+    hwMatrix* p      = EvaluatorInterface::allocateMatrix(1, max, true);
+    hwMatrix* CI     = EvaluatorInterface::allocateMatrix(2, max, true);
 
     hwMatrix* piece1 = firstvec ?  EvaluatorInterface::allocateMatrix(data1) : 
                                    EvaluatorInterface::allocateMatrix();
@@ -8541,9 +8531,9 @@ bool OmlTtest2(EvaluatorInterface           eval,
             throw OML_Error(HW_ERROR_INPMATSAMESIZEALONGSPECDIMEN);
     }
 
-    hwMatrix* result = EvaluatorInterface::allocateMatrix(1, max, hwMatrix::REAL);
-    hwMatrix* p      = EvaluatorInterface::allocateMatrix(1, max, hwMatrix::REAL);
-    hwMatrix* CI     = EvaluatorInterface::allocateMatrix(2, max, hwMatrix::REAL);
+    hwMatrix* result = EvaluatorInterface::allocateMatrix(1, max, true);
+    hwMatrix* p      = EvaluatorInterface::allocateMatrix(1, max, true);
+    hwMatrix* CI     = EvaluatorInterface::allocateMatrix(2, max, true);
 
     hwMatrix* piece1 = firstvec  ? EvaluatorInterface::allocateMatrix(data1) : 
                                    EvaluatorInterface::allocateMatrix();
@@ -8655,9 +8645,9 @@ bool OmlZtest(EvaluatorInterface           eval,
 
     int max = (dim == 1)? data->N() : data->M();
 
-    hwMatrix* result = EvaluatorInterface::allocateMatrix(1, max, hwMatrix::REAL);
-    hwMatrix* p      = EvaluatorInterface::allocateMatrix(1, max, hwMatrix::REAL);
-    hwMatrix* CI     = EvaluatorInterface::allocateMatrix(2, max, hwMatrix::REAL);
+    hwMatrix* result = EvaluatorInterface::allocateMatrix(1, max, true);
+    hwMatrix* p      = EvaluatorInterface::allocateMatrix(1, max, true);
+    hwMatrix* CI     = EvaluatorInterface::allocateMatrix(2, max, true);
 
     hwMatrix* piece    = EvaluatorInterface::allocateMatrix();
     hwMatrix* interval = EvaluatorInterface::allocateMatrix();
@@ -9632,10 +9622,12 @@ bool OmlMean(EvaluatorInterface           eval,
     }
     else // nargin > 1
     {
-        if (!inputs[1].IsPositiveInteger())
+        if (inputs[1].IsPositiveInteger())
+            dim = static_cast<int>(inputs[1].Scalar());
+        else if (inputs[1].IsMatrix() && inputs[1].Matrix()->Is0x0())
+            dim = data->M() == 1 ? 2 : 1;
+        else
             throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_DIM);
-
-        dim = static_cast<int>(inputs[1].Scalar());
     }
 
     if (mean_type == Arithmetic)
@@ -9750,7 +9742,7 @@ bool OmlMode(EvaluatorInterface           eval,
 
         for (int i = 0; i < dims.size(); ++i)
         {
-            if (dims[i] > 1)
+            if (dims[i] != 1)
             {
                 dim = i;
                 break;
@@ -9784,7 +9776,7 @@ bool OmlMode(EvaluatorInterface           eval,
         double* data = mtx->GetRealData();
         int m = mtx->M();
         int n = mtx->N();
-        hwMatrix* modeData = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+        hwMatrix* modeData = EvaluatorInterface::allocateMatrix(m, n, true);
         modeData->SetElements(0.0);
         double* mData = modeData->GetRealData();
 
@@ -9806,7 +9798,7 @@ bool OmlMode(EvaluatorInterface           eval,
         {
             outputs.push_back(inputs[0]);
 
-            hwMatrix* onesM = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix* onesM = EvaluatorInterface::allocateMatrix(m, n, true);
             onesM->SetElements(1.0);
             outputs.push_back(onesM);
 
@@ -9838,12 +9830,12 @@ bool OmlMode(EvaluatorInterface           eval,
 
         if (dim == 1)
         {
-            mode = EvaluatorInterface::allocateMatrix(1, n, hwMatrix::REAL);
+            mode = EvaluatorInterface::allocateMatrix(1, n, true);
             cArray = EvaluatorInterface::allocateCellArray(1, n);
         }
         else    // dim == 2
         {
-            mode = EvaluatorInterface::allocateMatrix(m, 1, hwMatrix::REAL);
+            mode = EvaluatorInterface::allocateMatrix(m, 1, true);
             cArray = EvaluatorInterface::allocateCellArray(m, 1);
         }
 
@@ -9852,7 +9844,7 @@ bool OmlMode(EvaluatorInterface           eval,
 
         for (int i = 0; i < numVecs; ++i)
         {
-            hwMatrix* modeVals = EvaluatorInterface::allocateMatrix(1, 1, hwMatrix::REAL);
+            hwMatrix* modeVals = EvaluatorInterface::allocateMatrix(1, 1, true);
             (*cArray)(i) = Currency(modeVals);
             int numModes = 0;
             double maxVal;
@@ -9898,7 +9890,7 @@ bool OmlMode(EvaluatorInterface           eval,
         {
             outputs.push_back(inputs[0]);
 
-            hwMatrixN* onesM = EvaluatorInterface::allocateMatrixN(dims, hwMatrixN::REAL);
+            hwMatrixN* onesM = EvaluatorInterface::allocateMatrixN(dims, true);
             onesM->SetElements(1.0);
             outputs.push_back(onesM);
 
@@ -9967,7 +9959,7 @@ bool OmlMode(EvaluatorInterface           eval,
             double* data = mtx->GetRealData() + start;
             double* mData = modeData->GetRealData() + start;
 
-            hwMatrix* modeVals = EvaluatorInterface::allocateMatrix(1, 1, hwMatrix::REAL);
+            hwMatrix* modeVals = EvaluatorInterface::allocateMatrix(1, 1, true);
             (*cArray)(i) = Currency(modeVals);
             int numModes = 0;
             double maxVal;
@@ -10018,6 +10010,170 @@ bool OmlMode(EvaluatorInterface           eval,
         outputs.push_back(mode);
         outputs.push_back(outputsMax[0]);
         outputs.push_back(cArray);
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Computes moving mean values [movmean]
+//------------------------------------------------------------------------------
+bool OmlMovMean(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 2 || nargin == 4 || nargin > 5)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    int dim = -1;
+    int na = -1;
+    int nb = -1;
+
+    if (nargin > 1)
+    {
+        if (inputs[1].IsPositiveInteger())
+        {
+            int wlen = static_cast<int> (inputs[1].Scalar());
+
+            if (wlen % 2 == 0)
+            {
+                nb = wlen / 2;
+                na = nb - 1;
+            }
+            else
+            {
+                na = nb = (wlen - 1) / 2;
+            }
+        }
+        else if (inputs[1].IsVector())
+        {
+            const hwMatrix* data = inputs[1].Matrix();
+
+            if (data->Size() != 2)
+            {
+            }
+
+            nb = static_cast<int> ((*data)(0));
+            na = static_cast<int> ((*data)(1));
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_SCALARVECTOR, 2, OML_VAR_DIM);
+        }
+    }
+
+    if (nargin > 2)
+    {
+        if (inputs[2].IsPositiveInteger())
+            dim = static_cast<int>(inputs[2].Scalar());
+        else if (!inputs[2].IsMatrix() || !inputs[2].Matrix()->Is0x0())
+            throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_DIM);
+    }
+
+    if (dim == -1)
+    {
+        if (inputs[0].IsMatrix() || inputs[0].IsScalar() || inputs[0].IsComplex())
+        {
+            const hwMatrix* mtx = inputs[0].ConvertToMatrix();
+
+            if (mtx->M() == 1)
+                dim = 2;
+            else
+                dim = 1;
+        }
+        else if (inputs[0].IsNDMatrix())
+        {
+            const hwMatrixN* mtx = inputs[0].MatrixN();
+            const std::vector<int>& dims = mtx->Dimensions();
+
+            for (int i = 0; i < dims.size(); ++i)
+            {
+                if (dims[i] != 1)
+                {
+                    dim = i + 1;
+                    break;
+                }
+            }
+        }
+    }
+
+    std::string endproperty = "shrink";
+    hwComplex userVal(std::numeric_limits<double>::quiet_NaN(), 0.0);
+
+    if (nargin == 5)
+    {
+        if (!inputs[3].IsString())
+            throw OML_Error(OML_ERR_STRING, 4, OML_VAR_TYPE);
+
+        if (inputs[3].StringVal() != "Endpoints")
+            throw OML_Error(OML_ERR_OPTION, 4);
+
+        if (inputs[4].IsString())
+        {
+            endproperty = inputs[4].StringVal();
+        }
+        else if (inputs[4].IsScalar())
+        {
+            endproperty = "userval";
+            userVal = inputs[4].Scalar();
+        }
+        else if (inputs[4].IsComplex())
+        {
+            endproperty = "userval";
+            userVal = inputs[4].Complex();
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_SCALARSTRING, 5, OML_VAR_TYPE);
+        }
+    }
+
+    if (inputs[0].IsMatrix() || inputs[0].IsScalar() || inputs[0].IsComplex())
+    {
+        const hwMatrix* matrix = inputs[0].ConvertToMatrix();
+        hwMatrixN matrixN;
+        matrixN.Convert2DtoND(*matrix, false);
+
+        hwMatrixN xBarN;
+        hwMathStatus status = MovMean(matrixN, nb, na, dim-1, endproperty, userVal, xBarN);
+
+        if (!status.IsOk())
+        {
+            int arg1 = status.GetArg1();
+
+            if (arg1 > 2 && arg1 < 5)
+                status.SetArg1(arg1 - 1);
+
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+        }
+
+        hwMatrix* xBar = EvaluatorInterface::allocateMatrix();
+        xBarN.ConvertNDto2D(*xBar, false);
+        outputs.push_back(xBar);
+    }
+    else if (inputs[0].IsNDMatrix())
+    {
+        const hwMatrixN* matrix = inputs[0].MatrixN();
+        std::unique_ptr<hwMatrixN> xBar(EvaluatorInterface::allocateMatrixN());
+
+        hwMathStatus status = MovMean(*matrix, nb, na, dim-1, endproperty, userVal, *xBar);
+
+        if (!status.IsOk())
+        {
+            int arg1 = status.GetArg1();
+
+            if (arg1 > 2 && arg1 < 5)
+                status.SetArg1(arg1 - 1);
+
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+        }
+
+        outputs.push_back(xBar.release());
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1);
     }
 
     return true;
@@ -10269,13 +10425,13 @@ bool OmlRandperm(EvaluatorInterface           eval,
     if (nargin != 1 && nargin != 2)
         throw OML_Error(OML_ERR_NUMARGIN);
 
-    if (!inputs[0].IsPositiveInteger() && !inputs[0].IsPositiveInteger64())
+    if (!inputs[0].IsPositiveInteger() && !inputs[0].IsPositiveInteger64() && (inputs[0].Scalar() != 0.0))
         throw OML_Error(OML_ERR_NATURALNUM, 1, OML_VAR_DATA);
 
     hwMathStatus status;
     CreateTwister();
 
-    if (inputs[0].IsPositiveInteger())
+    if (inputs[0].IsPositiveInteger() || (inputs[0].Scalar() == 0.0))
     {
         int max = static_cast<int> (inputs[0].Scalar());
         int numPts = max;
@@ -10293,7 +10449,7 @@ bool OmlRandperm(EvaluatorInterface           eval,
 
         if (status.IsOk())
         {
-            hwMatrix* permVec = EvaluatorInterface::allocateMatrix(1, numPts, hwMatrix::REAL);
+            hwMatrix* permVec = EvaluatorInterface::allocateMatrix(1, numPts, true);
 
             for (int i = 0; i < numPts; ++i)
             {
@@ -10324,7 +10480,7 @@ bool OmlRandperm(EvaluatorInterface           eval,
 
         if (status.IsOk())
         {
-            hwMatrix* permVec = EvaluatorInterface::allocateMatrix(1, numPts, hwMatrix::REAL);
+            hwMatrix* permVec = EvaluatorInterface::allocateMatrix(1, numPts, true);
 
             for (int i = 0; i < numPts; ++i)
             {
@@ -10374,7 +10530,7 @@ bool OmlBBdoe(EvaluatorInterface           eval,
     BuiltInFuncsUtils::CheckMathStatus(eval, BBDoe(n, mtxi));
     
     hwMatrix* mtxd = EvaluatorInterface::allocateMatrix(mtxi.M(), mtxi.N(), 
-                                                        hwMatrix::REAL);
+                                                        true);
     
     for (int i = 0; i < mtxi.Size(); ++i)
         (*mtxd)(i) = (double) mtxi(i);
@@ -10410,7 +10566,7 @@ bool OmlFulldoe(EvaluatorInterface           eval,
 
                 hwMatrixI outi;
                 BuiltInFuncsUtils::CheckMathStatus(eval, FullDoe(mtxi, outi));
-                hwMatrix* out = EvaluatorInterface::allocateMatrix(outi.M(), outi.N(), hwMatrix::REAL);
+                hwMatrix* out = EvaluatorInterface::allocateMatrix(outi.M(), outi.N(), true);
 
                 for (int i = 0; i < outi.Size(); ++i)
                     (*out)(i) = (double) outi(i);
@@ -10508,7 +10664,7 @@ bool OmlPolyfit(EvaluatorInterface           eval,
         double mu;
         double sigma;
         yest.reset(EvaluatorInterface::allocateMatrix());
-        transform.reset(EvaluatorInterface::allocateMatrix(1, 2, hwMatrix::REAL));
+        transform.reset(EvaluatorInterface::allocateMatrix(1, 2, true));
 
         BuiltInFuncsUtils::CheckMathStatus(eval, PolyCurveFit(*x, *y, order, *coef, NULL, yest.get(), true, &mu, &sigma));
 
@@ -10721,6 +10877,12 @@ void RNG_numRowsAndCols(const EvaluatorInterface&    eval,
         {
             const hwMatrix* dims = inputs[firstDimArg-1].Matrix();
 
+            if (!isint(realval(dims, 0)))
+                throw OML_Error(OML_ERR_NATURALNUM, firstDimArg, OML_VAR_DIMS);
+
+            if (!isint(realval(dims, 1)))
+                throw OML_Error(OML_ERR_NATURALNUM, firstDimArg, OML_VAR_DIMS);
+
             m = static_cast<int>(realval(dims, 0));
             n = static_cast<int>(realval(dims, 1));
 
@@ -10737,6 +10899,16 @@ void RNG_numRowsAndCols(const EvaluatorInterface&    eval,
     }
     else // nargin == firstDimArg+1
     {
+        if (!inputs[firstDimArg - 1].IsScalar())
+        {
+            throw OML_Error(OML_ERR_NATURALNUM, firstDimArg, OML_VAR_DIMS);
+        }
+
+        if (!inputs[firstDimArg].IsScalar())
+        {
+            throw OML_Error(OML_ERR_NATURALNUM, firstDimArg+1, OML_VAR_DIMS);
+        }
+
         m = static_cast<int>(inputs[firstDimArg-1].Scalar());
         n = static_cast<int>(inputs[firstDimArg].Scalar());
 
@@ -10882,7 +11054,7 @@ void getRndArg(const Currency& input, hwMatrixI*& arg, std::unique_ptr<hwMatrixI
     else if (input.IsMatrix() && input.Matrix()->IsReal())
     {
         const hwMatrix* temp = input.Matrix();
-        arg = EvaluatorInterface::allocateMatrix(m, n, hwMatrixI::REAL);
+        arg = EvaluatorInterface::allocateMatrix(m, n, true);
         for (int i = 0; i < m; ++i)
         {
             for (int j = 0; j < n; ++j)

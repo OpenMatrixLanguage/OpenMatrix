@@ -18,7 +18,7 @@
 #define _hwTMatrixN_h
 
 #include <vector>
-#include <tmpl/hwTMatrix.h>
+#include "hwTMatrix.h"
 
 //! Forward declarations
 class hwSliceArg;
@@ -296,6 +296,6 @@ private:
 };
 
 //! template implementation file
-#include <tmpl/hwTMatrixN.cc>
+#include "hwTMatrixN.cc"
 
 #endif // _hwTMatrixN_h

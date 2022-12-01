@@ -137,13 +137,15 @@ FunctionInfo::~FunctionInfo()
 {
 	if (GetRefCount() == 0)
 	{
+		bool is_anon = IsAnonymous();
+
 		delete _statements;
 		delete _persistent_scope;
 		delete _anon_scope;
 
 		std::map<const std::string*, FunctionInfo*>::const_iterator iter;
 
-		if (local_functions)
+		if (local_functions && !is_anon)
 		{
 			for (iter = local_functions->begin(); iter != local_functions->end(); iter++)
 			{

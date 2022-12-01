@@ -65,6 +65,12 @@ public:
 	virtual const OMLCurrency* GetGlobalValue(const char*) = 0;
 };
 
+class OMLInterface5 : public OMLInterface4
+{
+public:
+	virtual void RegisterFunctionWithMetadata(const char*, ALT_FUNCPTR, const char*, int, int, bool) = 0;
+};
+
 class OMLCurrency
 {
 public:

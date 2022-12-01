@@ -1748,7 +1748,7 @@ Currency oml_MatrixUtil(EvaluatorInterface& eval, const hwMatrix* mtx, int dim, 
     {
         case 1:
         {
-            result = EvaluatorInterface::allocateMatrix(1, mtx->N(), hwMatrix::REAL);
+            result = EvaluatorInterface::allocateMatrix(1, mtx->N(), true);
             rescur = result;
             for (int i = 0; i < mtx->N(); ++i)
             {
@@ -1759,7 +1759,7 @@ Currency oml_MatrixUtil(EvaluatorInterface& eval, const hwMatrix* mtx, int dim, 
         }
         case 2:
         {
-            result = EvaluatorInterface::allocateMatrix(mtx->M(), 1, hwMatrix::REAL);
+            result = EvaluatorInterface::allocateMatrix(mtx->M(), 1, true);
             std::unique_ptr<hwMatrix> holder(EvaluatorInterface::allocateMatrix());
             rescur = result;
             for (int i = 0; i < mtx->M(); ++i)
@@ -1771,8 +1771,8 @@ Currency oml_MatrixUtil(EvaluatorInterface& eval, const hwMatrix* mtx, int dim, 
         }
         default:
         {
-            result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), hwMatrix::REAL);
-            std::unique_ptr<hwMatrix> holder(EvaluatorInterface::allocateMatrix(1, 1, mtx->Type()));
+            result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), true);
+            std::unique_ptr<hwMatrix> holder(EvaluatorInterface::allocateMatrix(1, 1, mtx->IsReal()));
             rescur = result;
             for (int i = 0; i < mtx->Size(); ++i)
             {

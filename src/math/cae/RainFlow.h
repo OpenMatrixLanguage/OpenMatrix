@@ -24,13 +24,17 @@
 
 #define STD std
 
+template <typename T> class hwTComplex;
+template <typename T1, typename T2> class hwTMatrix;
+typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
+
 enum PrefferedBin{
 	LOW,
 	HIGH,
 	NOTSET
 };
 
-//Signal Attribute Struct
+// Signal Attribute Struct
 struct SignalAttributes {
 
 	double start;
@@ -45,6 +49,8 @@ struct SignalAttributes {
 struct RainflowResult {
 	double mean;
 	double range;
+	double start_id;
+	double end_id;
 };
 
 class RainFlow
@@ -55,36 +61,36 @@ protected:
 	int  _id;
 	char _channelformat[10];
 
-	//Channel Characterstic
+	// Channel Characterstic
 	double _scale;
 	char   _polarity[10];
 	double _offset;
 
-	//Direction
+	// Direction
 	char   _dir[10];   // Not applicable for motsub and sfosub
 
-
-	//Channel Signal Attributes
+	// Channel Signal Attributes
 	struct SignalAttributes _sigAttribs;
 
-	//Channel data
-	double* _xchanneldata ;
-	double* _ychanneldata ;
+	// Channel data
+	const double* _xchanneldata ;
+	const double* _ychanneldata ;
 
 	STD::vector <double> _yorgpeaks;
+	STD::vector <double> _xorgpeaks;
 
-	//Peak data
+	// Peak data
 	STD::list <double> _xpeaks;
 	STD::list <double> _ypeaks;
 
-	//Raw rainflow
+	// Raw rainflow
 	double* _rawrainrange ;
 	double* _rawrainmean ;
 
 	double m_HysteresisValue;
 	int user_nbins;
-	double *minpoint;
-	double *maxpoint;
+	double minpoint;
+	double maxpoint;
 
 	bool m_IsRangePair;
 
@@ -92,60 +98,43 @@ protected:
 	STD::ofstream m_OutStream_debug;
 	PrefferedBin m_PrefferedBin;
 
-	STD::vector <double> meanbins;
-	STD::vector <double> rangebins;
 	STD::vector <RainflowResult> m_vRainflowResult;
-	STD::vector< STD::vector<double> > meanrangematrix;
+	hwMatrix* rangebins;
+	hwMatrix* meanbins;
+	hwMatrix* meanrangematrix;
+	hwMatrix* countmatrix;
 
 public:
 	RainFlow(void);
 	virtual ~RainFlow(void);
 
-    void setXchanneldata(double* x) {_xchanneldata = x;}
-    void setYchanneldata(double* y) {_ychanneldata = y;}
-    void setminpoint(double* min) {minpoint = min;}
-    void setmaxpoint(double* max) {maxpoint = max;}
+    void setXchanneldata(const double* x) {_xchanneldata = x;}
+    void setYchanneldata(const double* y) {_ychanneldata = y;}
     void setsigstart(double start) {_sigAttribs.start = start;}
     void setsigNC(int nchan) {_sigAttribs.nChans = nchan;}
     void setsigNV(int nvals) {_sigAttribs.nVals = nvals;}
     void setUser_NBins(int bins) {user_nbins = bins;}
     void ComputeRangeBins();
 	void ComputeMeanBins();
-    const STD::vector<double>& getmeanbins() { return meanbins; }
-    const STD::vector<double>& getrangebins() { return rangebins; }
-    const STD::vector< STD::vector<double> >& getmeanrangematrix() { return meanrangematrix; }
+	const hwMatrix* getrangebins() const { return rangebins; }
+	const hwMatrix* getmeanbins() const { return meanbins; }
+	const hwMatrix* getmeanrangematrix()const { return meanrangematrix; }
+	const hwMatrix* getcountmatrix() const { return countmatrix; }
 
     void setDebugFlag(STD::string strInputFilePath);
-
 	void setUser_NBins(STD::string bins);
-
 	void setHysteresis(int hysteresisValue);
-
 	void setHysteresis(char* hysteresis);
 
-	int Evaluate(); 
+	int Evaluate(const hwMatrix* _countMatrix = nullptr);
 
 protected:
-
-	void ExtractPeaksFromSignalData ();
-
+	void ExtractPeaksFromSignalData();
 	void HysteresisGateCheck();
-
-	int ScanMax() ;
-
-	int OrganisePeaks();
-
+	void OrganisePeaks();
+	void FindExtremePeaks();
 	void ExtractRainflowCounts();
-
-    void BinExtractedFromRainflowCounts();
-
-	// Utility function
-	const char* StringTrim(const char*);
-
-	// void ComputeRangeBins();
-	// void ComputeMeanBins();
 	void ComputeMeanRangeMatrix();
-
 };
 
 #endif // RAINFLOW_H

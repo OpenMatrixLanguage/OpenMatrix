@@ -22,9 +22,10 @@
 //:---------------------------------------------------------------------------
 
 #include <algorithm>
-#include <hwMathException.h>
-#include <hwSliceArg.h>
-#include <tmpl/hwTComplex.h>
+#include <limits>
+#include "../hwMathException.h"
+#include "../hwSliceArg.h"
+#include "hwTComplex.h"
 
 // ****************************************************
 //                  Error handling
@@ -199,61 +200,21 @@ inline void hwTMatrixN<double>::Allocate(DataType dataType)
         }
     }
 }
-
-// If any client uses CopyData without BLAS/LAPACK, the first CopyData below will
-// need to be placed in a separate hwTMatrixN_LP.cc. See hwTMatrixLP.cc for the
-// 2D matrix case.
-#ifndef _BLAS_LAPACK_h
-#define _BLAS_LAPACK_h
-#endif
+/*
+// This would be nice to have, but needs to be in a separate .cc file
+// to avoid conflict when using the MKL based version.
+#include <memory.h>
 
 //! Copy data
-#ifdef _BLAS_LAPACK_h
-#include <complex>
-    typedef std::complex<double> complexD;
-    extern "C" void dcopy_(int* N, double* DX, int* INCX, double* DY, int* INCY);
-    extern "C" void zcopy_(int* N, complexD* DX, int* INCX, complexD* DY, int* INCY);
-
-    template<>
-    inline void hwTMatrixN<double>::CopyData(void* dest, const void* src, int count) const
-    {
-        int inc = 1;
-
-        if (IsReal())
-            dcopy_((int*) &count, (double*) src, &inc, (double*) dest, &inc);
-        else
-            zcopy_((int*) &count, (complexD*) src, &inc, (complexD*) dest, &inc);
-    }
-#else
-    #include <memory.h>
-
-    template<>
-    inline void hwTMatrixN<double>::CopyData(void* dest, const void* src, int count) const
-    {
-        if (IsReal())
-            memcpy_s(dest, count * sizeof(double), src, count * sizeof(double));
-        else
-            memcpy_s(dest, count * sizeof(hwTComplex<double>), src, count * sizeof(hwTComplex<double>));
-    }
-#endif
-
-//! Copy data
-#ifdef _BLAS_LAPACK_h
 template<>
-inline void hwTMatrixN<double>::CopyData(void* dest, int stride_dest,
-                                         const void* src, int stride_src, int count) const
+inline void hwTMatrixN<double>::CopyData(void* dest, const void* src, int count) const
 {
     if (IsReal())
-        dcopy_((int*)&count, (double*)src, &stride_src, (double*)dest, &stride_dest);
+        memcpy_s(dest, count * sizeof(double), src, count * sizeof(double));
     else
-        zcopy_((int*)&count, (complexD*)src, &stride_src, (complexD*)dest, &stride_dest);
+        memcpy_s(dest, count * sizeof(hwTComplex<double>), src, count * sizeof(hwTComplex<double>));
 }
-#endif
-
-#ifdef _BLAS_LAPACK_h
-#undef _BLAS_LAPACK_h
-#endif
-
+*/
 // ****************************************************
 //               Data Type, Ownership
 // ****************************************************
@@ -818,7 +779,6 @@ void hwTMatrixN<T1, T2>::Reshape(const std::vector<int>& dim)
     // check new size
     int size = 1;
     int emptyDim = -1;
-    size_t maxSize = std::numeric_limits<int>::max();
     
     for (int i = 0; i < m_dim.size(); ++i)
     {
@@ -853,140 +813,6 @@ void hwTMatrixN<T1, T2>::Reshape(const std::vector<int>& dim)
 
     if (size != m_size)
         throw hwMathException(HW_MATH_ERR_MATRIXRESHAPE2, 1);
-}
-
-//! Reorder matrix dimensions, a generalized transpose
-template<>
-inline void hwTMatrixN<double>::Permute(const hwTMatrixN<double>& source, const std::vector<int>& permuteVec)
-{
-    PermuteCheck(permuteVec);
-
-    // dimension permuted matrix
-    MakeEmpty();
-    int numDims = static_cast<int> (permuteVec.size());
-    int sourceDims = static_cast<int> (source.m_dim.size());
-    int maxRHSdim = -1;
-    int maxLHSdim = -1;
-
-    if (sourceDims > numDims)
-        throw hwMathException(HW_MATH_ERR_PERMVEC1);
-
-    m_dim.resize(numDims);
-
-    for (int i = 0; i < numDims; ++i)
-    {
-        int k = permuteVec[i];
-
-        if (k < sourceDims)
-        {
-            m_dim[i] = source.m_dim[k];
-
-            if (maxRHSdim == -1 || source.m_dim[k] > source.m_dim[maxRHSdim])
-            {
-                maxLHSdim = i;
-                maxRHSdim = k;
-            }
-        }
-        else
-        {
-            m_dim[i] = 1;
-        }
-    }
-
-    Allocate(source.Type());
-    m_bits.realData = source.m_bits.realData;
-
-    // copy data
-    m_rhsMatrixIndex.clear();
-    m_rhsMatrixIndex.resize(numDims);
-    m_lhsMatrixIndex.clear();
-    m_lhsMatrixIndex.resize(numDims);
-    int strideRHS = source.Stride(maxRHSdim);
-    int strideLHS = Stride(maxLHSdim);
-    int numVecs = m_size / m_dim[maxLHSdim];
-
-    if (m_real)
-    {
-        for (int i = 0; i < numVecs; ++i)
-        {
-            int startRHS = source.Index(m_rhsMatrixIndex);
-            int startLHS = Index(m_lhsMatrixIndex);
-            const double* realRHS = source.GetRealData() + startRHS;
-            double* realLHS = m_real + startLHS;
-
-            CopyData(realLHS, strideLHS, realRHS, strideRHS, m_dim[maxLHSdim]);
-
-            // advance rhs and lhs matrix indices
-            for (int j = 0; j < numDims; ++j)
-            {
-                if (j == maxLHSdim)
-                {
-                    continue;
-                }
-
-                int k = permuteVec[j];
-
-                // increment index k if possible
-                if (k < sourceDims)
-                {
-                    if (m_lhsMatrixIndex[j] < m_dim[j] - 1)
-                    {
-                        ++m_rhsMatrixIndex[k];
-                        ++m_lhsMatrixIndex[j];
-                        break;
-                    }
-
-                    // index k is maxed out, so reset and continue to k+1
-                    m_rhsMatrixIndex[k] = 0;
-                    m_lhsMatrixIndex[j] = 0;
-                }
-            }
-        }
-    }
-    else if (m_complex)
-    {
-        for (int i = 0; i < numVecs; ++i)
-        {
-            int startRHS = source.Index(m_rhsMatrixIndex);
-            int startLHS = Index(m_lhsMatrixIndex);
-            const hwTComplex<double>* realRHS = source.GetComplexData() + startRHS;
-            hwTComplex<double>* realLHS = m_complex + startLHS;
-
-            CopyData(realLHS, strideLHS, realRHS, strideRHS, m_dim[maxLHSdim]);
-
-            // advance rhs matrix indices
-            for (int j = 0; j < numDims; ++j)
-            {
-                if (j == maxLHSdim)
-                {
-                    continue;
-                }
-
-                int k = permuteVec[j];
-
-                // increment index k if possible
-                if (k < sourceDims)
-                {
-                    if (m_lhsMatrixIndex[j] < m_dim[j] - 1)
-                    {
-                        ++m_rhsMatrixIndex[k];
-                        ++m_lhsMatrixIndex[j];
-                        break;
-                    }
-
-                    // index k is maxed out, so reset and continue to k+1
-                    m_rhsMatrixIndex[k] = 0;
-                    m_lhsMatrixIndex[j] = 0;
-                }
-            }
-        }
-    }
-
-    // discard any singleton dimensions that may have been created
-    while (m_dim.size() > 2 && m_dim.back() == 1)
-    {
-        m_dim.pop_back();
-    }
 }
 
 //! Replicate an ND matrix in each dimension
@@ -3694,7 +3520,7 @@ void hwTMatrixN<T1, T2>::ComputeSize()
         return;
     }
 
-    size_t maxSize = std::numeric_limits<int>::max();
+    constexpr int maxSize = (std::numeric_limits<int>::max)();
     
     m_size = m_dim[0];
 
@@ -3713,7 +3539,7 @@ void hwTMatrixN<T1, T2>::ComputeSize()
         }
 
         // detect overflow
-        if (m_dim[i] >= maxSize / (size_t) m_size)
+        if (m_dim[i] >= maxSize / m_size)
         {
             m_size = -1;
             return;
@@ -3733,7 +3559,7 @@ void hwTMatrixN<T1, T2>::SetCapacity(DataType dataType)
     }
     else if (m_size < 0)
     {
-        m_capacity = -1;    // force allocaction failure
+        m_capacity = -10;    // force allocaction failure
     }
 }
 
@@ -4066,6 +3892,11 @@ void hwTMatrixN<T1, T2>::CopyMatrixLHS(const hwTMatrixN<T1, T2>& rhsMatrix)
         // advance rhs matrix indices
         for (int j = startIndx; j < rhsMatrix.m_dim.size(); ++j)
         {
+            if (j == keyDim[S_case])
+            {
+                continue;
+            }
+
             // increment index j if possible
             if (m_rhsMatrixIndex[j] < (int)rhsMatrix.m_dim[j] - 1)
             {

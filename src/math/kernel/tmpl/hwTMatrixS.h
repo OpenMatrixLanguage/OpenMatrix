@@ -18,7 +18,7 @@
 #define _hwTMatrixS_h
 
 #include <vector>
-#include "tmpl/hwTMatrix.h"
+#include "hwTMatrix.h"
 
 //*******************************************************************
 //                    MKL sparse prototypes
@@ -114,6 +114,12 @@ public:
     bool IsVector() const { return ((m_nCols == 1 || m_nRows == 1) ? true : false); }
     //! Determine if the matrix is square
     bool IsSquare() const { return (m_nCols == m_nRows ? true : false); }
+    //! Determine if the matrix is banded
+    bool IsBanded(int lower, int upper) const;
+    //! Determine if the matrix is symmetric
+    bool IsSymmetric() const;
+    //! Determine if the matrix is Hermitian
+    bool IsHermitian() const;
 
     // ****************************************************
     //                 Dense Functions
@@ -268,6 +274,12 @@ public:
     void Divide(const hwTMatrixS<T1, T2>& A, const T2& cmplx);
     //! Negate a sparse matrix
     void Negate(const hwTMatrixS<T1, T2>& A);
+    //! Kronecker product of a sparse matrix and a full matrix
+    void Kronecker(const hwTMatrixS<T1, T2>& A, const hwTMatrix<T1, T2>& B);
+    //! Kronecker product of a full matrix and a sparse matrix
+    void Kronecker(const hwTMatrix<T1, T2>& A, const hwTMatrixS<T1, T2>& B);
+    //! Kronecker product of two sparse matrices
+    void Kronecker(const hwTMatrixS<T1, T2>& A, const hwTMatrixS<T1, T2>& B);
 
     // ****************************************************
     //               Arithmetic Operators
@@ -312,6 +324,7 @@ private:
 
     // TODO: combine m_pointerB and m_pointerE into a single vector
 public:
+    const hwTMatrix<T1, T2>& values() const { return m_values; }
     const MKL_INT* rows() const { return m_rows.data(); }
     const MKL_INT* pointerB() const { return m_pointerB.data(); }
     const MKL_INT* pointerE() const { return m_pointerE.data(); }
@@ -327,6 +340,6 @@ private:
 };
 
 //! template implementation file
-#include <tmpl/hwTMatrixS.cc>
+#include "hwTMatrixS.cc"
 
 #endif // _hwTMatrixS_h

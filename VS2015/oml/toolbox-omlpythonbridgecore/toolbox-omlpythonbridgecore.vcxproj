@@ -105,7 +105,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64;  OMLPYTHONBRIDGECORE_EXPORTS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(OML_BOOSTDIR);$(OML_PYTHONHOME)\include;$(OML_PYTHONHOME)\Lib\site-packages\numpy\core\include;$(OML_ROOT)\src\oml\toolboxes\omlpythonbridge\core;$(OML_ROOT)\src\oml\Runtime;$(OML_ROOT)\src\math\kernel</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_BOOSTDIR);$(OML_PYTHONHOME)\include;$(OML_PYTHONHOME)\Lib\site-packages\numpy\core\include;$(OML_ROOT)\src\oml\toolboxes\omlpythonbridge\core;$(OML_ROOT)\src\oml\Runtime;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -140,7 +140,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64;  OMLPYTHONBRIDGECORE_EXPORTS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(OML_BOOSTDIR);$(OML_PYTHONHOME)\include;$(OML_PYTHONHOME)\Lib\site-packages\numpy\core\include;$(OML_ROOT)\src\oml\toolboxes\omlpythonbridge\core;$(OML_ROOT)\src\oml\Runtime;$(OML_ROOT)\src\math\kernel</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_BOOSTDIR);$(OML_PYTHONHOME)\include;$(OML_PYTHONHOME)\Lib\site-packages\numpy\core\include;$(OML_ROOT)\src\oml\toolboxes\omlpythonbridge\core;$(OML_ROOT)\src\oml\Runtime;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

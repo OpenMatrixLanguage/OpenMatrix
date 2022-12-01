@@ -17,13 +17,16 @@
 //:-----------------------------------------------------------------
 //:Description
 //
-//  hwTMatrixN include file
+//  hwTMatrixN include file for matrices with explicit <double>
+//  specialization and MKL dependency. When including this header
+//  the client must link to MKL.
 //
 //:-----------------------------------------------------------------
 #ifndef _hwMatrixN_h
 #define _hwMatrixN_h
 
-#include <tmpl/hwTMatrixN.h>     // class definition
+#include "tmpl/hwTMatrixN.h"       // class definition
+#include "tmpl/hwTMatrixN_MKL.cc"  // MKL dependent implementation file
 
 typedef hwTMatrixN<double> hwMatrixN;
 typedef hwTMatrixN<float> hwMatrixNF;

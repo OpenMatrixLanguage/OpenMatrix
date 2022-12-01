@@ -19,7 +19,10 @@
 #include "Currency.h"
 #include "StructData.h"
 #include "FunctionInfo.h"
-#include "hwMatrixN.h"
+#include "hwComplex.h"
+#include "hwMatrix_NMKL.h"
+#include "hwMatrixN_NMKL.h"
+#include "hwMatrixS_NMKL.h"
 #include "OML_Error.h"
 
 void OMLInterfaceImpl::RegisterFunction(const char* name, ALT_FUNCPTR fp)
@@ -37,6 +40,12 @@ void OMLInterfaceImpl::RegisterFunctionWithMetadata(const char* name, ALT_FUNCPT
 	                                                int in_vals, int out_vals)
 {
 	_eval->RegisterBuiltInFunction(name, fp, FunctionMetaData(in_vals, out_vals, module));
+}
+
+void OMLInterfaceImpl::RegisterFunctionWithMetadata(const char* name, ALT_FUNCPTR fp, const char* module,
+	int in_vals, int out_vals, bool thread_safe)
+{
+	_eval->RegisterBuiltInFunction(name, fp, FunctionMetaData(in_vals, out_vals, module), thread_safe);
 }
 
 void OMLInterfaceImpl::ThrowError(const char* message)
@@ -326,7 +335,7 @@ const int* OMLSparseMatrixImpl::GetRowVector() const
 	//	void NZinfo(int first, int last, std::vector<int> & row,
 	//	std::vector<int> & col, hwTMatrix<T1, T2> & value) const;
 		
-	std::vector<int> row_vec;
+	static std::vector<int> row_vec;
 	std::vector<int> col_vec;
 
 	hwMatrix val_mat;
@@ -341,7 +350,7 @@ const int* OMLSparseMatrixImpl::GetColumnVector() const
 	int num_vals = _mtxs->NNZ();
 
 	std::vector<int> row_vec;
-	std::vector<int> col_vec;
+	static std::vector<int> col_vec;
 
 	hwMatrix val_mat;
 
@@ -703,18 +712,16 @@ OMLSparseMatrix* OMLCurrencyListImpl::CreateSparseMatrix(int num_vals, int* ivec
 {
 	// expecting to create a sparse matrix of the specified size with all zero-values
 	// the user can then fill in the non-zero values one-at-a-time
-	std::vector<int> ivector;
-	std::vector<int> jvector;
+	std::vector<int> ivector(num_vals);
+	std::vector<int> jvector(num_vals);
 
 	hwMatrix* temp_mtx = new hwMatrix;
 
 	for (int j = 0; j < num_vals; ++j)
 	{
-		ivector[j] = ivec[j];
-		jvector[j] = jvec[j];
-
-		if (vals[j] != 0.0)
-			(*temp_mtx)(j) = vals[j];
+		ivector[j]     = ivec[j];
+		jvector[j]     = jvec[j];
+		(*temp_mtx)(j) = vals[j];
 	}
 
 	hwMatrixS* temp =  new hwMatrixS(ivector, jvector, *temp_mtx, rows, cols);

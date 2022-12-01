@@ -1,5 +1,5 @@
 /**
-* @file hwTMatrixLP.cc
+* @file hwTMatrix_LP.cc
 * @date November 2012
 * Copyright (C) 2012-2018 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
@@ -18,19 +18,17 @@
 //:Description
 //
 //  hwTMatrix explicit <double> specialization implementation file
-//  with BLAS / LAPACK functions 
+//  with BLAS / LAPACK functions or other MKL functions
 //
 //:---------------------------------------------------------------------------
 
-#include <hwComplex.h>
+#include <math/kernel/hwComplex.h>
 #include <complex>
 typedef std::complex<double> complexD;
 
 //*******************************************************************
 //                    BLAS / LAPACK prototypes
 //*******************************************************************
-#ifndef _BLAS_LAPACK_h
-#define _BLAS_LAPACK_h
 
 // y = x
 extern "C" void dcopy_(int* N, double* DX, int* INCX, double* DY, int* INCY);
@@ -185,8 +183,6 @@ extern "C" double zlange_(char* norm, int* m, int* n, complexD* a, int* lda, dou
 // Vector L2 norm
 extern "C" double dnrm2_(int* N,double* X, int* INCX);
 
-#endif // _BLAS_LAPACK_h
-
 //*******************************************************************
 //           hwTMatrix<double> private implementations
 //*******************************************************************
@@ -197,6 +193,9 @@ extern "C" double dnrm2_(int* N,double* X, int* INCX);
 template<>
 inline void hwTMatrix<double>::CopyData(void* dest, const void* src, int count)
 {
+    if (dest == src)
+        return;
+
     int inc = 1;
 
     if (IsReal())
@@ -210,6 +209,9 @@ template<>
 inline void hwTMatrix<double>::CopyData(void* dest, int stride_dest,
                                         const void* src, int stride_src, int count)
 {
+    if (dest == src)
+        return;
+
     if (IsReal())
         dcopy_((int*) &count, (double*)src, &stride_src, (double*)dest, &stride_dest);
     else
@@ -1079,7 +1081,7 @@ template<>
 inline hwMathStatus hwTMatrix<double>::Normalize()
 {
     int count = Size();
-    double norm;
+    double norm = -1.0; // initialize to make cppcheck happy
     hwMathStatus status;
 
     if (!IsVector())
@@ -1090,10 +1092,8 @@ inline hwMathStatus hwTMatrix<double>::Normalize()
     if (!status.IsOk())
         return status;
 
-    double* v = m_real;
-
     while (count--)
-        v[count] /= norm;
+        m_real[count] /= norm;
 
     return hwMathStatus();
 }

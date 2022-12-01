@@ -1,7 +1,7 @@
 /**
 * @file OML_Error.cpp
 * @date November 2015
-* Copyright (C) 2015-2021 Altair Engineering, Inc.  
+* Copyright (C) 2015-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -135,6 +135,7 @@
 #define OML_MSG_INTERNAL                    "Error: internal error"
 #define OML_MSG_AUTHENTICATE                "Error: authentication failure"
 #define OML_MSG_UNICODE_FILENAME            "Error: invalid input: file name cannot have Unicode characters"
+#define OML_MSG_STRING_POSINTEGER           "Error: invalid input: must be a string or positive integer"
 
 // optimization messages
 #define OML_MSG_OBJSTRRET1                  "Error: invalid objective function; must have exactly 1 return"
@@ -185,10 +186,6 @@
 #define OML_MSG_ABF_SUBCASE_EMPTY      "Error: subcase name is missing; check input"
 #define OML_MSG_ABF_EXPORT_DONE        "Error: data is already exported"
 #define OML_MSG_ABF_WRITE_IN_PROGRESS  "Error: data write is in progress"
-
-// HW reader messages
-#define OML_MSG_HWREADER_TIMECHANNELS_COMPARE    "Error: Time channels does not match"
-#define OML_MSG_HWREADER_SUBCASE_INVALID_RANGE   "Error: invalid input; subcase index out of range;"
 
 // HDF5 reader messages
 #define OML_MSG_HDF5_INVALID_FILE                "Error: not a valid hdf5 file"
@@ -255,15 +252,49 @@
 #define OML_MSG_RPC_XVECT_NUM_POINTS             "Error: X vector should have at least two data points"
 #define OML_MSG_RPC_XVECT_SPREAD                 "Error: X vector is not evenly distributed"
 
-//ReadCAE Builder
-#define OML_MSG_RCB_INVALID_TYPE                 "Error: Invalid Datatype"
-#define OML_MSG_RCB_INVALID_REQUEST              "Error: Invalid Requests"
-#define OML_MSG_RCB_MISSING_COMPONENT            "Error: Missing component"
-#define OML_MSG_RCB_INVALID_COMPONENT            "Error: Invalid component"
-#define OML_MSG_RCB_MISSING_TIME                 "Error: Missing time"
-#define OML_MSG_RCB_FAIL_READER_INIT             "Error: Reader initialization failed"
-#define OML_MSG_RCB_READING_FAILED               "Error: Problem reading file"
-#define OML_MSG_RCB_INVALID_FILE_ENTRY           "Error: Filename cannot be an empty string. Specify a valid filename"
+//ReadCAE Builder && HW reader messages
+#define OML_MSG_HWREADER_INVALID_TYPE            "Error: invalid datatype"
+#define OML_MSG_HWREADER_INVALID_REQUEST         "Error: invalid requests"
+#define OML_MSG_HWREADER_MISSING_COMPONENT       "Error: missing component"
+#define OML_MSG_HWREADER_INVALID_COMPONENT       "Error: invalid component"
+#define OML_MSG_HWREADER_MISSING_TIME            "Error: missing time"
+#define OML_MSG_HWREADER_FAIL_READER_INIT        "Error: reader initialization failed"
+#define OML_MSG_HWREADER_READING_FAILED          "Error: problem reading file"
+#define OML_MSG_HWREADER_INVALID_FILE_ENTRY      "Error: filename cannot be an empty string. Specify a valid filename"
+#define OML_MSG_HWREADER_TIMECHANNELS_COMPARE    "Error: time channels does not match"
+#define OML_MSG_HWREADER_SUBCASE_INVALID_RANGE   "Error: invalid input; subcase index out of range;"
+#define OML_MSG_HWREADER_INVALID_TIME            "Error: invalid time"
+#define OML_MSG_HWREADER_NEED_SUBCASE            "Error: must specify a subcase for files with subcases"
+#define OML_MSG_HWREADER_NO_SUBCASE              "Error: file has no subcases"
+#define OML_MSG_HWREADER_STRING_POSINTEGER       "Error: invalid input; must be a string or an integer"
+#define OML_MSG_HWREADER_INVALID_TRC             "Error: invalid type, request, and component combination"
+#define OML_MSG_HWREADER_SUBCASE_READ_FAIL       "Error: problem getting subcases from file"
+#define OML_MSG_HWREADER_TYPE_READ_FAIL          "Error: problem getting data types from file"
+#define OML_MSG_HWREADER_REQUEST_READ_FAIL       "Error: problem getting data requests from file"
+#define OML_MSG_HWREADER_COMP_READ_FAIL          "Error: problem getting components from file"
+#define OML_MSG_HWREADER_FILTER_COMP_READ_FAIL   "Error: problem getting filtered components from file"
+#define OML_MSG_HWREADER_INVALID_TYPE_INDX       "Error: invalid datatype index"
+#define OML_MSG_HWREADER_INVALID_REQUEST_INDX    "Error: invalid request index"
+#define OML_MSG_HWREADER_INVALID_COMPONENT_INDX  "Error: invalid component index"
+#define OML_MSG_HWREADER_CELL_INDX               "Error: index must be less than the number of rows in the input cell"
+#define OML_MSG_HWREADER_INDX_POSINTEGER         "Error: index must be a positive integer"
+#define OML_MSG_HWREADER_EXTRACT_STR_SCALAR      "Error: extract fields must either be strings or indices"
+#define OML_MSG_HWREADER_DIMENSIONS_MATCH        "Error: dimensions must match"
+#define OML_MSG_HWREADER_INDICES_REAL            "Error: indices must be real"
+#define OML_MSG_HWREADER_TRC_DATA_TYPE           "Error: last three inputs must be Type, Req, and Comp strings or integers"
+#define OML_MSG_HWREADER_STRC_DATA_TYPE          "Error: last four inputs must be Subcase, Type, Req, and Comp strings or integers"
+#define OML_MSG_HWREADER_CELL_4_5_COLS           "Error: cell array input must have 4 or 5 columns"
+#define OML_MSG_HWREADER_CELL_3_4_COLS           "Error: cell array input must have 3 or 4 columns"
+#define OML_MSG_HWREADER_REQ_CELL_1_N            "Error: request input cell should be 1,n size"
+#define OML_MSG_HWREADER_COMP_CELL_1_N           "Error: component input cell should be 1,n size"
+#define OML_MSG_HWREADER_TIME_CELL_1_N           "Error: time input cell should be 1,n size"
+#define OML_MSG_HWREADER_OUTPUT_CELL_MAT         "Error: invalid output type requested. Output can be cell or matrix. Valid input value 0 or 1"
+#define OML_MSG_HWREADER_INVALID_UNIT_TYPE       "Error: invalid unit type"
+
+#define OML_MSG_SPREADSHEET_RANGE                "Error: invalid input; must be a spreadsheet style range"
+#define OML_MSG_WINDOWSONLY_OP                   "Error: invalid operation; operation is only valid on Windows"
+#define OML_MSG_FILEALREADYOPEN_OP               "Error: invalid operation; file is already open in other application(s)"
+#define OML_MSG_OMLINTERFACE_OP                  "Error: invalid operation; cannot complete operation with 'oml'(default) interface"
 
 // Variable type definitions
 #define OML_STR_MATRIX          "matrix"
@@ -507,251 +538,278 @@ std::string OML_Error::GetErrorMessage() const
 //-----------------------------------------------------------------------------
 // Returns error message for given error code
 //-----------------------------------------------------------------------------
-std::string OML_Error::GetOmlErrorMessage(omlMathErrCode errCode) const
+std::string OML_Error::GetOmlErrorMessage(omlMathErrCode code) const
 {
-    std::string msgStr;
-
-    switch (errCode)
+    switch (code)
     {
-    case OML_ERR_NUMARGIN:                      msgStr = OML_MSG_NUMARGIN;                      break;
-    case OML_ERR_NUMARGOUT:                     msgStr = OML_MSG_NUMARGOUT;                     break;
-    case OML_ERR_NUMARGINOUT:                   msgStr = OML_MSG_NUMARGINOUT;                   break;
-    case OML_ERR_CELL:                          msgStr = OML_MSG_CELL;                          break;
-    case OML_ERR_CELLARRAY:                     msgStr = OML_MSG_CELLARRAY;                     break;
-    case OML_ERR_STRUCT:                        msgStr = OML_MSG_STRUCT;                        break;
-    case OML_ERR_STRING:                        msgStr = OML_MSG_STRING;                        break;
-    case OML_ERR_INTSTRING:                     msgStr = OML_MSG_INTSTRING;                     break;
-    case OML_ERR_SCALARSTRING:                  msgStr = OML_MSG_SCALARSTRING;                  break;
-    case OML_ERR_BAD_STRING:                    msgStr = OML_MSG_BAD_STRING;                    break;
-    case OML_ERR_NUMERIC:                       msgStr = OML_MSG_NUMERIC;                       break;
-    case OML_ERR_SCALAR:                        msgStr = OML_MSG_SCALAR;                        break;
-    case OML_ERR_VECTOR:                        msgStr = OML_MSG_VECTOR;                        break;
-    case OML_ERR_VECTOR2:                       msgStr = OML_MSG_VECTOR2;                       break;
-    case OML_ERR_SCALARVECTOR:                  msgStr = OML_MSG_SCALARVECTOR;                  break;
-    case OML_ERR_SCALARMATRIX:                  msgStr = OML_MSG_SCALARMATRIX;                  break;
-    case OML_ERR_SCALARCOMPLEXMTX:              msgStr = OML_MSG_SCALARCOMPLEXMTX;              break;
-    case OML_ERR_STRINGVECTOR:                  msgStr = OML_MSG_STRINGVECTOR;                  break;
-    case OML_ERR_INTVECSTR:                     msgStr = OML_MSG_INTVECSTR;                     break;
-    case OML_ERR_REALVECTOR:                    msgStr = OML_MSG_REALVECTOR;                    break;
-    case OML_ERR_NNINTVECTOR:                   msgStr = OML_MSG_NNINTVECTOR;                   break;
-    case OML_ERR_POSINTVECTOR:                  msgStr = OML_MSG_POSINTVECTOR;                  break;
-    case OML_ERR_POSINTMATRIX:                  msgStr = OML_MSG_POSINTMATRIX;                  break;
-    case OML_ERR_MATRIX:                        msgStr = OML_MSG_MATRIX;                        break;
-    case OML_ERR_REALMATRIX:                    msgStr = OML_MSG_REALMATRIX;                    break;
-    case OML_ERR_EMPTYMATRIX:                   msgStr = OML_MSG_EMPTYMATRIX;                   break;
-    case OML_ERR_HANDLE:                        msgStr = OML_MSG_HANDLE;                        break;
-    case OML_ERR_HANDLE_EMPTY:                  msgStr = OML_MSG_HANDLE_EMPTY;                  break;
-    case OML_ERR_FUNCNAME:                      msgStr = OML_MSG_FUNCNAME;                      break;
-    case OML_ERR_ACCUMFUNC:                     msgStr = OML_MSG_ACCUMFUNC;                     break;
-    case OML_ERR_REAL:                          msgStr = OML_MSG_REAL;                          break;
-    case OML_ERR_INTEGER:                       msgStr = OML_MSG_INTEGER;                       break;
-    case OML_ERR_NATURALNUM:                    msgStr = OML_MSG_NATURALNUM;                    break;
-    case OML_ERR_POSINTEGER:                    msgStr = OML_MSG_POSINTEGER;                    break;
-    case OML_ERR_FINITE:                        msgStr = OML_MSG_FINITE;                        break;
-    case OML_ERR_VECLENDIM:                     msgStr = OML_MSG_VECLENDIM;                     break;
-    case OML_ERR_ARRAYSIZE:                     msgStr = OML_MSG_ARRAYSIZE;                     break;
-    case OML_ERR_ARRAYCATDIM:                   msgStr = OML_MSG_ARRAYCATDIM;                   break;
-    case OML_ERR_CELLSIZE:                      msgStr = OML_MSG_CELLSIZE;                      break;
-    case OML_ERR_OPTION:                        msgStr = OML_MSG_OPTION;                        break;
-    case OML_ERR_OPTIONVAL:                     msgStr = OML_MSG_OPTIONVAL;                     break;
-    case OML_ERR_FUNCSWITCH:                    msgStr = OML_MSG_FUNCSWITCH;                    break;
-    case OML_ERR_NOBUILTIN:                     msgStr = OML_MSG_NOBUILTIN;                     break;
-    case OML_ERR_UNSUPPORTDIM:                  msgStr = OML_MSG_UNSUPPORTDIM;                  break;
-    case OML_ERR_FLAG_01:                       msgStr = OML_MSG_FLAG_01;                       break;
-    case OML_ERR_FORMAT:                        msgStr = OML_MSG_FORMAT;                        break;
-    case OML_ERR_PNORM:                         msgStr = OML_MSG_PNORM;                         break;
-    case OML_ERR_NORM_STRING3:                  msgStr = OML_MSG_NORM_STRING3;                  break;
-    case OML_ERR_NOCOMPLEX:                     msgStr = OML_MSG_NOCOMPLEX;                     break;
-    case OML_ERR_NATURALNUM_MATRIX_CELLARRAY:   msgStr = OML_MSG_NATURALNUM_MATRIX_CELLARRAY;   break;
-    case OML_ERR_STRING_MATRIX_CELLARRAY:       msgStr = OML_MSG_STRING_MATRIX_CELLARRAY;       break;    
-    case OML_ERR_STRING_ONEDIMENSION:           msgStr = OML_MSG_STRING_ONEDIMENSION;           break;
-    case OML_ERR_STRSCALARCOMPLEXMTX:           msgStr = OML_MSG_STRSCALARCOMPLEXMTX;           break;
-    case OML_ERR_FINITE_NATURALNUM:             msgStr = OML_MSG_FINITE_NATURALNUM;             break;
-    case OML_ERR_STRING_NATURALNUM:             msgStr = OML_MSG_STRING_NATURALNUM;             break;
-    case OML_ERR_POSITIVE_SCALAR:               msgStr = OML_MSG_POSITIVE_SCALAR;               break;
-    case OML_ERR_SCALAR_COMPLEX:                msgStr = OML_MSG_SCALAR_COMPLEX;                break;
-    case OML_ERR_STRING_STRINGCELL:             msgStr = OML_MSG_STRING_STRINGCELL;             break;
-    case OML_ERR_INVALID_INDEX:                 msgStr = OML_MSG_INVALID_INDEX;                 break;
-    case OML_ERR_INVALID_RANGE:                 msgStr = OML_MSG_INVALID_RANGE;                 break;
-    case OML_ERR_INVALID_BASE:                  msgStr = OML_MSG_INVALID_BASE;                  break;
-    case OML_ERR_INVALID_DLL:                   msgStr = OML_MSG_INVALID_DLL;                   break;
-    case OML_ERR_INVALID_INITDLL:               msgStr = OML_MSG_INVALID_INITDLL;               break;
-    case OML_ERR_GUI_CMDEXEC_FAIL:              msgStr = OML_MSG_GUI_CMDEXEC_FAIL;              break;  
-    case OML_ERR_POS_INTEGER_VEC_MTX:           msgStr = OML_MSG_POS_INTEGER_VEC_MTX;           break;
-    case OML_ERR_STRING_INTEGER:                msgStr = OML_MSG_STRING_INTEGER;                break;
-    case OML_ERR_SCALAR_VECTOR_STRING:          msgStr = OML_MSG_SCALAR_VECTOR_STRING;          break;
-    case OML_ERR_POS_INTEGER_MTX_INF:           msgStr = OML_MSG_POS_INTEGER_MTX_INF;           break;
-    case OML_ERR_POS_INTEGER_MTX_SIZE2:         msgStr = OML_MSG_POS_INTEGER_MTX_SIZE2;         break;
-    case OML_ERR_CELLMTXSTRUCT:                 msgStr = OML_MSG_CELLMTXSTRUCT;                 break;
-    case OML_ERR_CELLSTRING:                    msgStr = OML_MSG_CELLSTRING;                    break;
-    case OML_ERR_SCALAROUTOFRANGE:              msgStr = OML_MSG_SCALAROUTOFRANGE;              break;
-    case OML_ERR_INVALIDSTRUCTINDEX:            msgStr = OML_MSG_INVALIDSTRUCTINDEX;            break;
-    case OML_ERR_INVALIDINDEX:                  msgStr = OML_MSG_INVALIDINDEX;                  break;
-    case OML_ERR_TRIANGMATTYPE:                 msgStr = OML_MSG_TRIANGMATTYPE;                 break;
-    case OML_ERR_MTXSTRING:                     msgStr = OML_MSG_MTXSTRING;                     break;
-    case OML_ERR_POSINTEGER_VEC:                msgStr = OML_MSG_POSINTEGER_VEC;                break;
-    case OML_ERR_NONEMPTY_STR:                  msgStr = OML_MSG_NONEMPTY_STR;                 break;           
-    case OML_ERR_ONEROW_STRING:                 msgStr = OML_MSG_ONEROW_STRING;                 break;
-    case OML_ERR_SCALAR_REALMTX:                msgStr = OML_MSG_SCALAR_REALMTX; break;
-    case OML_ERR_INTEGER_INTMTX:                msgStr = OML_MSG_INTEGER_INTMTX; break;
-    case OML_ERR_LOGICAL:                       msgStr = OML_MSG_LOGICAL; break;
-    case OML_ERR_INVALID_VERSION:               msgStr = OML_MSG_INVALID_VERSION; break;
-    case OML_ERR_STRING_FILESTREAM:             msgStr = OML_MSG_STRING_FILESTREAM;             break;
-    case OML_ERR_FILE_FILESTREAM:               msgStr = OML_MSG_FILE_FILESTREAM; break;
-	case OML_ERR_FILE_NOTFOUND:                 msgStr = OML_MSG_FILE_NOTFOUND; break;
-	case OML_ERR_FILE_CANNOTOPEN:               msgStr = OML_MSG_FILE_CANNOTOPEN; break;
-	case OML_ERR_OPT_UNSUPPORTED:               msgStr = OML_MSG_OPT_UNSUPPORTED; break;
-	case OML_ERR_INVALIDTIMERANGE:              msgStr = OML_MSG_INVALIDTIMERANGE; break;
-	case OML_ERR_INVALIDTIMESTEP:               msgStr = OML_MSG_INVALIDTIMESTEP; break;
-    case OML_ERR_NONNEGATIVE_SCALAR:            msgStr = OML_MSG_NONNEGATIVE_SCALAR; break;
-    case OML_ERR_FILE_CANNOTREAD:               msgStr = OML_MSG_FILE_CANNOTREAD; break;
-    case OML_ERR_STRINGSTRUCT:                  msgStr = OML_MSG_STRINGSTRUCT; break;
-    case OML_ERR_SCAL_COMP_MTX_STR_CELL:        msgStr = OML_MSG_SCAL_COMP_MTX_STR_CELL; break;
-    case OML_ERR_INVALID_DATE_FMT:              msgStr = OML_MSG_INVALID_DATE_FMT; break;
-    case OML_ERR_CANNOTAPPLY_DATE_FMT:          msgStr = OML_MSG_CANNOTAPPLY_DATE_FMT; break;
-	case OML_ERR_INPUT_EMPTY:                   msgStr = OML_MSG_INPUT_EMTPY; break;
-    case OML_ERR_MULTILINE_STRING:              msgStr = OML_MSG_MULTILINE_STRING; break;
-    case OML_ERR_INVALID_FILE_MODE:             msgStr = OML_MSG_INVALID_FILE_MODE; break;
-    case OML_ERR_FILE_CANNOTWRITE:              msgStr = OML_MSG_FILE_CANNOTWRITE; break;
-    case OML_ERR_CELL_MTX:                      msgStr = OML_MSG_CELL_MTX; break;
-    case OML_ERR_INVALIDTIMEVAL:                msgStr = OML_MSG_INVALIDTIMEVAL; break;
-    case OML_ERR_HANDLE_STRING_CELL:            msgStr = OML_MSG_HANDLE_STRING_CELL; break;
-    case OML_ERR_OBJ_HANDLE:                    msgStr = OML_MSG_ERR_OBJ_HANDLE; break;
-    case OML_ERR_HANDLE_STRING:                 msgStr = OML_MSG_ERR_HANDLE_STRING; break;
-    case OML_ERR_INTERNAL:                      msgStr = OML_MSG_INTERNAL; break;
-    case OML_ERR_AUTHENTICATE:                  msgStr = OML_MSG_AUTHENTICATE; break;
-    case OML_ERR_UNICODE_FILENAME:              msgStr = OML_MSG_UNICODE_FILENAME; break;
+        case OML_ERR_NUMARGIN:                    return OML_MSG_NUMARGIN;
+        case OML_ERR_NUMARGOUT:                   return OML_MSG_NUMARGOUT;
+        case OML_ERR_NUMARGINOUT:                 return OML_MSG_NUMARGINOUT;
+        case OML_ERR_CELL:                        return OML_MSG_CELL;
+        case OML_ERR_CELLARRAY:                   return OML_MSG_CELLARRAY;
+        case OML_ERR_STRUCT:                      return OML_MSG_STRUCT;
+        case OML_ERR_STRING:                      return OML_MSG_STRING;
+        case OML_ERR_INTSTRING:                   return OML_MSG_INTSTRING;
+        case OML_ERR_SCALARSTRING:                return OML_MSG_SCALARSTRING;
+        case OML_ERR_BAD_STRING:                  return OML_MSG_BAD_STRING;
+        case OML_ERR_NUMERIC:                     return OML_MSG_NUMERIC;
+        case OML_ERR_SCALAR:                      return OML_MSG_SCALAR;
+        case OML_ERR_VECTOR:                      return OML_MSG_VECTOR;
+        case OML_ERR_VECTOR2:                     return OML_MSG_VECTOR2;
+        case OML_ERR_SCALARVECTOR:                return OML_MSG_SCALARVECTOR;
+        case OML_ERR_SCALARMATRIX:                return OML_MSG_SCALARMATRIX;
+        case OML_ERR_SCALARCOMPLEXMTX:            return OML_MSG_SCALARCOMPLEXMTX;
+        case OML_ERR_STRINGVECTOR:                return OML_MSG_STRINGVECTOR;
+        case OML_ERR_INTVECSTR:                   return OML_MSG_INTVECSTR;
+        case OML_ERR_REALVECTOR:                  return OML_MSG_REALVECTOR;
+        case OML_ERR_NNINTVECTOR:                 return OML_MSG_NNINTVECTOR;
+        case OML_ERR_POSINTVECTOR:                return OML_MSG_POSINTVECTOR;
+        case OML_ERR_POSINTMATRIX:                return OML_MSG_POSINTMATRIX;
+        case OML_ERR_MATRIX:                      return OML_MSG_MATRIX;
+        case OML_ERR_REALMATRIX:                  return OML_MSG_REALMATRIX;
+        case OML_ERR_EMPTYMATRIX:                 return OML_MSG_EMPTYMATRIX;
+        case OML_ERR_HANDLE:                      return OML_MSG_HANDLE;
+        case OML_ERR_HANDLE_EMPTY:                return OML_MSG_HANDLE_EMPTY;
+        case OML_ERR_FUNCNAME:                    return OML_MSG_FUNCNAME;
+        case OML_ERR_ACCUMFUNC:                   return OML_MSG_ACCUMFUNC;
+        case OML_ERR_REAL:                        return OML_MSG_REAL;
+        case OML_ERR_INTEGER:                     return OML_MSG_INTEGER;
+        case OML_ERR_NATURALNUM:                  return OML_MSG_NATURALNUM;
+        case OML_ERR_POSINTEGER:                  return OML_MSG_POSINTEGER;
+        case OML_ERR_FINITE:                      return OML_MSG_FINITE;
+        case OML_ERR_VECLENDIM:                   return OML_MSG_VECLENDIM;
+        case OML_ERR_ARRAYSIZE:                   return OML_MSG_ARRAYSIZE;
+        case OML_ERR_ARRAYCATDIM:                 return OML_MSG_ARRAYCATDIM;
+        case OML_ERR_CELLSIZE:                    return OML_MSG_CELLSIZE;
+        case OML_ERR_OPTION:                      return OML_MSG_OPTION;
+        case OML_ERR_OPTIONVAL:                   return OML_MSG_OPTIONVAL;
+        case OML_ERR_FUNCSWITCH:                  return OML_MSG_FUNCSWITCH;
+        case OML_ERR_NOBUILTIN:                   return OML_MSG_NOBUILTIN;
+        case OML_ERR_UNSUPPORTDIM:                return OML_MSG_UNSUPPORTDIM;
+        case OML_ERR_FLAG_01:                     return OML_MSG_FLAG_01;
+        case OML_ERR_FORMAT:                      return OML_MSG_FORMAT;
+        case OML_ERR_PNORM:                       return OML_MSG_PNORM;
+        case OML_ERR_NORM_STRING3:                return OML_MSG_NORM_STRING3;
+        case OML_ERR_NOCOMPLEX:                   return OML_MSG_NOCOMPLEX;
+        case OML_ERR_NATURALNUM_MATRIX_CELLARRAY: return OML_MSG_NATURALNUM_MATRIX_CELLARRAY;
+        case OML_ERR_STRING_MATRIX_CELLARRAY:     return OML_MSG_STRING_MATRIX_CELLARRAY;
+        case OML_ERR_STRING_ONEDIMENSION:         return OML_MSG_STRING_ONEDIMENSION;
+        case OML_ERR_STRSCALARCOMPLEXMTX:         return OML_MSG_STRSCALARCOMPLEXMTX;
+        case OML_ERR_FINITE_NATURALNUM:           return OML_MSG_FINITE_NATURALNUM;
+        case OML_ERR_STRING_NATURALNUM:           return OML_MSG_STRING_NATURALNUM;
+        case OML_ERR_POSITIVE_SCALAR:             return OML_MSG_POSITIVE_SCALAR;
+        case OML_ERR_SCALAR_COMPLEX:              return OML_MSG_SCALAR_COMPLEX;
+        case OML_ERR_STRING_STRINGCELL:           return OML_MSG_STRING_STRINGCELL;
+        case OML_ERR_INVALID_INDEX:               return OML_MSG_INVALID_INDEX;
+        case OML_ERR_INVALID_RANGE:               return OML_MSG_INVALID_RANGE;
+        case OML_ERR_INVALID_BASE:                return OML_MSG_INVALID_BASE;
+        case OML_ERR_INVALID_DLL:                 return OML_MSG_INVALID_DLL;
+        case OML_ERR_INVALID_INITDLL:             return OML_MSG_INVALID_INITDLL;
+        case OML_ERR_GUI_CMDEXEC_FAIL:            return OML_MSG_GUI_CMDEXEC_FAIL;
+        case OML_ERR_POS_INTEGER_VEC_MTX:         return OML_MSG_POS_INTEGER_VEC_MTX;
+        case OML_ERR_STRING_INTEGER:              return OML_MSG_STRING_INTEGER;
+        case OML_ERR_SCALAR_VECTOR_STRING:        return OML_MSG_SCALAR_VECTOR_STRING;
+        case OML_ERR_POS_INTEGER_MTX_INF:         return OML_MSG_POS_INTEGER_MTX_INF;
+        case OML_ERR_POS_INTEGER_MTX_SIZE2:       return OML_MSG_POS_INTEGER_MTX_SIZE2;
+        case OML_ERR_CELLMTXSTRUCT:               return OML_MSG_CELLMTXSTRUCT;
+        case OML_ERR_CELLSTRING:                  return OML_MSG_CELLSTRING;
+        case OML_ERR_SCALAROUTOFRANGE:            return OML_MSG_SCALAROUTOFRANGE;
+        case OML_ERR_INVALIDSTRUCTINDEX:          return OML_MSG_INVALIDSTRUCTINDEX;
+        case OML_ERR_INVALIDINDEX:                return OML_MSG_INVALIDINDEX;
+        case OML_ERR_TRIANGMATTYPE:               return OML_MSG_TRIANGMATTYPE;
+        case OML_ERR_MTXSTRING:                   return OML_MSG_MTXSTRING;
+        case OML_ERR_POSINTEGER_VEC:              return OML_MSG_POSINTEGER_VEC;
+        case OML_ERR_NONEMPTY_STR:                return OML_MSG_NONEMPTY_STR;
+        case OML_ERR_ONEROW_STRING:               return OML_MSG_ONEROW_STRING;
+        case OML_ERR_SCALAR_REALMTX:              return OML_MSG_SCALAR_REALMTX;
+        case OML_ERR_INTEGER_INTMTX:              return OML_MSG_INTEGER_INTMTX;
+        case OML_ERR_LOGICAL:                     return OML_MSG_LOGICAL;
+        case OML_ERR_INVALID_VERSION:             return OML_MSG_INVALID_VERSION;
+        case OML_ERR_STRING_FILESTREAM:           return OML_MSG_STRING_FILESTREAM;
+        case OML_ERR_FILE_FILESTREAM:             return OML_MSG_FILE_FILESTREAM;
+	    case OML_ERR_FILE_NOTFOUND:               return OML_MSG_FILE_NOTFOUND;
+	    case OML_ERR_FILE_CANNOTOPEN:             return OML_MSG_FILE_CANNOTOPEN;
+	    case OML_ERR_OPT_UNSUPPORTED:             return OML_MSG_OPT_UNSUPPORTED;
+	    case OML_ERR_INVALIDTIMERANGE:            return OML_MSG_INVALIDTIMERANGE;
+	    case OML_ERR_INVALIDTIMESTEP:             return OML_MSG_INVALIDTIMESTEP;
+        case OML_ERR_NONNEGATIVE_SCALAR:          return OML_MSG_NONNEGATIVE_SCALAR;
+        case OML_ERR_FILE_CANNOTREAD:             return OML_MSG_FILE_CANNOTREAD;
+        case OML_ERR_STRINGSTRUCT:                return OML_MSG_STRINGSTRUCT;
+        case OML_ERR_SCAL_COMP_MTX_STR_CELL:      return OML_MSG_SCAL_COMP_MTX_STR_CELL;
+        case OML_ERR_INVALID_DATE_FMT:            return OML_MSG_INVALID_DATE_FMT;
+        case OML_ERR_CANNOTAPPLY_DATE_FMT:        return OML_MSG_CANNOTAPPLY_DATE_FMT;
+	    case OML_ERR_INPUT_EMPTY:                 return OML_MSG_INPUT_EMTPY;
+        case OML_ERR_MULTILINE_STRING:            return OML_MSG_MULTILINE_STRING;
+        case OML_ERR_INVALID_FILE_MODE:           return OML_MSG_INVALID_FILE_MODE;
+        case OML_ERR_FILE_CANNOTWRITE:            return OML_MSG_FILE_CANNOTWRITE;
+        case OML_ERR_CELL_MTX:                    return OML_MSG_CELL_MTX;
+        case OML_ERR_INVALIDTIMEVAL:              return OML_MSG_INVALIDTIMEVAL;
+        case OML_ERR_HANDLE_STRING_CELL:          return OML_MSG_HANDLE_STRING_CELL;
+        case OML_ERR_OBJ_HANDLE:                  return OML_MSG_ERR_OBJ_HANDLE;
+        case OML_ERR_HANDLE_STRING:               return OML_MSG_ERR_HANDLE_STRING;
+        case OML_ERR_INTERNAL:                    return OML_MSG_INTERNAL;
+        case OML_ERR_AUTHENTICATE:                return OML_MSG_AUTHENTICATE;
+        case OML_ERR_UNICODE_FILENAME:            return OML_MSG_UNICODE_FILENAME;
+        case OML_ERR_STRING_POSINTEGER:           return OML_MSG_STRING_POSINTEGER;
 
-    // optimization error messages:
-    case OML_ERR_OBJSTRRET1:                    msgStr = OML_MSG_OBJSTRRET1;                    break;
-    case OML_ERR_CONSTRARG2:                    msgStr = OML_MSG_CONSTRARG2;                    break;
-    case OML_ERR_CONSTRRET2:                    msgStr = OML_MSG_CONSTRRET2;                    break;
-    case OML_ERR_CONSTRRET4:                    msgStr = OML_MSG_CONSTRRET4;                    break;
-    case OML_ERR_ANALYTICGRADS:                 msgStr = OML_MSG_ANALYTICGRADS;                 break;
+        // optimization error messages:
+        case OML_ERR_OBJSTRRET1:                  return OML_MSG_OBJSTRRET1;
+        case OML_ERR_CONSTRARG2:                  return OML_MSG_CONSTRARG2;
+        case OML_ERR_CONSTRRET2:                  return OML_MSG_CONSTRRET2;
+        case OML_ERR_CONSTRRET4:                  return OML_MSG_CONSTRRET4;
+        case OML_ERR_ANALYTICGRADS:               return OML_MSG_ANALYTICGRADS;
 
-    // signal processing error messages:
-    case OML_ERR_ESTIMATOR_STR:                 msgStr = OML_MSG_ESTIMATOR_STR;                    break;
-    case OML_ERR_ESTIMATOR_TYPE:                msgStr = OML_MSG_ESTIMATOR_TYPE;                    break;
+        // signal processing error messages:
+        case OML_ERR_ESTIMATOR_STR:               return OML_MSG_ESTIMATOR_STR;
+        case OML_ERR_ESTIMATOR_TYPE:              return OML_MSG_ESTIMATOR_TYPE;
         
-    // plot error messages:
-    case OML_ERR_PLOT_DIM_NOT_MATCH:            msgStr = OML_MSG_PLOT_DIM_NOT_MATCH;            break;
-    case OML_ERR_PLOT_MISSING_VALUE:            msgStr = OML_MSG_PLOT_MISSING_VALUE;            break;
-    case OML_ERR_PLOT_UNMATCHED_AXES_TYPE:      msgStr = OML_MSG_PLOT_UNMATCHED_AXES_TYPE;      break;
-    case OML_ERR_PLOT_INVALID_PROPERTY:         msgStr = OML_MSG_PLOT_INVALID_PROPERTY;         break;
-    case OML_ERR_PLOT_INVALID_OBJECT_HANDLE:    msgStr = OML_MSG_PLOT_INVALID_OBJECT_HANDLE;    break;
-    case OML_ERR_PLOT_INVALID_FIGURE_HANDLE:    msgStr = OML_MSG_PLOT_INVALID_FIGURE_HANDLE;    break;
-    case OML_ERR_PLOT_INVALID_AXES_HANDLE:      msgStr = OML_MSG_PLOT_INVALID_AXES_HANDLE;      break;
-    case OML_ERR_PLOT_INVALID_CURVE_HANDLE:     msgStr = OML_MSG_PLOT_INVALID_CURVE_HANDLE;     break;
-    case OML_ERR_PLOT_INVALID_COLOR:            msgStr = OML_MSG_PLOT_INVALID_COLOR;            break;
-    case OML_ERR_PLOT_NOT_SUPPORTED:            msgStr = OML_MSG_PLOT_NOT_SUPPORTED;            break;
-    case OML_ERR_PLOT_NOT_SUPPORTED_FOR_2D:     msgStr = OML_MSG_PLOT_NOT_SUPPORTED_FOR_2D;     break;
-    case OML_ERR_PLOT_UNKNOWN_ERROR:            msgStr = OML_MSG_PLOT_UNKNOWN_ERROR;            break;
-    case OML_ERR_PLOT_ZERORANGE:                msgStr = OML_MSG_PLOT_ZERORANGE;                break;
-    case OML_ERR_PLOT_ZIN2D:                    msgStr = OML_MSG_PLOT_ZIN2D;                    break;
-    case OML_ERR_PLOT_UNSUPPORTED_FORMAT:       msgStr = OML_MSG_PLOT_UNSUPPORTED_FORMAT;       break;
-    case OML_ERR_PLOT_EMPTY_PROPERTY:           msgStr = OML_MSG_PLOT_EMPTY_PROPERTY;           break;
-    case OML_ERR_PLOT_MATXY_NOT_MATCH:          msgStr = OML_MSG_PLOT_MATXY_NOT_MATCH;          break;
-    case OML_ERR_PLOT_MATXZ_NOT_MATCH:          msgStr = OML_MSG_PLOT_MATXZ_NOT_MATCH;          break;
-    case OML_ERR_PLOT_MATYZ_NOT_MATCH:          msgStr = OML_MSG_PLOT_MATYZ_NOT_MATCH;          break;
-    case OML_ERR_PLOT_XZ_NOT_MATCH:             msgStr = OML_MSG_PLOT_XZ_NOT_MATCH;             break;
-    case OML_ERR_PLOT_YZ_NOT_MATCH:             msgStr = OML_MSG_PLOT_YZ_NOT_MATCH;             break;
-    case OML_ERR_PLOT_X_Z2_NOT_MATCH:           msgStr = OML_MSG_PLOT_X_Z2_NOT_MATCH;           break;
-    case OML_ERR_PLOT_Y_Z1_NOT_MATCH:           msgStr = OML_MSG_PLOT_Y_Z1_NOT_MATCH;           break;
-    case OML_ERR_PLOT_CONST_PROPERTY:           msgStr = OML_MSG_PLOT_CONST_PROPERTY;           break;
-    case OML_ERR_PLOT_CANNOT_OPEN_IMAGE:        msgStr = OML_MSG_PLOT_CANNOT_OPEN_IMAGE;        break;
-    case OML_ERR_PLOT_NEED_NORM_DATA:           msgStr = OML_MSG_PLOT_NEED_NORM_DATA;           break;
-    case OML_ERR_PLOT_NEED_PIXEL_DATA:          msgStr = OML_MSG_PLOT_NEED_PIXEL_DATA;          break;
-    case OML_ERR_PLOT_AMBIGUOUS_PROPERTY:       msgStr = OML_MSG_PLOT_AMBIGUOUS_PROPERTY;       break;
+        // plot error messages:
+        case OML_ERR_PLOT_DIM_NOT_MATCH:          return OML_MSG_PLOT_DIM_NOT_MATCH;
+        case OML_ERR_PLOT_MISSING_VALUE:          return OML_MSG_PLOT_MISSING_VALUE;
+        case OML_ERR_PLOT_UNMATCHED_AXES_TYPE:    return OML_MSG_PLOT_UNMATCHED_AXES_TYPE;
+        case OML_ERR_PLOT_INVALID_PROPERTY:       return OML_MSG_PLOT_INVALID_PROPERTY;
+        case OML_ERR_PLOT_INVALID_OBJECT_HANDLE:  return OML_MSG_PLOT_INVALID_OBJECT_HANDLE;
+        case OML_ERR_PLOT_INVALID_FIGURE_HANDLE:  return OML_MSG_PLOT_INVALID_FIGURE_HANDLE;
+        case OML_ERR_PLOT_INVALID_AXES_HANDLE:    return OML_MSG_PLOT_INVALID_AXES_HANDLE;
+        case OML_ERR_PLOT_INVALID_CURVE_HANDLE:   return OML_MSG_PLOT_INVALID_CURVE_HANDLE;
+        case OML_ERR_PLOT_INVALID_COLOR:          return OML_MSG_PLOT_INVALID_COLOR;
+        case OML_ERR_PLOT_NOT_SUPPORTED:          return OML_MSG_PLOT_NOT_SUPPORTED;
+        case OML_ERR_PLOT_NOT_SUPPORTED_FOR_2D:   return OML_MSG_PLOT_NOT_SUPPORTED_FOR_2D;
+        case OML_ERR_PLOT_UNKNOWN_ERROR:          return OML_MSG_PLOT_UNKNOWN_ERROR;
+        case OML_ERR_PLOT_ZERORANGE:              return OML_MSG_PLOT_ZERORANGE;
+        case OML_ERR_PLOT_ZIN2D:                  return OML_MSG_PLOT_ZIN2D;
+        case OML_ERR_PLOT_UNSUPPORTED_FORMAT:     return OML_MSG_PLOT_UNSUPPORTED_FORMAT;
+        case OML_ERR_PLOT_EMPTY_PROPERTY:         return OML_MSG_PLOT_EMPTY_PROPERTY;
+        case OML_ERR_PLOT_MATXY_NOT_MATCH:        return OML_MSG_PLOT_MATXY_NOT_MATCH;
+        case OML_ERR_PLOT_MATXZ_NOT_MATCH:        return OML_MSG_PLOT_MATXZ_NOT_MATCH;
+        case OML_ERR_PLOT_MATYZ_NOT_MATCH:        return OML_MSG_PLOT_MATYZ_NOT_MATCH;
+        case OML_ERR_PLOT_XZ_NOT_MATCH:           return OML_MSG_PLOT_XZ_NOT_MATCH;
+        case OML_ERR_PLOT_YZ_NOT_MATCH:           return OML_MSG_PLOT_YZ_NOT_MATCH;
+        case OML_ERR_PLOT_X_Z2_NOT_MATCH:         return OML_MSG_PLOT_X_Z2_NOT_MATCH;
+        case OML_ERR_PLOT_Y_Z1_NOT_MATCH:         return OML_MSG_PLOT_Y_Z1_NOT_MATCH;
+        case OML_ERR_PLOT_CONST_PROPERTY:         return OML_MSG_PLOT_CONST_PROPERTY;
+        case OML_ERR_PLOT_CANNOT_OPEN_IMAGE:      return OML_MSG_PLOT_CANNOT_OPEN_IMAGE;
+        case OML_ERR_PLOT_NEED_NORM_DATA:         return OML_MSG_PLOT_NEED_NORM_DATA;
+        case OML_ERR_PLOT_NEED_PIXEL_DATA:        return OML_MSG_PLOT_NEED_PIXEL_DATA;
+        case OML_ERR_PLOT_AMBIGUOUS_PROPERTY:     return OML_MSG_PLOT_AMBIGUOUS_PROPERTY;
 
-	// ABF error messages:
-	case OML_ERR_ABF_CREATE_FAILED:             msgStr = OML_MSG_ABF_CREATE_FAILED;             break;
-	case OML_ERR_ABF_WRITE_FAILED:              msgStr = OML_MSG_ABF_WRITE_FAILED;              break;
-	case OML_ERR_ABF_SUBCASE_EMPTY:             msgStr = OML_MSG_ABF_SUBCASE_EMPTY;             break;
-	case OML_ERR_ABF_EXPORT_DONE:               msgStr = OML_MSG_ABF_EXPORT_DONE;               break;
+	    // ABF error messages:
+	    case OML_ERR_ABF_CREATE_FAILED:  return OML_MSG_ABF_CREATE_FAILED;
+	    case OML_ERR_ABF_WRITE_FAILED:   return OML_MSG_ABF_WRITE_FAILED;
+	    case OML_ERR_ABF_SUBCASE_EMPTY:  return OML_MSG_ABF_SUBCASE_EMPTY;
+	    case OML_ERR_ABF_EXPORT_DONE:    return OML_MSG_ABF_EXPORT_DONE;
 
-    // HW reader error messages:
-    case OML_ERR_HWREADER_TIMECHANNELS_COMPARE: msgStr = OML_MSG_HWREADER_TIMECHANNELS_COMPARE; break;
-	case OML_ERR_HWREADER_SUBCASE_INVALID_RANGE: msgStr = OML_MSG_HWREADER_SUBCASE_INVALID_RANGE; break;
+        // HDF5 reader/writer error messages:
+        case OML_ERR_HDF5_INVALID_FILE:              return OML_MSG_HDF5_INVALID_FILE;
+        case OML_ERR_HDF5_FILE_READ_FAILED:          return OML_MSG_HDF5_FILE_READ_FAILED;
+        case OML_ERR_HDF5_INVALID_GROUP:             return OML_MSG_HDF5_INVALID_GROUP;
+        case OML_ERR_HDF5_GROUP_READ_FAILED:         return OML_MSG_HDF5_GROUP_READ_FAILED;
+        case OML_ERR_HDF5_INVALID_DATASET:           return OML_MSG_HDF5_INVALID_DATASET;
+        case OML_ERR_HDF5_DATASET_READ_FAILED:       return OML_MSG_HDF5_DATASET_READ_FAILED;
+        case OML_ERR_HDF5_NEITHER_DATASET_NOR_GROUP: return OML_MSG_HDF5_NEITHER_DATASET_NOR_GROUP;
+        case OML_ERR_HDF5_ATTRIBUTE_READ_FAILED:     return OML_MSG_HDF5_ATTRIBUTE_READ_FAILED;
+        case OML_ERR_HDF5_DATATYPE_READ_FAILED:      return OML_MSG_HDF5_DATATYPE_READ_FAILED;
+        case OML_ERR_HDF5_DATASPACE_READ_FAILED:     return OML_MSG_HDF5_DATASPACE_READ_FAILED;
+        case OML_ERR_HDF5_POINTS_MATRIXDIM_INVALID:  return OML_MSG_HDF5_POINTS_MATRIXDIM_INVALID;
+        case OML_ERR_HDF5_POINTS_SELECTION_INVALID:  return OML_MSG_HDF5_POINTS_SELECTION_INVALID;
+        case OML_ERR_HDF5_UNSUPPORTDIM:              return OML_MSG_HDF5_UNSUPPORTDIM;
+        case OML_ERR_HDF5_UNSUPPORT_DATA:            return OML_MSG_HDF5_UNSUPPORT_DATA;
+        case OML_ERR_HDF5_FILE_CREATION_FAILED:      return OML_MSG_HDF5_FILE_CREATION_FAILED;
+        case OML_ERR_HDF5_GROUP_EXIST:               return OML_MSG_HDF5_GROUP_EXIST;
+        case OML_ERR_HDF5_GROUP_CREATION_FAILED:     return OML_MSG_HDF5_GROUP_CREATION_FAILED;
+        case OML_ERR_HDF5_GROUP_RENAME_FAILED:       return OML_MSG_HDF5_GROUP_RENAME_FAILED;
+        case OML_ERR_HDF5_GROUP_REMOVE_FAILED:       return OML_MSG_HDF5_GROUP_REMOVE_FAILED;
+        case OML_ERR_HDF5_DATASET_CREATION_FAILED:   return OML_MSG_HDF5_DATASET_CREATION_FAILED;
+        case OML_ERR_HDF5_WRITE_FAILED:              return OML_MSG_HDF5_WRITE_FAILED;
+        case OML_ERR_HDF5_DATASET_RENAME_FAILED:     return OML_MSG_HDF5_DATASET_RENAME_FAILED;
+        case OML_ERR_HDF5_DATASET_REMOVE_FAILED:     return OML_MSG_HDF5_DATASET_REMOVE_FAILED;
+        case OML_ERR_HDF5_DATASET_EXIST:             return OML_MSG_HDF5_DATASET_EXIST;
+        case OML_ERR_HDF5_CHUNK_MATRIXDIM_INVALID:   return OML_MSG_HDF5_CHUNK_MATRIXDIM_INVALID;
+        case OML_ERR_HDF5_CHUNK_MATRIX_INVALID_ROW:  return OML_MSG_HDF5_CHUNK_MATRIX_INVALID_ROW;
+        case OML_ERR_HDF5_EMPTYMATRIX:               return OML_MSG_HDF5_EMPTYMATRIX;
+        case OML_ERR_HDF5_EMPTYCELL:                 return OML_MSG_HDF5_EMPTYCELL;
+        case OML_ERR_HDF5_INVALID_CELL_MEMBERS:      return OML_MSG_HDF5_INVALID_CELL_MEMBERS;
+        case OML_ERR_HDF5_STRUCT_INVALID_DIMS:       return OML_MSG_HDF5_STRUCT_INVALID_DIMS;
+        case OML_ERR_HDF5_ATTRIBUTE_CREATION_FAILED: return OML_MSG_HDF5_ATTRIBUTE_CREATION_FAILED;
+        case OML_ERR_HDF5_INVALID_LOCATION:          return OML_MSG_HDF5_INVALID_LOCATION;
+        case OML_ERR_HDF5_ATTRIBUTE_EXIST:           return OML_MSG_HDF5_ATTRIBUTE_EXIST;
+        case OML_ERR_HDF5_INVALID_ATTRIBUTE:         return OML_MSG_HDF5_INVALID_ATTRIBUTE;
+        case OML_ERR_HDF5_INVALID_STRUCT_MEMBERS:    return OML_MSG_HDF5_INVALID_STRUCT_MEMBERS;
+        case OML_ERR_HDF5_INVALID_ATTRIBUTE_DATA:    return OML_MSG_HDF5_INVALID_ATTRIBUTE_DATA;
 
-    // HDF5 reader/writer error messages:
-    case OML_ERR_HDF5_INVALID_FILE:              msgStr = OML_MSG_HDF5_INVALID_FILE;              break;
-    case OML_ERR_HDF5_FILE_READ_FAILED:          msgStr = OML_MSG_HDF5_FILE_READ_FAILED;          break;
-    case OML_ERR_HDF5_INVALID_GROUP:             msgStr = OML_MSG_HDF5_INVALID_GROUP;             break;
-    case OML_ERR_HDF5_GROUP_READ_FAILED:         msgStr = OML_MSG_HDF5_GROUP_READ_FAILED;         break;
-    case OML_ERR_HDF5_INVALID_DATASET:           msgStr = OML_MSG_HDF5_INVALID_DATASET;           break;
-    case OML_ERR_HDF5_DATASET_READ_FAILED:       msgStr = OML_MSG_HDF5_DATASET_READ_FAILED;       break;
-    case OML_ERR_HDF5_NEITHER_DATASET_NOR_GROUP: msgStr = OML_MSG_HDF5_NEITHER_DATASET_NOR_GROUP; break;
-    case OML_ERR_HDF5_ATTRIBUTE_READ_FAILED:     msgStr = OML_MSG_HDF5_ATTRIBUTE_READ_FAILED;     break;
-    case OML_ERR_HDF5_DATATYPE_READ_FAILED:      msgStr = OML_MSG_HDF5_DATATYPE_READ_FAILED;      break;
-    case OML_ERR_HDF5_DATASPACE_READ_FAILED:     msgStr = OML_MSG_HDF5_DATASPACE_READ_FAILED;     break;
-    case OML_ERR_HDF5_POINTS_MATRIXDIM_INVALID:  msgStr = OML_MSG_HDF5_POINTS_MATRIXDIM_INVALID;  break;
-    case OML_ERR_HDF5_POINTS_SELECTION_INVALID:  msgStr = OML_MSG_HDF5_POINTS_SELECTION_INVALID;  break;
-    case OML_ERR_HDF5_UNSUPPORTDIM:              msgStr = OML_MSG_HDF5_UNSUPPORTDIM;              break;
-    case OML_ERR_HDF5_UNSUPPORT_DATA:            msgStr = OML_MSG_HDF5_UNSUPPORT_DATA;            break;
-    case OML_ERR_HDF5_FILE_CREATION_FAILED:      msgStr = OML_MSG_HDF5_FILE_CREATION_FAILED;      break;
-    case OML_ERR_HDF5_GROUP_EXIST:               msgStr = OML_MSG_HDF5_GROUP_EXIST;               break;
-    case OML_ERR_HDF5_GROUP_CREATION_FAILED:     msgStr = OML_MSG_HDF5_GROUP_CREATION_FAILED;     break;
-    case OML_ERR_HDF5_GROUP_RENAME_FAILED:       msgStr = OML_MSG_HDF5_GROUP_RENAME_FAILED;       break;
-    case OML_ERR_HDF5_GROUP_REMOVE_FAILED:       msgStr = OML_MSG_HDF5_GROUP_REMOVE_FAILED;       break;
-    case OML_ERR_HDF5_DATASET_CREATION_FAILED:   msgStr = OML_MSG_HDF5_DATASET_CREATION_FAILED;   break;
-    case OML_ERR_HDF5_WRITE_FAILED:              msgStr = OML_MSG_HDF5_WRITE_FAILED;              break;
-    case OML_ERR_HDF5_DATASET_RENAME_FAILED:     msgStr = OML_MSG_HDF5_DATASET_RENAME_FAILED;     break;
-    case OML_ERR_HDF5_DATASET_REMOVE_FAILED:     msgStr = OML_MSG_HDF5_DATASET_REMOVE_FAILED;     break;
-    case OML_ERR_HDF5_DATASET_EXIST:             msgStr = OML_MSG_HDF5_DATASET_EXIST;             break;
-    case OML_ERR_HDF5_CHUNK_MATRIXDIM_INVALID:   msgStr = OML_MSG_HDF5_CHUNK_MATRIXDIM_INVALID;   break;
-    case OML_ERR_HDF5_CHUNK_MATRIX_INVALID_ROW:  msgStr = OML_MSG_HDF5_CHUNK_MATRIX_INVALID_ROW;  break;
-    case OML_ERR_HDF5_EMPTYMATRIX:               msgStr = OML_MSG_HDF5_EMPTYMATRIX;               break;
-    case OML_ERR_HDF5_EMPTYCELL:                 msgStr = OML_MSG_HDF5_EMPTYCELL;                 break;
-    case OML_ERR_HDF5_INVALID_CELL_MEMBERS:      msgStr = OML_MSG_HDF5_INVALID_CELL_MEMBERS;      break;
-    case OML_ERR_HDF5_STRUCT_INVALID_DIMS:       msgStr = OML_MSG_HDF5_STRUCT_INVALID_DIMS;       break;
-    case OML_ERR_HDF5_ATTRIBUTE_CREATION_FAILED: msgStr = OML_MSG_HDF5_ATTRIBUTE_CREATION_FAILED; break;
-    case OML_ERR_HDF5_INVALID_LOCATION:          msgStr = OML_MSG_HDF5_INVALID_LOCATION;          break;
-    case OML_ERR_HDF5_ATTRIBUTE_EXIST:           msgStr = OML_MSG_HDF5_ATTRIBUTE_EXIST;           break;
-    case OML_ERR_HDF5_INVALID_ATTRIBUTE:         msgStr = OML_MSG_HDF5_INVALID_ATTRIBUTE;         break;
-    case OML_ERR_HDF5_INVALID_STRUCT_MEMBERS:    msgStr = OML_MSG_HDF5_INVALID_STRUCT_MEMBERS;    break;
-    case OML_ERR_HDF5_INVALID_ATTRIBUTE_DATA:    msgStr = OML_MSG_HDF5_INVALID_ATTRIBUTE_DATA;    break;
+        //oml menu apis code
+        case OML_ERR_MENUAPI_SYS_NAME:            return OML_MSG_MENUAPI_SYS_NAME;
+        case OML_ERR_MENUAPI_SYS_DEL:             return OML_MSG_MENUAPI_SYS_DEL;
+        case OML_ERR_MENUAPI_SYS_MOD:             return OML_MSG_MENUAPI_SYS_MOD;
+        case OML_ERR_MENUAPI_INVALID_HANDLE:      return OML_MSG_MENUAPI_INVALID_HANDLE;
+        case OML_ERR_MENUAPI_INVALID_HANDLE_TYPE: return OML_MSG_MENUAPI_INVALID_HANDLE_TYPE;
 
-    //oml menu apis code
-    case OML_ERR_MENUAPI_SYS_NAME:               msgStr = OML_MSG_MENUAPI_SYS_NAME; break;
-    case OML_ERR_MENUAPI_SYS_DEL:                msgStr = OML_MSG_MENUAPI_SYS_DEL;  break;
-    case OML_ERR_MENUAPI_SYS_MOD:                msgStr = OML_MSG_MENUAPI_SYS_MOD;  break;
-    case OML_ERR_MENUAPI_INVALID_HANDLE:         msgStr = OML_MSG_MENUAPI_INVALID_HANDLE; break;
-    case OML_ERR_MENUAPI_INVALID_HANDLE_TYPE:    msgStr = OML_MSG_MENUAPI_INVALID_HANDLE_TYPE; break;
+        case OML_ERR_IMAGE_ALPHA:     return OML_MSG_IMAGE_ALPHA;
+        case OML_ERR_IMAGE_GRAYSCALE: return OML_MSG_IMAGE_GRAYSCALE;
+        case OML_ERR_IMAGE_RGB:       return OML_MSG_IMAGE_RGB;
+        case OML_ERR_IMAGE_HANDLE:    return OML_MSG_IMAGE_HANDLE;
+        case OML_ERR_REALVECTOR2:     return OML_MSG_REALVECTOR2;
+        case OML_ERR_REALVECTOR3:     return OML_MSG_REALVECTOR3;
 
-    // Image codes
-    case OML_ERR_IMAGE_ALPHA:                    msgStr = OML_MSG_IMAGE_ALPHA;     break;
-    case OML_ERR_IMAGE_GRAYSCALE:                msgStr = OML_MSG_IMAGE_GRAYSCALE; break;
-    case OML_ERR_IMAGE_RGB:                      msgStr = OML_MSG_IMAGE_RGB;       break;
-    case OML_ERR_IMAGE_HANDLE:                   msgStr = OML_MSG_IMAGE_HANDLE;    break;
+        // RPC Writer
+        case OML_ERR_RPC_INVALID_TIME_MAT:      return OML_MSG_RPC_INVALID_TIME_MAT;
+        case OML_ERR_RPC_INVALID_DATA_MAT:      return OML_MSG_RPC_INVALID_DATA_MAT;
+        case OML_ERR_RPC_INVALID_TIME_DATA_MAT: return OML_MSG_RPC_INVALID_TIME_DATA_MAT;
+        case OML_ERR_RPC_INVALID_HEADER:        return OML_MSG_RPC_INVALID_HEADER;
+        case OML_ERR_RPC_WRITE_FAILED:          return OML_MSG_RPC_WRITE_FAILED;
+        case OML_ERR_RPC_INVALID_CURVENAME:     return OML_MSG_RPC_INVALID_CURVENAME;
+        case OML_ERR_RPC_LOAD_FAILED:           return OML_MSG_RPC_LOAD_FAILED;
+        case OML_ERR_RPC_XVECT_NUM_POINTS:      return OML_MSG_RPC_XVECT_NUM_POINTS;
+        case OML_ERR_RPC_XVECT_SPREAD:          return OML_MSG_RPC_XVECT_SPREAD;
 
-    case OML_ERR_REALVECTOR2:                    msgStr = OML_MSG_REALVECTOR2; break;
-    case OML_ERR_REALVECTOR3:                    msgStr = OML_MSG_REALVECTOR3; break;
+        // ReadCAE Builder && HW reader error messages:
+        case OML_ERR_HWREADER_INVALID_TYPE:           return OML_MSG_HWREADER_INVALID_TYPE;
+        case OML_ERR_HWREADER_INVALID_REQUEST:        return OML_MSG_HWREADER_INVALID_REQUEST;
+        case OML_ERR_HWREADER_MISSING_COMPONENT:      return OML_MSG_HWREADER_MISSING_COMPONENT;
+        case OML_ERR_HWREADER_INVALID_COMPONENT:      return OML_MSG_HWREADER_INVALID_COMPONENT;
+        case OML_ERR_HWREADER_MISSING_TIME:           return OML_MSG_HWREADER_MISSING_TIME;
+        case OML_ERR_HWREADER_FAIL_READER_INIT:       return OML_MSG_HWREADER_FAIL_READER_INIT;
+        case OML_ERR_HWREADER_READING_FAILED:         return OML_MSG_HWREADER_READING_FAILED;
+        case OML_ERR_HWREADER_INVALID_FILE_ENTRY:     return OML_MSG_HWREADER_INVALID_FILE_ENTRY;
+        case OML_ERR_HWREADER_TIMECHANNELS_COMPARE:   return OML_MSG_HWREADER_TIMECHANNELS_COMPARE;
+        case OML_ERR_HWREADER_SUBCASE_INVALID_RANGE:  return OML_MSG_HWREADER_SUBCASE_INVALID_RANGE;
+        case OML_ERR_HWREADER_INVALID_TIME:           return OML_MSG_HWREADER_INVALID_TIME;
+        case OML_ERR_HWREADER_NEED_SUBCASE:           return OML_MSG_HWREADER_NEED_SUBCASE;
+        case OML_ERR_HWREADER_NO_SUBCASE:             return OML_MSG_HWREADER_NO_SUBCASE;
+        case OML_ERR_HWREADER_STRING_POSINTEGER:      return OML_MSG_HWREADER_STRING_POSINTEGER;
+        case OML_ERR_HWREADER_INVALID_TRC:            return OML_MSG_HWREADER_INVALID_TRC;
+        case OML_ERR_HWREADER_SUBCASE_READ_FAIL:      return OML_MSG_HWREADER_SUBCASE_READ_FAIL;
+        case OML_ERR_HWREADER_TYPE_READ_FAIL:         return OML_MSG_HWREADER_TYPE_READ_FAIL;
+        case OML_ERR_HWREADER_REQUEST_READ_FAIL:      return OML_MSG_HWREADER_REQUEST_READ_FAIL;
+        case OML_ERR_HWREADER_COMP_READ_FAIL:         return OML_MSG_HWREADER_COMP_READ_FAIL;
+        case OML_ERR_HWREADER_FILTER_COMP_READ_FAIL:  return OML_MSG_HWREADER_FILTER_COMP_READ_FAIL;
+        case OML_ERR_HWREADER_INVALID_TYPE_INDX:      return OML_MSG_HWREADER_INVALID_TYPE_INDX;
+        case OML_ERR_HWREADER_INVALID_REQUEST_INDX:   return OML_MSG_HWREADER_INVALID_REQUEST_INDX;
+        case OML_ERR_HWREADER_INVALID_COMPONENT_INDX: return OML_MSG_HWREADER_INVALID_COMPONENT_INDX;
+        case OML_ERR_HWREADER_CELL_INDX:              return OML_MSG_HWREADER_CELL_INDX;
+        case OML_ERR_HWREADER_INDX_POSINTEGER:        return OML_MSG_HWREADER_INDX_POSINTEGER;
+        case OML_ERR_HWREADER_EXTRACT_STR_SCALAR:     return OML_MSG_HWREADER_EXTRACT_STR_SCALAR;
+        case OML_ERR_HWREADER_DIMENSIONS_MATCH:       return OML_MSG_HWREADER_DIMENSIONS_MATCH;
+        case OML_ERR_HWREADER_INDICES_REAL:           return OML_MSG_HWREADER_INDICES_REAL;
+        case OML_ERR_HWREADER_TRC_DATA_TYPE:          return OML_MSG_HWREADER_TRC_DATA_TYPE;
+        case OML_ERR_HWREADER_STRC_DATA_TYPE:         return OML_MSG_HWREADER_STRC_DATA_TYPE;
+        case OML_ERR_HWREADER_CELL_4_5_COLS:          return OML_MSG_HWREADER_CELL_4_5_COLS;
+        case OML_ERR_HWREADER_CELL_3_4_COLS:          return OML_MSG_HWREADER_CELL_3_4_COLS;
+        case OML_ERR_HWREADER_REQ_CELL_1_N:           return OML_MSG_HWREADER_REQ_CELL_1_N;
+        case OML_ERR_HWREADER_COMP_CELL_1_N:          return OML_MSG_HWREADER_COMP_CELL_1_N;
+        case OML_ERR_HWREADER_TIME_CELL_1_N:          return OML_MSG_HWREADER_TIME_CELL_1_N;
+        case OML_ERR_HWREADER_OUTPUT_CELL_MAT:        return OML_MSG_HWREADER_OUTPUT_CELL_MAT;
+        case OML_ERR_HWREADER_INVALID_UNIT_TYPE:      return OML_MSG_HWREADER_INVALID_UNIT_TYPE;
 
-    // RPC Writer
-    case OML_ERR_RPC_INVALID_TIME_MAT:           msgStr = OML_MSG_RPC_INVALID_TIME_MAT; break;
-    case OML_ERR_RPC_INVALID_DATA_MAT:           msgStr = OML_MSG_RPC_INVALID_DATA_MAT; break;
-    case OML_ERR_RPC_INVALID_TIME_DATA_MAT:      msgStr = OML_MSG_RPC_INVALID_TIME_DATA_MAT; break;
-    case OML_ERR_RPC_INVALID_HEADER:             msgStr = OML_MSG_RPC_INVALID_HEADER; break;
-    case OML_ERR_RPC_WRITE_FAILED:               msgStr = OML_MSG_RPC_WRITE_FAILED; break;
-    case OML_ERR_RPC_INVALID_CURVENAME:          msgStr = OML_MSG_RPC_INVALID_CURVENAME; break;
-    case OML_ERR_RPC_LOAD_FAILED:                msgStr = OML_MSG_RPC_LOAD_FAILED; break;
-    case OML_ERR_RPC_XVECT_NUM_POINTS:           msgStr = OML_MSG_RPC_XVECT_NUM_POINTS; break;
-    case OML_ERR_RPC_XVECT_SPREAD:               msgStr = OML_MSG_RPC_XVECT_SPREAD; break;
+        case OML_ERR_SPREADSHEET_RANGE:  return OML_MSG_SPREADSHEET_RANGE;
+        case OML_ERR_WINDOWSONLY_OP:     return OML_MSG_WINDOWSONLY_OP;
+        case OML_ERR_FILEALREADYOPEN_OP: return OML_MSG_FILEALREADYOPEN_OP;
+        case OML_ERR_OMLINTERFACE_OP:    return OML_MSG_OMLINTERFACE_OP;
 
-    // ReadCAE Builder
-    case OML_ERR_RCB_INVALID_TYPE:               msgStr = OML_MSG_RCB_INVALID_TYPE; break;
-    case OML_ERR_RCB_INVALID_REQUEST:            msgStr = OML_MSG_RCB_INVALID_REQUEST; break;
-    case OML_ERR_RCB_MISSING_COMPONENT:          msgStr = OML_MSG_RCB_MISSING_COMPONENT; break;
-    case OML_ERR_RCB_INVALID_COMPONENT:          msgStr = OML_MSG_RCB_INVALID_COMPONENT; break;
-    case OML_ERR_RCB_MISSING_TIME:               msgStr = OML_MSG_RCB_MISSING_TIME; break;
-    case OML_ERR_RCB_FAIL_READER_INIT:           msgStr = OML_MSG_RCB_FAIL_READER_INIT; break;
-    case OML_ERR_RCB_READING_FAILED:             msgStr = OML_MSG_RCB_READING_FAILED; break;
-    case OML_ERR_RCB_INVALID_FILE_ENTRY:         msgStr = OML_MSG_RCB_INVALID_FILE_ENTRY; break;
-
-    default: break;
+        default: break;
     }
 
-    return msgStr;
+    return std::string();
 }
 //-----------------------------------------------------------------------------
 // Returns variable type string for given code

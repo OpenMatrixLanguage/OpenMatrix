@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsString.cpp
 * @date November 2015
-* Copyright (C) 2015-2021 Altair Engineering, Inc.  
+* Copyright (C) 2015-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -290,8 +290,8 @@ bool BuiltInFuncsString::hml_strtok(EvaluatorInterface           eval,
         colsRem = 1;
     }
 
-    hwMatrix* tok = EvaluatorInterface::allocateMatrix(rowsTok, colsTok, hwMatrix::REAL);
-    hwMatrix* rem = EvaluatorInterface::allocateMatrix(rowsRem, colsRem, hwMatrix::REAL);   
+    hwMatrix* tok = EvaluatorInterface::allocateMatrix(rowsTok, colsTok, true);
+    hwMatrix* rem = EvaluatorInterface::allocateMatrix(rowsRem, colsRem, true);   
 
     for (int j = 0; j < i; ++j)
         (*tok)(j) = (double) (*mtx)(j);
@@ -410,7 +410,7 @@ bool BuiltInFuncsString::ToAscii(EvaluatorInterface           eval,
     int m = in_mat->M();
     int n = in_mat->N();
 
-    hwMatrix* out = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+    hwMatrix* out = EvaluatorInterface::allocateMatrix(m, n, true);
 
     for (int j = 0; j < n; ++j)
     {
@@ -483,7 +483,7 @@ Currency BuiltInFuncsString::StrtrimHelper(EvaluatorInterface& eval,
     else
     {
         int numrows = str->M();
-        result = EvaluatorInterface::allocateMatrix(numrows, maxpos - minpos, hwMatrix::REAL);
+        result = EvaluatorInterface::allocateMatrix(numrows, maxpos - minpos, true);
         for (int i = 0; i < numrows; ++i)
         {
             for (int j = minpos; j < maxpos; ++j)
@@ -1301,7 +1301,7 @@ bool BuiltInFuncsString::Str2mat(EvaluatorInterface           eval,
     }
 	
     std::unique_ptr<hwMatrix> mtx(EvaluatorInterface::allocateMatrix(
-                                  m, n, hwMatrix::REAL));
+                                  m, n, true));
     int row = 0;
     for (std::vector<Currency>::const_iterator itr = vecCur.begin(); 
          itr != vecCur.end(); ++itr)
@@ -1725,7 +1725,7 @@ bool BuiltInFuncsString::Contains(EvaluatorInterface           eval,
     int m1 = cell1->M();
     int n1 = cell1->N();
 
-    hwMatrix* out(EvaluatorInterface::allocateMatrix(m1, n1, hwMatrix::REAL));
+    hwMatrix* out(EvaluatorInterface::allocateMatrix(m1, n1, true));
 
     out->SetElements(0);
     if (!cell2 || cell2->IsEmpty())
@@ -2117,4 +2117,212 @@ bool BuiltInFuncsString::IsNumber(const std::string& in, Currency& result)
         return true;
     }
     return false;
+}
+//------------------------------------------------------------------------------
+// Does a case-sensitive comparison of inputs [strcmp]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsString::Strcmp(EvaluatorInterface           eval, 
+                                const std::vector<Currency>& inputs, 
+                                std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    const Currency& cur1 = inputs[0];
+    bool            cellInput1 = cur1.IsCellArray();
+    if (!cur1.IsString() && !cellInput1)
+    {
+        outputs.emplace_back(false);
+        return true;
+    }
+    const Currency& cur2 = inputs[1];
+    bool            cellInput2 = cur2.IsCellArray();
+    if (!cur2.IsString() && !cellInput2)
+    {
+        outputs.emplace_back(false);
+        return true;
+    }
+
+    Currency input1(cur1);
+    if (cellInput1 && cur1.CellArray()->Size() == 1)
+    {
+        HML_CELLARRAY* temp = cur1.CellArray();
+        if (!temp || !(*temp)(0).IsString())
+        {
+            outputs.emplace_back(false);
+            return true;
+        }
+        input1 = (*temp)(0);
+        input1.SetMask(Currency::MASK_STRING);
+        cellInput1 = false;
+    }
+
+    Currency input2(cur2);
+    if (cellInput2 && cur2.CellArray()->Size() == 1)
+    {
+        HML_CELLARRAY* temp = cur2.CellArray();
+        if (!temp || !(*temp)(0).IsString())
+        {
+            outputs.emplace_back(false);
+            return 1;
+        }
+        input2 = (*temp)(0);
+        input2.SetMask(Currency::MASK_STRING);
+        cellInput2 = false;
+    }
+    if (cellInput1)  // First input is a cell
+    {
+        HML_CELLARRAY* cell1 = input1.CellArray();
+        int m = cell1->M();
+        int n = cell1->N();
+        int size = cell1->Size();
+        std::unique_ptr<hwMatrix> outmtx(
+            EvaluatorInterface::allocateMatrix(m, n, 0.0));
+
+        if (cellInput2)            // Second input is also a cell
+        {
+            HML_CELLARRAY* cell2 = input2.CellArray();
+            if (m != cell2->M() || n != cell2->N())
+            {
+                std::string msg("Error: invalid input in argument 2; ");
+                msg += "dimensions [" + std::to_string(cell2->M()) + "x"
+                    + std::to_string(cell2->N()) + "] must match dimensions ["
+                    + std::to_string(m) + "x" + std::to_string(n)
+                    + "] of argument 1";
+                throw OML_Error(msg);
+            }
+            for (int i = 0; i < size; ++i)
+            {
+                const Currency& c1 = (*cell1)(i);
+                const Currency& c2 = (*cell2)(i);
+                if (!c1.IsString() || !c2.IsString())
+                {
+                    continue;
+                }
+                const hwMatrix* mtx1 = c1.Matrix();
+                const hwMatrix* mtx2 = c2.Matrix();
+                if (*mtx1 == *mtx2)
+                {
+                    (*outmtx)(i) = 1;
+                }
+            }
+        }
+        else    // Second input is a string
+        {
+            for (int i = 0; i < size; ++i)
+            {
+                const Currency& c1 = (*cell1)(i);
+                if (c1.IsString() && (*(c1.Matrix()) == *(input2.Matrix())))
+                {
+                    (*outmtx)(i) = 1;
+                }
+            }
+        }
+        Currency out(outmtx.release());
+        out.SetMask(Currency::MASK_LOGICAL);
+        outputs.emplace_back(out);
+        return true;
+    }
+    else if (cellInput2) // Second input is a cell
+    {
+        HML_CELLARRAY* cell2 = input2.CellArray();
+        int m = cell2->M();
+        int n = cell2->N();
+        int size = cell2->Size();
+        std::unique_ptr<hwMatrix> outmtx(
+            EvaluatorInterface::allocateMatrix(m, n, 0.0));
+
+        for (int i = 0; i < size; ++i)
+        {
+            const Currency& c1 = (*cell2)(i);
+            if (c1.IsString() && (*(c1.Matrix()) == *(input1.Matrix())))
+            {
+                (*outmtx)(i) = 1;
+            }
+        }
+        Currency out(outmtx.release());
+        out.SetMask(Currency::MASK_LOGICAL);
+        outputs.emplace_back(out);
+        return true;
+    }
+    else // Both inputs are strings
+    {
+        if (*(input1.Matrix()) == *(input2.Matrix()))
+        {
+            outputs.emplace_back(true);
+        }
+        else
+        {
+            outputs.emplace_back(false);
+        }
+    }
+    return true;
+}
+//------------------------------------------------------------------------------
+// Does a case-insensitive comparison of inputs [strcmpi]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsString::Strcmpi(EvaluatorInterface           eval,
+                                const std::vector<Currency>& inputs,
+                                std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    std::vector<Currency> lowerin;
+    lowerin.reserve(2);
+
+    for (std::vector<Currency>::const_iterator itr = inputs.begin();
+        itr != inputs.end(); ++itr)
+    {
+        const Currency& cur = *itr;
+        if (cur.IsString())
+        {
+            lowerin.emplace_back(ToLowerString(cur.Matrix()));
+        }
+        else if (cur.IsCellArray())
+        {
+            std::unique_ptr<HML_CELLARRAY> cell(
+                EvaluatorInterface::allocateCellArray(cur.CellArray()));
+            int csize = cell->Size();
+            for (int i = 0; i < csize; ++i)
+            {
+                if ((*cell)(i).IsString())
+                {
+                    (*cell)(i) = ToLowerString((*cell)(i).Matrix());
+                }
+            }
+            lowerin.emplace_back(cell.release());
+        }
+        else
+        {
+            outputs.push_back(false);
+            return true;
+        }
+    }
+
+    return Strcmp(eval, lowerin, outputs);
+}
+//------------------------------------------------------------------------------
+// Utility function to convert matrix to a lower case string
+//------------------------------------------------------------------------------
+Currency BuiltInFuncsString::ToLowerString(const hwMatrix* mtx)
+{
+    if (mtx)
+    {
+        std::unique_ptr<hwMatrix> out(EvaluatorInterface::allocateMatrix(mtx));
+
+        int size = out->Size();
+        for (int i = 0; i < size; ++i)
+        {
+            (*out)(i) = tolower(static_cast<int>((*out)(i)));
+        }
+        Currency cur(out.release());
+        cur.SetMask(Currency::MASK_STRING);
+        return cur;
+    }
+    return Currency("");
 }

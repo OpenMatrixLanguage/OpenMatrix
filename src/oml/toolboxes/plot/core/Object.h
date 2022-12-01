@@ -1,7 +1,7 @@
 /**
 * @file Object.h
 * @date May 2017
-* Copyright (C) 2017-2021 Altair Engineering, Inc.  
+* Copyright (C) 2017-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -25,14 +25,12 @@
 #include <random>
 #include <memory>
 #include <iostream>
-#include "boost/any.hpp"
 #include "DataType.h"
 #include "Currency.h"
 #include "OML_Error.h"
 #include "GnuplotOutput.h"
 
 using namespace std;
-using namespace boost;
 
 namespace omlplot{
 
@@ -53,8 +51,12 @@ namespace omlplot{
         NO_TYPE, ROOT, FIGURE, AXES, SECONDARYYAXIS, TEXT, 
         LINE, POLAR_LINE, FILL, AREA, LINE_3D, BAR, HIST, 
         SCATTER, SCATTER_3D, SURFACE, MESH, CONTOUR_3D, 
-        CONTOUR, STEM, LOGLOG, SEMILOGX, SEMILOGY
+        CONTOUR, STEM, LOGLOG, SEMILOGX, SEMILOGY, XLINE, 
+        YLINE, WATERFALL, ELLIPSE, RECTANGLE, PCOLOR, PATCH,
+        LEGEND, COLORBAR, STEM3, HGGROUPVECTOR
     };
+
+    bool isSameDouble(const double& a, const double& b);
 
     template <typename T1 = string, typename T2 = Currency,
               typename T3 = PropertyType>
@@ -125,9 +127,10 @@ namespace omlplot{
         virtual ~Object();
 
         vector<string> getPropertyNames();
-        Property &getProperty(const string&);
+        virtual Property &getProperty(const string&);
         VALUETYPE getPropertyValue(const string&);
         virtual bool setPropertyValue(const string& , VALUETYPE);
+        bool isPropertySupported(const string&);
 
         double getHandle();
         string getType();
@@ -144,9 +147,11 @@ namespace omlplot{
         void setParent(Object *);
         void addChild(Object *);
         void removeChild(Object *);
+        vector<double> getAllChildren();
         virtual void repaint();
         virtual void update(GnuplotOutput *) = 0;
-
+        virtual bool objectCanBeDeleted() const { return false; }
+        virtual vector<double> getMinMaxData() { return vector<double>(); };
         ObjectType getObjectType() const;
 
     protected:
@@ -178,7 +183,7 @@ namespace omlplot{
 
         void clear();
         void out(string);
-        void saveas(string , string);
+        void saveas(string , string, int width = -1, int height = -1);
         void setGridLayout(int rows, int cols);
         bool isGridLayout();
         void getSubplotPosition(int subplotIdx, double& x, double& y, double& w, double& h);
@@ -192,10 +197,13 @@ namespace omlplot{
     };
 
     class SecondaryYAxis;
+    class Legend;
+    class Colorbar;
 
     class OMLPLOT_EXPORT Axes: public Object{
     public:
         Axes();
+        virtual ~Axes();
         bool isAxes() override;
         void update(GnuplotOutput *) override;
         void repaint() override;
@@ -209,35 +217,54 @@ namespace omlplot{
         bool getBorder() const;
         void setColorbarVisible(bool state);
         bool getColorbarVisible() const;
-        void setColorbarRange(const std::vector<double>& range);
         std::vector<double> getColorbarRange();
         void getBarNumberAndIdx(double barHandle, int& barNumber, int& barIndex);
         void setBarLayout(const string& barLayout);
         void setBarWidth(double barWidth);
         void setSecondaryYAxisVisible(bool visible);
+        Property& getProperty(const string&) override;
         bool setPropertyValue(const string& name, VALUETYPE value) override;
         double getSecondaryYAxisHandle() const;
         void setGridIndex(int idx);
         void getTipToTailCoordinates(double& x, double& y, double& t, double& r) const;
         void setTipToTailCoordinates(double x, double y, double t, double r);
+        bool objectCanBeDeleted() const override { return true; }
+        void setView(const std::vector<double>& view);
+        void setLegendVisible(bool visible);
+        bool getLegendVisible() const;
+        double getLegendHandle() const;
+        double getColorbarHandle() const;
+        bool is3DPlot();
+        void initColorbarRange();
+        void setAxisOption(const string& option);
+        bool getAxesOn() const { return _axesOn; }
+        void getAxesPosition(double& x, double& y, double& w, double& h);
+        void setAxisDatetick(const string& axis, const std::string& datefmt, int datefmtIdx);
+        void getAxisDatetickOptions(const string& axis, bool& enabled, std::string& fmt, int& fmtIdx);
     private:
         string drawStackedBarPlotLabels(GnuplotOutput* out);
-        void setupColorbar(GnuplotOutput* out);
+        void setAxisRangeFromData();
 
         unique_ptr<Text> m_title;
         unique_ptr<Text> m_xlabel;
         unique_ptr<Text> m_ylabel;
         unique_ptr<Text> m_zlabel;
+        unique_ptr<Legend> m_legend;
+        unique_ptr<Colorbar> m_colorbar;
         unique_ptr<SecondaryYAxis> m_secYAxis;
         bool _borderOn;
-        bool _colorbarVisible;
-        std::vector<double> _colorbarRange;
+        bool _axesOn;
         string m_barlayout;
         double m_barWidth;
         bool m_secYAxisVisible;
         bool m_updateXAxisRange, m_updateYAxisRange, m_updateY2AxisRange, m_updateZAxisRange;
         int m_gridIndex;
         double m_tailX, m_tailY, m_tailTheta, m_tailR;
+        double m_rotX, m_rotZ;
+        string m_axisOption;
+        bool m_xdateTicks, m_ydateTicks;
+        int m_xdateTickFmtIdx, m_ydateTickFmtIdx;
+        string m_xdateTickFmt, m_ydateTickFmt;
     };
 
     class OMLPLOT_EXPORT SecondaryYAxis : public Object {
@@ -246,10 +273,15 @@ namespace omlplot{
         void update(GnuplotOutput*) override;
         bool isAxes() override;
         double getParentAxesHandle() const;
-
+        void setAxisDatetick(const std::string& datefmt, int datefmtIdx);
+        void getAxisDatetickOptions(bool& enabled, std::string& fmt, int& fmtIdx);
+        bool setPropertyValue(const string& name, VALUETYPE value) override;
     private:
         unique_ptr<Text> m_ylabel;
         double m_parentAxesHandle;
+        bool m_ydateTicks;
+        int m_ydateTickFmtIdx;
+        string m_ydateTickFmt;
     };
 
     class OMLPLOT_EXPORT Drawable : public Object{
@@ -266,13 +298,16 @@ namespace omlplot{
 
         virtual string getUsingClause() = 0;
         virtual string getWithClause(int) = 0;
-        virtual string getLegend() = 0;
+        virtual string getLegend(bool bold, bool italic) = 0;
         virtual string getLineStyle(int) = 0;
         virtual void putData(GnuplotOutput *);
         virtual void cleanup(GnuplotOutput *) = 0;
+        bool objectCanBeDeleted() const override { return true; }
 
         void plotOnSecondaryYAxis(bool plot);
-
+        vector<double> getMinMaxData() override;
+        void setXAxisReference(const string& xref);
+        void setYAxisReference(const string& yref);
     protected:
         int _xcolcount;
         int _ycolcount;
@@ -286,7 +321,7 @@ namespace omlplot{
         void init(const LineData &ld) override;
         string getUsingClause() override;
         string getWithClause(int) override;
-        string getLegend() override;
+        string getLegend(bool bold, bool italic) override;
         string getLineStyle(int) override;
         void cleanup(GnuplotOutput *) override;
     };
@@ -303,7 +338,7 @@ namespace omlplot{
         void init(const LineData &ld) override;
         string getUsingClause() override;
         string getWithClause(int) override;
-        string getLegend() override;
+        string getLegend(bool bold, bool italic) override;
         string getLineStyle(int) override;
         void cleanup(GnuplotOutput *) override;
     };
@@ -314,7 +349,7 @@ namespace omlplot{
         void init(const LineData& ld) override;
         string getUsingClause() override;
         string getWithClause(int) override;
-        string getLegend() override;
+        string getLegend(bool bold, bool italic) override;
         string getLineStyle(int) override;
         void cleanup(GnuplotOutput *) override;
     };
@@ -332,7 +367,7 @@ namespace omlplot{
         void init(const LineData &ld) override;
         string getUsingClause() override;
         string getWithClause(int) override;
-        string getLegend() override;
+        string getLegend(bool bold, bool italic) override;
         string getLineStyle(int) override;
         void cleanup(GnuplotOutput *) override;
         void putData(GnuplotOutput*) override;
@@ -353,7 +388,7 @@ namespace omlplot{
         void init(const LineData& ld) override;
         string getUsingClause() override;
         string getWithClause(int) override;
-        string getLegend() override;
+        string getLegend(bool bold, bool italic) override;
         string getLineStyle(int) override;
         void cleanup(GnuplotOutput *) override;
     };
@@ -364,6 +399,22 @@ namespace omlplot{
         string getUsingClause() override;
     };
 
+    class OMLPLOT_EXPORT HggroupVector : public Drawable {
+    public:
+        HggroupVector();
+
+        void init(const LineData& ld) override;
+        string getUsingClause() override;
+        string getWithClause(int) override;
+        void putData(GnuplotOutput*) override;
+        string getLegend(bool bold, bool italic) override;
+        string getLineStyle(int) override;
+        void cleanup(GnuplotOutput*) override;
+    private:
+        vector<double> getUdata();
+        vector<double> getVdata();
+    };
+
     class OMLPLOT_EXPORT Surface : public Drawable{
     public:
         Surface();
@@ -371,13 +422,14 @@ namespace omlplot{
         void init(const LineData& ld) override;
         string getUsingClause() override;
         string getWithClause(int) override;
-        string getLegend() override;
+        string getLegend(bool bold, bool italic) override;
         string getLineStyle(int) override;
         void putData(GnuplotOutput *) override;
         void cleanup(GnuplotOutput *) override;
         void getMinMaxZ(double& min, double& max);
-    private:
+    protected:
         double _minZ, _maxZ;
+        bool m_recalcMinMax;
     };
 
     class OMLPLOT_EXPORT Mesh : public Surface{
@@ -431,16 +483,129 @@ namespace omlplot{
         void cleanup(GnuplotOutput *) override;
     };
 
+    class OMLPLOT_EXPORT XLine : public Line {
+    public:
+        XLine();
+        void init(const LineData& ld) override;
+        string getUsingClause() override;
+        string getWithClause(int lineId) override;
+    };
+
+    class OMLPLOT_EXPORT YLine : public Line {
+    public:
+        YLine();
+        string getUsingClause() override;
+        string getWithClause(int lineId) override;
+    };
+
+    class OMLPLOT_EXPORT Waterfall : public Surface {
+    public:
+        Waterfall();
+        string getUsingClause() override;
+        string getWithClause(int) override;
+        string getLineStyle(int) override;
+        void putData(GnuplotOutput*) override;
+    private:
+        int m_lineId;
+    };
+
+    class OMLPLOT_EXPORT Ellipse : public Drawable {
+    public:
+        Ellipse();
+        void init(const LineData& ld) override;
+        string getUsingClause() override;
+        string getWithClause(int) override;
+        string getLineStyle(int) override;
+        void cleanup(GnuplotOutput*) override;
+        string getLegend(bool bold, bool italic) override { return string(); }
+        string getDummyLine();
+    };
+
+    class OMLPLOT_EXPORT Rectangle : public Drawable {
+    public:
+        Rectangle();
+        void init(const LineData& ld) override;
+        string getUsingClause() override;
+        string getWithClause(int) override;
+        string getLineStyle(int) override;
+        void cleanup(GnuplotOutput*) override;
+        string getLegend(bool bold, bool italic) override { return string(); }
+        void SetFillNone(bool set);
+        string getDummyLine();
+    private:
+        bool m_fillNone;
+    };
+
+    class OMLPLOT_EXPORT PColor : public Surface {
+    public:
+        PColor();
+        string getWithClause(int) override;
+        void putData(GnuplotOutput*) override;
+    };
+
+    class OMLPLOT_EXPORT Patch : public Drawable {
+    public:
+        Patch();
+        void init(const LineData& ld) override;
+        string getUsingClause() override;
+        string getWithClause(int) override;
+        string getLineStyle(int) override;
+        void putData(GnuplotOutput*) override;
+        string getLegend(bool bold, bool italic) override;
+        void cleanup(GnuplotOutput*) override;
+        bool Is3D() const { return m_is3D; }
+    private:
+        void put2DData(GnuplotOutput*);
+        void put3DData(GnuplotOutput*);
+
+        int m_lineID;
+        bool m_is3D;
+        
+    };
+
+    class OMLPLOT_EXPORT Stem3 : public Line3 {
+    public:
+        Stem3();
+        string getWithClause(int lineId) override;
+    };
+
     class OMLPLOT_EXPORT Text: public Object{
     public:
-        Text();
+        Text(bool canBeDeleted = true);
         void update(GnuplotOutput *) override;
         void update(GnuplotOutput *, const string& type);
         bool isText() override;
         
         bool getVisible();
+        bool objectCanBeDeleted() const override { return m_canBeDeleted; }
     private:
         string getModifiedString(const string& text);
+        bool m_canBeDeleted;
+    };
+
+    class OMLPLOT_EXPORT Legend : public Object {
+    public:
+        Legend();
+        void update(GnuplotOutput* out) override;
+        void setLegendLocation(const std::string& legendLoc);
+        void setLegendLocation(const std::vector<double>& legendLoc);
+        std::string getLegendLocation() const;
+        void setVisible(bool visible);
+        bool getVisible();
+        bool setPropertyValue(const string& name, VALUETYPE value) override;
+    private:
+        std::string m_legendLocation;
+    };
+
+    class OMLPLOT_EXPORT Colorbar : public Object {
+    public:
+        Colorbar();
+        void update(GnuplotOutput*) override;
+        void setVisible(bool visible);
+        bool getVisible();
+        bool setPropertyValue(const string& name, VALUETYPE value) override;
+    private:
+        std::string m_colorbarLocation;
     };
 
     class OMLPLOT_EXPORT HandlePool{

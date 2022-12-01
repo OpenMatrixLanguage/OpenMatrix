@@ -135,19 +135,13 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
     }
 
     // CVodeCreate
-    // for stiff problems use bdf = true, newton = true
-    // for non-stiff problems use bdf = false, newton = false
-    if (job[0] == '1' && job[1] == '1')
+    if (!strcmp(job, "113"))
     {
-        cvode_mem = CVodeCreate(CV_ADAMS, CV_FUNCTIONAL);
+        cvode_mem = CVodeCreate(CV_ADAMS, sunctx);  // non-stiff
     }
-    else if (job[0] == '2' && job[1] == '1')
+    else if (!strcmp(job, "15s"))
     {
-        cvode_mem = CVodeCreate(CV_BDF, CV_FUNCTIONAL);
-    }
-    else if (job[0] == '2' && job[1] == '2')
-    {
-        cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
+        cvode_mem = CVodeCreate(CV_BDF, sunctx);    // stiff
     }
     else
     {
@@ -155,16 +149,17 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
         return;
     }
 
-    if (Check_flag((void *)cvode_mem, "CVodeCreate", 0))
+    if (!cvode_mem)
     {
         m_status(HW_MATH_ERR_ALLOCFAILED);
         return;
     }
 
     // Create serial vector of length NEQ for I.C.
-    y = N_VNew_Serial(m_y.Size());
+    int numEqns = m_y.Size();
+    y = N_VNew_Serial(numEqns, sunctx);
 
-    if (Check_flag((void *)y, "N_VNew_Serial", 0))
+    if (!y)
     {
         m_status(HW_MATH_ERR_ALLOCFAILED);
         return;
@@ -176,44 +171,58 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
 
     // Initialize and populate CVODE object
     sysfunc_client = sysfunc;
+    int64_t flag = CVodeInit(cvode_mem, sysfunc_CVODE, tin, y);
 
-    int flag = CVodeInit(cvode_mem, sysfunc_CVODE, tin, y);
-    // if (Check_flag(&flag, "CVodeInit", 1)) return(1);
-
-    int numEqns = m_y.Size();
-    if (job[2] == 'a')
+    if (flag < 0)
     {
-        // Create dense SUNMatrix for use in linear solver
-        A = SUNDenseMatrix(numEqns, numEqns);
-        if (Check_flag((void *)A, "SUNDenseMatrix", 0))
+        m_status(HW_MATH_ERR_INTERNALERROR);
+        return;
+    }
+
+    // Create dense SUNMatrix for use in linear solver
+    A = SUNDenseMatrix(numEqns, numEqns, sunctx);
+
+    if (!A)
+    {
+        m_status(HW_MATH_ERR_ALLOCFAILED);
+        return;
+    }
+
+    // Create dense SUNLinearSolver object for use by IDA
+    LS = SUNLinSol_Dense(y, A, sunctx);
+
+    if (!LS)
+    {
+        m_status(HW_MATH_ERR_ALLOCFAILED);
+        return;
+    }
+
+    // Call CVDlsSetLinearSolver to attach the matrix and linear solver to IDA
+    flag = CVDlsSetLinearSolver(cvode_mem, LS, A);
+
+    if (flag < 0)
+    {
+        m_status(HW_MATH_ERR_INTERNALERROR);
+        return;
+    }
+
+    // Set the Jacobian routine to jacDfunc_CVODE (user-supplied)
+    if (jacDfunc)
+    {
+        if (!strcmp(job, "113"))
         {
-            m_status(HW_MATH_ERR_ALLOCFAILED);
+            // explicit method does not use Jacobian
+            m_status(HW_MATH_ERR_NOTALLOWED);
             return;
         }
 
-        // Create dense SUNLinearSolver object for use by CVode
-        LS = SUNDenseLinearSolver(y, A);
-        if (Check_flag((void *)LS, "SUNDenseLinearSolver", 0))
+        jacDfunc_client = jacDfunc;
+        flag = CVDlsSetJacFn(cvode_mem, (CVDlsJacFn) jacDfunc_CVODE);
+
+        if (flag < 0)
         {
-            m_status(HW_MATH_ERR_ALLOCFAILED);
+            m_status(HW_MATH_ERR_INTERNALERROR);
             return;
-        }
-
-        // Call CVDlsSetLinearSolver to attach the matrix and linear solver to CVode
-        flag = CVDlsSetLinearSolver(cvode_mem, LS, A);
-        // if(Check_flag(&flag, "CVDlsSetLinearSolver", 1)) return(1);
-
-        // Set the Jacobian routine to jacDfunc_CVODE (user-supplied)
-        if (jacDfunc)
-        {
-            jacDfunc_client = jacDfunc;
-            flag = CVDlsSetJacFn(cvode_mem, (CVDlsJacFn) jacDfunc_CVODE);
-            // if(Check_flag(&flag, "CVDlsJacFn", 1)) return(1);
-        }
-        else
-        {
-            flag = CVDlsSetJacFn(cvode_mem, nullptr);
-            // if(Check_flag(&flag, "CVDlsJacFn", 1)) return(1);
         }
     }
 
@@ -251,14 +260,24 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
     {
         rootfunc_client = rootfunc;
         flag = CVodeRootInit(cvode_mem, nrtfn, rootfunc_CVODE);
-        // if (Check_flag(&flag, "CVodeRootInit", 1)) return(1);
+
+        if (flag < 0)
+        {
+            m_status(HW_MATH_ERR_INTERNALERROR);
+            return;
+        }
     }
 
     // Set the pointer to user-defined data
     if (userData)
     {
         flag = CVodeSetUserData(cvode_mem, (void*) userData);
-        // if (Check_flag(&flag, "CVodeSetFdata", 1)) return(1);
+
+        if (flag < 0)
+        {
+            m_status(HW_MATH_ERR_INTERNALERROR);
+            return;
+        }
     }
 
     // Manage tolerances
@@ -269,7 +288,12 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
             double abstol = 1.0e-6;
 
             flag = CVodeSStolerances(cvode_mem, reltol_, abstol);
-            // if (Check_flag(&flag, "CVodeSStolerances", 1)) return(1);
+
+            if (flag < 0)
+            {
+                m_status(HW_MATH_ERR_INTERNALERROR);
+                return;
+            }
         }
         else
         {
@@ -296,7 +320,12 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
                 }
 
                 flag = CVodeSStolerances(cvode_mem, reltol_, abstol);
-                // if (Check_flag(&flag, "CVodeSStolerances", 1)) return(1);
+
+                if (flag < 0)
+                {
+                    m_status(HW_MATH_ERR_INTERNALERROR);
+                    return;
+                }
             }
             else if (abstol_->Size() == numEqns)
             {
@@ -310,9 +339,9 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
                 }
 
                 // Create serial vector of length NEQ for abstol
-                N_Vector abstol = N_VNew_Serial(numEqns);
+                N_Vector abstol = N_VNew_Serial(numEqns, sunctx);
 
-                if (Check_flag((void *)abstol, "N_VNew_Serial", 0))
+                if (!abstol)
                 {
                     m_status(HW_MATH_ERR_ALLOCFAILED);
                     return;
@@ -323,7 +352,12 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
                 NV_DATA_S(abstol) = const_cast<double*>(abstol_->GetRealData());
 
                 flag = CVodeSVtolerances(cvode_mem, reltol_, abstol);
-                // if (Check_flag(&flag, "CVodeSVtolerances", 1)) return(1);
+
+                if (flag < 0)
+                {
+                    m_status(HW_MATH_ERR_INTERNALERROR);
+                    return;
+                }
 
                 N_VDestroy_Serial(abstol);           // Free abstol vector
             }
@@ -339,12 +373,17 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
         double abstol = 1.0e-6;
 
         flag = CVodeSStolerances(cvode_mem, reltol_, abstol);
-        // if (Check_flag(&flag, "CVodeSStolerances", 1)) return(1);
+
+        if (flag < 0)
+        {
+            m_status(HW_MATH_ERR_INTERNALERROR);
+            return;
+        }
     }
 
     if (maxstep > 0.0)
     {
-        CVodeSetMaxStep(cvode_mem, maxstep);
+        flag = CVodeSetMaxStep(cvode_mem, maxstep);
     }
     else if (maxstep != -999.0)
     {
@@ -603,28 +642,10 @@ bool hwCvodeWrap::Continue(int flag)
 void hwCvodeWrap::SetStopTime(double tstop)
 {
     int flag = CVodeSetStopTime(cvode_mem, tstop);
-}
-//------------------------------------------------------------------------------
-// Check CVODE flag
-//------------------------------------------------------------------------------
-int hwCvodeWrap::Check_flag(void* flagvalue, const char* funcname, int opt)
-{
-    if (opt == 0 && !flagvalue) // opt == 0 => Sundials allocated memory
-    {
-        return 1;               // No memory was allocated by Sundials
-    }
-    else if (opt == 1)          // opt == 1 => Sundials returned a flag
-    {
-        int* errflag = static_cast<int*>(flagvalue);
-        if (errflag && *errflag < 0)
-        {
-            return 1;
-        }
-    }
-    else if (opt == 2 && !flagvalue) // opt == 2 => Sundials allocated memory
-    {
-        return 1;                    // No memory was allocated by Sundials
-    }
 
-    return 0;
+    if (flag < 0)
+    {
+        m_status(HW_MATH_ERR_INTERNALERROR);
+        return;
+    }
 }

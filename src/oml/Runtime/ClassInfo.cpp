@@ -304,3 +304,13 @@ std::vector<std::string> ClassInfo::GetMethodNames() const
 
 	return results;
 }
+
+FunctionInfo* ClassInfo::GetConstructorFunctionInfo() const
+{
+	return _constructor;
+}
+
+void ClassInfo::SetConstructorFunctionInfo(FunctionInfo* cfi)
+{
+	_constructor = cfi;
+}

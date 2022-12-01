@@ -1651,7 +1651,7 @@ hwMathStatus BilinearInterp(const hwMatrix& x_old,
 
         if (x_new.IsVector() && y_new.IsVector())
         {
-            hwMatrixI idxr_vec(zn_new, hwMatrixI::REAL);
+            hwMatrixI idxr_vec(zm_new, hwMatrixI::REAL);
 
             if (extrap)
             {

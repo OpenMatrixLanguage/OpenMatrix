@@ -19,12 +19,15 @@
 #include <memory>  // For std::unique_ptr
 
 #include "hwMatrix.h"
+#include "hwMatrixN.h"
 #include "FourierFuncs.h"
 #include "FilterFuncs.h"
+#include "WaveformFuncs.h"
 
 #include "BuiltInFuncs.h"
 #include "BuiltInFuncsMKL.h"
 #include "BuiltInFuncsUtils.h"
+#include "MKLutilities.h"
 #include "StructData.h"
 #include "MatrixNUtils.h"
 #include "OML_Error.h"
@@ -37,25 +40,25 @@
 //------------------------------------------------------------------------------
 int InitDll(EvaluatorInterface eval)
 {
-    eval.RegisterBuiltInFunction("ifft",        OmlIfft,       FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("fft",         OmlFft,        FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("fft2",        OmlFft2,       FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("ifft2",       OmlIfft2,      FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("fftn",        OmlFftN,       FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("ifftn",       OmlIfftN,      FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("stft",        OmlStft,       FunctionMetaData(-2, -2, SIGN));
+    eval.RegisterBuiltInFunction("ifft",        OmlIfft,       FunctionMetaData(-2, 1, SIGN), false);
+    eval.RegisterBuiltInFunction("fft",         OmlFft,        FunctionMetaData(-2, 1, SIGN), false);
+    eval.RegisterBuiltInFunction("fft2",        OmlFft2,       FunctionMetaData(-2, 1, SIGN), false);
+    eval.RegisterBuiltInFunction("ifft2",       OmlIfft2,      FunctionMetaData(-2, 1, SIGN), false);
+    eval.RegisterBuiltInFunction("fftn",        OmlFftN,       FunctionMetaData(-2, 1, SIGN), false);
+    eval.RegisterBuiltInFunction("ifftn",       OmlIfftN,      FunctionMetaData(-2, 1, SIGN), false);
+    eval.RegisterBuiltInFunction("stft",        OmlStft,       FunctionMetaData(-2, -2, SIGN), false);
     eval.RegisterBuiltInFunction("istft",       OmlIstft,      FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("spectrogram", OmlSpectrogram,FunctionMetaData(-2, -2, SIGN));
+    eval.RegisterBuiltInFunction("spectrogram", OmlSpectrogram,FunctionMetaData(-2, -2, SIGN), false);
     eval.RegisterBuiltInFunction("fftshift",    OmlFftShift,   FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("ifftshift",   OmlIFftShift,  FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("freq",        OmlFreq,       FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("fold",        OmlFold,       FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("xcorr",       OmlXcorr,      FunctionMetaData(-3, 1, SIGN));
     eval.RegisterBuiltInFunction("unwrap",      OmlUnwrap,     FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("pwelch",      OmlPwelch,     FunctionMetaData(-2, 2, SIGN));
+    eval.RegisterBuiltInFunction("pwelch",      OmlPwelch,     FunctionMetaData(-2, 2, SIGN), false);
     eval.RegisterBuiltInFunction("cpsd",        OmlCpsd,       FunctionMetaData(-3, 2, SIGN));
-    eval.RegisterBuiltInFunction("tfestimate",  OmlTFestimate, FunctionMetaData(-3, 2, SIGN));
-    eval.RegisterBuiltInFunction("mscohere",    OmlMScohere,   FunctionMetaData(-3, 2, SIGN));
+    eval.RegisterBuiltInFunction("tfestimate",  OmlTFestimate, FunctionMetaData(-3, 2, SIGN), false);
+    eval.RegisterBuiltInFunction("mscohere",    OmlMScohere,   FunctionMetaData(-3, 2, SIGN), false);
     eval.RegisterBuiltInFunction("freqz",       OmlFreqz,      FunctionMetaData(4, 2, SIGN));
     eval.RegisterBuiltInFunction("freqs",       OmlFreqs,      FunctionMetaData(3, 2, SIGN));
     eval.RegisterBuiltInFunction("invfreqz",    OmlInvFreqz,   FunctionMetaData(-5, 2, SIGN));
@@ -86,12 +89,20 @@ int InitDll(EvaluatorInterface eval)
     eval.RegisterBuiltInFunction("sinc",        OmlSinc,       FunctionMetaData(1, 1, SIGN));
     eval.RegisterBuiltInFunction("upsample",    OmlUpsample,   FunctionMetaData(-3, 1, SIGN));
     eval.RegisterBuiltInFunction("downsample",  OmlDownsample, FunctionMetaData(-3, 1, SIGN));
-    eval.RegisterBuiltInFunction("resample",    OmlResample,   FunctionMetaData(-4, 1, SIGN));
+    eval.RegisterBuiltInFunction("resample",    OmlResample,   FunctionMetaData(-4, 1, SIGN), false);
     eval.RegisterBuiltInFunction("findpeaks",   OmlFindPeaks,  FunctionMetaData(-2, 3, SIGN));
     eval.RegisterBuiltInFunction("dba",         OmldbA,        FunctionMetaData(-3, 1, SIGN));
     eval.RegisterBuiltInFunction("dbb",         OmldbB,        FunctionMetaData(-3, 1, SIGN));
     eval.RegisterBuiltInFunction("dbc",         OmldbC,        FunctionMetaData(-3, 1, SIGN));
     eval.RegisterBuiltInFunction("dbu",         OmldbU,        FunctionMetaData(-3, 1, SIGN));
+    eval.RegisterBuiltInFunction("rectpuls",    OmlRectPuls,   FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("tripuls",     OmlTriPuls,    FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("gauspuls",    OmlGausPuls,   FunctionMetaData(-4, 1, SIGN));
+    eval.RegisterBuiltInFunction("pulstran",    OmlPulsTran,   FunctionMetaData(-4, 1, SIGN));
+    eval.RegisterBuiltInFunction("square",      OmlSquare,     FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("sawtooth",    OmlSawtooth,   FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("diric",       OmlDiric,      FunctionMetaData(2, 1, SIGN));
+    eval.RegisterBuiltInFunction("chirp",       OmlChirp,      FunctionMetaData(-3, 1, SIGN));
 
     return 1;
 }
@@ -236,7 +247,7 @@ bool OmlIfft(EvaluatorInterface           eval,
         else if (dim == 1)
         {
             signal.reset(EvaluatorInterface::allocateMatrix(
-                fftSize, matrix->N(), hwMatrix::REAL));
+                fftSize, matrix->N(), true));
 
             std::unique_ptr<hwMatrix> colin(EvaluatorInterface::allocateMatrix());
             std::unique_ptr<hwMatrix> colout(EvaluatorInterface::allocateMatrix());
@@ -269,7 +280,7 @@ bool OmlIfft(EvaluatorInterface           eval,
             else
             {
                 signal.reset(EvaluatorInterface::allocateMatrix(matrix->M(),
-                             fftSize, hwMatrix::REAL));
+                             fftSize, true));
                 std::unique_ptr<hwMatrix> rowin(EvaluatorInterface::allocateMatrix());
                 std::unique_ptr<hwMatrix> rowout(EvaluatorInterface::allocateMatrix());
 
@@ -454,7 +465,7 @@ bool OmlFft(EvaluatorInterface           eval,
         }
         else if (dim == 1)
         {
-            freq.reset(EvaluatorInterface::allocateMatrix(fftSize, matrix->N(), hwMatrix::COMPLEX));
+            freq.reset(EvaluatorInterface::allocateMatrix(fftSize, matrix->N(), false));
             hwComplex* response = freq->GetComplexData();
             hwMathStatus status;
 
@@ -501,7 +512,7 @@ bool OmlFft(EvaluatorInterface           eval,
             else
             {
                 freq.reset(EvaluatorInterface::allocateMatrix(matrix->M(),
-                           fftSize, hwMatrix::COMPLEX));
+                           fftSize, false));
 
                 std::unique_ptr<hwMatrix> rowin(EvaluatorInterface::allocateMatrix());
                 std::unique_ptr<hwMatrix> rowout(EvaluatorInterface::allocateMatrix());
@@ -848,7 +859,7 @@ bool OmlStft(EvaluatorInterface           eval,
         if (inputs[2].IsPositiveInteger())
         {
             windowSize = static_cast<int>(inputs[2].Scalar());
-            windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, hwMatrix::REAL));
+            windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, true));
             hwMathStatus status = HannWin(*windowTemp, "periodic");
 
             if (!status.IsOk())
@@ -861,7 +872,7 @@ bool OmlStft(EvaluatorInterface           eval,
         {
             if (inputs[2].Matrix()->M() == 0 && inputs[2].Matrix()->N() == 0)
             {
-                windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, hwMatrix::REAL));
+                windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, true));
                 hwMathStatus status = HannWin(*windowTemp, "periodic");
 
                 if (!status.IsOk())
@@ -879,6 +890,17 @@ bool OmlStft(EvaluatorInterface           eval,
         else
         {
             throw OML_Error(OML_ERR_SCALARVECTOR, 3);
+        }
+    }
+    else
+    {
+        windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, true));
+        hwMathStatus status = HannWin(*windowTemp, "periodic");
+
+        if (!status.IsOk())
+        {
+            status.SetArg1(3);
+            throw OML_Error(status);
         }
     }
 
@@ -1010,9 +1032,9 @@ bool OmlStft(EvaluatorInterface           eval,
         hwMatrix col(windowSize, 1, signalMatData, hwMatrix::REAL);
 
         if (window)
-            BuiltInFuncsMKL::MultByElems(segment, *window, col);
+            MKLutilitiesD::MultByElems(segment, *window, col);
         else
-            BuiltInFuncsMKL::MultByElems(segment, *windowTemp, col);
+            MKLutilitiesD::MultByElems(segment, *windowTemp, col);
 
         signalVecData += inc;
         signalMatData += fftSize;
@@ -1020,7 +1042,7 @@ bool OmlStft(EvaluatorInterface           eval,
 
     // perform FFT and create output
     std::unique_ptr<hwMatrix> freqRes(EvaluatorInterface::allocateMatrix());
-    std::unique_ptr<hwMatrix> timeVec(EvaluatorInterface::allocateMatrix(numWin, 1, hwMatrix::REAL));
+    std::unique_ptr<hwMatrix> timeVec(EvaluatorInterface::allocateMatrix(numWin, 1, true));
     std::unique_ptr<hwMatrix> freqVec(EvaluatorInterface::allocateMatrix());
 
     hwMathStatus status = Fft(signalMatrix, *freqRes, 0, 0);
@@ -1092,6 +1114,16 @@ bool OmlStft(EvaluatorInterface           eval,
         plotInput.push_back(freqVec.release());
         plotInput.push_back(outputs2[0]);
         contourPtr(eval, plotInput, dummyOutput);
+
+        // set(ch, 'meshlines', 'off');
+        if (!dummyOutput.empty())
+        {
+            plotInput.clear();
+            plotInput.push_back(dummyOutput[0]);
+            plotInput.push_back("meshlines");
+            plotInput.push_back("off");
+            setPtr(eval, plotInput, dummyOutput);
+        }
         plotInput.clear();
         dummyOutput.clear();
 
@@ -1229,7 +1261,7 @@ bool OmlIstft(EvaluatorInterface           eval,
         if (inputs[2].IsPositiveInteger())
         {
             windowSize = static_cast<int>(inputs[2].Scalar());
-            windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, hwMatrix::REAL));
+            windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, true));
             hwMathStatus status = HannWin(*windowTemp, "periodic");
 
             if (!status.IsOk())
@@ -1242,7 +1274,7 @@ bool OmlIstft(EvaluatorInterface           eval,
         {
             if (inputs[2].Matrix()->M() == 0 && inputs[2].Matrix()->N() == 0)
             {
-                windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, hwMatrix::REAL));
+                windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, true));
                 hwMathStatus status = HannWin(*windowTemp, "periodic");
 
                 if (!status.IsOk())
@@ -1260,6 +1292,17 @@ bool OmlIstft(EvaluatorInterface           eval,
         else
         {
             throw OML_Error(OML_ERR_SCALARVECTOR, 3);
+        }
+    }
+    else
+    {
+        windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, true));
+        hwMathStatus status = HannWin(*windowTemp, "periodic");
+
+        if (!status.IsOk())
+        {
+            status.SetArg1(3);
+            throw OML_Error(status);
         }
     }
 
@@ -1339,7 +1382,7 @@ bool OmlIstft(EvaluatorInterface           eval,
             throw OML_Error(OML_ERR_ARRAYSIZE, 1, 5, OML_VAR_DIMS);
         }
 
-        hwMatrix* freqRes2 = EvaluatorInterface::allocateMatrix(fftSize, n, hwMatrix::COMPLEX);
+        hwMatrix* freqRes2 = EvaluatorInterface::allocateMatrix(fftSize, n, false);
 
         if (fftSize % 2 == 0)   // has Nyquist
             --m;
@@ -1430,7 +1473,7 @@ bool OmlIstft(EvaluatorInterface           eval,
     // IEEE 1984, 10.1109.
     int inc = windowSize - numOverlapPts;
     int signalLength = inc * (numWin - 1) + windowSize;
-    std::unique_ptr<hwMatrix> signalVec(EvaluatorInterface::allocateMatrix(signalLength, 1, hwMatrix::REAL));
+    std::unique_ptr<hwMatrix> signalVec(EvaluatorInterface::allocateMatrix(signalLength, 1, true));
     const double* signalVecData = signalVec->GetRealData();
     double* signalMatData = signalMatrix.GetRealData();
     hwMatrix segment1(windowSize, 1, hwMatrix::REAL);
@@ -1443,11 +1486,11 @@ bool OmlIstft(EvaluatorInterface           eval,
 
     if (window)
     {
-        BuiltInFuncsMKL::MultByElems(*window, *window, segment2);
+        MKLutilitiesD::MultByElems(*window, *window, segment2);
     }
     else
     {
-        BuiltInFuncsMKL::MultByElems(*windowTemp, *windowTemp, segment2);
+        MKLutilitiesD::MultByElems(*windowTemp, *windowTemp, segment2);
     }
 
     for (int i = 0; i < numWin; ++i)
@@ -1458,11 +1501,11 @@ bool OmlIstft(EvaluatorInterface           eval,
 
         if (window)
         {
-            BuiltInFuncsMKL::MultByElems(col, *window, segment1);
+            MKLutilitiesD::MultByElems(col, *window, segment1);
         }
         else
         {
-            BuiltInFuncsMKL::MultByElems(col, *windowTemp, segment1);
+            MKLutilitiesD::MultByElems(col, *windowTemp, segment1);
         }
 
         segment3 += segment1;
@@ -1479,7 +1522,7 @@ bool OmlIstft(EvaluatorInterface           eval,
     }
 
     // perform FFT and create output
-    std::unique_ptr<hwMatrix> timeVec(EvaluatorInterface::allocateMatrix(signalLength, 1, hwMatrix::REAL));
+    std::unique_ptr<hwMatrix> timeVec(EvaluatorInterface::allocateMatrix(signalLength, 1, true));
     int nargout = eval.GetNargoutValue();
 
     if (nargout == 0 || nargout > 1)
@@ -1585,7 +1628,7 @@ bool OmlSpectrogram(EvaluatorInterface           eval,
         if (inputs[2].IsPositiveInteger())
         {
             windowSize = static_cast<int>(inputs[2].Scalar());
-            windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, hwMatrix::REAL));
+            windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, true));
             hwMathStatus status = HannWin(*windowTemp, "periodic");
 
             if (!status.IsOk())
@@ -1598,7 +1641,7 @@ bool OmlSpectrogram(EvaluatorInterface           eval,
         {
             if (inputs[2].Matrix()->M() == 0 && inputs[2].Matrix()->N() == 0)
             {
-                windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, hwMatrix::REAL));
+                windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, true));
                 hwMathStatus status = HannWin(*windowTemp, "periodic");
 
                 if (!status.IsOk())
@@ -1616,6 +1659,17 @@ bool OmlSpectrogram(EvaluatorInterface           eval,
         else
         {
             throw OML_Error(OML_ERR_SCALARVECTOR, 3);
+        }
+    }
+    else
+    {
+        windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, true));
+        hwMathStatus status = HannWin(*windowTemp, "periodic");
+
+        if (!status.IsOk())
+        {
+            status.SetArg1(3);
+            throw OML_Error(status);
         }
     }
 
@@ -1746,9 +1800,9 @@ bool OmlSpectrogram(EvaluatorInterface           eval,
         hwMatrix col(windowSize, 1, signalMatData, hwMatrix::REAL);
 
         if (window)
-            BuiltInFuncsMKL::MultByElems(segment, *window, col);
+            MKLutilitiesD::MultByElems(segment, *window, col);
         else
-            BuiltInFuncsMKL::MultByElems(segment, *windowTemp, col);
+            MKLutilitiesD::MultByElems(segment, *windowTemp, col);
 
         signalVecData += inc;
         signalMatData += fftSize;
@@ -1756,7 +1810,7 @@ bool OmlSpectrogram(EvaluatorInterface           eval,
 
     // create spectrogram and output
     std::unique_ptr<hwMatrix> freqRes(EvaluatorInterface::allocateMatrix());
-    std::unique_ptr<hwMatrix> timeVec(EvaluatorInterface::allocateMatrix(numWin, 1, hwMatrix::REAL));
+    std::unique_ptr<hwMatrix> timeVec(EvaluatorInterface::allocateMatrix(numWin, 1, true));
     std::unique_ptr<hwMatrix> freqVec(EvaluatorInterface::allocateMatrix());
 
     hwMathStatus status = Fft(signalMatrix, *freqRes, 0, 0);
@@ -1774,7 +1828,7 @@ bool OmlSpectrogram(EvaluatorInterface           eval,
 
     hwMatrix* absSTFT = outputs2[0].GetWritableMatrix();
     std::unique_ptr<hwMatrix> psdSTFT(EvaluatorInterface::allocateMatrix());
-    BuiltInFuncsMKL::PowerByElems(*absSTFT, 2.0, *psdSTFT);
+    MKLutilitiesD::PowerByElems(*absSTFT, 2.0, *psdSTFT);
     double scale = 1.0 / ((double)windowSize * sampFreq);
     psdSTFT->MultEquals(scale);
 
@@ -1809,24 +1863,26 @@ bool OmlSpectrogram(EvaluatorInterface           eval,
         FUNCPTR setPtr = eval.GetStdFunction("set");
 
         // compute magnitudes and handle side options
-        std::vector<Currency> inputs2;
-        std::vector<Currency> outputs2;
+        outputs2.clear();
 
-        if (sideOpt != "twosided")
+        if (sideOpt == "twosided")
+        {
+            outputs2.push_back(psdSTFT.release());
+        }
+        else
         {
             inputs2.clear();
             inputs2.push_back(psdSTFT.release());
-            outputs2.clear();
             OmlFold(eval, inputs2, outputs2);
-        }
 
-        if (sideOpt == "onesided_db")
-        {
-            inputs2.clear();
-            inputs2.push_back(outputs2[0]);
-            outputs2.clear();
-            BuiltInFuncsMKL::Log10(eval, inputs2, outputs2);
-            outputs2[0].GetWritableMatrix()->MultEquals(20.0);
+            if (sideOpt == "onesided_db")
+            {
+                inputs2.clear();
+                inputs2.push_back(outputs2[0]);
+                outputs2.clear();
+                BuiltInFuncsMKL::Log10(eval, inputs2, outputs2);
+                outputs2[0].GetWritableMatrix()->MultEquals(20.0);
+            }
         }
 
         // create contour plot
@@ -1836,6 +1892,16 @@ bool OmlSpectrogram(EvaluatorInterface           eval,
         plotInput.push_back(freqVec.release());
         plotInput.push_back(outputs2[0]);
         contourPtr(eval, plotInput, dummyOutput);
+        
+        // set(ch, 'meshlines', 'off');
+        if (!dummyOutput.empty())
+        {
+            plotInput.clear();
+            plotInput.push_back(dummyOutput[0]);
+            plotInput.push_back("meshlines");
+            plotInput.push_back("off");
+            setPtr(eval, plotInput, dummyOutput);
+        }
         plotInput.clear();
         dummyOutput.clear();
 
@@ -1879,21 +1945,17 @@ bool OmlSpectrogram(EvaluatorInterface           eval,
     {
         if (sideOpt == "onesided")
         {
-            std::vector<Currency> inputs2;
-            std::vector<Currency> outputs2;
-
-            inputs2.push_back(psdSTFT.release());
+            inputs2.clear();
             outputs2.clear();
+            inputs2.push_back(psdSTFT.release());
             OmlFold(eval, inputs2, outputs2);
             outputs.push_back(outputs2[0]);
         }
         else if (sideOpt == "onesided_db")
         {
-            std::vector<Currency> inputs2;
-            std::vector<Currency> outputs2;
-
-            inputs2.push_back(psdSTFT.release());
+            inputs2.clear();
             outputs2.clear();
+            inputs2.push_back(psdSTFT.release());
             OmlFold(eval, inputs2, outputs2);
 
             inputs2.clear();
@@ -2354,7 +2416,7 @@ bool OmlFold(EvaluatorInterface           eval,
         }
         else
         {
-            outputs.push_back(new hwMatrix(0, 0, hwMatrix::REAL));
+            outputs.push_back(new hwMatrix);
         }
         return true;
     }
@@ -2396,7 +2458,7 @@ bool OmlFold(EvaluatorInterface           eval,
     }
     else
     {
-        outputs.push_back(new hwMatrix(0, 0, hwMatrix::REAL));
+        outputs.push_back(new hwMatrix);
     }
 
     return true;
@@ -2534,7 +2596,7 @@ bool OmlPwelch(EvaluatorInterface           eval,
         if (inputs[1].IsPositiveInteger())
         {
             windowSize = static_cast<int>(inputs[1].Scalar());
-            windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, hwMatrix::REAL));
+            windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, true));
             hwMathStatus status = HammWin(*windowTemp, "periodic");
 
             if (!status.IsOk())
@@ -2608,7 +2670,7 @@ bool OmlPwelch(EvaluatorInterface           eval,
             windowSize = ((dataSize + 7*numOverlapPts)) / 8;
         }
 
-        windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, hwMatrix::REAL));
+        windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, true));
         hwMathStatus status = HammWin(*windowTemp, "periodic");
 
         if (!status.IsOk())
@@ -2714,7 +2776,7 @@ bool OmlPwelch(EvaluatorInterface           eval,
             if (onesided)
             {
                 int fftSize2 = fftSize / 2 + 1;
-                density.reset(EvaluatorInterface::allocateMatrix(fftSize2, matrix->N(), hwMatrix::REAL));
+                density.reset(EvaluatorInterface::allocateMatrix(fftSize2, matrix->N(), true));
                 double* signal = const_cast<double*> (matrix->GetRealData());
                 hwMatrix col_out(fftSize, 1, hwMatrix::REAL);
                 double* response = const_cast<double*> (col_out.GetRealData());
@@ -2736,7 +2798,7 @@ bool OmlPwelch(EvaluatorInterface           eval,
             }
             else
             {
-                density.reset(EvaluatorInterface::allocateMatrix(fftSize, matrix->N(), hwMatrix::REAL));
+                density.reset(EvaluatorInterface::allocateMatrix(fftSize, matrix->N(), true));
                 double* response = density->GetRealData();
                 double* signal = const_cast<double*> (matrix->GetRealData());
 
@@ -2850,7 +2912,7 @@ bool OmlCpsd(EvaluatorInterface           eval,
         if (inputs[2].IsPositiveInteger())
         {
             windowSize = static_cast<int>(inputs[2].Scalar());
-            windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, hwMatrix::REAL));
+            windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, true));
             hwMathStatus status = HammWin(*windowTemp, "periodic");
 
             if (!status.IsOk())
@@ -2908,7 +2970,7 @@ bool OmlCpsd(EvaluatorInterface           eval,
             windowSize = ((signal1->Size() + 7*numOverlapPts)) / 8;
         }
 
-        windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, hwMatrix::REAL));
+        windowTemp.reset(EvaluatorInterface::allocateMatrix(windowSize, 1, true));
         hwMathStatus status = HammWin(*windowTemp, "periodic");
 
         if (!status.IsOk())
@@ -3104,7 +3166,7 @@ bool OmlTFestimate(EvaluatorInterface           eval,
         // tfestimate
         hwMatrix* Pxy = outputs1[0].GetWritableMatrix();
         hwMatrix* Pxx = outputs2[0].GetWritableMatrix();
-        BuiltInFuncsMKL::DivideByElems(*Pxy, *Pxx, *tf);
+        MKLutilitiesD::DivideByElems(*Pxy, *Pxx, *tf);
     }
     else if (estimator == "H2")
     {
@@ -3124,7 +3186,7 @@ bool OmlTFestimate(EvaluatorInterface           eval,
         // tfestimate
         hwMatrix* Pyy = outputs1[0].GetWritableMatrix();
         hwMatrix* Pyx = outputs2[0].GetWritableMatrix();
-        BuiltInFuncsMKL::DivideByElems(*Pyy, *Pyx, *tf);
+        MKLutilitiesD::DivideByElems(*Pyy, *Pyx, *tf);
     }
     else if (estimator == "H3")
     {
@@ -3159,7 +3221,7 @@ bool OmlTFestimate(EvaluatorInterface           eval,
 
         // sqrt(psd(y) / psd(x))
         hwMatrix* psdRatio = new hwMatrix;
-        BuiltInFuncsMKL::DivideByElems(*Pyy, *Pxx, *psdRatio);
+        MKLutilitiesD::DivideByElems(*Pyy, *Pxx, *psdRatio);
         std::vector<Currency> inputs6;
         inputs6.push_back(psdRatio);
         std::vector<Currency> outputs6;
@@ -3168,10 +3230,10 @@ bool OmlTFestimate(EvaluatorInterface           eval,
 
         // cpsd(x, y) / |cpsd(x,y)|
         hwMatrix* PxyNormal = new hwMatrix;
-        BuiltInFuncsMKL::DivideByElems(*Pxy, *AbsPxy, *PxyNormal);
+        MKLutilitiesD::DivideByElems(*Pxy, *AbsPxy, *PxyNormal);
 
         // sqrt(psd(y) / psd(x)) * cpsd(x, y) / |cpsd(x,y)|
-        BuiltInFuncsMKL::MultByElems(*psdSqrtRatio, *PxyNormal, *tf);
+        MKLutilitiesD::MultByElems(*psdSqrtRatio, *PxyNormal, *tf);
     }
     else
     {
@@ -3347,8 +3409,8 @@ bool OmlFreqz(EvaluatorInterface           eval,
 
     if (nargout == 0)
     {
-        std::unique_ptr<hwMatrix> mag(EvaluatorInterface::allocateMatrix(1, numPnts, hwMatrix::REAL));
-        std::unique_ptr<hwMatrix> phase(EvaluatorInterface::allocateMatrix(1, numPnts, hwMatrix::REAL));
+        std::unique_ptr<hwMatrix> mag(EvaluatorInterface::allocateMatrix(1, numPnts, true));
+        std::unique_ptr<hwMatrix> phase(EvaluatorInterface::allocateMatrix(1, numPnts, true));
 
         for (int i = 0; i < numPnts; ++i)
         {
@@ -3481,8 +3543,8 @@ bool OmlFreqs(EvaluatorInterface           eval,
 
     if (nargout == 0)
     {
-        std::unique_ptr<hwMatrix> mag(EvaluatorInterface::allocateMatrix(1, numPnts, hwMatrix::REAL));
-        std::unique_ptr<hwMatrix> phase(EvaluatorInterface::allocateMatrix(1, numPnts, hwMatrix::REAL));
+        std::unique_ptr<hwMatrix> mag(EvaluatorInterface::allocateMatrix(1, numPnts, true));
+        std::unique_ptr<hwMatrix> phase(EvaluatorInterface::allocateMatrix(1, numPnts, true));
 
         for (int i = 0; i < numPnts; ++i)
         {
@@ -3610,9 +3672,9 @@ bool OmlInvFreqz(EvaluatorInterface           eval,
     }
 
     std::unique_ptr<hwMatrix> numer(
-        EvaluatorInterface::allocateMatrix(1, numerOrder+1, hwMatrix::REAL));
+        EvaluatorInterface::allocateMatrix(1, numerOrder+1, true));
     std::unique_ptr<hwMatrix> denom(
-        EvaluatorInterface::allocateMatrix(1, denomOrder+1, hwMatrix::REAL));
+        EvaluatorInterface::allocateMatrix(1, denomOrder+1, true));
 
     hwMathStatus status = FilterID(*response, *freq, *numer, *denom, weight, "z");
     BuiltInFuncsUtils::CheckMathStatus(eval, status);
@@ -3682,9 +3744,9 @@ bool OmlInvFreqs(EvaluatorInterface           eval,
     }
 
     std::unique_ptr<hwMatrix> numer(
-        EvaluatorInterface::allocateMatrix(1, numerOrder+1, hwMatrix::REAL));
+        EvaluatorInterface::allocateMatrix(1, numerOrder+1, true));
     std::unique_ptr<hwMatrix> denom(
-        EvaluatorInterface::allocateMatrix(1, denomOrder+1, hwMatrix::REAL));
+        EvaluatorInterface::allocateMatrix(1, denomOrder+1, true));
 
     hwMathStatus status = FilterID(*response, *freq, *numer, *denom, weight, "s");
     BuiltInFuncsUtils::CheckMathStatus(eval, status);
@@ -3878,7 +3940,7 @@ bool OmlFir1(EvaluatorInterface           eval,
         if (window->M() == 0 && window->N() == 0)
         {
             window = nullptr;
-            windowTemp.reset(EvaluatorInterface::allocateMatrix(order+1, 1, hwMatrix::REAL));
+            windowTemp.reset(EvaluatorInterface::allocateMatrix(order+1, 1, true));
             status = HammWin(*windowTemp, "symmetric");
             if (!status.IsOk())
             {
@@ -3889,7 +3951,7 @@ bool OmlFir1(EvaluatorInterface           eval,
     }
     else
     {
-        windowTemp.reset(EvaluatorInterface::allocateMatrix(order+1, 1, hwMatrix::REAL));
+        windowTemp.reset(EvaluatorInterface::allocateMatrix(order+1, 1, true));
         status = HammWin(*windowTemp, "symmetric");
         if (!status.IsOk())
         {
@@ -3945,7 +4007,7 @@ bool OmlFir1(EvaluatorInterface           eval,
             {
                 BuiltInFuncsUtils::SetWarning(eval, "Warning: odd filter order in argument 1 will be incremented to satisfy filter requirement");
                 order++;
-                windowTemp.reset(EvaluatorInterface::allocateMatrix(order+1, 1, hwMatrix::REAL));
+                windowTemp.reset(EvaluatorInterface::allocateMatrix(order+1, 1, true));
                 status = HammWin(*windowTemp, "symmetric");
             }
 
@@ -4012,7 +4074,7 @@ bool OmlFir1(EvaluatorInterface           eval,
                 BuiltInFuncsUtils::SetWarning(eval, 
                     "Warning: odd filter order in argument 1 will be incremented to satisfy filter requirement");
                 order++;
-                windowTemp.reset(EvaluatorInterface::allocateMatrix(order+1, 1, hwMatrix::REAL));
+                windowTemp.reset(EvaluatorInterface::allocateMatrix(order+1, 1, true));
                 status = HammWin(*windowTemp, "symmetric");
             }
 
@@ -4084,7 +4146,7 @@ bool OmlFir1(EvaluatorInterface           eval,
                     BuiltInFuncsUtils::SetWarning(eval, 
                         "Warning: odd filter order in argument 1 will be incremented to satisfy filter requirement");
                     order++;
-                    windowTemp.reset(EvaluatorInterface::allocateMatrix(order+1, 1, hwMatrix::REAL));
+                    windowTemp.reset(EvaluatorInterface::allocateMatrix(order+1, 1, true));
                     status = HammWin(*windowTemp, "symmetric");
                 }
             }
@@ -4093,7 +4155,7 @@ bool OmlFir1(EvaluatorInterface           eval,
                 BuiltInFuncsUtils::SetWarning(eval, 
                     "Warning: odd filter order in argument 1 will be incremented to satisfy filter requirement");
                 order++;
-                windowTemp.reset(EvaluatorInterface::allocateMatrix(order+1, 1, hwMatrix::REAL));
+                windowTemp.reset(EvaluatorInterface::allocateMatrix(order+1, 1, true));
                 status = HammWin(*windowTemp, "symmetric");
             }
         }
@@ -6409,7 +6471,7 @@ bool OmlBlackman(EvaluatorInterface           eval,
     }
 
     std::unique_ptr<hwMatrix> window(
-        EvaluatorInterface::allocateMatrix(n, 1, hwMatrix::REAL));
+        EvaluatorInterface::allocateMatrix(n, 1, true));
 
     hwMathStatus mstat = BlackmanWin(*window, winType.c_str());
     BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
@@ -6452,7 +6514,7 @@ bool OmlBartHann(EvaluatorInterface           eval,
     }
 
     std::unique_ptr<hwMatrix> window(
-        EvaluatorInterface::allocateMatrix(n, 1, hwMatrix::REAL));
+        EvaluatorInterface::allocateMatrix(n, 1, true));
 
     hwMathStatus mstat = BartHannWin(*window, winType.c_str());
     BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
@@ -6495,7 +6557,7 @@ bool OmlHann(EvaluatorInterface           eval,
     }
 
     std::unique_ptr<hwMatrix> window(
-        EvaluatorInterface::allocateMatrix(n, 1, hwMatrix::REAL));
+        EvaluatorInterface::allocateMatrix(n, 1, true));
     
     hwMathStatus mstat = HannWin(*window, winType.c_str());
     BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
@@ -6537,7 +6599,7 @@ bool OmlHamming(EvaluatorInterface           eval,
     }
 
     std::unique_ptr<hwMatrix> window(
-        EvaluatorInterface::allocateMatrix(n, 1, hwMatrix::REAL));
+        EvaluatorInterface::allocateMatrix(n, 1, true));
 
     hwMathStatus mstat = HammWin(*window, winType.c_str());
     BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
@@ -6579,7 +6641,7 @@ bool OmlParzenwin(EvaluatorInterface           eval,
     }
 
     std::unique_ptr<hwMatrix> window(
-        EvaluatorInterface::allocateMatrix(n, 1, hwMatrix::REAL));
+        EvaluatorInterface::allocateMatrix(n, 1, true));
 
     hwMathStatus mstat = ParzenWin(*window, winType.c_str());
     BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
@@ -6621,7 +6683,7 @@ bool OmlWelchwin(EvaluatorInterface           eval,
     }
 
     std::unique_ptr<hwMatrix> window(
-        EvaluatorInterface::allocateMatrix(n, 1, hwMatrix::REAL));
+        EvaluatorInterface::allocateMatrix(n, 1, true));
 
     hwMathStatus mstat = WelchWin(*window, winType.c_str());
     BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
@@ -6670,7 +6732,7 @@ bool OmlChebwin(EvaluatorInterface           eval,
     }
 
     std::unique_ptr<hwMatrix> window(
-        EvaluatorInterface::allocateMatrix(n, 1, hwMatrix::REAL));
+        EvaluatorInterface::allocateMatrix(n, 1, true));
 
     hwMathStatus mstat = ChebyWin(*window, value, winType.c_str());
     BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
@@ -6718,7 +6780,7 @@ bool OmlKaiser(EvaluatorInterface           eval,
     }
 
     std::unique_ptr<hwMatrix> window(
-        EvaluatorInterface::allocateMatrix(n, 1, hwMatrix::REAL));
+        EvaluatorInterface::allocateMatrix(n, 1, true));
 
     hwMathStatus mstat = KaiserBesselWin(*window, value, winType.c_str());
     BuiltInFuncsUtils::CheckMathStatus(eval, mstat);
@@ -6816,7 +6878,7 @@ bool OmlFilter(EvaluatorInterface           eval,
                     if (!i)
                     {
                         result.reset(EvaluatorInterface::allocateMatrix(temp->Size(), 
-                            data->N(), hwMatrix::REAL));
+                            data->N(), true));
                     }
                     writeCol(eval, result.get(), temp.get(), i);
                 }
@@ -6841,7 +6903,7 @@ bool OmlFilter(EvaluatorInterface           eval,
                     if (!i)
                     {
                         result.reset(EvaluatorInterface::allocateMatrix(data->M(), 
-                            temp->Size(), hwMatrix::REAL));
+                            temp->Size(), true));
                     }
                     writeRow(eval, result.get(), temp.get(), i);
                 }
@@ -6899,7 +6961,7 @@ bool OmlFiltfilt(EvaluatorInterface           eval,
         const hwMatrix* data = inputs[2].ConvertToMatrix();
 
         std::unique_ptr<hwMatrix> result(EvaluatorInterface::allocateMatrix(
-            data->M(), data->N(), hwMatrix::REAL));
+            data->M(), data->N(), true));
 
         if (data->IsVector())
         {
@@ -7399,7 +7461,7 @@ bool OmlFindPeaks(EvaluatorInterface           eval,
     }
 
     hwMatrix* dindex = EvaluatorInterface::allocateMatrix(index.M(), 
-                                           index.N(), hwMatrix::REAL);
+                                           index.N(), true);
 
     int size = index.Size();
     for (int i = 0; i < size; ++i)
@@ -7634,6 +7696,488 @@ bool OmldbU(EvaluatorInterface           eval,
 
     BuiltInFuncsUtils::CheckMathStatus(eval, status);
     outputs.push_back(mag_out);
+    return true;
+}
+//------------------------------------------------------------------------------
+//! Computes rectangular pulse signal [rectpuls command]
+//------------------------------------------------------------------------------
+bool OmlRectPuls(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_TYPE);
+    }
+
+    const hwMatrix* time = inputs[0].ConvertToMatrix();
+    double width = 1.0;
+
+    if (nargin == 2)
+    {
+        if (!inputs[1].IsScalar())
+        {
+            throw OML_Error(OML_ERR_SCALAR, 2, OML_VAR_TYPE);
+        }
+
+        width = inputs[1].Scalar();
+    }
+
+    hwMatrix* waveForm = EvaluatorInterface::allocateMatrix();
+
+    hwMathStatus status = RectPulse(*time, width, *waveForm);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+    outputs.push_back(waveForm);
+    return true;
+}
+//------------------------------------------------------------------------------
+//! Computes triangular pulse signal [tripuls command]
+//------------------------------------------------------------------------------
+bool OmlTriPuls(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 3)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_TYPE);
+    }
+
+    const hwMatrix* time = inputs[0].ConvertToMatrix();
+    double width = 1.0;
+    double skew = 0.0;
+
+    if (nargin > 1)
+    {
+        if (inputs[1].IsScalar())
+        {
+            width = inputs[1].Scalar();
+        }
+        else if (!(inputs[1].IsMatrix() && inputs[1].Matrix()->Is0x0()))
+        {
+            throw OML_Error(OML_ERR_SCALAR, 2, OML_VAR_VALUE);
+        }
+    }
+
+    if (nargin > 2)
+    {
+        if (inputs[2].IsScalar())
+        {
+            skew = inputs[2].Scalar();
+        }
+        else if (!(inputs[2].IsMatrix() && inputs[2].Matrix()->Is0x0()))
+        {
+            throw OML_Error(OML_ERR_SCALAR, 3, OML_VAR_VALUE);
+        }
+    }
+
+    hwMatrix* waveForm = EvaluatorInterface::allocateMatrix();
+
+    hwMathStatus status = TriPulse(*time, width, skew, *waveForm);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+    outputs.push_back(waveForm);
+    return true;
+}
+//------------------------------------------------------------------------------
+//! Computes Gaussian pulse signal [gauspuls command]
+//------------------------------------------------------------------------------
+bool OmlGausPuls(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 5)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar() && !inputs[0].IsString())
+    {
+        throw OML_Error(OML_ERR_STRINGVECTOR, 1, OML_VAR_TYPE);
+    }
+
+    double fc = 1000.0;
+    double bw = 0.5;
+    double bwr = -6.0;
+
+    if (nargin > 1)
+    {
+        if (inputs[1].IsScalar())
+        {
+            fc = inputs[1].Scalar();
+        }
+        else if (!(inputs[1].IsMatrix() && inputs[1].Matrix()->Is0x0()))
+        {
+            throw OML_Error(OML_ERR_SCALAR, 2, OML_VAR_VALUE);
+        }
+    }
+
+    if (nargin > 2)
+    {
+        if (inputs[2].IsScalar())
+        {
+            bw = inputs[2].Scalar();
+        }
+        else if (!(inputs[2].IsMatrix() && inputs[2].Matrix()->Is0x0()))
+        {
+            throw OML_Error(OML_ERR_SCALAR, 3, OML_VAR_VALUE);
+        }
+    }
+
+    if (nargin > 3)
+    {
+        if (inputs[3].IsScalar())
+        {
+            bwr = inputs[3].Scalar();
+        }
+        else if (!(inputs[3].IsMatrix() && inputs[3].Matrix()->Is0x0()))
+        {
+            throw OML_Error(OML_ERR_SCALAR, 4, OML_VAR_VALUE);
+        }
+    }
+
+    if (inputs[0].IsMatrix() || inputs[0].IsScalar())
+    {
+        if (nargin == 5)
+        {
+            throw OML_Error(OML_ERR_NUMARGIN);
+        }
+
+        const hwMatrix* time = inputs[0].ConvertToMatrix();
+        hwMatrix* waveForm = EvaluatorInterface::allocateMatrix();
+
+        hwMathStatus status = GausPulse(*time, fc, bw, bwr, *waveForm);
+        BuiltInFuncsUtils::CheckMathStatus(eval, status);
+        outputs.push_back(waveForm);
+    }
+    else if (inputs[0].IsString())
+    {
+        if (inputs[0].StringVal() == "cutoff")
+        {
+            double tc;
+            double tpr = -60.0;
+
+            if (nargin > 4)
+            {
+                if (inputs[4].IsScalar())
+                {
+                    tpr = inputs[4].Scalar();
+                }
+                else if (!(inputs[4].IsMatrix() && inputs[4].Matrix()->Is0x0()))
+                {
+                    throw OML_Error(OML_ERR_SCALAR, 5, OML_VAR_VALUE);
+                }
+            }
+
+            hwMathStatus status = GausPulse(fc, bw, bwr, tpr, tc);
+
+            if (!status.IsOk())
+            {
+                status.SetArg1(status.GetArg1() + 1);
+            }
+
+            outputs.push_back(tc);
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_BAD_STRING, 1, OML_VAR_VALUE);
+        }
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+//! Computes pulse train signal [gauspuls command]
+//------------------------------------------------------------------------------
+bool OmlPulsTran(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    int nargin = static_cast<int> (inputs.size());
+
+    if (nargin < 3 || nargin > 8)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_VECTOR, 1, OML_VAR_TYPE);
+    }
+
+    if (!inputs[1].IsMatrix() && !inputs[1].IsScalar())
+    {
+        throw OML_Error(OML_ERR_VECTOR, 2, OML_VAR_TYPE);
+    }
+
+    const hwMatrix* time  = inputs[0].ConvertToMatrix();
+    const hwMatrix* delay = inputs[1].ConvertToMatrix();
+    const hwMatrix* pulse = nullptr;
+    std::string func;
+    hwMathStatus status;
+    hwMatrix* waveForm = EvaluatorInterface::allocateMatrix();
+
+    if (inputs[2].IsString())
+    {
+        func = inputs[2].StringVal();
+
+        hwMatrix args(nargin - 3, hwMatrix::REAL);
+
+        for (int i = 3; i < nargin; ++i)
+        {
+            if (!inputs[i].Scalar())
+                throw OML_Error(OML_ERR_SCALAR, i + 1, OML_VAR_TYPE);
+
+            args(i - 3) = inputs[i].Scalar();
+        }
+
+        status = PulsTran(*time, *delay, func, args, *waveForm);
+    }
+    else if (inputs[2].IsMatrix() || inputs[2].IsScalar())
+    {
+        pulse = inputs[2].ConvertToMatrix();
+
+        double fs = 1.0;
+
+        if (nargin > 3)
+        {
+            if (!inputs[3].IsScalar())
+                throw OML_Error(OML_ERR_SCALAR, 4, OML_VAR_TYPE);
+
+            fs = inputs[3].Scalar();
+        }
+
+        std::string method = "linear";
+
+        if (nargin > 4)
+        {
+            if (!inputs[4].IsString())
+                throw OML_Error(OML_ERR_STRING, 5, OML_VAR_TYPE);
+
+            method = inputs[4].StringVal();
+        }
+
+        status = PulsTran(*time, *delay, *pulse, fs, method, *waveForm);
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_STRINGVECTOR, 3, OML_VAR_TYPE);
+    }
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+    outputs.push_back(waveForm);
+    return true;
+}
+//------------------------------------------------------------------------------
+//! Computes square wave signal [square command]
+//------------------------------------------------------------------------------
+bool OmlSquare(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_TYPE);
+    }
+
+    const hwMatrix* time = inputs[0].ConvertToMatrix();
+    double duty = 50.0;
+
+    if (nargin == 2)
+    {
+        if (!inputs[1].IsScalar())
+        {
+            throw OML_Error(OML_ERR_SCALAR, 2, OML_VAR_TYPE);
+        }
+
+        duty = inputs[1].Scalar();
+    }
+
+    hwMatrix* waveForm = EvaluatorInterface::allocateMatrix();
+
+    hwMathStatus status = SquarePulse(*time, duty, *waveForm);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+    outputs.push_back(waveForm);
+    return true;
+}
+//------------------------------------------------------------------------------
+//! Computes sawtooth wave signal [sawtooth command]
+//------------------------------------------------------------------------------
+bool OmlSawtooth(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_TYPE);
+    }
+
+    const hwMatrix* time = inputs[0].ConvertToMatrix();
+    double width = 1.0;
+
+    if (nargin == 2)
+    {
+        if (!inputs[1].IsScalar())
+        {
+            throw OML_Error(OML_ERR_SCALAR, 2, OML_VAR_TYPE);
+        }
+
+        width = inputs[1].Scalar();
+    }
+
+    hwMatrix* waveForm = EvaluatorInterface::allocateMatrix();
+
+    hwMathStatus status = SawToothPulse(*time, width, *waveForm);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+    outputs.push_back(waveForm);
+    return true;
+}
+//------------------------------------------------------------------------------
+//! Computes Dirichlet wave signal [diric command]
+//------------------------------------------------------------------------------
+bool OmlDiric(EvaluatorInterface           eval,
+              const std::vector<Currency>& inputs,
+              std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin != 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_TYPE);
+    }
+
+    if (!inputs[1].IsPositiveInteger())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_VALUE);
+    }
+
+    const hwMatrix* time = inputs[0].ConvertToMatrix();
+    int n = static_cast<int> (inputs[1].Scalar());
+
+    hwMatrix* waveForm = EvaluatorInterface::allocateMatrix();
+
+    hwMathStatus status = Diric(*time, n, *waveForm);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+    outputs.push_back(waveForm);
+    return true;
+}
+//------------------------------------------------------------------------------
+//! Computes chirp pulse function [chirp command]
+//------------------------------------------------------------------------------
+bool OmlChirp(EvaluatorInterface           eval,
+              const std::vector<Currency>& inputs,
+              std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 6)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_TYPE);
+    }
+
+    const hwMatrix* time = inputs[0].ConvertToMatrix();
+    double f0 = 0.0;
+    double t1 = 1.0;
+    double f1 = 100.0;
+    std::string shape = "linear";
+    double phase = 0.0;
+
+    if (nargin > 1)
+    {
+        if (inputs[1].IsScalar())
+            f0 = inputs[1].Scalar();
+        else if (!inputs[1].IsMatrix() || !inputs[1].Matrix()->Is0x0())
+            throw OML_Error(OML_ERR_SCALAR, 2, OML_VAR_TYPE);
+    }
+
+    if (nargin > 2)
+    {
+        if (inputs[2].IsScalar())
+            t1 = inputs[2].Scalar();
+        else if (!inputs[2].IsMatrix() || !inputs[2].Matrix()->Is0x0())
+            throw OML_Error(OML_ERR_SCALAR, 3, OML_VAR_TYPE);
+    }
+
+    if (nargin > 3)
+    {
+        if (inputs[3].IsScalar())
+            f1 = inputs[3].Scalar();
+        else if (!inputs[3].IsMatrix() || !inputs[3].Matrix()->Is0x0())
+            throw OML_Error(OML_ERR_SCALAR, 4, OML_VAR_TYPE);
+    }
+
+    if (nargin > 4)
+    {
+        if (inputs[4].IsString())
+            shape = inputs[4].StringVal();
+        else if (!inputs[4].IsMatrix() || !inputs[4].Matrix()->Is0x0())
+            throw OML_Error(OML_ERR_STRING, 5, OML_VAR_TYPE);
+    }
+
+    if (nargin > 5)
+    {
+        if (inputs[5].IsScalar())
+            phase = inputs[5].Scalar();
+        else if (!inputs[5].IsMatrix() || !inputs[5].Matrix()->Is0x0())
+            throw OML_Error(OML_ERR_SCALAR, 6, OML_VAR_TYPE);
+    }
+
+    hwMatrix* waveForm = EvaluatorInterface::allocateMatrix();
+
+    hwMathStatus status = ChirpPulse(*time, f0, t1, f1, shape.c_str(), phase, *waveForm);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+    outputs.push_back(waveForm);
     return true;
 }
 //------------------------------------------------------------------------------

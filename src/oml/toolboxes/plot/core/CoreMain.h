@@ -1,7 +1,7 @@
 /**
 * @file CoreMain.h
 * @date May 2017
-* Copyright (C) 2017-2021 Altair Engineering, Inc.  
+* Copyright (C) 2017-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -21,10 +21,12 @@
 #include "Object.h"
 #include "DataType.h"
 #include <memory>
+#include <algorithm>
 
 using namespace std;
 
 namespace omlplot{
+    class RepaintTimer;
 
     class OMLPLOT_EXPORT CoreMain{
         typedef Object::VALUETYPE VALUETYPE;
@@ -48,8 +50,9 @@ namespace omlplot{
         }        
 
         Object *getObject(double) const;
-        Property getObjectProperty(double, string) const;
+        VALUETYPE getObjectPropertyValue(double, string) const;
         vector<string> getObjectPropertyNames(double);
+        bool isPropertySupported(double, const string& );
 
         template <typename T>
         vector<double> _T_2D_PLOT(vector<LineData> &ldVec){
@@ -83,7 +86,7 @@ namespace omlplot{
             vector<LineData>::iterator it = ldVec.begin();
             for (; it != ldVec.end(); ++it){
                 LineData ld = *it;
-                ld.index = (int)axes->getPropertyValue("children").Vector().size();
+                ld.index = (int)axes->getAllChildren().size();
                 try {
                     pLine = allocObject<T>();
                     axes->addChild(pLine);
@@ -95,7 +98,7 @@ namespace omlplot{
                     throw e;
                 }
             }
-            axes->repaint();
+            repaintLater(ah);
             return res;
         }
         
@@ -117,7 +120,7 @@ namespace omlplot{
             vector<LineData>::iterator it = ldVec.begin();
             for (; it != ldVec.end(); ++it){
                 LineData ld = *it;
-                ld.index = (int)axes->getPropertyValue("children").Vector().size();
+                ld.index = (int)axes->getAllChildren().size();
                 try {
                     pLine = allocObject<T>();
                     axes->addChild(pLine);
@@ -131,7 +134,7 @@ namespace omlplot{
                     throw e;
                 }
             }
-            axes->repaint();
+            repaintLater(ah);
             return res;
         }
         
@@ -155,10 +158,19 @@ namespace omlplot{
         vector<double> semilogx(vector<LineData> &);
         vector<double> semilogy(vector<LineData> &);
         vector<Currency> plotyy(vector<LineData> &);
+        vector<double> xline(vector<LineData>&);
+        vector<double> yline(vector<LineData>&);
+        vector<Currency> fanplot(vector<LineData>&);
+        vector<double> ellipse(vector<LineData>&);
+        vector<double> rectangle(vector<LineData>&);
+        vector<double> pcolor(vector<LineData>&);
+        vector<double> patch(vector<LineData>&);
+        vector<double> stem3(vector<LineData>&);
+        vector<double> quiver(vector<LineData>&);
 
         double figure(unique_ptr<FigureData> &);
         double axes(unique_ptr<AxesData> &);
-        double subplot(int, int, int);
+        double subplot(int, int, const vector<int>&);
         void set(unique_ptr<SetData> &, vector<string>& );
         double gcf();
         double gca();
@@ -177,25 +189,34 @@ namespace omlplot{
         double zlabel(double, string);
         vector<double> axis(double);
         void axis(double, vector<double>);
+        void axis(const string& option);
         vector<double> xlim(double);
         void xlim(double, vector<double>);
         vector<double> ylim(double);
         void ylim(double, vector<double>);
         vector<double> zlim(double);
         void zlim(double, vector<double>);
-        void legend(unique_ptr<LegendData> &);
+        double legend(unique_ptr<LegendData> &);
         vector<double> text(unique_ptr<TextData> &);
-        void saveas(double, string, string);
+        void saveas(double, string, string, int width=-1, int height=-1);
         void dump();
         void out(string);
         void box(double axes);
         void box(double axes, std::string state);
-        void colorbar(double axes);
-        void colorbar(double axes, std::string state, const std::vector<double>& range);
+        double colorbar(double axes, unique_ptr<ColorbarData>&);
         std::vector<double> colorbarRange(double axes);
         Currency colormap(double h) const;
         void colormap(double h, const Currency& cmap);
-
+        void drawnow();
+        std::vector<double> findobj(std::unique_ptr<QueryData>& data, bool searchAll = false);
+        bool deleteHandle(double h);
+        void view(double h, const std::vector<double> viewVal);
+        std::string GetWarningString();
+        void AddWarningString(const std::string& wrn);
+        void datetick(double handle, const std::string& datefmt, int datefmtIdx, const std::string& axis);
+        void getAxisDatetickOptions(double axesHandle, const string& axis, bool& enabled, std::string& fmt, int& fmtIdx);
+        void setUpdateDatetickFlag(double axesHandle, const string& axis);
+        std::vector<std::pair<double, string>> getUpdateDatetickFlag();
     private:
         CoreMain();
         ~CoreMain();
@@ -209,7 +230,15 @@ namespace omlplot{
         }
         static CoreMain *m_instance;
 
+        void repaintLater(double handle);
+        void repaint();
+        void getHandlesForSearch(double h, std::vector<double>& searchObj, int currentDepth, int depth, bool searchAll);
+
         unique_ptr<Root> root;
+        RepaintTimer* m_timer;
+        std::vector<double> m_handlesToRepaint;
+        std::string m_warningStr;
+        std::vector<std::pair<double, string>> m_updateDatetick;
     };
     
 }

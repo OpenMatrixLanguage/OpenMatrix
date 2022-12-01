@@ -23,6 +23,7 @@
 #include "BuiltInFuncsUtils.h"
 #include "FunctionInfo.h"
 #include "OML_Error.h"
+#include "hwMatrix.h"
 
 #define CALC "Calculus"
 #define TBOXVERSION 2019.0
@@ -244,9 +245,9 @@ bool OmlQuad(EvaluatorInterface           eval,
             throw OML_Error(OML_ERR_REAL, 3, OML_VAR_MATRIX);
 
         std::unique_ptr<hwMatrix> area(EvaluatorInterface::allocateMatrix(
-                                       B->M(), B->N(), hwMatrix::REAL));
+                                       B->M(), B->N(), true));
         std::unique_ptr<hwMatrix> count(EvaluatorInterface::allocateMatrix(
-                                       B->M(), B->N(), hwMatrix::REAL));
+                                       B->M(), B->N(), true));
         for (i = 0; i < B->Size(); ++i)
         {
             cnt = 0;
@@ -298,8 +299,8 @@ bool OmlQuad(EvaluatorInterface           eval,
             throw OML_Error(OML_ERR_REAL, 2, OML_VAR_MATRIX);
 
         double b = inputs[2].Scalar();
-        std::unique_ptr<hwMatrix> area(EvaluatorInterface::allocateMatrix(A->M(), A->N(), hwMatrix::REAL));
-        std::unique_ptr<hwMatrix> count(EvaluatorInterface::allocateMatrix(A->M(), A->N(), hwMatrix::REAL));
+        std::unique_ptr<hwMatrix> area(EvaluatorInterface::allocateMatrix(A->M(), A->N(), true));
+        std::unique_ptr<hwMatrix> count(EvaluatorInterface::allocateMatrix(A->M(), A->N(), true));
 
         for (i = 0; i < A->Size(); ++i)
         {
@@ -356,9 +357,9 @@ bool OmlQuad(EvaluatorInterface           eval,
             throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
         std::unique_ptr<hwMatrix> area(EvaluatorInterface::allocateMatrix(
-                                       A->M(), A->N(), hwMatrix::REAL));
+                                       A->M(), A->N(), true));
         std::unique_ptr<hwMatrix> count(EvaluatorInterface::allocateMatrix(
-                                       A->M(), A->N(), hwMatrix::REAL));
+                                       A->M(), A->N(), true));
         int i   = 0;
         int cnt = 0;
 
@@ -520,8 +521,8 @@ bool OmlQuadv(EvaluatorInterface           eval,
         int i;
         double a = inputs[1].Scalar();
         const hwMatrix* B = inputs[2].Matrix();
-        std::unique_ptr<hwMatrix> area(EvaluatorInterface::allocateMatrix(B->M(), B->N(), hwMatrix::REAL));
-        std::unique_ptr<hwMatrix> count(EvaluatorInterface::allocateMatrix(B->M(), B->N(), hwMatrix::REAL));
+        std::unique_ptr<hwMatrix> area(EvaluatorInterface::allocateMatrix(B->M(), B->N(), true));
+        std::unique_ptr<hwMatrix> count(EvaluatorInterface::allocateMatrix(B->M(), B->N(), true));
         int cnt;
 
         if (!B->IsReal())
@@ -572,8 +573,8 @@ bool OmlQuadv(EvaluatorInterface           eval,
         int i;
         const hwMatrix* A = inputs[1].Matrix();
         double b = inputs[2].Scalar();
-        std::unique_ptr<hwMatrix> area(EvaluatorInterface::allocateMatrix(A->M(), A->N(), hwMatrix::REAL));
-        std::unique_ptr<hwMatrix> count(EvaluatorInterface::allocateMatrix(A->M(), A->N(), hwMatrix::REAL));
+        std::unique_ptr<hwMatrix> area(EvaluatorInterface::allocateMatrix(A->M(), A->N(), true));
+        std::unique_ptr<hwMatrix> count(EvaluatorInterface::allocateMatrix(A->M(), A->N(), true));
         int cnt;
 
         if (!A->IsReal())
@@ -634,8 +635,8 @@ bool OmlQuadv(EvaluatorInterface           eval,
         if (A->M() != B->M() || A->M() != B->M())
             throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
-        std::unique_ptr<hwMatrix> area(EvaluatorInterface::allocateMatrix(A->M(), A->N(), hwMatrix::REAL));
-        std::unique_ptr<hwMatrix> count(EvaluatorInterface::allocateMatrix(A->M(), A->N(), hwMatrix::REAL));
+        std::unique_ptr<hwMatrix> area(EvaluatorInterface::allocateMatrix(A->M(), A->N(), true));
+        std::unique_ptr<hwMatrix> count(EvaluatorInterface::allocateMatrix(A->M(), A->N(), true));
         int cnt;
 
         for (i = 0; i < A->Size(); ++i)

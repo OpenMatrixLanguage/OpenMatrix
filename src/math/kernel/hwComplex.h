@@ -16,7 +16,7 @@
 #ifndef _hwComplex_h
 #define _hwComplex_h
 
-#include <tmpl/hwTComplex.h>     // class definition
+#include "tmpl/hwTComplex.h"     // class definition
 
 typedef hwTComplex<double> hwComplex;
 typedef hwTComplex<float> hwComplexF;

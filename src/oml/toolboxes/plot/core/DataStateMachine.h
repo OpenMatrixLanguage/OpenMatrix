@@ -1,7 +1,7 @@
 /**
 * @file DataStateMachine.h
 * @date May 2017
-* Copyright (C) 2017-2018 Altair Engineering, Inc.  
+* Copyright (C) 2017-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -40,7 +40,8 @@ public:
     std::vector<LineData> getBarData(const std::vector<Currency> &inputs);
     std::vector<LineData> getFillData(const std::vector<Currency> &inputs);
     std::vector<LineData> getSurfData(const std::vector<Currency> &inputs);
-    std::vector<LineData> getHistData(const std::vector<Currency> &inputs);
+    std::vector<LineData> getHistData(const std::vector<Currency>& inputs);
+    std::vector<LineData> getXLineData(const std::vector<Currency> &inputs);
     std::unique_ptr<GetData> getGetData(const std::vector<Currency> &inputs);
     std::unique_ptr<SetData> getSetData(const std::vector<Currency> &inputs);
     std::unique_ptr<FigureData> getFigureData(const std::vector<Currency> &inputs);
@@ -48,6 +49,11 @@ public:
     std::unique_ptr<LegendData> getLegendData(const std::vector<Currency> &inputs);
     std::unique_ptr<TextData> getTextData(const std::vector<Currency> &inputs);
     std::unique_ptr<LimData> getLimData(const std::vector<Currency> &inputs);
+    std::unique_ptr<QueryData> getQueryData(const std::vector<Currency>& inputs);
+    std::vector<LineData> getShapeData(const std::vector<Currency>& inputs, const std::string& shape);
+    std::vector<LineData> getPatchData(const std::vector<Currency>& inputs);
+    std::unique_ptr<ColorbarData> getColorbarData(const std::vector<Currency>& inputs);
+    std::vector<LineData> getQuiverData(const std::vector<Currency>& inputs);
 
 private:
     enum State { START, GET_X, GET_Y, GET_Z, // general state
@@ -65,6 +71,9 @@ private:
                  GET_LEGEND,        // state in legend
                  GET_PATH, GET_MAT, // state in image
                  GET_TEXT,
+                 GET_SINGLE_PROP,
+                 GET_SEARCH_DEPTH,
+                 GET_U, GET_V,
                  DONE
     };
     enum GetDir{

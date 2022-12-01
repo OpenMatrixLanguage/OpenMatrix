@@ -109,7 +109,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..;$(OML_ROOT)\src\math\kernel;.</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; MATHCORE_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -119,7 +119,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\kernel</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;OS_WIN;_WIN64;MATHCORE_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -140,12 +140,17 @@
     <ClInclude Include="$(OML_ROOT)\src\math\kernel\hwMathStatus.h" />
     <ClInclude Include="$(OML_ROOT)\src\math\kernel\hwMatrix.h" />
     <ClInclude Include="$(OML_ROOT)\src\math\kernel\hwMatrixN.h" />
-    <ClInclude Include="$(OML_ROOT)\src\math\kernel\hwMatrixNLP.h" />
     <ClInclude Include="$(OML_ROOT)\src\math\kernel\hwSliceArg.h" />
     <ClInclude Include="$(OML_ROOT)\src\math\kernel\MathCoreExports.h" />
     <ClInclude Include="$(OML_ROOT)\src\math\kernel\tmpl\hwTComplex.h" />
     <ClInclude Include="$(OML_ROOT)\src\math\kernel\tmpl\hwTMatrix.h" />
     <ClInclude Include="$(OML_ROOT)\src\math\kernel\tmpl\hwTMatrixN.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\kernel\hwMatrixN_NMKL.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\kernel\hwMatrixS_NMKL.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\kernel\hwMatrix_NMKL.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\kernel\MKLutilities.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\kernel\hwMatrixS.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\kernel\tmpl\MKL_Tutilities.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\OpenMatrix\PropertySheet.props" />

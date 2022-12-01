@@ -1,7 +1,7 @@
 /**
 * @file ANTLRData.cpp
 * @date April 2015
-* Copyright (C) 2015-2019 Altair Engineering, Inc.  
+* Copyright (C) 2015-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -405,12 +405,24 @@ int ANTLRData::PreprocessMatrixOrCell(pANTLR3_COMMON_TOKEN_STREAM& tokens, int s
 					{
 						pANTLR3_COMMON_TOKEN tok3 = (pANTLR3_COMMON_TOKEN)vec->get(vec, k + 2);
 						int tok3_type = tok3->getType(tok3);
-
-						// the special case is for strings that start with a space
-						if ((tok3_type != WS) || ((tok3_type == WS) && (tok2_type == QUOTE)))
+			
+						if (tok3_type != WS) 
 						{
 							tok->setChannel(tok, 0);
 							tok->setType(tok, COMMA);
+						}
+						else
+						{
+							if (tok2_type == QUOTE) // special case is for strings that start with a space
+							{
+								tok->setChannel(tok, 0);
+								tok->setType(tok, COMMA);
+							}
+							else if (tok2_type == LCURLY) // special case is for cells that start with a space
+							{
+								tok->setChannel(tok, 0);
+								tok->setType(tok, COMMA);
+							}
 						}
 					}
 				}
@@ -643,37 +655,39 @@ int ANTLRData::PreprocessNumberHack(pANTLR3_COMMON_TOKEN_STREAM& tokens, int sta
 	pANTLR3_COMMON_TOKEN tok = (pANTLR3_COMMON_TOKEN)vec->get(vec, start);
 	pANTLR3_COMMON_TOKEN tok2 = (pANTLR3_COMMON_TOKEN)vec->get(vec, start + 1);
 
-	if (tok2->getType(tok2) == TIMES)
+	if (tok && tok2)
 	{
-		tok->setType(tok, NUMBER);
-		tok2->setType(tok2, ETIMES);
+		if (tok2->getType(tok2) == TIMES)
+		{
+			tok->setType(tok, NUMBER);
+			tok2->setType(tok2, ETIMES);
+		}
+		else if (tok2->getType(tok2) == DIV)
+		{
+			tok->setType(tok, NUMBER);
+			tok2->setType(tok2, EDIV);
+		}
+		else if (tok2->getType(tok2) == POW)
+		{
+			tok->setType(tok, NUMBER);
+			tok2->setType(tok2, DOTPOW);
+		}
+		else if (tok2->getType(tok2) == LDIV)
+		{
+			tok->setType(tok, NUMBER);
+			tok2->setType(tok2, ELDIV);
+		}
+		else if (tok2->getType(tok2) == QUOTE)
+		{
+			tok->setType(tok, NUMBER);
+			tok2->setType(tok2, QUOTE);
+		}
+		else if (tok2->getType(tok2) == DOTDOT)
+		{
+			tok->setType(tok, NUMBER);
+			tok2->setType(tok2, NEWLINE);
+			tok2->setChannel(tok2, 0);
+		}
 	}
-	else if (tok2->getType(tok2) == DIV)
-	{
-		tok->setType(tok, NUMBER);
-		tok2->setType(tok2, EDIV);
-	}
-	else if (tok2->getType(tok2) == POW)
-	{
-		tok->setType(tok, NUMBER);
-		tok2->setType(tok2, DOTPOW);
-	}
-	else if (tok2->getType(tok2) == LDIV)
-	{
-		tok->setType(tok, NUMBER);
-		tok2->setType(tok2, ELDIV);
-	}
-	else if (tok2->getType(tok2) == QUOTE)
-	{
-		tok->setType(tok, NUMBER);
-		tok2->setType(tok2, QUOTE);
-	}
-	else if (tok2->getType(tok2) == DOTDOT)
-	{
-		tok->setType(tok, NUMBER);
-		tok2->setType(tok2, NEWLINE);
-		tok2->setChannel(tok2, 0);
-	}
-	
 	return start + 2;
 }

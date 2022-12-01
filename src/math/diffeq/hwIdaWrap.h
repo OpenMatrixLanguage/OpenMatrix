@@ -17,8 +17,8 @@
 #define _DiffEq_IDA_h
 
 #include "hwDiffEqSolver.h"
-
 #include "ida/ida.h"
+#include "sundials/sundials_context.h"
 #include "sundials/sundials_dense.h"   // access dense SUNMatrix
 #include "sunlinsol/sunlinsol_dense.h" // access dense SUNLinearSolver
 
@@ -41,7 +41,7 @@ typedef int (*IDARootFn_client)(double  t,
 //!
 //! \typedef IDADenseJacFn_client
 //!
-typedef int (*IDADenseJacFn_client)(long int N, 
+typedef int (*IDADenseJacFn_client)(int64_t  N,
                                     double   t, 
                                     double   cj,
                                     double*  y, 
@@ -124,6 +124,7 @@ public:
     int ManageEvents(double t, bool init);
 
 private:
+    sundials::Context sunctx;        //!< SUNDIALS context
     hwMatrix        m_yp;          //!< output derivative function vector
     void*           ida_mem;       //!< SUNDIALS IDA internal memory
     N_Vector        y;             //!< SUNDIALS DAE output vector
@@ -140,15 +141,6 @@ private:
     //! \param tstop Stop time
     //!
     void SetStopTime(double tstop);
-    //!
-    //! Check IDA flag
-    //! \param flagvalue
-    //! \param funcname  Function name
-    //! \param opt       Function return value
-    //!
-int Check_flag(void*       flagvalue, 
-               const char* funcname, 
-               int         opt);
 };
 
 #endif // _DiffEq_IDA_h

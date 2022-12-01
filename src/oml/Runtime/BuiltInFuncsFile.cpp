@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsFile.cpp
 * @date March 2016
-* Copyright (C) 2016-2021 Altair Engineering, Inc.  
+* Copyright (C) 2016-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -44,7 +44,7 @@
 #include "hwMatrix.h"
 
 //------------------------------------------------------------------------------
-// Returns true after reading a text file (textread command)
+// Returns true after reading a text file [textread]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval, 
 	                            const std::vector<Currency>& inputs, 
@@ -74,6 +74,7 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_STRING_FILESTREAM, 1);
     }
 
+    filename = BuiltInFuncsUtils::Normpath(filename);
     if (!BuiltInFuncsUtils::FileExists(filename)) 
     {
 		throw OML_Error(OML_ERR_FILE_NOTFOUND, 1);
@@ -462,8 +463,7 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-//! Returns true after writing a matrix to a file (dlmwrite command)
-//\todo: delim, roffset, coffset and precision have not been implemented
+// Returns true after writing a matrix to a file [dlmwrite]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsFile::Dlmwrite(EvaluatorInterface           eval, 
 	                            const std::vector<Currency>& inputs, 
@@ -485,7 +485,7 @@ bool BuiltInFuncsFile::Dlmwrite(EvaluatorInterface           eval,
     if (cur1.IsString())
     {
         filename = cur1.StringVal();
-
+        filename = BuiltInFuncsUtils::Normpath(filename);
     }
     else 
     {
@@ -714,7 +714,7 @@ int BuiltInFuncsFile::GetIntegerValue(const std::vector<Currency>& inputs,
     return static_cast<int>(cur.Scalar());
 }
 //------------------------------------------------------------------------------
-//! Returns true after copying files/directories [copyfile]
+// Returns true after copying files/directories [copyfile]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsFile::Copyfile(EvaluatorInterface           eval, 
                                 const std::vector<Currency>& inputs, 
@@ -744,6 +744,9 @@ bool BuiltInFuncsFile::Copyfile(EvaluatorInterface           eval,
     {
         throw OML_Error(OML_ERR_NONEMPTY_STR, 2);
     }
+
+    src = BuiltInFuncsUtils::Normpath(src);
+    dst = BuiltInFuncsUtils::Normpath(dst);
 
     bool forcecopy = false;
     if (nargin > 2)
@@ -780,6 +783,7 @@ bool BuiltInFuncsFile::Copyfile(EvaluatorInterface           eval,
         if (isdstcdir && !issrcdir)
         {
             dstfile   = dst + "/" + BuiltInFuncsUtils::GetBaseName(src);
+            dstfile = BuiltInFuncsUtils::Normpath(dstfile);
             dstexists = BuiltInFuncsUtils::FileExists(dstfile);
         }
         
@@ -887,7 +891,7 @@ bool BuiltInFuncsFile::Copyfile(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-//! Returns true after moving files/directories [movefile]
+// Returns true after moving files/directories [movefile]
 //------------------------------------------------------------------------------
 // #ifdef _DEBUG
 #if 1
@@ -895,10 +899,9 @@ bool BuiltInFuncsFile::Copyfile(EvaluatorInterface           eval,
 #else
 #    define DEBUG_PRINT(s)
 #endif // 0
-
 bool BuiltInFuncsFile::Movefile(EvaluatorInterface           eval,
-    const std::vector<Currency>& inputs,
-    std::vector<Currency>& outputs)
+                                const std::vector<Currency>& inputs,
+                                std::vector<Currency>&       outputs)
 {
     std::string debugoutput;    // VSM-6719
 
@@ -1167,6 +1170,8 @@ bool BuiltInFuncsFile::Movefile(EvaluatorInterface           eval,
         dst = '\"' + dst + '\"';
     }
 
+    src = BuiltInFuncsUtils::Normpath(src);
+    dst = BuiltInFuncsUtils::Normpath(dst);
 
     strcmd += src + " " + dst;
 
@@ -1229,6 +1234,7 @@ bool BuiltInFuncsFile::Importdata(EvaluatorInterface           eval,
     }
 
     std::string fname (inputs[0].StringVal());
+    fname = BuiltInFuncsUtils::Normpath(fname);
     if (!BuiltInFuncsUtils::FileExists(fname))
     {
         throw OML_Error(OML_ERR_FILE_NOTFOUND, 1);
@@ -1370,11 +1376,12 @@ bool BuiltInFuncsFile::IsExtXlsCompatible(const std::string& ext)
 //------------------------------------------------------------------------------
 // Returns true if given filename is an Ascii file
 //------------------------------------------------------------------------------
-bool BuiltInFuncsFile::IsAsciiFile(const std::string& name)
+bool BuiltInFuncsFile::IsAsciiFile(const std::string& input)
 {
-    if (name.empty())
+    if (input.empty())
         return false;
 
+    std::string name(BuiltInFuncsUtils::Normpath(input));
     FILE *fp = fopen(name.c_str(), "r");
     if (!fp)
         return false;
@@ -2355,7 +2362,7 @@ bool BuiltInFuncsFile::Fscanf(EvaluatorInterface           eval,
     // For each format, read in one value from input and push into matrix
     int sizelimit = static_cast<int>(hasSizeMtx ? rows * cols : rows);
     std::unique_ptr<hwMatrix> mtx(EvaluatorInterface::allocateMatrix(
-                                    1, 1, hwMatrix::REAL));
+                                    1, 1, true));
  
     int  row       = 0;
 	int  count     = 0;
@@ -2605,6 +2612,7 @@ bool BuiltInFuncsFile::Rename(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_STRING, 2, OML_VAR_TYPE);
     }
     std::string newname (inputs[1].StringVal());
+    newname = BuiltInFuncsUtils::Normpath(newname);
 
     int result = 0;
 #ifdef OS_WIN
@@ -2796,6 +2804,7 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
         utils.CheckFileIndex(eval, fileid, 1, false); // Don't read std streams
 
         filename = eval.GetFileName(fileid);
+        filename = utils.Normpath(filename);
         wfile = utils.StdString2WString(filename);
     }
     else
@@ -2803,11 +2812,13 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
         bool exists = false;
 #ifdef OS_WIN
         wfile = utils.StdString2WString(inputs[0].StringVal());
+        wfile = utils.GetNormpathW(wfile);
         exists = utils.DoesPathExistW(wfile);
         filename = (exists) ? utils.WString2StdString(wfile) : "";
         ext = utils.WString2StdString(utils.GetFileExtensionW(wfile));
 #else
         filename = inputs[0].StringVal();
+        filename = utils.Normpath(filename);
         exists = utils.DoesPathExist(filename);
 #endif
         if (!exists)
@@ -3186,6 +3197,10 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
                     else if (isspace(ch) || (ispunct(ch) && ch != '%'))
                     {
                         delim += ch;
+                        if (ignoreMultidelim)
+                        {
+                            break;
+                        }
                     }
                     else if (!delim.empty() && isalpha(ch))
                     {
@@ -3318,7 +3333,7 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
 
         if (!hascomplex)
         {
-            mtx.reset(EvaluatorInterface::allocateMatrix(m, maxn, hwMatrix::REAL));
+            mtx.reset(EvaluatorInterface::allocateMatrix(m, maxn, true));
             mtx->SetElements(remptyval);
 
             for (int i = 0; i < m; ++i)
@@ -3337,7 +3352,7 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
         }
         else
         {
-            mtx.reset(EvaluatorInterface::allocateMatrix(m, maxn, hwMatrix::COMPLEX));
+            mtx.reset(EvaluatorInterface::allocateMatrix(m, maxn, false));
             mtx->SetElements(hwComplex(remptyval, iemptyval));
 
             assert(data.size() == idata.size());
@@ -3390,11 +3405,6 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
 {
     std::vector<int> range = std::vector<int>(4, -1);
 
-    std::string err ("Error: invalid input; must be a spreadsheet style range");
-    err += " in argument " + std::to_string(static_cast<long long>(idx + 1));
-
-    
-
     std::string strbegin;
     std::string strend;
     std::string delim = ":";
@@ -3408,7 +3418,7 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
 
     if (pos == std::string::npos)
     {
-        throw OML_Error(err);
+        throw OML_Error(OML_ERR_SPREADSHEET_RANGE, idx + 1);
     }
 
     strbegin = strRange.substr(0, pos);
@@ -3416,7 +3426,7 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
 
     if (strbegin.empty() || strend.empty())
     {
-        throw OML_Error(err);
+        throw OML_Error(OML_ERR_SPREADSHEET_RANGE, idx + 1);
     }
 
     int startrow = -1;
@@ -3424,8 +3434,9 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
     int endrow   = -1;
     int endcol   = -1;
 
-    GetRowColInfo(strbegin, err, startrow, startcol);
-    GetRowColInfo(strend,   err, endrow,   endcol);
+    OML_Error err(OML_ERR_SPREADSHEET_RANGE, idx + 1);
+    GetRowColInfo(strbegin, err.GetErrorMessage(), startrow, startcol);
+    GetRowColInfo(strend,   err.GetErrorMessage(), endrow,   endcol);
 
     range[0] = startrow;
     range[1] = startcol;
@@ -3517,7 +3528,7 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
      }
 
      // File name
-     std::string fname = input.StringVal();
+     std::string fname (input.StringVal());
      if (input.IsMultilineString())
      {
          size_t pos = fname.find_first_not_of("\n");
@@ -3547,7 +3558,7 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
          if (!indices.empty())
          {
              int numvals = static_cast<int>(indices.size());
-             mtx.reset(EvaluatorInterface::allocateMatrix(1, numvals, hwMatrix::REAL));
+             mtx.reset(EvaluatorInterface::allocateMatrix(1, numvals, true));
              for (int i = 0; i < numvals; ++i)
              {
                  (*mtx)(i) = indices[i];
@@ -3595,8 +3606,7 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
              mode += "b";
          }
      }
-
-     std::FILE* f = utils.FileOpen(fname, mode);
+     std::FILE* f = utils.FileOpen(utils.Normpath(fname), mode);
      if (f)
      {
          outputs.push_back(eval.AddFile(f, fname, mode));
@@ -3604,7 +3614,8 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
 #ifndef OS_WIN
          if (mode[0] == 'a' || mode[0] == 'w' || mode.find("r+") != std::string::npos)
          {
-             int result = chmod(utils.GetAbsolutePath(fname).c_str(), S_IRWXU);
+             std::string normpath(utils.Normpath(fname));
+             int result = chmod(utils.GetAbsolutePath(normpath).c_str(), S_IRWXU);
              if (result != 0)
              {
                  utils.SetWarning(eval, strerror(errno));

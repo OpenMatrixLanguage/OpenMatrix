@@ -17,7 +17,8 @@
 #include "stdlib.h"                 // to free N_Vectors
 #include "hwIdaWrap.h"
 #include "nvector/nvector_serial.h"
-#include "ida/ida_direct.h"         // access CVDls interface
+#include "ida/ida_direct.h"         // access IDADls interface
+#include "sunmatrix/sunmatrix_dense.h"
 
 // Client function pointers
 static IDAResFn_client sysfunc_client       = nullptr;
@@ -163,9 +164,9 @@ hwIdaWrap::hwIdaWrap(IDAResFn_client      sysfunc,
     }
 
     // IDACreate
-    if (job[0] == '1' && job[1] == '1')
+    if (!strcmp(job, "15i"))
     {
-        ida_mem = IDACreate();
+        ida_mem = IDACreate(sunctx);
     }
     else
     {
@@ -173,16 +174,17 @@ hwIdaWrap::hwIdaWrap(IDAResFn_client      sysfunc,
         return;
     }
 
-    if (Check_flag((void *)ida_mem, "IDACreate", 0))
+    if (!ida_mem)
     {
         m_status(HW_MATH_ERR_ALLOCFAILED);
         return;
     }
 
     // Create serial vectors of length NEQ for I.C.
-    y = N_VNew_Serial(m_y.Size());
+    int numEqns = m_y.Size();
+    y = N_VNew_Serial(numEqns, sunctx);
 
-    if (Check_flag((void *)y, "N_VNew_Serial", 0))
+    if (!y)
     {
         m_status(HW_MATH_ERR_ALLOCFAILED);
         return;
@@ -192,9 +194,9 @@ hwIdaWrap::hwIdaWrap(IDAResFn_client      sysfunc,
     NV_OWN_DATA_S(y) = false;
     NV_DATA_S(y) = m_y.GetRealData();
 
-    yp = N_VNew_Serial(m_yp.Size());
+    yp = N_VNew_Serial(numEqns, sunctx);
 
-    if (Check_flag((void *)yp, "N_VNew_Serial", 0))
+    if (!yp)
     {
         m_status(HW_MATH_ERR_ALLOCFAILED);
         return;
@@ -206,45 +208,51 @@ hwIdaWrap::hwIdaWrap(IDAResFn_client      sysfunc,
 
     // Initialize and populate IDA object
     sysfunc_client = sysfunc;
+    int64_t flag = IDAInit(ida_mem, sysfunc_IDA, tin, y, yp);
 
-    int flag = IDAInit(ida_mem, sysfunc_IDA, tin, y, yp);
-    // if (Check_flag(&flag, "IDAInit", 1)) return(1);
-
-    int numEqns = m_y.Size();
-
-    if (job[2] == 'a')
+    if (flag < 0)
     {
-        // Create dense SUNMatrix for use in linear solver
-        A = SUNDenseMatrix(numEqns, numEqns);
-        if (Check_flag((void *)A, "SUNDenseMatrix", 0))
+        m_status(HW_MATH_ERR_INTERNALERROR);
+        return;
+    }
+
+    // Create dense SUNMatrix for use in linear solver
+    A = SUNDenseMatrix(numEqns, numEqns, sunctx);
+
+    if (!A)
+    {
+        m_status(HW_MATH_ERR_ALLOCFAILED);
+        return;
+    }
+
+    // Create dense SUNLinearSolver object for use by IDA
+    LS = SUNLinSol_Dense(y, A, sunctx);
+
+    if (!LS)
+    {
+        m_status(HW_MATH_ERR_ALLOCFAILED);
+        return;
+    }
+
+    // Call IDADlsSetLinearSolver to attach the matrix and linear solver to IDA
+    flag = IDADlsSetLinearSolver(ida_mem, LS, A);
+
+    if (flag < 0)
+    {
+        m_status(HW_MATH_ERR_INTERNALERROR);
+        return;
+    }
+
+    // Set the Jacobian routine to Jac (user-supplied)
+    if (jacDfunc)
+    {
+        jacDfunc_client = jacDfunc;
+        flag = IDASetJacFn(ida_mem, (IDALsJacFn)jacDfunc_IDA);
+
+        if (flag < 0)
         {
-            m_status(HW_MATH_ERR_ALLOCFAILED);
+            m_status(HW_MATH_ERR_INTERNALERROR);
             return;
-        }
-
-        // Create dense SUNLinearSolver object for use by CVode
-        LS = SUNDenseLinearSolver(y, A);
-        if (Check_flag((void *)LS, "SUNDenseLinearSolver", 0))
-        {
-            m_status(HW_MATH_ERR_ALLOCFAILED);
-            return;
-        }
-
-        // Call CVDlsSetLinearSolver to attach the matrix and linear solver to CVode
-        flag = IDADlsSetLinearSolver(ida_mem, LS, A);
-        // if(Check_flag(&flag, "IDADlsSetLinearSolver", 1)) return(1);
-
-        // Set the Jacobian routine to Jac (user-supplied)
-        if (jacDfunc)
-        {
-            jacDfunc_client = jacDfunc;
-            flag = IDADlsSetJacFn(ida_mem, (IDADlsJacFn) jacDfunc_IDA);
-            // if(Check_flag(&flag, "IDADlsSetJacFn", 1)) return(1);
-        }
-        else
-        {
-            flag = IDADlsSetJacFn(ida_mem, nullptr);
-            // if(Check_flag(&flag, "IDADlsSetJacFn", 1)) return(1);
         }
     }
 
@@ -289,7 +297,12 @@ hwIdaWrap::hwIdaWrap(IDAResFn_client      sysfunc,
     if (userData)
     {
         flag = IDASetUserData(ida_mem, (void*) userData);
-        // if (Check_flag(&flag, "IDASetUserData", 1)) return(1);
+
+        if (flag < 0)
+        {
+            m_status(HW_MATH_ERR_INTERNALERROR);
+            return;
+        }
     }
 
     // Manage tolerances
@@ -299,7 +312,12 @@ hwIdaWrap::hwIdaWrap(IDAResFn_client      sysfunc,
         {
             double abstol = 1.0e-6;
             flag = IDASStolerances(ida_mem, reltol_, abstol);
-            // if (Check_flag(&flag, "IDASStolerances", 1)) return(1);
+
+            if (flag < 0)
+            {
+                m_status(HW_MATH_ERR_INTERNALERROR);
+                return;
+            }
         }
         else
         {
@@ -326,7 +344,12 @@ hwIdaWrap::hwIdaWrap(IDAResFn_client      sysfunc,
                 }
 
                 flag = IDASStolerances(ida_mem, reltol_, abstol);
-                // if (Check_flag(&flag, "IDASStolerances", 1)) return(1);
+
+                if (flag < 0)
+                {
+                    m_status(HW_MATH_ERR_INTERNALERROR);
+                    return;
+                }
             }
             else if (abstol_->Size() == numEqns)
             {
@@ -342,9 +365,9 @@ hwIdaWrap::hwIdaWrap(IDAResFn_client      sysfunc,
                 }
 
                 // Create serial vector of length NEQ for abstol
-                N_Vector abstol = N_VNew_Serial(numEqns);
+                N_Vector abstol = N_VNew_Serial(numEqns, sunctx);
 
-                if (Check_flag((void *)abstol, "N_VNew_Serial", 0))
+                if (!abstol)
                 {
                     m_status(HW_MATH_ERR_ALLOCFAILED);
                     return;
@@ -355,7 +378,12 @@ hwIdaWrap::hwIdaWrap(IDAResFn_client      sysfunc,
                 NV_DATA_S(abstol) = const_cast<double*>(abstol_->GetRealData());
 
                 flag = IDASVtolerances(ida_mem, reltol_, abstol);
-                // if (Check_flag(&flag, "IDASVtolerances", 1)) return(1);
+
+                if (flag < 0)
+                {
+                    m_status(HW_MATH_ERR_INTERNALERROR);
+                    return;
+                }
 
                 N_VDestroy_Serial(abstol);           // Free abstol vector
             }
@@ -371,12 +399,17 @@ hwIdaWrap::hwIdaWrap(IDAResFn_client      sysfunc,
         double abstol = 1.0e-6;
 
         flag = IDASStolerances(ida_mem, reltol_, abstol);
-        // if (Check_flag(&flag, "IDASStolerances", 1)) return(1);
+
+        if (flag < 0)
+        {
+            m_status(HW_MATH_ERR_INTERNALERROR);
+            return;
+        }
     }
 
     if (maxstep > 0.0)
     {
-        IDASetMaxStep(ida_mem, maxstep);
+        flag = IDASetMaxStep(ida_mem, maxstep);
     }
     else if (maxstep != -999.0)
     {
@@ -642,38 +675,10 @@ bool hwIdaWrap::Continue(int flag)
 void hwIdaWrap::SetStopTime(double tstop)
 {
     int flag = IDASetStopTime(ida_mem, tstop);
-}
-//------------------------------------------------------------------------------
-// Check IDA flag
-//------------------------------------------------------------------------------
-int hwIdaWrap::Check_flag(void* flagvalue, const char* funcname, int opt)
-{
-    /*
-    * Check function return value...
-    *   opt == 0 means SUNDIALS function allocates memory so check if
-    *            returned NULL pointer
-    *   opt == 1 means SUNDIALS function returns a flag so check if
-    *            flag >= 0
-    *   opt == 2 means function allocates memory so check if returned
-    *            NULL pointer 
-    */
 
-    if (opt == 0 && !flagvalue) // Sundials allocated memory
+    if (flag < 0)
     {
-        return 1;
+        m_status(HW_MATH_ERR_INTERNALERROR);
+        return;
     }
-    else if (opt == 1)          // Sundials function returned flag
-    {
-        int* errflag = static_cast<int*>(flagvalue);
-        if (errflag && *errflag < 0)
-        {
-            return 1;
-        }
-    }
-    else if (opt == 2 && !flagvalue) // Sundials allocated memory
-    {
-        return 1;
-    }
-
-    return 0;
 }

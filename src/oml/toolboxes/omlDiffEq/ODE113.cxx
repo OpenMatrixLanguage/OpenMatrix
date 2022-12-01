@@ -21,6 +21,7 @@
 #include "FunctionInfo.h"
 #include "OML_Error.h"
 #include "StructData.h"
+#include "hwMathException.h"
 
 #include "DiffEqFuncs.h"
 
@@ -459,18 +460,18 @@ bool OmlOde113(EvaluatorInterface           eval,
     {
         // one step mode
         timeSolution = new hwMatrix;
-        status = ODE11(ODE113_file_func, rootFunc, ODE113_event_size, *time, *y,
-                       timeSolution, *ySolution, reltol, abstol, maxstep, userData,
-                       pEventTime.get(), pEventFnVal.get(), pEventIndx.get());
+        status = ODE113(ODE113_file_func, rootFunc, ODE113_event_size, *time, *y,
+                        timeSolution, *ySolution, reltol, abstol, maxstep, userData,
+                        pEventTime.get(), pEventFnVal.get(), pEventIndx.get());
     }
     else
     {
         // interval mode
         timeSolution = (hwMatrix*) time;
         timeSolution->IncrRefCount();
-        status = ODE11(ODE113_file_func, rootFunc, ODE113_event_size, *time, *y,
-                       nullptr, *ySolution, reltol, abstol, maxstep, userData,
-                       pEventTime.get(), pEventFnVal.get(), pEventIndx.get());
+        status = ODE113(ODE113_file_func, rootFunc, ODE113_event_size, *time, *y,
+                        nullptr, *ySolution, reltol, abstol, maxstep, userData,
+                        pEventTime.get(), pEventFnVal.get(), pEventIndx.get());
     }
 
     if (deleteAbsTol)
@@ -498,11 +499,11 @@ bool OmlOde113(EvaluatorInterface           eval,
         {
             switch (status.GetArg1())
             {
-                case  5:  status.SetArg1(2);  break;
-                case  6:  status.SetArg1(3);  break;
-                case  9:  status.SetArg1(4);  break;
-                case 10:  status.SetArg1(4);  break;
-                case 11:  status.SetArg1(4);  break;
+                case  5: status.SetArg1(2);  break;
+                case  6: status.SetArg1(3);  break;
+                case  9: status.SetArg1(4);  break;
+                case 10: status.SetArg1(4);  break;
+                case 11: status.SetArg1(4);  break;
                 default: status.ResetArgs(); break;
             }
         }

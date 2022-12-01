@@ -108,7 +108,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; OMLDIFFEQTBOX_EXPORT</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\oml\runtime;$(OML_MKL_INCLUDE)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\oml\runtime;$(OML_MKL_INCLUDE);$(OML_ROOT)\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration); $(OML_MKL_LIBDIR) </AdditionalLibraryDirectories>
@@ -118,7 +118,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; OMLDIFFEQTBOX_EXPORT</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\oml\runtime; $(OML_MKL_INCLUDE)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\oml\runtime;$(OML_MKL_INCLUDE);$(OML_ROOT)\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration); $(OML_MKL_LIBDIR) </AdditionalLibraryDirectories>

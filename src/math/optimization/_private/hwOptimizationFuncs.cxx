@@ -634,19 +634,31 @@ hwMathStatus NelderMead(const NelderMeadFunc f,
         needTranspose = true;
     }
 
+    // initialize the simplex (Pfeffer's method)
     int        dim = optPoint.Size();
     hwMatrix   fx(dim + 1, hwMatrix::REAL);
-    hwMatrix** vertex = new hwMatrix*[dim+1];   // the simplex
+    hwMatrix** vertex = new hwMatrix*[dim + 1];   // the simplex
 
-    // initialize the simplex
     for (int i = 0; i < dim+1; ++i)
     {
         vertex[i] = new hwMatrix(optPoint);
     }
 
-    for (int i = 0; i < dim; ++i)
+    double du = 0.05;
+    double dz = 0.0075;
+
+    for (int i = 1; i < dim + 1; i++)
     {
-        (*vertex[i])(i) += 1.0;
+        for (int j = 0; j < dim; j++)
+        {
+            if (j == i - 1)
+            {
+                if (optPoint(j) != 0.0)
+                    (*vertex[i])(j) += du * optPoint(j);
+                else
+                    (*vertex[i])(j) = dz;
+            }
+        }
     }
 
     // evaulate the function at each vertex
@@ -669,7 +681,6 @@ hwMathStatus NelderMead(const NelderMeadFunc f,
     double* max2 = nullptr;
     double next;
     double norm1;
-    double norm2;
     double scale;
 
     hwMatrix midpoint(dim, hwMatrix::REAL);
@@ -721,12 +732,11 @@ hwMathStatus NelderMead(const NelderMeadFunc f,
 
         // check convergence
         status = (*maxv-*minv).L2Norm(norm1);
-        status = maxv->L2Norm(norm2);
 
         if (objHist || designHist)
             NelderMeadHistory(designHist, objHist, *minv, *min, numIters+1);
 
-        if (norm1 < norm2 * tolx + 0.1 * tolx)
+        if (norm1 < tolx)
         {
             break;
         }

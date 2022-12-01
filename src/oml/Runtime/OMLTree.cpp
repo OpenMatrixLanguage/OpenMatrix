@@ -320,7 +320,10 @@ OMLTree* OMLTree::ReadTreeFromFile(const std::string& filename)
 		size_t res = fread(&version, sizeof(short), 1, file);
 
 		if (version != 3)
+		{
+			fclose(file);
 			throw OML_Error("Invalid omlp file");
+		}
 
 		const std::string* file_ptr = Currency::pm.GetStringPointer(filename);
 
@@ -328,6 +331,7 @@ OMLTree* OMLTree::ReadTreeFromFile(const std::string& filename)
 		tree->ReadFromBinaryFile(file, file_ptr);
 	}
 
+	fclose(file);
 	return tree;
 }
 

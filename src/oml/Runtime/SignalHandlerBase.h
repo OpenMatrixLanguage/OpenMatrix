@@ -222,6 +222,16 @@ public:
     //! Hides status bar, if applicable
     //!
     virtual void HideStatus() {}
+    //!
+    //! Gets last visited directory
+    //!
+    virtual std::string GetLastVisitedDir() const { return ""; }
+    //!
+    //! Sets last visited directory
+    //! \param path Name of the directory
+    //!
+    virtual void SetLastVisitedDir(const std::string& path) {}
+
 protected:
     //!
     //! Constructor

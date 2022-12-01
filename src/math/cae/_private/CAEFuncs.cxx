@@ -125,128 +125,128 @@ hwMathStatus SAEFilt95(const hwMatrix& inSignal,
     return status;
 }
 //------------------------------------------------------------------------------
-// Rainflow
+// Rainflow commmon processing
 //------------------------------------------------------------------------------
-hwMathStatus RainFlowFunc(const hwMatrix& time, int numBins, double minRange, double maxRange,
-                          int output, int hysteresis, hwMatrix& result)
+static
+hwMathStatus RainFlowFunc(const hwMatrix& signal,
+                          int             numBins,
+                          int             hysteresis,
+                          RainFlow&       rainflow,
+                          hwMatrix&       index)
 {
     // check inputs
-    if (time.IsEmpty())
+    if (signal.IsEmpty())
         return hwMathStatus(HW_MATH_ERR_EMPTYMATRIX, 1);
 
-    if (!time.IsReal())
+    if (!signal.IsReal())
         return hwMathStatus(HW_MATH_ERR_COMPLEXSUPPORT, 1);
 
-    if (!time.IsEmptyOrVector())
+    if (!signal.IsEmptyOrVector())
         return hwMathStatus(HW_MATH_ERR_VECTOR, 1);
 
     if (numBins < 1)
         return hwMathStatus(HW_MATH_ERR_NONPOSINT, 2);
 
-    if (maxRange < minRange)
-        return hwMathStatus(HW_MATH_ERR_MINMAXVALUES, 3, 4);
-
-    if (output < 0 || output > 4)
-        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 5);
-
     if (hysteresis != 0 && hysteresis != 1)
-        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 6);
+        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 3);
 
-    // call algorithm
-    RainFlow rainflow;
-
-    int NoofPoints = time.Size();
+    // pass data to rainflow
+    int NoofPoints = signal.Size();
     SignalAttributes CurrentSignalData;
 
-    CurrentSignalData.start=0;
-    CurrentSignalData.nChans=1;
-    CurrentSignalData.nVals=NoofPoints;
+    CurrentSignalData.start = 0;
+    CurrentSignalData.nChans = 1;
+    CurrentSignalData.nVals = NoofPoints;
 
     rainflow.setsigstart(CurrentSignalData.start);
     rainflow.setsigNC(CurrentSignalData.nChans);
     rainflow.setsigNV(CurrentSignalData.nVals);
 
-    double* _xchanneldata  = new double[NoofPoints];
-    double* _ychanneldata  = new double[NoofPoints];
+    hwMathStatus status = index.Dimension(NoofPoints, 1, hwMatrix::REAL);
+
+    if (!status.IsOk())
+        return status;
+
+    double* _xchanneldata = index.GetRealData();
+    const double* _ychanneldata = signal.GetRealData();
+
+    for (int i = 0; i < CurrentSignalData.nVals; i++)
+    {
+        _xchanneldata[i] = static_cast<double> (i);
+    }
+
     rainflow.setXchanneldata(_xchanneldata);
     rainflow.setYchanneldata(_ychanneldata);
 
-    for (int i = 0;i<CurrentSignalData.nVals;i++)
-    {
-        _xchanneldata[i]=i;
-        _ychanneldata[i]=time(i);
-    }
-
     rainflow.setUser_NBins(numBins);
-    rainflow.setminpoint(&minRange);
-    rainflow.setmaxpoint(&maxRange);
-	rainflow.setHysteresis(hysteresis);
-    hwMathStatus status;
+    rainflow.setHysteresis(hysteresis);
 
-    if (output == 0)
-    {
-		rainflow.ComputeRangeBins();
-        const STD::vector<double>& rangebins = rainflow.getrangebins();
-        status = result.Dimension(1, (int) rangebins.size(), hwMatrix::REAL);
+    return status;
+}
 
-		for (int i = 0; i < (int) rangebins.size(); i++)
-			result(i) = rangebins[i];
-    }
-    else if (output == 1)
-    {
-		rainflow.ComputeMeanBins();
-        const STD::vector<double>& meanbins = rainflow.getmeanbins();
-        status = result.Dimension(1, (int) meanbins.size(), hwMatrix::REAL);
+//------------------------------------------------------------------------------
+// Rainflow
+//------------------------------------------------------------------------------
+hwMathStatus RainFlowFunc(const hwMatrix& signal,
+                          int             numBins,
+                          int             hysteresis,
+                          hwMatrix&       countMatrix,
+                          hwMatrix&       damageMatrix,
+                          hwMatrix&       rangeBinVec,
+                          hwMatrix&       meanBinVec)
+{
+    RainFlow rainflow;
+    hwMatrix index;
 
-		for (int i = 0; i < (int) meanbins.size(); i++)
-			result(i) = meanbins[i];
-    }
-    else
-    {
-		rainflow.Evaluate();
-        const STD::vector< STD::vector<double> >& meanrangematrix = rainflow.getmeanrangematrix();
+    // perform common processing
+    hwMathStatus status = RainFlowFunc(signal, numBins, hysteresis,
+                                       rainflow, index);
 
-        if (output == 2)
-        {
-            status = result.Dimension(numBins, numBins, hwMatrix::REAL);
+    if (!status.IsOk())
+        return status;
 
-            for (int ival=0; ival<numBins; ival++)
-            {
-                for (int jval=0; jval<numBins; jval++)
-                {
-                    result(ival, jval) = (meanrangematrix[ival])[jval]; 					
-                }
-            }
-        }
-        else if (output == 3)
-        {
-            status = result.Dimension(1, numBins, hwMatrix::REAL);
+    // run algorithm
+    rainflow.Evaluate();
 
-            result.SetElements(0.0);
+    // get outputs
+    rangeBinVec  = *rainflow.getrangebins();
+    meanBinVec   = *rainflow.getmeanbins();
+    damageMatrix = *rainflow.getmeanrangematrix();
+    countMatrix  = *rainflow.getcountmatrix();
 
-            for (int ival=0; ival<numBins; ival++)
-            {
-                for (int jval=0; jval<numBins; jval++)
-                {
-                    result(ival) += (meanrangematrix[jval])[ival];
-                }
-            }
-        }
-        else // (output == 4)
-        {
-            status = result.Dimension(1, numBins, hwMatrix::REAL);
+    return status;
+}
+//------------------------------------------------------------------------------
+// Rainflow
+//------------------------------------------------------------------------------
+hwMathStatus RainFlowFunc(const hwMatrix& signal,
+                          int             numBins,
+                          int             hysteresis,
+                          const hwMatrix* countMatrix,
+                          hwMatrix&       damageMatrix,
+                          hwMatrix&       rangeBinVec,
+                          hwMatrix&       meanBinVec)
+{
+    RainFlow rainflow;
+    hwMatrix index;
 
-            result.SetElements(0.0);
+    // perform common processing
+    hwMathStatus status = RainFlowFunc(signal, numBins, hysteresis,
+                                       rainflow, index);
 
-            for (int ival=0; ival<numBins; ival++)
-            {
-                for (int jval=0; jval<numBins; jval++)
-                {
-                     result(ival) += (meanrangematrix[ival])[jval];
-                }
-            }
-        }
-    }
+    if (!status.IsOk())
+        return status;
+
+    // run algorithm
+    int retv = rainflow.Evaluate(countMatrix);
+
+    if (retv != 0)
+        return status(HW_MATH_ERR_INTERNALERROR);
+
+    // get outputs
+    rangeBinVec = *rainflow.getrangebins();
+    meanBinVec = *rainflow.getmeanbins();
+    damageMatrix = *rainflow.getmeanrangematrix();
 
     return status;
 }

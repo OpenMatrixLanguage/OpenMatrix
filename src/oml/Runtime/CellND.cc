@@ -1,4 +1,4 @@
-#include "hwMatrixN.h"
+#include "hwMatrixN_NMKL.h"
 #include "Currency.h"
 
 template<> inline

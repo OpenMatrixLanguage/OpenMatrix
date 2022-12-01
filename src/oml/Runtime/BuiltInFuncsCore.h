@@ -1,7 +1,7 @@
 	/**
 * @file BuiltInFuncsCore.h
 * @date February 2016
-* Copyright (C) 2016-2021 Altair Engineering, Inc.  
+* Copyright (C) 2016-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -215,18 +215,19 @@ public:
                                const std::string& name);  
     //!
     //! Releases dynamically loaded library
-    //! \param handle Handle to dynamically loaded library
+    //! \param Handle to dynamically loaded library
     //!
-    static void DyFreeLibrary(void* handle);
-
-	static void Finalize(void* handle);
-
+    static void DyFreeLibrary(void*);
+    //!
+    //! Loads the "Finalize" function and executes it
+    //! \param Handle to dynamically loaded library
+    //!
+	static void Finalize(void*);
 	//!
 	//! Gets the path of a loaded library
-	//! \param handle Handle to dynamically loaded library
+	//! \param Handle to dynamically loaded library
 	//!
-	static std::string DyGetLibraryPath(void* handle);
-
+	static std::string DyGetLibraryPath(void*);
     //!
     //! Returns true and prints memory usage (memoryuse)
     //! \param eval    Evaluator interface
@@ -288,7 +289,14 @@ public:
     //! \param Vector of outputs
     //!
     static bool Keyboard(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
-
+    //!
+    //! Returns true if given data is a scalar [isfloat]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //!
+    static bool IsFloat(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
+  
 private:
     //!
     //! Constructor

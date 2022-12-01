@@ -23,7 +23,7 @@
 #include <vector>
 #include <set>
 
-#include "hwComplex.h"
+#include <math/kernel/hwComplex.h>
 
 template <typename T1, typename T2> class hwTMatrix;
 typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
@@ -47,7 +47,7 @@ typedef hwTMatrixN<Currency, void*> HML_ND_CELLARRAY;
 typedef Currency (*EXTPTR) (const std::string&);
 
 
-class StringManager
+class OMLDLL_DECLS StringManager
 {
 public:
 	StringManager() {}

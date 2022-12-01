@@ -108,7 +108,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; STATISTICS_EXPORTS</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\polynom;$(OML_ROOT)\src\math\optimization;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\math\statistics;$(OML_MKL_INCLUDE)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\polynom;$(OML_ROOT)\src\math\optimization;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\math\statistics;$(OML_MKL_INCLUDE);$(OML_ROOT)\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>mathcore.lib; hwmathutils.lib; hwpolynom.lib; hwoptimization.lib; $(OML_MKL_LIBS)</AdditionalDependencies>
@@ -117,7 +117,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\polynom;$(OML_ROOT)\src\math\optimization;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\math\statistics;$(OML_MKL_INCLUDE)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\polynom;$(OML_ROOT)\src\math\optimization;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\math\statistics;$(OML_MKL_INCLUDE);$(OML_ROOT)\src</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; STATISTICS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <Link>

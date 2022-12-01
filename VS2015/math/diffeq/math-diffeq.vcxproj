@@ -107,7 +107,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\diffeq;$(OML_ROOT)\src\math\kernel;$(OML_SUNDIALSDIR)\include;$(OML_MKL_INCLUDE)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\diffeq;$(OML_ROOT)\src\math\kernel;$(OML_SUNDIALSDIR)\include;$(OML_MKL_INCLUDE);$(OML_ROOT)\src</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;OS_WIN; _WIN64; DIFFEQ_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -117,7 +117,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\diffeq;$(OML_ROOT)\src\math\kernel;$(OML_MKL_INCLUDE);$(OML_SUNDIALSDIR)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\diffeq;$(OML_ROOT)\src\math\kernel;$(OML_MKL_INCLUDE);$(OML_SUNDIALSDIR)\include;$(OML_ROOT)\src</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; DIFFEQ_EXPORTS </PreprocessorDefinitions>
     </ClCompile>
     <Link>

@@ -92,7 +92,7 @@ Currency::Currency(const char* in_str): type(TYPE_MATRIX), mask(MASK_STRING), ou
 {
 	size_t length = strlen(in_str);
 
-    data.mtx = ExprTreeEvaluator::allocateMatrix(length ? 1 : 0, (int)length, hwMatrix::REAL);
+    data.mtx = ExprTreeEvaluator::allocateMatrix(length ? 1 : 0, (int)length, true);
 	for (size_t i = 0; i < length; i++)
 	{
 		unsigned char next_char = (unsigned char)in_str[i];
@@ -106,7 +106,7 @@ Currency::Currency(const char* in_str): type(TYPE_MATRIX), mask(MASK_STRING), ou
 Currency::Currency(const std::string& str): type(TYPE_MATRIX), mask(MASK_STRING), out_name(NULL),
     _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false), _is_linear_range(false)
 {
-    data.mtx = ExprTreeEvaluator::allocateMatrix(str.length() ? 1 : 0, (int)str.length(), hwMatrix::REAL);
+    data.mtx = ExprTreeEvaluator::allocateMatrix(str.length() ? 1 : 0, (int)str.length(), true);
 	for (unsigned int i = 0; i < str.length(); i++)
 	{
 		unsigned char next_char = (unsigned char)str[i];
@@ -124,12 +124,12 @@ Currency::Currency(const std::vector<double>& in_data): type(TYPE_MATRIX), mask(
 	{
 		double* data_ptr = new double[in_data.size()];
 		memcpy(data_ptr, &in_data.front(), sizeof(double) * in_data.size());
-		data.mtx = ExprTreeEvaluator::allocateMatrix(1, (int)in_data.size(), (void*)data_ptr, hwMatrix::REAL);
+		data.mtx = ExprTreeEvaluator::allocateMatrix(1, (int)in_data.size(), (void*)data_ptr, true);
 		data.mtx->OwnData(true);
 	}
 	else
 	{
-		data.mtx = ExprTreeEvaluator::allocateMatrix(1, 0, hwMatrix::REAL);
+		data.mtx = ExprTreeEvaluator::allocateMatrix(1, 0, true);
 	}
 }
 
@@ -980,7 +980,7 @@ bool Currency::IsPositiveInteger() const
 
 		if (temp > 0.0)
 		{
-			if (abs(temp - (int(temp+1.0e-15)) < 1.0e-15))
+			if (abs(temp - (int(temp+1.0e-15))) < 1.0e-15)
 				return true;
 		}
 	}
@@ -1047,7 +1047,7 @@ bool Currency::IsPositiveIntegralVector() const
 					return false;
 
 				// making sure it's an integer (or close enough)
-				if (abs(val - (int(val+1.0e-15)) > 1.0e-15))
+				if (abs(val - (int(val+1.0e-15))) > 1.0e-15)
 					return false;				
 			}
 		}
@@ -1078,7 +1078,7 @@ bool Currency::IsPositiveIntegralMatrix() const
 			double val = (*mtx)(k);
 
 			// making sure it's an integer (or close enough)
-			if (abs(val - (int(val + 1.0e-15)) > 1.0e-15))
+			if (abs(val - (int(val + 1.0e-15))) > 1.0e-15)
 				return false;
 		}
 
@@ -1265,19 +1265,19 @@ const hwMatrix* Currency::ConvertToMatrix() const
 	if (type == TYPE_SCALAR)
 	{
 		double old_val = data.value;
-		data.mtx = ExprTreeEvaluator::allocateMatrix(1,1, hwMatrix::REAL);
+		data.mtx = ExprTreeEvaluator::allocateMatrix(1,1, true);
 		(*data.mtx)(0) = old_val;
 	}
 	else if (type == TYPE_COMPLEX)
 	{
 		hwComplex* old_complex = data.complex;
-		data.mtx = ExprTreeEvaluator::allocateMatrix(1,1, hwMatrix::COMPLEX);
+		data.mtx = ExprTreeEvaluator::allocateMatrix(1,1, false);
 		data.mtx->z(0) = *old_complex;
 	}
 	else if (type == TYPE_MATRIX)
 	{
 		if (!data.mtx)
-			data.mtx = ExprTreeEvaluator::allocateMatrix(0, 0, hwMatrix::REAL);
+			data.mtx = ExprTreeEvaluator::allocateMatrix(0, 0, true);
 	}
 	else if (IsCellList())
 	{
@@ -1328,7 +1328,7 @@ const hwMatrix* Currency::ConvertToMatrix() const
 		if (!rows_needed)
 			rows_needed = 1;
 
-		hwMatrix* mtx = ExprTreeEvaluator::allocateMatrix(rows_needed, cols_needed, hwMatrix::REAL);
+		hwMatrix* mtx = ExprTreeEvaluator::allocateMatrix(rows_needed, cols_needed, true);
 		int count = 0;
 
 		int	row_offset = 0;
