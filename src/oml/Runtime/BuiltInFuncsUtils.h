@@ -20,6 +20,7 @@
 #include <deque>
 
 #include "EvaluatorInt.h"
+#include "hwMatrix.h"
 
 //------------------------------------------------------------------------------
 //!
