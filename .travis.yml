@@ -47,12 +47,19 @@ script:
 - cd $OML_THIRDPARTY/ANTLR
 - find . -iname "libantlr3c*"
 - echo ==============================
-- echo ==============================
 - echo $LD_LIBRARY_PATH
 - echo $OML_ROOT
 - echo $OML_THIRDPARTY
 - echo $PATH
 - cd $OML_ROOT/src
+- echo ==============================
+- grep -r -n --include=*.h BuiltInFuncsUtils.h
+- echo ==============================
+- grep -r -n --include=*.cpp BuiltInFuncsUtils.h
+- echo ==============================
+- grep -r -n --include=*.cxx BuiltInFuncsUtils.h
+- echo ==============================
+- pwd
 - ls -alF
 - make -f makefile.open -k
 after_success:
