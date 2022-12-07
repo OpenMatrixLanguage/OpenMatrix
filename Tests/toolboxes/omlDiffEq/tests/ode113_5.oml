@@ -1,0 +1,33 @@
+addtoolbox omldiffeq
+
+function dx = MKC(t,x)
+	dx1dt = x(2) ;
+	dx2dt = sin(t) - x(2) - x(1) ;
+	dx = [dx1dt ; dx2dt] ;
+end
+ 
+function [position,isterminal,direction] = myEventsFcn(t,x)
+	position = x(1:2);
+	isterminal = [0 0];
+	direction = [0 0];
+end
+
+% Solve the system
+opt = odeset('RelTol',1e-3,'AbsTol',[1e-6,1e-6],'Events',@myEventsFcn);
+[t,x,te,xe,ie] = ode113(@MKC, [0:0.1:20], [0;0], opt);
+
+te
+round (1000000 * xe) / 1000000
+ie
+
+% Plot the results
+% p = x(:,1) ;	% position
+% v = x(:,2) ;	% velocity
+% plot(t,p) ; hold on ;
+% xlabel('time') ; ylabel('signal') ;
+% plot(t,v) ; 
+% title('SYSTEM DYNAMICS') ;
+ 
+% Plot events
+% plot(te,xe(:,1),'ro');
+% legend('Position', 'Velocity','Events') ;

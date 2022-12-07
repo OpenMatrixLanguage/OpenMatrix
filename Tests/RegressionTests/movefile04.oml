@@ -1,0 +1,27 @@
+% movefile-note move a single file to a directory\samefile
+
+returndir = pwd;
+cd FileManipulation
+
+cd movefile
+dir
+
+command = 'movefile(''test1.txt'', ''dir1/test1.txt'')'
+eval(command)
+
+dir
+
+command = 'dir dir1'
+eval(command)
+
+command = 'movefile(''dir1/test1.txt'', ''test1.txt'')'
+eval(command)
+
+dir
+
+command = 'dir dir1'
+eval(command)
+
+
+cd(returndir)
+

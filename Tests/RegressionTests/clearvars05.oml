@@ -1,0 +1,11 @@
+int1 = 1 
+intb = 'b'
+strb = 'bb'
+who
+try
+	clearvars *b
+catch e
+	e
+end
+who
+

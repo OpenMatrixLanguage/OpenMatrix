@@ -1,0 +1,2 @@
+addtoolbox omlsignals
+x = square([0:1:100]*(2*pi/25), 60)

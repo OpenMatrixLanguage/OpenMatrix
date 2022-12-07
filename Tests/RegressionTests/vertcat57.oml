@@ -1,0 +1,2 @@
+﻿x = vertcat(true(1,2),true(3,2))
+y = islogical(x)

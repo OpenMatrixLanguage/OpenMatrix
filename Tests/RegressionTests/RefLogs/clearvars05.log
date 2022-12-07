@@ -1,0 +1,9 @@
+int1 = 1
+intb = b
+strb = bb
+Variables in current scope:
+int1
+intb
+strb
+Variables in current scope:
+int1

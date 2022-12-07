@@ -1,0 +1,5 @@
+int1 = 1 
+who
+clearvars int1
+who
+

@@ -1,0 +1,17 @@
+ans = struct [
+  str1: 
+  {
+    [1,1] Hello
+    [1,2] World1
+  }
+  str2: 
+  {
+    [1,1] Hello
+    [1,2] World2
+  }
+  str3: 
+  {
+    [1,1] Hello
+    [1,2] World3
+  }
+]

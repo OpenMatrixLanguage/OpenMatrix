@@ -1,0 +1,10 @@
+function out = my_func(in1)
+  out = max(in1(:));
+end
+s(1).a = ones(2);
+s(2).a = [1, 2, 3];
+s(1).b = [3;4;5];
+s(2).b = [1, 2, 3;4, 5, 6];
+s(1).c = [3;4;5];
+s(2).c = [1, 2, 3;4, 5, 6];
+structfun(@my_func, s)

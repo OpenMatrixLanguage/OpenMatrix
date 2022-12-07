@@ -1,0 +1,6 @@
+function out = my_func(in1, in2)
+  out = in1 + in2;
+end
+A = ones(3);
+B = 2*ones(4);
+arrayfun(@my_func, A, B)

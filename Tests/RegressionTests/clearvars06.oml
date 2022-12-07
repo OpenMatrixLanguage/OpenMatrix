@@ -1,0 +1,8 @@
+int1 = 1 
+intb = 'b'
+strb = 'bb'
+who
+disp('clearvars(''*b'')')
+clearvars('*b')
+who
+

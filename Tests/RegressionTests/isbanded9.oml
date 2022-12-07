@@ -1,0 +1,6 @@
+m = diag(ones(1,10), 10, 15);
+m(9, 13) = 1 + 3i;
+isbanded(m, 1, 2)
+isbanded(m, 2, 3)
+isbanded(m, 3, 4)
+isbanded(m, 4, 1)

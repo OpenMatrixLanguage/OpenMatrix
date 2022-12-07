@@ -1,0 +1,42 @@
+res1 = struct [
+  Struct array of size 2 x 2 with fields:
+  a
+  b
+  c
+]
+res2 = struct [
+  Struct array of size 2 x 2 with fields:
+  a
+  b
+  c
+]
+ans = [Matrix] 1 x 2
+1 + 2i  1 + 2i
+ans = 7 + 2i
+ans = 3 + 2i
+ans = 3 + 2i
+ans = [Matrix] 1 x 2
+1 + 2i  1 + 2i
+ans = 57 + 2i
+ans = 13 + 2i
+ans = 3 + 2i
+ans = [Matrix] 1 x 2
+3 + 2i  3 + 2i
+ans = 70 + 2i
+ans = 30 + 2i
+ans = 3 + 2i
+ans = [Matrix] 1 x 2
+1 + 2i  1 + 2i
+ans = 5 + 2i
+ans = 1 + 2i
+ans = 1 + 2i
+ans = [Matrix] 1 x 2
+1 + 2i  1 + 2i
+ans = 50 + 2i
+ans = 10 + 2i
+ans = 1 + 2i
+ans = [Matrix] 1 x 2
+3 + 2i  3 + 2i
+ans = 50 + 2i
+ans = 10 + 2i
+ans = 1 + 2i

@@ -1,0 +1,12 @@
+addlibrary('omlmatio');
+
+a = {'计算机',1 ; '笔记本',1; 'abc',0};
+strcmp(a{1,1},'计算机')
+strcmp(a{3,1},'abc')
+save('test.mat');
+clear
+
+load('./test.mat');
+strcmp(a{1,1},'计算机')
+strcmp(a{3,1},'abc')
+

@@ -1,0 +1,25 @@
+% movefile-note move wildcard files to a directory and back to current directory
+
+returndir = pwd;
+cd FileManipulation
+
+cd movefile
+dir
+
+command = 'movefile(''test*.txt'', ''dir1'')'
+eval(command)
+
+dir
+
+command = 'dir dir1'
+eval(command)
+
+command = 'movefile(''dir1/test*.txt'', ''.'')'
+eval(command)
+
+dir
+
+command = 'dir dir1'
+eval(command)
+
+cd(returndir)

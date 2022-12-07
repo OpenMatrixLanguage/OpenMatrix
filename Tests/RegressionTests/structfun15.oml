@@ -1,0 +1,4 @@
+s.str1 = 'Hello World1';
+s.str2 = 'Hello World2';
+s.str3 = 'Hello World3';
+structfun (@(x) strsplit (x), s, 'UniformOutput', false)

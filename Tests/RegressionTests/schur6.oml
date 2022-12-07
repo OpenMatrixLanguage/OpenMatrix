@@ -1,0 +1,5 @@
+[a,b]=schur([i,2-i,1+i;9,1,2+i;2,5i,1-i]);
+c = a*b*inv(a);
+a = round(a, 46, 'binary')
+b = round(b, 46, 'binary')
+c = round(c, 46, 'binary')

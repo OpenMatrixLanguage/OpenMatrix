@@ -1,0 +1,4 @@
+addToolbox omlstatistics
+x = [1:10; 11:20];
+x = reshape(x, [2, 1, 10]);
+y = movmean(x, [2,3], 3, 'Endpoints', 'discard')

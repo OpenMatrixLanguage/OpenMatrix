@@ -1,0 +1,10 @@
+int1 = 1; intb = 'b'; strb = 'bb';
+who
+try
+	disp('clearvars ???b')
+	%clearvars ???b
+	clearvars('???b')
+catch e
+	e
+end
+who

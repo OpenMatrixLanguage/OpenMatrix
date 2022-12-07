@@ -1,0 +1,2 @@
+addtoolbox omlsignals
+x = gauspuls([-0.02:0.001:0.04])

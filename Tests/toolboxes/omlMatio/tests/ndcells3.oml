@@ -1,0 +1,17 @@
+addlibrary('omlmatio');
+
+load('data/ndcells3.mat');
+save('ndcells3_5.mat');
+clear all
+load('ndcells3_5.mat');
+disp('Mat version 5 output');
+cell3D(:, :, 101)
+
+save('ndcells3_73.mat', '-v7.3');
+clear all
+load('ndcells3_73.mat');
+disp('Mat version 7.3 output');
+cell3D(:, :, 101)
+
+delete('ndcells3_5.mat');
+delete('ndcells3_73.mat');

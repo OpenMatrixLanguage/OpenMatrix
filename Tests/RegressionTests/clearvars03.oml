@@ -1,0 +1,14 @@
+int1 = 1 
+intb = 'b'
+strb = 'bb'
+who
+try
+	%disp('clearvars int?')
+	%clearvars int?
+	disp('clearvars(''int?'')')
+	clearvars('int?')
+catch e
+	e
+end
+who
+

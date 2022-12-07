@@ -1,0 +1,10 @@
+function z = my_func(a)
+  z = a.a + a.b;
+end
+s(1).a = 1;
+s(2).a = 2;
+s(3).a = 3;
+s(1).b = 1;
+s(2).b = 2;
+s(3).b = 3;
+arrayfun(@my_func , s)

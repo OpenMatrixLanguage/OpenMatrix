@@ -1,0 +1,30 @@
+fname = 'FileManipulation/FileToRead.txt'
+fid = fopen(fname)
+fseek(fid, 15)
+fseek(fid, -5)
+ftell_check = ftell(fid);
+if (ispc && ftell_check == 15) || (isunix && ftell_check == 15)
+	disp('ftell returns expected value: 15 for Windows, 15 for Linux')
+else
+	printf('ftell unexpected return value: %d\n', ftell_check)
+end
+
+fseek(fid,5,'eof')
+ftell_check = ftell(fid);
+if (ispc && ftell_check == 15) || (isunix && ftell_check == 15)
+	disp('ftell returns expected value: 15 for Windows, 15 for Linux')
+else
+	printf('ftell unexpected return value: %d\n', ftell_check)
+end
+
+fseek(fid, -5, SEEK_END)
+fseek(fid, 5, SEEK_CUR)
+ftell_check = ftell(fid);
+if (ispc && ftell_check == 60) || (isunix && ftell_check == 56)
+	disp('ftell returns expected value: 60 for Windows, 56 for Linux')
+else
+	printf('ftell unexpected return value: %d\n', ftell_check)
+end
+
+fgets(fid)
+fclose(fid)

@@ -1,0 +1,14 @@
+Variables in current scope:
+gv1
+gv1b
+gv2
+gva
+gvb
+int1
+intb
+strb
+clearvars('-global')
+Variables in current scope:
+int1
+intb
+strb

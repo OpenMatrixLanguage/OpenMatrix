@@ -1,0 +1,9 @@
+isfloat(eye(2))
+
+isfloat(pi)
+
+isfloat(cell)
+
+isfloat(true)
+
+isfloat(struct)

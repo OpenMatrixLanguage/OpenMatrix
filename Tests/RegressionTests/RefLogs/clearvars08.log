@@ -1,0 +1,6 @@
+Variables in current scope:
+int1
+intb
+strb
+clearvars -except
+No variables in current scope in call to function who at line number 9 in file clearvars08.oml

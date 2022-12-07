@@ -1,0 +1,2 @@
+addtoolbox omlsignals
+tc = gauspuls('cutoff', 400, 0.5, -6, -3)

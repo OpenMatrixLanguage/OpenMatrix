@@ -1,0 +1,24 @@
+res1 = 
+slice(:, :, 1) = 
+[Matrix] 3 x 2
+1 + 2i   7 + 2i
+1 + 2i  57 + 2i
+3 + 2i  70 + 2i
+
+slice(:, :, 2) = 
+[Matrix] 3 x 2
+ 3 + 2i  3 + 2i
+13 + 2i  3 + 2i
+30 + 2i  3 + 2i
+res2 = 
+slice(:, :, 1) = 
+[Matrix] 3 x 2
+1 + 2i   5 + 2i
+1 + 2i  50 + 2i
+3 + 2i  50 + 2i
+
+slice(:, :, 2) = 
+[Matrix] 3 x 2
+ 1 + 2i  1 + 2i
+10 + 2i  1 + 2i
+10 + 2i  1 + 2i

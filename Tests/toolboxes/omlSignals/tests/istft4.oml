@@ -1,0 +1,12 @@
+addtoolbox omlsignals
+f0 = 0;
+f1 = 10;
+T = 4.5;
+c = (f1 - f0) / T;
+t = [0:0.1:T-0.1];
+x = sin(2 * pi * ((c/2)*t.^2 + f0*t));
+%st = stft(x, fs, window, overlap, nfft, range)
+st = stft(x, 10, 9, 6, 9, 'twosided');
+y = istft(st, 10, 9, 6, 9, 'twosided')';
+y
+check = max(abs(round(x-y,48,'binary')))

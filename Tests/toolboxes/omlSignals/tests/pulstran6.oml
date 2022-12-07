@@ -1,0 +1,13 @@
+addtoolbox omlsignals
+fs = 2000;		% sampling rate
+ts = 1 / fs;
+fp = 200;		% pulse rate
+tp = 1 / fp;
+t = [0:ts:4*tp];
+d = [0:tp:4*tp] + 0.5*tp;
+np = length(d);
+d = [d',[1:np]'];
+fc = 800;
+bw = 0.4;
+x = pulstran (t, d, 'gauspuls', fc, bw);
+round(x, 5)

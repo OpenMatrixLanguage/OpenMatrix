@@ -1,0 +1,18 @@
+int1 = 1; intb = 'b'; strb = 'bb';
+global gv1 gv2 gva gvb gv1b
+gv1 = 'global test gv1';
+gv2 = 'global test gv2';
+gva = 'global test gva';
+gvb = 'global test gvb';
+gv1b = 'global test gv1b';
+who
+try
+	%disp('clearvars -global gv1* gvb')
+	%clearvars -global gv1* gvb  % deletes nothing
+	
+	disp('clearvars(''-global'', ''gv1*'', ''gvb'')')
+	clearvars('-global', 'gv1*', 'gvb')
+catch e
+	e
+end
+who

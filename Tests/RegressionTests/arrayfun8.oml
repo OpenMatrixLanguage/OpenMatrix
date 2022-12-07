@@ -1,0 +1,6 @@
+function [z1, z2, z3] = my_fun(in1, in2)
+	z1 = in1+in2;
+	z2 = in1-in2;
+	z3 = max(in1, in2);
+end
+[res1, res2, res3] = arrayfun(@my_fun, [1:3;5:7], [2:4;8:10])

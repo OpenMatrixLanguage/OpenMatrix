@@ -6,8 +6,8 @@ error =
 filepath = FileManipulation/FileToRead.txt
 filemode = rb
 text = This File
-len = 11
+len returns expected value: 11 for Windows, 10 for Linux
 text = This File
-len = 11
+len returns expected value: 11 for Windows, 10 for Linux
 ans = 0
 ans = 0

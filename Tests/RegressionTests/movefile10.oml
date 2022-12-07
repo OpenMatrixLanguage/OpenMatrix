@@ -1,0 +1,31 @@
+% movefile-note move current directory contents to sub-directory using wild card. then move wildcard contents back to the current directory 
+
+returndir = pwd;
+cd FileManipulation
+
+cd movefile
+dir
+
+command = 'movefile(''*'', ''dir2'')'
+eval(command)
+
+dir
+
+command = 'dir dir1'
+eval(command)
+
+command = 'dir dir2'
+eval(command)
+
+command = 'movefile(''dir2/*'', ''.'')'
+eval(command)
+
+dir
+
+command = 'dir dir1'
+eval(command)
+
+command = 'dir dir2'
+eval(command)
+
+cd(returndir)

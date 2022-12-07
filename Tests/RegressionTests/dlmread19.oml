@@ -1,0 +1,1 @@
+m = dlmread('FileManipulation/dlmread19.ffe', '', 15, 0, 'ignoremultidelim', 'on')

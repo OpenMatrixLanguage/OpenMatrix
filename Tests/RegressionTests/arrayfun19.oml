@@ -1,0 +1,6 @@
+function out = my_func(in1, in2)
+  out = in1 + in2;
+end
+A = sparse([1 2 3 4 5],[1 2 3 4 5],[1 2 3 4 5]);
+B = sparse([3 4 5 1 2],[1 2 3 4 5],[1+2i 2 3+2i 4 5]);
+arrayfun(@my_func, A, B)

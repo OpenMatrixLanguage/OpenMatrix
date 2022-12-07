@@ -1,0 +1,11 @@
+m = diag(ones(1,10), 12, 10);
+m(8, 5) = 1;
+isbanded(m, 0, 2)
+isbanded(m, 0, 3)
+isbanded(m, 0, 4)
+isbanded(m, 2, 2)
+isbanded(m, 2, 3)
+isbanded(m, 2, 4)
+isbanded(m, 5, 2)
+isbanded(m, 5, 3)
+isbanded(m, 5, 4)
