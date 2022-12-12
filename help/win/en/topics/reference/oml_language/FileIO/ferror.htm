@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="ferror" /><meta name="abstract" content="Display the error status of fileID." /><meta name="description" content="Display the error status of fileID." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="indexterms" content="ferror" /><meta name="DC.subject" content="ferror" /><meta name="keywords" content="ferror" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>ferror</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="ferror" /><meta name="abstract" content="Display the error status of fileID." /><meta name="description" content="Display the error status of fileID." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="indexterms" content="ferror" /><meta name="DC.subject" content="ferror" /><meta name="keywords" content="ferror" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>ferror</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -61,11 +61,11 @@ fopen_fileID = fopen('testfile', 'w')
 [fgets_text, fgets_len] = fgetl(fopen_fileID)
 R = ferror(fopen_fileID)
 fclose(fopen_fileID)</code></pre>
-      <pre class="pre codeblock"><code><code class="ph codeph">fopen_fileID = 4
+      <pre class="pre codeblock"><code>fopen_fileID = 4
 fgets_text = -1
 fgets_len = 0
 R = Broken pipe
-ans = 0</code></code></pre>
+ans = 0</code></pre>
     </section>
 
     <section class="section">

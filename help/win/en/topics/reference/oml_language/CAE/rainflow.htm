@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="rainflow" /><meta name="abstract" content="Rainflow counting fatigue analysis." /><meta name="description" content="Rainflow counting fatigue analysis." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="CAE Commands" /><meta name="indexterms" content="rainflow" /><meta name="DC.subject" content="rainflow" /><meta name="keywords" content="rainflow" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CAE/cae_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>rainflow</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="rainflow" /><meta name="abstract" content="Rainflow counting fatigue analysis." /><meta name="description" content="Rainflow counting fatigue analysis." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="CAE Commands" /><meta name="indexterms" content="rainflow" /><meta name="DC.subject" content="rainflow" /><meta name="keywords" content="rainflow" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/CAE/cae_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>rainflow</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -18,7 +18,13 @@
   <div class="body refbody"><p class="shortdesc">Rainflow counting fatigue analysis.</p>
 
     <section class="section"><h2 class="title sectiontitle">Syntax</h2>
-      <p class="p"><span class="ph synph">R = rainflow<span class="ph var">(signal,numbins,minrange,maxrange,output)</span></span></p>
+      <p class="p"><span class="ph synph">C = rainflow<span class="ph var">(signal)</span></span></p>
+
+      <p class="p"><span class="ph synph">C = rainflow<span class="ph var">(signal,numbins)</span></span></p>
+
+      <p class="p"><span class="ph synph">C = rainflow<span class="ph var">(signal,numbins,method)</span></span></p>
+
+      <p class="p"><span class="ph synph">[C,H,R,M] = rainflow<span class="ph var">(...)</span></span></p>
 
       <?STOP?>
     </section>
@@ -39,7 +45,7 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">numbins</var></dt>
 
-          <dd class="dd pd">Total number of bins specified.</dd>
+          <dd class="dd pd">The number of range/mean bins to create(default: 64 when omitted or []).</dd>
 
           <dd class="dd pd ddexpand">Type: integer</dd>
 
@@ -47,46 +53,46 @@
 
         
         
-          <dt class="dt pt dlterm"><var class="keyword varname">minrange</var></dt>
+          <dt class="dt pt dlterm"><var class="keyword varname">method</var></dt>
 
-          <dd class="dd pd">Minimum value a bin can have for its range of real time data.</dd>
-
-          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
-
-          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
-
-        
-        
-          <dt class="dt pt dlterm"><var class="keyword varname">maxrange</var></dt>
-
-          <dd class="dd pd">Maximum value a bin can have for its range of real time data.</dd>
-
-          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
-
-          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
-
-        
-        
-          <dt class="dt pt dlterm"><var class="keyword varname">output</var></dt>
-
-          <dd class="dd pd">Indicate the type of data returned.</dd>
+          <dd class="dd pd">The rainflow cycle counting method.</dd>
 
           <dd class="dd pd ddexpand">The available options are as follows: <ul class="ul" id="reference_wpv_kyv_pr__ul_exm_lq3_ws">
-            <li class="li"><span class="keyword option">0</span>: Range</li>
+            <li class="li"><span class="keyword option">'3pt-ASTM'</span>: ASTM 3 point algorithm (default).
+              ∙ Serial processing.
+              ∙ Does not perform maxumum rearrangement.
+              ∙ Identifies half cycles.
+            </li>
 
-            <li class="li"><span class="keyword option">1</span>: Mean</li>
+            <li class="li"><span class="keyword option">'3pt-serial'</span>: Traditional serial 3 point algorithm.
+              ∙ Serial processing.
+              ∙ Performs maxumum rearrangement.
+              ∙ Does not identify half cycles.
+              ∙ This method is used in Altair HyperGraph.
+            </li>
 
-            <li class="li"><span class="keyword option">2</span>: Z range/mean matrix</li>
+            <li class="li"><span class="keyword option">'4pt-serial'</span>: Serial 4 point algorithm.
+              ∙ Serial processing.
+              ∙ Does not perform maxumum rearrangement.
+              ∙ Identifies half cycles.
+            </li>
 
-            <li class="li"><span class="keyword option">3</span>: Sum across range</li>
+            <li class="li"><span class="keyword option">'3pt-recursive'</span>: Recursive 3 point algorithm.
+              ∙ Same method as '3pt-serial'.
+              ∙ Parallel processing for faster execution.
+              ∙ Recursion may lead to differences that should be only minor for large data sets.
+            </li>
 
-            <li class="li"><span class="keyword option">4</span>: Sum across mean</li>
+            <li class="li"><span class="keyword option">'4pt-recursive'</span>: Recursive 4 point algorithm.
+              ∙ Same method as '4pt-serial'.
+              ∙ Parallel processing for faster execution.
+              ∙ Recursion may lead to differences that should be only minor for large data sets.
+            </li>
 </ul>
-</dd>
 
-          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+          </dd>
 
-          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
 
         
       </dl>
@@ -98,9 +104,50 @@
       
       <dl class="dl parml">
         
+          <dt class="dt pt dlterm"><span class="ph synph">C</span></dt>
+
+          <dd class="dd pd">The cycle count history.</dd>
+
+          <dd class="dd pd ddexpand">Each row contains data for a counted cycle. The data is stored
+            by column as follows:
+            <ol class="ol">
+              <li class="li">The cycle count (0.5 for half, 1.0 for whole).</li>
+
+              <li class="li">The range of the cycle.</li>
+
+              <li class="li">The mean of the cycle.</li>
+
+              <li class="li">The start element index.</li>
+
+              <li class="li">The end element index.</li>
+
+            </ol>
+
+          </dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">H</span></dt>
+
+          <dd class="dd pd">The histogram matrix of cycle counts for each (mean, range) bin.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">matrix</span></dd>
+
+        
+        
           <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
 
-          <dd class="dd pd">The reduced stress history.</dd>
+          <dd class="dd pd">The range bin centers associated with the columns of H.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">vector</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><span class="ph synph">M</span></dt>
+
+          <dd class="dd pd">The mean bin centers associated with the rows of H.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">vector</span></dd>
 
@@ -114,53 +161,118 @@
       
       <p class="p">Compute the rainflow output of a stress history.</p>
 
-      <pre class="pre codeblock"><code>h = [0,1,2,3,4,5,6,5,4,3,4,5,6,7,8,9,10];
-R = rainflow(h, 3, 2.5, 8.5, 1)</code></pre>
-      <pre class="pre codeblock"><code><samp class="ph systemoutput">R = [Matrix] 1 x 3
-3.50000  5.50000  7.50000</samp></code></pre>
-	  <p class="p">Use a 3D bar plot to visualize the mean x range x cycle results of a signal.</p>
-
-      <pre class="pre codeblock"><code>f=5; %frequency [Hz]
-t1 = (0:1/(f*100):2); %first time vector
-t2 = (t1(end):1/(f*100):t1(end)+1); %second time vector
-a = 1; %amplitude
-phi = 0; %phase
-y1 = a*sin(2*pi*f*t1+phi); %first signal
-y2 = 5*sin(2*pi*f*t2+phi); %second signal
-y = [y1 y2]; %append the two signals
-t = [t1 t2]; %append the two time vectors
-
-Signal=y;
-nbin = 19;
-R2=rainflow(Signal,nbin, min(Signal), max(Signal),2);
-
-bar3(R2);
-xlabel('Range'); 
-ylabel('Mean');
-zlabel('cycles');</code></pre>
-<figure class="fig fignone">
-        
-        <img class="image" src="images/rainflow.png" />
-      <span class="figcap"><span class="fig--title-label">Figure 1. </span>rainflow</span></figure>
-
+      <pre class="pre codeblock"><code>
+signal = [-79.3 -220.4 -210.7 90.2 -28.6 -15.9 -174.1 -36.9 90.4 144.7 158.7 64.9 209.0 ...
+          264.9 77.9 139.3 110.9 61.3 161.7 117.5 -96.6 -17.7 -35.5 -63.2 -132.9 -148.6 ...
+	  -53.7 -67.8 -52.5 -64.0 -21.1 49.7 37.5 84.2 20.5 56.0 114.4 105.8  1.0 91.8];
+[C, H, R, M] = rainflow(signal, 10, '3pt-ASTM')</code></pre>
+      <pre class="pre codeblock"><code><samp class="ph systemoutput">
+C = [Matrix] 16 x 5
+0.50000  141.10000  -149.85000   1.00000   2.00000
+1.00000   12.70000   -22.25000   5.00000   6.00000
+1.00000  264.30000   -41.95000   4.00000   7.00000
+1.00000   93.80000   111.80000  11.00000  12.00000
+1.00000   61.40000   108.60000  15.00000  16.00000
+1.00000  100.40000   111.50000  18.00000  19.00000
+1.00000   78.90000   -57.15000  21.00000  22.00000
+1.00000   14.10000   -60.75000  27.00000  28.00000
+1.00000   11.50000   -58.25000  29.00000  30.00000
+1.00000   12.20000    43.60000  32.00000  33.00000
+1.00000   63.70000    52.35000  34.00000  35.00000
+0.50000  485.30000    22.25000   2.00000  14.00000
+0.50000  413.50000    58.15000  14.00000  26.00000
+0.50000  263.00000   -17.10000  26.00000  37.00000
+0.50000  113.40000    57.70000  37.00000  39.00000
+0.50000   90.80000    46.40000  39.00000  40.00000
+H = [Matrix] 10 x 10
+0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000
+0.00000  0.00000  0.50000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000
+0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000
+2.00000  1.00000  0.00000  0.00000  0.00000  1.00000  0.00000  0.00000  0.00000  0.00000
+1.00000  0.00000  0.00000  0.00000  0.00000  0.50000  0.00000  0.00000  0.00000  0.00000
+1.00000  1.50000  0.50000  0.00000  0.00000  0.00000  0.00000  0.00000  0.50000  0.50000
+0.00000  2.00000  1.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000
+0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000
+0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000
+0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000  0.00000
+R = [Matrix] 1 x 10
+24.26500  72.79500  121.32500  169.85500  218.38500  266.91500  315.44500  363.97500  412.50500  461.03500
+M = [Matrix] 10 x 1
+-196.13500
+-147.60500
+ -99.07500
+ -50.54500
+  -2.01500
+  46.51500
+  95.04500
+ 143.57500
+ 192.10500
+ 240.63500
+</samp></code></pre>
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Comments</h2>
       
+      <p class="p">The purpose of rainflow is to identify the simple hysteresis loops (or cycles) within a complicated
+        stress-strain diagram. The identification is performed by creating an accounting of the peaks of
+        a stress or strain vs. time history that resequences the stress-strain paths to make the loops
+        easily distinguishable. The rainflow output records the ranges and means of the simple loops,
+        which can also be presented as a histogram. Rainflow counting is often a preparation step for damage
+        assessment using an S-N fatigue curve and Miner’s rule.</p>
+
+      <p class="p">Outputs H, R and M are typically used to plot the hisogram.</p>
+
       <p class="p">A gate input to control hysteresis slope reversal and remove points
         due to external noise is currently unsupported.</p>
 
-<p class="p">The three point cycle counting rule uses three consecutive points in a load time history to determine whether a cycle is formed.</p>
+      <div class="p">When rainflow counting begins at the start of the time history a group of 4 peak points are
+        required to identify a closed loop in the stress-strain diagram. The 4 peaks define 3
+        segments. The middle segment corresponds to a closed loop if it is shorter than the first
+        and third segments. The analysis divides the time history into 4 groups of points:<ol class="ol" id="reference_wpv_kyv_pr__ol_arf_cdw_4tb">
+          <li class="li">The 4 peaks currently being considered.</li>
 
-<p class="p">The three consecutive stress points (S1, S2, S3) define the two consecutive ranges as DS1 = |S1
-        S2| and DS2 = |S2 S3|. If DS1 &lt; =  DS2, one cycle from S1 to S2 is extracted, and if DS1
-        is &gt;  than DS2, no cycle is counted.</p>
+          <li class="li">Peaks from a previous group 1 that were assigned to a loop, whose analysis has been
+            completed. </li>
 
-<p class="p">The three point cycle counting method requires that the stress time
-history be rearranged so that it contains only the peaks and valleys and it starts with either the highest peak or the lowest valley, whichever is greater in absolute magnitude.</p>
+          <li class="li">Peaks from a previous group 1 that were not assigned to a loop, that will be
+            reconsidered later.</li>
 
-<p class="p">Then, the cycle identification rule is applied to check every three consecutive points from the beginning until a closed loop is defined. The two points forming the cycle are discarded and the remaining
-points are connected to each other. This procedure is repeated from the beginning until the remaining data are exhausted.</p>
+          <li class="li"> Peaks that have not yet entered into a group 1.</li>
+
+        </ol>
+ When no closed loop is identified in group 1, its oldest point is moved to group 3,
+        and a new point is added from group 4. When a closed loop is identified in group 1, the
+        peaks from the middle segment endpoints are moved to group 2. A new group 1 is then
+        constructed from its remaining two peaks, recent additions to group 3 (if any), and the next
+        point(s) from group 4 (if needed). The analysis of the current group 1 identifies closed
+        loops from the stress-strain diagram that reside inside other closed loops, iterating until
+        the outermost closed loop is identified. Remaining peaks from the time history are
+        identified as half-cycles. This analysis is the basis of what is called the serial
+        four-point algorithm."</div>
+
+      <p class="p">Another approach is to perform a circular shift so that the peak with greatest absolute magnitude is
+        repositioned at the start of the history data. When this is done the with the four-point algorithm,
+        the middle segment will always be shorter than the first segment. This allows the algorithm to be reduced
+        to a serial three-point algorithm. Additional sophistication is need to detect half-cycles, which not all
+        three-point algorithms include.</p>
+
+      <p class="p">The four-point algorithms are designed for real-time applications. The circular shift in three-point
+        algorithms requires all of the data to be collected prior to identifying the loops.</p>
+
+      <p class="p">The recursive three-point and four-point algorithms process all of the segment length comparisons as
+        a batch prior to loop identification to obtain faster processing. Occasional output differences when
+        compared the serial algorithms are possible.</p>
+
+
+      <p class="p">References:</p>
+
+      <p class="p">Standard practices for cycle counting in fatigue analysis. ASTM E 1049-85. ASTM International. 2005.</p>
+
+      <p class="p">Equivalence of four-point and three-point rainflow cycle counting algorithms. C.H. McInnes and P.A. Meehan.
+        International Journal of Fatigue 30 (2008) 547–559.</p>
+
+      <p class="p">Simple rainflow counting algorithms. S. D. Downing and D. F. Socie.
+        International Journal of Fatigue 4 (1982) 31-40.</p>
 
     </section>
 

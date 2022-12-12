@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="movefile" /><meta name="abstract" content="Returns R after moving file(s) or directories from src to dst." /><meta name="description" content="Returns R after moving file(s) or directories from src to dst." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="File I/O Commands" /><meta name="indexterms" content="movefile" /><meta name="DC.subject" content="movefile" /><meta name="keywords" content="movefile" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>movefile</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="movefile" /><meta name="abstract" content="Returns R after moving file(s) or directories from src to dst." /><meta name="description" content="Returns R after moving file(s) or directories from src to dst." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="File I/O Commands" /><meta name="indexterms" content="movefile" /><meta name="DC.subject" content="movefile" /><meta name="keywords" content="movefile" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>movefile</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -100,18 +100,18 @@
     <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
       <div class="p">Successful move of a file to a destination directory:
-        <pre class="pre codeblock"><code>R = movefile('foo.txt', 'c:\tests\A')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 1</code></code></pre></div>
+        <pre class="pre codeblock"><code>R = movefile('foo.txt', 'c:\tests\A')</code></pre><pre class="pre codeblock"><code>R = 1</code></pre></div>
 
       <div class="p">Successful move of source name with a wild card and force copy option
-        <pre class="pre codeblock"><code>[R, msg, id] = movefile('fo*.txt', 'c:\tests\', 'f')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 1
+        <pre class="pre codeblock"><code>[R, msg, id] = movefile('fo*.txt', 'c:\tests\', 'f')</code></pre><pre class="pre codeblock"><code>R = 1
 msg =
-id = </code></code></pre></div>
+id = </code></pre></div>
         
       <div class="p">Unsuccessful move of a file, with a system message and ID:
-        <pre class="pre codeblock"><code>[R, msg, id] = movefile('test3.txt', 'test4.txt')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = 0
+        <pre class="pre codeblock"><code>[R, msg, id] = movefile('test3.txt', 'test4.txt')</code></pre><pre class="pre codeblock"><code>R = 0
 msg = No such file or directory
 Copy failed from [foo.txt] to [c:\]
-id = 2</code></code></pre></div>
+id = 2</code></pre></div>
 
   </section>
 

@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="dir" /><meta name="abstract" content="Directory listing of the current or specified directory." /><meta name="description" content="Directory listing of the current or specified directory." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="System Commands" /><meta name="indexterms" content="dir" /><meta name="DC.subject" content="dir" /><meta name="keywords" content="dir" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/System/system_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>dir</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="dir" /><meta name="abstract" content="Directory listing of the current or specified directory." /><meta name="description" content="Directory listing of the current or specified directory." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="System Commands" /><meta name="indexterms" content="dir" /><meta name="DC.subject" content="dir" /><meta name="keywords" content="dir" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/System/system_commands.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>dir</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -69,10 +69,10 @@
     <section class="section"><h2 class="title sectiontitle">Examples </h2>
       
       <div class="p">(nargout
-        0):<pre class="pre codeblock"><code>dir('c:\tests')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">.
+        0):<pre class="pre codeblock"><code>dir('c:\tests')</code></pre><pre class="pre codeblock"><code>.
 ..
 test1.txt
-test2.txt</code></code></pre></div>
+test2.txt</code></pre></div>
 
       <div class="p">(nargout
         1):<pre class="pre codeblock"><code>dir_result = dir('c:\tests'); % dir output is saved as a struct in the variable.
@@ -90,10 +90,10 @@ for i = 1:size(dir_result)(1)
 		dir_result(i).name,   %display name
 		dir_result(i).bytes,  %display size
 		dir_result(i).date)   % display date
-end</code></pre><pre class="pre codeblock"><code><code class="ph codeph">&lt;dir&gt; #1 name: .                size:      0  date: Feb-11-2016 18:24:20
+end</code></pre><pre class="pre codeblock"><code>&lt;dir&gt; #1 name: .                size:      0  date: Feb-11-2016 18:24:20
 &lt;dir&gt; #2 name: ..               size:      0  date: Feb-11-2016 18:24:20
 file  #3 name: test1.txt        size:   5838  date: Feb-11-2016 18:24:8
-file  #4 name: test2.txt        size:      7  date: Feb-11-2016 18:24:20</code></code></pre></div>
+file  #4 name: test2.txt        size:      7  date: Feb-11-2016 18:24:20</code></pre></div>
 
     </section>
 

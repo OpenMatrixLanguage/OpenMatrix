@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="fullfile" /><meta name="abstract" content="Returns a filename from dir1...dirN and filename fname." /><meta name="description" content="Returns a filename from dir1...dirN and filename fname." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="File I/O Commands" /><meta name="indexterms" content="fullfile" /><meta name="DC.subject" content="fullfile" /><meta name="keywords" content="fullfile" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileparts.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>fullfile</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="fullfile" /><meta name="abstract" content="Returns a filename from dir1...dirN and filename fname." /><meta name="description" content="Returns a filename from dir1...dirN and filename fname." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="File I/O Commands" /><meta name="indexterms" content="fullfile" /><meta name="DC.subject" content="fullfile" /><meta name="keywords" content="fullfile" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileparts.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>fullfile</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -84,29 +84,29 @@ R = fileparts(pathname)
 % nargout 3 path, filename and file extension
 [R1, R2, R3] = fileparts(pathname)
 
-<code class="ph codeph">pathname = c:\tests\A\testscript.oml
+pathname = c:\tests\A\testscript.oml
 ans = c:\tests\A
 R = c:\tests\A
 R1 = c:\tests\A
 R2 = testscript
 R1 = c:\tests\A
 R2 = testscript
-R3 = .oml</code></code></pre></div>
+R3 = .oml</code></pre></div>
 
       <div class="p">Example with multiple file names <pre class="pre codeblock" id="reference_wpv_kyv_pr__codeblock_erq_p1m_5pb"><code>
 R = fullfile('c:\\Program files', 'test', {'file1.txt', 'file2path/'})
-<code class="ph codeph">
+
 R =
 {
   [1,1] c:\Program files\test\file1.txt
   [1,2] c:\Program files\test\file2path\
-}</code></code></pre></div>
+}</code></pre></div>
 
     </section>
 
     <section class="section" id="reference_wpv_kyv_pr__section_frq_p1m_5pb"><h2 class="title sectiontitle">Version History</h2>
       
-      <p class="p"><span class="keyword">1.0.10</span></p>
+      <p class="p"><span class="keyword">1.0.11</span></p>
 
       
     </section>

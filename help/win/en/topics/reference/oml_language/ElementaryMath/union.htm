@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="union" /><meta name="abstract" content="Returns the elements contained in either of two sets, without duplication." /><meta name="description" content="Returns the elements contained in either of two sets, without duplication." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Elementary Math Commands" /><meta name="indexterms" content="union" /><meta name="DC.subject" content="union" /><meta name="keywords" content="union" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/intersect.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/setdiff.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/unique.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>union</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="union" /><meta name="abstract" content="Returns the elements contained in either of two sets, without duplication." /><meta name="description" content="Returns the elements contained in either of two sets, without duplication." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Elementary Math Commands" /><meta name="indexterms" content="union" /><meta name="DC.subject" content="union" /><meta name="keywords" content="union" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/intersect.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/setdiff.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/unique.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>union</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -101,17 +101,17 @@
       
       <div class="p">Single return case:
 <pre class="pre codeblock"><code>union([1,5,2;6,2,6],[9;0;1;2])</code></pre>
-<pre class="pre codeblock"><code><code class="ph codeph">ans = [Matrix] 6 x 1
+<pre class="pre codeblock"><code>ans = [Matrix] 6 x 1
 0
 1
 2
 5
 6
-9</code></code></pre></div>
+9</code></pre></div>
 
       <div class="p">Multi-return case:
 <pre class="pre codeblock"><code>[c,ia,ib] = union([1,5,2;6,2,6],[9;0;1;2])</code></pre>
-<pre class="pre codeblock"><code><code class="ph codeph">c = [Matrix] 6 x 1
+<pre class="pre codeblock"><code>c = [Matrix] 6 x 1
 0
 1
 2
@@ -125,18 +125,18 @@ ib = [Matrix] 4 x 1
 2
 3
 4
-1</code></code></pre></div>
+1</code></pre></div>
 
       <div class="p">Multi-return case with <span class="keyword option">rows</span> option:
 <pre class="pre codeblock"><code>[c,ia,ib]=union([1,5,2;6,2,6],[9,0,1;6,2,6],'rows')</code></pre>
-<pre class="pre codeblock"><code><code class="ph codeph">c = [Matrix] 3 x 3
+<pre class="pre codeblock"><code>c = [Matrix] 3 x 3
 1  5  2
 6  2  6
 9  0  1
 ia = 1
 ib = [Matrix] 2 x 1
 2
-1</code></code></pre></div>
+1</code></pre></div>
 
     </section>
 

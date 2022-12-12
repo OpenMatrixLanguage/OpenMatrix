@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="permute" /><meta name="abstract" content="Generalized transpose of a matrix, using a permutation vector." /><meta name="description" content="Generalized transpose of a matrix, using a permutation vector." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Elementary Math Commands" /><meta name="indexterms" content="permute" /><meta name="DC.subject" content="permute" /><meta name="keywords" content="permute" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/circshift.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/shiftdim.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/randperm.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>permute</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="permute" /><meta name="abstract" content="Generalized transpose of a matrix, using a permutation vector." /><meta name="description" content="Generalized transpose of a matrix, using a permutation vector." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Elementary Math Commands" /><meta name="indexterms" content="permute" /><meta name="DC.subject" content="permute" /><meta name="keywords" content="permute" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/circshift.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/shiftdim.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/randperm.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>permute</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -67,7 +67,7 @@ m(:,:,3) = [113, 123, 133, 143; 213, 223, 233, 243; 313, 323, 333, 343];
 m(:,:,4) = [114, 124, 134, 144; 214, 224, 234, 244; 314, 324, 334, 344];
 m(:,:,5) = [115, 125, 135, 145; 215, 225, 235, 245; 315, 325, 335, 345];
 p=permute(m, [2,3,1])</code></pre>
-      <pre class="pre codeblock"><code><code class="ph codeph">p = 
+      <pre class="pre codeblock"><code>p = 
 slice(:, :, 1) = 
 [Matrix] 4 x 5
 111  112  113  114  115
@@ -87,7 +87,7 @@ slice(:, :, 3) =
 311  312  313  314  315
 321  322  323  324  325
 331  332  333  334  335
-341  342  343  344  345</code></code></pre>
+341  342  343  344  345</code></pre>
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Comments</h2>

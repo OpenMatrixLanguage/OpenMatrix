@@ -1,0 +1,183 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="arrayfun" /><meta name="abstract" content="Evaluates the function func on each element of the array m. Each element is passed into the function individually." /><meta name="description" content="Evaluates the function func on each element of the array m. Each element is passed into the function individually." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Data Structures Commands" /><meta name="indexterms" content="arrayfun" /><meta name="DC.subject" content="arrayfun" /><meta name="keywords" content="arrayfun" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/DataStructures/datastructures_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/DataStructures/cellfun.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/DataStructures/structfun.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>arrayfun</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/DataStructures/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/DataStructures/datastructures_commands.htm" title="Data Structure Commands">Data Structure Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/DataStructures/datastructures_commands.htm" title="Data Structure Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Data Structure Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">arrayfun</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Evaluates the function <var class="keyword varname">func</var> on each element of the array <var class="keyword varname">m</var>.
+    Each element is passed into the function individually.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">R = arrayfun<span class="ph var">(func, input1)</span></span></p>
+
+      <p class="p"><span class="ph synph">R = arrayfun<span class="ph var">(func, input1, input2, ...)</span></span></p>
+
+      <p class="p"><span class="ph synph">R = arrayfun<span class="ph var">(..., 'uniformoutput', flag)</span></span></p>
+
+      <p class="p"><span class="ph synph">R = arrayfun<span class="ph var">(..., 'errorhandler', errorFunc)</span></span></p>
+
+      <p class="p"><span class="ph synph">[R1, ...] = arrayfun<span class="ph var">(...)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">func</var></dt>
+
+          <dd class="dd pd">Function to be evaluated.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">char | string | handle</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">input1</var>, <var class="keyword varname">input2</var>, ...</dt>
+
+          <dd class="dd pd">Array(s) to be operated on.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer | struct</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">flag</var></dt>
+
+          <dd class="dd pd">Uniform output type which specifies the class of <var class="keyword varname">R</var>. By default,
+              <var class="keyword varname">flag</var> is <span class="keyword option">1</span>, with <var class="keyword varname">R</var> being a
+              <span class="keyword">matrix</span>. If <var class="keyword varname">flag</var> is <span class="keyword option">0</span>,
+              <var class="keyword varname">R</var> will be a <span class="keyword">cell</span>.</dd>
+
+            <dd class="dd pd ddexpand">Type: <span class="keyword">integer | log</span></dd>
+
+          
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">errorFunc</var></dt>
+
+          <dd class="dd pd">A function to be evaluated if <var class="keyword varname">func</var> throws an error. <var class="keyword varname">errorFunc</var> accepts an additional input argument <var class="keyword varname">err</var>. <var class="keyword varname">err</var> is a structure which contains the fields 'index', the index of the element that caused the error and 'message', the error message. The number of outputs of <var class="keyword varname">errorFunc</var> must be the same as <var class="keyword varname">func</var>'s.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">char | string | handle</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
+
+          <dd class="dd pd">Resulting output.</dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+      <div class="p">String <span class="keyword cmdname">arrayfun</span> with default options:
+        <pre class="pre codeblock"><code>arrayfun('max', [1:5], [0 3 5 2 1])</code></pre><pre class="pre codeblock"><code>R = [Matrix] 1 x 5
+1  3  5  4  5</code></pre></div>
+
+        
+      <div class="p">Function handle <span class="keyword cmdname">arrayfun</span> with default options:
+        <pre class="pre codeblock"><code>function z = my_func(a, b)
+  if (a &gt; b)
+  z = a - b;
+  else
+  z = a+b;
+  end
+end
+m1 = [1:4; 2:5; 3:6];
+m2 = [2 5 9 8; 5 2 6 7; 3 6 9 2];
+R = arrayfun(@my_func, m1, m2)</code></pre><pre class="pre codeblock"><code>R = [Matrix] 3 x 4
+3   7  12  12
+7   1  10  12
+6  10  14   4</code></pre></div>
+
+          
+   <div class="p"><span class="keyword cmdname">arrayfun</span> with <span class="keyword option">UniformOutput</span>
+        option:<pre class="pre codeblock"><code>R = arrayfun(@(a, b) [a, b], '1234', 'abcd', 'uniformoutput', 0)
+</code></pre><pre class="pre codeblock"><code>R = 
+{
+  [1,1] 1a
+  [1,2] 2b
+  [1,3] 3c
+  [1,4] 4d
+}</code></pre></div>
+
+
+   <div class="p"><span class="keyword cmdname">arrayfun</span> with multiple outputs:
+   <pre class="pre codeblock"><code>function [z1, z2] = my_func(a, b)
+  z1 = a + b;
+  z2 = a*b;
+end
+[R1, R2] = arrayfun(@my_func, 1:5, 11:15)</code></pre><pre class="pre codeblock"><code>R1 = [Matrix] 1 x 5
+12  14  16  18  20
+R2 = [Matrix] 1 x 5
+11  24  39  56  75</code></pre></div>
+
+
+<div class="p"><span class="keyword cmdname">arrayfun</span> with an error handling function:
+<pre class="pre codeblock"><code>function z = my_func(a)
+  z = a.a + str2num(a.b);
+end
+
+function z = my_error_func(err, a, b)
+  err.index
+  err.message
+  z = 10;
+end
+s(1).a = 1;
+s(2).a = 2;
+s(3).a = 3;
+s(1).b = '1';
+s(2).b = 2;
+s(3).b = '3';
+R = arrayfun(@my_func , s, 'errorhandler', @my_error_func)</code></pre>
+<pre class="pre codeblock"><code>ans = 2
+ans = Error: invalid input in argument 1; must be string
+R = [Matrix] 1 x 3
+2  10  6</code></pre></div>
+
+
+      </section>
+
+    <section class="section">
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also </strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/DataStructures/cellfun.htm" title="Evaluates the function func on the cell array c. Each element is passed into the function individually.">cellfun</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/DataStructures/structfun.htm" title="Evaluates the function func on the fields of the structure s. Each field is passed into the function individually.">structfun</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/DataStructures/datastructures_commands.htm" title="Data Structure Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Data Structure Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

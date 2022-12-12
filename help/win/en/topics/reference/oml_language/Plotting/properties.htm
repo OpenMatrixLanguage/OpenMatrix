@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Properties for Graphics Object" /><meta name="abstract" content="Properties for the graphics object in OML." /><meta name="description" content="Properties for the graphics object in OML." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Plotting Commands" /><meta name="indexterms" content="graphics object properties, properties - plotting commands" /><meta name="DC.subject" content="graphics object properties, properties - plotting commands" /><meta name="keywords" content="graphics object properties, properties - plotting commands" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/figure.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/axes.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/get.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plot.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/quiver.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/set.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/uibuttongroup.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/uipanel.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/waitbar.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Properties for Graphics Object</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Graphics Object Properties" /><meta name="abstract" content="Properties for the graphics object in OML." /><meta name="description" content="Properties for the graphics object in OML." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Plotting Commands" /><meta name="indexterms" content="graphics object properties, properties - plotting commands" /><meta name="DC.subject" content="graphics object properties, properties - plotting commands, caxis coloraxis colorbar properties" /><meta name="keywords" content="graphics object properties, properties - plotting commands, caxis coloraxis colorbar properties" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Graphics Object Properties</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -11,7 +11,7 @@
 <body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
 <header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" title="Plotting Commands">Plotting Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" title="Plotting Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Plotting Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
-  <h1 class="title topictitle1" id="ariaid-title1">Properties for Graphics Object</h1>
+  <h1 class="title topictitle1" id="ariaid-title1">Graphics Object Properties</h1>
 
   
   
@@ -47,11 +47,27 @@
 
         
         
+          <dt class="dt dlterm">handlevisibility</dt>
+
+          <dd class="dd">If set to 'off' then this object is not listed in its parent 'children' value.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'on'</span> | <span class="keyword option">'off'</span></dd>
+
+        
+        
           <dt class="dt dlterm">parent</dt>
 
           <dd class="dd">The parent handle; null for the root object.</dd>
 
           <dd class="dd ddexpand">0</dd>
+
+        
+        
+          <dt class="dt dlterm">showhiddenhandles</dt>
+
+          <dd class="dd">If set to 'on' then all objects in the hierarchy are listed in their parents' 'children' value regardless of their 'handlevisibility' value.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'off'</span> | <span class="keyword option">'on'</span></dd>
 
         
         
@@ -117,11 +133,27 @@
 
         
         
+          <dt class="dt dlterm">filename</dt>
+
+          <dd class="dd">The '.fig' file that was used to create the figure.</dd>
+
+          <dd class="dd ddexpand">String</dd>
+
+        
+        
           <dt class="dt dlterm">handle</dt>
 
           <dd class="dd">Handle of the figure object.</dd>
 
           <dd class="dd ddexpand">Integer.</dd>
+
+        
+        
+          <dt class="dt dlterm">handlevisibility</dt>
+
+          <dd class="dd">If set to 'off' then this object is not listed in its parent 'children' value.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'on'</span> | <span class="keyword option">'off'</span></dd>
 
         
         
@@ -137,13 +169,6 @@
           <dd class="dd ddexpand"><span class="keyword">string | cell</span></dd>
 
         
-        
-          <dt class="dt dlterm">name</dt>
-
-          <dd class="dd">Name of the figure.</dd>
-
-          <dd class="dd ddexpand">String</dd>
-
         
         
           <dt class="dt dlterm">parent</dt>
@@ -225,11 +250,6 @@
 
         
         
-          <dt class="dt dlterm">uicontextmenu</dt>
-
-          <dd class="dd">Handle of the uicontextmenu object associated with this figure, if it exists.</dd>
-
-        
         
           <dt class="dt dlterm">visible</dt>
 
@@ -239,19 +259,18 @@
 
         
         
-          <dt class="dt dlterm">windowstyle</dt>
+          <dt class="dt dlterm">windowicon</dt>
 
-          <dd class="dd">Display style of the figure window.</dd>
+          <dd class="dd">Path to an image file that is shown at the top-left corner of the figure window. Supported file types are: .ico, .jpg, .jpeg, .png.</dd>
 
           <dd class="dd ddexpand">
-            <div class="note note"><span class="notetitle">Note:</span> The <span class="keyword option">'modal'</span> option will undock the figure window and bring it to
-              the front. Interaction with other windows of the application will be blocked until the
-              figure is closed.</div>
+            <div class="note note"><span class="notetitle">Note:</span> The icon will be visible only if the figure is undocked.</div>
 
           </dd>
 
-          <dd class="dd ddexpand"><span class="keyword option">'docked'</span> | <span class="keyword option">'undocked'</span> | <span class="keyword option">'modal'</span></dd>
+          <dd class="dd ddexpand">String</dd>
 
+        
         
       </dl>
 
@@ -315,13 +334,6 @@
 
         
         
-          <dt class="dt dlterm">barorientation (2D bar chart plot only)</dt>
-
-          <dd class="dd">Orientation of the bars.</dd>
-
-          <dd class="dd ddexpand"><span class="keyword option">'horizontal'</span> | <span class="keyword option">'vertical'</span></dd>
-
-        
         
           <dt class="dt dlterm">children</dt>
 
@@ -369,14 +381,6 @@
           <dd class="dd ddexpand">Integer or real vector.</dd>
 
         
-        
-          <dt class="dt dlterm">contourtype</dt>
-
-          <dd class="dd">Type of contour.</dd>
-
-          <dd class="dd ddexpand"><span class="keyword option">'blended</span>' | '<span class="keyword option">discrete'</span> |
-            '<span class="keyword option">none'</span></dd>
-
         
         
           <dt class="dt dlterm">fontangle</dt>
@@ -435,12 +439,13 @@
 
         
         
-          <dt class="dt dlterm">mouseclickcallback</dt>
+          <dt class="dt dlterm">handlevisibility</dt>
 
-          <dd class="dd">Callback function triggered by a mouse click on a 2D plot.</dd>
+          <dd class="dd">If set to 'off' then this object is not listed in its parent 'children' value.</dd>
 
-          <dd class="dd ddexpand">Function handle</dd>
+          <dd class="dd ddexpand"><span class="keyword option">'on'</span> | <span class="keyword option">'off'</span></dd>
 
+        
         
         
           <dt class="dt dlterm">parent</dt>
@@ -534,19 +539,37 @@
 
         
         
-          <dt class="dt dlterm">xdb10reference (2D plots only)</dt>
+        
+        
+          <dt class="dt dlterm">xfontangle</dt>
 
-          <dd class="dd">Reference value for the x axis dB10 scale. Data values are scaled using the formula: value = 10*log10(original_value/reference)</dd>
+          <dd class="dd">Font angle of the x axis tick labels.</dd>
 
-          <dd class="dd ddexpand">Scalar</dd>
+          <dd class="dd ddexpand"><span class="keyword option">'regular'</span> | <span class="keyword option">'italic'</span></dd>
 
         
         
-          <dt class="dt dlterm">xdb20reference (2D plots only)</dt>
+          <dt class="dt dlterm">xfontname</dt>
 
-          <dd class="dd">Reference value for the x axis dB20 scale. Data values are scaled using the formula: value = 20*log10(original_value/reference)</dd>
+          <dd class="dd">Font name of the x axis tick labels.</dd>
 
-          <dd class="dd ddexpand">Scalar</dd>
+          <dd class="dd ddexpand">Any available font from the system.</dd>
+
+        
+        
+          <dt class="dt dlterm">xfontsize</dt>
+
+          <dd class="dd">Font size of the x axis tick labels.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">xfontweight</dt>
+
+          <dd class="dd">Font weight of the x axis tick labels.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'normal'</span> | <span class="keyword option">'bold'</span></dd>
 
         
         
@@ -657,33 +680,7 @@
 
         
         
-          <dt class="dt dlterm">xtickmethod</dt>
-
-          <dd class="dd">The method for calculating the number of ticks on the x axis.</dd>
-
-          <dd class="dd ddexpand"><span class="keyword option">'increment'</span> | <span class="keyword option">'ticks'</span></dd>
-
         
-        
-          <dt class="dt dlterm">xweighting (2D plots only)</dt>
-
-          <dd class="dd">Weighting method for the dB10 and dB20 x axis scale.<div class="p">
-            <div class="note note" id="reference_wpv_kyv_pr__note_prj_5qb_dsb"><span class="notetitle">Note:</span> For more information about the weighting methods refer to
-              the dba, dbb, dbc and dbu commands.</div>
-
-          </div>
-</dd>
-
-          <dd class="dd ddexpand"><span class="keyword option">'none'</span> | <span class="keyword option">'a'</span> | <span class="keyword option">'b'</span> | <span class="keyword option">'c'</span> | <span class="keyword option">'u'</span></dd>
-
-        
-        
-          <dt class="dt dlterm">ycategories (3D bar chart plots only)</dt>
-
-          <dd class="dd">Labels for the y category axis of a 3D bar chart plot.</dd>
-
-          <dd class="dd ddexpand">Cell</dd>
-
         
         
           <dt class="dt dlterm">ycolor</dt>
@@ -694,19 +691,37 @@
 
         
         
-          <dt class="dt dlterm">ydb10reference (2D plots only)</dt>
+        
+        
+          <dt class="dt dlterm">yfontangle</dt>
 
-          <dd class="dd">Reference value for the y axis dB10 scale. Data values are scaled using the formula: value = 10*log10(original_value/reference)</dd>
+          <dd class="dd">Font angle of the y axis tick labels.</dd>
 
-          <dd class="dd ddexpand">Scalar</dd>
+          <dd class="dd ddexpand"><span class="keyword option">'regular'</span> | <span class="keyword option">'italic'</span></dd>
 
         
         
-          <dt class="dt dlterm">ydb20reference (2D plots only)</dt>
+          <dt class="dt dlterm">yfontname</dt>
 
-          <dd class="dd">Reference value for the y axis dB20 scale. Data values are scaled using the formula: value = 20*log10(original_value/reference)</dd>
+          <dd class="dd">Font name of the y axis tick labels.</dd>
 
-          <dd class="dd ddexpand">Scalar</dd>
+          <dd class="dd ddexpand">Any available font from the system.</dd>
+
+        
+        
+          <dt class="dt dlterm">yfontsize</dt>
+
+          <dd class="dd">Font size of the y axis tick labels.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">yfontweight</dt>
+
+          <dd class="dd">Font weight of the y axis tick labels.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'normal'</span> | <span class="keyword option">'bold'</span></dd>
 
         
         
@@ -817,25 +832,6 @@
 
         
         
-          <dt class="dt dlterm">ytickmethod</dt>
-
-          <dd class="dd">The method for calculating the number of ticks for the y axis.</dd>
-
-          <dd class="dd ddexpand"><span class="keyword option">'increment'</span> | <span class="keyword option">'ticks'</span></dd>
-
-        
-        
-          <dt class="dt dlterm">yweighting (2D plots only)</dt>
-
-          <dd class="dd">Weighting method for the dB10 and dB20 y axis scale.<div class="p">
-            <div class="note note" id="reference_wpv_kyv_pr__note_s4p_sqb_dsb"><span class="notetitle">Note:</span> For more information about the weighting methods refer to
-              the dba, dbb, dbc and dbu commands.</div>
-
-          </div>
-</dd>
-
-          <dd class="dd ddexpand"><span class="keyword option">'none'</span> | <span class="keyword option">'a'</span> | <span class="keyword option">'b'</span> | <span class="keyword option">'c'</span> | <span class="keyword option">'u'</span></dd>
-
         
         
           <dt class="dt dlterm">zcolor</dt>
@@ -851,6 +847,38 @@
           <dd class="dd">Zero line color.</dd>
 
           <dd class="dd ddexpand">1*3 matrix of RGB.</dd>
+
+        
+        
+          <dt class="dt dlterm">zfontangle</dt>
+
+          <dd class="dd">Font angle of the z axis tick labels.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'regular'</span> | <span class="keyword option">'italic'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">zfontname</dt>
+
+          <dd class="dd">Font name of the z axis tick labels.</dd>
+
+          <dd class="dd ddexpand">Any available font from the system.</dd>
+
+        
+        
+          <dt class="dt dlterm">zfontsize</dt>
+
+          <dd class="dd">Font size of the z axis tick labels.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
+
+        
+        
+          <dt class="dt dlterm">zfontweight</dt>
+
+          <dd class="dd">Font weight of the z axis tick labels.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'normal'</span> | <span class="keyword option">'bold'</span></dd>
 
         
         
@@ -940,13 +968,6 @@
 
         
         
-          <dt class="dt dlterm">ztickmethod</dt>
-
-          <dd class="dd">The method for calculating the number of ticks for the z axis.</dd>
-
-          <dd class="dd ddexpand"><span class="keyword option">'increment'</span> | <span class="keyword option">'ticks'</span></dd>
-
-        
       </dl>
 
     </section>
@@ -1030,13 +1051,6 @@
 
           
           
-            <dt class="dt dlterm">units</dt>
-
-            <dd class="dd">Units of measurement.</dd>
-
-            <dd class="dd ddexpand"><span class="keyword option">'normalized'</span> | <span class="keyword option">'pixels'</span></dd>
-
-          
           
             <dt class="dt dlterm">visible</dt>
 
@@ -1119,13 +1133,6 @@
             <dd class="dd ddexpand">Cell of strings</dd>
 
         
-        
-          <dt class="dt dlterm">ytickmethod</dt>
-
-          <dd class="dd">The method for calculating the number of ticks for the y axis.</dd>
-
-          <dd class="dd ddexpand"><span class="keyword option">'increment'</span> | <span class="keyword option">'ticks'</span></dd>
-
         
         
           <dt class="dt dlterm">yweighting (2D plots only)</dt>
@@ -1218,9 +1225,25 @@
 
         
         
+          <dt class="dt dlterm">displayname</dt>
+
+          <dd class="dd">The line's name.</dd>
+
+          <dd class="dd ddexpand">String</dd>
+
+        
+        
           <dt class="dt dlterm">handle</dt>
 
           <dd class="dd">Handle of the line object.</dd>
+
+        
+        
+          <dt class="dt dlterm">handlevisibility</dt>
+
+          <dd class="dd">If set to 'off' then this object is not listed in its parent 'children' value.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'on'</span> | <span class="keyword option">'off'</span></dd>
 
         
         
@@ -1308,13 +1331,6 @@
 
         
         
-          <dt class="dt dlterm">units</dt>
-
-          <dd class="dd">Units of measurement.</dd>
-
-          <dd class="dd ddexpand"><span class="keyword option">'pixels</span>' | '<span class="keyword option">normalized'</span></dd>
-
-        
         
           <dt class="dt dlterm">visible</dt>
 
@@ -1375,9 +1391,33 @@
 
         
         
+          <dt class="dt dlterm">displayname</dt>
+
+          <dd class="dd">The surface's name.</dd>
+
+          <dd class="dd ddexpand">String</dd>
+
+        
+        
           <dt class="dt dlterm">handle</dt>
 
           <dd class="dd">Handle of the surface object.</dd>
+
+        
+        
+          <dt class="dt dlterm">handlevisibility</dt>
+
+          <dd class="dd">If set to 'off' then this object is not listed in its parent 'children' value.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'on'</span> | <span class="keyword option">'off'</span></dd>
+
+        
+        
+          <dt class="dt dlterm">linewidth (waterfall plot only)</dt>
+
+          <dd class="dd">Width of the waterfall lines.</dd>
+
+          <dd class="dd ddexpand">Integer</dd>
 
         
         
@@ -1412,13 +1452,6 @@
           <dd class="dd ddexpand"><span class="keyword option">'surface'</span></dd>
 
         
-        
-          <dt class="dt dlterm">units</dt>
-
-          <dd class="dd">Units of measurement.</dd>
-
-          <dd class="dd ddexpand"><span class="keyword option">'pixels</span>' | '<span class="keyword option">normalized'</span></dd>
-
         
         
           <dt class="dt dlterm">visible</dt>
@@ -1473,13 +1506,6 @@
           <dd class="dd ddexpand"><span class="keyword option">'on</span>' | '<span class="keyword option">off'</span></dd>
 
         
-        
-          <dt class="dt dlterm">borderwidth</dt>
-
-          <dd class="dd">The width of the text's border line.</dd>
-
-          <dd class="dd ddexpand">Integer</dd>
-
         
         
           <dt class="dt dlterm">children</dt>
@@ -1536,6 +1562,14 @@
 
         
         
+          <dt class="dt dlterm">handlevisibility</dt>
+
+          <dd class="dd">If set to 'off' then this object is not listed in its parent 'children' value.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'on'</span> | <span class="keyword option">'off'</span></dd>
+
+        
+        
           <dt class="dt dlterm">horizontalalignment</dt>
 
           <dd class="dd">The horizontal alignment of the text box relative to the given x,y coordinate.
@@ -1544,22 +1578,6 @@
           <dd class="dd ddexpand"><span class="keyword option">'center</span>' | '<span class="keyword option">left'</span> | '<span class="keyword option">right'</span></dd>
 
         
-        
-          <dt class="dt dlterm">interpreter</dt>
-
-          <dd class="dd">The interpreter that will be used to process the text. Supported in 2D plots
-            only.</dd>
-
-          <dd class="dd ddexpand">
-            <div class="note note"><span class="notetitle">Note:</span> The 'tex' interpreter supports a subset of the TeX markup language and is
-              currently available in 2D plots for title, axis labels and text objects. Mathematical
-              expressions should be placed inside '$'. Examples may be found in the documation of
-              the <span class="keyword cmdname">text</span> command.</div>
-
-          </dd>
-
-          <dd class="dd ddexpand"><span class="keyword option">'none'</span> | <span class="keyword option">'tex'</span></dd>
-
         
         
           <dt class="dt dlterm">offset</dt>
@@ -1601,13 +1619,6 @@
 
         
         
-          <dt class="dt dlterm">units</dt>
-
-          <dd class="dd">The units of measurement.</dd>
-
-          <dd class="dd ddexpand"><span class="keyword option">'pixels</span>' | '<span class="keyword option">normalized'</span></dd>
-
-        
         
           <dt class="dt dlterm">verticalalignment</dt>
 
@@ -1638,6 +1649,8 @@
     
     
     
+    
+      
     <section class="section" id="reference_wpv_kyv_pr__section_aq2_nnq_p4b"><h2 class="title sectiontitle">Hggroup Properties</h2>
       
       <dl class="dl table">
@@ -1770,17 +1783,33 @@
 
         
         
+		  <dt class="dt dlterm">displayname</dt>
+
+          <dd class="dd">The group's named.</dd>
+
+          <dd class="dd ddexpand">String</dd>
+
+		
+		
           <dt class="dt dlterm">facecolor</dt>
 
           <dd class="dd">The object color.</dd>
 
           <dd class="dd ddexpand">1*3 matrix of RGB | <span class="keyword option">colorname</span></dd>
-
+ 
         
         
           <dt class="dt dlterm">handle</dt>
 
           <dd class="dd">The handle of the hggroup object.</dd>
+
+        
+        
+          <dt class="dt dlterm">handlevisibility</dt>
+
+          <dd class="dd">If set to 'off' then this object is not listed in its parent 'children' value.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'on'</span> | <span class="keyword option">'off'</span></dd>
 
         
         
@@ -1884,13 +1913,6 @@
 
         
         
-          <dt class="dt dlterm">units</dt>
-
-          <dd class="dd">The units of measurement, currently not used.</dd>
-
-          <dd class="dd ddexpand"><span class="keyword option">'pixels'</span> | <span class="keyword option">'normalized'</span></dd>
-
-        
         
           <dt class="dt dlterm">vdata (quiver plot only)</dt>
 
@@ -1935,81 +1957,7 @@
 
     </section>
 
-    <section class="section" id="reference_wpv_kyv_pr__section_bq2_nnq_p4b"><h2 class="title sectiontitle">Image Properties</h2>
-      
-      <dl class="dl table">
-        
-          <dt class="dthd"><strong>Property Name</strong></dt>
-
-          <dd class="ddhd"><strong>Description/Values</strong></dd>
-
-        
-        
-          <dt class="dt dlterm">children</dt>
-
-          <dd class="dd">The children of the image object, currently an empty matrix.</dd>
-
-        
-        
-          <dt class="dt dlterm">filepath</dt>
-
-          <dd class="dd">The filepath.</dd>
-
-        
-        
-          <dt class="dt dlterm">handle</dt>
-
-          <dd class="dd">The handle of the image object.</dd>
-
-        
-        
-          <dt class="dt dlterm">parent</dt>
-
-          <dd class="dd">The handle of the parent object.</dd>
-
-          <dd class="dd ddexpand">0</dd>
-
-        
-        
-          <dt class="dt dlterm">position</dt>
-
-          <dd class="dd">The location and size of the image in the figure. The location is specified by the
-            upper-left point, and the size is specified by the width and height.</dd>
-
-          <dd class="dd ddexpand">[<span class="keyword option">left</span>
-            <span class="keyword option">top</span>
-            <span class="keyword option">width</span>
-            <span class="keyword option">height</span>]</dd>
-
-        
-        
-          <dt class="dt dlterm">tag</dt>
-
-          <dd class="dd">A tag attached to the image object.</dd>
-
-          <dd class="dd ddexpand">String</dd>
-
-        
-        
-          <dt class="dt dlterm">type</dt>
-
-          <dd class="dd">The image object type.</dd>
-
-          <dd class="dd ddexpand"><span class="keyword option">'image'</span></dd>
-
-        
-        
-          <dt class="dt dlterm">units</dt>
-
-          <dd class="dd">Units of measurement (not yet used).</dd>
-
-          <dd class="dd ddexpand"><span class="keyword option">'pixels'</span> | <span class="keyword option">'normalized'</span></dd>
-
-        
-      </dl>
-
-    </section>
-
+    
     <section class="section" id="reference_wpv_kyv_pr__section_ejw_fnh_gjb"><h2 class="title sectiontitle">Shape Properties</h2>
       
       <div class="p">
@@ -2026,14 +1974,6 @@
             <dd class="dd">Children of the shape object; an empty matrix for now.</dd>
 
           
-          
-            <dt class="dt dlterm">curvature</dt>
-
-            <dd class="dd">Curvature for the horizontal and vertical edge.</dd>
-
-            <dd class="dd ddexpand">[<span class="keyword option">h-curvature</span>
-              <span class="keyword option">v-curvature</span>]</dd>
-
           
           
             <dt class="dt dlterm">edgecolor</dt>
@@ -2059,6 +1999,14 @@
             <dd class="dd ddexpand">Double</dd>
 
           
+          
+          <dt class="dt dlterm">handlevisibility</dt>
+
+          <dd class="dd">If set to 'off' then this object is not listed in its parent 'children' value.</dd>
+
+          <dd class="dd ddexpand"><span class="keyword option">'on'</span> | <span class="keyword option">'off'</span></dd>
+
+        
           
             <dt class="dt dlterm">linestyle</dt>
 
@@ -2112,13 +2060,6 @@
             <dd class="dd ddexpand">'<span class="keyword option">hggroug</span>'</dd>
 
           
-          
-            <dt class="dt dlterm">units</dt>
-
-            <dd class="dd">Units of measurement, (currently not used).</dd>
-
-            <dd class="dd ddexpand">'<span class="keyword option">pixels</span>' | '<span class="keyword option">normalized</span>'</dd>
-
           
           
             <dt class="dt dlterm">visible</dt>
@@ -2412,84 +2353,14 @@
 
     </section>
 
-    <section class="section" id="reference_wpv_kyv_pr__section_shs_kz3_waitbar"><h2 class="title sectiontitle">Waitbar Properties</h2>
-      
-      <div class="p">
-        <dl class="dl table" id="reference_wpv_kyv_pr__dl_bxg_4z3_kqb">
-          
-            <dt class="dthd"><strong>Property Name</strong></dt>
-
-            <dd class="ddhd"><strong>Description/Values</strong></dd>
-
-          
-          
-            <dt class="dt dlterm">handle</dt>
-
-            <dd class="dd">Handle of the waitbar.</dd>
-
-          
-          
-            <dt class="dt dlterm">height</dt>
-
-            <dd class="dd">Height of the waitbar in pixels.</dd>
-
-          
-          
-            <dt class="dt dlterm">message</dt>
-
-            <dd class="dd">Message displayed in the waitbar.</dd>
-
-          
-          
-            <dt class="dt dlterm">title</dt>
-
-            <dd class="dd">Title of the waitbar.</dd>
-
-          
-          
-            <dt class="dt dlterm">Value</dt>
-
-            <dd class="dd">Fractional value of the progress of the waitbar.</dd>
-
-          
-          
-            <dt class="dt dlterm">visible</dt>
-
-            <dd class="dd"><span class="keyword option">1</span> if waitbar is visible and <span class="keyword option">0</span> if waitbar is
-              hidden.</dd>
-
-          
-          
-            <dt class="dt dlterm">width</dt>
-
-            <dd class="dd">Width of the waitbar in pixels.</dd>
-
-          
-        </dl>
-
-      </div>
-
-    </section>
-
+    
     <section class="section" id="reference_wpv_kyv_pr__section_cq2_nnq_p4b">
       
     </section>
 
   </div>
 
-<nav role="navigation" class="related-links">
-<div class="linklist linklist"><strong>See Also</strong><br />
-
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/figure.htm" title="Creates a new figure for plotting and uicontrols.">figure</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/axes.htm" title="Create a new axes or set current axes by passing a handle argument.">axes</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/get.htm" title="Returns the value of the named property p from the graphics handle, h. If property name is omitted, all properties of h will be returned.">get</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/plot.htm" title="Plots a given dataset in 2D axes.">plot</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/quiver.htm" title="Creates a 2D quiver plot in an axis.">quiver</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/set.htm" title="Sets property values for graphics handles.">set</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/uibuttongroup.htm" title="Creates a button group in a figure to group radio buttons.">uibuttongroup</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/uipanel.htm" title="Creates a frame for interactive graphical control objects in a figure.">uipanel</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/waitbar.htm" title="Creates a waitbar in the current session.">waitbar</a></div></div>
-</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<nav role="navigation" class="related-links"></nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" title="Plotting Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Plotting Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         
         <div>

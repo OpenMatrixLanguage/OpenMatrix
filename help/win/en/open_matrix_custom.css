@@ -1,0 +1,39 @@
+#header #customLogo {
+	width:200px;
+	height:70px;
+}
+
+.title.topictitle1, .title.sectiontitle, .title.topictitle2, #splitterContainer .menuItemSelected {
+  background-color: transparent;
+}
+
+#contentBlock a:hover, 
+#header .navheader_parent_path:hover, 
+#header .link:hover, 
+#splitterContainer .menuItemSelected:hover, 
+#splitterContainer .topic:not(.menuItemSelected):hover, 
+#splitterContainer .hasSubMenuClosed:hover, 
+#splitterContainer .hasSubMenuOpened:hover,
+a:hover {
+	color: rgb(49, 110, 0);
+}
+
+.title.sectiontitle{
+	padding-left: 0px;
+}
+
+.title.topictitle1, .title.sectiontitle, .title.topictitle2{
+	color: rgb(49, 49, 49);
+}
+
+.title.topictitle2{
+	padding-left: 0px;
+}
+
+#customLogo{
+	margin-top: 0px;
+}
+
+div.footer{
+	float: left;
+}

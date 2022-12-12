@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Function Definitions" /><meta name="abstract" content="Define functions using the function keyword." /><meta name="description" content="Define functions using the function keyword." /><meta name="indexterms" content="function defintions" /><meta name="DC.subject" content="function defintions" /><meta name="keywords" content="function defintions" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/functions.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/anonymous_functions_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/clearing_functions_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/function_calls_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/local_functions_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/nested_functions_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/recursion_r.htm" /><meta name="prodname" content="OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_vgn_1vh_vt" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Function Definitions</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="Function Definitions" /><meta name="abstract" content="Define functions using the function keyword." /><meta name="description" content="Define functions using the function keyword." /><meta name="indexterms" content="function defintions" /><meta name="DC.subject" content="function defintions" /><meta name="keywords" content="function defintions" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/functions.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/anonymous_functions_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/clearing_functions_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/function_calls_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/local_functions_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/nested_functions_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../topics/language_guides/recursion_r.htm" /><meta name="prodname" content="OpenMatrix" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_vgn_1vh_vt" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Function Definitions</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../index.htm";
           
@@ -20,43 +20,43 @@
     <section class="section">
       <div class="p">There are several valid declaration formats depending on the number of inputs and
           outputs.<table cellpadding="4" cellspacing="0" summary="" id="reference_vgn_1vh_vt__simpletable_lqy_pvh_vt" border="1" class="simpletable"><col style="width:25%" /><col style="width:25%" /><col style="width:25%" /><col style="width:25%" /><thead><tr class="sthead">
-            <th style="vertical-align:bottom;text-align:left;" id="d4311e41" class="stentry"> </th>
+            <th style="vertical-align:bottom;text-align:left;" id="d4714e41" class="stentry"> </th>
 
-            <th style="vertical-align:bottom;text-align:left;" id="d4311e43" class="stentry">0 inputs</th>
+            <th style="vertical-align:bottom;text-align:left;" id="d4714e43" class="stentry">0 inputs</th>
 
-            <th style="vertical-align:bottom;text-align:left;" id="d4311e46" class="stentry">1 inputs</th>
+            <th style="vertical-align:bottom;text-align:left;" id="d4714e46" class="stentry">1 inputs</th>
 
-            <th style="vertical-align:bottom;text-align:left;" id="d4311e49" class="stentry">N inputs</th>
+            <th style="vertical-align:bottom;text-align:left;" id="d4714e49" class="stentry">N inputs</th>
 
           </tr>
 </thead><tbody><tr class="strow">
-            <td style="vertical-align:top;" headers="d4311e41" class="stentry">0 output</td>
+            <td style="vertical-align:top;" headers="d4714e41" class="stentry">0 output</td>
 
-            <td style="vertical-align:top;" headers="d4311e43" class="stentry"><span class="ph synph">function myfunc()</span></td>
+            <td style="vertical-align:top;" headers="d4714e43" class="stentry"><span class="ph synph">function myfunc()</span></td>
 
-            <td style="vertical-align:top;" headers="d4311e46" class="stentry"><span class="ph synph">function myfunc(in)</span></td>
+            <td style="vertical-align:top;" headers="d4714e46" class="stentry"><span class="ph synph">function myfunc(in)</span></td>
 
-            <td style="vertical-align:top;" headers="d4311e49" class="stentry"><span class="ph synph">function myfunc(in1, …, inN)</span></td>
-
-          </tr>
-<tr class="strow">
-            <td style="vertical-align:top;" headers="d4311e41" class="stentry">1 output</td>
-
-            <td style="vertical-align:top;" headers="d4311e43" class="stentry"><span class="ph synph">function out=myfunc()</span></td>
-
-            <td style="vertical-align:top;" headers="d4311e46" class="stentry"><span class="ph synph">function out=myfunc(in)</span></td>
-
-            <td style="vertical-align:top;" headers="d4311e49" class="stentry"><span class="ph synph">function out=myfunc(in1, …, inN)</span></td>
+            <td style="vertical-align:top;" headers="d4714e49" class="stentry"><span class="ph synph">function myfunc(in1, …, inN)</span></td>
 
           </tr>
 <tr class="strow">
-            <td style="vertical-align:top;" headers="d4311e41" class="stentry">N outputs</td>
+            <td style="vertical-align:top;" headers="d4714e41" class="stentry">1 output</td>
 
-            <td style="vertical-align:top;" headers="d4311e43" class="stentry"><span class="ph synph">function [out1, …, outN]=myfunc()</span></td>
+            <td style="vertical-align:top;" headers="d4714e43" class="stentry"><span class="ph synph">function out=myfunc()</span></td>
 
-            <td style="vertical-align:top;" headers="d4311e46" class="stentry"><span class="ph synph">function [out1, …, outN]=myfunc(in)</span></td>
+            <td style="vertical-align:top;" headers="d4714e46" class="stentry"><span class="ph synph">function out=myfunc(in)</span></td>
 
-            <td style="vertical-align:top;" headers="d4311e49" class="stentry"><span class="ph synph">function [out1, …, outN]=myfunc(in1, …, inN)</span></td>
+            <td style="vertical-align:top;" headers="d4714e49" class="stentry"><span class="ph synph">function out=myfunc(in1, …, inN)</span></td>
+
+          </tr>
+<tr class="strow">
+            <td style="vertical-align:top;" headers="d4714e41" class="stentry">N outputs</td>
+
+            <td style="vertical-align:top;" headers="d4714e43" class="stentry"><span class="ph synph">function [out1, …, outN]=myfunc()</span></td>
+
+            <td style="vertical-align:top;" headers="d4714e46" class="stentry"><span class="ph synph">function [out1, …, outN]=myfunc(in)</span></td>
+
+            <td style="vertical-align:top;" headers="d4714e49" class="stentry"><span class="ph synph">function [out1, …, outN]=myfunc(in1, …, inN)</span></td>
 
           </tr>
 </tbody></table>
