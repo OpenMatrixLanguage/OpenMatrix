@@ -1,0 +1,9 @@
+int1 = 1; intb = 'b'; strb = 'bb';
+who
+try
+	disp('clearvars -except')
+	clearvars -except
+catch e
+	e
+end
+who

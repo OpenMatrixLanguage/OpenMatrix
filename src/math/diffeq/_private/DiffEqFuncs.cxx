@@ -16,91 +16,8 @@
 
 #include "DiffEqFuncs.h"
 
-//#include "hwCvodeWrap.h"
-//#include "hwIdaWrap.h"
-
 //------------------------------------------------------------------------------
-// Differential equation solver
-//------------------------------------------------------------------------------
-/*
-hwMathStatus RK45(ARKRhsFn_client      sysfunc,
-                  ARKRootFn_client     rootfunc,
-                  ARKDenseJacFn_client jacDfunc,
-                  double               tStart,
-                  double               tStop,
-                  int                  numTimes, 
-                  const hwMatrix&      y, 
-                  hwMatrix&            ySolution,
-                  double               relerr, 
-                  const hwMatrix*      abserr, 
-                  double               maxstep,
-                  const hwMatrix*      userData)
-{
-    hwArkWrap rkf45(sysfunc, rootfunc, jacDfunc, tStart, y, relerr, abserr,
-        maxstep, userData);
-
-    hwMathStatus status = rkf45.GetStatus();
-
-    if (!status.IsOk())
-    {
-        if (status.GetArg2() == 4)
-        {
-            status.SetArg2(8);
-        }
-        if (status.GetArg1() == 1)
-        {
-        }
-        else if (status.GetArg1() == 2)
-        {
-            status.SetArg1(5);
-        }
-        else if (status.GetArg1() == 3)
-        {
-            status.SetArg1(7);
-        }
-        else if (status.GetArg1() == 4)
-        {
-            status.SetArg1(8);
-        }
-        else
-        {
-            status.ResetArgs();
-        }
-        return status;
-    }
-
-    status = rkf45.FillMatrix(tStart, tStop, numTimes, ySolution);
-
-    if (!status.IsOk())
-    {
-        if (status.GetArg2() == 2)
-        {
-            status.SetArg2(3);
-        }
-
-        switch (status.GetArg1())
-        {
-            case 111: status.SetArg1(1);  break;
-            case 1:   status.SetArg1(2);  break;
-            case 2:   status.SetArg1(4);  break;
-            case 3:   status.SetArg1(4);  break;
-            case 4:   status.SetArg1(6);  break;
-            default:  status.ResetArgs(); break;
-        }
-
-        if (status.GetArg2() == 2)
-        {
-            status.SetArg2(4);
-        }
-
-        return status;
-    }
-
-    return status;
-}
-*/
-//------------------------------------------------------------------------------
-// Differential equation solver
+// Differential equation solver using ARKode
 //------------------------------------------------------------------------------
 hwMathStatus RK45(ARKRhsFn_client      sysfunc,
                   ARKRootFn_client     rootfunc,
@@ -129,24 +46,25 @@ hwMathStatus RK45(ARKRhsFn_client      sysfunc,
         return hwMathStatus();
     }
 
+    const char* job = "45";
     hwArkWrap rkf45(sysfunc, rootfunc, nrtfn, jacDfunc, time(0),
-                    y, relerr, abserr, maxstep, userData,
+                    y, job, relerr, abserr, maxstep, userData,
                     pEventTime, pEventFnVal, pEventIndx);
 
     hwMathStatus status = rkf45.GetStatus();
 
     if (!status.IsOk())
     {
-        if (status.GetArg2() == 8)
+        if (status.GetArg2() == 9)
         {
             status.SetArg2(10);
         }
 
         switch (status.GetArg1())
         {
-            case 7:  status.SetArg1(9);  break;
-            case 8:  status.SetArg1(10);  break;
-            case 9:  status.SetArg1(11);  break;
+            case 8:  status.SetArg1(9);  break;
+            case 9:  status.SetArg1(10);  break;
+            case 10: status.SetArg1(11);  break;
             default: status.ResetArgs(); break;
         }
 
@@ -177,7 +95,7 @@ hwMathStatus RK45(ARKRhsFn_client      sysfunc,
     return status;
 }
 //------------------------------------------------------------------------------
-// Differential equation solver
+// Differential equation solver using CVode
 //------------------------------------------------------------------------------
 hwMathStatus ODE(CVRhsFn_client      sysfunc,
                  CVRootFn_client     rootfunc,
@@ -252,24 +170,24 @@ hwMathStatus ODE(CVRhsFn_client      sysfunc,
     return status;
 }
 //------------------------------------------------------------------------------
-// Differential equation solver, uses Adams method, functional iteration
+// Differential equation solver, uses Adams method
 //------------------------------------------------------------------------------
-hwMathStatus ODE11(CVRhsFn_client  sysfunc,
-                   CVRootFn_client rootfunc,
-                   int             nrtfn,
-                   const hwMatrix& time,
-                   const hwMatrix& y,
-                   hwMatrix*       timeSolution,
-                   hwMatrix&       ySolution,
-                   double          reltol,
-                   const hwMatrix* abstol,
-                   double          maxstep,
-                   const hwMatrix* userData,
-                   hwMatrix*       pEventTime,
-                   hwMatrix*       pEventFnVal,
-                   hwMatrix*       pEventIndx)
+hwMathStatus ODE113(CVRhsFn_client  sysfunc,
+                    CVRootFn_client rootfunc,
+                    int             nrtfn,
+                    const hwMatrix& time,
+                    const hwMatrix& y,
+                    hwMatrix*       timeSolution,
+                    hwMatrix&       ySolution,
+                    double          reltol,
+                    const hwMatrix* abstol,
+                    double          maxstep,
+                    const hwMatrix* userData,
+                    hwMatrix*       pEventTime,
+                    hwMatrix*       pEventFnVal,
+                    hwMatrix*       pEventIndx)
 {
-    const char*  job    = "11";
+    const char*  job    = "113";
     hwMathStatus status = ODE(sysfunc, rootfunc, nrtfn, (CVDenseJacFn_client) nullptr,
                               time, y, timeSolution, ySolution, job, reltol, abstol,
                               maxstep, userData, pEventTime, pEventFnVal, pEventIndx);
@@ -297,9 +215,9 @@ hwMathStatus ODE11(CVRhsFn_client  sysfunc,
     return status;
 }
 //------------------------------------------------------------------------------
-// Differential equation solver, uses BDF method, Newton iteration, dense linear solver
+// Differential equation solver, uses BDF method
 //------------------------------------------------------------------------------
-hwMathStatus ODE22a(CVRhsFn_client      sysfunc,
+hwMathStatus ODE15s(CVRhsFn_client      sysfunc,
                     CVRootFn_client     rootfunc,
                     int                 nrtfn,
                     CVDenseJacFn_client jacDfunc,
@@ -315,7 +233,7 @@ hwMathStatus ODE22a(CVRhsFn_client      sysfunc,
                     hwMatrix*           pEventFnVal,
                     hwMatrix*           pEventIndx)
 {
-    const char*  job    = "22a";
+    const char*  job    = "15s";
     hwMathStatus status = ODE(sysfunc, rootfunc, nrtfn, jacDfunc, time, y,
                               timeSolution, ySolution, job, reltol, abstol,
                               maxstep, userData, pEventTime, pEventFnVal, pEventIndx);
@@ -338,7 +256,7 @@ hwMathStatus ODE22a(CVRhsFn_client      sysfunc,
     return status;
 }
 //------------------------------------------------------------------------------
-// Differential algebraic equation solver, wraps IDA functions
+// Differential algebraic equation solver using IDA
 //------------------------------------------------------------------------------
 hwMathStatus DAE(IDAResFn_client      sysfunc,
                  IDARootFn_client     rootfunc,
@@ -418,9 +336,9 @@ hwMathStatus DAE(IDAResFn_client      sysfunc,
     return status;
 }
 //------------------------------------------------------------------------------
-// Differential algebraic equation solver, uses BDF method, Newton iteration, dense linear solver
+// Differential algebraic equation solver, uses BDF method
 //------------------------------------------------------------------------------
-hwMathStatus DAE11a(IDAResFn_client      sysfunc,
+hwMathStatus DAE15i(IDAResFn_client      sysfunc,
                     IDARootFn_client     rootfunc,
                     int                  nrtfn,
                     IDADenseJacFn_client jacDfunc,
@@ -437,7 +355,7 @@ hwMathStatus DAE11a(IDAResFn_client      sysfunc,
                     hwMatrix*            pEventFnVal,
                     hwMatrix*            pEventIndx)
 {
-    const char*  job    = "11a";
+    const char*  job    = "15i";
     hwMathStatus status = DAE(sysfunc, rootfunc, nrtfn, jacDfunc, time, y, yp,
                               timeSolution, ySolution, job, reltol, abstol,
                               maxstep, userData, pEventTime, pEventFnVal, pEventIndx);

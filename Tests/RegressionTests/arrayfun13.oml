@@ -1,0 +1,10 @@
+function [z1, z2, z3] = my_fun(in1, in2)
+	z1 = in1+in2;
+	z2 = in1-in2;
+	z3 = max(in1, in2);
+end
+C = [1 2 3; 4 5 6];
+C(:,:,2) = [7 8 9; 10 11 12];
+D = [1 2+2i 3; 4+1 5 6];
+D(:,:,2) = [1+i 2 3; 4+1 5 6];
+[res1, res2, res3] = arrayfun(@my_fun, C, D, 'uniformoutput', 0)

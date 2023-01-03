@@ -79,6 +79,7 @@
 #define HW_MATH_MSG_ZERO            "Error: invalid value; must not be zero"
 #define HW_MATH_MSG_DIVIDEZERO      "Error: division by zero"
 #define HW_MATH_MSG_NONFINITEDATA   "Error: invalid value; must be finite"
+#define HW_MATH_MSG_POSITIVE        "Error: invalid value; must be negative"
 #define HW_MATH_MSG_NEGATIVE        "Error: invalid value; must be nonnegative"
 #define HW_MATH_MSG_NONPOSITIVE     "Error: invalid value; must be positive"
 #define HW_MATH_MSG_NONINTEGER      "Error: invalid value; must be integer"
@@ -289,6 +290,7 @@ std::string GetHMathErrMsg(hwMathMsgCode code)
             case HW_MATH_ERR_ZERO:                  retStr = HW_MATH_MSG_ZERO;              break;
             case HW_MATH_ERR_DIVIDEZERO:            retStr = HW_MATH_MSG_DIVIDEZERO;        break;
             case HW_MATH_ERR_NONFINITEDATA:         retStr = HW_MATH_MSG_NONFINITEDATA;     break;
+            case HW_MATH_ERR_POSITIVE:              retStr = HW_MATH_MSG_POSITIVE;          break;
             case HW_MATH_ERR_NEGATIVE:              retStr = HW_MATH_MSG_NEGATIVE;          break;
             case HW_MATH_ERR_NONPOSITIVE:           retStr = HW_MATH_MSG_NONPOSITIVE;       break;
             case HW_MATH_ERR_NONINTEGER:            retStr = HW_MATH_MSG_NONINTEGER;        break;

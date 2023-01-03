@@ -1,0 +1,4 @@
+int1 = 1
+Variables in current scope:
+int1
+No variables in current scope in call to function who at line number 4 in file clearvars01.oml

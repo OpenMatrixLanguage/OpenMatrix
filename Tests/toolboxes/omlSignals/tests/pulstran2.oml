@@ -1,0 +1,12 @@
+addtoolbox omlsignals
+fs = 2000;		% sampling rate
+ts = 1 / fs;
+fp = 200;		% pulse rate
+tp = 1 / fp;
+t = [0:ts:4*tp];
+w = 0.4 * tp;
+d = [0:tp:4*tp] + 0.5*w;
+skew = 1.0;
+x = pulstran (t, d, 'tripuls', w, skew);
+round(x, 5)
+% the pulses are imperfect becaue of rounding error in d

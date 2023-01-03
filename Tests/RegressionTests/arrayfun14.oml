@@ -1,0 +1,1 @@
+arrayfun(@(a, b) [a, b], '1234', 'abcd', 'uniformoutput', 0)

@@ -18,9 +18,6 @@
 #define __ExprTreeEvaluatorInterface_h
 #include "OMLDll.h"
 #include "Currency.h"
-#include "hwMatrix.h"
-#include "hwMatrixN.h"
-#include "hwMatrixS.h"
 #include "FunctionMetaData.h"
 #include "OMLInterfacePublic.h"
 #include <string>
@@ -39,6 +36,16 @@ typedef bool (*FUNCPTR) (EvaluatorInterface, const std::vector<Currency>&, std::
 typedef bool (*ALT_FUNCPTR) (OMLInterface*, const OMLCurrencyList* ins, OMLCurrencyList* outs);
 typedef void* (*ENCRPTR) (const std::string& filename);
 
+template <typename T> class hwTComplex;
+typedef hwTComplex<double> hwComplex;
+
+template <typename T1, typename T2> class hwTMatrix;
+typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
+typedef hwTMatrix<int, hwTComplex<int> > hwMatrixI;
+
+template <typename T1, typename T2> class hwTMatrixN;
+typedef hwTMatrixN<double, hwTComplex<double> > hwMatrixN;
+
 class OMLDLL_DECLS EvaluatorInterface
 {
     friend class Interpreter;
@@ -48,10 +55,10 @@ public:
     EvaluatorInterface(const EvaluatorInterface& other) : eval(other.eval), delete_eval(false) {}
     ~EvaluatorInterface();
 
-    bool RegisterBuiltInFunction(const std::string& func_name, ALT_FUNCPTR fp);
-	bool RegisterBuiltInFunction(const std::string& func_name, ALT_FUNCPTR fp, const FunctionMetaData& md);
-    bool RegisterBuiltInFunction(const std::string& func_name, FUNCPTR fp, int nargin, int nargout);
-    bool RegisterBuiltInFunction(const std::string& func_name, FUNCPTR fp, const FunctionMetaData& md);
+    bool RegisterBuiltInFunction(const std::string& func_name, ALT_FUNCPTR fp, bool thread_safe= true);
+	bool RegisterBuiltInFunction(const std::string& func_name, ALT_FUNCPTR fp, const FunctionMetaData& md, bool thread_safe = true);
+    bool RegisterBuiltInFunction(const std::string& func_name, FUNCPTR fp, int nargin, int nargout, bool thread_safe = true);
+    bool RegisterBuiltInFunction(const std::string& func_name, FUNCPTR fp, const FunctionMetaData& md, bool thread_safe = true);
     std::vector<std::string> GetBuiltinFunctionNames() const;
 
     //! Returns true if successful in registering (swig) bound class
@@ -96,6 +103,7 @@ public:
     void ClearPath();
     bool RemovePath(std::string &pathname);
 	bool RemoveHiddenPath(std::string& pathname);
+    bool RemoveHiddenRootPath(std::string& pathname);
     void AddPath(std::string pathname, bool end);
 	void AddHiddenPath(std::string pathname);
 	void AddPath2(const std::string& pathname, const std::vector<std::string> funcs);
@@ -103,6 +111,7 @@ public:
 	std::string GetLibraryAlias(const std::string& path);
     std::vector<std::string> GetPaths() const;
     void ResetFuncSearchCache();
+    void TreatAsBuiltin(const std::string& path);
     
     std::FILE* GetFile(int i);
     bool FindFileInPath(const std::string& file_plus_ext, std::string& filepath) const;
@@ -124,6 +133,14 @@ public:
     void ClearFromGlobals  (const std::string& varname);
     void ClearFromFunctions(const std::string& varname);
     void ClearFromVariables(const std::string& varname);
+    void ClearFromVariablesExcept(const std::vector<std::string>& varname,
+        const std::vector<std::regex>& varwildname,
+        const std::vector<std::string>& exceptname,
+        const std::vector<std::regex>& exceptwildname);
+    void ClearFromGlobalsExcept(const std::vector<std::string>& varname,
+        const std::vector<std::regex>& varwildname,
+        const std::vector<std::string>& exceptname,
+        const std::vector<std::regex>& exceptwildname);
     void ClearFunctions();
     void ClearGlobals();
     void ClearVariables();
@@ -155,20 +172,20 @@ public:
     
     static hwMatrix* allocateMatrix();
     static hwMatrix* allocateMatrix(const hwMatrix*);
-    static hwMatrix* allocateMatrix(int m, int n, void* data, hwMatrix::DataType type);
-    static hwMatrix* allocateMatrix(int m, int n, hwMatrix::DataType type);
+    static hwMatrix* allocateMatrix(int m, int n, void* data, bool isReal);
+    static hwMatrix* allocateMatrix(int m, int n, bool isReal);
     static hwMatrix* allocateMatrix(int m, int n, double value);
     static hwMatrix* allocateMatrix(int m, int n, const hwComplex&  value);
     static hwMatrix* allocateMatrix(int m, int n, const hwComplex&& value);
 
 	// I would like to eliminate these two, but the statistics toolbox uses them
-    static hwMatrixI* allocateMatrix(int m, int n, hwMatrixI::DataType type);
-    static hwMatrixI* allocateMatrix(int m, int n, int val);
+    static hwMatrixI* allocateMatrixI(int m, int n, bool isReal);
+    static hwMatrixI* allocateMatrixI(int m, int n, int val);
 
     static const hwMatrix* allocateColumn(const hwMatrix* mtx, int col);
 
 	static hwMatrixN* allocateMatrixN();
-    static hwMatrixN* allocateMatrixN(const std::vector<int>& dims, const hwMatrixN::DataType& dataType);
+    static hwMatrixN* allocateMatrixN(const std::vector<int>& dims, bool isReal);
     static hwMatrixN* allocateMatrixN(const hwMatrixN*);
 
     static HML_CELLARRAY* allocateCellArray();

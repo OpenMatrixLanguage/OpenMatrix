@@ -17,7 +17,7 @@
 #define _MathCore_Globals_h
 
 #include <string>
-#include <MathCoreExports.h>
+#include "MathCoreExports.h"
 
 using std::string;
 
@@ -124,6 +124,7 @@ enum hwMathMsgCode
     HW_MATH_ERR_ZERO,                  // invalid value; must not be zero
     HW_MATH_ERR_DIVIDEZERO,            // division by zero
     HW_MATH_ERR_NONFINITEDATA,         // invalid value; must be finite
+    HW_MATH_ERR_POSITIVE,              // invalid value; must be negative
     HW_MATH_ERR_NEGATIVE,              // invalid value; must be nonnegative
     HW_MATH_ERR_NONPOSITIVE,           // invalid value; must be positive
     HW_MATH_ERR_NONINTEGER,            // invalid value; must be integer

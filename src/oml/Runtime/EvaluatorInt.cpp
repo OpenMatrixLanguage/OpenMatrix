@@ -25,7 +25,8 @@
 #include "FunctionInfo.h"
 #include "SignalHandlerBase.h"
 #include "ClassInfo.h"
-
+#include "hwMatrix_NMKL.h"
+#include "hwMatrixN_NMKL.h"
 // End defines/includes
 
 EvaluatorInterface::EvaluatorInterface(const EvaluatorInterface& other, bool base_context, bool pop_nargs) : delete_eval(true)
@@ -39,24 +40,24 @@ EvaluatorInterface::~EvaluatorInterface()
         delete eval;
 }
 
-bool EvaluatorInterface::RegisterBuiltInFunction(const std::string& func_name, FUNCPTR fp, int nargin, int nargout)
+bool EvaluatorInterface::RegisterBuiltInFunction(const std::string& func_name, FUNCPTR fp, int nargin, int nargout, bool thread_safe)
 {
-    return eval->RegisterBuiltInFunction(func_name, fp, nargin, nargout);
+    return eval->RegisterBuiltInFunction(func_name, fp, nargin, nargout, thread_safe);
 }
 
-bool EvaluatorInterface::RegisterBuiltInFunction(const std::string& func_name, FUNCPTR fp, const FunctionMetaData& md)
+bool EvaluatorInterface::RegisterBuiltInFunction(const std::string& func_name, FUNCPTR fp, const FunctionMetaData& md, bool thread_safe)
 {
-    return eval->RegisterBuiltInFunction(func_name, fp, md);
+    return eval->RegisterBuiltInFunction(func_name, fp, md, thread_safe);
 }
 
-bool EvaluatorInterface::RegisterBuiltInFunction(const std::string& func_name, ALT_FUNCPTR fp)
+bool EvaluatorInterface::RegisterBuiltInFunction(const std::string& func_name, ALT_FUNCPTR fp, bool thread_safe)
 {
-    return eval->RegisterBuiltInFunction(func_name, fp);
+    return eval->RegisterBuiltInFunction(func_name, fp, thread_safe);
 }
 
-bool EvaluatorInterface::RegisterBuiltInFunction(const std::string& func_name, ALT_FUNCPTR fp, const FunctionMetaData& md)
+bool EvaluatorInterface::RegisterBuiltInFunction(const std::string& func_name, ALT_FUNCPTR fp, const FunctionMetaData& md, bool thread_safe)
 {
-	return eval->RegisterBuiltInFunction(func_name, fp, md);
+	return eval->RegisterBuiltInFunction(func_name, fp, md, thread_safe);
 }
 
 std::vector<std::string> EvaluatorInterface::GetBuiltinFunctionNames() const
@@ -164,6 +165,11 @@ bool EvaluatorInterface::RemoveHiddenPath(std::string& pathname)
 	return eval->RemoveHiddenPath(pathname);
 }
 
+bool EvaluatorInterface::RemoveHiddenRootPath(std::string& pathname)
+{
+    return eval->RemoveHiddenRootPath(pathname);
+}
+
 bool EvaluatorInterface::RemoveLibrary(const std::string& lib_name)
 {
 	return eval->RemoveFunctionsInLibrary(lib_name);
@@ -252,6 +258,22 @@ void EvaluatorInterface::ClearFromFunctions(const std::string& varname)
 void EvaluatorInterface::ClearFromVariables(const std::string& varname)
 {
     eval->ClearFromVariables(varname);
+}
+
+void EvaluatorInterface::ClearFromVariablesExcept(const std::vector<std::string>& varnames,
+                                                    const std::vector<std::regex>& varwildnames,
+                                                    const std::vector<std::string>& exceptnames,
+                                                    const std::vector<std::regex>& exceptwildnames)
+{
+    eval->ClearFromVariablesExcept(varnames, varwildnames, exceptnames, exceptwildnames);
+}
+
+void EvaluatorInterface::ClearFromGlobalsExcept(const std::vector<std::string>& varnames,
+    const std::vector<std::regex>& varwildnames,
+    const std::vector<std::string>& exceptnames,
+    const std::vector<std::regex>& exceptwildnames)
+{
+    eval->ClearFromGlobalsExcept(varnames, varwildnames, exceptnames, exceptwildnames);
 }
 
 void EvaluatorInterface::ClearFunctions()
@@ -447,14 +469,14 @@ hwMatrix* EvaluatorInterface::allocateMatrix(const hwMatrix* mtx)
     return ExprTreeEvaluator::allocateMatrix(mtx);
 }
 
-hwMatrix* EvaluatorInterface::allocateMatrix(int m, int n, void* data, hwMatrix::DataType type)
+hwMatrix* EvaluatorInterface::allocateMatrix(int m, int n, void* data, bool isReal)
 {
-    return ExprTreeEvaluator::allocateMatrix(m, n, data, type);
+    return ExprTreeEvaluator::allocateMatrix(m, n, data, isReal);
 }
 
-hwMatrix* EvaluatorInterface::allocateMatrix(int m, int n, hwMatrix::DataType type)
+hwMatrix* EvaluatorInterface::allocateMatrix(int m, int n, bool isReal)
 {
-    return ExprTreeEvaluator::allocateMatrix(m, n, type);
+    return ExprTreeEvaluator::allocateMatrix(m, n, isReal);
 }
 
 hwMatrix* EvaluatorInterface::allocateMatrix(int m, int n, double value)
@@ -472,14 +494,14 @@ hwMatrix* EvaluatorInterface::allocateMatrix(int m, int n, const hwComplex&& val
     return ExprTreeEvaluator::allocateMatrix(m, n, value);
 }
 
-hwMatrixI* EvaluatorInterface::allocateMatrix(int m, int n, hwMatrixI::DataType type)
+hwMatrixI* EvaluatorInterface::allocateMatrixI(int m, int n, bool isReal)
 {
-    return ExprTreeEvaluator::allocateMatrix(m, n, type);
+    return ExprTreeEvaluator::allocateMatrixI(m, n, isReal);
 }
 
-hwMatrixI* EvaluatorInterface::allocateMatrix(int m, int n, int val)
+hwMatrixI* EvaluatorInterface::allocateMatrixI(int m, int n, int val)
 {
-    return ExprTreeEvaluator::allocateMatrix(m, n, val);
+    return ExprTreeEvaluator::allocateMatrixI(m, n, val);
 }
 
 const hwMatrix* EvaluatorInterface::allocateColumn(const hwMatrix* mtx, int col)
@@ -492,9 +514,9 @@ hwMatrixN* EvaluatorInterface::allocateMatrixN()
     return ExprTreeEvaluator::allocateMatrixN();
 }
 
-hwMatrixN* EvaluatorInterface::allocateMatrixN(const std::vector<int>& dims, const hwMatrixN::DataType& dataType)
+hwMatrixN* EvaluatorInterface::allocateMatrixN(const std::vector<int>& dims, bool isReal)
 {
-    return ExprTreeEvaluator::allocateMatrixN(dims, dataType);
+    return ExprTreeEvaluator::allocateMatrixN(dims, isReal);
 }
 
 hwMatrixN* EvaluatorInterface::allocateMatrixN(const hwMatrixN* mtx)
@@ -1022,7 +1044,13 @@ std::vector<std::string> EvaluatorInterface::GetMethods(const std::string& class
 std::string EvaluatorInterface::GetFunctionArgumentName(int index)
 {
     return eval->GetFunctionArgumentName(index);
-}void EvaluatorInterface::SetInterrupt(bool value)
+}
+void EvaluatorInterface::SetInterrupt(bool value)
 {
     eval->SetInterrupt(value);
+}
+
+void EvaluatorInterface::TreatAsBuiltin(const std::string& path)
+{
+    eval->TreatAsBuiltin(path);
 }

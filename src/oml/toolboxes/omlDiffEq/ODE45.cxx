@@ -20,9 +20,9 @@
 #include "FunctionInfo.h"
 #include "OML_Error.h"
 #include "StructData.h"
+#include "hwMathException.h"
 
 #include "DiffEqFuncs.h"
-#include "hwArkodeWrap.h"
 
 // file scope variables and functions
 static EvaluatorInterface* ODE45_eval_ptr;
@@ -501,11 +501,11 @@ bool OmlOde45(EvaluatorInterface           eval,
         {
             switch (status.GetArg1())
             {
-                case  5:  status.SetArg1(2);  break;
-                case  6:  status.SetArg1(3);  break;
-                case  9:  status.SetArg1(4);  break;
-                case 10:  status.SetArg1(4);  break;
-                case 11:  status.SetArg1(4);  break;
+                case  5: status.SetArg1(2);  break;
+                case  6: status.SetArg1(3);  break;
+                case  9: status.SetArg1(4);  break;
+                case 10: status.SetArg1(4);  break;
+                case 11: status.SetArg1(4);  break;
                 default: status.ResetArgs(); break;
             }
         }

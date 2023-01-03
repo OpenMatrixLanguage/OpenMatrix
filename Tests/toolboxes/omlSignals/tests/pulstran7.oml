@@ -1,0 +1,12 @@
+addtoolbox omlsignals
+fs = 10000;		% sampling rate
+ts = 1 / fs;
+fp = 200;		% pulse rate
+tp = 1 / fp;
+t = [0:ts:4*tp];
+d = [0:tp:4*tp] + 0.5*tp;
+np = length(d);
+d = [d',[1:np]'];
+p = [0.010 0.134 0.409 0.800 1.000 0.800 0.409 0.134 0.010];
+f_pulse = 3200;	%
+x = pulstran (t, d, p, f_pulse, 'linear')

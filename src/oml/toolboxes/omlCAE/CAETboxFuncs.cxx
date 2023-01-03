@@ -49,49 +49,116 @@ bool oml_rainflow(EvaluatorInterface           eval,
                   const std::vector<Currency>& inputs, 
                   std::vector<Currency>&       outputs)
 {
-    if (inputs.size() != 5)
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 3)
         throw OML_Error(OML_ERR_NUMARGIN);
     
     if (!inputs[0].IsMatrix())
         throw OML_Error(OML_ERR_VECTOR, 1, OML_VAR_DATA);
 
-    const hwMatrix* time = inputs[0].Matrix();
+    const hwMatrix* signal = inputs[0].Matrix();
 
-    if (!inputs[1].IsPositiveInteger())
-        throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_VALUE);
+    // defaults
+    int numBins = 64;
+    int hysteresis = 0;     // place holder
+    std::string method = "3pt-ASTM";
 
-    int numBins = static_cast<int>(inputs[1].Scalar());
-
-    if (!inputs[2].IsScalar())
-        throw OML_Error(OML_ERR_SCALAR, 3, OML_VAR_VALUE);
-
-    double minRange = inputs[2].Scalar();
-
-    if (!inputs[3].IsScalar())
-        throw OML_Error(OML_ERR_SCALAR, 4, OML_VAR_VALUE);
-
-    double maxRange = inputs[3].Scalar();
-
-    if (!inputs[4].IsInteger())
-        throw OML_Error(OML_ERR_POSINTEGER, 5, OML_VAR_VALUE);
-
-    int outputType = (int) inputs[4].Scalar();
+    if (nargin > 1)
+    {
+        if (inputs[1].IsPositiveInteger())
+        {
+            numBins = static_cast<int>(inputs[1].Scalar());
+        }
+        else if (!(inputs[1].IsMatrix() && inputs[1].Matrix()->Is0x0()))
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_VALUE);
+        }
+    }
 
 #if 0 // Unused code - hysteris input is not used
-    // if (!inputs[5].IsInteger())
-        // throw OML_Error(OML_ERR_NATURALNUM, 6, OML_VAR_VALUE);
+    if (!inputs[4].IsInteger())
+        throw OML_Error(OML_ERR_NATURALNUM, 5, OML_VAR_VALUE);
 
-    // int hysteresis = (int) inputs[5].Scalar();
+    int hysteresis = (int) inputs[4].Scalar();
 #endif 
-    int hysteresis = 0;
 
-    std::unique_ptr<hwMatrix> result(EvaluatorInterface::allocateMatrix());
+    if (nargin > 2)
+    {
+        if (inputs[2].IsString())
+        {
+            method = inputs[2].StringVal();
+        }
+        else if (!(inputs[2].IsMatrix() && inputs[2].Matrix()->Is0x0()))
+        {
+            throw OML_Error(OML_ERR_STRING, 3, OML_VAR_TYPE);
+        }
+    }
 
-    hwMathStatus status = RainFlowFunc(*time, numBins, minRange, maxRange, outputType, hysteresis, *result);
+    std::unique_ptr<hwMatrix> H(EvaluatorInterface::allocateMatrix());
+    std::unique_ptr<hwMatrix> R(EvaluatorInterface::allocateMatrix());
+    std::unique_ptr<hwMatrix> M(EvaluatorInterface::allocateMatrix());
 
-    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+    if (method == "3pt-serial")     // HG method
+    {
+        std::unique_ptr<hwMatrix> C(EvaluatorInterface::allocateMatrix());  // output
 
-    outputs.push_back(result.release());
+        hwMathStatus status = RainFlowFunc(*signal, numBins, hysteresis,
+                                           *C, *H, *R, *M);
+
+        BuiltInFuncsUtils::CheckMathStatus(eval, status);
+        outputs.push_back(C.release());
+    }
+    else
+    {
+        // get the cycle count matrix from a script
+        std::vector<Currency> inputs2;
+        inputs2.push_back(inputs[0]);
+        Currency C;
+
+        if (method == "3pt-ASTM")
+        {
+            // call Beck Chen 4 point algorithm script 
+            C = eval.CallFunction("rainflow3_ASTM", inputs2);
+        }
+        else if (method == "3pt-recursive")
+        {
+            // call Beck Chen 4 point algorithm script 
+            C = eval.CallFunction("rainflow3r", inputs2);
+        }
+        else if (method == "4pt-serial")
+        {
+            // call Beck Chen 4 point algorithm script 
+            C = eval.CallFunction("rainflow4", inputs2);
+        }
+        else if (method == "4pt-recursive")
+        {
+            // call Beck Chen 4 point algorithm script 
+            C = eval.CallFunction("rainflow4r", inputs2);
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_OPTION, 3);
+        }
+
+        if (!C.IsMatrix())
+        {
+            throw OML_Error(OML_ERR_INTERNAL);
+        }
+
+        hwMatrix* CM = C.GetWritableMatrix();  // becomes an input
+
+        hwMathStatus status = RainFlowFunc(*signal, numBins, hysteresis,
+                                           CM, *H, *R, *M);
+
+        BuiltInFuncsUtils::CheckMathStatus(eval, status);
+        outputs.push_back(C);
+    }
+
+    outputs.push_back(H.release());
+    outputs.push_back(R.release());
+    outputs.push_back(M.release());
+
     return true;
 }
 //------------------------------------------------------------------------------

@@ -25,7 +25,7 @@
 #define __hwSliceArg_h
 
 #include <vector>
-#include <MathCoreExports.h>
+#include "MathCoreExports.h"
 
 #pragma warning(disable: 4251)
 

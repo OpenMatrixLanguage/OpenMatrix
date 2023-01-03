@@ -1,0 +1,18 @@
+s = struct [
+  index: 1
+  message: Error: invalid input in argument 1; must be string
+]
+s = struct [
+  index: 2
+  message: Error: invalid input in argument 1; must be string
+]
+s = struct [
+  index: 3
+  message: Error: invalid input in argument 1; must be string
+]
+s = struct [
+  index: 4
+  message: Error: invalid input in argument 1; must be string
+]
+ans = [Matrix] 1 x 4
+10  10  10  10

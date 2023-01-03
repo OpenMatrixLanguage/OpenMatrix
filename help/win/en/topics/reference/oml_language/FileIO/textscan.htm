@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="textscan" /><meta name="abstract" content="Returns result R after reading a formatted data from a file stream \, f, or string, s." /><meta name="description" content="Returns result R after reading a formatted data from a file stream \, f, or string, s." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="File I/O Commands" /><meta name="indexterms" content="textscan" /><meta name="DC.subject" content="textscan" /><meta name="keywords" content="textscan" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/textread.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>textscan</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="textscan" /><meta name="abstract" content="Returns result R after reading a formatted data from a file stream \, f, or string, s." /><meta name="description" content="Returns result R after reading a formatted data from a file stream \, f, or string, s." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="File I/O Commands" /><meta name="indexterms" content="textscan" /><meta name="DC.subject" content="textscan" /><meta name="keywords" content="textscan" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/textread.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>textscan</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -189,7 +189,7 @@ If no <var class="keyword varname">fmt</var> is specified, '%f' or the float for
 t = '%s %f %f %f %s';
 R1 = textscan(f, t, 'headerlines',2,'delimiter', '\t')
 R2 = textscan(f, t, 'headerlines',1,'delimiter', '\t')
-fclose(fid);</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R1 =
+fclose(fid);</code></pre><pre class="pre codeblock"><code>R1 =
 {
 {
 [1,1]
@@ -273,14 +273,14 @@ R2 =
 [2,1] n/a
 }
 }
-}</code></code></pre></div>
+}</code></pre></div>
 
           <div class="p">Reads formatted data from a string, using repeat parameter.
         <pre class="pre codeblock"><code>str='one two 12 three four 24.7e12 five six 56';
 textscan(str, '%s %s %f', 2)   % Apply format twice
 textscan(str, '%s %s %f', -1)  % Read to the end of the string
               
-<code class="ph codeph">ans =
+ans =
 {
 [1,1]
 {
@@ -314,11 +314,11 @@ ans =
 1.20000e+01
 2.47000e+13
 5.60000e+01
-}</code></code></pre></div>
+}</code></pre></div>
 
         <div class="p">Reads formatted data from a file, skipping new
         lines.<pre class="pre codeblock"><code>str='12.345678/1/2018 hello world!!';
-textscan(str, '%2.3f/%d/%2n %2c %s')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">ans =
+textscan(str, '%2.3f/%d/%2n %2c %s')</code></pre><pre class="pre codeblock"><code>ans =
 {
 [1,1] 12.346
 [1,2] 1
@@ -331,10 +331,10 @@ textscan(str, '%2.3f/%d/%2n %2c %s')</code></pre><pre class="pre codeblock"><cod
 {
 [1,1] hello
 }
-}</code></code></pre></div>
+}</code></pre></div>
 
       <div class="p">Reads formatted data from a string, using %[..] to include
-        characters.<pre class="pre codeblock"><code>f = textscan('one threes four','%s %[thre]')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">f =
+        characters.<pre class="pre codeblock"><code>f = textscan('one threes four','%s %[thre]')</code></pre><pre class="pre codeblock"><code>f =
 {
   [1,1]
   {
@@ -347,10 +347,10 @@ textscan(str, '%2.3f/%d/%2n %2c %s')</code></pre><pre class="pre codeblock"><cod
     [1,1] three
     [2,1] r
   }
-}</code></code></pre></div>
+}</code></pre></div>
 
       <div class="p">Reads formatted data from a string, using %[..] to exclude characters.
-        <pre class="pre codeblock"><code>f = textscan('one threes four','%s %[^thre]')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">f = 
+        <pre class="pre codeblock"><code>f = textscan('one threes four','%s %[^thre]')</code></pre><pre class="pre codeblock"><code>f = 
 {
   [1,1] 
   {
@@ -363,7 +363,7 @@ textscan(str, '%2.3f/%d/%2n %2c %s')</code></pre><pre class="pre codeblock"><cod
     [1,1] s
     [2,1] fou
   }
-}</code></code></pre></div>
+}</code></pre></div>
 
     
 </section>

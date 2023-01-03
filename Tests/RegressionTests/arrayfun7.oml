@@ -1,0 +1,4 @@
+function z = my_fun(in1, in2)
+	z = in1+in2;
+end
+arrayfun(@my_fun, 10, [2:4;8:10])

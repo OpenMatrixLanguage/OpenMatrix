@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="fminbnd" /><meta name="abstract" content="Find the minimum of a univariate real function within an interval." /><meta name="description" content="Find the minimum of a univariate real function within an interval." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Optimization Commands" /><meta name="indexterms" content="fminbnd" /><meta name="DC.subject" content="fminbnd" /><meta name="keywords" content="fminbnd" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/optimization_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/fminunc.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/fzero.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/optimset.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/language_guides/anonymous_functions_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/fminsearch.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>fminbnd</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="fminbnd" /><meta name="abstract" content="Find the minimum of a univariate real function within an interval." /><meta name="description" content="Find the minimum of a univariate real function within an interval." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Optimization Commands" /><meta name="indexterms" content="fminbnd" /><meta name="DC.subject" content="fminbnd" /><meta name="keywords" content="fminbnd" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/optimization_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/fminunc.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/fzero.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/optimset.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/language_guides/anonymous_functions_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/fminsearch.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>fminbnd</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -140,8 +140,8 @@
 end
 
 interval = [1, 6];
-[x,fval] = fminbnd(@func, interval)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">x = 2.71828183
-fval = -0.367879441</code></code></pre></div>
+[x,fval] = fminbnd(@func, interval)</code></pre><pre class="pre codeblock"><code>x = 2.71828183
+fval = -0.367879441</code></pre></div>
 
       <div class="p">Modify the previous example to pass an extra parameter to the function using a function
         handle:<pre class="pre codeblock"><code>function y = func(x, offset)
@@ -149,8 +149,8 @@ fval = -0.367879441</code></code></pre></div>
 end
 
 handle = @(x) func(x, 2);
-[x,fval] = fminbnd(handle, interval)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">x = 2.71828183
-fval = 1.63212056</code></code></pre></div>
+[x,fval] = fminbnd(handle, interval)</code></pre><pre class="pre codeblock"><code>x = 2.71828183
+fval = 1.63212056</code></pre></div>
 
     </section>
 

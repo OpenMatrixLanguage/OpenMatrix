@@ -1,0 +1,2 @@
+d_ref = {'ma' ; 'tc' ;  'we' ; 'qw' ;  'ast' ; 10 };
+strcmpi(d_ref,'tc')

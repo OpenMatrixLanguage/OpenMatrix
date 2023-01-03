@@ -22,6 +22,7 @@ CXX_DEFINES += -DSIGNALSOMLTBOX_EXPORT
 CXX_INCLUDES += -I. $(HWMATHKERNEL_INC)
 CXX_INCLUDES += -I$(OML_ROOT)/src/oml/Runtime
 CXX_INCLUDES += -I$(OML_ROOT)/src/math/signals
+CXX_INCLUDES += -I$(MKL_INCLUDE)
 
 ifneq (,$(findstring NT,$(UNAME)))
    LIBS += hwsignals.lib

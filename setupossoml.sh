@@ -31,11 +31,11 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/src/bin/linux64
 #add ANTLR
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/ANTLR/libantlr3c-3.4/.libs
 
-#add Matio 1.5.11
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/matio/matio-1.5.12/src/.libs
+#add Matio
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/matio/matio-1.5.19/linux64/lib64
 
-#add Sundials 3.1.0
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/sundials/sundials-3.1.0-install/lib
+#add HDF5
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/hdf/hdf5-1.12.0/linux64/lib
 
 #add qhull 2015.2
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/qhull/qhull-2015.2/lib

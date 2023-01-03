@@ -22,9 +22,9 @@
 //:---------------------------------------------------------------------------
 
 #include <algorithm>
-#include <hwMathException.h>
-#include <hwSliceArg.h>
-#include <tmpl/hwTComplex.h>
+#include "../hwMathException.h"
+#include "../hwSliceArg.h"
+#include "hwTComplex.h"
 
 // Functions that use the headers below temporarily reside
 // in /oml/BuiltInFuncs.*. The may be relocated to /math/sparse
@@ -759,6 +759,104 @@ hwTMatrixS<T1, T2>& hwTMatrixS<T1, T2>::operator=(const hwTMatrixS<T1, T2>& rhs)
     m_pointerE = rhs.m_pointerE;
 
     return *this;
+}
+
+// ****************************************************
+//                  Matrix Properties
+// ****************************************************
+
+//! Determine if the matrix is banded
+template<typename T1, typename T2>
+bool hwTMatrixS<T1, T2>::IsBanded(int lower, int upper) const
+{
+    if (IsReal())
+    {
+        for (int j = 0; j < m_nCols; ++j)
+        {
+            for (int k = m_pointerB[j]; k < m_pointerE[j]; ++k)
+            {
+                if (m_values(k) != static_cast<T1> (0)) // should be true
+                {
+                    if (j - m_rows[k] > upper)
+                        return false;
+
+                    break;
+                }
+
+                if (j - m_rows[k] <= upper)
+                    break;
+            }
+
+            for (int k = m_pointerE[j] - 1; k >= m_pointerB[j]; --k)
+            {
+                if (m_values(k) != static_cast<T1> (0)) // should be true
+                {
+                    if (m_rows[k] - j > lower)
+                        return false;
+
+                    break;
+                }
+
+                if (m_rows[k] - j <= lower)
+                    break;
+            }
+        }
+    }
+    else    // complex
+    {
+        for (int j = 0; j < m_nCols; ++j)
+        {
+            for (int k = m_pointerB[j]; k < m_pointerE[j]; ++k)
+            {
+                if (m_values.z(k) != static_cast<T1> (0)) // should be true
+                {
+                    if (j - m_rows[k] > upper)
+                        return false;
+
+                    break;
+                }
+
+                if (j - m_rows[k] <= upper)
+                    break;
+            }
+
+            for (int k = m_pointerE[j] - 1; k >= m_pointerB[j]; --k)
+            {
+                if (m_values.z(k) != static_cast<T1> (0)) // should be true
+                {
+                    if (m_rows[k] - j > lower)
+                        return false;
+
+                    break;
+                }
+
+                if (m_rows[k] - j <= lower)
+                    break;
+            }
+        }
+    }
+
+    return true;
+}
+
+//! Determine if the matrix is symmetric
+template<typename T1, typename T2>
+bool hwTMatrixS<T1, T2>::IsSymmetric() const
+{
+    hwTMatrixS<T1, T2> S;
+    S.Transpose(*this);
+
+    return (*this == S);
+}
+
+//! Determine if the matrix is Hermitian
+template<typename T1, typename T2>
+bool hwTMatrixS<T1, T2>::IsHermitian() const
+{
+    hwTMatrixS<T1, T2> H;
+    H.Hermitian(*this);
+
+    return (*this == H);
 }
 
 // ****************************************************
@@ -5875,6 +5973,109 @@ void hwTMatrixS<T1, T2>::Negate(const hwTMatrixS<T1, T2>& A)
         throw hwMathException(status.GetMsgCode());
 }
 
+//! Kronecker product of a sparse matrix and a full matrix
+template<typename T1, typename T2>
+void hwTMatrixS<T1, T2>::Kronecker(const hwTMatrixS<T1, T2>& A, const hwTMatrix<T1, T2>& B)
+{
+    int am = A.m_nRows;
+    int an = A.m_nCols;
+    int bm = B.M();
+    int bn = B.N();
+    hwTMatrix<T1, T2> block;
+
+    m_nRows = am * bm;
+    m_nCols = an * bn;
+
+    for (int col = 0; col < an; ++col)
+    {
+        for (int index = A.m_pointerB[col]; index < A.m_pointerE[col]; ++index)
+        {
+            int row = A.m_rows[index];
+
+            if (A.IsReal())
+            {
+                block.Mult(B, A(row, col));
+                WriteSubmatrix(row * bm, col * bn, block);
+            }
+            else
+            {
+                block.Mult(B, A.z(row, col));
+                WriteSubmatrix(row * bm, col * bn, block);
+            }
+        }
+    }
+}
+
+//! Kronecker product of a full matrix and a sparse matrix
+template<typename T1, typename T2>
+void hwTMatrixS<T1, T2>::Kronecker(const hwTMatrix<T1, T2>& A, const hwTMatrixS<T1, T2>& B)
+{
+    int am = A.M();
+    int an = A.N();
+    int bm = B.m_nRows;
+    int bn = B.m_nCols;
+    hwTMatrixS<T1, T2> block;
+
+    m_nRows = am * bm;
+    m_nCols = an * bn;
+
+    if (A.IsReal())
+    {
+        for (int j = 0; j < an; ++j)
+        {
+            for (int i = 0; i < am; ++i)
+            {
+                block.Mult(B, A(i, j));
+                WriteSubmatrix(i * bm, j * bn, block);
+            }
+        }
+    }
+    else
+    {
+        for (int j = 0; j < an; ++j)
+        {
+            for (int i = 0; i < am; ++i)
+            {
+                block.Mult(B, A.z(i, j));
+                WriteSubmatrix(i * bm, j * bn, block);
+            }
+        }
+    }
+}
+
+//! Kronecker product of two sparse matrices
+template<typename T1, typename T2>
+void hwTMatrixS<T1, T2>::Kronecker(const hwTMatrixS<T1, T2>& A, const hwTMatrixS<T1, T2>& B)
+{
+    int am = A.m_nRows;
+    int an = A.m_nCols;
+    int bm = B.m_nRows;
+    int bn = B.m_nCols;
+    hwTMatrixS<T1, T2> block;
+
+    m_nRows = am * bm;
+    m_nCols = an * bn;
+
+    for (int col = 0; col < an; ++col)
+    {
+        for (int index = A.m_pointerB[col]; index < A.m_pointerE[col]; ++index)
+        {
+            int row = A.m_rows[index];
+
+            if (A.IsReal())
+            {
+                block.Mult(B, A(row, col));
+                WriteSubmatrix(row * bm, col * bn, block);
+            }
+            else
+            {
+                block.Mult(B, A.z(row, col));
+                WriteSubmatrix(row * bm, col * bn, block);
+            }
+        }
+    }
+}
+
 // ****************************************************
 //               Arithmetic Operators
 // ****************************************************
@@ -5882,8 +6083,44 @@ void hwTMatrixS<T1, T2>::Negate(const hwTMatrixS<T1, T2>& A)
 template<typename T1, typename T2>
 bool hwTMatrixS<T1, T2>::operator==(const hwTMatrixS<T1, T2>& A) const
 {
-    // TODO:
-    return false;
+    if (A.m_pointerE == m_pointerE && A.m_rows == m_rows)
+    {
+        if (A.m_values != m_values)
+            return false;
+
+        return true;
+    }
+    else    // check, making copies to ignore possible zeros in A or *this
+    {
+        if (IsReal() && A.IsReal())
+        {
+            hwTMatrixS<T1, T2> copy(m_nRows, m_nCols, pointerB(), pointerE(), rows(), m_values.GetRealData());
+            hwTMatrixS<T1, T2> copyA(A.m_nRows, A.m_nCols, A.pointerB(), A.pointerE(), A.rows(), A.m_values.GetRealData());
+
+            return (copy == copyA);
+        }
+        else if (!IsReal() && !A.IsReal())
+        {
+            hwTMatrixS<T1, T2> copy(m_nRows, m_nCols, pointerB(), pointerE(), rows(), m_values.GetComplexData());
+            hwTMatrixS<T1, T2> copyA(A.m_nRows, A.m_nCols, A.pointerB(), A.pointerE(), A.rows(), A.m_values.GetComplexData());
+
+            return (copy == copyA);
+        }
+        else if (IsReal() && !A.IsReal())
+        {
+            hwTMatrixS<T1, T2> copy(m_nRows, m_nCols, pointerB(), pointerE(), rows(), m_values.GetRealData());
+            hwTMatrixS<T1, T2> copyA(A.m_nRows, A.m_nCols, A.pointerB(), A.pointerE(), A.rows(), A.m_values.GetComplexData());
+
+            return (copy == copyA);
+        }
+        else // if (!IsReal() && A.IsReal())
+        {
+            hwTMatrixS<T1, T2> copy(m_nRows, m_nCols, pointerB(), pointerE(), rows(), m_values.GetComplexData());
+            hwTMatrixS<T1, T2> copyA(A.m_nRows, A.m_nCols, A.pointerB(), A.pointerE(), A.rows(), A.m_values.GetRealData());
+
+            return (copy == copyA);
+        }
+    }
 }
     
 //! Implement the != operator

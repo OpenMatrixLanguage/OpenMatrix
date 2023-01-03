@@ -1,0 +1,4 @@
+addToolbox omlstatistics
+x = [1:10; 11:20]';
+x(1) = 1 - 5i;
+y = movmean(x, [2,3], 1)

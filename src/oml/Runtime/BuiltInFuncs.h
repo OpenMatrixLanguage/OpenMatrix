@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncs.h
 * @date October 2013
-* Copyright (C) 2013-2020 Altair Engineering, Inc.  
+* Copyright (C) 2013-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -28,6 +28,7 @@
 #include "EvaluatorInt.h"
 #include "Currency.h"
 #include "ErrorInfo.h"
+#include "hwMatrix.h"
 
 struct BuiltinFunc;
 void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions);
@@ -118,6 +119,7 @@ bool oml_ishermitian(EvaluatorInterface eval, const std::vector<Currency>& input
 bool oml_isdiag(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_istril(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_istriu(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_isbanded(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_genvarname(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_sub2ind(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_intersect(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -141,9 +143,7 @@ bool oml_pathsep(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
 bool oml_func2str(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_str2func(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_strncmpi(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_strcmpi(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_cellfun(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_datenum(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 OMLDLL_DECLS bool oml_issorted(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_getfield(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_ismember(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -159,6 +159,7 @@ bool oml_sprintf(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
 bool oml_feval(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_rmpath(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_rmhiddenpath(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_rmhiddenpathroot(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_addpath(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_addhiddenpath(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_addpath2(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -198,7 +199,6 @@ bool oml_char(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
 bool oml_strjoin(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_strrep(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_strncmp(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_strcmp(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_strcat(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_lower(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_upper(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -206,8 +206,6 @@ bool oml_strfind(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
 bool oml_isvarname(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_unique(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_cell(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_tic(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_toc(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_factor(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_lcm(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_polyval(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -294,6 +292,7 @@ bool oml_pwd(EvaluatorInterface, const std::vector<Currency>& inputs, std::vecto
 bool oml_memoryuse(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_logical(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_clear(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_clearvars(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_end(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_nargout(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_nargin(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -327,7 +326,8 @@ bool oml_erromsgonly(EvaluatorInterface, const std::vector<Currency>&, std::vect
 bool oml_warningmsgonly(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 bool oml_getargc(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 bool oml_getargv(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
-bool oml_now(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
+bool oml_arrayfun(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_structfun(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 
 //! List variables in the current session matching given pattern
 bool oml_who(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
@@ -394,10 +394,14 @@ bool oml_p_vector(EvaluatorInterface, const std::vector<Currency>& inputs, std::
 bool oml_p_cellarray(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_p_colon(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_p_return(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_treatasbuiltin(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 
 bool oml_getprofiledata(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_clearprofiledata(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_profile(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+
+// Core functions
+bool oml_isbatch(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 
 // function replacement methods
 OMLDLL_DECLS void _OML_Error(EvaluatorInterface& eval, std::vector<Currency>::const_iterator start, std::vector<Currency>::const_iterator end);
@@ -445,7 +449,6 @@ OMLDLL_DECLS int getFileFromInput(EvaluatorInterface &eval, const Currency &inpu
 FILE* makeTempFile();
 std::string readTmpFile(FILE* file);
 OMLDLL_DECLS std::string readOption(EvaluatorInterface& eval, const Currency &input);
-std::vector<std::array<double, 6> > datesFromInput(const std::vector<Currency> &inputs, int *m, int *n);
 void get1DStringsFromInput(const Currency& cur, std::vector<std::string>& vec);
 
 // output-related methods
@@ -466,8 +469,8 @@ inline hwMatrix* containerToMatrix(const T &container, bool row = true)
     // Although the matrix is created as real, if there is a complex element in
     // the values, SetElement will flip matrix type to complex
     hwMatrix* ret = (row)? 
-    EvaluatorInterface::allocateMatrix(1, containerSize, hwMatrix::REAL) :
-    EvaluatorInterface::allocateMatrix(containerSize, 1, hwMatrix::REAL);
+    EvaluatorInterface::allocateMatrix(1, containerSize, true) :
+    EvaluatorInterface::allocateMatrix(containerSize, 1, true);
 
     int matrixSize = ret->Size();
     // Check both the size of the container and matrix as the matrix size could
@@ -492,13 +495,13 @@ inline hwMatrix* containerToMatrix(const T &container, int nrows, int ncols)
     // the values, SetElement will flip matrix type to complex
     if (nrows < 0)
         if (ncols < 0)
-            ret = EvaluatorInterface::allocateMatrix(containerSize, 1, hwMatrix::REAL);
+            ret = EvaluatorInterface::allocateMatrix(containerSize, 1, true);
         else
-            ret = EvaluatorInterface::allocateMatrix((int)(ceil(container.size() / (double) ncols)), ncols, hwMatrix::REAL);
+            ret = EvaluatorInterface::allocateMatrix((int)(ceil(container.size() / (double) ncols)), ncols, true);
     else if (ncols < 0)
-        ret = EvaluatorInterface::allocateMatrix(nrows, (int)(ceil(container.size() / (double) nrows)), hwMatrix::REAL);
+        ret = EvaluatorInterface::allocateMatrix(nrows, (int)(ceil(container.size() / (double) nrows)), true);
     else
-        ret = EvaluatorInterface::allocateMatrix(nrows, ncols, hwMatrix::REAL);
+        ret = EvaluatorInterface::allocateMatrix(nrows, ncols, true);
 
     int matrixSize = ret->Size();
 
@@ -609,11 +612,6 @@ bool getSingularStringOrCell(Currency input, hwMatrix *&outstr, HML_CELLARRAY *&
 void buildString(std::vector<Currency> vec, hwMatrix *str);
 std::string orderedStringVal(const Currency &cur);
 std::string orderedStringVal(const hwMatrix *strmtx);
-
-// date-related methods
-double daysInMonths(int monthsPassed, int year);
-int getDaysInMonth(int month);
-bool isLeapYear(int year);
 
 // individual function runners
 Currency deblankHelper(EvaluatorInterface& eval, const Currency& cur);

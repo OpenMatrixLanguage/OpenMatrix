@@ -224,6 +224,7 @@ int main(int argc, char* argv[])
                 bannerprinted = true;
             }
 			interp->DoString(arg);
+            // RunInputFiles(arg);	 // Did not work for 1.0.10 
 			continueRequired = true;
 		}
 		else if (lower_str == "-f")

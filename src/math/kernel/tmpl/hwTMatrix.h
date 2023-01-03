@@ -67,10 +67,14 @@ public:
     hwTMatrix(int m, int n, void* data, DataType dataType);
     //! Copy constructor
     hwTMatrix(const hwTMatrix<T1, T2>& source);
+    //! Move constructor
+    hwTMatrix(hwTMatrix<T1, T2>&& source);
     //! Destructor
     ~hwTMatrix();
-    //! Implement the = operator
+    //! Implement the copy = operator
     hwTMatrix<T1, T2>& operator=(const hwTMatrix<T1, T2>& rhs);
+    //! Implement the move = operator
+    hwTMatrix<T1, T2>& operator=(hwTMatrix<T1, T2>&& rhs);
 
     // ****************************************************
     //             Data Type and Ownership
@@ -138,9 +142,11 @@ public:
     //! Determine if the matrix is square
     bool IsSquare() const { return (m_nCols == m_nRows ? true : false); }
     //! Determine if the matrix is symmetric
-    bool IsSymmetric(T1 tol = (T1) 0) const;
+    bool IsSymmetric() const;
     //! Determine if the matrix is Hermitian
-    bool IsHermitian(T1 tol = (T1) 0) const;
+    bool IsHermitian() const;
+    //! Determine if the matrix is banded
+    bool IsBanded(int lower, int upper) const;
     //! Determine if the matrix contains non-finite elements
     bool IsFinite() const;
     //! Determine if the matrix contains non-finite elements
@@ -536,10 +542,12 @@ public:
     //                 Vector Operations
     // ****************************************************
 
-    //! L2 vector norm squared
+    //! vector L2 norm squared
     hwMathStatus L2NormSq(T1& normSq) const;
-    //! L2 vector norm
-    hwMathStatus L2Norm(double& norm) const;
+    //! vector L2 norm
+    hwMathStatus L2Norm(T1& norm) const;
+    //! vector p norm with noninteger p
+    hwMathStatus Norm(T1& norm, T1 p) const;
     //! Dot product of two real vectors
     static hwMathStatus Dot(const hwTMatrix<T1, T2>& A, const hwTMatrix<T1, T2>& B, T1& dot);
     //! Dot product of two vectors, either real or complex
@@ -665,6 +673,8 @@ private:
     void MakeEmpty();
     //! Copy matrix data from a source
     hwMathStatus Copy(const hwTMatrix<T1, T2>& source);
+    //! Swap two matrices
+    void Swap(hwTMatrix<T1, T2>& source);
     //! Copy a real submatrix from another matrix to *this
     void CopyBlock(const T1* real, int m, int n, int row1, int row2,
                    int col1, int col2, int ii, int jj);
@@ -745,9 +755,9 @@ private:
 };
 
 //! template implementation file
-#include <tmpl/hwTMatrix.cc>
+#include "hwTMatrix.cc"
 
 //! template utility function file
-#include <utl/hwTMatrixUtil.cc>
+#include "../utl/hwTMatrixUtil.cc"
 
 #endif // _hwTMatrix_h

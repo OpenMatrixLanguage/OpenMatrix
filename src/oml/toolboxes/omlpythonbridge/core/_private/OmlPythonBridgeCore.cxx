@@ -16,7 +16,7 @@
 
 // Begin defines/includes
 #pragma warning(disable: 4251)
-
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include "Python.h"
 #include "numpy/arrayobject.h"
 
@@ -25,7 +25,9 @@
 #include "BuiltInFuncsUtils.h"
 #include "StructData.h"
 
-#include "hwMatrix.h"
+#include "hwMatrix_NMKL.h"
+#include "hwMatrixS_NMKL.h"
+#include "hwMatrixN_NMKL.h"
 
 // End defines/includes
 
@@ -105,7 +107,7 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
         if (data->IsReal())
         {
             obj = PyArray_ZEROS(nd, dims, NPY_DOUBLE, 1);
-            double* dptr = (npy_double *)PyArray_DATA(obj);
+            double* dptr = (npy_double *)PyArray_DATA(reinterpret_cast<PyArrayObject*>(obj));
 
             for (int i = 0; i < data->Size(); i++)
             {
@@ -116,7 +118,7 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
         {
             const hwTComplex<double>* cmpxdata = data->GetComplexData();
             obj = PyArray_ZEROS(nd, dims, NPY_COMPLEX128, 1);
-            npy_complex128* outdata = (npy_complex128 *)PyArray_DATA(obj);
+            npy_complex128* outdata = (npy_complex128 *)PyArray_DATA(reinterpret_cast<PyArrayObject*>(obj));
 
             for (int i = 0; i < data->Size(); i++)
             {
@@ -320,7 +322,7 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
         if (data->IsReal())
         {
             obj = PyArray_ZEROS(static_cast<int>(nd), dims, NPY_DOUBLE, 1);
-            double* dptr = (npy_double *)PyArray_DATA(obj);
+            double* dptr = (npy_double *)PyArray_DATA(reinterpret_cast<PyArrayObject*>(obj));
 
             for (int i = 0; i < data->Size(); i++)
             {
@@ -330,7 +332,7 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
         else
         {
             obj = PyArray_ZEROS(static_cast<int>(nd), dims, NPY_COMPLEX128, 1);
-            npy_complex128* outdata = (npy_complex128 *)PyArray_DATA(obj);
+            npy_complex128* outdata = (npy_complex128 *)PyArray_DATA(reinterpret_cast<PyArrayObject*>(obj));
 
             for (int i = 0; i < data->Size(); i++)
             {
@@ -381,7 +383,7 @@ PyObject* OmlPythonBridgeCore::ConvertSparseToPyObject(const hwMatrixS* spm)
         if (spm->IsReal())
         {
             data_pyobj = PyArray_ZEROS(1, indices_dims, NPY_DOUBLE, 1);
-            dptr = (npy_double*)PyArray_DATA(data_pyobj);
+            dptr = (npy_double*)PyArray_DATA(reinterpret_cast<PyArrayObject*>(data_pyobj));
 
             const double* data = spm->GetRealData();
             for (int i = 0; i < num_elements; i++)
@@ -393,7 +395,7 @@ PyObject* OmlPythonBridgeCore::ConvertSparseToPyObject(const hwMatrixS* spm)
         {
             const hwTComplex<double>* cmpxdata = spm->GetComplexData();
             data_pyobj = PyArray_ZEROS(1, indices_dims, NPY_COMPLEX128, 1);
-            npy_complex128* data_py = (npy_complex128*)PyArray_DATA(data_pyobj);
+            npy_complex128* data_py = (npy_complex128*)PyArray_DATA(reinterpret_cast<PyArrayObject*>(data_pyobj));
 
             for (int i = 0; i < num_elements; i++)
             {
@@ -403,14 +405,14 @@ PyObject* OmlPythonBridgeCore::ConvertSparseToPyObject(const hwMatrixS* spm)
         }
 
         indices_pyobj = PyArray_ZEROS(1, indices_dims, NPY_DOUBLE, 1);
-        dptr = (npy_double*)PyArray_DATA(indices_pyobj);
+        dptr = (npy_double*)PyArray_DATA(reinterpret_cast<PyArrayObject*>(indices_pyobj));
         for (int i = 0; i < num_elements; i++)
         {
             dptr[i] = rows[i];
         }
 
         indptr_pyobj = PyArray_ZEROS(1, indptr_dims, NPY_DOUBLE, 1);
-        dptr = (npy_double*)PyArray_DATA(indptr_pyobj);
+        dptr = (npy_double*)PyArray_DATA(reinterpret_cast<PyArrayObject*>(indptr_pyobj));
         for (int i = 0; i < num_cols; i++)
         {
             dptr[i] = pointer_b[i];
@@ -419,26 +421,27 @@ PyObject* OmlPythonBridgeCore::ConvertSparseToPyObject(const hwMatrixS* spm)
         if (num_cols > 0)
             dptr[num_cols] = pointer_e[num_cols - 1];
 
-        PyObject* sparse_csc_pyobj = PyImport_ImportModule("scipy.sparse.csc");
-        PyObject* csc_matrix_pyobj = PyObject_GetAttrString(sparse_csc_pyobj, "csc_matrix");
-        Py_XDECREF(sparse_csc_pyobj);
 
-        PyObject* inputs_pyobj = PyTuple_New(3);
-        PyTuple_SetItem(inputs_pyobj, 0, data_pyobj);
-        PyTuple_SetItem(inputs_pyobj, 1, indices_pyobj);
-        PyTuple_SetItem(inputs_pyobj, 2, indptr_pyobj);
-        
-        PyObject* shape_pyobj = PyTuple_New(2);
-        PyTuple_SetItem(shape_pyobj, 0, numrows_pyobj);
-        PyTuple_SetItem(shape_pyobj, 1, numcols_pyobj);
+        PyObject* csc_matrix_pyobj = GetSparseCscCls();
+        if (csc_matrix_pyobj)
+        {
+            PyObject* inputs_pyobj = PyTuple_New(3);
+            PyTuple_SetItem(inputs_pyobj, 0, data_pyobj);
+            PyTuple_SetItem(inputs_pyobj, 1, indices_pyobj);
+            PyTuple_SetItem(inputs_pyobj, 2, indptr_pyobj);
 
-        PyObject* args_pyobj = PyTuple_New(2);
-        PyTuple_SetItem(args_pyobj, 0, inputs_pyobj);
-        PyTuple_SetItem(args_pyobj, 1, shape_pyobj);
+            PyObject* shape_pyobj = PyTuple_New(2);
+            PyTuple_SetItem(shape_pyobj, 0, numrows_pyobj);
+            PyTuple_SetItem(shape_pyobj, 1, numcols_pyobj);
 
-        obj = PyObject_CallObject(csc_matrix_pyobj, args_pyobj);
-        Py_XDECREF(args_pyobj);
-        Py_XDECREF(csc_matrix_pyobj);        
+            PyObject* args_pyobj = PyTuple_New(2);
+            PyTuple_SetItem(args_pyobj, 0, inputs_pyobj);
+            PyTuple_SetItem(args_pyobj, 1, shape_pyobj);
+
+            obj = PyObject_CallObject(csc_matrix_pyobj, args_pyobj);
+            Py_XDECREF(args_pyobj);
+            Py_XDECREF(csc_matrix_pyobj);
+        }
     }
       
     return obj;
@@ -555,13 +558,8 @@ hwMatrixS* OmlPythonBridgeCore::ConvertPyObjectToSparse(PyObject* const& obj, bo
 bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outputs, PyObject* const& obj)
 {
     bool success = true;
-    
-    PyObject* sparse_csc_pyobj = PyImport_ImportModule("scipy.sparse.csc");
-    PyObject* csc_globals_pyobj = PyModule_GetDict(sparse_csc_pyobj);
-    PyObject* csc_matrix_pyobj = PyDict_GetItemString(csc_globals_pyobj, "csc_matrix");
-    Py_XDECREF(sparse_csc_pyobj);
 
-    if (PyObject_IsInstance(obj, csc_matrix_pyobj))
+    if (IsSparseCsc(obj))
     {
         hwMatrixS* sparse_mat = ConvertPyObjectToSparse(obj, success);
         if (success)
@@ -720,9 +718,10 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
         import_array();
         if (PyArray_Check(obj))
         {
-            int nd = PyArray_NDIM((PyArrayObject *)obj);
-            npy_intp* dimenstions = PyArray_DIMS((PyArrayObject *)obj);
-            int size = static_cast<int>(PyArray_SIZE(obj));
+            PyArrayObject* array_obj = reinterpret_cast<PyArrayObject*>(obj);
+            int nd = PyArray_NDIM(array_obj);
+            npy_intp* dimenstions = PyArray_DIMS(array_obj);
+            int size = static_cast<int>(PyArray_SIZE(array_obj));
             std::vector<int> dims;
             bool hasZeroDimSize = false;
 
@@ -744,12 +743,12 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
                     hasZeroDimSize = true;
             }
 
-            int type = PyArray_TYPE((PyArrayObject *)obj);
+            int type = PyArray_TYPE(array_obj);
             hwMatrixN* matN = EvaluatorInterface::allocateMatrixN();
             NpyIter* iter = nullptr;
 
             if (!hasZeroDimSize)
-                iter = NpyIter_New((PyArrayObject *)obj, NPY_ITER_READONLY | NPY_ITER_ALIGNED, NPY_FORTRANORDER, NPY_NO_CASTING, nullptr);
+                iter = NpyIter_New(array_obj, NPY_ITER_READONLY | NPY_ITER_ALIGNED, NPY_FORTRANORDER, NPY_NO_CASTING, nullptr);
 
             if (nullptr != iter)
             {
@@ -760,7 +759,7 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
                     int i = 0;
                     char** dataptr = NpyIter_GetDataPtrArray(iter);
 
-                    if (PyArray_ISCOMPLEX((PyArrayObject *)obj))
+                    if (PyArray_ISCOMPLEX(array_obj))
                     {
                         matN->Dimension(dims, hwMatrixN::COMPLEX);
                         PyObject* obj_itr = PyArray_IterNew(obj);
@@ -803,7 +802,7 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
 
                         outputs.push_back(matN);
                     }
-                    else if (PyArray_ISNUMBER((PyArrayObject *)obj))
+                    else if (PyArray_ISNUMBER(array_obj))
                     {
                         matN->Dimension(dims, hwMatrixN::REAL);
 
@@ -982,10 +981,7 @@ void OmlPythonBridgeCore::HandleException(void)
         SetErrorMessage(errorMessage);
         PyErr_Restore(expn, xval, xtrc);
 
-        if (PyErr_Occurred())
-        {
-            PyErr_Clear();
-        }
+        ClearPyError();
     }
     
 }
@@ -1062,7 +1058,7 @@ bool OmlPythonBridgeCore::IsTypeSupported(PyObject* const& obj)
     }
     else if (PyUnicode_Check(obj))
     {
-        PyObject *bytesObj = PyUnicode_AsASCIIString(obj);
+        PyObject *bytesObj = PyUnicode_AsUTF8String(obj);
 
         if (bytesObj)
         {
@@ -1112,4 +1108,62 @@ std::vector<std::string> OmlPythonBridgeCore::GetArgv(EvaluatorInterface eval)
     }
     
     return argv;
+}
+
+//Return value : New reference
+PyObject* OmlPythonBridgeCore::GetSparseCscCls(std::string modulename)
+{
+    PyObject* csc_matrix_pyobj = nullptr;
+    PyObject* sparse_csc_pyobj = PyImport_ImportModule(modulename.c_str());
+    if (sparse_csc_pyobj)
+    {
+        PyObject* csc_globals_pyobj = PyModule_GetDict(sparse_csc_pyobj);
+        if (csc_globals_pyobj)
+        {
+            csc_matrix_pyobj = PyDict_GetItemString(csc_globals_pyobj, "csc_matrix");
+            Py_XINCREF(csc_matrix_pyobj);
+        }
+        else
+        {
+            ClearPyError();
+        }
+
+        Py_XDECREF(sparse_csc_pyobj);        
+    }
+
+    //To support scipy 1.8 and above
+    if (nullptr == csc_matrix_pyobj)
+        csc_matrix_pyobj = GetSparseCscCls("scipy.sparse");
+
+    if (nullptr == csc_matrix_pyobj)
+        ClearPyError();
+
+    return csc_matrix_pyobj;
+}
+
+bool OmlPythonBridgeCore::IsSparseCsc(PyObject* obj)
+{
+    bool is_sparse_csc = false;
+    PyObject* csc_matrix_pyobj = GetSparseCscCls();
+    if (csc_matrix_pyobj)
+    {
+        int is_instance = PyObject_IsInstance(obj, csc_matrix_pyobj);
+        Py_XDECREF(csc_matrix_pyobj);
+        if (1 == is_instance)
+        {
+            is_sparse_csc = true;
+        }
+        else if (-1 == is_instance)
+        {
+            ClearPyError();
+        }
+    }
+
+    return is_sparse_csc;
+}
+
+void OmlPythonBridgeCore::ClearPyError()
+{
+    if (PyErr_Occurred())
+        PyErr_Clear();
 }

@@ -20,6 +20,7 @@
 #include "FunctionInfo.h"
 #include "OML_Error.h"
 #include "StructData.h"
+#include "hwMathException.h"
 
 #include "DiffEqFuncs.h"
 
@@ -100,7 +101,7 @@ static int ODE15s_file_func(double t, double* y, double* yp, void* userData)
 // Wrapper for the Jacobian of the ode system function
 //------------------------------------------------------------------------------
 static
-int ODE15s_jac_file_func(long int N, 
+int ODE15s_jac_file_func(int64_t  N,
                          double   t, 
                          double*  y,
                          double*  yp,
@@ -591,14 +592,14 @@ bool OmlOde15s(EvaluatorInterface           eval,
 
         if (!ODE15s_JAC_func)
         {
-            status = ODE22a(ODE15s_file_func, rootFunc, ODE15s_event_size,
+            status = ODE15s(ODE15s_file_func, rootFunc, ODE15s_event_size,
                             (CVDenseJacFn_client) nullptr, *time, *y, timeSolution,
                             *ySolution, reltol, abstol, maxstep, userData,
                             pEventTime.get(), pEventFnVal.get(), pEventIndx.get());
         }
         else
         {
-            status = ODE22a(ODE15s_file_func, rootFunc, ODE15s_event_size,
+            status = ODE15s(ODE15s_file_func, rootFunc, ODE15s_event_size,
                             ODE15s_jac_file_func, *time, *y, timeSolution,
                             *ySolution, reltol, abstol, maxstep, userData,
                             pEventTime.get(), pEventFnVal.get(), pEventIndx.get());
@@ -612,14 +613,14 @@ bool OmlOde15s(EvaluatorInterface           eval,
 
         if (!ODE15s_JAC_func)
         {
-            status = ODE22a(ODE15s_file_func, rootFunc, ODE15s_event_size,
+            status = ODE15s(ODE15s_file_func, rootFunc, ODE15s_event_size,
                             (CVDenseJacFn_client) nullptr, *time, *y, nullptr,
                             *ySolution, reltol, abstol, maxstep, userData,
                             pEventTime.get(), pEventFnVal.get(), pEventIndx.get());
         }
         else
         {
-            status = ODE22a(ODE15s_file_func, rootFunc, ODE15s_event_size,
+            status = ODE15s(ODE15s_file_func, rootFunc, ODE15s_event_size,
                             ODE15s_jac_file_func, *time, *y, nullptr, *ySolution,
                             reltol, abstol, maxstep, userData,
                             pEventTime.get(), pEventFnVal.get(), pEventIndx.get());
@@ -651,11 +652,11 @@ bool OmlOde15s(EvaluatorInterface           eval,
         {
             switch (status.GetArg1())
             {
-                case  5:  status.SetArg1(2);  break;
-                case  6:  status.SetArg1(3);  break;
-                case  9:  status.SetArg1(4);  break;
-                case 10:  status.SetArg1(4);  break;
-                case 11:  status.SetArg1(4);  break;
+                case  5: status.SetArg1(2);  break;
+                case  6: status.SetArg1(3);  break;
+                case  9: status.SetArg1(4);  break;
+                case 10: status.SetArg1(4);  break;
+                case 11: status.SetArg1(4);  break;
                 default: status.ResetArgs(); break;
             }
         }

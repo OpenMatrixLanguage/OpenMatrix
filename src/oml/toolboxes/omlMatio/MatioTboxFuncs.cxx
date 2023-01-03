@@ -91,6 +91,7 @@ bool OmlLoad(EvaluatorInterface           eval,
     }
 
     BuiltInFuncsUtils utils;
+    filename = utils.Normpath(filename);
     std::string ext(utils.GetFileExtension(filename));
     if (ext.empty())
     {
@@ -289,6 +290,8 @@ bool OmlSave(EvaluatorInterface           eval,
 
     std::string filename (inputs[0].StringVal());
     BuiltInFuncsUtils utils;
+    filename = utils.Normpath(filename);
+
 
 #ifdef OS_WIN
     if (utils.HasWideChars(filename))
@@ -499,6 +502,7 @@ bool LoadTxtFile(EvaluatorInterface           eval,
     }
 		
     std::string file(inputs[0].StringVal());
+    file = BuiltInFuncsUtils::Normpath(file);
 
     if (!BuiltInFuncsUtils::FileExists(file))
     {
@@ -591,7 +595,7 @@ bool LoadTxtFile(EvaluatorInterface           eval,
 	int num_cols = (num_rows) ? static_cast<int>(elements[0].size()) : 0;
 
     std::unique_ptr<hwMatrix> mtx(EvaluatorInterface::allocateMatrix(
-        num_rows, num_cols, hwMatrix::REAL));
+        num_rows, num_cols, true));
 
 	for (int j=0; j<num_rows; j++)
 	{

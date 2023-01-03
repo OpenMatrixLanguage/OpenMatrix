@@ -22,6 +22,9 @@
 #include "BuiltInFuncsUtils.h"
 #include "MatrixNUtils.h"
 #include "OML_Error.h"
+#include "hwMatrix.h"
+#include "hwMatrixN.h"
+#include "hwSliceArg.h"
 
 #include <memory>
 #define POLY   "PolynomialMath"
@@ -268,7 +271,7 @@ bool OmlSpline(EvaluatorInterface           eval,
         }
         else
         {
-            hwMatrix* y_new = eval.allocateMatrix(y_old->M(), x_new->Size(), hwMatrix::REAL);
+            hwMatrix* y_new = eval.allocateMatrix(y_old->M(), x_new->Size(), true);
 
             if (y_old->M())
             {
@@ -524,7 +527,7 @@ bool OmlInterp1(EvaluatorInterface           eval,
         }
         else
         {
-            hwMatrix* yi = eval.allocateMatrix(xi->Size(), y->N(), hwMatrix::REAL);
+            hwMatrix* yi = eval.allocateMatrix(xi->Size(), y->N(), true);
 
             if (y->N())
             {

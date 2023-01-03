@@ -7,11 +7,11 @@
     <OML_MINGW>c:\Program Files\mingw-w64\x86_64-7.1.0-posix-seh-rt_v5-rev2\mingw64\bin</OML_MINGW>
     <OML_PATHS>$(OML_MKLBIN);$(OML_MINGW);$(OML_PYTHONHOME)</OML_PATHS>
     <OML_FFTWDIR>$(OML_THIRDPARTY)\fftw\fftw-3.2.2</OML_FFTWDIR>
-    <OML_BOOSTDIR>$(OML_THIRDPARTY)\boost\boost_1_64_0</OML_BOOSTDIR>
+    <OML_BOOSTDIR>$(OML_THIRDPARTY)\boost\boost_1_70_0</OML_BOOSTDIR>
     <OML_PYTHONHOME>C:\python</OML_PYTHONHOME>
     <OML_PYTHONVERSION>python35</OML_PYTHONVERSION>
-    <OML_MATIODIR>$(OML_THIRDPARTY)\matio\matio-1.5.12</OML_MATIODIR>
-    <OML_SUNDIALSDIR>$(OML_THIRDPARTY)/sundials/sundials-3.1.0-install</OML_SUNDIALSDIR>
+    <OML_MATIODIR>$(OML_THIRDPARTY)\matio\matio-1.5.19</OML_MATIODIR>
+    <OML_SUNDIALSDIR>$(OML_THIRDPARTY)\sundials\sundials-6.2.0\win64</OML_SUNDIALSDIR>
     <OML_QHULLDIR>$(OML_THIRDPARTY)\qhull\qhull-2015.2\lib</OML_QHULLDIR>
     <OML_MKL_INCLUDE>$(OML_THIRDPARTY)\intel\compilers_and_libraries_2019.5.281\windows\mkl\include</OML_MKL_INCLUDE>
     <OML_MKL_LIBDIR>$(OML_THIRDPARTY)\intel\compilers_and_libraries_2019.5.281\windows\mkl\lib\intel64_win;$(OML_THIRDPARTY)\intel\compilers_and_libraries_2019.5.281\windows\compiler\lib\intel64_win</OML_MKL_LIBDIR>

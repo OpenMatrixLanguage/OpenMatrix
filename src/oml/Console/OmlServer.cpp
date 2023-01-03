@@ -1,7 +1,7 @@
 /**
 * @file OmlServer.cpp
 * @date June 2017
-* Copyright (C) 2017-2018 Altair Engineering, Inc.  
+* Copyright (C) 2017-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -148,6 +148,7 @@ public:
         if (sockfd == INVALID_SOCKET) 
         {
             freeaddrinfo(result);
+            CloseSocket(sockfd);
             CleanUp();
             return false;
         }
@@ -264,7 +265,7 @@ private:
                                 0,           // use default creation flags 
                                 &dwThreadId  // returns the thread identifier 
                           );
-
+        CloseHandle(hThread);
 #else
         pthread_t tid;
         pthread_create(&tid, NULL, &RunScript, args);

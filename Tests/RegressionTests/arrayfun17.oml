@@ -1,0 +1,4 @@
+function z = my_func(a, b)
+  z = [a, b];
+end
+arrayfun(@my_func, 'abc', 'def')

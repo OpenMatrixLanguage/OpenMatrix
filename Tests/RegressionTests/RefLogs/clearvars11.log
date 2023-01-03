@@ -1,0 +1,8 @@
+Variables in current scope:
+int1
+intb
+strb
+clearvars -except ???b
+Variables in current scope:
+intb
+strb

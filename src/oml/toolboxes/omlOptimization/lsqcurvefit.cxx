@@ -20,6 +20,7 @@
 #include "FunctionInfo.h"
 #include "OML_Error.h"
 #include "StructData.h"
+#include "hwMathException.h"
 
 #include "hwOptimizationFuncs.h"
 
@@ -601,7 +602,7 @@ bool OmlLsqcurvefit(EvaluatorInterface           eval,
     {
         hwMatrix dummy;
         hwMatrix* res = EvaluatorInterface::allocateMatrix(y->Size(), 1,
-                         hwMatrix::REAL);
+                         true);
         hwMathStatus status2 = NLCurveFitFunc(*optParam, *X, userData, *res);
 
         int size = res->Size();

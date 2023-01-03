@@ -20,6 +20,7 @@
 #include "FunctionInfo.h"
 #include "OML_Error.h"
 #include "StructData.h"
+#include "hwMathException.h"
 
 #include "hwOptimizationFuncs.h"
 

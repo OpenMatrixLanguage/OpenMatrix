@@ -28,49 +28,9 @@
 //! When needed the following variables should be declared as follows:
 //! hwMatrix y(numEqn);      // holds initial conditions
 //! hwMatrix yp(numEqn);     // holds initial conditions
-//! hwMatrix time(numTimes);
-//! hwMatrix ySolution(numTimes, numEqn);
 //!
 //------------------------------------------------------------------------------
 
-//!
-//! Differential equation solver
-//! \param sysfunc
-//! \param tStart
-//! \param tStop
-//! \param numTimes
-//! \param y
-//! \param ySolution
-//! \param relerr    Optional argument: relative error
-//! \param abserr    Optional argument: absolute error
-//! \param userData  Optional argument
-//!
-/*
-/! 
-DIFFEQ_DECLS hwMathStatus RK45(ARKRhsFn_client      sysfunc,
-                               ARKRootFn_client     rootfunc,
-                               ARKDenseJacFn_client jacDfunc,
-                               double               tStart,
-                               double               tStop,
-                               int                  numTimes, 
-                               const hwMatrix&      y, 
-                               hwMatrix&            ySolution,
-                               double               relerr   = 0.001,
-                               const hwMatrix*      abserr   = nullptr,
-                               double               maxstep  = -999.0,
-                               const hwMatrix*      userData = nullptr);
-//!
-//! Differential equation solver
-//! \param sysfunc
-//! \param time
-//! \param y
-//! \param timeSolution
-//! \param ySolution
-//! \param relerr       Optional argument: relative error
-//! \param abserr       Optional argument: absolute error
-//! \param userData     Optional argument
-//!
-*/
 DIFFEQ_DECLS hwMathStatus RK45(ARKRhsFn_client      sysfunc,
                                ARKRootFn_client     rootfunc,
                                int                  nrtfn,
@@ -129,20 +89,20 @@ hwMathStatus ODE(CVRhsFn_client      sysfunc,
 //! \param reltol       Optional argument: absolute error
 //! \param userData     Optional argument
 //!
-DIFFEQ_DECLS hwMathStatus ODE11(CVRhsFn_client  sysfunc,
-                                CVRootFn_client rootfunc,
-                                int             nrtfn,
-                                const hwMatrix& time,
-                                const hwMatrix& y,
-                                hwMatrix*       timeSolution,
-                                hwMatrix&       ySolution,
-                                double          reltol   = 0.001,
-                                const hwMatrix* abstol   = nullptr,
-                                double          maxstep  = -999.0,
-                                const hwMatrix* userData = nullptr,
-                                hwMatrix*       pEventTime  = nullptr,
-                                hwMatrix*       pEventFnVal = nullptr,
-                                hwMatrix*       pEventIndx  = nullptr);
+DIFFEQ_DECLS hwMathStatus ODE113(CVRhsFn_client  sysfunc,
+                                 CVRootFn_client rootfunc,
+                                 int             nrtfn,
+                                 const hwMatrix& time,
+                                 const hwMatrix& y,
+                                 hwMatrix*       timeSolution,
+                                 hwMatrix&       ySolution,
+                                 double          reltol   = 0.001,
+                                 const hwMatrix* abstol   = nullptr,
+                                 double          maxstep  = -999.0,
+                                 const hwMatrix* userData = nullptr,
+                                 hwMatrix*       pEventTime  = nullptr,
+                                 hwMatrix*       pEventFnVal = nullptr,
+                                 hwMatrix*       pEventIndx  = nullptr);
 
 //!
 //! Differential equation solver which wraps CVODE functions
@@ -157,7 +117,7 @@ DIFFEQ_DECLS hwMathStatus ODE11(CVRhsFn_client  sysfunc,
 //! \param reltol       Optional argument: absolute error
 //! \param userData     Optional argument
 //!
-DIFFEQ_DECLS hwMathStatus ODE22a(CVRhsFn_client      sysfunc,
+DIFFEQ_DECLS hwMathStatus ODE15s(CVRhsFn_client      sysfunc,
                                  CVRootFn_client     rootfunc,
                                  int                 nrtfn,
                                  CVDenseJacFn_client jacDfunc,
@@ -219,7 +179,7 @@ hwMathStatus DAE(IDAResFn_client      sysfunc,
 //! \param reltol       Optional argument: absolute error
 //! \param userData     Optional argument
 //!
-DIFFEQ_DECLS hwMathStatus DAE11a(IDAResFn_client      sysfunc,
+DIFFEQ_DECLS hwMathStatus DAE15i(IDAResFn_client      sysfunc,
                                  IDARootFn_client     rootfunc,
                                  int                  nrtfn,
                                  IDADenseJacFn_client jacDfunc,

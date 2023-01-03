@@ -1,0 +1,185 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="datetick" /><meta name="abstract" content="Sets date formatted ticks on axis." /><meta name="description" content="Sets date formatted ticks on axis." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Plotting Commands" /><meta name="indexterms" content="datetick" /><meta name="DC.subject" content="datetick" /><meta name="keywords" content="datetick" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Time/datestr.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>datetick</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" title="Plotting Commands">Plotting Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" title="Plotting Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Plotting Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">datetick</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Sets date formatted ticks on axis.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">datetick<span class="ph var">()</span></span></p>
+
+      <p class="p"><span class="ph synph">datetick<span class="ph var">(fmt)</span></span></p>
+
+      <p class="p"><span class="ph synph">datetick<span class="ph var">(axisStr, fmt)</span></span></p>
+
+      <p class="p"><span class="ph synph">datetick<span class="ph var">(..., option)</span></span></p>
+
+      <p class="p"><span class="ph synph">datetick<span class="ph var">(hAxes, ...)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">fmt</var></dt>
+
+          <dd class="dd pd">The format of the date tick labels. The value can be either the index of one of the
+            predefined formats or a string. For more information on date formats, see
+              <span class="keyword cmdname">datestr</span>.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span> | <span class="keyword">string</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">axisStr</var></dt>
+
+          <dd class="dd pd">The axis string ('x' or 'y') to set the date ticks. Default value is 'x'.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">option</var></dt>
+
+          <dd class="dd pd">Specifies if the axis range or the axis ticks are preserved. Valid values are:<ul class="ul" id="reference_wpv_kyv_pr__ul_lzp_l2b_y5b">
+              <li class="li"><span class="ph synph">'keeplimits'</span> - The axis limits are preserved and
+                  <span class="keyword cmdname">datestr</span> is applied only on visible tick labels.</li>
+
+              <li class="li"><span class="ph synph">'keepticks'</span> - <span class="keyword cmdname">datestr</span> is applied on the ticks
+                defined by setting a vector value for the 'xtick' or 'ytick' property of the
+                axis.</li>
+
+            </ul>
+</dd>
+
+          <dd class="dd pd ddexpand">If no option is given, the axis autoscales and <span class="keyword cmdname">datestr</span> is applied
+            only on visible tick labels.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">hAxes</var></dt>
+
+          <dd class="dd pd"><span class="keyword"> Axis handle. </span></dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
+      
+      <p class="p">Simple <span class="keyword cmdname">datetick</span> example:</p>
+
+      <pre class="pre codeblock"><code>clf;
+x = datenum(2000:2:2020, 1, 1);
+y = [10 50 80 60 70 60 40 90 80 80 60];
+plot (x, y);
+datetick(2)</code></pre>
+      <figure class="fig fignone" id="reference_wpv_kyv_pr__datetick_1">
+        
+        <br /><img class="image" src="images/datetick_1.png" /><br />
+      <span class="figcap"><span class="fig--title-label">Figure 1. </span>Date tick on x axis</span></figure>
+
+      <p class="p">Option <span class="ph synph">'keeplimits'</span> preserves the axis range set:</p>
+
+      <pre class="pre codeblock"><code>clf;
+x = datenum(2000:2:2020, 1, 1);
+y = [10 50 80 60 70 60 40 90 80 80 60];
+plot (x, y);
+xlim([x(3) x(8)])
+datetick(2, 'keeplimits')</code></pre>
+      <figure class="fig fignone" id="reference_wpv_kyv_pr__datetick_2">
+        
+        <br /><img class="image" src="images/datetick_2.png" /><br />
+      <span class="figcap"><span class="fig--title-label">Figure 2. </span>Option 'keeplimits'</span></figure>
+
+      <p class="p">For a better visual result, set the tick position and axis limits before calling
+          <span class="keyword cmdname">datetick</span> with the <span class="ph synph">'keepticks'</span> option:</p>
+
+      <pre class="pre codeblock"><code>clf;
+x = datenum(2000:2:2020, 1, 1);
+y = [10 50 80 60 70 60 40 90 80 80 60];
+plot (x, y);
+set(gca,'xtick', x(1:2:end)); 
+datetick(2, 'keepticks')</code></pre>
+      <figure class="fig fignone" id="reference_wpv_kyv_pr__datetick_3">
+        
+        <br /><img class="image" src="images/datetick_3.png" /><br />
+      <span class="figcap"><span class="fig--title-label">Figure 3. </span>Option 'keepticks'</span></figure>
+
+      <p class="p">Set a custom format for the date or time:</p>
+
+      <pre class="pre codeblock"><code>clf;
+t = datenum(2022,1,1,0:23,0,0);
+y = rand(length(t), 1);
+plot (t, y);
+set(gca,'xtick', t(1:2:end)); 
+xlim([t(1), t(end)]);
+datetick('HH:MM PM', 'keepticks')</code></pre>
+      <figure class="fig fignone" id="reference_wpv_kyv_pr__datetick_4">
+        
+        <br /><img class="image" src="images/datetick_4.png" /><br />
+      <span class="figcap"><span class="fig--title-label">Figure 4. </span>Set custom date format</span></figure>
+
+      <p class="p">Set date ticks on y axis:</p>
+
+      <pre class="pre codeblock"><code>clf;
+x = datenum(2022,1,1:7,0,0,0);
+t = datenum(2022,1,1,[15 15 14 14 20 12 21],0,0);
+stem(x, t);
+set(gca,'xtick', x); 
+yAxisTicks = datenum(2022,1,1,10:23,0,0);
+ylim([yAxisTicks(1), yAxisTicks(end)])
+set(gca,'ytick', yAxisTicks); 
+datetick(1,'keepticks');
+datetick('y', 'HH:MM PM', 'keepticks');</code></pre>
+      <figure class="fig fignone" id="reference_wpv_kyv_pr__datetick_5">
+        
+        <br /><img class="image" src="images/datetick_5.png" /><br />
+      <span class="figcap"><span class="fig--title-label">Figure 5. </span>Set date ticks on y axis</span></figure>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p"><span class="keyword cmdname">datetick</span> is available only in 2D XY plots.</p>
+
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Time/datestr.htm" title="Returns a date as a formatted string.">datestr</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Plotting/plotting_command_r.htm" title="Plotting Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Plotting Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

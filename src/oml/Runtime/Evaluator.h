@@ -27,6 +27,7 @@
 #include "Currency.h"
 #include "MemoryScope.h"
 #include "OutputFormat.h"
+#include "OML_Error.h"
 
 #include <map>
 #include <iostream>
@@ -42,6 +43,7 @@ class EvaluatorDebugInterface;
 class FunctionInfo;
 class SignalHandlerBase;      // Base implementation for handling client signals
 class OMLTree;
+class hwSliceArg;
 
 // forward declarations for ANTLR stuff
 struct ANTLR3_BASE_TREE_struct;
@@ -67,16 +69,19 @@ struct BuiltinFunc
 	ALT_FUNCPTR alt_fptr;
 
 	FunctionMetaData md;
-    BuiltinFunc(FUNCPTR func, FunctionMetaData in_md) : fptr(func), alt_fptr(nullptr), md(in_md), locked(false), hidden(false), dll(nullptr), hierarchy(nullptr) {}
-    BuiltinFunc(ALT_FUNCPTR func, const std::string* context, const std::string* meta) : fptr(nullptr), alt_fptr(func), locked(false), hidden(false), dll(context), hierarchy(meta) {}
-	BuiltinFunc(ALT_FUNCPTR func, FunctionMetaData in_md, const std::string* context, const std::string* meta) : fptr(nullptr), alt_fptr(func), md(in_md), locked(false), hidden(false), dll(context), hierarchy(meta) {}
-    BuiltinFunc() : fptr(nullptr), alt_fptr(nullptr), locked(false), dll(nullptr), hierarchy(nullptr) {}
+    BuiltinFunc(FUNCPTR func, FunctionMetaData in_md, bool safe = true) : fptr(func), alt_fptr(nullptr), md(in_md), locked(false), hidden(false), dll(nullptr), hierarchy(nullptr), thread_safe(safe) {}
+    BuiltinFunc(ALT_FUNCPTR func, const std::string* context, const std::string* meta, bool safe = true) : fptr(nullptr), alt_fptr(func), locked(false), hidden(false), dll(context), hierarchy(meta), thread_safe(safe) {}
+	BuiltinFunc(ALT_FUNCPTR func, FunctionMetaData in_md, const std::string* context, const std::string* meta, bool safe = true) : fptr(nullptr), alt_fptr(func), md(in_md), locked(false), hidden(false), dll(context), hierarchy(meta), thread_safe(safe) {}
+    BuiltinFunc() : fptr(nullptr), alt_fptr(nullptr), locked(false), dll(nullptr), hierarchy(nullptr), thread_safe(true) {}
 
 	void Lock() { locked = true; hidden = true; }
 	void LockOnly() { locked = true; hidden = false; }
 
+	bool IsThreadSafe()  { return thread_safe; }
+
 	bool locked;
 	bool hidden;
+	bool thread_safe;
 
 	const std::string* dll;
 	const std::string* hierarchy;
@@ -157,6 +162,14 @@ public:
 	bool            ClearFromFunctions(const std::string& name);
 	bool            ClearFromGlobals(const std::string& name);
 	bool            ClearFromVariables(const std::string& name);
+	bool            ClearFromVariablesExcept(const std::vector<std::string>& varname,
+						const std::vector<std::regex>& varwildname,
+						const std::vector<std::string>& exceptname,
+						const std::vector<std::regex>& exceptwildname);
+	bool            ClearFromGlobalsExcept(const std::vector<std::string>& varname,
+						const std::vector<std::regex>& varwildname,
+						const std::vector<std::string>& exceptname,
+						const std::vector<std::regex>& exceptwildname);
 	void            Clear(const std::regex& varname);
 	bool            ClearFromFunctions(const std::regex& name);
 	bool            ClearFromGlobals(const std::regex& name);
@@ -196,10 +209,10 @@ public:
 	void  Unmark();
 	void  Restore();
 
-	bool  RegisterBuiltInFunction(const std::string& func_name, FUNCPTR fp, int nargin, int nargout);
-	bool  RegisterBuiltInFunction(const std::string& func_name, FUNCPTR fp, FunctionMetaData fmd);
-	bool  RegisterBuiltInFunction(const std::string& func_name, ALT_FUNCPTR fp);
-	bool  RegisterBuiltInFunction(const std::string& func_name, ALT_FUNCPTR fp, FunctionMetaData fmd);
+	bool  RegisterBuiltInFunction(const std::string& func_name, FUNCPTR fp, int nargin, int nargout, bool thread_safe = true);
+	bool  RegisterBuiltInFunction(const std::string& func_name, FUNCPTR fp, FunctionMetaData fmd, bool thread_safe = true);
+	bool  RegisterBuiltInFunction(const std::string& func_name, ALT_FUNCPTR fp, bool thread_safe = true);
+	bool  RegisterBuiltInFunction(const std::string& func_name, ALT_FUNCPTR fp, FunctionMetaData fmd, bool thread_safe = true);
 	void  RegisterExternalVariableFunction(EXTPTR ep) { ext_var_ptr = ep; }
 	void  ClearTemporaryExternalVariables() { _externals.clear(); }
 
@@ -265,9 +278,12 @@ public:
 	void                    AddPath2(const std::string& pathname, const std::vector<std::string>& func_names);
 	bool                    RemovePath(std::string &pathname);
 	bool                    RemoveHiddenPath(std::string& pathname);
+	bool                    RemoveHiddenRootPath(std::string& pathname);
 	inline void             ClearPath() { paths->erase(paths->begin() + NUM_MANDATORY_PATHS, paths->end()); }
 	bool                    FindFileInPath(const std::string& file_plus_ext, std::string& filepath) const;
 	void                    RestorePath();
+	void                    TreatAsBuiltin(const std::string& pathname);
+	MemoryScope*            GetValidErrorScope();
 
 	std::vector<std::string> GetPaths() const;
 
@@ -320,17 +336,17 @@ public:
 
 	static hwMatrix*       allocateMatrix();
 	static hwMatrix*       allocateMatrix(const hwMatrix*);
-	static hwMatrix*       allocateMatrix(int m, int n, void* data, hwMatrix::DataType type);
-	static hwMatrix*       allocateMatrix(int m, int n, hwMatrix::DataType type);
+	static hwMatrix*       allocateMatrix(int m, int n, void* data, bool isReal);
+	static hwMatrix*       allocateMatrix(int m, int n, bool isReal);
 	static hwMatrix*       allocateMatrix(int m, int n, double value);
 	static hwMatrix*       allocateMatrix(int m, int n, const hwComplex& value);
-	static hwMatrixI*      allocateMatrix(int m, int n, hwMatrixI::DataType type);
-	static hwMatrixI*      allocateMatrix(int m, int n, int val);
+	static hwMatrixI*      allocateMatrixI(int m, int n, bool isReal);
+	static hwMatrixI*      allocateMatrixI(int m, int n, int val);
 
 	static const hwMatrix* allocateColumn(const hwMatrix* mtx, int col);
 
 	static hwMatrixN*      allocateMatrixN();
-	static hwMatrixN*      allocateMatrixN(const std::vector<int>& dims, const hwMatrixN::DataType& dataType);
+	static hwMatrixN*      allocateMatrixN(const std::vector<int>& dims, bool isReal);
 	static hwMatrixN*      allocateMatrixN(const hwMatrixN*);
 
 	static hwMatrixS*      allocateMatrixS();
@@ -602,6 +618,8 @@ private:
 	
 	MemoryScope* GetCurrentScope() const;	
 
+	Currency ExecuteCatch(const OML_Error& error, OMLTree* tree);
+
 	void OpenScope(FunctionInfo* info = NULL);
 	void CloseScope();
 
@@ -671,7 +689,6 @@ private:
 	std::vector<void*> loaded_dlls;
 
     std::vector<std::string> *not_found_functions;
-	std::vector<std::string> parfor_exclusion_functions;
 
 	std::string        _script_name;
 	const std::string* _dll_context;
@@ -680,7 +697,7 @@ private:
 	std::map<std::string, ClassInfo*>      *class_info_map;      //classdef classes
     std::map<std::string, BoundClassInfo*> _boundclassinfo; //! Bound classes
 
-	std::map<std::string, ENCRPTR> _decryptors;
+	std::map<std::string, ENCRPTR>* _decryptors;
 
 	std::map<std::string, std::string>*  _library_aliases;
 
@@ -688,6 +705,7 @@ private:
 
     void OnEvaluationEnd( const Currency& currency);
     bool PathMatches(const std::string& s1, const std::string& s2) const;
+	bool RootPathMatches(const std::string& s1, const std::string& s2) const;
 
 	void ParforAnalyze(const std::string& loop_var, OMLTree* tree, std::set<std::string>& sliced_vars, std::set<std::string>& broadcast_vars, std::set<std::string>& reduced_vars, std::map<std::string, int>& reduced_ops);
 
@@ -718,6 +736,7 @@ private:
 	bool        _store_suppressed;
     bool        _suspendFunclistUpdate; //! Suspends function list update
 	bool        _suppress_all;
+	bool        _parfor_eval;
 
 	std::string builtin_error_scope;
 
@@ -728,7 +747,6 @@ private:
 
     bool is_for_evalin;
 	bool _lhs_eval;
-	bool _break_on_continue;
 
 	bool _interrupt;
     bool _quit;                 //! True if evaluator is quitting
@@ -751,6 +769,7 @@ private:
 	std::vector<std::string>* restore_paths;		// VSM-5385  Adding capability to restore a multidirectory default path
 	std::vector<std::string>* restore_hidden_paths;	// VSM-5385
 
+	std::vector<std::string>* treat_as_builtin_list;
 
 	EXTPTR ext_var_ptr;
 	std::vector<Currency> _externals;

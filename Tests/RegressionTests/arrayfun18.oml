@@ -1,0 +1,9 @@
+function out = myFun1(in1, in2)
+  out = str2num(in2);
+end
+
+function y = errorHandle1(s, in1, in2)
+  s
+  y = 10; 
+end
+arrayfun (@myFun1, 1:4, 4:7, 'ErrorHandler', @errorHandle1)

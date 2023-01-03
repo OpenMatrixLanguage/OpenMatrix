@@ -1,0 +1,18 @@
+##File Type: Far Field
+##File Format: 8
+##Source: Dipole_V
+##Date: 2022-08-24 11:20:42
+** File exported 
+
+#Configuration Name: 
+#Request Name: 
+#Frequency: 5.90000000E+09
+#Coordinate System: Spherical
+#No. of Theta Samples: 37
+#No. of Phi Samples: 73
+#Result Type: Gain
+#No. of Header Lines: 1
+#                 "Theta"           "Phi"             "Re(Etheta)"      "Im(Etheta)"      "Re(Ephi)"        "Im(Ephi)"        "Gain(Theta)"     "Gain(Phi)"       "Gain(Total)"     
+                   0.00000000E+00    0.00000000E+00   -8.07402864E-07    4.12541618E-07   -8.07402864E-07    4.12541618E-07   -1.15489776E+02   -1.15489776E+02   -1.12479476E+02   
+                   5.00000000E+00    0.00000000E+00    2.31537477E-02    4.07032839E-02   -1.26273914E-06   -8.16976739E-07   -2.12288737E+01   -1.11094118E+02   -2.12288737E+01   
+                   1.00000000E+01    0.00000000E+00    4.64333324E-02    8.15727605E-02   -1.31499102E-06   -1.79022645E-06   -1.51891269E+01   -1.07706879E+02   -1.51891269E+01   

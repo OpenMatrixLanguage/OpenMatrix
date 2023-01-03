@@ -25,8 +25,8 @@
 #ifndef _hwMatrix_h
 #define _hwMatrix_h
 
-#include <tmpl/hwTMatrix.h>     // class definition
-#include <tmpl/hwTMatrixLP.cc>  // LAPACK dependent implementation file
+#include "tmpl/hwTMatrix.h"      // class definition
+#include "tmpl/hwTMatrix_LP.cc"  // MKL dependent implementation file
 
 typedef hwTMatrix<double> hwMatrix;
 typedef hwTMatrix<float> hwMatrixF;

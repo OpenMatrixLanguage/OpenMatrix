@@ -202,10 +202,10 @@ public:
 };
 
 //! template implementation file
-#include <tmpl/hwTComplex.cc>
+#include "hwTComplex.cc"
 
 //! template utility function file
-#include <utl/hwTComplexUtil.cc>
+#include "../utl/hwTComplexUtil.cc"
 
 #endif // _hwTComplex_h
 

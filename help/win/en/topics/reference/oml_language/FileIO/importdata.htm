@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="importdata" /><meta name="abstract" content="Returns result R after reading a file, f. Different reading mechanisms are used, based on the type of file, f." /><meta name="description" content="Returns result R after reading a file, f. Different reading mechanisms are used, based on the type of file, f." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="File I/O Commands" /><meta name="indexterms" content="importdata" /><meta name="DC.subject" content="importdata" /><meta name="keywords" content="importdata" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/load.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>importdata</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="importdata" /><meta name="abstract" content="Returns result R after reading a file, f. Different reading mechanisms are used, based on the type of file, f." /><meta name="description" content="Returns result R after reading a file, f. Different reading mechanisms are used, based on the type of file, f." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="File I/O Commands" /><meta name="indexterms" content="importdata" /><meta name="DC.subject" content="importdata" /><meta name="keywords" content="importdata" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/fileio_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/load.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>importdata</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -80,17 +80,17 @@
       
         <div class="p">Reads data from an Excel compatible file:
         <pre class="pre codeblock"><code>% Data in the test.xlsx is {'number','string','other';1, 'a', Nan; 2, 'b', realmax}
-R = importdata('test.xlsx')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">mat = [Matrix] 3 x 3
+R = importdata('test.xlsx')</code></pre><pre class="pre codeblock"><code>mat = [Matrix] 3 x 3
         NaN  NaN           NaN
 1.00000e+00  NaN           NaN
-2.00000e+00  NaN  1.79769e+308</code></code></pre></div>
+2.00000e+00  NaN  1.79769e+308</code></pre></div>
 
         
         <div class="p">Reads data with options available for <span class="keyword cmdname">textread</span>:
         <pre class="pre codeblock"><code>%Data in the file is
 % names of the columns A B C
 % year1 100 200 300 year22 44 55 66 year333 7 8 9
-[A, B, C, D] = importdata('Filemanipulation/textreadFile2.txt','%s %f %f %f','headerlines',1)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">A =
+[A, B, C, D] = importdata('Filemanipulation/textreadFile2.txt','%s %f %f %f','headerlines',1)</code></pre><pre class="pre codeblock"><code>A =
 {
 [1,1] year1
 [2,1] year22
@@ -107,7 +107,7 @@ C = [Matrix] 3 x 1
 D = [Matrix] 3 x 1
 300
 66
-9</code></code></pre></div>
+9</code></pre></div>
 
     </section>
 

@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsConvert.cpp
 * @date November 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -236,7 +236,7 @@ Currency BuiltInFuncsConvert::Hex2DecHelper(EvaluatorInterface& eval,
     if (hexStr.empty()) return Currency();
 
     int numrows = static_cast<int>(hexStr.size());
-    hwMatrix* out = EvaluatorInterface::allocateMatrix(numrows, 1, hwMatrix::REAL);
+    hwMatrix* out = EvaluatorInterface::allocateMatrix(numrows, 1, true);
     for (int i = 0; i < numrows; ++i)
     {
         std::string thisrow (hexStr[i]);
@@ -475,7 +475,7 @@ Currency BuiltInFuncsConvert::Bin2DecHelper(EvaluatorInterface& eval,
     if (outstr.empty()) return Currency();
 
     int numrows = static_cast<int>(outstr.size());
-    hwMatrix* out = EvaluatorInterface::allocateMatrix(numrows, 1, hwMatrix::REAL);
+    hwMatrix* out = EvaluatorInterface::allocateMatrix(numrows, 1, true);
     for (int i = 0; i < numrows; ++i)
     {
         std::string thisrow (outstr[i]);
@@ -532,7 +532,7 @@ bool BuiltInFuncsConvert::Bi2De(EvaluatorInterface           eval,
     {
         if (!inputs[1].IsPositiveInteger())
         {
-            throw OML_Error(OML_ERR_INVALID_BASE, 2, OML_VAR_TYPE);
+            throw OML_Error(OML_ERR_INVALID_BASE, 2);
         }
         base = inputs[1].Scalar();
 
@@ -569,7 +569,7 @@ bool BuiltInFuncsConvert::Bi2De(EvaluatorInterface           eval,
     int m = mtx->M();
     int n = mtx->N();
     std::unique_ptr<hwMatrix> out (EvaluatorInterface::allocateMatrix(
-                                   m, 1, hwMatrix::REAL));
+                                   m, 1, true));
     for (int i = 0; i < m;  ++i)
     {
         double dec = 0;
@@ -713,7 +713,7 @@ bool BuiltInFuncsConvert::De2Bi(EvaluatorInterface           eval,
     int n = std::max(numcols, 1);
 
     std::unique_ptr<hwMatrix> out(EvaluatorInterface::allocateMatrix(
-                                  m, n, hwMatrix::REAL));
+                                  m, n, true));
 
     out->SetElements(0);
 
@@ -770,8 +770,7 @@ bool BuiltInFuncsConvert::De2Bi(EvaluatorInterface           eval,
                 {
                     // Zeros will be padded to the left, before existing data
                     hwMatrix* tmpmtx = EvaluatorInterface::allocateMatrix(out.get());
-                    out.reset(EvaluatorInterface::allocateMatrix(m, len,
-                        hwMatrix::REAL));
+                    out.reset(EvaluatorInterface::allocateMatrix(m, len, true));
                     out->SetElements(0);
 
                     int startcol = len - n;
@@ -859,8 +858,7 @@ bool BuiltInFuncsConvert::De2Bi(EvaluatorInterface           eval,
                 {
                     // Zeros will be padded to the left, before existing data
                     hwMatrix* tmpmtx = EvaluatorInterface::allocateMatrix(out.get());
-                    out.reset(EvaluatorInterface::allocateMatrix(m, len,
-                        hwMatrix::REAL));
+                    out.reset(EvaluatorInterface::allocateMatrix(m, len, true));
                     out->SetElements(0);
 
                     int startcol = len - n;
@@ -898,116 +896,117 @@ bool BuiltInFuncsConvert::De2Bi(EvaluatorInterface           eval,
     return true;
 } 
 //------------------------------------------------------------------------------
-// Returns true and converts vector to matrix [vec2mat]
+// Converts vector to matrix [vec2mat]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsConvert::Vec2Mat(EvaluatorInterface           eval,
                                   const std::vector<Currency>& inputs,
                                   std::vector<Currency>&       outputs)
 {
     size_t nargin = (inputs.empty()) ? 0 : inputs.size();
-
-    if (nargin < 2)
+    if (nargin < 2 || nargin > 3)
     {
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
-    if (!inputs[0].IsMatrix())
+    const Currency& cur = inputs[0];
+    bool  isSingleVal   = (cur.IsScalar() || cur.IsComplex());
+    if (!isSingleVal && !cur.IsMatrix())
     {
         throw OML_Error(OML_ERR_VECTOR, 1, OML_VAR_TYPE);
     }
-    const hwMatrix* mtx = inputs[0].Matrix();
-    assert(mtx);
-    if (!mtx || mtx->Size() == 0)
-    {
-        outputs.push_back(EvaluatorInterface::allocateMatrix());
-        return true;
-    }
-
-    if (!inputs[1].IsPositiveInteger())
+    else if (!inputs[1].IsPositiveInteger())
     {
         throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_TYPE);
     }
     int n = static_cast<int>(inputs[1].Scalar());
 
-    double    dval = 0;
-    hwComplex cval;
-    bool hascomplex = (!mtx->IsReal());
-    if (nargin > 2)
+    const hwMatrix* mtx = nullptr;
+    if (!isSingleVal)
     {
-        if (mtx->IsReal())
+        mtx = cur.Matrix();
+        if (!mtx || mtx->Size() == 0)
         {
-            if (!inputs[2].IsScalar())
-            {
-                throw OML_Error(OML_ERR_SCALAR, 3, OML_VAR_TYPE);
-            }
-            dval = inputs[2].Scalar();
-        }
-        else
-        {
-            if (inputs[2].IsScalar())
-            {
-                cval = hwComplex(inputs[2].Scalar(), 0);
-            }
-            else if (inputs[2].IsComplex())
-            {
-                cval = inputs[2].Complex();
-            }
-            else
-            {
-                throw OML_Error(OML_ERR_SCALAR_COMPLEX, 3, OML_VAR_TYPE);
-            }
-            
+            outputs.emplace_back(EvaluatorInterface::allocateMatrix());
+            outputs.emplace_back(0);
+            return true;
         }
     }
 
-    assert(n > 0);
-    int size = mtx->Size();
-    int m    = size/n;
+    bool isreal    = (cur.IsScalar() || (mtx && mtx->IsReal()));
+    double    dval = 0;
+    hwComplex cval;
+    
+    if (nargin > 2)
+    {
+        if (inputs[2].IsScalar())
+        {
+            double val = inputs[2].Scalar();
+            dval = val;
+            cval = hwComplex(inputs[2].Scalar(), 0);
+        }
+        else if (!isreal && inputs[2].IsComplex())
+        {
+            cval = inputs[2].Complex();
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_SCALAR, 3, OML_VAR_TYPE);
+        }
+    }
 
+    if (isSingleVal)
+    {
+        std::unique_ptr<hwMatrix> out(EvaluatorInterface::allocateMatrix(1, n, isreal));
+        if (isreal)
+        {
+            out->SetElements(dval);
+            (*out)(0) = cur.Scalar();
+        }
+        else
+        {
+            out->SetElements(cval);
+            out->z(0) = cur.Complex();
+        }
+        outputs.emplace_back(out.release());
+        outputs.emplace_back(n - 1);
+        return true;
+    }
+
+    int size = mtx->Size();
+    int m    = mtx->Size() / n;
     if (size % n > 0)
     {
         ++m;
     }
+    std::unique_ptr<hwMatrix> out(EvaluatorInterface::allocateMatrix(m, n, isreal));
 
-    std::unique_ptr<hwMatrix> out(EvaluatorInterface::allocateMatrix(m, n, mtx->Type()));
-
-    int paddedvals = 0;
+    int paddedvals = std::abs(m * n - size);
     int k = 0;
-    for (int i = 0; i < m; ++i)
+    if (isreal)  // Real vector
     {
-        for (int j = 0; j < n; ++j)
+        out->SetElements(dval);
+        for (int i = 0; i < m && k < size; ++i)
         {
-            if (k < size)
+            for (int j = 0; j < n && k < size; ++j)
             {
-                if (!hascomplex)
-                {
-                    (*out)(i, j) = (*mtx)(k);
-                }
-                else
-                {
-                    out->z(i, j) = mtx->z(k);
-                }
+                (*out)(i, j) = (*mtx)(k);
+                ++k;
             }
-            else
-            {
-                if (!hascomplex)
-                {
-                    (*out)(i, j) = dval;
-                }
-                else
-                {
-                    out->z(i, j) = cval;
-                }
-                paddedvals ++;
-            }
-            ++k;
         }
     }
-    outputs.push_back(out.release());
-
-    if (eval.GetNargoutValue() > 1)
+    else  // Complex vector
     {
-        outputs.push_back(paddedvals);
+        out->SetElements(cval);
+        for (int i = 0; i < m && k < size; ++i)
+        {
+            for (int j = 0; j < n && k < size; ++j)
+            {
+                out->z(i, j) = mtx->z(k);
+                ++k;
+            }
+        }
     }
+    outputs.emplace_back(out.release());
+    outputs.emplace_back(paddedvals);
     return true;
 }

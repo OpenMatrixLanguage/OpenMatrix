@@ -33,19 +33,36 @@ typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
 //! Returns hwMathStatus after executing the rainflow algorithm
 //! \param time    
 //! \param numBins  
-//! \param minRange 
-//! \param maxRange
-//! \param output
 //! \param hysteresis
-//! \param result     Output matrix containing the result
+//! \param countMatrix  Output
+//! \param damageMatrix
+//! \param rangeBinVec
+//! \param meanBinVec
 //! 
-CAEFUNCS_DECLS hwMathStatus RainFlowFunc(const hwMatrix& time, 
+CAEFUNCS_DECLS hwMathStatus RainFlowFunc(const hwMatrix& signal, 
                                          int             numBins, 
-                                         double          minRange, 
-                                         double          maxRange,
-                                         int             output,
                                          int             hysteresis,
-                                         hwMatrix&       result);
+                                         hwMatrix&       countMatrix,
+                                         hwMatrix&       damageMatrix,
+                                         hwMatrix&       rangeBinVec,
+                                         hwMatrix&       meanBinVec);
+//!
+//! Returns hwMathStatus after executing the rainflow algorithm
+//! \param time    
+//! \param numBins  
+//! \param hysteresis
+//! \param countMatrix  Input
+//! \param damageMatrix
+//! \param rangeBinVec
+//! \param meanBinVec
+//! 
+CAEFUNCS_DECLS hwMathStatus RainFlowFunc(const hwMatrix& signal,
+                                         int             numBins,
+                                         int             hysteresis,
+                                         const hwMatrix* countMatrix,
+                                         hwMatrix&       damageMatrix,
+                                         hwMatrix&       rangeBinVec,
+                                         hwMatrix&       meanBinVec);
 //!
 //! ISO 6487 function
 //! \param inSignal  Input signal

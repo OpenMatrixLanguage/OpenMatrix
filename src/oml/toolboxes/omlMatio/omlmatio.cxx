@@ -25,8 +25,8 @@
 #include "StructData.h" 
 
 #include "CellND.cc"
-#include "hwMatrixN.h"
-#include "hwMatrixS.h"
+#include "hwMatrixN_NMKL.h"
+#include "hwMatrixS_NMKL.h"
 
 #include "matio.h"
 
@@ -222,11 +222,12 @@ Currency OmlMatio::Char2Currency(matvar_t* var)
         rowvals.reserve(n);
 
         BuiltInFuncsUtils utils;
-        char tmp[256];
         const mat_uint16_t *data = (const mat_uint16_t*)var->data;
         for (int i = 0; i < m; ++i)
         {
-            std::string row;
+            std::wstring wrow;
+            char tmp[256];
+            memset(tmp, 0, sizeof(tmp));
             for (int j = 0; j < n; ++j)
             {
                 const mat_uint16_t c = data[j * m + i];
@@ -245,16 +246,16 @@ Currency OmlMatio::Char2Currency(matvar_t* var)
                     sprintf(tmp, "%c%c%c", 0xE0 | (c >> 12), 0x80 |
                         ((c >> 6) & 0x3F), 0x80 | (c & 0x3F));
                 }
-                row += tmp;
+                wrow += utils.StdString2WString(tmp);
             }
-            rowvals.push_back(row);
+            rowvals.push_back(BuiltInFuncsUtils::WString2StdString(wrow));
         }
         result = utils.FormatOutput(rowvals, false, false, false, ' ');
     }
     else
     {
         std::unique_ptr<hwMatrix> mtx(EvaluatorInterface::allocateMatrix(
-            m, n, hwMatrix::REAL));
+            m, n, true));
         const char* tmp = (const char*)var->data;
         for (int i = 0; i < m; ++i)
         {
@@ -686,10 +687,8 @@ Currency OmlMatio::Matrix2Currency(matvar_t* var, const std::string& name)
     int rows = static_cast<int>(var->dims[0]);
     int cols = static_cast<int>(var->dims[1]);
 
-    hwMatrix::DataType mattype = (var->isComplex) ?
-        hwMatrix::COMPLEX : hwMatrix::REAL;
     std::unique_ptr<hwMatrix> mat(EvaluatorInterface::allocateMatrix(
-        rows, cols, mattype));
+        rows, cols, !static_cast<bool>(var->isComplex)));
 
     if (!var->isComplex)
     {
@@ -838,7 +837,7 @@ Currency OmlMatio::IntReal2Currency(matvar_t* var)
             int cols = static_cast<int>(var->dims[1]);
 
             std::unique_ptr<hwMatrix> mat(EvaluatorInterface::allocateMatrix(
-                rows, cols, hwMatrix::REAL));
+                rows, cols, true));
 
             for (int j = 0; j < cols; ++j)
             {
@@ -899,7 +898,7 @@ Currency OmlMatio::IntComplex2Currency(matvar_t* var)
             int cols = static_cast<int>(var->dims[1]);
 
             std::unique_ptr<hwMatrix> mat(EvaluatorInterface::allocateMatrix(
-                rows, cols, hwMatrix::COMPLEX));
+                rows, cols, false));
 
             double* rp = (double*)cdata->Re;
             double* ip = (double*)cdata->Im;
@@ -956,13 +955,23 @@ matvar_t* OmlMatio::CurrencyToMatVar(const char* name, const Currency& cur)
     {
         std::string data(cur.StringVal());
         dims[0] = 1;
-        dims[1] = data.length();
 
-        matio_types type = (_version == MATFILEVERSION_5) ? 
-            MAT_T_UTF8 : MAT_T_UINT8;
-        
-        return Mat_VarCreate(name, MAT_C_CHAR, type, 2, dims, 
-            (void*)(data.c_str()), 0);
+        BuiltInFuncsUtils utils;
+        if (!utils.HasWideChars(data))
+        {
+            dims[1] = data.length();
+            matio_types type = (_version == MATFILEVERSION_5) ?
+                MAT_T_UTF8 : MAT_T_UINT8;
+            return Mat_VarCreate(name, MAT_C_CHAR, type, 2, dims,
+                (void*)(data.c_str()), 0);
+        }
+        std::wstring wstr(utils.StdString2WString(data));
+        dims[1] = wstr.length();
+        matio_types type = (_version == MATFILEVERSION_5) ?
+            MAT_T_UTF16 : MAT_T_UINT8;
+
+        return Mat_VarCreate(name, MAT_C_CHAR, type, 2, dims,
+               (void*)(wstr.c_str()), 0);
     }
     else if (cur.IsComplex())
     {
@@ -1095,8 +1104,7 @@ matvar_t* OmlMatio::Currency2MatSparse(const char* name, const Currency& cur)
     sparse.nzmax = nnz;  // Max non-zero elements
 
                          // Array of size nzmax where ir[k] is the row of data[k].
-	sparse.ir = (mat_int32_t*)spm->rows();
-    // sparse.ir = (mat_uint32_t*)spm->rows();
+    sparse.ir = (mat_uint32_t*)spm->rows();
     sparse.nir = nnz; // Number of elements in ir
 
                       // Array size n + 1 with jc[k] being the index into ir / data of the
@@ -1104,8 +1112,7 @@ matvar_t* OmlMatio::Currency2MatSparse(const char* name, const Currency& cur)
                       // of pointerB with last element of pointerE
     std::vector<int> jc(spm->pointerB(), spm->pointerB() + n);
     jc.push_back(*(spm->pointerE() + n - 1));
-	sparse.jc = (mat_int32_t*)jc.data();
-    // sparse.jc = (mat_uint32_t*)jc.data();
+    sparse.jc = (mat_uint32_t*)jc.data();
     sparse.njc = n + 1;
 
     sparse.ndata = nnz;                       // Number of values

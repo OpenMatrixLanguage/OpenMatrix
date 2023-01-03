@@ -1,0 +1,2 @@
+fid = fopen('FileManipulation\numbers2.txt','r');
+M = fscanf(fid,'%f',[10 1])

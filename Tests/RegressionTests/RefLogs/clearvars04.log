@@ -1,0 +1,7 @@
+int1 = 1
+intb = b
+Variables in current scope:
+int1
+intb
+clearvars int*
+No variables in current scope in call to function who at line number 11 in file clearvars04.oml

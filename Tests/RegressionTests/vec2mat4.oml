@@ -1,0 +1,2 @@
+vec2mat(2, 3)
+[m, v] = vec2mat(5 + i, 4)

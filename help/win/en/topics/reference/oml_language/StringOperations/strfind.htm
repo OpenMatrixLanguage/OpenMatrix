@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="strfind" /><meta name="abstract" content="Searches for all instances of the pattern pat in s. Returns a matrix, R, whose elements are indices of occurrences of pat in s." /><meta name="description" content="Searches for all instances of the pattern pat in s. Returns a matrix, R, whose elements are indices of occurrences of pat in s." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="String Operations Commands" /><meta name="indexterms" content="strfind" /><meta name="DC.subject" content="strfind" /><meta name="keywords" content="strfind" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StringOperations/stringoperations_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StringOperations/contains.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/find.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StringOperations/regexp.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StringOperations/strrep.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>strfind</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="strfind" /><meta name="abstract" content="Searches for all instances of the pattern pat in s. Returns a matrix, R, whose elements are indices of occurrences of pat in s." /><meta name="description" content="Searches for all instances of the pattern pat in s. Returns a matrix, R, whose elements are indices of occurrences of pat in s." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="String Operations Commands" /><meta name="indexterms" content="strfind" /><meta name="DC.subject" content="strfind" /><meta name="keywords" content="strfind" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StringOperations/stringoperations_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StringOperations/contains.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/find.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StringOperations/regexp.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StringOperations/strrep.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>strfind</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -80,21 +80,21 @@
     <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
       <div class="p">String
-        input:<pre class="pre codeblock"><code>R = strfind('This is a strfind example', 'is')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R = [Matrix] 1 x 2
-3  6</code></code></pre></div>
+        input:<pre class="pre codeblock"><code>R = strfind('This is a strfind example', 'is')</code></pre><pre class="pre codeblock"><code>R = [Matrix] 1 x 2
+3  6</code></pre></div>
 
       <div class="p">Cell array
-        input:<pre class="pre codeblock"><code>R = strfind({'This', 'is', 'a', 'strfind', 'example'}, 'is')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R =
+        input:<pre class="pre codeblock"><code>R = strfind({'This', 'is', 'a', 'strfind', 'example'}, 'is')</code></pre><pre class="pre codeblock"><code>R =
 {
 [1,1] 3
 [1,2] 1
 [1,3] [Matrix] 0 x 0
 [1,4] [Matrix] 0 x 0
 [1,5] [Matrix] 0 x 0
-}</code></code></pre></div>
+}</code></pre></div>
 
       <div class="p">Cell array input with overlapping
-        find:<pre class="pre codeblock"><code>R=strfind({'This is', 'is', 'a', 'strfind', 'example in help'}, 'is', 'overlaps', true)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R =
+        find:<pre class="pre codeblock"><code>R=strfind({'This is', 'is', 'a', 'strfind', 'example in help'}, 'is', 'overlaps', true)</code></pre><pre class="pre codeblock"><code>R =
 {
 [1,1] [Matrix] 1 x 2
 3  6
@@ -102,17 +102,17 @@
 [1,3] [Matrix] 0 x 0
 [1,4] [Matrix] 0 x 0
 [1,5] [Matrix] 0 x 0
-}</code></code></pre></div>
+}</code></pre></div>
 
       <div class="p">Cell array input with non-overlapping
-        find:<pre class="pre codeblock"><code>R=strfind({'This is', 'is', 'a', 'strfind', 'example in help'}, 'in', 'overlaps', false)</code></pre><pre class="pre codeblock"><code><code class="ph codeph">R =
+        find:<pre class="pre codeblock"><code>R=strfind({'This is', 'is', 'a', 'strfind', 'example in help'}, 'in', 'overlaps', false)</code></pre><pre class="pre codeblock"><code>R =
 {
 [1,1] [Matrix] 0 x 0
 [1,2] [Matrix] 0 x 0
 [1,3] [Matrix] 0 x 0
 [1,4] 5
 [1,5] 9
-}</code></code></pre></div>
+}</code></pre></div>
 
     </section>
 

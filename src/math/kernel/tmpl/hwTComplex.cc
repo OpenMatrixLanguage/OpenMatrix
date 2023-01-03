@@ -21,8 +21,8 @@
 //
 //:---------------------------------------------------------------------------
 
-#include <GeneralFuncs.h>
-#include <hwMathStatus.h>
+#include "../GeneralFuncs.h"
+#include "../hwMathStatus.h"
 
 #ifndef OS_WIN
   #define _hypot hypot

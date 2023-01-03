@@ -18,7 +18,7 @@
 #define _hwMathException_h
 
 #include <exception>
-#include <hwMathStatus.h>
+#include "hwMathStatus.h"
 
 #pragma warning(disable : 4275)
 

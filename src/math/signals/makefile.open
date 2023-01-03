@@ -30,6 +30,7 @@ CXX_INCLUDES += -I$(OML_ROOT)/src/math/polynom
 CXX_INCLUDES += -I$(OML_ROOT)/src/math/statistics
 CXX_INCLUDES += -I. $(HWMATHKERNEL_INC)
 CXX_INCLUDES += -I$(FFTW_INCLUDE)
+CXX_INCLUDES += -I$(MKL_INCLUDE)
 
 ifneq (,$(findstring NT,$(UNAME)))
    LIBS += hwmathutils.lib hwpolynom.lib hwstatistics.lib

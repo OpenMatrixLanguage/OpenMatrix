@@ -23,7 +23,8 @@
 #include "OML_Error.h"
 #include "MathUtilsFuncs.h"
 #include "SpecialFuncs.h"
-#include "hwMatrix.h"
+#include "hwMatrix_NMKL.h"
+#include "hwMatrixN_NMKL.h"
 #include "MatrixNUtils.h"
 
 #if defined(_DARWIN) || defined(LINUX)
@@ -81,7 +82,7 @@ bool OmlBeta(EvaluatorInterface           eval,
             if (!mtx2->IsReal())
                 throw OML_Error(OML_ERR_REAL, 2, OML_VAR_VALUE);
 
-            hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx2->M(), mtx2->N(), hwMatrix::REAL);
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx2->M(), mtx2->N(), true);
 
             for (int k = 0; k < mtx2->Size(); k++)
                 (*result)(k) = BetaFunc(input1.Scalar(), (*mtx2)(k));
@@ -105,7 +106,7 @@ bool OmlBeta(EvaluatorInterface           eval,
 
         if (input2.IsScalar())
         {
-            hwMatrix* result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(m, n, true);
 
             for (int k = 0; k < mtx1->Size(); k++)
                 (*result)(k) = BetaFunc((*mtx1)(k), input2.Scalar());
@@ -122,7 +123,7 @@ bool OmlBeta(EvaluatorInterface           eval,
             if (mtx2->M() != m || mtx2->N() != n)
                 throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_VALUE);
 
-            hwMatrix* result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(m, n, true);
 
             for (int k = 0; k < mtx1->Size(); k++)
                 (*result)(k) = BetaFunc((*mtx1)(k), (*mtx2)(k));
@@ -171,7 +172,7 @@ bool OmlBetaLn(EvaluatorInterface           eval,
             if (!mtx2->IsReal())
                 throw OML_Error(OML_ERR_REAL, 2, OML_VAR_VALUE);
 
-            hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx2->M(), mtx2->N(), hwMatrix::REAL);
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx2->M(), mtx2->N(), true);
 
             for (int k = 0; k < mtx2->Size(); k++)
                 (*result)(k) = BetaLog(input1.Scalar(), (*mtx2)(k));
@@ -195,7 +196,7 @@ bool OmlBetaLn(EvaluatorInterface           eval,
 
         if (input2.IsScalar())
         {
-            hwMatrix* result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(m, n, true);
 
             for (int k = 0; k < mtx1->Size(); k++)
                 (*result)(k) = BetaLog((*mtx1)(k), input2.Scalar());
@@ -212,7 +213,7 @@ bool OmlBetaLn(EvaluatorInterface           eval,
             if (mtx2->M() != m || mtx2->N() != n)
                 throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_VALUE);
 
-            hwMatrix* result = EvaluatorInterface::allocateMatrix(m, n, hwMatrix::REAL);
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(m, n, true);
 
             for (int k = 0; k < mtx1->Size(); k++)
                 (*result)(k) = BetaLog((*mtx1)(k), (*mtx2)(k));
@@ -258,7 +259,7 @@ bool OmlGamma(EvaluatorInterface           eval,
         if (!mtx->IsReal())
             throw OML_Error(OML_ERR_REAL, 1, OML_VAR_VALUE);
 
-        hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), hwMatrix::REAL);
+        hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), true);
 
         for (int k = 0; k < mtx->Size(); k++)
             (*result)(k) = GammaFunc((*mtx)(k));
@@ -299,7 +300,7 @@ bool OmlGammaLn(EvaluatorInterface           eval,
         if (!mtx->IsReal())
             throw OML_Error(OML_ERR_REAL, 1, OML_VAR_VALUE);
 
-        hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), hwMatrix::REAL);
+        hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), true);
 
         for (int k = 0; k < mtx->Size(); k++)
             (*result)(k) = GammaLog((*mtx)(k));
@@ -374,7 +375,7 @@ bool OmlFactorial(EvaluatorInterface           eval,
         if (!mtx->IsReal())
             throw OML_Error(OML_ERR_POSINTEGER, 1, OML_VAR_VALUE);
 
-        hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), hwMatrix::REAL);
+        hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), true);
 
         for (int k = 0; k < mtx->Size(); k++)
             (*result)(k) = Factorial((*mtx)(k));
@@ -411,7 +412,7 @@ bool OmlBins(EvaluatorInterface           eval,
     const hwMatrix* data = inputs[0].ConvertToMatrix();
     int numBins          = static_cast<int>(inputs[1].Scalar());
     std::unique_ptr<hwMatrix> result(EvaluatorInterface::allocateMatrix(1, 
-                                     numBins, hwMatrix::REAL));
+                                     numBins, true));
 
     BuiltInFuncsUtils::CheckMathStatus(eval, Bins(*data, *result));
 

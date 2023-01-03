@@ -7,9 +7,6 @@ addons:
    sources:
     - ubuntu-toolchain-r-test
    packages:
-    - gcc-4.9
-    - g++-4.9
-    - gfortran-4.9
   apt_packages:
     - gfortran
 sudo: required
@@ -32,8 +29,8 @@ script:
 - export LD_LIBRARY_PATH=$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/mkl/lib/intel64_lin:$LD_LIBRARY_PATH
 - export LD_LIBRARY_PATH=$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/compiler/lib/intel64_lin:$LD_LIBRARY_PATH
 - export LD_LIBRARY_PATH=$OML_THIRDPARTY/fftw/fftw-3.2.2/.libs:$OML_THIRDPARTY/ANTLR/libantlr3c-3.4/.libs:$LD_LIBRARY_PATH
-- export LD_LIBRARY_PATH=$OML_THIRDPARTY/matio/matio-1.5.12/src/.libs:$OML_THIRDPARTY/hdf5/hdf5-1.10.1/hdf5/lib:$LD_LIBRARY_PATH
-- export LD_LIBRARY_PATH=$OML_THIRDPARTY/sundials/sundials-3.1.0-install/lib:$OML_THIRDPARTY/qhull/qhull-2015.2/lib:$LD_LIBRARY_PATH
+- export LD_LIBRARY_PATH=$OML_THIRDPARTY/matio/matio-1.5.19/linux64/lib64:$OML_THIRDPARTY/hdf/hdf5-1.12.0/linux64/lib:$LD_LIBRARY_PATH
+- export LD_LIBRARY_PATH=$OML_THIRDPARTY/sundials/sundials-6.2.0/linux64/lib:$OML_THIRDPARTY/qhull/qhull-2015.2/lib:$LD_LIBRARY_PATH
 - export LD_LIBRARY_PATH=$OML_ROOT/src/bin/linux64:$LD_LIBRARY_PATH
 - export LD_LIBRARY_PATH=/usr/bin:/usr/lib:/usr/lib64:/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 - g++ --version
@@ -41,11 +38,6 @@ script:
 - which $CXX
 - gfortran --version
 - which gfortran
-- gfortran-4.9 --version
-- which gfortran-4.9
-##- ls -alF /usr/bin | grep fortran
-##- ls -alF /usr/lib | grep fortran
-##- ls -alF /usr/lib64 | grep fortran
 - ls -alF /usr/lib/x86_64-linux-gnu | grep fortran
 ##- ls -alF /lib/x86_64-linux-gnu | grep fortran
 - set | grep LD_LIBRARY_PATH
@@ -55,14 +47,15 @@ script:
 - cd $OML_THIRDPARTY/ANTLR
 - find . -iname "libantlr3c*"
 - echo ==============================
-- echo ==============================
 - echo $LD_LIBRARY_PATH
 - echo $OML_ROOT
 - echo $OML_THIRDPARTY
 - echo $PATH
 - cd $OML_ROOT/src
+- echo ==============================
+- pwd
 - ls -alF
-- make -f makefile.open
+- make -f makefile.open -k
 after_success:
 - ls -alF $OML_ROOT/src/bin/linux64
 - ldd $OML_ROOT/src/bin/linux64/omlconsole

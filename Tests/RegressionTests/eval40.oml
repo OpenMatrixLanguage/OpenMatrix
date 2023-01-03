@@ -1,0 +1,5 @@
+function foo(args)
+  disp(123)
+end
+
+d = eval('foo(1)')

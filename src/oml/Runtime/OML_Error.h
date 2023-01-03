@@ -21,7 +21,7 @@
 
 #include <string>
 
-#include "hwMathStatus.h"
+#include <math/kernel/hwMathStatus.h>
 
 
 //!
@@ -139,6 +139,7 @@ enum omlMathErrCode
     OML_ERR_INTERNAL,                        // internal error
     OML_ERR_AUTHENTICATE,                    // authentication failure
     OML_ERR_UNICODE_FILENAME,                // file name cannot have Unicode characters
+    OML_ERR_STRING_POSINTEGER,               // must be a string or positive integer
 
     // optimization codes
     OML_ERR_OBJSTRRET1,                      // invalid objective function; must have exactly 1 return
@@ -187,10 +188,6 @@ enum omlMathErrCode
 	OML_ERR_ABF_SUBCASE_EMPTY,               // subcase name is missing; check input
 	OML_ERR_ABF_EXPORT_DONE,                 // data is already exported
 	OML_ERR_ABF_WRITE_IN_PROGRESS,           // data write is in progress
-
-    //HW reader Codes
-    OML_ERR_HWREADER_TIMECHANNELS_COMPARE,   // to compare time channels
-    OML_ERR_HWREADER_SUBCASE_INVALID_RANGE,  // subcase index out of range
 
     //HDF5 reader/writer Codes
     OML_ERR_HDF5_INVALID_FILE,               // not a valid hdf5 file
@@ -257,15 +254,49 @@ enum omlMathErrCode
     OML_ERR_RPC_XVECT_NUM_POINTS,            // X vector should have at least two data points
     OML_ERR_RPC_XVECT_SPREAD,                // X vector is not evenly distributed
     
-    //ReadCAE Builder
-    OML_ERR_RCB_INVALID_TYPE,                // Invalid Datatype.
-    OML_ERR_RCB_INVALID_REQUEST,             // Invalid Requests.
-    OML_ERR_RCB_MISSING_COMPONENT,           // Missing component.
-    OML_ERR_RCB_INVALID_COMPONENT,           // Invalid component.
-    OML_ERR_RCB_MISSING_TIME,                // Missing time.
-    OML_ERR_RCB_FAIL_READER_INIT,            // Reader initialization failed.
-    OML_ERR_RCB_READING_FAILED,              // Problem reading file.
-    OML_ERR_RCB_INVALID_FILE_ENTRY,          // Filename cannot be an empty string. Specify a valid filename.
+    //ReadCAE Builder && HW reader Codes
+    OML_ERR_HWREADER_INVALID_TYPE,           // invalid datatype
+    OML_ERR_HWREADER_INVALID_REQUEST,        // invalid requests
+    OML_ERR_HWREADER_MISSING_COMPONENT,      // missing component
+    OML_ERR_HWREADER_INVALID_COMPONENT,      // invalid component
+    OML_ERR_HWREADER_MISSING_TIME,           // missing time
+    OML_ERR_HWREADER_INVALID_TIME,           // invalid time
+    OML_ERR_HWREADER_FAIL_READER_INIT,       // reader initialization failed
+    OML_ERR_HWREADER_READING_FAILED,         // problem reading file
+    OML_ERR_HWREADER_INVALID_FILE_ENTRY,     // filename cannot be an empty string. Specify a valid filename
+    OML_ERR_HWREADER_TIMECHANNELS_COMPARE,   // to compare time channels
+    OML_ERR_HWREADER_SUBCASE_INVALID_RANGE,  // subcase index out of range
+    OML_ERR_HWREADER_NEED_SUBCASE,           // must specify a subcase for files with subcases
+    OML_ERR_HWREADER_NO_SUBCASE,             // file has no subcases
+    OML_ERR_HWREADER_STRING_POSINTEGER,      // invalid input; must be a string or an integer
+    OML_ERR_HWREADER_INVALID_TRC,            // invalid type, request, and component combination
+    OML_ERR_HWREADER_SUBCASE_READ_FAIL,      // problem getting subcases from file
+    OML_ERR_HWREADER_TYPE_READ_FAIL,         // problem getting data types from file
+    OML_ERR_HWREADER_REQUEST_READ_FAIL,      // problem getting data requests from file
+    OML_ERR_HWREADER_COMP_READ_FAIL,         // problem getting components from file
+    OML_ERR_HWREADER_FILTER_COMP_READ_FAIL,  // problem getting filtered components from file
+    OML_ERR_HWREADER_INVALID_TYPE_INDX,      // invalid datatype index
+    OML_ERR_HWREADER_INVALID_REQUEST_INDX,   // invalid request index
+    OML_ERR_HWREADER_INVALID_COMPONENT_INDX, // invalid component index
+    OML_ERR_HWREADER_CELL_INDX,              // index must be less than the number of rows in the input cell
+    OML_ERR_HWREADER_INDX_POSINTEGER,        // index must be a positive integer
+    OML_ERR_HWREADER_EXTRACT_STR_SCALAR,     // extract fields must either be strings or indices
+    OML_ERR_HWREADER_DIMENSIONS_MATCH,       // dimensions must match
+    OML_ERR_HWREADER_INDICES_REAL,           // indices must be real
+    OML_ERR_HWREADER_TRC_DATA_TYPE,          // last three inputs must be Type, Req, and Comp strings or integers
+    OML_ERR_HWREADER_STRC_DATA_TYPE,         // last four inputs must be Subcase, Type, Req, and Comp strings or integers
+    OML_ERR_HWREADER_CELL_4_5_COLS,          // cell array input must have 4 or 5 columns
+    OML_ERR_HWREADER_CELL_3_4_COLS,          // cell array input must have 3 or 4 columns        
+    OML_ERR_HWREADER_REQ_CELL_1_N,           // request input cell should be 1,n size
+    OML_ERR_HWREADER_COMP_CELL_1_N,          // component input cell should be 1,n size
+    OML_ERR_HWREADER_TIME_CELL_1_N,          // time input cell should be 1,n size
+    OML_ERR_HWREADER_OUTPUT_CELL_MAT,        // invalid output type requested. Output can be cell or matrix. Valid input value 0 or 1
+    OML_ERR_HWREADER_INVALID_UNIT_TYPE,      // invalid unit type
+
+    OML_ERR_SPREADSHEET_RANGE,               // must be a spreadsheet style range
+    OML_ERR_WINDOWSONLY_OP,                  // invalid operation; operation is only valid on Windows
+    OML_ERR_FILEALREADYOPEN_OP,              // invalid operation; file is already open in other application(s)
+    OML_ERR_OMLINTERFACE_OP,                 // invalid operation; error with 'oml'(default) interface; use 'com' interface
 
     OML_ERR_END
 };

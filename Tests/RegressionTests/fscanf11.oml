@@ -1,0 +1,5 @@
+file = 'FileManipulation\numbers.txt';
+fid = fopen(file,'r');
+format long
+A = fscanf(fid, '%g', 3)
+fclose(fid);

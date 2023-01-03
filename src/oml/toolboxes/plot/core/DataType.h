@@ -1,7 +1,7 @@
 /**
 * @file DataType.h
 * @date May 2017
-* Copyright (C) 2017-2018 Altair Engineering, Inc.  
+* Copyright (C) 2017-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -38,6 +38,8 @@ namespace omlplot{
         vector<double> x;
         vector<double> y;
         vector<double> z;
+        vector<double> u;
+        vector<double> v;
         vector<double> colorMat;
         string style;
         vector<string> properties;
@@ -48,6 +50,7 @@ namespace omlplot{
         int xcolcount;
         int ycolcount;
         int zcolcount;
+        Currency xCategories;
     };
 
     struct OMLPLOT_EXPORT SurfData{
@@ -89,6 +92,21 @@ namespace omlplot{
     struct OMLPLOT_EXPORT LegendData{
         std::vector<std::string> legends;
         std::vector<double> handles;
+        vector<string> properties;
+        vector<Currency> values;
+    };
+
+    struct OMLPLOT_EXPORT ColorbarData {
+        ColorbarData()
+            : toggleVisibility(false), visible(false)
+        {
+
+        }
+        ~ColorbarData() {}
+        std::vector<string> properties;
+        std::vector<Currency> values;
+        bool toggleVisibility;
+        bool visible;
     };
 
     struct OMLPLOT_EXPORT TextData{
@@ -96,6 +114,8 @@ namespace omlplot{
         std::vector<double> ypos;
         std::vector<double> zpos;
         std::vector<std::string> text;
+        vector<string> properties;
+        vector<Currency> values;
     };
 
     struct OMLPLOT_EXPORT LimData{
@@ -116,6 +136,22 @@ namespace omlplot{
         std::string getString();
     private:
         vector<int> m_vComponent;
+    };
+
+    struct OMLPLOT_EXPORT QueryData {
+        enum SEARCH_OP { OP_INV, OP_AND, OP_OR, OP_XOR, OP_NOT };
+        QueryData()
+            :m_onlyProperty(false), m_depth(-1)
+        {
+        }
+        ~QueryData() {}
+
+        std::vector<double> handles;
+        std::vector<std::string> properties;
+        std::vector<Currency> values;
+        std::vector<int> ops;
+        bool m_onlyProperty;
+        int m_depth;
     };
 
 }	  // namespace omlplot

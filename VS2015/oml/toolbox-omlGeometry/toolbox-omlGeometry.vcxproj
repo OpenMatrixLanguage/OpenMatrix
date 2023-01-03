@@ -89,7 +89,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; GEOMETRYOMLTBOX_EXPORT</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(OML_ROOT)/src/oml/Runtime; $(OML_ROOT)/src/math/kernel; $(OML_ROOT)/src/math/geometry</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)/src/oml/Runtime;$(OML_ROOT)/src/math/kernel;$(OML_ROOT)/src/math/geometry;$(OML_ROOT)\src</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
@@ -118,7 +118,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; GEOMETRYOMLTBOX_EXPORT</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(OML_ROOT)/src/oml/Runtime; $(OML_ROOT)/src/math/kernel; $(OML_ROOT)/src/math/geometry</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)/src/oml/Runtime;$(OML_ROOT)/src/math/kernel;$(OML_ROOT)/src/math/geometry;$(OML_ROOT)\src</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>

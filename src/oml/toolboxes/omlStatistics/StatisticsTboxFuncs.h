@@ -737,6 +737,15 @@ bool OmlMode(EvaluatorInterface           eval,
              const std::vector<Currency>& inputs,
              std::vector<Currency>&       outputs);
 //!
+//! Computes moving mean values [movmean]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlMovMean(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs);
+//!
 //! Computes covariances [cov]
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs

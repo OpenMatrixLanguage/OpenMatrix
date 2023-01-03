@@ -1,0 +1,6 @@
+int1 = 1 
+intb = 'b'
+who
+clearvars int1
+who
+

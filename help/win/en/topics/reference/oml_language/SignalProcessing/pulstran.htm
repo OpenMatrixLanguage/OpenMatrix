@@ -1,0 +1,223 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="pulstran" /><meta name="abstract" content="Generate a pulse train, with the pulse defined either by a function or a sampled pulse." /><meta name="description" content="Generate a pulse train, with the pulse defined either by a function or a sampled pulse." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Signal Processing Commands" /><meta name="indexterms" content="pulstran" /><meta name="DC.subject" content="pulstran" /><meta name="keywords" content="pulstran" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/signalprocessing_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/rectpuls.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/tripuls.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/gauspuls.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>pulstran</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/signalprocessing_commands.htm" title="Signal Processing Commands">Signal Processing Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/SignalProcessing/signalprocessing_commands.htm" title="Signal Processing Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Signal Processing Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">pulstran</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Generate a pulse train, with the pulse defined either by a function or a sampled pulse.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">pt = pulstran<span class="ph var">(t, d, 'func')</span></span></p>
+
+      <p class="p"><span class="ph synph">pt = pulstran<span class="ph var">(t, d, 'func', p1, p2, ...)</span></span></p>
+
+      <p class="p"><span class="ph synph">pt = pulstran<span class="ph var">(t, d, p)</span></span></p>
+
+      <p class="p"><span class="ph synph">pt = pulstran<span class="ph var">(t, d, p, fsp)</span></span></p>
+
+      <p class="p"><span class="ph synph">pt = pulstran<span class="ph var">(t, d, p, fsp, method)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">t</var></dt>
+
+          <dd class="dd pd">The times at which to generate the pulse train.</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">d</var></dt>
+
+          <dd class="dd pd">When d is a vector it contains the time delay for each pulse in the train. See comments.</dd>
+
+          <dd class="dd pd ddexpand">When d is a matrix, the first column contains the time delay for each pulse, and
+            the second column contains the amplitude for each pulse.</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector | matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">'func'</var></dt>
+
+          <dd class="dd pd">The function to generate the individual pulses.</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">string</span></dd>
+
+          <dd class="dd pd ddexpand">The options are as follows.
+            <ul class="ul">
+              <li class="li"><span class="keyword option">'rectpulse'</span> (default)</li>
+
+              <li class="li"><span class="keyword option">'tripuls'</span></li>
+
+              <li class="li"><span class="keyword option">'gauspuls'</span></li>
+
+            </ul>
+
+          </dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">p1, p2, ...</var></dt>
+
+          <dd class="dd pd">The optional parameters to pass to <var class="keyword varname">'func'</var>.</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">p</var></dt>
+
+          <dd class="dd pd">The sampled pulse to be replicated in the train.</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">fsp</var></dt>
+
+          <dd class="dd pd">The sampling frequency for <var class="keyword varname">p</var>.</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">'method'</var></dt>
+
+          <dd class="dd pd">The interpolation method used with replicated <var class="keyword varname">p</var> pulses.</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">string</span></dd>
+
+          <dd class="dd pd ddexpand">The options, as follows, are those for <span class="keyword cmdname">interp1</span>.
+            <ul class="ul">
+              <li class="li"><span class="keyword option">'linear'</span> (default)</li>
+
+              <li class="li"><span class="keyword option">'pchip'</span></li>
+
+              <li class="li"><span class="keyword option">'spline'</span></li>
+
+            </ul>
+
+          </dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">pt</span></dt>
+
+          <dd class="dd pd">The sampled pulse train.</dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example 1</h2>
+      
+      <p class="p">Plot a train of 2 ms rectangular pulses at 5 ms intervals.</p>
+
+      <pre class="pre codeblock"><code>
+fs = 20000;		% sampling rate of the output
+ts = 1 / fs;
+fp = 200;		% pulse rate
+tp = 1 / fp;
+t = [0:ts:4*tp];
+d = [0:tp:4*tp];
+w = .4 * tp;
+p = pulstran (t, d, 'rectpuls', w);
+plot(1000 * t, p);
+title ('Train of 2 ms rectangular pulses at 5 ms intervals');
+xlabel ('Time (ms)');
+ylabel ('Amplitude');
+</code></pre>
+      <figure class="fig fignone">
+        
+        <br /><img class="image" src="images/pulstran_help_figure1.png" height="350" width="350" /><br />
+      <span class="figcap"><span class="fig--title-label">Figure 1. </span>pulstran figure 1</span></figure>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example 2</h2>
+      
+      <p class="p">Plot a train of user defined at 5 ms intervals, with increasing amplitude.</p>
+
+      <pre class="pre codeblock"><code>
+fs = 10000;		% sampling frequency of the output
+ts = 1 / fs;
+fp = 200;		% pulse frequency
+tp = 1 / fp;
+t = [0:ts:4*tp];
+d = [0:tp:4*tp] + 0.5*tp;
+np = length(d);
+d = [d',[1:np]'];
+p = [0.010 0.134 0.409 0.800 1.000 0.800 0.409 0.134 0.010];
+fsp = 3200;		% sampling frequency of p
+x = pulstran (1000 * t, d, p, fsp, 'pchip');
+plot(t, x);
+xlabel ('Time (ms)');
+ylabel ('Amplitude');
+      </code></pre>
+      <figure class="fig fignone">
+        
+        <br /><img class="image" id="reference_wpv_kyv_pr__image" src="images/pulstran_help_figure2.png" height="350" width="350" /><br />
+      <span class="figcap"><span class="fig--title-label">Figure 2. </span>pulstran figure 1</span></figure>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+      <p class="p">It is important to note that when using <var class="keyword varname">'func'</var> the delay
+        times apply to the centers of the pulses, but when using <var class="keyword varname">p</var>
+        the delay times apply to the left endpoints of the pulses.</p>
+
+      <p class="p">When using <var class="keyword varname">'func'</var> = 'gauspuls',
+        <span class="keyword cmdname">gauspuls</span><var class="keyword varname">('cutoff', fc, bw, bwr, tpr)</var> is called
+        to set the pulse width, so <var class="keyword varname">'tpr'</var> can be passed to
+        <span class="keyword cmdname">pulstran</span> as <var class="keyword varname">'p4'</var>.</p>
+
+      
+    </section>
+
+    
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/rectpuls.htm" title="Generate a sampled rectangular pulse centered at zero, with a specified width.">rectpuls</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/tripuls.htm" title="Generate a sampled triangular pulse centered at zero, with a specified width and skew.">tripuls</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/gauspuls.htm" title="Generate a sampled Gaussian modulated sinusoidal pulse centered at zero, with a specified center frequency and fractional bandwidth.">gauspuls</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/SignalProcessing/signalprocessing_commands.htm" title="Signal Processing Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Signal Processing Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

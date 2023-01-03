@@ -46,7 +46,8 @@
 #include "SignalHandlerBase.h"
 #include "StructData.h"
 
-#include "hwMatrixN.h"
+#include "hwMatrixN_NMKL.h"
+#include "hwMatrixS_NMKL.h"
 
 #include "OMLInterface.h"
 
@@ -97,20 +98,9 @@ bool BuiltInFuncsCore::Input(EvaluatorInterface           eval,
 
     if (stringInput)
     {
-        if (result.IsNothing() || result.IsEmpty())
+        if (result.IsNothing() || result.IsEmpty() || result.IsError())
         {
-            result = "";
-        }
-        else if (result.IsError())
-        {
-            // Just show what the user typed as is
-            if (!userInput.empty() && userInput.size() > 2 &&
-                userInput.front() == '\'' && userInput.back() == '\'')
-            {
-                userInput.pop_back();
-                userInput.erase(userInput.begin());
-            }
-            result = userInput;
+            result = Currency(userInput); // Just show what the user typed
         }
     }
     else if (result.IsNothing() || result.IsEmpty() || result.IsError())
@@ -119,7 +109,7 @@ bool BuiltInFuncsCore::Input(EvaluatorInterface           eval,
         result = EvaluatorInterface::allocateMatrix();
     }
 
-	outputs.push_back(result);
+	outputs.emplace_back(result);
 	return true;
 }
 //------------------------------------------------------------------------------
@@ -354,6 +344,7 @@ bool BuiltInFuncsCore::Whos(EvaluatorInterface           eval,
     else
     {
         int i = 1;
+        names.reserve(inputs.size());
         for (std::vector<Currency>::const_iterator itr = inputs.begin();
              itr != inputs.end(); ++itr, ++i)
         {
@@ -361,7 +352,7 @@ bool BuiltInFuncsCore::Whos(EvaluatorInterface           eval,
             if (!input.IsString()) 
                 throw OML_Error(OML_ERR_STRING, i, OML_VAR_TYPE);
 
-            names.push_back(input.StringVal());
+            names.emplace_back(input.StringVal());
         }
     }
 
@@ -391,7 +382,17 @@ bool BuiltInFuncsCore::Whos(EvaluatorInterface           eval,
     for (int i = 0; itr != names.end(); ++itr, ++i)
     {
         std::string name (*itr);
-        Currency    var      = eval.GetValue(name);
+        Currency var = eval.GetValue(name);
+        if (var.IsNothing())
+        {
+            // Create a second interpreter so outputs don't get mixed up
+            Interpreter interp2(eval); 
+            const Currency& var2 = interp2.DoString(name); // Try and evaluate
+            if (!(var2.IsNothing() || var2.IsEmpty() || var2.IsError()))
+            {
+                var = var2;
+            }
+        }
         bool        isreal   = true;
         size_t      numbytes = funcs.GetsBytesUsed(var);
         std::string sz ("1x1");
@@ -559,7 +560,7 @@ std::string BuiltInFuncsCore::DimensionToString( const std::vector<int>& dims) c
         if (!sz.empty())
             sz += "x";
 
-        sz += std::to_string(static_cast<long long>(*itr));
+        sz += std::to_string(*itr);
     }
     return sz;
 }
@@ -773,7 +774,9 @@ void BuiltInFuncsCore::DyFreeLibrary(void* handle)
     dlclose(handle);
 #endif  // OS_UNIX
 }
-
+//------------------------------------------------------------------------------
+// Loads the "Finalize" function and executes it
+//------------------------------------------------------------------------------
 void BuiltInFuncsCore::Finalize(void* handle)
 {
 	if (!handle)
@@ -1466,6 +1469,8 @@ bool BuiltInFuncsCore::Type(EvaluatorInterface           eval,
                         "; '" + str + "' is not defined");
                 }
 
+                fname = BuiltInFuncsUtils::Normpath(fname);
+
 #ifdef OS_WIN
                 BuiltInFuncsUtils utils;
                 std::wstring wtype;
@@ -1875,6 +1880,33 @@ bool BuiltInFuncsCore::Keyboard(EvaluatorInterface           eval,
     if (resetPagination)
     {
         CurrencyDisplay::SetPaginate(cachedPaginate);
+    }
+    return true;
+}
+//------------------------------------------------------------------------------
+// Returns true if given data is a scalar [isfloat]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsCore::IsFloat(EvaluatorInterface           eval,
+                               const std::vector<Currency>& inputs,
+                               std::vector<Currency>&       outputs)
+{
+    if (inputs.empty())
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    const Currency& cur = inputs[0];
+    if (cur.IsLogical() || cur.IsCellArray() || cur.IsNDCellArray() ||
+        cur.IsCellList()  || cur.IsString()  || cur.IsStruct())
+    {
+        outputs.emplace_back(false);
+    }
+    else if (cur.IsScalar() || cur.IsComplex()  || cur.IsEmpty() ||
+             cur.Matrix()   || cur.IsNDMatrix() || cur.IsSparse())
+    {
+        outputs.emplace_back(true);
+    }
+    else
+    {
+        outputs.emplace_back(false);
     }
     return true;
 }

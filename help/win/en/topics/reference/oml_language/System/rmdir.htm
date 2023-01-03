@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="rmdir" /><meta name="abstract" content="Removes the directory dir." /><meta name="description" content="Removes the directory dir." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="System Commands" /><meta name="indexterms" content="rmdir" /><meta name="DC.subject" content="rmdir" /><meta name="keywords" content="rmdir" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/System/system_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/System/mkdir.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/pwd.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>rmdir</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="rmdir" /><meta name="abstract" content="Removes the directory dir." /><meta name="description" content="Removes the directory dir." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="System Commands" /><meta name="indexterms" content="rmdir" /><meta name="DC.subject" content="rmdir" /><meta name="keywords" content="rmdir" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/System/system_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/System/mkdir.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/FileIO/pwd.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>rmdir</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -88,15 +88,15 @@
     <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
       <div class="p">Simple <span class="keyword cmdname">rmdir</span> successful
-        example:<pre class="pre codeblock"><code>rmdir('C:/testdirectory')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">ans = 1</code></code></pre></div>
+        example:<pre class="pre codeblock"><code>rmdir('C:/testdirectory')</code></pre><pre class="pre codeblock"><code>ans = 1</code></pre></div>
 
       <div class="p">Simple <span class="keyword cmdname">rmdir</span> unsuccessful example with fail
-        outputs:<pre class="pre codeblock"><code>[status, msg1, msg2] = rmdir('C:/testdirectory')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">status = 0
+        outputs:<pre class="pre codeblock"><code>[status, msg1, msg2] = rmdir('C:/testdirectory')</code></pre><pre class="pre codeblock"><code>status = 0
 msg1 = Problem removing directory
-msg2 = rmdir</code></code></pre></div>
+msg2 = rmdir</code></pre></div>
 
       <div class="p">Remove a non-empty directory, along with all contents:
-        <pre class="pre codeblock"><code>rmdir('C:/nonempty_testdirectory', 's')</code></pre><pre class="pre codeblock"><code><code class="ph codeph">ans = 1</code></code></pre></div>
+        <pre class="pre codeblock"><code>rmdir('C:/nonempty_testdirectory', 's')</code></pre><pre class="pre codeblock"><code>ans = 1</code></pre></div>
 
     </section>
 

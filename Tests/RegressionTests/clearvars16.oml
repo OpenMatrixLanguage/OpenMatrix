@@ -1,0 +1,29 @@
+int1 = 1; intb = 'b'; strb = 'bb';
+who
+try
+	disp('clearvars int1 -except int1')
+	clearvars int1 -except int1
+catch e
+	e
+end
+who
+
+int1 = 1; intb = 'b'; strb = 'bb';
+who
+try
+	disp('clearvars int1 strb -except int1')
+	clearvars int1 strb -except int1
+catch e
+	e
+end
+who
+
+int1 = 1; intb = 'b'; strb = 'bb';
+who
+try
+	disp('clearvars int1 strb intb -except int1')
+	clearvars int1 strb intb -except int1
+catch e
+	e
+end
+who

@@ -1,5 +1,5 @@
 /**
-* @file hwMatrixN.h
+* @file hwMatrixS.h
 * @date May 2019
 * Copyright (C) 2014-2019 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
@@ -17,13 +17,16 @@
 //:-----------------------------------------------------------------
 //:Description
 //
-//  hwTMatrixS include file
+//  hwTMatrixS include file for matrices with explicit <double>
+//  specialization and MKL dependency. When including this header
+//  the client must link to MKL.
 //
 //:-----------------------------------------------------------------
 #ifndef _hwMatrixS_h
 #define _hwMatrixS_h
 
-#include <tmpl/hwTMatrixS.h>     // class definition
+#include "tmpl/hwTMatrixS.h"      // class definition
+#include "utl/hwTMatrixSUtil.cc"  // MKL dependent implementation file
 
 typedef hwTMatrixS<double> hwMatrixS;
 typedef hwTMatrixS<float> hwMatrixSF;

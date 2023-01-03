@@ -1,0 +1,24 @@
+Variables in current scope:
+int1
+intb
+strb
+clearvars int1 -except int1
+Variables in current scope:
+int1
+intb
+strb
+Variables in current scope:
+int1
+intb
+strb
+clearvars int1 strb -except int1
+Variables in current scope:
+int1
+intb
+Variables in current scope:
+int1
+intb
+strb
+clearvars int1 strb intb -except int1
+Variables in current scope:
+int1

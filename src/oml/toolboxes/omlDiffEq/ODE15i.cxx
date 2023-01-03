@@ -20,6 +20,7 @@
 #include "FunctionInfo.h"
 #include "OML_Error.h"
 #include "StructData.h"
+#include "hwMathException.h"
 
 #include "DiffEqFuncs.h"
 
@@ -117,7 +118,7 @@ static int ODE15i_file_func(double  t,
 //------------------------------------------------------------------------------
 // Wrapper for Jacobian of DAE system function and is called by DAE algorithm
 //------------------------------------------------------------------------------
-static int ODE15i_jac_file_func(long int N,
+static int ODE15i_jac_file_func(int64_t  N,
                                 double   t,
                                 double   cj,
                                 double*  y,
@@ -636,14 +637,14 @@ bool OmlOde15i(EvaluatorInterface           eval,
 
         if (!ODE15i_JAC_func)
         {
-            status = DAE11a(ODE15i_file_func, rootFunc, ODE15i_event_size,
+            status = DAE15i(ODE15i_file_func, rootFunc, ODE15i_event_size,
                             (IDADenseJacFn_client) nullptr, *time, *y, *yp,
                             timeSolution, *ySolution, reltol, abstol, maxstep, userData,
                             pEventTime.get(), pEventFnVal.get(), pEventIndx.get());
         }
         else
         {
-            status = DAE11a(ODE15i_file_func, rootFunc, ODE15i_event_size,
+            status = DAE15i(ODE15i_file_func, rootFunc, ODE15i_event_size,
                             ODE15i_jac_file_func, *time, *y, *yp, timeSolution,
                             *ySolution, reltol, abstol, maxstep, userData,
                             pEventTime.get(), pEventFnVal.get(), pEventIndx.get());
@@ -657,14 +658,14 @@ bool OmlOde15i(EvaluatorInterface           eval,
 
         if (!ODE15i_JAC_func)
         {
-            status = DAE11a(ODE15i_file_func, rootFunc, ODE15i_event_size,
+            status = DAE15i(ODE15i_file_func, rootFunc, ODE15i_event_size,
                             (IDADenseJacFn_client) nullptr, *time, *y, *yp, nullptr,
                             *ySolution, reltol, abstol, maxstep, userData,
                             pEventTime.get(), pEventFnVal.get(), pEventIndx.get());
         }
         else
         {
-            status = DAE11a(ODE15i_file_func, rootFunc, ODE15i_event_size,
+            status = DAE15i(ODE15i_file_func, rootFunc, ODE15i_event_size,
                             ODE15i_jac_file_func, *time, *y, *yp, nullptr,
                             *ySolution, reltol, abstol, maxstep, userData,
                             pEventTime.get(), pEventFnVal.get(), pEventIndx.get());
@@ -697,12 +698,12 @@ bool OmlOde15i(EvaluatorInterface           eval,
         {
             switch (status.GetArg1())
             {
-                case  5:  status.SetArg1(2);  break;
-                case  6:  status.SetArg1(3);  break;
-                case  7:  status.SetArg1(4);  break;
-                case 10:  status.SetArg1(5);  break;
-                case 11:  status.SetArg1(5);  break;
-                case 12:  status.SetArg1(5);  break;
+                case  5: status.SetArg1(2);  break;
+                case  6: status.SetArg1(3);  break;
+                case  7: status.SetArg1(4);  break;
+                case 10: status.SetArg1(5);  break;
+                case 11: status.SetArg1(5);  break;
+                case 12: status.SetArg1(5);  break;
                 default: status.ResetArgs(); break;
             }
         }

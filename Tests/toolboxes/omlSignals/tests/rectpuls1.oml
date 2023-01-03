@@ -1,0 +1,2 @@
+addtoolbox omlsignals
+x = rectpuls([-1:0.1:2])

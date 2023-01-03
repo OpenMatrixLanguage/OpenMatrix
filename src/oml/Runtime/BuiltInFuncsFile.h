@@ -151,6 +151,14 @@ public:
     static bool Csvwrite(EvaluatorInterface,
                          const std::vector<Currency>&,
                          std::vector<Currency>&);
+    //!
+    //! Parses given string to get row/column information
+    //! \param Given string in the form A1
+    //! \param Error to throw if index is incorrect
+    //! \param 0 based row
+    //! \param 0 based column
+    //!
+    static void GetRowColInfo(const std::string&, const std::string&, int&, int&);
 
 private:
     //!
@@ -222,17 +230,6 @@ private:
     //!
     std::vector<int> String2VectorRange(const std::string& strRange,
                                         int                idx);
-    //!
-    //! Parses given string to get row/column information
-    //! \param str Given string in the form A1
-    //! \param err Error to throw if index is incorrect
-    //! \param row Row - 0 based
-    //! \param col Column - 0 based
-    //!
-    void GetRowColInfo(const std::string& str,
-                       const std::string& err,
-                       int&               row,
-                       int&               col);
     //!
     //! Utility to get format
     //! \param Input

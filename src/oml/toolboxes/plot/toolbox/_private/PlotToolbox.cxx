@@ -23,6 +23,7 @@
 #include "core/DataType.h"
 #include "core/Object.h"
 #include <BuiltInFuncsUtils.h>
+#include <BuiltInFuncsSystem.h>
 #include <memory>
 
 using namespace std;
@@ -30,6 +31,7 @@ using namespace std;
 #define CATCH_ALL_PLOT_ERROR throw OML_Error(OML_ERR_PLOT_UNKNOWN_ERROR);
 
 namespace omlplot{
+    void UpdateDateticksForAxis(EvaluatorInterface eval, double axesHandle, const string& axis);
 
     //FILE *pout;
     DataStateMachine dsm;
@@ -189,24 +191,21 @@ namespace omlplot{
                 props = gd->properties;
             }
             if (props.size() == 1){
-                Property p = cm->getObjectProperty(h, props[0]);
-				if (p.getType() == UNSUPPORTED)
+                if (!cm->isPropertySupported(h, props[0]))
 				{
 					BuiltInFuncsUtils::SetWarning(eval, "Property ["+props[0]+"] is not supported in OpenMatrix");
 					return false;
 				}
-				outputs.push_back(castValue(p.getValue()));
+                outputs.push_back(castValue(cm->getObjectPropertyValue(h, props[0])));
             } else {
                 StructData *sd = new StructData();
                 vector<string>::iterator it = props.begin();
                 for (; it != props.end(); ++it){
                     string pname = *it;
-                    Property p = cm->getObjectProperty(h, pname);
-					if (p.getType() == UNSUPPORTED)
+                    if (!cm->isPropertySupported(h, pname))
 						continue;
 
-                    sd->SetValue(0, 0, pname,
-                                 castValue(p.getValue()) );
+                    sd->SetValue(0, 0, pname, castValue(cm->getObjectPropertyValue(h, pname)));
                 }
                 outputs.push_back(sd);
             }
@@ -229,6 +228,11 @@ namespace omlplot{
 				BuiltInFuncsUtils::SetWarning(eval, "Property [" + (*it) + "] is not supported in OpenMatrix");
 
 		}
+        std::vector<std::pair<double, string>> dt = cm->getUpdateDatetickFlag();
+        std::vector<std::pair<double, string>>::const_iterator it = dt.cbegin();
+        for (; it != dt.cend(); ++it) {
+            UpdateDateticksForAxis(eval, it->first, it->second);
+        }
         return true;
     }
 
@@ -416,28 +420,39 @@ namespace omlplot{
 
     bool subplot(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs){
         if (inputs.size() == 3){
-            if ( ! inputs[0].IsPositiveInteger() ){
+            if (!inputs[0].IsPositiveInteger())
                 throw OML_Error(OML_ERR_SCALAR, 1);
-            }
-            if ( ! inputs[1].IsPositiveInteger() ){
+            
+            if (!inputs[1].IsPositiveInteger())
                 throw OML_Error(OML_ERR_SCALAR, 2);
-            }
-            if ( ! inputs[2].IsPositiveInteger() ){
+            
+            if (!inputs[2].IsPositiveInteger() && !inputs[2].IsVector())
                 throw OML_Error(OML_ERR_SCALAR, 3);
-            }
+            
         } else if ( inputs.size() == 1 ){
-            if ( ! inputs[0].IsPositiveInteger() ){
+            if (!inputs[0].IsPositiveInteger())
                 throw OML_Error(OML_ERR_SCALAR, 1);
-            }
+            
         } else {
             throw OML_Error(OML_ERR_NUMARGIN);
         }
-        int row = 1, col = 1, active = 1;
+        int row = 1, col = 1;
+        std::vector<int> active;
         size_t size = inputs.size();
         if (size == 3){
             row = (int)inputs[0].Scalar();
             col = (int)inputs[1].Scalar();
-            active = (int)inputs[2].Scalar();
+            if (inputs[2].IsScalar())
+            {
+                active.push_back((int)inputs[2].Scalar());
+            }
+            else
+            {
+                std::vector<double> idxD = inputs[2].Vector();
+                std::vector<double>::const_iterator it = idxD.cbegin();
+                for (; it != idxD.cend(); ++it)
+                    active.push_back((int)(*it));
+            }
         } else if (size == 1){
             int rcn = (int)inputs[0].Scalar();
             if (rcn < 111){
@@ -445,7 +460,7 @@ namespace omlplot{
             }
             row = rcn / 100;
             col = (rcn / 10) % 10;
-            active = rcn % 10;
+            active.push_back(rcn % 10);
         }
         double h = cm->subplot(row, col, active);
         outputs.push_back(h);
@@ -615,13 +630,12 @@ namespace omlplot{
         if (inputs.size() == 1 && inputs.front().IsString())
         {
             std::string inVal = inputs.front().StringVal();
-            if (inVal == "on" || inVal == "off" || inVal == "bestfit" || inVal == "cubical" ||
-                inVal == "equal" || inVal == "normal" || inVal == "square" || inVal == "unscaled") {
-                std::string warn = "Option [" + inVal + "] is not supported in OpenMatrix";
-                BuiltInFuncsUtils::SetWarning(eval, warn);
+            cm->axis(inVal);
+            string wrn = cm->GetWarningString();
+            if (!wrn.empty())
+                BuiltInFuncsUtils::SetWarning(eval, wrn);
                 return true;
             }
-        }
         std::unique_ptr<LimData> ld = dsm.getLimData(inputs);
         double h = ld->handle;
         if (h == 0){
@@ -683,7 +697,17 @@ namespace omlplot{
 
     bool legend(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs){
         std::unique_ptr<LegendData> ld = dsm.getLegendData(inputs);
-        cm->legend(ld);
+        int nargout = eval.GetNargoutValue();
+        if (nargout > 0 && inputs.empty())
+        {
+            ld->legends.push_back("on");
+        }
+        double lh = cm->legend(ld);
+
+        if (nargout > 0)
+        {
+            outputs.push_back(lh);
+        }
         return true;
     }
 
@@ -691,32 +715,73 @@ namespace omlplot{
         std::unique_ptr<TextData> td = dsm.getTextData(inputs);
         vector<double> res = cm->text(td);
         outputs.push_back(res);
+        std::string wrn = cm->GetWarningString();
+        if (!wrn.empty()) {
+            BuiltInFuncsUtils::SetWarning(eval, wrn);
+        }
         return true;
     }
 
-    bool saveas(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs){
+    bool saveas(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
         if (inputs.size() < 2) {
             throw OML_Error(OML_ERR_NUMARGIN);
         }
-        if ( ! inputs[0].IsScalar() ){
+
+        double handle = -1.0;
+        string filename, fmt;
+        int width = -1, height = -1;
+
+        if (!inputs[0].IsScalar()) {
             throw OML_Error(OML_ERR_SCALAR, 1);
         }
-        if ( ! inputs[1].IsString() ){
-            throw OML_Error(OML_ERR_STRING, 2);
+        handle = inputs[0].Scalar();
+
+        if (!inputs[1].IsString()) {
+            throw OML_Error(OML_ERR_STRING, 2); 
         }
-        if ( inputs.size() == 3 &&
-             (! inputs[2].IsString()) ){
-            throw OML_Error(OML_ERR_STRING, 3);
+        filename = inputs[1].StringVal();
+
+        if (inputs.size() == 3) {
+            if (inputs[2].IsString()) {
+                fmt = inputs[2].StringVal();
+            }
+            else if (inputs[2].IsVector()) {
+                std::vector<double> s = inputs[2].Vector();
+                if (s.size() == 2)
+                {
+                    width = (int)s[0];
+                    height = (int)s[1];
+                }
+            }
+            else {
+                throw OML_Error(OML_ERR_STRINGVECTOR, 3);
+            }
+        }
+        else if (inputs.size() > 3) {
+            if (!inputs[2].IsString()) {
+                throw OML_Error(OML_ERR_STRING, 3);
+            }
+            fmt = inputs[2].StringVal();
+
+            if (!inputs[3].IsVector()) {
+                throw OML_Error(OML_ERR_VECTOR2, 4);
+            }
+            std::vector<double> s = inputs[3].Vector();
+            if (s.size() == 2)
+            {
+                width = (int)s[0];
+                height = (int)s[1];
+            }
         }
 
-        double handle = inputs[0].Scalar();
-        string filename, fmt;
-        filename = inputs[1].StringVal();
-        if (inputs.size() == 3){
-            fmt = inputs[2].StringVal();
-        }
+        BuiltInFuncsUtils utils;
+        std::string dirPath = utils.GetBaseDir(filename);
+        if (!utils.DoesPathExist(dirPath))
+            throw OML_Error("invalid path; cannot create file [" + filename + "]");
+
+        filename = utils.GetAbsolutePath(filename);
         try {
-            cm->saveas(handle, filename, fmt);
+            cm->saveas(handle, filename, fmt, width, height);
             return true;
         } catch (const OML_Error& e){
             throw e;
@@ -784,61 +849,30 @@ namespace omlplot{
 
 	bool colorbar(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) 
     {
+        std::unique_ptr<ColorbarData> cd = dsm.getColorbarData(inputs);
         double axesHandle = cm->gca();
-        bool toggle = false;
-        std::string state = "on";
-        std::vector<double> range;
-        if (inputs.size() == 0) {
-            toggle = true;
-        } else if (inputs.size() == 1) {
-            if (inputs[0].IsScalar()) {
-                axesHandle = inputs[0].Scalar();
-            } else if (inputs[0].IsString()) {
-                state = inputs[0].StringVal();
-                if (state != "on" && state != "off") {
-                    throw OML_Error(OML_ERR_FUNCSWITCH);
-                }
-            } else if (inputs[0].IsVector()) {
-                range = inputs[0].Vector();
-            } else {
-                throw OML_Error(OML_ERR_NUMARGIN);
-            }
-        } else if (inputs.size() == 2) {
-            if (inputs[0].IsScalar()) {
-                axesHandle = inputs[0].Scalar();
-                if (inputs[1].IsString()) {
-                    state = inputs[1].StringVal();
-                    if (state != "on" && state != "off") 
-                        throw OML_Error(OML_ERR_FUNCSWITCH);
-                } else if (inputs[1].IsVector()) {
-                    range = inputs[1].Vector();
-                } else {
-                    throw OML_Error(OML_ERR_NUMARGIN);
-                }
-            } else  {
-                throw OML_Error(OML_ERR_NUMARGIN); 
-            }        
-        }
+        if (!inputs.empty() && inputs[0].IsScalar())
+            axesHandle = inputs[0].Scalar();
 
         int nargout = eval.GetNargoutValue();
-        if (toggle && nargout!=2)
-            cm->colorbar(axesHandle);
-        else
-            cm->colorbar(axesHandle, state, range);
-        // get return values
-        if (nargout == 2)
+        if ((nargout > 0 && inputs.empty()) || !inputs.empty())
+        {
+            cd->toggleVisibility = false;
+            cd->visible = true;
+        }
+
+        double lh = cm->colorbar(axesHandle, cd);
+        
+        if (nargout == 1)
+        {
+            outputs.push_back(lh);
+        }
+        else if (nargout == 2)
         {
             std::vector<double> r = cm->colorbarRange(axesHandle);
             outputs.insert(outputs.end(), r.begin(), r.end());
         }
-
-        if (nargout == 1)
-        {
-            BuiltInFuncsUtils::SetWarning(eval, "Syntax 'h = colorbar()' is not supported in OpenMatrix");
-            outputs.push_back(-1);
-        }
-
-		return true;
+        return true;
 	}
 
 
@@ -885,16 +919,356 @@ namespace omlplot{
         return true;
     }
 
-
 	bool drawnow(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-		BuiltInFuncsUtils::SetWarning(eval, "Command [drawnow] is not supported in OpenMatrix");
-		return false;
+        if (!inputs.empty())
+            throw OML_Error(OML_ERR_NUMARGIN);
+        cm->drawnow();
+		return true;
 	}
+
+    bool findobj(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        std::unique_ptr<QueryData> data = dsm.getQueryData(inputs);
+        std::vector<double> res = cm->findobj(data);
+        outputs.push_back(res);
+        return true;
+    }
+
+    bool deletefun(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        if (inputs.empty())
+        {
+            throw OML_Error(OML_ERR_NUMARGIN);
+        }
+        int nargin = static_cast<int>(inputs.size());
+
+        std::vector<Currency> fileNames;      // These need to be deleted with BuiltInFuncsSystem::Delete
+        std::vector<Currency> handles;    // Handle varnames to clear
+
+        fileNames.reserve(nargin);
+        handles.reserve(nargin);
+
+        for (int i = 0; i < nargin; ++i)
+        {
+            const Currency& cur = inputs[i];
+            if (cur.IsString())
+            {
+                fileNames.push_back(cur);
+                continue;
+            }
+            else if (cur.IsScalar())
+            {
+                double handle = cur.Scalar();
+                if (cm->deleteHandle(handle))
+                {
+                    handles.push_back(cur.GetOutputName());
+                }
+                else
+                    fileNames.push_back(cur);
+            }
+        }
+        if (!handles.empty())
+        {
+            eval.CallFunction("clear", handles);
+        }
+        if (!fileNames.empty())
+        {
+            BuiltInFuncsSystem::Delete(eval, fileNames, outputs);
+        }
+        return true;
+    }
+
+    bool view(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        if (inputs.size() == 0) {
+            outputs.push_back(Currency());
+            return true;
+        }
+        else {
+            double axesHandle = -1;
+            std::vector<double> viewVal;
+            std::vector<Currency>::const_iterator it = inputs.cbegin();
+            int pos = 1;
+            for (; it != inputs.cend(); ++it)
+            {
+                if (it->IsScalar())
+                {
+                    if (cm->isAxes(it->Scalar()))
+                        axesHandle = it->Scalar();
+                    else
+                        viewVal.push_back(it->Scalar());
+                }
+                else if (it->IsMatrix())
+                {
+                    const hwMatrix* mat = it->Matrix();
+                    int c = mat->Size();
+                    if (c == 2 || c == 3 || c == 16)
+                    {
+                        for (int i = 1; i <= c; i++)
+                            viewVal.push_back((*mat)(i - 1));
+                    }
+                    else
+                    {
+                        throw OML_Error(OML_ERR_OPTIONVAL, pos, OML_VAR_PARAMETER);
+                    }
+                }
+                else
+                {
+                    throw OML_Error(OML_ERR_OPTIONVAL, pos, OML_VAR_PARAMETER);
+                }
+                ++pos;
+            }
+
+            if (viewVal.empty()) {
+                outputs.push_back(Currency());
+            }
+            else {
+                cm->view(axesHandle, viewVal);
+            }
+            return true;
+        }
+        return true;
+    }
+
+    bool xline(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        if (inputs.size() == 0)
+            throw OML_Error(OML_ERR_NUMARGIN);
+
+        vector<LineData> vld = dsm.getXLineData(inputs);
+        if (vld.empty())
+            throw OML_Error(OML_ERR_PLOT_UNKNOWN_ERROR);
+
+        double axis = (vld.front().parent > 0) ? vld.front().parent : axis = cm->gca();
+
+        bool hold = cm->ishold(axis);
+        cm->hold(axis, true);
+        
+        vector<double> hs = cm->xline(vld);
+        outputs.push_back(hs);
+
+        cm->hold(axis, hold);
+
+        return true;
+    }
+
+    bool yline(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        if (inputs.size() == 0)
+            throw OML_Error(OML_ERR_NUMARGIN);
+
+        vector<LineData> vld = dsm.getXLineData(inputs);
+        if (vld.empty())
+            throw OML_Error(OML_ERR_PLOT_UNKNOWN_ERROR);
+
+        double axis = (vld.front().parent > 0) ? vld.front().parent : axis = cm->gca();
+
+        bool hold = cm->ishold(axis);
+        cm->hold(axis, true);
+
+        vector<double> hs = cm->yline(vld);
+        outputs.push_back(hs);
+
+        cm->hold(axis, hold);
+        return true;
+    }
+
+    bool waterfall(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        vector<LineData> vld = dsm.getSurfData(inputs);
+        vector<double> hs = cm->waterfall(vld);
+        outputs.push_back(hs);
+        return true;
+    }
+
+    bool ellipse(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        vector<LineData> vld = dsm.getShapeData(inputs, "ellipse");
+        vector<double> hs = cm->ellipse(vld);
+        outputs.push_back(hs);
+        return true;
+    }
+
+    bool rectangle(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        vector<LineData> vld = dsm.getShapeData(inputs, "rectangle");
+        vector<double> hs = cm->rectangle(vld);
+        outputs.push_back(hs);
+        return true;
+    }
 
 	bool fanplot(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-		BuiltInFuncsUtils::SetWarning(eval, "Command [fanplot] is not supported in OpenMatrix");
-		return false;
+        vector<LineData> vld = dsm.getSurfData(inputs);
+        outputs = cm->fanplot(vld);
+		return true;
 	}
+
+    bool pcolor(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        vector<LineData> vld = dsm.getSurfData(inputs);
+        vector<double> hs = cm->pcolor(vld);
+        outputs.push_back(hs);
+        return true;
+    }
+
+    bool patch(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        vector<LineData> vld = dsm.getPatchData(inputs);
+        if (vld.size() > 0 && !vld[0].z.empty()) {
+            BuiltInFuncsUtils::SetWarning(eval, "3d patch plot is not supported in OpenMatrix");
+            return false;
+        }
+
+        vector<double> hs = cm->patch(vld);
+        outputs.push_back(hs);
+        return true;
+    }
+
+    bool stem3(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        vector<LineData> vld = dsm.getSurfData(inputs);
+        vector<double> hs = cm->stem3(vld);
+        outputs.push_back(hs);
+        return true;
+    }
+
+    bool quiver(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        if (inputs.size() < 2)
+            throw OML_Error(OML_ERR_NUMARGIN);
+        std::vector<LineData> vld = dsm.getQuiverData(inputs);
+        vector<double> hs = cm->quiver(vld);
+        outputs.push_back(hs);
+        return true;
+    }
+
+    bool findall(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        std::unique_ptr<QueryData> data = dsm.getQueryData(inputs);
+        std::vector<double> res = cm->findobj(data, true);
+        outputs.push_back(res);
+        return true;
+    }
+
+    void UpdateDateticksForAxis(EvaluatorInterface eval, double axesHandle, const string& axis)
+    {
+        bool datetickEnabled = false;
+        std::string datetickFMT;
+        int datetickFMTIdx;
+        cm->getAxisDatetickOptions(axesHandle, axis, datetickEnabled, datetickFMT, datetickFMTIdx);
+
+        if (!datetickEnabled)
+            return;
+        
+        Object* obj = cm->getObject(axesHandle);
+        if (!obj->isAxes() && obj->getObjectType() != ObjectType::SECONDARYYAXIS)
+            return;
+
+        std::string prop("xtick");
+        if (axis == "y" || obj->getObjectType() == ObjectType::SECONDARYYAXIS)
+            prop = "ytick";
+
+        Currency ticksCur = obj->getPropertyValue(prop).getCurrency();
+        if (ticksCur.IsMatrix() && ticksCur.Matrix()->Size() > 0) {
+            std::vector<Currency> ins, outs;
+            ins.push_back(ticksCur);
+            if (datetickFMT.empty())
+                ins.push_back(datetickFMTIdx);
+            else
+                ins.push_back(datetickFMT);
+
+            Currency out = eval.CallFunction("datestr", ins);
+            // set the user ticks
+            if (out.IsString())
+            {
+                std::string ret = out.StringVal();
+                // if ret starts with '\n' remove it
+                if (ret.find("\n") == 0)
+                    ret = ret.substr(1);
+
+                std::string split = "\n";
+                std::string::size_type start = 0, end;
+                std::vector<std::string> vs;
+                do
+                {
+                    end = ret.find(split, start);
+                    vs.push_back(ret.substr(start, end - start));
+                    start = end + 1;
+                } while (end != std::string::npos);
+                if (!vs.empty() && vs.back() == "")
+                    vs.pop_back();
+
+                HML_CELLARRAY* cell = EvaluatorInterface::allocateCellArray(static_cast<int>(vs.size()), 1);
+                for (int i = 0; i < vs.size(); i++)
+                    (*cell)(i) = vs[i];
+
+                unique_ptr<SetData> data(new SetData);
+                data->handles.push_back(obj->getHandle());
+                data->properties.push_back(prop + "label");
+                data->values.push_back(cell);
+                vector<string> wrn;
+                cm->set(data, wrn);
+            }
+        }
+        else
+        {
+            BuiltInFuncsUtils::SetWarning(eval, "property '" + prop + "' must be set to create date ticks;");
+        }
+    }
+
+    bool datetick(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        
+        double axesH = -1;
+        bool firstInputIsAxis = false;
+        if (inputs.empty() || inputs[0].IsInteger() || !inputs[0].IsScalar())
+        {
+            axesH = cm->gca();
+        }
+        else
+        {
+            axesH = inputs[0].Scalar();
+            firstInputIsAxis = true;
+        }
+        std::string axis = "x";
+        std::string dateFmt;
+        int dateFmtIdx = 0;
+        if (!inputs.empty())
+        {
+            int i = firstInputIsAxis ? 1 : 0;
+            for (; i < inputs.size(); ++i)
+            {
+                if (inputs[i].IsInteger())
+                {
+                    dateFmtIdx = (int)inputs[i].Scalar();
+                    dateFmt = "";
+                    if (dateFmtIdx < 0 || dateFmtIdx>31)
+                        throw OML_Error(OML_Error(OML_ERR_INTEGER).GetErrorMessage() + " in range [0, 31]", i + 1);
+                }
+                else if (inputs[i].IsString())
+                {
+                    std::string tmp = inputs[i].StringVal();
+                    if (tmp == "x" || tmp == "y")
+                    {
+                        axis = tmp;
+                    }
+                    else if (tmp == "z")
+                    {
+                        throw OML_Error(OML_ERR_OPTIONVAL, i + 1);
+                    }
+                    else if (tmp == "keeplimits" || tmp == "keepticks")
+                    {
+                        BuiltInFuncsUtils::SetWarning(eval, "Option '" + tmp + "' is not supported");
+                    }
+                    else
+                    {
+                        dateFmt = tmp;
+                        dateFmtIdx = -1;
+                    }
+                }
+                else
+                {
+                    throw OML_Error(OML_ERR_STRING, i + 1);
+                }
+            }
+        }
+
+        // set the dateticks options
+        cm->datetick(axesH, dateFmt, dateFmtIdx, axis);
+        // update the tick labels
+        UpdateDateticksForAxis(eval, axesH, axis);
+
+        std::string warningMsg = cm->GetWarningString();
+        if (!warningMsg.empty())
+            BuiltInFuncsUtils::SetWarning(eval, warningMsg);
+        return true;
+    }
 
 	bool getmousepos(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
 		BuiltInFuncsUtils::SetWarning(eval, "Command [getmousepos] is not supported in OpenMatrix");
@@ -916,43 +1290,8 @@ namespace omlplot{
 		return false;
 	}
 
-    bool patch(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-        BuiltInFuncsUtils::SetWarning(eval, "Command [patch] is not supported in OpenMatrix");
-        return false;
-    }
-
-    bool pcolor(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-        BuiltInFuncsUtils::SetWarning(eval, "Command [pcolor] is not supported in OpenMatrix");
-        return false;
-    }
-
-    bool waterfall(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-        BuiltInFuncsUtils::SetWarning(eval, "Command [waterfall] is not supported in OpenMatrix");
-        return false;
-    }
-
     bool bar3(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
         BuiltInFuncsUtils::SetWarning(eval, "Command [bar3] is not supported in OpenMatrix");
-        return false;
-    }
-
-    bool findobj(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-        BuiltInFuncsUtils::SetWarning(eval, "Command [findobj] is not supported in OpenMatrix");
-        return false;
-    }
-
-    bool xline(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-        BuiltInFuncsUtils::SetWarning(eval, "Command [xline] is not supported in OpenMatrix");
-        return false;
-    }
-
-    bool yline(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-        BuiltInFuncsUtils::SetWarning(eval, "Command [yline] is not supported in OpenMatrix");
-        return false;
-    }
-
-    bool stem3(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-        BuiltInFuncsUtils::SetWarning(eval, "Command [stem3] is not supported in OpenMatrix");
         return false;
     }
 
@@ -976,8 +1315,8 @@ namespace omlplot{
         return false;
     }
 
-    bool quiver(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-        BuiltInFuncsUtils::SetWarning(eval, "Command [quiver] is not supported in OpenMatrix");
+    bool hist3(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        BuiltInFuncsUtils::SetWarning(eval, "Command [hist3] is not supported in OpenMatrix");
         return false;
     }
 
@@ -1106,7 +1445,7 @@ namespace omlplot{
         return false;
     }
 
-#define TBOXVERSION 1.10
+#define TBOXVERSION 1.11
     extern "C" OMLPLOT_EXPORT
     double GetToolboxVersion(EvaluatorInterface eval){
         return TBOXVERSION;
@@ -1165,27 +1504,33 @@ namespace omlplot{
             evl.RegisterBuiltInFunction("colorbar", oml_doNothing, FunctionMetaData(-1, -1, "Plotting"));
             evl.RegisterBuiltInFunction("plotyy", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
             evl.RegisterBuiltInFunction("colormap", oml_doNothing, FunctionMetaData(-1, -1, "Plotting"));
-			// Not yet supported commands
-            evl.RegisterBuiltInFunction("waterfall", waterfall, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("waterfall", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("box", oml_doNothing, FunctionMetaData(-1, 0, "Plotting"));
+            evl.RegisterBuiltInFunction("drawnow", oml_doNothing, FunctionMetaData(0, 0, "Plotting"));
+            evl.RegisterBuiltInFunction("fanplot", oml_doNothing, FunctionMetaData(3, -1, "Plotting"));
+            evl.RegisterBuiltInFunction("findobj", oml_doNothing, FunctionMetaData(-1, -1, "Plotting"));
+            evl.RegisterBuiltInFunction("xline", oml_doNothing, FunctionMetaData(-1, -1, "Plotting"));
+            evl.RegisterBuiltInFunction("yline", oml_doNothing, FunctionMetaData(-1, -1, "Plotting"));
+            evl.RegisterBuiltInFunction("ellipse", oml_doNothing, FunctionMetaData(-1, 0, "Plotting"));
+            evl.RegisterBuiltInFunction("rectangle", oml_doNothing, FunctionMetaData(-1, 0, "Plotting"));
+            evl.RegisterBuiltInFunction("patch", oml_doNothing, FunctionMetaData(-1, -1, "Plotting"));
+            evl.RegisterBuiltInFunction("pcolor", oml_doNothing, FunctionMetaData(-1, -1, "Plotting"));
+            evl.RegisterBuiltInFunction("stem3", oml_doNothing, FunctionMetaData(-1, -1, "Plotting"));
+            evl.RegisterBuiltInFunction("quiver", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("findall", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("datetick", oml_doNothing, FunctionMetaData(-4, 0, "Plotting"));
+
+            // Not yet supported commands
             evl.RegisterBuiltInFunction("bar3", bar3, FunctionMetaData(-1, 1, "Plotting"));
-			evl.RegisterBuiltInFunction("box", box, FunctionMetaData(-1, 0, "Plotting"));
-			evl.RegisterBuiltInFunction("drawnow", drawnow, FunctionMetaData(0, 0, "Plotting"));
-			evl.RegisterBuiltInFunction("fanplot", fanplot, FunctionMetaData(3, -1, "Plotting"));
 			evl.RegisterBuiltInFunction("getmousepos", getmousepos, FunctionMetaData(0, 2, "Plotting"));
 			evl.RegisterBuiltInFunction("imagesc", imagesc, FunctionMetaData(-1, 1, "Plotting"));
 			evl.RegisterBuiltInFunction("uiresume", uiresume, FunctionMetaData(-1, 1, "Plotting"));
 			evl.RegisterBuiltInFunction("uiwait", uiwait, FunctionMetaData(-1, 1, "Plotting"));
-            evl.RegisterBuiltInFunction("patch", patch, FunctionMetaData(-1, -1, "Plotting"));
-            evl.RegisterBuiltInFunction("pcolor", pcolor, FunctionMetaData(-1, -1, "Plotting"));
-            evl.RegisterBuiltInFunction("findobj", findobj, FunctionMetaData(-1, -1, "Plotting"));
-            evl.RegisterBuiltInFunction("xline", xline, FunctionMetaData(-1, -1, "Plotting"));
-            evl.RegisterBuiltInFunction("yline", yline, FunctionMetaData(-1, -1, "Plotting"));
-            evl.RegisterBuiltInFunction("stem3", stem3, FunctionMetaData(-1, -1, "Plotting"));
             evl.RegisterBuiltInFunction("copystyle", copystyle, FunctionMetaData(-1, -1, "Plotting"));
             evl.RegisterBuiltInFunction("pastestyle", pastestyle, FunctionMetaData(-1, -1, "Plotting"));
             evl.RegisterBuiltInFunction("getframe", getframe, FunctionMetaData(-1, 1, "Plotting"));
             evl.RegisterBuiltInFunction("movie", movie, FunctionMetaData(-1, 0, "Plotting"));
-            evl.RegisterBuiltInFunction("quiver", quiver, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("hist3", hist3, FunctionMetaData(-2, 1, "Plotting"));
             evl.RegisterBuiltInFunction("autumn", autumn, FunctionMetaData(-1, 1, "Plotting"));
             evl.RegisterBuiltInFunction("bone", bone, FunctionMetaData(-1, 1, "Plotting"));
             evl.RegisterBuiltInFunction("cividis", cividis, FunctionMetaData(-1, 1, "Plotting"));
@@ -1259,35 +1604,42 @@ namespace omlplot{
         evl.RegisterBuiltInFunction("legend", legend, FunctionMetaData(-1, 0, "Plotting"));
         evl.RegisterBuiltInFunction("text", text, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("saveas", saveas, FunctionMetaData(-1, 0, "Plotting"));
-        evl.RegisterBuiltInFunction("view", oml_doNothing, FunctionMetaData(-1, 0, "Plotting"));
+        evl.RegisterBuiltInFunction("view", view, FunctionMetaData(-1, 0, "Plotting"));
         evl.RegisterBuiltInFunction("box", box, FunctionMetaData(-1, 0, "Plotting"));
         evl.RegisterBuiltInFunction("colorbar", colorbar, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("plotyy", plotyy, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("colormap", colormap, FunctionMetaData(-1, -1, "Plotting"));
-#ifdef _DEBUG
+        evl.RegisterBuiltInFunction("delete", deletefun, FunctionMetaData(-1, 0, "Plotting"));
+        evl.RegisterBuiltInFunction("ellipse", ellipse, FunctionMetaData(-1, 0, "Plotting"));
+        evl.RegisterBuiltInFunction("rectangle", rectangle, FunctionMetaData(-1, 0, "Plotting"));
+        evl.RegisterBuiltInFunction("waterfall", waterfall, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("patch", patch, FunctionMetaData(-1, -1, "Plotting"));
+        evl.RegisterBuiltInFunction("pcolor", pcolor, FunctionMetaData(-1, -1, "Plotting"));
+        evl.RegisterBuiltInFunction("drawnow", drawnow, FunctionMetaData(0, 0, "Plotting"));
+        evl.RegisterBuiltInFunction("fanplot", fanplot, FunctionMetaData(3, -1, "Plotting"));
+        evl.RegisterBuiltInFunction("xline", xline, FunctionMetaData(-1, -1, "Plotting"));
+        evl.RegisterBuiltInFunction("yline", yline, FunctionMetaData(-1, -1, "Plotting"));
+        evl.RegisterBuiltInFunction("stem3", stem3, FunctionMetaData(-1, -1, "Plotting"));
+        evl.RegisterBuiltInFunction("quiver", quiver, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("findall", findall, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("datetick", datetick, FunctionMetaData(-4, 0, "Plotting"));
+
+//#ifdef _DEBUG
         evl.RegisterBuiltInFunction("dump", dump, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("out", out, FunctionMetaData(-1, 1, "Plotting"));
-#endif
+//#endif
 		// Not yet supported commands
-        evl.RegisterBuiltInFunction("waterfall", waterfall, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("bar3", bar3, FunctionMetaData(-1, 1, "Plotting"));
-		evl.RegisterBuiltInFunction("drawnow", drawnow, FunctionMetaData(0, 0, "Plotting"));
-		evl.RegisterBuiltInFunction("fanplot", fanplot, FunctionMetaData(3, -1, "Plotting"));
 		evl.RegisterBuiltInFunction("getmousepos", getmousepos, FunctionMetaData(0, 2, "Plotting"));
 		evl.RegisterBuiltInFunction("imagesc", imagesc, FunctionMetaData(-1, 1, "Plotting"));
 		evl.RegisterBuiltInFunction("uiresume", uiresume, FunctionMetaData(-1, 1, "Plotting"));
 		evl.RegisterBuiltInFunction("uiwait", uiwait, FunctionMetaData(-1, 1, "Plotting"));
-        evl.RegisterBuiltInFunction("patch", patch, FunctionMetaData(-1, -1, "Plotting"));
-        evl.RegisterBuiltInFunction("pcolor", pcolor, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("findobj", findobj, FunctionMetaData(-1, -1, "Plotting"));
-        evl.RegisterBuiltInFunction("xline", xline, FunctionMetaData(-1, -1, "Plotting"));
-        evl.RegisterBuiltInFunction("yline", yline, FunctionMetaData(-1, -1, "Plotting"));
-        evl.RegisterBuiltInFunction("stem3", stem3, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("copystyle", copystyle, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("pastestyle", pastestyle, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("getframe", getframe, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("movie", movie, FunctionMetaData(-1, 0, "Plotting"));
-        evl.RegisterBuiltInFunction("quiver", quiver, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("hist3", hist3, FunctionMetaData(-2, 1, "Plotting"));
         evl.RegisterBuiltInFunction("autumn", autumn, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("bone", bone, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("cividis", cividis, FunctionMetaData(-1, 1, "Plotting"));

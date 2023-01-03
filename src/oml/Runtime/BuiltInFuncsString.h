@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsString.h
 * @date November 2015
-* Copyright (C) 2015-2021 Altair Engineering, Inc.  
+* Copyright (C) 2015-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -192,6 +192,24 @@ public:
     //!
     static bool IsNumber(const std::string&,
                          Currency&);
+    //!
+    //! Returns true after doing a case sensitive comparison of strings [strcmp]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //!
+    static bool Strcmp(EvaluatorInterface,
+                       const std::vector<Currency>&,
+                       std::vector<Currency>&);
+    //!
+    //! Returns true after doing a case insensitive comparison of strings [strcmpi]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //!
+    static bool Strcmpi(EvaluatorInterface,
+                        const std::vector<Currency>&,
+                        std::vector<Currency>&);
 
 private:
     //!
@@ -304,6 +322,12 @@ private:
     //!
     void RightTrim(std::string&       in,
                    const std::vector<std::string>& trim);
+
+    //!
+    //! Utility function to convert matrix to a lower case string
+    //! \param Input matrix
+    //!
+    static Currency ToLowerString(const hwMatrix*);
 
 };
 #endif

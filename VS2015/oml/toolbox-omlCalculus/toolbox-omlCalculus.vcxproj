@@ -107,7 +107,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\calculus;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\oml\runtime; $(OML_MKL_INCLUDE)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\calculus;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\oml\runtime;$(OML_MKL_INCLUDE);$(OML_ROOT)\src</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; CALCULUSOMLTBOX_EXPORT  </PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -117,7 +117,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\calculus;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\oml\runtime;$(OML_MKL_INCLUDE)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\calculus;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\oml\runtime;$(OML_MKL_INCLUDE);$(OML_ROOT)\src</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;OS_WIN;_WIN64;CALCULUSOMLTBOX_EXPORT</PreprocessorDefinitions>
     </ClCompile>
     <Link>

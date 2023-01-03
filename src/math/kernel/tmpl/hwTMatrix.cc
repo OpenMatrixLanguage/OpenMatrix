@@ -28,9 +28,9 @@
 #include <string>
 #include <mutex>
 
-#include <Globals.h>
-#include <hwMathStatus.h>
-#include <tmpl/hwTComplex.h>
+#include "../Globals.h"
+#include "../hwMathStatus.h"
+#include "hwTComplex.h"
 
 #ifdef max
    #undef max
@@ -52,7 +52,9 @@ hwTMatrix<T1, T2>::hwTMatrix()
 //! Construct vector
 template<typename T1, typename T2>
 hwTMatrix<T1, T2>::hwTMatrix(int size, DataType dataType)
-                             : m_refCount(1), m_capacity(0)
+    : m_real(nullptr), m_complex(nullptr),
+      m_real_memory(nullptr), m_complex_memory(nullptr),
+      m_refCount(1), m_capacity(0)
 {
     if (size)
     {
@@ -66,10 +68,6 @@ hwTMatrix<T1, T2>::hwTMatrix(int size, DataType dataType)
     }
 
     m_bits.ownData = 1;
-    m_real_memory = nullptr;
-    m_complex_memory = nullptr;
-    m_real = nullptr;
-    m_complex = nullptr;
 
     if (dataType == REAL)
         m_bits.realData = 1;
@@ -82,15 +80,11 @@ hwTMatrix<T1, T2>::hwTMatrix(int size, DataType dataType)
 //! Construct matrix
 template<typename T1, typename T2>
 hwTMatrix<T1, T2>::hwTMatrix(int m, int n, DataType dataType)
-                             : m_refCount(1), m_capacity(0)
+    : m_nRows(m), m_nCols(n), m_real(nullptr), m_complex(nullptr),
+      m_real_memory(nullptr), m_complex_memory(nullptr),
+      m_refCount(1), m_capacity(0)
 {
-    m_nCols = n;
-    m_nRows = m;
     m_bits.ownData = 1;
-    m_real_memory = nullptr;
-    m_complex_memory = nullptr;
-    m_real = nullptr;
-    m_complex = nullptr;
 
     if (dataType == REAL)
         m_bits.realData = 1;
@@ -103,7 +97,8 @@ hwTMatrix<T1, T2>::hwTMatrix(int m, int n, DataType dataType)
 //! Construct vector with external data
 template<typename T1, typename T2>
 hwTMatrix<T1, T2>::hwTMatrix(int size, void* data, DataType dataType)
-                             : m_refCount(1), m_capacity(0)
+    : m_real_memory(nullptr), m_complex_memory(nullptr),
+      m_refCount(1), m_capacity(0)
 {
     if (size)
     {
@@ -116,8 +111,6 @@ hwTMatrix<T1, T2>::hwTMatrix(int size, void* data, DataType dataType)
         m_nRows = 0;
     }
 
-    m_real_memory = nullptr;
-    m_complex_memory = nullptr;
     m_bits.ownData = 0;
 
     if (dataType == REAL)
@@ -138,12 +131,10 @@ hwTMatrix<T1, T2>::hwTMatrix(int size, void* data, DataType dataType)
 template<typename T1, typename T2>
 hwTMatrix<T1, T2>::hwTMatrix(int m, int n, void* data,
                              DataType dataType)
-                             : m_refCount(1), m_capacity(0)
+    : m_nRows(m), m_nCols(n),
+      m_real_memory(nullptr), m_complex_memory(nullptr),
+      m_refCount(1), m_capacity(0)
 {
-    m_nCols = n;
-    m_nRows = m;
-    m_real_memory = nullptr;
-    m_complex_memory = nullptr;
     m_bits.ownData = 0;
 
     if (dataType == REAL)
@@ -176,6 +167,19 @@ hwTMatrix<T1, T2>::hwTMatrix(const hwTMatrix<T1, T2>& source)
     }
 }
 
+//! Move constructor
+template<typename T1, typename T2>
+hwTMatrix<T1, T2>::hwTMatrix(hwTMatrix<T1, T2>&& source)
+    : m_nCols(0), m_nRows(0), m_real(nullptr), m_complex(nullptr),
+      m_real_memory(nullptr), m_complex_memory(nullptr),
+      m_capacity(0), m_refCount(1)
+{
+    m_bits.ownData = 1;
+    m_bits.realData = 1;
+
+    Swap(source);
+}
+
 //! Destructor
 template<typename T1, typename T2>
 hwTMatrix<T1, T2>::~hwTMatrix()
@@ -186,7 +190,7 @@ hwTMatrix<T1, T2>::~hwTMatrix()
     Deallocate();
 }
 
-//! Implement the = operator
+//! Implement the copy = operator
 template<typename T1, typename T2>
 hwTMatrix<T1, T2>& hwTMatrix<T1, T2>::operator=(const hwTMatrix<T1, T2>& rhs)
 {
@@ -201,6 +205,42 @@ hwTMatrix<T1, T2>& hwTMatrix<T1, T2>::operator=(const hwTMatrix<T1, T2>& rhs)
     return *this;
 }
 
+//! Implement the move = operator
+template<typename T1, typename T2>
+hwTMatrix<T1, T2>& hwTMatrix<T1, T2>::operator=(hwTMatrix<T1, T2>&& rhs)
+{
+    if (this == &rhs)
+        return *this;
+
+    if (m_bits.ownData)
+    {
+        Swap(rhs);
+    }
+    else
+    {
+        hwMathStatus status = Copy(rhs);
+
+        if (!status.IsOk())
+            MakeEmpty();
+    }
+
+    return *this;
+}
+/*
+// This would be nice to have, but needs to be in a separate .cc file
+// to avoid conflict when using the MKL based version.
+#include <memory.h>
+
+//! Copy data
+template<>
+inline void hwTMatrix<double>::CopyData(void* dest, const void* src, int count) const
+{
+    if (IsReal())
+        memcpy_s(dest, count * sizeof(double), src, count * sizeof(double));
+    else
+        memcpy_s(dest, count * sizeof(hwTComplex<double>), src, count * sizeof(hwTComplex<double>));
+}
+*/
 // ****************************************************
 //             Data Type and Ownership
 // ****************************************************
@@ -593,7 +633,7 @@ hwMathStatus hwTMatrix<T1, T2>::Reshape(int m, int n)
 
 //! Determine if the matrix is symmetric
 template<typename T1, typename T2>
-bool hwTMatrix<T1, T2>::IsSymmetric(T1 tol) const
+bool hwTMatrix<T1, T2>::IsSymmetric() const
 {
     int i, j;
     int m = m_nRows;
@@ -602,58 +642,26 @@ bool hwTMatrix<T1, T2>::IsSymmetric(T1 tol) const
     if (m != n)
         return false;
 
-    if (tol == (T1) 0)
+    if (m_real)
     {
-        if (m_real)
+        for (i = 0; i < m; ++i)
         {
-            for (i = 0; i < m; ++i)
+            for (j = 0; j < i; ++j)
             {
-                for (j = 0; j < i; ++j)
-                {
-                    if ((*this)(i, j) != (*this)(j, i))
-                        return false;
-                }
-            }
-        }
-
-        if (m_complex)
-        {
-            for (i = 0; i < m; ++i)
-            {
-                for (j = 0; j < i; ++j)
-                {
-                    if (z(i, j) != z(j, i))
-                        return false;
-                }
+                if ((*this)(i, j) != (*this)(j, i))
+                    return false;
             }
         }
     }
-    else
+
+    if (m_complex)
     {
-        T1 norm;
-        hwMathStatus status = Norm(norm, "inf");
-
-        if (m_real)
+        for (i = 0; i < m; ++i)
         {
-            for (i = 0; i < m; ++i)
+            for (j = 0; j < i; ++j)
             {
-                for (j = 0; j < i; ++j)
-                {
-                    if (fabs((*this)(i, j) - (*this)(j, i)) > norm * tol)
-                        return false;
-                }
-            }
-        }
-
-        if (m_complex)
-        {
-            for (i = 0; i < m; ++i)
-            {
-                for (j = 0; j < i; ++j)
-                {
-                    if ((z(i, j) - z(j, i)).Mag() > norm * tol)
-                        return false;
-                }
+                if (z(i, j) != z(j, i))
+                    return false;
             }
         }
     }
@@ -663,7 +671,7 @@ bool hwTMatrix<T1, T2>::IsSymmetric(T1 tol) const
 
 //! Determine if the matrix is Hermitian
 template<typename T1, typename T2>
-bool hwTMatrix<T1, T2>::IsHermitian(T1 tol) const
+bool hwTMatrix<T1, T2>::IsHermitian() const
 {
     int i, j;
     int m = m_nRows;
@@ -672,64 +680,29 @@ bool hwTMatrix<T1, T2>::IsHermitian(T1 tol) const
     if (m != n)
         return false;
 
-    if (tol == (T1) 0)
+    if (m_real)
     {
-        if (m_real)
+        for (i = 0; i < m; ++i)
         {
-            for (i = 0; i < m; ++i)
+            for (j = 0; j < i; ++j)
             {
-                for (j = 0; j < i; ++j)
-                {
-                    if ((*this)(i, j) != (*this)(j, i))
-                        return false;
-                }
-            }
-        }
-
-        if (m_complex)
-        {
-            for (i = 0; i < m; ++i)
-            {
-                for (j = 0; j < i; ++j)
-                {
-                    if (z(i, j) != z(j, i).Conjugate())
-                        return false;
-                }
-
-                if (z(i, i).Imag() != 0.0)  // real diagonal
+                if ((*this)(i, j) != (*this)(j, i))
                     return false;
             }
         }
     }
-    else
+
+    if (m_complex)
     {
-        T1 norm;
-        hwMathStatus status = Norm(norm, "inf");
-
-        if (m_real)
+        for (i = 0; i < m; ++i)
         {
-            for (i = 0; i < m; ++i)
+            for (j = 0; j < i; ++j)
             {
-                for (j = 0; j < i; ++j)
-                {
-                    if (fabs((*this)(i, j) - (*this)(j, i)) > norm * tol)
-                        return false;
-                }
-            }
-        }
-
-        if (m_complex)
-        {
-            for (i = 0; i < m; ++i)
-            {
-                for (j = 0; j < i; ++j)
-                {
-                    if ((z(i, j) - z(j, i).Conjugate()).Mag() > norm * tol)
-                        return false;
-                }
+                if (z(i, j) != z(j, i).Conjugate())
+                    return false;
             }
 
-            if (fabs(z(i, i).Imag()) > norm * tol)  // real diagonal
+            if (z(i, i).Imag() != 0.0)  // real diagonal
                 return false;
         }
     }
@@ -737,7 +710,57 @@ bool hwTMatrix<T1, T2>::IsHermitian(T1 tol) const
     return true;
 }
 
-#include <GeneralFuncs.h>
+//! Determine if the matrix is banded
+template<typename T1, typename T2>
+bool hwTMatrix<T1, T2>::IsBanded(int lower, int upper) const
+{
+    if (m_real)
+    {
+        for (int j = 0; j < m_nCols; ++j)
+        {
+            for (int i = 0; i < _min(j - upper, m_nRows); ++i)
+            {
+                if ((*this)(i, j) != static_cast<T1> (0))
+                {
+                    return false;
+                }
+            }
+
+            for (int i = m_nRows - 1; i > j + lower; --i)
+            {
+                if ((*this)(i, j) != static_cast<T1> (0))
+                {
+                    return false;
+                }
+            }
+        }
+    }
+    else    // complex
+    {
+        for (int j = 0; j < m_nCols; ++j)
+        {
+            for (int i = 0; i < _min(j - upper, m_nRows); ++i)
+            {
+                if (z(i, j) != static_cast<T1> (0))
+                {
+                    return false;
+                }
+            }
+
+            for (int i = m_nRows - 1; i > j + lower; --i)
+            {
+                if (z(i, j) != static_cast<T1> (0))
+                {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+#include "../GeneralFuncs.h"
 
 //! Determine if the matrix contains non-finite elements
 template<typename T1, typename T2>
@@ -4484,6 +4507,31 @@ hwMathStatus hwTMatrix<T1, T2>::L2NormSq(T1& normSq) const
     return hwMathStatus();
 }
 
+//! vector p norm with noninteger p
+template<typename T1, typename T2>
+hwMathStatus hwTMatrix<T1, T2>::Norm(T1& norm, T1 p) const
+{
+    T1 sum = static_cast<T1> (0);
+
+    if (!IsEmptyOrVector())
+        return hwMathStatus(HW_MATH_ERR_VECTOR, 0);
+
+    if (IsReal())
+    {
+        for (int i = 0; i < Size(); ++i)
+            sum += pow(abs(m_real[i]), p);
+    }
+    else
+    {
+        for (int i = 0; i < Size(); ++i)
+            sum += pow(m_complex[i].Mag(), p);
+    }
+
+    norm = pow(sum, 1 / p);
+
+    return hwMathStatus();
+}
+
 //! Dot product of two vectors
 template<typename T1, typename T2>
 hwMathStatus hwTMatrix<T1, T2>::Dot(const hwTMatrix<T1, T2>& A, const hwTMatrix<T1, T2>& B, T1& dot)
@@ -5970,9 +6018,9 @@ void hwTMatrix<T1, T2>::SetCapacity(DataType dataType)
         return;
     }
 
-    constexpr size_t maxSize = std::numeric_limits<int>::max();
+    constexpr int maxSize = (std::numeric_limits<int>::max)();
     
-    if ((size_t) m_nCols > maxSize / (size_t) m_nRows)
+    if (m_nCols > maxSize / m_nRows)
     {
         m_capacity = -10;   // force allocaction failure
         return;
@@ -6217,6 +6265,21 @@ hwMathStatus hwTMatrix<T1, T2>::Copy(const hwTMatrix<T1, T2>& source)
     return hwMathStatus();
 }
 
+//! Swap function
+template<typename T1, typename T2>
+void hwTMatrix<T1, T2>::Swap(hwTMatrix<T1, T2>& source)
+{
+    std::swap(m_nRows, source.m_nRows);
+    std::swap(m_nCols, source.m_nCols);
+    std::swap(m_bits, source.m_bits);
+    std::swap(m_real, source.m_real);
+    std::swap(m_real_memory, source.m_real_memory);
+    std::swap(m_complex, source.m_complex);
+    std::swap(m_complex_memory, source.m_complex_memory);
+    std::swap(m_capacity, source.m_capacity);
+    std::swap(m_refCount, source.m_refCount);
+}
+
 //! Copy a real submatrix from another matrix to *this
 template<typename T1, typename T2>
 void hwTMatrix<T1, T2>::CopyBlock(const T1* real, int m, int n, int row1, int row2,
@@ -6364,6 +6427,9 @@ void hwTMatrix<T1, T2>::CopyData(void* dest, const void* src, int count)
     {
         T1* destTemp = reinterpret_cast<T1*>(dest);
         const T1* srcTemp = reinterpret_cast<T1*>(const_cast<void *>(src));
+
+        if (destTemp == srcTemp)
+            return;
         
         for (int i = 0; i < count; ++i)
             destTemp[i] = srcTemp[i];
@@ -6373,6 +6439,9 @@ void hwTMatrix<T1, T2>::CopyData(void* dest, const void* src, int count)
         T2* destTemp = reinterpret_cast<T2*>(dest);
         const T2* srcTemp = reinterpret_cast<T2*>(const_cast<void *>(src));
         
+        if (destTemp == srcTemp)
+            return;
+
         for (int i = 0; i < count; ++i)
             destTemp[i] = srcTemp[i];
     }

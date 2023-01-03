@@ -35,7 +35,7 @@ class OMLDLL_DECLS ClassInfo
 public:
     //! Constructor
     //! \param[in] name Name of the external C++ class
-    ClassInfo( const std::string& name) : _class_name(name) {}
+    ClassInfo( const std::string& name) : _class_name(name), _constructor(NULL) {}
     //! Destructor
     ~ClassInfo();
 
@@ -81,6 +81,9 @@ public:
 	//! \param[in] value     The default value for the property
 	void AddPropertyDefault(const std::string& name,  Currency value);
 
+    void SetConstructorFunctionInfo(FunctionInfo* cfi);
+    FunctionInfo* GetConstructorFunctionInfo() const;
+
     std::string GetClassname() const { return _class_name; }
 	std::vector<std::string> GetPropertyNames() const;
 	std::vector<std::string> GetMethodNames() const;
@@ -94,6 +97,7 @@ private:
     std::map<std::string, FunctionInfo*> _methods;        //! Methods in language
 	std::map<std::string, FunctionInfo*> _static_methods; //! Static methods in language
 	std::map<std::string, Currency>      _defaults;       //! Methods in language
+    FunctionInfo*                        _constructor;    //! Constructor FunctionInfo
 }; 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------

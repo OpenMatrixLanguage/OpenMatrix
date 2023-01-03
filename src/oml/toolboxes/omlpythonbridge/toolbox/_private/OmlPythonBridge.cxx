@@ -266,8 +266,16 @@ bool OmlPythonBridge::RunFile(const std::string& python_file, PyObject* globals,
         }
         else
         {
+            // python 2.x header is 8 bytes including magic number
             PyMarshal_ReadLongFromFile(fp);
-#ifdef IS_PY3
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 2
+            // python 3.2 and above header is 12 bytes including magic number
+            // https ://www.python.org/dev/peps/pep-3147
+            PyMarshal_ReadLongFromFile(fp);
+#endif
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 7
+            // python 3.7 and above header is 16 bytes including magic number.   
+            // https ://www.python.org/dev/peps/pep-0552
             PyMarshal_ReadLongFromFile(fp);
 #endif
             PyObject* filedata = PyMarshal_ReadLastObjectFromFile(fp);

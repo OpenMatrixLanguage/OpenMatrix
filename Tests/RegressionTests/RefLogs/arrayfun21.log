@@ -1,0 +1,1 @@
+Error: incompatible matrices; dimensions must be consistent in call to function arrayfun at line number 6 in file arrayfun21.oml

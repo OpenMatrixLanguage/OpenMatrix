@@ -1,7 +1,7 @@
 /**
 * @file GeometryTboxFuncs.cxx
 * @date November, 2018
-* Copyright (C) 2018-2020 Altair Engineering, Inc.  
+* Copyright (C) 2018-2022 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -32,7 +32,7 @@
 #include "GeometryFuncs.h"
 
 #define GEOM "Geometry"
-#define TBOXVERSION 2020.1
+#define TBOXVERSION 2022.2
 
 // Returns temporary error file name and redirect QHull errors
 std::string SetQHullErrorFile(EvaluatorInterface eval,
@@ -151,7 +151,7 @@ bool OmlConvHull(EvaluatorInterface           eval,
 
     BuiltInFuncsUtils::CheckMathStatus(eval, status);
     
-    hwMatrix* hullidx = EvaluatorInterface::allocateMatrix(hull.Size(), 1, hwMatrix::REAL);
+    hwMatrix* hullidx = EvaluatorInterface::allocateMatrix(hull.Size(), 1, true);
 
     for (int i = 0; i < hullidx->M(); ++i)
     {
@@ -262,7 +262,7 @@ bool OmlConvHulln(EvaluatorInterface           eval,
 
     BuiltInFuncsUtils::CheckMathStatus(eval, status);
 
-    hwMatrix* hullidx = EvaluatorInterface::allocateMatrix(hull.M(), hull.N(), hwMatrix::REAL);
+    hwMatrix* hullidx = EvaluatorInterface::allocateMatrix(hull.M(), hull.N(), true);
 
     for (int i = 0; i < hullidx->Size(); ++i)
     {
@@ -332,7 +332,7 @@ bool OmlDelaunay(EvaluatorInterface           eval,
     }
 
     int numPts = v->Size();
-    hwMatrix* P = EvaluatorInterface::allocateMatrix(numPts, numDim, hwMatrix::REAL);
+    hwMatrix* P = EvaluatorInterface::allocateMatrix(numPts, numDim, true);
 
     for (int j = 0; j < numPts; ++j)
     {
@@ -487,7 +487,7 @@ bool OmlDelaunayn(EvaluatorInterface           eval,
 
     BuiltInFuncsUtils::CheckMathStatus(eval, status);
 
-    hwMatrix* triangidx = EvaluatorInterface::allocateMatrix(triang.M(), triang.N(), hwMatrix::REAL);
+    hwMatrix* triangidx = EvaluatorInterface::allocateMatrix(triang.M(), triang.N(), true);
 
     for (int i = 0; i < triangidx->Size(); ++i)
     {
@@ -518,7 +518,8 @@ std::string SetQHullErrorFile(EvaluatorInterface eval, int& olderrhandle)
     }
 
     // Batch, Console-batch and GUI modes
-    std::string name(std::tmpnam(nullptr));
+    char*       cname = std::tmpnam(nullptr); // cppcheck-suppress warning; the use of `tmpnam' is dangerous, better use `mkstemp'
+    std::string name  = (cname) ? cname : "";
     if (name.empty())
     {
         return "";
@@ -532,7 +533,7 @@ std::string SetQHullErrorFile(EvaluatorInterface eval, int& olderrhandle)
 #endif
 
     // Redirect stderr
-    FILE* fptr  = freopen(name.c_str(), "w", stderr);
+    std::FILE* fptr = freopen(name.c_str(), "w", stderr);   // cppcheck-suppress resourceLeak; symbolName=fptr
 
 #ifdef OS_WIN
     _dup2(_fileno(fptr), handle1);
@@ -540,7 +541,8 @@ std::string SetQHullErrorFile(EvaluatorInterface eval, int& olderrhandle)
     dup2(fileno(fptr), handle1);
 #endif
 
-    return name;
+    
+    return name; // cppcheck-suppress resourceLeak; symbolName=fptr
 }
 //------------------------------------------------------------------------------
 // Displays QHull errors, based on application mode
@@ -559,10 +561,10 @@ void ShowQHullMessages(EvaluatorInterface eval, const std::string& name, int han
     fflush(stderr);
 
 #ifdef OS_WIN
-    _dup2(handle, fileno(stderr));
+    _dup2(handle, fileno(stderr)); // cppcheck-suppress warning; don't close stderr'
     _flushall();
 #else
-    dup2(handle, fileno(stderr));
+    dup2(handle, fileno(stderr));  // cppcheck-suppress warning; don't close stderr'
 #endif
 
     SignalHandlerBase* handler = eval.GetSignalHandler();
@@ -584,4 +586,5 @@ void ShowQHullMessages(EvaluatorInterface eval, const std::string& name, int han
         }
     }
     std::remove(name.c_str());
+    // fclose(stderr); // cppcheck-suppress - don't close stderr, causes an err if run again
 }

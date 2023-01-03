@@ -1,0 +1,2 @@
+A.one = eye(4,5);
+whos A.one

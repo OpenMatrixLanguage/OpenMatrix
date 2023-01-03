@@ -36,6 +36,7 @@
 #include "BuiltInFuncsUtils.h"
 #include "OutputFormat.h"
 #include "OMLTree.h"
+#include "hwMathException.h"
 
 #ifdef OS_WIN
 #include <Windows.h>
@@ -262,7 +263,9 @@ Currency InterpreterImpl::DoFile(const std::string& filename)
 	{
 		try
 		{
+			_eval.Mark();
 			_eval.RunEncryptedFile(extension, filename);
+			_eval.Unmark();
 		}
 		catch (const OML_Error& e)
 		{
@@ -271,6 +274,7 @@ Currency InterpreterImpl::DoFile(const std::string& filename)
 			_eval.SetLastErrorMessage(e.GetErrorMessage());
 			Currency cur(-1.0, error_str);
 			_eval.PushResult(cur);
+			_eval.Restore();
 			return cur;
 		}
 		return _eval.GetLastResult();
@@ -335,11 +339,16 @@ Currency InterpreterImpl::DoString(const std::string& instring, bool store_suppr
 	try
 	{
 		_eval.StoreSuppressedResults(store_suppressed);
-		CommonEvaluate(input);
+		Currency temp = CommonEvaluate(input);
+
         _eval.Unmark();                         
 		_eval.StoreSuppressedResults(false);
 		_eval.SetDebugInfo(dbg_file_ptr, dbg_line);
 		_eval.SetInterrupt(false);
+
+		if (temp.IsReturn())
+			return temp;
+
 		Currency result = _eval.GetLastResult();
         LogOutput(result);
 		return result;

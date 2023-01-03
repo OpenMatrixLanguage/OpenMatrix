@@ -23,6 +23,7 @@
 #include "Interpreter.h"
 #include "OutputFormat.h"
 #include "SignalHandlerBase.h"
+#include "hwMatrix.h"
 
 // End defines/includes
 

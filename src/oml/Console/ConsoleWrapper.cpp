@@ -19,6 +19,7 @@
 #include "ConsoleWrapper.h"
 
 #include "SignalHandler.h"
+#include "hwMatrix_NMKL.h"
 
 #include <algorithm>
 #include <cassert>

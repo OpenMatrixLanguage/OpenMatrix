@@ -22,6 +22,8 @@
 #include "BoxBehnken.h"
 #include "FullFactorial.h"
 #include "hwMatrix.h"
+#include "hwComplex.h"
+#include "hwMatrixN.h"
 #include "hwNormal.h"
 #include "PolynomFuncs.h"
 #include "StatUtilFuncs.h"
@@ -1057,6 +1059,638 @@ hwMathStatus Mean(const hwMatrix& A, hwMatrix& xBar)
     xBar /= (double) m;
 
     return status;
+}
+//------------------------------------------------------------------------------
+// Compute the moving mean
+//------------------------------------------------------------------------------
+hwMathStatus MovMean(const hwMatrixN&   A,
+                     int                nb,
+                     int                na,
+                     int                dim,
+                     const std::string& endproperty,
+                     hwComplex          userVal,    // real and complex cases
+                     hwMatrixN&         xBar)
+{
+    if (!userVal.IsReal() && A.IsReal())
+    {
+        hwMatrixN AC;
+        AC.PackComplex(A);
+        return MovMean(AC, nb, na, dim, endproperty, userVal, xBar);
+    }
+
+    const std::vector<int>& dims = A.Dimensions();
+    int numDim = static_cast<int>(dims.size());
+
+    if (nb < 0)
+    {
+        return hwMathStatus(HW_MATH_ERR_NEGATIVE, 2);
+    }
+
+    if (na < 0)
+    {
+        return hwMathStatus(HW_MATH_ERR_NEGATIVE, 3);
+    }
+
+    if (dim < 0)
+    {
+        return hwMathStatus(HW_MATH_ERR_ARRAYDIM, 4);
+    }
+
+    if (dim >= numDim)
+    {
+        xBar = A;
+        return hwMathStatus();
+    }
+
+    int wlen = nb + na + 1;
+
+    if (wlen > dims[dim])
+    {
+        return hwMathStatus(HW_MATH_ERR_INVALIDINTERVAL, 2);
+    }
+
+    xBar.Dimension(dims, A.Type());
+
+    if (xBar.IsEmpty())
+    {
+        return hwMathStatus();
+    }
+
+    int numVecs = A.Size() / dims[dim];
+    int stride = A.Stride(dim);
+    std::vector<int> rhsMatrixIndex(numDim);
+
+    xBar.SetElements(0.0);
+
+    enum MovMeanEndType { SHRINK, DISCARD, SAME, USERVAL, PERIODIC };
+    MovMeanEndType endtype;
+
+    if (endproperty == "shrink")
+        endtype = SHRINK;
+    else if (endproperty == "discard")
+        endtype = DISCARD;
+    else if (endproperty == "same")
+        endtype = SAME;
+    else if (endproperty == "periodic")
+        endtype = PERIODIC;
+    else if (endproperty == "userval")
+        endtype = USERVAL;
+    else
+        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 5);
+
+    if (dim == 0)
+    {
+        // operate on each vector in the dimension
+        for (int i = 0; i < numVecs; ++i)
+        {
+            // set the rhsMatrix indices to the first index in each slice
+            int start = A.Index(rhsMatrixIndex);
+
+            if (A.IsReal())
+            {
+                const double* realRHS = A.GetRealData() + start;
+                double* realLHS = xBar.GetRealData() + start;
+                double movsum = 0.0;
+
+                // leading end effects
+                if (endtype == SHRINK || endtype == DISCARD)
+                {
+                    for (int k = 0; k < na + 1; ++k)
+                    {
+                        movsum += realRHS[k];
+                    }
+
+                    realLHS[0] = movsum / (na + 1);
+
+                    for (int k = 1; k < nb + 1; ++k)
+                    {
+                        movsum += realRHS[na + k];
+                        realLHS[k] = movsum / (na + 1 + k);
+                    }
+                }
+                else if (endtype == SAME)
+                {
+                    for (int k = -nb; k < na + 1; ++k)
+                    {
+                        if (k < 0)
+                            movsum += realRHS[0];
+                        else
+                            movsum += realRHS[k];
+                    }
+
+                    realLHS[0] = movsum / wlen;
+
+                    for (int k = 1; k < nb + 1; ++k)
+                    {
+                        movsum += realRHS[(na + k)] - realRHS[0];
+                        realLHS[k * stride] = movsum / wlen;
+                    }
+                }
+                else if (endtype == PERIODIC)
+                {
+                    for (int k = -nb; k < na + 1; ++k)
+                    {
+                        if (k < 0)
+                            movsum += realRHS[dims[dim] + k];
+                        else
+                            movsum += realRHS[k];
+                    }
+
+                    realLHS[0] = movsum / wlen;
+
+                    for (int k = 1; k < nb + 1; ++k)
+                    {
+                        movsum += realRHS[na + k] - realRHS[dims[dim] - 1 - nb + k];
+                        realLHS[k * stride] = movsum / wlen;
+                    }
+                }
+                else if (endtype == USERVAL)
+                {
+                    double realVal = userVal.Real();
+
+                    for (int k = -nb; k < na + 1; ++k)
+                    {
+                        if (k < 0)
+                            movsum += realVal;
+                        else
+                            movsum += realRHS[k];
+                    }
+
+                    realLHS[0] = movsum / wlen;
+
+                    for (int k = 1; k < nb + 1; ++k)
+                    {
+                        movsum += realRHS[(na + k)] - realVal;
+                        realLHS[k * stride] = movsum / wlen;
+                    }
+                }
+
+                // central region
+                for (int k = nb + 1; k < dims[dim] - na; ++k)
+                {
+                    movsum += realRHS[k + na] - realRHS[k - nb - 1];
+                    realLHS[k] = movsum / wlen;
+                }
+
+                // trailing end effects
+                if (endtype == SHRINK || endtype == DISCARD)
+                {
+                    for (int k = dims[dim] - na; k < dims[dim]; ++k)
+                    {
+                        movsum -= realRHS[k - nb - 1];
+                        realLHS[k] = movsum / (nb + dims[dim] - k);
+                    }
+                }
+                else if (endtype == SAME)
+                {
+                    for (int k = dims[dim] - na; k < dims[dim]; ++k)
+                    {
+                        movsum += realRHS[dims[dim] - 1] - realRHS[k - nb - 1];
+                        realLHS[k] = movsum / wlen;
+                    }
+                }
+                else if (endtype == PERIODIC)
+                {
+                    for (int k = dims[dim] - na; k < dims[dim]; ++k)
+                    {
+                        movsum += realRHS[k - (dims[dim] - na)] - realRHS[k - nb - 1];
+                        realLHS[k] = movsum / wlen;
+                    }
+                }
+                else if (endtype == USERVAL)
+                {
+                    double realVal = userVal.Real();
+
+                    for (int k = dims[dim] - na; k < dims[dim]; ++k)
+                    {
+                        movsum += realVal - realRHS[k - nb - 1];
+                        realLHS[k] = movsum / wlen;
+                    }
+                }
+            }
+            else
+            {
+                const hwComplex* cmplxRHS = A.GetComplexData() + start;
+                hwComplex* cmplxLHS = xBar.GetComplexData() + start;
+                hwComplex movsum;
+
+                // leading end effects
+                if (endtype == SHRINK || endtype == DISCARD)
+                {
+                    for (int k = 0; k < na + 1; ++k)
+                    {
+                        movsum += cmplxRHS[k];
+                    }
+
+                    cmplxLHS[0] = movsum / (na + 1);
+
+                    for (int k = 1; k < nb + 1; ++k)
+                    {
+                        movsum += cmplxRHS[na + k];
+                        cmplxLHS[k] = movsum / (na + 1 + k);
+                    }
+                }
+                else if (endtype == SAME)
+                {
+                    for (int k = -nb; k < na + 1; ++k)
+                    {
+                        if (k < 0)
+                            movsum += cmplxRHS[0];
+                        else
+                            movsum += cmplxRHS[k];
+                    }
+
+                    cmplxLHS[0] = movsum / wlen;
+
+                    for (int k = 1; k < nb + 1; ++k)
+                    {
+                        movsum += cmplxRHS[(na + k)] - cmplxRHS[0];
+                        cmplxLHS[k * stride] = movsum / wlen;
+                    }
+                }
+                else if (endtype == PERIODIC)
+                {
+                    for (int k = -nb; k < na + 1; ++k)
+                    {
+                        if (k < 0)
+                            movsum += cmplxRHS[dims[dim] + k];
+                        else
+                            movsum += cmplxRHS[k];
+                    }
+
+                    cmplxLHS[0] = movsum / wlen;
+
+                    for (int k = 1; k < nb + 1; ++k)
+                    {
+                        movsum += cmplxRHS[na + k] - cmplxRHS[dims[dim] - 1 - nb + k];
+                        cmplxLHS[k * stride] = movsum / wlen;
+                    }
+                }
+                else if (endtype == USERVAL)
+                {
+                    for (int k = -nb; k < na + 1; ++k)
+                    {
+                        if (k < 0)
+                            movsum += userVal;
+                        else
+                            movsum += cmplxRHS[k];
+                    }
+
+                    cmplxLHS[0] = movsum / wlen;
+
+                    for (int k = 1; k < nb + 1; ++k)
+                    {
+                        movsum += cmplxRHS[(na + k)] - userVal;
+                        cmplxLHS[k * stride] = movsum / wlen;
+                    }
+                }
+
+                // central region
+                for (int k = nb + 1; k < dims[dim] - na; ++k)
+                {
+                    movsum += cmplxRHS[k + na] - cmplxRHS[k - nb - 1];
+                    cmplxLHS[k] = movsum / wlen;
+                }
+
+                // trailing end effects
+                if (endtype == SHRINK || endtype == DISCARD)
+                {
+                    for (int k = dims[dim] - na; k < dims[dim]; ++k)
+                    {
+                        movsum -= cmplxRHS[k - nb - 1];
+                        cmplxLHS[k] = movsum / (nb + dims[dim] - k);
+                    }
+                }
+                else if (endtype == SAME)
+                {
+                    for (int k = dims[dim] - na; k < dims[dim]; ++k)
+                    {
+                        movsum += cmplxRHS[dims[dim] - 1] - cmplxRHS[k - nb - 1];
+                        cmplxLHS[k] = movsum / wlen;
+                    }
+                }
+                else if (endtype == PERIODIC)
+                {
+                    for (int k = dims[dim] - na; k < dims[dim]; ++k)
+                    {
+                        movsum += cmplxRHS[k - (dims[dim] - na)] - cmplxRHS[k - nb - 1];
+                        cmplxLHS[k] = movsum / wlen;
+                    }
+                }
+                else if (endtype == USERVAL)
+                {
+                    for (int k = dims[dim] - na; k < dims[dim]; ++k)
+                    {
+                        movsum += userVal - cmplxRHS[k - nb - 1];
+                        cmplxLHS[k] = movsum / wlen;
+                    }
+                }
+            }
+
+            // advance slice indices
+            for (int j = 1; j < numDim; ++j)
+            {
+                // increment index j if possible
+                if (rhsMatrixIndex[j] < static_cast<int> (dims[j]) - 1)
+                {
+                    ++rhsMatrixIndex[j];
+                    break;
+                }
+
+                // index j is maxed out, so reset and continue to j+1
+                rhsMatrixIndex[j] = 0;
+            }
+        }
+    }
+    else
+    {
+        // operate on each vector along the dimension of interest
+        for (int i = 0; i < numVecs; ++i)
+        {
+            // set the rhsMatrix indices to the first index in each slice
+            int start = A.Index(rhsMatrixIndex);
+
+            if (A.IsReal())
+            {
+                const double* realRHS = A.GetRealData() + start;
+                double* realLHS = xBar.GetRealData() + start;
+                double movsum = 0.0;
+
+                // leading end effects
+                if (endtype == SHRINK || endtype == DISCARD)
+                {
+                    for (int k = 0; k < na + 1; ++k)
+                    {
+                        movsum += realRHS[k * stride];
+                    }
+
+                    realLHS[0] = movsum / (na + 1);
+
+                    for (int k = 1; k < nb + 1; ++k)
+                    {
+                        movsum += realRHS[(na + k) * stride];
+                        realLHS[k * stride] = movsum / (na + 1 + k);
+                    }
+                }
+                else if (endtype == SAME)
+                {
+                    for (int k = -nb; k < na + 1; ++k)
+                    {
+                        if (k < 0)
+                            movsum += realRHS[0];
+                        else
+                            movsum += realRHS[k * stride];
+                    }
+
+                    realLHS[0] = movsum / wlen;
+
+                    for (int k = 1; k < nb + 1; ++k)
+                    {
+                        movsum += realRHS[(na + k) * stride] - realRHS[0];
+                        realLHS[k * stride] = movsum / wlen;
+                    }
+                }
+                else if (endtype == PERIODIC)
+                {
+                    for (int k = -nb; k < na + 1; ++k)
+                    {
+                        if (k < 0)
+                            movsum += realRHS[(dims[dim] + k) * stride];
+                        else
+                            movsum += realRHS[k * stride];
+                    }
+
+                    realLHS[0] = movsum / wlen;
+
+                    for (int k = 1; k < nb + 1; ++k)
+                    {
+                        movsum += realRHS[(na + k) * stride] - realRHS[(dims[dim] - 1 - nb + k) * stride];
+                        realLHS[k * stride] = movsum / wlen;
+                    }
+                }
+                else if (endtype == USERVAL)
+                {
+                    double realVal = userVal.Real();
+
+                    for (int k = -nb; k < na + 1; ++k)
+                    {
+                        if (k < 0)
+                            movsum += realVal;
+                        else
+                            movsum += realRHS[k * stride];
+                    }
+
+                    realLHS[0] = movsum / wlen;
+
+                    for (int k = 1; k < nb + 1; ++k)
+                    {
+                        movsum += realRHS[(na + k) * stride] - realVal;
+                        realLHS[k * stride] = movsum / wlen;
+                    }
+                }
+
+                // central region
+                for (int k = nb + 1; k < dims[dim] - na; ++k)
+                {
+                    movsum += realRHS[(k + na) * stride] - realRHS[(k - nb - 1) * stride];
+                    realLHS[k * stride] = movsum / wlen;
+                }
+
+                // trailing end effects
+                if (endtype == SHRINK || endtype == DISCARD)
+                {
+                    for (int k = dims[dim] - na; k < dims[dim]; ++k)
+                    {
+                        movsum -= realRHS[(k - nb - 1) * stride];
+                        realLHS[k * stride] = movsum / (nb + dims[dim] - k);
+                    }
+                }
+                else if (endtype == SAME)
+                {
+                    for (int k = dims[dim] - na; k < dims[dim]; ++k)
+                    {
+                        movsum += realRHS[(dims[dim] - 1) * stride] - realRHS[(k - nb - 1) * stride];
+                        realLHS[k * stride] = movsum / wlen;
+                    }
+                }
+                else if (endtype == PERIODIC)
+                {
+                    for (int k = dims[dim] - na; k < dims[dim]; ++k)
+                    {
+                        movsum += realRHS[(k - (dims[dim] - na)) * stride] - realRHS[(k - nb - 1) * stride];
+                        realLHS[k * stride] = movsum / wlen;
+                    }
+                }
+                else if (endtype == USERVAL)
+                {
+                    double realVal = userVal.Real();
+
+                    for (int k = dims[dim] - na; k < dims[dim]; ++k)
+                    {
+                        movsum += realVal - realRHS[(k - nb - 1) * stride];
+                        realLHS[k * stride] = movsum / wlen;
+                    }
+                }
+            }
+            else
+            {
+                const hwComplex* cmplxRHS = A.GetComplexData() + start;
+                hwComplex* cmplxLHS = xBar.GetComplexData() + start;
+                hwComplex movsum;
+
+                // leading end effects
+                if (endtype == SHRINK || endtype == DISCARD)
+                {
+                    for (int k = 0; k < na + 1; ++k)
+                    {
+                        movsum += cmplxRHS[k * stride];
+                    }
+
+                    cmplxLHS[0] = movsum / (na + 1);
+
+                    for (int k = 1; k < nb + 1; ++k)
+                    {
+                        movsum += cmplxRHS[(na + k) * stride];
+                        cmplxLHS[k * stride] = movsum / (na + 1 + k);
+                    }
+                }
+                else if (endtype == SAME)
+                {
+                    for (int k = -nb; k < na + 1; ++k)
+                    {
+                        if (k < 0)
+                            movsum += cmplxRHS[0];
+                        else
+                            movsum += cmplxRHS[k * stride];
+                    }
+
+                    cmplxLHS[0] = movsum / wlen;
+
+                    for (int k = 1; k < nb + 1; ++k)
+                    {
+                        movsum += cmplxRHS[(na + k) * stride] - cmplxRHS[0];
+                        cmplxLHS[k * stride] = movsum / wlen;
+                    }
+                }
+                else if (endtype == PERIODIC)
+                {
+                    for (int k = -nb; k < na + 1; ++k)
+                    {
+                        if (k < 0)
+                            movsum += cmplxRHS[(dims[dim] + k) * stride];
+                        else
+                            movsum += cmplxRHS[k * stride];
+                    }
+
+                    cmplxLHS[0] = movsum / wlen;
+
+                    for (int k = 1; k < nb + 1; ++k)
+                    {
+                        movsum += cmplxRHS[(na + k) * stride] - cmplxRHS[(dims[dim] - 1 - nb + k) * stride];
+                        cmplxLHS[k * stride] = movsum / wlen;
+                    }
+                }
+                else if (endtype == USERVAL)
+                {
+                    for (int k = -nb; k < na + 1; ++k)
+                    {
+                        if (k < 0)
+                            movsum += userVal;
+                        else
+                            movsum += cmplxRHS[k * stride];
+                    }
+
+                    cmplxLHS[0] = movsum / wlen;
+
+                    for (int k = 1; k < nb + 1; ++k)
+                    {
+                        movsum += cmplxRHS[(na + k) * stride] - userVal;
+                        cmplxLHS[k * stride] = movsum / wlen;
+                    }
+                }
+
+                // central region
+                for (int k = nb + 1; k < dims[dim] - na; ++k)
+                {
+                    movsum += cmplxRHS[(k + na) * stride] - cmplxRHS[(k - nb - 1) * stride];
+                    cmplxLHS[k * stride] = movsum / wlen;
+                }
+
+                // trailing end effects
+                if (endtype == SHRINK || endtype == DISCARD)
+                {
+                    for (int k = dims[dim] - na; k < dims[dim]; ++k)
+                    {
+                        movsum -= cmplxRHS[(k - nb - 1) * stride];
+                        cmplxLHS[k * stride] = movsum / (nb + dims[dim] - k);
+                    }
+                }
+                else if (endtype == SAME)
+                {
+                    for (int k = dims[dim] - na; k < dims[dim]; ++k)
+                    {
+                        movsum += cmplxRHS[(dims[dim] - 1) * stride] - cmplxRHS[(k - nb - 1) * stride];
+                        cmplxLHS[k * stride] = movsum / wlen;
+                    }
+                }
+                else if (endtype == PERIODIC)
+                {
+                    for (int k = dims[dim] - na; k < dims[dim]; ++k)
+                    {
+                        movsum += cmplxRHS[(k - (dims[dim] - na)) * stride] - cmplxRHS[(k - nb - 1) * stride];
+                        cmplxLHS[k * stride] = movsum / wlen;
+                    }
+                }
+                else if (endtype == USERVAL)
+                {
+                    for (int k = dims[dim] - na; k < dims[dim]; ++k)
+                    {
+                        movsum += userVal - cmplxRHS[(k - nb - 1) * stride];
+                        cmplxLHS[k * stride] = movsum / wlen;
+                    }
+                }
+            }
+
+            // advance slice indices
+            for (int j = 0; j < numDim; ++j)
+            {
+                if (j == dim)
+                    continue;
+
+                // increment index j if possible
+                if (rhsMatrixIndex[j] < static_cast<int> (dims[j]) - 1)
+                {
+                    ++rhsMatrixIndex[j];
+                    break;
+                }
+
+                // index j is maxed out, so reset and continue to j+1
+                rhsMatrixIndex[j] = 0;
+            }
+        }
+    }
+
+    if (endtype == DISCARD)
+    {
+        std::vector<hwSliceArg> sliceArg;
+        std::vector<int> vec(dims[dim] - (nb + na));
+
+        for (int i = nb; i < dims[dim] - na; ++i)
+            vec[i - nb] = i;
+
+        for (int i = 0; i < dim; ++i)
+            sliceArg.push_back(hwSliceArg());
+
+        sliceArg.push_back(vec);
+
+        for (int i = dim + 1; i < numDim; ++i)
+            sliceArg.push_back(hwSliceArg());
+
+        hwMatrixN copy(xBar);
+        copy.SliceRHS(sliceArg, xBar);
+    }
+
+    return hwMathStatus();
 }
 //------------------------------------------------------------------------------
 // Compute the median of a data vector

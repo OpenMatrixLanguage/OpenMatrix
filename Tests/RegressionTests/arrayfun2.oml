@@ -1,0 +1,1 @@
+arrayfun('dummyFun',1:4)

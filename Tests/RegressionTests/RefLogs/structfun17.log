@@ -1,0 +1,20 @@
+s = struct [
+  index: 3
+  message: Error: invalid input type; must be scalar, complex, or a matrix
+]
+s = struct [
+  index: 4
+  message: Error: invalid input type; must be scalar, complex, or a matrix
+]
+ans = 
+slice(:, :, 1) = 
+[Matrix] 3 x 1
+1
+5
+0
+
+slice(:, :, 2) = 
+[Matrix] 3 x 1
+0
+6
+6

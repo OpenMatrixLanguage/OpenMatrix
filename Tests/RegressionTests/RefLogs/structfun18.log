@@ -1,0 +1,54 @@
+s = struct [
+  index: 4
+  message: Error: invalid input type; must be scalar, complex, or a matrix
+]
+s = struct [
+  index: 5
+  message: Error: invalid input type; must be scalar, complex, or a matrix
+]
+s = struct [
+  index: 9
+  message: Error: invalid input type; must be scalar, complex, or a matrix
+]
+res1 = struct [
+  Struct array of size 2 x 2 with fields:
+  a
+  b
+  c
+]
+res2 = struct [
+  Struct array of size 2 x 2 with fields:
+  a
+  b
+  c
+]
+ans = [Matrix] 1 x 2
+1  1
+ans = 0
+ans = 3
+ans = 3
+ans = [Matrix] 1 x 2
+1  1
+ans = 0
+ans = 13
+ans = 3
+ans = [Matrix] 1 x 2
+3  3
+ans = 70
+ans = 0
+ans = 3
+ans = [Matrix] 1 x 2
+1  1
+ans = 0
+ans = 1
+ans = 1
+ans = [Matrix] 1 x 2
+1  1
+ans = 0
+ans = 10
+ans = 1
+ans = [Matrix] 1 x 2
+3  3
+ans = 50
+ans = 0
+ans = 1

@@ -174,9 +174,9 @@ bool Oml_SetPythonVariable(EvaluatorInterface eval, const std::vector<Currency>&
 //! Register Python interface methods
 extern "C" OMLPYTHONBRIDGE_DECLS int InitDll(EvaluatorInterface evl)
 {
-    evl.RegisterBuiltInFunction("evalpythonfile", Oml_EvalPythonFile, FunctionMetaData(1, 1, "PythonBridgeOmlCommands"));
-    evl.RegisterBuiltInFunction("evalpythonscript", Oml_EvalPythonScript, FunctionMetaData(1, 1, "PythonBridgeOmlCommands"));
-    evl.RegisterBuiltInFunction("getpythonvar", Oml_GetPythonVariable, FunctionMetaData(1, 1, "PythonBridgeOmlCommands"));
+    evl.RegisterBuiltInFunction("evalpythonfile", Oml_EvalPythonFile, FunctionMetaData(1, 2, "PythonBridgeOmlCommands"));
+    evl.RegisterBuiltInFunction("evalpythonscript", Oml_EvalPythonScript, FunctionMetaData(1, 2, "PythonBridgeOmlCommands"));
+    evl.RegisterBuiltInFunction("getpythonvar", Oml_GetPythonVariable, FunctionMetaData(1, 3, "PythonBridgeOmlCommands"));
 	evl.RegisterBuiltInFunction("exporttopython", Oml_SetPythonVariable, FunctionMetaData(2, 2, "PythonBridgeOmlCommands"));
 
     return 0;

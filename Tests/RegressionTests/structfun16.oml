@@ -1,0 +1,17 @@
+function out = my_func(in1)
+  if (ischar(in1))
+    out = 'String';
+  elseif (iscell(in1))
+    out = 'Cell';
+  elseif (ismatrix(in1))
+    out = 'Matrix';
+  elseif (isstruct(in1))
+	out = 'Struct'; 
+  end
+end
+s.item1 = [1 2 3];
+s.item2 = [1 2 3; 4 5 6];
+s.item3 = {'one', 2, 'three'};
+s.item4 = 'Hello world!';
+s.item5 = struct('s1', 'Hello world!', 's2', 'hello');
+structfun (@my_func, s, 'UniformOutput', false)

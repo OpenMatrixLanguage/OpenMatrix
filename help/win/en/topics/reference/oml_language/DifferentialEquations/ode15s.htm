@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="ode15s" /><meta name="abstract" content="Solve a system of stiff differential equations." /><meta name="description" content="Solve a system of stiff differential equations." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Differential Equations Commands" /><meta name="indexterms" content="ode15s" /><meta name="DC.subject" content="ode15s" /><meta name="keywords" content="ode15s" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/DifferentialEquations/differentialequations_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/DifferentialEquations/odeset.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/DifferentialEquations/ode45.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/DifferentialEquations/ode113.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/DifferentialEquations/ode15i.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/language_guides/anonymous_functions_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>ode15s</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom_updated.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="ode15s" /><meta name="abstract" content="Solve a system of stiff differential equations." /><meta name="description" content="Solve a system of stiff differential equations." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Differential Equations Commands" /><meta name="indexterms" content="ode15s" /><meta name="DC.subject" content="ode15s" /><meta name="keywords" content="ode15s" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/DifferentialEquations/differentialequations_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/DifferentialEquations/odeset.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/DifferentialEquations/ode45.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/DifferentialEquations/ode113.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/DifferentialEquations/ode15i.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/language_guides/anonymous_functions_r.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>ode15s</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -125,14 +125,16 @@ handle = @(t,y) VDP(t,y,mu);
 t = [0:0.2:10]; % time vector
 yi = [2, 0];
 [t,y] = ode15s(handle,t,yi);
-x = y(:,1)'</code></pre>
-      <pre class="pre codeblock"><code><code class="ph codeph">x = [Matrix] 1 x 51
-2.00000  1.96684  1.88770  1.78102  1.65390  1.50781  1.34081  1.14828  0.92255
- 0.65226  0.32198  -0.08498  -0.57355  -1.10232  -1.56568  -1.86407  -1.99079
- -2.00144  -1.94697  -1.85570  -1.74078  -1.60680  -1.45352  -1.27806  -1.07511
- -0.83578  -0.54694  -0.19174  0.24571  0.75830  1.28080  1.69564  1.92881  2.00712
- 1.99028  1.92071  1.82036  1.69860  1.55799  1.39755  1.21364  0.99951  0.74490
- 0.43561  0.05486  -0.40929  -0.93453  -1.43392  -1.79186  -1.96728  -2.00821</code></code></pre>
+x = y(:,1)';
+plot(t,x);
+xlabel('time');
+ylabel('amplitude');
+</code></pre>
+      <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_t5n_v4r_bt">
+        
+        <br /><img class="image" id="reference_wpv_kyv_pr__image_ofg_2xm_c5" src="images/ode15s_help_figure1.png" height="350" width="350" /><br />
+      <span class="figcap"><span class="fig--title-label">Figure 1. </span>ode15s figure 1</span></figure>
+
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Comments</h2>

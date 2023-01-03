@@ -1,0 +1,21 @@
+Variables in current scope:
+int1
+intb
+strb
+clearvars int1
+Variables in current scope:
+intb
+strb
+Variables in current scope:
+int1
+intb
+strb
+clearvars int1 strb
+Variables in current scope:
+intb
+Variables in current scope:
+int1
+intb
+strb
+clearvars int1 strb intb
+No variables in current scope in call to function who at line number 29 in file clearvars15.oml

@@ -78,10 +78,20 @@ public:
 	void               AddGlobalReference(const std::string& varname);
 	void			   Reset();
 
+	bool               break_on_continue;
+
 protected:
 	void            RemoveGlobalReference(const std::string& varname);
 	void            AddPersistentReference(const std::string& varname);
 	bool            Remove(const std::regex& varname);
+	bool			RemoveVariablesExcept(const std::vector<std::string>& varnames,
+								const std::vector<std::regex>& varwildnames,
+								const std::vector<std::string>& exceptnames,
+								const std::vector<std::regex>& exceptwildnames);
+	bool			RemoveGlobalsExcept(const std::vector<std::string>& varnames,
+								const std::vector<std::regex>& varwildnames,
+								const std::vector<std::string>& exceptnames,
+								const std::vector<std::regex>& exceptwildnames);
 	void            HideGlobal(const std::string& varname);
 	void            ClearLocals();
 	void            ClearGlobals();
@@ -130,6 +140,14 @@ public:
 	void            AddPersistentReference(const std::string& varname);
 	void            Remove(const std::string& varname);
 	bool            Remove(const std::regex& varname);
+	bool			RemoveVariablesExcept(	const std::vector<std::string>& varnames,
+									const std::vector<std::regex>& varwildnames,
+									const std::vector<std::string>& exceptnames,
+									const std::vector<std::regex>& exceptwildnames);
+	bool			RemoveGlobalsExcept(const std::vector<std::string>& varnames,
+									const std::vector<std::regex>& varwildnames,
+									const std::vector<std::string>& exceptnames,
+									const std::vector<std::regex>& exceptwildnames);
 	void            ClearLocals();
 	void            ClearGlobals();
 	void            ClearObjects();

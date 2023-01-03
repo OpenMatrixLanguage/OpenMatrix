@@ -1,11 +1,11 @@
 fname = FileManipulation/FileToRead.txt
 fid = 3
 ans = 0
-ans = 52
+ftell returns expected value: 52 for Windows, 48 for Linux
 ans = 0
-ans = 56
+ftell returns expected value: 56 for Windows, 52 for Linux
 ans = 0
-ans = 3
+ftell returns expected value: 3 for Windows, 3 for Linux
 ans = 0
-ans = 5
+ftell returns expected value: 5 for Windows, 5 for Linux
 ans = 0

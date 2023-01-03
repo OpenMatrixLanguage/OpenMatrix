@@ -20,8 +20,7 @@
 #include <deque>
 
 #include "EvaluatorInt.h"
-
-#include "hwComplex.h"
+#include "hwMatrix.h"
 
 //------------------------------------------------------------------------------
 //!
@@ -332,7 +331,16 @@ public:
     //! \param path Given path
     //!
     static std::wstring GetNormpathW(const std::wstring& path);
-
+    //!
+    //! Returns true if there are wide characters
+    //! \param Input string
+    //!
+    static bool HasWideChars(const std::string&);
+    //!
+    //! Returns true if a real matrix has wide characters
+    //! \param Matrix
+    //!
+    static bool HasWideChars(const hwMatrix*);
 #ifdef OS_WIN
     //!
     //! Gets absolute path, supports unicode on Windows
@@ -421,11 +429,6 @@ public:
     //!
     bool IsFileEncoded(EvaluatorInterface eval,
                        int                fid);
-    //!
-    //! Returns true if there are wide characters
-    //! \param str Input string
-    //!
-    bool HasWideChars(const std::string& str);
 
     //!
     //! Gets size of widest character - works with Unicode
@@ -583,7 +586,7 @@ hwMatrix* BuiltInFuncsUtils::ContainerToMatrix(const T &container, bool row)
 
     // Although the matrix is created as real, if there is a complex element in
     // the values, SetElement will flip matrix type to complex
-    hwMatrix* ret = EvaluatorInterface::allocateMatrix(rows, cols, hwMatrix::REAL);
+    hwMatrix* ret = EvaluatorInterface::allocateMatrix(rows, cols, true);
 
     int matrixSize = ret->Size();
     // Check both the size of the container and matrix as the matrix size could

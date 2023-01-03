@@ -1,0 +1,158 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="chirp" /><meta name="abstract" content="Generate a chirp signal." /><meta name="description" content="Generate a chirp signal." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Signal Processing Commands" /><meta name="indexterms" content="chirp" /><meta name="DC.subject" content="chirp" /><meta name="keywords" content="chirp" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/signalprocessing_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/sawtooth.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/SignalProcessing/square.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>chirp</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/signalprocessing_commands.htm" title="Signal Processing Commands">Signal Processing Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/SignalProcessing/signalprocessing_commands.htm" title="Signal Processing Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Signal Processing Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">chirp</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Generate a chirp signal.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">c = chirp<span class="ph var">(t)</span></span></p>
+
+      <p class="p"><span class="ph synph">c = chirp<span class="ph var">(t, f0)</span></span></p>
+
+      <p class="p"><span class="ph synph">c = chirp<span class="ph var">(t, f0, t1)</span></span></p>
+
+      <p class="p"><span class="ph synph">c = chirp<span class="ph var">(t, f0, t1, f1)</span></span></p>
+
+      <p class="p"><span class="ph synph">c = chirp<span class="ph var">(t, f0, t1, f1, shape)</span></span></p>
+
+      <p class="p"><span class="ph synph">c = chirp<span class="ph var">(t, f0, t1, f1, shape, phase)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">t</var></dt>
+
+          <dd class="dd pd">The times at which to evaluate the function.</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">f0</var></dt>
+
+          <dd class="dd pd">The frequency at t = 0 (default: 0 Hz).</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">t1</var></dt>
+
+          <dd class="dd pd">The time at which to specify f1 (default: 1 sec).</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">f1</var></dt>
+
+          <dd class="dd pd">The frequency at t = t1 (default: 100 Hz).</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">shape</var></dt>
+
+          <dd class="dd pd">The shape of the chirp.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+          <dd class="dd pd ddexpand">The options are:<ul class="ul" id="reference_wpv_kyv_pr__ul_iwt_ywz_gtb">
+              <li class="li"><span class="keyword option">'linear'</span> (default)</li>
+
+              <li class="li"><span class="keyword option">'quadratic'</span></li>
+
+              <li class="li"><span class="keyword option">'logarithmic'</span></li>
+
+            </ul>
+
+          </dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">phase</var></dt>
+
+          <dd class="dd pd">The phase shift at t = 0 (default: 0 degrees).</dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">c</span></dt>
+
+          <dd class="dd pd">The chirp signal values.</dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+      <p class="p">Plot a linear chirp signal.</p>
+
+      <pre class="pre codeblock"><code>t = [0:1:500]/250;
+c = chirp(t, 5, 1, 10, 'linear');
+plot (t, c);
+xlabel('time');
+ylabel('amplitude');
+</code></pre>
+      <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_t5n_v4r_bt">
+        
+        <br /><img class="image" id="reference_wpv_kyv_pr__image_ofg_2xm_c5" src="images/chirp_help_figure1.png" height="350" width="350" /><br />
+      <span class="figcap"><span class="fig--title-label">Figure 1. </span>chirp figure 1</span></figure>
+
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
+      
+    </section>
+
+    <section class="section">
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/sawtooth.htm" title="Generate a sawtooth wave with range [-1,1] and period 2*pi.">sawtooth</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/SignalProcessing/square.htm" title="Generate a square wave with range [-1,1] and period 2*pi.">square</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/SignalProcessing/signalprocessing_commands.htm" title="Signal Processing Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Signal Processing Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

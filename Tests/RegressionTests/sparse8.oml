@@ -1,0 +1,2 @@
+﻿sp = sparse([2,3],[3,4],[true,true])
+spl = islogical(sp')

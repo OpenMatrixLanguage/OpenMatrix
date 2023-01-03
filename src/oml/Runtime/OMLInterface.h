@@ -20,14 +20,15 @@
 
 #include "OMLInterfacePublic.h"
 
-#include "hwMatrix.h"
-#include "hwComplex.h"
 #include "StructData.h"
 #include "Evaluator.h"
 
+template <typename T> class hwTComplex;
+template <typename T1, typename T2> class hwTMatrix;
+typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
 typedef hwTMatrix<Currency, void*> HML_CELLARRAY;
 
-class OMLInterfaceImpl : public OMLInterface4
+class OMLInterfaceImpl : public OMLInterface5
 {
 public:
 	OMLInterfaceImpl(EvaluatorInterface* in_eval) { _eval = in_eval; }
@@ -35,6 +36,7 @@ public:
 	void RegisterFunction(const char*, ALT_FUNCPTR);
 	void RegisterHiddenFunction(const char*, ALT_FUNCPTR);
 	void RegisterFunctionWithMetadata(const char*, ALT_FUNCPTR, const char*, int, int);
+	void RegisterFunctionWithMetadata(const char*, ALT_FUNCPTR, const char*, int, int, bool);
 
 	void ThrowError(const char*);
 
