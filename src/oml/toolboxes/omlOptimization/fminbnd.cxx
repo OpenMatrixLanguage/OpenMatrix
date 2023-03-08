@@ -232,6 +232,14 @@ bool OmlFminbnd(EvaluatorInterface           eval,
 
             if (status.GetArg1() == 111)
             {
+                if (funcName == "anonymous")
+                {
+                    funcName = funcInfo->RedirectedFunction();
+
+                    if (!funcName.size())
+                        funcName = "anonymous";
+                }
+
                 status.SetUserFuncName(funcName);
                 status.SetArg1(1);
             }

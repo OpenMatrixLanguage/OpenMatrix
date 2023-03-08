@@ -20,7 +20,6 @@
 #include <deque>
 
 #include "EvaluatorInt.h"
-#include "hwMatrix.h"
 
 //------------------------------------------------------------------------------
 //!
@@ -192,31 +191,13 @@ public:
                                        double&         cols,
                                        bool&           isMtx);
     //!
-    //! Returns currency after reading formatted input from a file/string
-    //! \param in          Input string
-    //! \param formatdesc  Format options, separated by spaces, :, /
-    //! \param rows        Rows for the output, if specified
-    //! \param cols        Cols for the output, if specified
-    //! \param hasSizeMtx  True if there is a matrix giving size limits
-    //! \param hasSizeSpec True if there is a size specification
-    //! \param validformat True if all format options are valid
-    //!
-    static Currency GetFormattedInput( const std::string& in,
-                                       const std::string& formatdesc,
-                                       const std::string& validfmtdesc,
-                                       double             rows,
-                                       double             cols,
-                                       bool               hasSizeMtx,
-                                       bool               hasSizeSpec,
-                                       bool&              validformat);
-    //!
     //! Parses given string input and gets a vector of format options
-    //! \param formatdesc  String which contains format descriptions eg '%f %s'
-    //! \param validformat True if format was valid
+    //! \param String which contains format descriptions eg '%f %s'
+    //! \param Valid formats
+    //! \param True if format was valid
     //!
-    static std::vector<std::string> GetFormats( const std::string& in,
-                                                const std::string& validfmtdesc,
-                                                bool&              validformat);
+    static std::vector<std::string> GetFormats(const std::string&, const std::string&, bool&);
+    //!
     //!
     //! Utility to set slice in an ND matrix
     //! \param in    Given matrix
@@ -226,14 +207,6 @@ public:
     static void SetMatrixNSlice( const hwMatrix* mtx,
                                  size_t          index,
                                  hwMatrixN*      lhs);
-    //!
-    //! Returns matrix (real/complex) from container
-    //! \param container Container
-    //! \param row       True if matrix needs to only have one row
-    //! \todo Delete containerToMatrix in BuiltInFuncs.h
-    //!
-    template<typename T> 
-    static hwMatrix* ContainerToMatrix(const T &container, bool row = true);
     //!
     //! True for double values like Nan/Inf/-Inf, which ignore standard prinf format
     //! \param val Value to print
@@ -513,52 +486,50 @@ public:
     //! \param Variable name
     //! 
     static void ClearAnsVariable(EvaluatorInterface, const std::string&);
+    //!
+    //! Converts deque to Currency - Replaces ContainerToMatrix
+    //! \param Container of doubles
+    //! \param True if resulting matrix needs to only have one row
+    //! 
+    static Currency Deque2Currency(const std::deque<double>&, bool = true);
+    //!
+    //! Converts deque to Currency - Replaces ContainerToMatrix
+    //! \param Container of hwComplex
+    //! \param True if resulting matrix needs to only have one row
+    //! 
+    static Currency Deque2Currency(const std::deque<hwComplex>&, bool = true);
+    //!
+    //! Converts deque to Currency
+    //! \param Container of hwComplex
+    //! \param True if resulting matrix needs to only have one row
+    //! 
+    static Currency Deque2Currency(const std::deque<std::string>&, bool = true);
+    //!
+    //! Converts vector to Currency - Replaces ContainerToMatrix
+    //! \param Vector of doubles
+    //! \param True if resulting matrix needs to only have one row
+    //! 
+    static Currency Vector2Currency(const std::vector<double>&, bool = true);
+    //!
+    //! Converts vector to Currency - Replaces ContainerToMatrix
+    //! \param Vector of hwComplex
+    //! \param True if resulting matrix needs to only have one row
+    //! 
+    static Currency Vector2Currency(const std::vector<hwComplex>&, bool = true);
+    //!
+    //! Converts vector to Currency - Replaces ContainerToMatrix
+    //! \param Vector of ints
+    //! \param True if resulting matrix needs to only have one row
+    //! 
+    static Currency Vector2Currency(const std::vector<int>&, bool = true);
+    //!
+    //! Converts string vector to cell array Currency - Replaces containerToCellArray
+    //! \param Vector of strings
+    //! \param True if resulting cell array needs to only have one row
+    //! 
+    static Currency Vector2Currency(const std::vector<std::string>&, bool = true);
 
 private: 
-    //!
-    //! Reads formatted input and returns true if successful
-    //! \param infile  File input, if applicable
-    //! \param in      Input string in applicable
-    //! \param format  Format template
-    //! \param outvals Outputs
-    //!
-    void ReadFormattedInput( const std::string&              input,
-                             double                          sizelimit,
-                             const std::vector<std::string>& formats,
-                             std::vector<Currency>&          outvals);
-    //!
-    //! sscanf helper function, reads formatted input from string and returns true if successful
-    //! \param in      Input string
-    //! \param fmt     Format template
-    //! \param outvals Outputs
-    //!
-    bool SscanfHelper( std::string&           in,
-                       const std::string&     fmt,
-                       std::vector<Currency>& outvals);
-    //!
-    //! Reads formatted float from string using sscanf and returns true if successul
-    //! \param in         Input string
-    //! \param fmt        Format template
-    //! \param outvals    Outputs
-    //! \param stringread Output read in string format
-    //! \param numread    Number of characters read
-    //!
-    bool SscanfHelperFloat( const std::string&     in,
-                            const std::string&     fmt,
-                            std::vector<Currency>& outvals,
-                            std::string&           stringread,
-                            int&                   numread);
-    //!
-    //! Reads formatted string from string using sscanf and returns true if successul
-    //! \param[in]  in         Input string
-    //! \param[in]  fmt        Format template
-    //! \param outvals    Outputs
-    //! \param stringread Output read in string format
-    //!
-    bool SscanfHelperString( const std::string&     in,
-                             const std::string&     fmt,
-                             std::vector<Currency>& outvals,
-                             std::string&           stringread);
     //!
     //! Returns true if strtod conversion is successful
     //! \param in  Input string
@@ -569,33 +540,6 @@ private:
                                     const std::string& end,
                                     double             val);
 };
-//------------------------------------------------------------------------------
-//! Returns matrix (real/complex) from container
-//! \param container Container
-//! \param row       True if matrix needs to only have one row
-//! \todo Delete containerToMatrix in BuiltInFuncs.h
-//------------------------------------------------------------------------------
-template<typename T> 
-hwMatrix* BuiltInFuncsUtils::ContainerToMatrix(const T &container, bool row)
-{
-    int containerSize = static_cast<int>(container.size());
-    if (containerSize <= 0) return EvaluatorInterface::allocateMatrix();
-
-    int rows = row ? 1             : containerSize;
-    int cols = row ? containerSize : 1;
-
-    // Although the matrix is created as real, if there is a complex element in
-    // the values, SetElement will flip matrix type to complex
-    hwMatrix* ret = EvaluatorInterface::allocateMatrix(rows, cols, true);
-
-    int matrixSize = ret->Size();
-    // Check both the size of the container and matrix as the matrix size could
-    // be smaller than the container size requested.
-    for (int i = 0; i < containerSize && i < matrixSize; ++i)
-        ret->SetElement(i, container[i]);  // Don't assign values directly, see note above
-
-    return ret;
-}
 
 #endif // __BUILTINFUNCSUTILS__
 

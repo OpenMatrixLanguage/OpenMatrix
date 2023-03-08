@@ -31,6 +31,7 @@ class EvaluatorInterface;
 class FunctionInfo;
 class OutputFormat;
 class SignalHandlerBase;
+class OMLImplBase;
 
 typedef bool (*FUNCPTR) (EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 typedef bool (*ALT_FUNCPTR) (OMLInterface*, const OMLCurrencyList* ins, OMLCurrencyList* outs);
@@ -162,7 +163,9 @@ public:
     Currency LogicalOperator   (const Currency& lhs, const Currency&rhs, int op);
     Currency BinaryOperator    (const Currency& lhs, const Currency&rhs, int op);
     Currency UnaryOperator     (const Currency& op1, int op);
+
     void RestorePath();
+    void RefreshPathCache();
 
     static std::string GetLastErrorMessage();
     static void SetLastErrorMessage(const std::string& msg);
@@ -340,6 +343,9 @@ public:
 	void     Profile(bool on);
 
     std::string GetFunctionArgumentName(int index);
+
+    void CacheBCIPointer(OMLImplBase* ptr);
+    void BCIGarbageCollect();
 
     //!
     //! Returns diary filestream

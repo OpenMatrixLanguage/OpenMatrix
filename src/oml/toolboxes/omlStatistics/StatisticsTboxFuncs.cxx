@@ -24,10 +24,11 @@
 #include "BuiltInFuncsData.h"
 #include "StructData.h"
 #include "MatrixNUtils.h"
-#include "OML_Error.h"
 
 #include "hwMatrix.h"
 #include "hwMatrixN.h"
+#include "OML_Error.h"
+#include "hwMersenneTwister.h"
 #include "DistributionFuncs.h"
 #include "StatisticsFuncs.h"
 #include "StatUtilFuncs.h"
@@ -10425,13 +10426,14 @@ bool OmlRandperm(EvaluatorInterface           eval,
     if (nargin != 1 && nargin != 2)
         throw OML_Error(OML_ERR_NUMARGIN);
 
-    if (!inputs[0].IsPositiveInteger() && !inputs[0].IsPositiveInteger64() && (inputs[0].Scalar() != 0.0))
+    if (!inputs[0].IsPositiveInteger() && !inputs[0].IsPositiveInteger64() &&
+        (!inputs[0].IsScalar() || inputs[0].Scalar() != 0.0) && !inputs[0].IsEmpty())
         throw OML_Error(OML_ERR_NATURALNUM, 1, OML_VAR_DATA);
 
     hwMathStatus status;
     CreateTwister();
 
-    if (inputs[0].IsPositiveInteger() || (inputs[0].Scalar() == 0.0))
+    if (inputs[0].IsPositiveInteger() || (inputs[0].IsScalar() && inputs[0].Scalar() == 0.0))
     {
         int max = static_cast<int> (inputs[0].Scalar());
         int numPts = max;
@@ -10459,11 +10461,12 @@ bool OmlRandperm(EvaluatorInterface           eval,
             outputs.push_back(permVec);
         }
     }
+    else if (inputs[0].IsEmpty())
+    {
+        outputs.push_back(EvaluatorInterface::allocateMatrix(1, 0, true));
+    }
     else
     {
-        if (nargin != 2)
-            throw OML_Error(hwMathStatus(HW_MATH_ERR_ALLOCFAILED));  // alloc failure
-
         if (!inputs[1].IsPositiveInteger())
         {
             if (inputs[1].IsPositiveInteger64())

@@ -166,7 +166,7 @@ static hwMathStatus NLSolveJacobian(const hwMatrix& P,
         }
         else
         {
-            return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+            return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
         }
 
         FSOLVE_eval_ptr->Unmark();
@@ -174,12 +174,12 @@ static hwMathStatus NLSolveJacobian(const hwMatrix& P,
     catch (OML_Error&)
     {
         FSOLVE_eval_ptr->Restore();
-        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
     }
     catch (hwMathException&)
     {
         FSOLVE_eval_ptr->Restore();
-        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
     }
 
     if (outputs.size() == 2)
@@ -189,7 +189,7 @@ static hwMathStatus NLSolveJacobian(const hwMatrix& P,
         if (objJac.IsScalar())
         {
             if (P.Size() != 1 || J.Size() != 1)
-                return hwMathStatus(HW_MATH_ERR_USERFUNCSIZE, 222);
+                return hwMathStatus(HW_MATH_ERR_USERFUNCSIZE, 111);
 
             J(0) = objJac.Scalar();
         }
@@ -198,20 +198,20 @@ static hwMathStatus NLSolveJacobian(const hwMatrix& P,
             const hwMatrix* jacMatrix = objJac.Matrix();
 
             if (!jacMatrix->IsReal())
-                return hwMathStatus(HW_MATH_ERR_USERFUNCREALMAT, 222);
+                return hwMathStatus(HW_MATH_ERR_USERFUNCREALMAT, 111);
             if (jacMatrix->M() != J.M() || jacMatrix->N() != J.N())
-                return hwMathStatus(HW_MATH_ERR_USERFUNCSIZE, 222);
+                return hwMathStatus(HW_MATH_ERR_USERFUNCSIZE, 111);
 
             J = (*jacMatrix);
         }
         else
         {
-            return hwMathStatus(HW_MATH_ERR_USERFUNCREAL, 222);
+            return hwMathStatus(HW_MATH_ERR_USERFUNCREAL, 111);
         }
     }
     else
     {
-        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
     }
     return hwMathStatus();
 }
@@ -474,6 +474,14 @@ bool OmlFsolve(EvaluatorInterface           eval,
         {
             if (status.GetArg1() == 111)
             {
+                if (funcName == "anonymous")
+                {
+                    funcName = funcInfo->RedirectedFunction();
+
+                    if (!funcName.size())
+                        funcName = "anonymous";
+                }
+
                 status.SetUserFuncName(funcName);
                 status.SetArg1(1);
             }

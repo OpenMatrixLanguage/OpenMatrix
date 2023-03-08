@@ -108,7 +108,7 @@ bool OmlSpline(EvaluatorInterface           eval,
     {
         std::vector<Currency> inputs2;
         inputs2.push_back(inputs[0]);           // push_back(x)
-        inputs2.push_back("ascending");
+        inputs2.push_back("either");
 
         oml_issorted(eval, inputs2, outputs);   // issorted(x)
 
@@ -527,6 +527,11 @@ bool OmlInterp1(EvaluatorInterface           eval,
         }
         else
         {
+            if (y->N() == 0 && x->Size() != y->M())
+            {
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
+            }
+
             hwMatrix* yi = eval.allocateMatrix(xi->Size(), y->N(), true);
 
             if (y->N())
@@ -986,8 +991,8 @@ bool OmlPolyder(EvaluatorInterface           eval,
     if (nargin < 1 || nargin > 2)
         throw OML_Error(OML_ERR_NUMARGIN);
 
-    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
-        throw OML_Error(OML_ERR_SCALARVECTOR, 1, OML_VAR_DATA);
+    if (!inputs[0].IsVector() && !inputs[0].IsScalar())
+        throw OML_Error(OML_ERR_VECTOR, 1, OML_VAR_DATA);
 
     const hwMatrix* A = inputs[0].ConvertToMatrix();
 

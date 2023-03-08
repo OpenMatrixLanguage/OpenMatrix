@@ -27,6 +27,7 @@
 #include "ClassInfo.h"
 #include "hwMatrix_NMKL.h"
 #include "hwMatrixN_NMKL.h"
+#include "OMLInterface.h"
 // End defines/includes
 
 EvaluatorInterface::EvaluatorInterface(const EvaluatorInterface& other, bool base_context, bool pop_nargs) : delete_eval(true)
@@ -1053,4 +1054,16 @@ void EvaluatorInterface::SetInterrupt(bool value)
 void EvaluatorInterface::TreatAsBuiltin(const std::string& path)
 {
     eval->TreatAsBuiltin(path);
+}
+void EvaluatorInterface::CacheBCIPointer(OMLImplBase* ptr)
+{
+    eval->CacheBCIPointer(ptr);
+}
+void EvaluatorInterface::BCIGarbageCollect()
+{
+    eval->BCIGarbageCollect();
+}
+void EvaluatorInterface::RefreshPathCache()
+{
+    eval->RefreshPathCache();
 }

@@ -130,7 +130,7 @@ void BuiltInFuncsString::StrvcatHelperCellArray(EvaluatorInterface        eval,
 
     for (int i = 0; i < numelem; ++i)
     {
-        Currency cur ((*cell)(i));
+        const Currency& cur ((*cell)(i));
         StrvcatHelper(eval, cur, index, out);
     }
 }
@@ -337,20 +337,22 @@ bool BuiltInFuncsString::hml_blanks(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
-// Returns true and reads formatted input from a string
+// Returns true and reads formatted input from a string [sscanf]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsString::Sscanf(EvaluatorInterface           eval,
                                 const std::vector<Currency>& inputs,
                                 std::vector<Currency>&       outputs)
 {
-    int numargin = inputs.empty() ? 0 : static_cast<int>(inputs.size());
-    if (numargin < 2) throw OML_Error(OML_ERR_NUMARGIN);
+    if (inputs.size() < 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+    else if (!inputs[0].IsString())
+    {
+        throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
+    }
 
-    // First argument gives the input string to be scanned
-    const Currency& cur1 = inputs[0];
-    if (!cur1.IsString()) throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
-
-    std::string in = cur1.StringVal();
+    std::string in (inputs[0].StringVal());
     if (in.empty())
     {
         outputs.push_back(EvaluatorInterface::allocateMatrix());
@@ -358,32 +360,182 @@ bool BuiltInFuncsString::Sscanf(EvaluatorInterface           eval,
     }
 
     // Second argument gives format descriptions separated by spaces. 
-    const Currency& cur2 = inputs[1];
-    if (!cur2.IsString()) throw OML_Error(OML_ERR_STRING, 2, OML_VAR_TYPE);
-
-    // Third argument, if available, specifies size for output.
-    double rows        = 0;
-    double cols        = 0;
-    bool   hasSizeMtx  = false;
-    bool hasSizeSpec = (numargin > 2);
-	if (numargin > 2)
-        BuiltInFuncsUtils::GetSizeSpecifications(inputs[2], 3, rows, cols, hasSizeMtx);
-        
-    // Read formatted input from the string
-    bool        validformat = true;
-    std::string fmtdesc   (cur2.StringVal());
-    std::string validfmts ("%f%g%d%s");
-    Currency output  = BuiltInFuncsUtils::GetFormattedInput(in, fmtdesc,
-                       validfmts, rows, cols, hasSizeMtx, hasSizeSpec, validformat);
-    if (!validformat)
+    if (!inputs[1].IsString())
     {
-        std::ostringstream os;
-        os << "Warning: invalid format specified in argument " << 2
-           << "; valid formats are %d, %f, %g and %s";
-        BuiltInFuncsUtils::SetWarning(eval, os.str());
+        throw OML_Error(OML_ERR_STRING, 2, OML_VAR_TYPE);
+    }
+    std::string fmtdesc(inputs[1].StringVal());
+    if (fmtdesc.empty())
+    {
+        outputs.push_back(EvaluatorInterface::allocateMatrix());
+        return true;
+    }
+    else if (fmtdesc.find('%') == std::string::npos)
+    {
+        outputs.emplace_back("");
+        return true;
     }
 
-	outputs.push_back(output);
+    // Third argument, if available, specifies size for output.
+    double rows = 0;
+    double cols = 0;
+    bool   hasSizeMtx = false;
+    bool hasSizeSpec = (inputs.size() > 2);
+    if (hasSizeSpec)
+    {
+        BuiltInFuncsUtils::GetSizeSpecifications(inputs[2], 3, rows, cols,
+            hasSizeMtx);
+    }
+
+    // Valid options for sscanf are %d, %f, %g, %s along with the combination
+    // of * to skip formats like %*s. %0.5f will be treated as %f
+    
+    // Consider the example 'WHEEL-R%*s CONTACT, %*s WHEEL, %d'
+    std::vector<std::string> basefmt; // e.g. %s
+    std::vector<std::string> fullfmt; // e.g. "WHEEL-R%s" (instead of WHEEL-R%*s)
+    std::vector<bool>        skipfmt;  // True if format is skipped e.g "%*s"
+
+    bool showwarn = false;
+    if (!ParseFormat(fmtdesc, basefmt, fullfmt, skipfmt, showwarn))
+    {
+        throw OML_Error(OML_ERR_FORMAT, 2);
+    }
+    else if (showwarn)
+    {
+        BuiltInFuncsUtils::SetWarning(eval,
+            "Warning: invalid format specified in argument 2; valid formats are %d, %f, %g and %s");
+    }
+    assert(!basefmt.empty());
+    if (basefmt.empty())
+    {
+        throw OML_Error(OML_ERR_FORMAT, 2);
+    }
+    assert(basefmt.size() == fullfmt.size() && basefmt.size() == skipfmt.size());
+
+    // Read formatted input from the string
+    std::vector<Currency> values;
+    double sizelimit = (hasSizeMtx) ? rows * cols : rows;
+
+    // For each format, read in one value from input and push into values vector
+    int  count     = 0;
+    bool keepgoing = true;
+
+    bool checkcount = (!IsInf_T(sizelimit) && !IsNegInf_T(sizelimit));
+    while (keepgoing && !in.empty())
+    {
+        size_t oldvaluesSize = values.empty() ? 0 : values.size();
+        std::vector<std::string>::const_iterator itr = fullfmt.begin();
+        for (size_t i = 0; itr != fullfmt.end(); ++itr, ++i)
+        {
+            bool skip = skipfmt[i];
+            std::string base(basefmt[i]);
+            std::string fmt(*itr);
+            std::string stringread;
+
+            bool result = Sscanf(in, fmt, base, skip, values);
+            if (!result || in.empty())
+            {
+                keepgoing = false;
+                break;
+            }
+            if (checkcount)
+            {
+                if (!skip)
+                {
+                    count++;
+                    if (count == sizelimit)
+                    {
+                        keepgoing = false;
+                    }
+                }
+            }
+        }
+
+        size_t newvaluesSize = values.empty() ? 0 : values.size();
+        if (oldvaluesSize == newvaluesSize) break; // Nothing has been read
+    }
+
+    // Split the output values vector into the correct size (if any) Right now, 
+    // the result is Nx1 (which is the default)
+    // Handles cases where inf is passed. Don't cast and use values.size() as 
+    // compiler will convert
+    int    numvals = values.empty() ? 0 : static_cast<int>(values.size());
+    int    numrows = numvals;
+    int    numcols = 1;
+    double rawnumcols = 1.0;
+    size_t firstusablefmt = 0;
+    size_t nfmts = 0;
+    bool isfirstStringFmt = false;
+    size_t i = 0;
+    for (std::vector<bool>::const_iterator itr = skipfmt.begin();
+        itr != skipfmt.end(); ++itr, ++i)
+    {
+        if (!(*itr))
+        {
+            if (nfmts == 0 && basefmt[i] == "%s")
+            {
+                isfirstStringFmt = true;
+            }
+            nfmts++;
+        }
+    }
+    bool stringoutput = (nfmts == 1 && isfirstStringFmt);
+    if (hasSizeSpec)                // Has size specifications
+    {
+        if (hasSizeMtx)             // Has matrix
+        {
+            numrows = (int)rows;
+            rawnumcols = cols;      // This can be infinity
+        }
+        else if (stringoutput)
+        {
+            rawnumcols = numrows;
+            numrows = (int)(IsInf_T(rows) ? numvals : rows);
+        }
+        else
+        {
+            rawnumcols = 1;
+            numrows = (int)(IsInf_T(rows) ? numvals : rows);
+            if (numrows > values.size())  // Don't cast here when comparing
+                numrows = numvals;
+        }
+    }
+
+    if (IsInf_T(rawnumcols) || IsNegInf_T(rawnumcols) || IsNaN_T(rawnumcols))
+    {
+        int tmp = (numrows == 0) ? 1 : numrows;
+        numcols = (int)values.size() / tmp;
+    }
+    else
+        numcols = static_cast<int>(rawnumcols);
+
+    if (values.size() < numrows * numcols)
+    {
+        int tmp = (numrows == 0) ? 1 : numrows;
+        if (values.size() % tmp == 0)
+            numcols = (int)values.size() / tmp;
+    }
+
+    if (stringoutput && !hasSizeSpec && numcols == 1 && numrows > 1)
+    {
+        numcols = numrows;
+        numrows = 1;
+    }
+
+    hwMatrix* mymat = EvaluatorInterface::allocateMatrix(numrows, numcols, 0.0);
+    assert(mymat);
+
+    for (int j = 0; j < values.size(); ++j)
+    {
+        if (j < values.size() && j < mymat->Size())
+            (*mymat)(j) = values[j].Scalar();
+    }
+
+    Currency result(mymat);
+    if (stringoutput)
+        result.SetMask(Currency::MASK_STRING);
+
+    outputs.emplace_back(result);
     return true;
 }
 //------------------------------------------------------------------------------
@@ -918,14 +1070,14 @@ std::vector<std::string> BuiltInFuncsString::Currency2StringVec(const Currency& 
     for (int j = 0; j < numcols; ++j)
         for (int i = 0; i < numrows; ++i)
     {
-        Currency tmp = (*cell)(i, j);
+        const Currency& tmp = (*cell)(i, j);
         if (!tmp.IsString())
             throw OML_Error(OML_ERR_STRING_STRINGCELL, idx, OML_VAR_VALUE);
         out.push_back(tmp.StringVal());
     }
     return out;
 }
-
+//------------------------------------------------------------------------------
 // Returns true after converting a numerical value to a string
 //------------------------------------------------------------------------------
 bool BuiltInFuncsString::Num2Str(EvaluatorInterface           eval,
@@ -937,15 +1089,15 @@ bool BuiltInFuncsString::Num2Str(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
-    Currency cur = inputs[0];
-    if (!cur.IsMatrixOrString() && !cur.IsScalar() && !cur.IsComplex())
+    const Currency& cur1 = inputs[0];
+    if (!cur1.IsMatrixOrString() && !cur1.IsScalar() && !cur1.IsComplex())
     {
         throw OML_Error(OML_ERR_STRSCALARCOMPLEXMTX, 1, OML_VAR_TYPE);
     }
 
-    if (cur.IsString())
+    if (cur1.IsString())
     {
-        outputs.push_back(cur);
+        outputs.push_back(cur1);
         return true;
     }
 
@@ -963,6 +1115,13 @@ bool BuiltInFuncsString::Num2Str(EvaluatorInterface           eval,
         if (tmp.IsString())
         {
             fmt = tmp.StringVal();
+            if (!IsValidNumericFormat(fmt))
+            {
+                std::string msg("Error: invalid input in argument 2; ");
+                msg += "must be a valid numerical format";
+                throw OML_Error(msg);
+            }
+
         }
         else
         {
@@ -978,10 +1137,12 @@ bool BuiltInFuncsString::Num2Str(EvaluatorInterface           eval,
                         OutputFormat(1, precision) : *(eval.GetOutputFormat());
          
     BuiltInFuncsString funcs;
+    Currency cur(cur1);
     cur.DispOutput();
+
     if (cur.IsScalar())
     {
-        std::string val = funcs.Dbl2Str(cur, fmt, &ofmt, precision);
+        std::string val (funcs.Dbl2Str(cur, fmt, &ofmt, precision));
         outputs.push_back(val);
         return true;
     }
@@ -1112,18 +1273,6 @@ std::string BuiltInFuncsString::Dbl2Str(const Currency&     cur,
         os << std::setprecision(static_cast<std::streamsize>(totaldigits));
         os << val;
         std::string strval (os.str());
-        if (!strval.empty())
-        {
-            size_t pos = strval.find(".");
-            if (pos != std::string::npos) // Decimal digits are accurate only to 16th place
-            {
-                size_t len = strval.size();
-                if (len - pos >= 16)
-                {
-                    strval = strval.substr(0, pos + 16 + 1);
-                }
-            }
-        }
         return strval;
     }
 
@@ -1252,7 +1401,7 @@ bool BuiltInFuncsString::Str2mat(EvaluatorInterface           eval,
 
     for (int i = 0; i < nargin; ++i)
     {
-        Currency cur = inputs[i];
+        const Currency& cur = inputs[i];
         if (cur.IsScalar())
         {
             vecCur.push_back(cur);
@@ -1280,7 +1429,7 @@ bool BuiltInFuncsString::Str2mat(EvaluatorInterface           eval,
             {
                 for (int cj = 0; cj < cn; ++cj)
                 {
-                    Currency tmp = (*cell)(ci, cj);
+                    const Currency& tmp = (*cell)(ci, cj);
                     if (!tmp.IsMatrixOrString())
                     {
                         throw OML_Error(OML_ERR_STRING_STRINGCELL, i + 1, OML_VAR_TYPE);
@@ -1306,7 +1455,7 @@ bool BuiltInFuncsString::Str2mat(EvaluatorInterface           eval,
     for (std::vector<Currency>::const_iterator itr = vecCur.begin(); 
          itr != vecCur.end(); ++itr)
     {
-        Currency cur = *itr;
+        const Currency& cur = *itr;
         if (cur.IsScalar())
         {
             (*mtx)(row, 0) = cur.Scalar();
@@ -1743,7 +1892,7 @@ bool BuiltInFuncsString::Contains(EvaluatorInterface           eval,
     {
         for (int j1 = 0; j1 < n1; ++j1)
         {
-            Currency curTxt = (*cell1)(i1, j1);
+            const Currency& curTxt = (*cell1)(i1, j1);
             if (!curTxt.IsString())
             {
                 throw OML_Error(OML_ERR_STRING_STRINGCELL, 1);
@@ -1762,7 +1911,7 @@ bool BuiltInFuncsString::Contains(EvaluatorInterface           eval,
             {
                 for (int j2 = 0; j2 < n2 && contains == 0; ++j2)
                 {
-                    Currency curPat = (*cell2)(i2, j2);
+                    const Currency& curPat = (*cell2)(i2, j2);
                     if (!curPat.IsString())
                     {
                         throw OML_Error(OML_ERR_STRING_STRINGCELL, 2);
@@ -2325,4 +2474,374 @@ Currency BuiltInFuncsString::ToLowerString(const hwMatrix* mtx)
         return cur;
     }
     return Currency("");
+}
+//------------------------------------------------------------------------------
+// Returns true if this is a valid numeric format
+//------------------------------------------------------------------------------
+bool BuiltInFuncsString::IsValidNumericFormat(const std::string& fmt)
+{
+    if (fmt.empty())
+    {
+        return false;
+    }
+
+    size_t pos = fmt.find('%');
+    if (pos == std::string::npos)
+    {
+        return false;
+    }
+
+    std::string tmp(fmt.substr(pos + 1));
+    pos = tmp.find(' ');
+    if (pos != std::string::npos)
+    {
+        tmp = tmp.substr(0, pos);
+    }
+
+    if (tmp.empty())
+    {
+        return false;
+    }
+    size_t len = tmp.length();
+    std::transform(tmp.begin(), tmp.end(), tmp.begin(), ::tolower);
+    char ch = tmp[len - 1];
+
+    if (ch == 'd' || ch == 'f' || ch == 'g')
+    {
+        tmp.pop_back();
+        if (tmp.empty() || tmp == "+" || tmp == "-" || tmp == ".")
+        {
+            return true;
+        }
+    }
+    else if (ch == 'e')
+    {
+        tmp += "+01";
+    }
+
+    double rval = 0;
+    double ival = 0;
+    bool   isscalar = true;
+    BuiltInFuncsString funcs;
+
+    if (funcs.Str2Num(tmp, rval, ival, isscalar) && isscalar)
+    {
+        return true;
+    }
+    return false;
+}
+//------------------------------------------------------------------------------
+// Returns a matrix indicating which elements are printable [isprint]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsString::IsPrint(EvaluatorInterface           eval,
+    const std::vector<Currency>& inputs,
+    std::vector<Currency>& outputs)
+{
+    if (inputs.size() != 1)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    outputs.emplace_back(IsPrintImpl(inputs[0]));
+    return true;
+}
+//------------------------------------------------------------------------------
+// Internal implementation of isprint
+//------------------------------------------------------------------------------
+Currency BuiltInFuncsString::IsPrintImpl(const Currency& cur)
+{
+    Currency result(false);
+    if (cur.IsString())
+    {
+        const hwMatrix* mtx = cur.Matrix();
+        int m = mtx->M();
+        int n = mtx->N();
+        std::unique_ptr<hwMatrix> out (
+            EvaluatorInterface::allocateMatrix(m, n, true));
+        for (int i = 0; i < m; ++i)
+        {
+            for (int j = 0; j < n; ++j)
+            {
+                unsigned char ch = static_cast<unsigned char>((*mtx)(i, j));
+                (*out)(i, j) = (isprint(ch) != 0) ? 1 : 0;
+            }
+        }
+        result = out.release();
+        result.SetMask(Currency::MASK_LOGICAL);
+    }
+    else if (cur.IsCellArray())
+    {
+        HML_CELLARRAY* cell = cur.CellArray();
+        int m = cell->M();
+        int n = cell->N();
+        std::unique_ptr<HML_CELLARRAY> out(
+            EvaluatorInterface::allocateCellArray(m, n));
+        for (int i = 0; i < m; ++i)
+        {
+            for (int j = 0; j < n; ++j)
+            {
+                const Currency& child = (*cell)(i, j);
+                (*out)(i, j) = IsPrintImpl((*cell)(i, j));
+            }
+        }
+        result = out.release();
+    }
+
+    return result;
+}
+//------------------------------------------------------------------------------
+// Parse input string to get formats
+//------------------------------------------------------------------------------
+bool BuiltInFuncsString::ParseFormat(const std::string& in,
+    std::vector<std::string>& basefmt,
+    std::vector<std::string>& fullfmt,
+    std::vector<bool>&        skipfmt,
+    bool&                      showwarn)
+{
+    size_t len = in.length();
+    bool skip = false;
+    bool waspercent = false;
+    std::string percent("%");
+    std::string prefix;
+
+    for (size_t i = 0; i < len; ++i)
+    {
+        char ch = in[i];
+        if (ch == '%')
+        {
+            waspercent = true;
+            continue;
+        }
+        else if (waspercent)
+        {
+            waspercent = false;
+            while (i < len)
+            {
+                char ch2 = in[i];
+                if (ch2 == 'd' || ch2 == 'f' || ch2 == 'g' || ch2 == 's')
+                {
+                    ch = ch2;
+                    break;
+                }
+                else if (ch2 == '%')
+                {
+                    i--;
+                    break;
+                }
+                else if (ch2 == '*')
+                {
+                    skip = true;
+                }
+                else
+                {
+                    showwarn = true;
+                }
+                ++i;
+            }
+            if (ch == 'd' || ch == 'f' || ch == 'g' || ch == 's')
+            {
+                std::string fmt(percent + ch);
+                if (ch == 'f' || ch == 'g')
+                {
+                    fmt = percent + "lf"; // Read in as double to handle precision
+                }                    
+                basefmt.emplace_back(fmt);
+                fullfmt.emplace_back(prefix + fmt);
+                skipfmt.emplace_back(skip);
+                skip   = false;
+                prefix = "";
+            }
+        }
+        else
+        {
+            prefix += ch;
+        }
+    }
+    if (!prefix.empty() && !fullfmt.empty())
+    {
+        // Tack any left over chars - e.g. sscanf('  12km 18km', '%dkm')
+        std::string lastfmt(fullfmt[fullfmt.size() - 1]);
+        lastfmt += prefix;
+        fullfmt[fullfmt.size() - 1] = lastfmt;
+    }
+    return true;
+}
+//------------------------------------------------------------------------------
+// sscanf helper function, reads formatted input from string, returns true if successful
+//------------------------------------------------------------------------------
+bool BuiltInFuncsString::Sscanf(std::string& in,
+    const std::string& fmt,
+    const std::string& base,
+    bool skip,
+    std::vector<Currency>& outvals)
+{
+    std::string stringread;
+
+    if (base == "%lf")
+    {    // Float format
+        int numread = 0;
+        bool result = SscanfFloat(in, fmt, skip, outvals, stringread, numread);
+        if (!result)
+        {
+            return false;
+        }
+        // Chop the input string
+        if (numread > 0)
+        {
+            in = in.substr(numread);
+            return true;  // Done parsing
+        }
+    }
+    else if (base == "%d") // Integer format
+    {
+        std::string format = fmt + "%n";
+        int         numread = 0;
+        int         output = 0;
+
+        if (sscanf(in.c_str(), format.c_str(), &output, &numread) != 1)
+        {
+            return false;
+        }
+
+        // Chop the input string
+        if (numread > 0)
+        {
+            in = in.substr(numread);
+        }
+        if (!skip)
+        {
+            outvals.push_back(output);
+        }
+        return true;  // Done parsing
+    }
+    else   // String format
+    {
+        char output[1024];
+        if (sscanf(in.c_str(), fmt.c_str(), &output) != 1) return false;
+
+        stringread = output;
+
+        if (!skip)
+        {
+            size_t len = strlen(static_cast<char*>(output));
+            for (size_t j = 0; j < len; ++j)
+                outvals.push_back(static_cast<int>(output[j]));
+        }
+    }
+
+    if (stringread.empty()) return false;
+
+    if (fmt != base)
+    {
+        std::string findstr(base);
+        size_t pos = fmt.find(findstr);
+        std::string prefix = fmt.substr(0, pos);
+        stringread = prefix + stringread;
+        size_t len = fmt.length();
+        if (pos + findstr.length() < len - 1)
+        {
+            stringread += fmt.substr(pos + findstr.length());
+        }
+    }
+
+    size_t curpos = in.find_first_of(stringread);
+    if (curpos != std::string::npos)
+        curpos += stringread.size();
+
+    if (curpos >= in.size())
+    {
+        in = "";  // Done parsing
+        return false;
+    }
+
+    in = in.substr(curpos);   // Chop the input string
+    return true;
+}
+//------------------------------------------------------------------------------
+// Reads formatted float from string using sscanf, returns true if successul
+//------------------------------------------------------------------------------
+bool BuiltInFuncsString::SscanfFloat(const std::string&     in,
+                                     const std::string&     fmt,
+                                     bool                   skip,
+                                     std::vector<Currency>& outvals,
+                                     std::string&           stringread,
+                                     int&                   numread)
+{
+    // Read into double to handle precision issues
+    std::string updatedfmt(fmt);
+
+    updatedfmt += "%n";
+    double output = 0.0;
+    int    result = sscanf(in.c_str(), updatedfmt.c_str(), &output, &numread);
+
+    if (result != 1)
+    {
+        return false;
+    }
+    if (!skip)
+    {
+        outvals.push_back(output);
+    }
+
+    if (numread > 0)
+    {
+        stringread = in.substr(0, numread);
+        return true;
+    }
+    // This section is probably not needed
+    std::ostringstream os;
+    os << output;
+    stringread = os.str();
+    if (stringread.find("e") != std::string::npos ||
+        stringread.find("E") != std::string::npos)
+    {
+        os.str("");
+        os.clear();
+
+        if (stringread.find("e") != std::string::npos)
+        {
+            os << std::scientific << output;
+        }
+        else
+        {
+            os << std::scientific << std::uppercase << output;
+        }
+        stringread = os.str();
+    }
+
+    // sscanf will ignore decimal point in the case of 5.0000
+    if (stringread.find(".") == std::string::npos)
+    {   // Read till we get to decimal point
+        size_t pos = in.find_first_of(stringread);
+        if (pos != std::string::npos)
+        {
+            size_t len = in.size();
+            for (size_t i = pos + stringread.size(); i < len; ++i)
+            {
+                char c = in[i];
+                if (c == '.')
+                {
+                    stringread += c;
+                    break;
+                }
+                else if (!isdigit(c))
+                    break;
+
+                stringread += c;
+            }
+        }
+    }
+    // sscanf will read '00' as 0, so we need to take care of this condition
+    size_t pos = in.find_first_of(stringread);
+    if (pos != std::string::npos)
+    {
+        size_t len = in.size();
+        for (size_t i = pos + stringread.size(); i < len; ++i)
+        {
+            char c = in[i];
+            if (!isdigit(c)) break;
+            stringread += c;
+        }
+    }
+    return true;
 }

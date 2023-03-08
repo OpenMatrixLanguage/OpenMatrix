@@ -328,6 +328,10 @@ public:
     hwMathStatus Rank(int& rank) const;
     //! Rank with a tolerance interval
     hwMathStatus Rank(double tol, int& rank) const;
+    //! Null space orthonormal basis
+    hwMathStatus NullSpace(hwTMatrix<double>& nullBasis, double tol) const;
+    //! Column space orthonormal basis
+    hwMathStatus Range(hwTMatrix<double>& rangeBasis, double tol) const;
     //! Matrix norm
     hwMathStatus Norm(double& norm, int p = 2) const;
     //! Matrix norm
@@ -455,6 +459,8 @@ public:
     hwMathStatus SVDSolve(const hwTMatrix<double>& A, const hwTMatrix<double>& B);
     //! LU decomposition (PA=LU, where A = *this)
     hwMathStatus LU(hwTMatrix<int>& P, hwTMatrix<double>& L, hwTMatrix<double>& U) const;
+    //! LDL decomposition (A = PLDL'P', where A = *this)
+    hwMathStatus LDL(hwTMatrix<double>& T, hwTMatrix<double>& D, hwTMatrix<double>& P, bool upper = false) const;
     //! Cholesky decomposition (A=TT', where A = *this, and T is triangular)
     hwMathStatus Csky(hwTMatrix<double>& T, bool upper = false) const;
     //! Eigen decomposition (AV=DV, where A = *this)
@@ -697,6 +703,10 @@ private:
     hwMathStatus RealLU(hwTMatrix<double>& L, hwTMatrix<double>& U, hwTMatrix<int>& P ) const;
     //! Complex LU decomposition (PA = LU)
     hwMathStatus ComplexLU(hwTMatrix<double>& L, hwTMatrix<double>& U, hwTMatrix<int>& P ) const;
+    //! Real LDL' decomposition (A = PLDL'P')
+    hwMathStatus RealLDL(hwTMatrix<double>& T, hwTMatrix<double>& D, hwTMatrix<double>& P, bool upper = false) const;
+    //! Complex LDL' decomposition (A = PLDL'P')
+    hwMathStatus ComplexLDL(hwTMatrix<double>& T, hwTMatrix<double>& D, hwTMatrix<double>& P, bool upper = false) const;
     //! Real Cholesky decomposition (A=TT', where T is triangular)
     hwMathStatus RealCholeskyDecomp(hwTMatrix<double>& T, bool upper) const;
     //! Complex Cholesky decomposition (A=TT', where T is triangular)

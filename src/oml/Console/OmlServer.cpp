@@ -228,6 +228,25 @@ public:
 
 				Send(status);
 			}
+            else if ("signature" == command)
+            {
+                std::vector<Currency> inputs;
+                std::string funcName = cmd.substr(splitIndex + 1);
+                inputs.emplace_back(funcName.c_str());
+                Currency cur = _interp->CallFunction("getsyntax", inputs);
+                if (cur.IsString())
+                {
+                    std::string result_str(cur.StringVal());
+                    if (!result_str.empty())
+                    {
+                        result_str = result_str.substr(0, result_str.find_last_of("\n"));
+                        std::string signatures = "{\"type\":\"signatures\",\"data\":\"" + result_str + "\"}";
+                        Send(signatures);
+                        std::string status = "{\"type\":\"status\",\"data\":\"ready\"}";
+                        Send(status);
+                    }
+                }
+            }
             memset(recvbuf, 0, sizeof(recvbuf));
         }
         shutdown(_sock, RW_OFF);

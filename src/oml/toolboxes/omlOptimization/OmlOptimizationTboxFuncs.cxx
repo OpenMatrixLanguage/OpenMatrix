@@ -67,7 +67,8 @@ bool OmlOptimset(EvaluatorInterface           eval,
         msg += "TolFun\n";
         msg += "TolKKT\n";
         msg += "TolX\n";
-        msg += "MaxFail";
+        msg += "MaxFail\n";
+        msg += "Method";
 
         Currency tmp(msg);
         tmp.DispOutput();
@@ -85,6 +86,7 @@ bool OmlOptimset(EvaluatorInterface           eval,
         out.Struct()->SetValue(0, -1, "MaxFunEvals", 400);
         out.Struct()->SetValue(0, -1, "MaxIter",     100);
         out.Struct()->SetValue(0, -1, "MaxFail",     20000);
+        out.Struct()->SetValue(0, -1, "Method",      "sqp");
         out.Struct()->SetValue(0, -1, "TolCon",      0.5);
         out.Struct()->SetValue(0, -1, "TolFun",      1.0e-7);
         out.Struct()->SetValue(0, -1, "TolKKT",      1.0e-7);
@@ -133,6 +135,19 @@ bool OmlOptimset(EvaluatorInterface           eval,
             if (!cur.IsPositiveInteger())
                 throw OML_Error(OML_ERR_POSINTEGER, i + 2, OML_VAR_MAXFAIL);
         }
+        else if (opt == "Method")
+        {
+            if (!cur.IsString())
+                throw OML_Error(OML_ERR_STRING, i + 2, OML_VAR_METHOD);
+
+            std::string val(cur.StringVal());
+            if (val != "sqp" && val != "grg")
+            {
+                std::string message = "Error: argument " +
+                    std::to_string(static_cast<long long>(i + 2)) + " must be \'sqp\' or \'grg\'";
+                throw OML_Error(message);
+            }
+        }
         else if (opt == "TolCon")
         {
             if (!cur.IsScalar())
@@ -153,7 +168,7 @@ bool OmlOptimset(EvaluatorInterface           eval,
             if (val != "on" && val != "off")
             {
                 std::string message = "Error: argument " + 
-                    std::to_string(static_cast<long long>(i + 2)) + " must be \"on\" or \"off\"";
+                    std::to_string(static_cast<long long>(i + 2)) + " must be \'on\' or \'off\'";
                 throw OML_Error(message);
             }
         }
@@ -167,7 +182,7 @@ bool OmlOptimset(EvaluatorInterface           eval,
             {
                 std::string msg = "Error: argument " + 
                     std::to_string(static_cast<long long>(i + 2)) + 
-                    " must be \"iter\" or \"off\"";
+                    " must be \'iter\' or \'off\'";
                 throw OML_Error(msg);
             }
         }

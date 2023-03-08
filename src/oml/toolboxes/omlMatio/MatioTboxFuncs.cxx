@@ -1,7 +1,7 @@
 /**
 * @file MatioTboxFuncs.cxx
 * @date November 2015
-* Copyright (C) 2015-2022 Altair Engineering, Inc.  
+* Copyright (C) 2015-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -483,6 +483,8 @@ bool OmlSave(EvaluatorInterface           eval,
         omlMatio.AddWarning("No variables saved in [" + 
             BuiltInFuncsUtils::Normpath(filename) + "]");
     }
+    eval.RefreshPathCache();
+    
     BuiltInFuncsUtils::SetWarning(eval, omlMatio.GetWarning());
 
 	return true;

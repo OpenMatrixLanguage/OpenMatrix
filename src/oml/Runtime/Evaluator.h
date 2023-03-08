@@ -32,7 +32,6 @@
 #include <map>
 #include <iostream>
 #include <fstream>
-using namespace std;
 
 #include "EvaluatorInt.h"
 
@@ -69,7 +68,7 @@ struct BuiltinFunc
 	ALT_FUNCPTR alt_fptr;
 
 	FunctionMetaData md;
-    BuiltinFunc(FUNCPTR func, FunctionMetaData in_md, bool safe = true) : fptr(func), alt_fptr(nullptr), md(in_md), locked(false), hidden(false), dll(nullptr), hierarchy(nullptr), thread_safe(safe) {}
+    BuiltinFunc(FUNCPTR func, FunctionMetaData in_md, const std::string* context = NULL, bool safe = true) : fptr(func), alt_fptr(nullptr), md(in_md), locked(false), hidden(false), dll(context), hierarchy(nullptr), thread_safe(safe) {}
     BuiltinFunc(ALT_FUNCPTR func, const std::string* context, const std::string* meta, bool safe = true) : fptr(nullptr), alt_fptr(func), locked(false), hidden(false), dll(context), hierarchy(meta), thread_safe(safe) {}
 	BuiltinFunc(ALT_FUNCPTR func, FunctionMetaData in_md, const std::string* context, const std::string* meta, bool safe = true) : fptr(nullptr), alt_fptr(func), md(in_md), locked(false), hidden(false), dll(context), hierarchy(meta), thread_safe(safe) {}
     BuiltinFunc() : fptr(nullptr), alt_fptr(nullptr), locked(false), dll(nullptr), hierarchy(nullptr), thread_safe(true) {}
@@ -190,6 +189,9 @@ public:
 
 	std::string     GetCurrentFilename() const;
 
+	void CacheBCIPointer(OMLImplBase*);
+	void BCIGarbageCollect();
+
 	void SetDLLContext(const std::string& dll_name);
 	void SetDLLHierarchy(const std::string& metadata);
 
@@ -273,14 +275,16 @@ public:
 	bool					CloseAllFiles();
 	int						AddFile(std::FILE *newfile, const std::string &fname, const std::string &fmode);
 	int						GetNumFiles() { return (int)userFileStreams->size(); }
-	void                    AddPath(std::string pathname, bool end);
-	void                    AddHiddenPath(std::string pathname);
+	void                    AddPath(const std::string& pathname, bool end);
+	void                    AddHiddenPath(const std::string pathname);
 	void                    AddPath2(const std::string& pathname, const std::vector<std::string>& func_names);
-	bool                    RemovePath(std::string &pathname);
-	bool                    RemoveHiddenPath(std::string& pathname);
-	bool                    RemoveHiddenRootPath(std::string& pathname);
+	bool                    RemovePath(const std::string &pathname);
+	bool                    RemoveHiddenPath(const std::string& pathname);
+	bool                    RemoveHiddenRootPath(const std::string& pathname);
 	inline void             ClearPath() { paths->erase(paths->begin() + NUM_MANDATORY_PATHS, paths->end()); }
-	bool                    FindFileInPath(const std::string& file_plus_ext, std::string& filepath) const;
+	void                    UpdatePathCache(const std::string&);
+	void                    RefreshPathCache();
+	bool                    FindFileInPath(const std::string& file_plus_ext, std::string& filepath);
 	void                    RestorePath();
 	void                    TreatAsBuiltin(const std::string& pathname);
 	MemoryScope*            GetValidErrorScope();
@@ -740,7 +744,7 @@ private:
 
 	std::string builtin_error_scope;
 
-	ofstream       diaryFile;
+	std::ofstream       diaryFile;
 
 	std::vector<Currency> results;
 	Currency              last_suppressed_result;
@@ -763,11 +767,15 @@ private:
 	std::vector<MemoryScope*> marks;
 	int          mark_narg_size;
 	
-    std::vector<UserFile>* userFileStreams;
+    std::vector<UserFile>*    userFileStreams;
     std::vector<std::string>* paths;
 	std::vector<std::string>* hidden_paths;
 	std::vector<std::string>* restore_paths;		// VSM-5385  Adding capability to restore a multidirectory default path
 	std::vector<std::string>* restore_hidden_paths;	// VSM-5385
+
+	std::vector<OMLImplBase*> bci_cached_pointers;
+
+	std::map<const std::string*, std::vector<std::string>>* cached_path_contents;
 
 	std::vector<std::string>* treat_as_builtin_list;
 

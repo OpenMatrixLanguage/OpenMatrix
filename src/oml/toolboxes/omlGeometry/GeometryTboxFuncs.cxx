@@ -1,7 +1,7 @@
 /**
 * @file GeometryTboxFuncs.cxx
 * @date November, 2018
-* Copyright (C) 2018-2022 Altair Engineering, Inc.  
+* Copyright (C) 2018-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -18,29 +18,16 @@
 #include <memory>       // for std::unique_ptr
 #include <fstream>
 
-#ifdef OS_WIN
-#    include <io.h>        // for dup
-#else
-#    include <unistd.h>    // for dup
-#endif
-
 #include "BuiltInFuncs.h"
 #include "BuiltInFuncsUtils.h"
 #include "SignalHandlerBase.h"
+#include "hwMatrix.h"
 #include "OML_Error.h"
 #include "GeometryTboxFuncs.h"
 #include "GeometryFuncs.h"
 
 #define GEOM "Geometry"
-#define TBOXVERSION 2022.2
-
-// Returns temporary error file name and redirect QHull errors
-std::string SetQHullErrorFile(EvaluatorInterface eval,
-                              int&               oldstderrhandle);
-// Shows QHull messages and deletes temporary files
-void ShowQHullMessages(EvaluatorInterface eval,
-                       const std::string& name,
-                       int                oldstderrhandle);
+#define TBOXVERSION 2022.3
 
 //------------------------------------------------------------------------------
 // Entry point which registers oml Geometry functions with oml
@@ -139,15 +126,15 @@ bool OmlConvHull(EvaluatorInterface           eval,
     else
         area = -1.0;
 
-    // Redirect stderr
-    int handle = -1;
-    std::string name = SetQHullErrorFile(eval, handle);
+    // Supress stderr
+#ifndef OS_WIN
+    std::FILE* fptr = freopen("/dev/null", "w", stderr);  // cppcheck-suppress resourceLeak 
+#else
+    std::FILE* fptr = freopen("NUL", "w", stderr);  // cppcheck-suppress resourceLeak 
+#endif
 
     // call QHull
     hwMathStatus status = ConvexHull(*x, *y, options, hull, area, nullptr);
-
-    // Show QHull messages, based on application mode
-    ShowQHullMessages(eval, name, handle); 
 
     BuiltInFuncsUtils::CheckMathStatus(eval, status);
     
@@ -250,15 +237,15 @@ bool OmlConvHulln(EvaluatorInterface           eval,
     hwMatrix     Ptrans;
     hwMathStatus status = Ptrans.Transpose(*P);
 
-    // Redirect stderr
-    int handle = -1;
-    std::string name = SetQHullErrorFile(eval, handle);
+    // Supress stderr
+#ifndef OS_WIN
+    std::FILE* fptr = freopen("/dev/null", "w", stderr);  // cppcheck-suppress resourceLeak 
+#else
+    std::FILE* fptr = freopen("NUL", "w", stderr);  // cppcheck-suppress resourceLeak 
+#endif
 
     // call QHull
     status = ConvexHulln(Ptrans, options, hull, volume, nullptr);
-
-    // Show QHull messages, based on the application mode
-    ShowQHullMessages(eval, name, handle);
 
     BuiltInFuncsUtils::CheckMathStatus(eval, status);
 
@@ -475,15 +462,15 @@ bool OmlDelaunayn(EvaluatorInterface           eval,
     hwMatrix     Ptrans;
     hwMathStatus status = Ptrans.Transpose(*P);
 
-    // Redirect stderr
-    int handle = -1;
-    std::string name = SetQHullErrorFile(eval, handle);
+    // Supress stderr
+#ifndef OS_WIN
+    std::FILE* fptr = freopen("/dev/null", "w", stderr);  // cppcheck-suppress resourceLeak 
+#else
+    std::FILE* fptr = freopen("NUL", "w", stderr);  // cppcheck-suppress resourceLeak 
+#endif
 
     // call QHull
     status = Delaunayn(Ptrans, options, triang, nullptr);
-
-    // Show QHull messages, based on application mode
-    ShowQHullMessages(eval, name, handle);
 
     BuiltInFuncsUtils::CheckMathStatus(eval, status);
 
@@ -504,87 +491,4 @@ bool OmlDelaunayn(EvaluatorInterface           eval,
 double GetToolboxVersion(EvaluatorInterface eval)
 {
 	return TBOXVERSION;
-}
-//------------------------------------------------------------------------------
-// Returns temporary error file name and redirect QHull errors
-//------------------------------------------------------------------------------
-std::string SetQHullErrorFile(EvaluatorInterface eval, int& olderrhandle)
-{
-    SignalHandlerBase* handler = eval.GetSignalHandler();
-    if (handler && handler->IsInConsoleMode() && 
-        !handler->IsInConsoleBatchMode()) // Console interactive
-    {
-        return "";  // Errors should just go to stderr
-    }
-
-    // Batch, Console-batch and GUI modes
-    char*       cname = std::tmpnam(nullptr); // cppcheck-suppress warning; the use of `tmpnam' is dangerous, better use `mkstemp'
-    std::string name  = (cname) ? cname : "";
-    if (name.empty())
-    {
-        return "";
-    }
-
-    int handle1 = fileno(stderr);
-#ifdef OS_WIN
-    olderrhandle = _dup(handle1);
-#else
-    olderrhandle = dup(handle1);
-#endif
-
-    // Redirect stderr
-    std::FILE* fptr = freopen(name.c_str(), "w", stderr);   // cppcheck-suppress resourceLeak; symbolName=fptr
-
-#ifdef OS_WIN
-    _dup2(_fileno(fptr), handle1);
-#else
-    dup2(fileno(fptr), handle1);
-#endif
-
-    
-    return name; // cppcheck-suppress resourceLeak; symbolName=fptr
-}
-//------------------------------------------------------------------------------
-// Displays QHull errors, based on application mode
-//------------------------------------------------------------------------------
-void ShowQHullMessages(EvaluatorInterface eval, const std::string& name, int handle)
-{
-    if (name.empty())
-    {
-        return;
-    }
-    if (handle < 0)
-    {
-        std::remove(name.c_str());
-        return;
-    }
-    fflush(stderr);
-
-#ifdef OS_WIN
-    _dup2(handle, fileno(stderr)); // cppcheck-suppress warning; don't close stderr'
-    _flushall();
-#else
-    dup2(handle, fileno(stderr));  // cppcheck-suppress warning; don't close stderr'
-#endif
-
-    SignalHandlerBase* handler = eval.GetSignalHandler();
-    if (handler &&  handler->IsInGuiMode())
-    {
-        // Errors are displayed to oml command window only for GUI mode
-        std::ifstream ifs(name);
-        if (ifs.good())
-        {
-            while (1)
-            {
-                std::string line;
-                if (std::getline(ifs, line).eof())
-                {
-                    break;
-                }
-                eval.PrintResult(line);
-            }
-        }
-    }
-    std::remove(name.c_str());
-    // fclose(stderr); // cppcheck-suppress - don't close stderr, causes an err if run again
 }

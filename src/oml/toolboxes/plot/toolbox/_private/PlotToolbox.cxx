@@ -1,7 +1,7 @@
 /**
 * @file PlotToolbox.cxx
 * @date March 2017
-* Copyright (C) 2017-2022 Altair Engineering, Inc.  
+* Copyright (C) 2017-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -228,6 +228,10 @@ namespace omlplot{
 				BuiltInFuncsUtils::SetWarning(eval, "Property [" + (*it) + "] is not supported in OpenMatrix");
 
 		}
+        string wrn = cm->GetWarningString();
+        if (!wrn.empty())
+            BuiltInFuncsUtils::SetWarning(eval, wrn);
+
         std::vector<std::pair<double, string>> dt = cm->getUpdateDatetickFlag();
         std::vector<std::pair<double, string>>::const_iterator it = dt.cbegin();
         for (; it != dt.cend(); ++it) {
@@ -1104,11 +1108,6 @@ namespace omlplot{
 
     bool patch(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
         vector<LineData> vld = dsm.getPatchData(inputs);
-        if (vld.size() > 0 && !vld[0].z.empty()) {
-            BuiltInFuncsUtils::SetWarning(eval, "3d patch plot is not supported in OpenMatrix");
-            return false;
-        }
-
         vector<double> hs = cm->patch(vld);
         outputs.push_back(hs);
         return true;
@@ -1270,29 +1269,11 @@ namespace omlplot{
         return true;
     }
 
-	bool getmousepos(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-		BuiltInFuncsUtils::SetWarning(eval, "Command [getmousepos] is not supported in OpenMatrix");
-		return false;
-	}
-
-	bool imagesc(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-		BuiltInFuncsUtils::SetWarning(eval, "Command [imagesc] is not supported in OpenMatrix");
-		return false;
-	}
-
-	bool uiresume(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-		BuiltInFuncsUtils::SetWarning(eval, "Command [uiresume] is not supported in OpenMatrix");
-		return false;
-	}
-
-	bool uiwait(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-		BuiltInFuncsUtils::SetWarning(eval, "Command [uiwait] is not supported in OpenMatrix");
-		return false;
-	}
-
     bool bar3(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-        BuiltInFuncsUtils::SetWarning(eval, "Command [bar3] is not supported in OpenMatrix");
-        return false;
+        vector<LineData> vld = dsm.getBar3Data(inputs);
+        vector<double> hs = cm->bar3(vld);
+        outputs.push_back(hs);
+        return true;
     }
 
     bool copystyle(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
@@ -1305,19 +1286,56 @@ namespace omlplot{
         return false;
     }
 
-    bool getframe(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-        BuiltInFuncsUtils::SetWarning(eval, "Command [getframe] is not supported in OpenMatrix");
-        return false;
-    }
-
-    bool movie(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-        BuiltInFuncsUtils::SetWarning(eval, "Command [movie] is not supported in OpenMatrix");
-        return false;
-    }
-
     bool hist3(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
-        BuiltInFuncsUtils::SetWarning(eval, "Command [hist3] is not supported in OpenMatrix");
-        return false;
+        
+        if (inputs.empty())
+            throw OML_Error(OML_ERR_NUMARGIN);
+
+        if (!inputs[0].IsMatrix() ||
+            (inputs[0].IsMatrix() && inputs[0].Matrix()->N() != 2))
+        {
+            throw OML_Error("must be a Nx2 matrix", 1);
+        }
+        
+        
+        // Create hist3 data
+        std::vector<Currency> histOuts;
+        vector<LineData> vld = dsm.getHist3Data(inputs, histOuts);
+
+        int nargout = eval.GetNargoutValue();
+        if (nargout == 1)
+        {
+            outputs.push_back(histOuts.front());
+        }
+        else if (nargout == 2)
+        {
+            outputs.push_back(histOuts[0]);
+            outputs.push_back(histOuts[1]);
+        }
+        else if (nargout == 0 || nargout == 3)
+        {
+            // create the histogram plot
+            std::vector<double> bar3Output = cm->bar3(vld);
+            if (nargout == 3)
+            {
+                outputs.push_back(histOuts[0]);
+                outputs.push_back(histOuts[1]);
+                outputs.push_back(bar3Output.front());
+            }
+
+            // set the x categories and y categories
+            HML_CELLARRAY* cell = histOuts[1].CellArray();
+
+            unique_ptr<SetData> data(new SetData);
+            data->handles.push_back(cm->gca());
+            data->properties.push_back("xtick");
+            data->values.push_back((*cell)(0));
+            data->properties.push_back("ytick");
+            data->values.push_back((*cell)(1));
+            vector<string> wrn;
+            cm->set(data, wrn);
+        }
+        return true;
     }
 
     bool autumn(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
@@ -1445,7 +1463,7 @@ namespace omlplot{
         return false;
     }
 
-#define TBOXVERSION 1.11
+#define TBOXVERSION 1.12
     extern "C" OMLPLOT_EXPORT
     double GetToolboxVersion(EvaluatorInterface eval){
         return TBOXVERSION;
@@ -1519,18 +1537,12 @@ namespace omlplot{
             evl.RegisterBuiltInFunction("quiver", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
             evl.RegisterBuiltInFunction("findall", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
             evl.RegisterBuiltInFunction("datetick", oml_doNothing, FunctionMetaData(-4, 0, "Plotting"));
+            evl.RegisterBuiltInFunction("bar3", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("hist3", oml_doNothing, FunctionMetaData(-2, 1, "Plotting"));
 
             // Not yet supported commands
-            evl.RegisterBuiltInFunction("bar3", bar3, FunctionMetaData(-1, 1, "Plotting"));
-			evl.RegisterBuiltInFunction("getmousepos", getmousepos, FunctionMetaData(0, 2, "Plotting"));
-			evl.RegisterBuiltInFunction("imagesc", imagesc, FunctionMetaData(-1, 1, "Plotting"));
-			evl.RegisterBuiltInFunction("uiresume", uiresume, FunctionMetaData(-1, 1, "Plotting"));
-			evl.RegisterBuiltInFunction("uiwait", uiwait, FunctionMetaData(-1, 1, "Plotting"));
             evl.RegisterBuiltInFunction("copystyle", copystyle, FunctionMetaData(-1, -1, "Plotting"));
             evl.RegisterBuiltInFunction("pastestyle", pastestyle, FunctionMetaData(-1, -1, "Plotting"));
-            evl.RegisterBuiltInFunction("getframe", getframe, FunctionMetaData(-1, 1, "Plotting"));
-            evl.RegisterBuiltInFunction("movie", movie, FunctionMetaData(-1, 0, "Plotting"));
-            evl.RegisterBuiltInFunction("hist3", hist3, FunctionMetaData(-2, 1, "Plotting"));
             evl.RegisterBuiltInFunction("autumn", autumn, FunctionMetaData(-1, 1, "Plotting"));
             evl.RegisterBuiltInFunction("bone", bone, FunctionMetaData(-1, 1, "Plotting"));
             evl.RegisterBuiltInFunction("cividis", cividis, FunctionMetaData(-1, 1, "Plotting"));
@@ -1556,6 +1568,7 @@ namespace omlplot{
             evl.RegisterBuiltInFunction("viridis", viridis, FunctionMetaData(-1, 1, "Plotting"));
             evl.RegisterBuiltInFunction("white", white, FunctionMetaData(-1, 1, "Plotting"));
             evl.RegisterBuiltInFunction("winter", winter, FunctionMetaData(-1, 1, "Plotting"));
+
             return 0;
         }
 
@@ -1617,29 +1630,23 @@ namespace omlplot{
         evl.RegisterBuiltInFunction("pcolor", pcolor, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("drawnow", drawnow, FunctionMetaData(0, 0, "Plotting"));
         evl.RegisterBuiltInFunction("fanplot", fanplot, FunctionMetaData(3, -1, "Plotting"));
+        evl.RegisterBuiltInFunction("findobj", findobj, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("xline", xline, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("yline", yline, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("stem3", stem3, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("quiver", quiver, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("findall", findall, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("datetick", datetick, FunctionMetaData(-4, 0, "Plotting"));
+        evl.RegisterBuiltInFunction("bar3", bar3, FunctionMetaData(-1, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("hist3", hist3, FunctionMetaData(-2, 1, "Plotting"));
 
 //#ifdef _DEBUG
         evl.RegisterBuiltInFunction("dump", dump, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("out", out, FunctionMetaData(-1, 1, "Plotting"));
 //#endif
 		// Not yet supported commands
-        evl.RegisterBuiltInFunction("bar3", bar3, FunctionMetaData(-1, 1, "Plotting"));
-		evl.RegisterBuiltInFunction("getmousepos", getmousepos, FunctionMetaData(0, 2, "Plotting"));
-		evl.RegisterBuiltInFunction("imagesc", imagesc, FunctionMetaData(-1, 1, "Plotting"));
-		evl.RegisterBuiltInFunction("uiresume", uiresume, FunctionMetaData(-1, 1, "Plotting"));
-		evl.RegisterBuiltInFunction("uiwait", uiwait, FunctionMetaData(-1, 1, "Plotting"));
-        evl.RegisterBuiltInFunction("findobj", findobj, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("copystyle", copystyle, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("pastestyle", pastestyle, FunctionMetaData(-1, -1, "Plotting"));
-        evl.RegisterBuiltInFunction("getframe", getframe, FunctionMetaData(-1, 1, "Plotting"));
-        evl.RegisterBuiltInFunction("movie", movie, FunctionMetaData(-1, 0, "Plotting"));
-        evl.RegisterBuiltInFunction("hist3", hist3, FunctionMetaData(-2, 1, "Plotting"));
         evl.RegisterBuiltInFunction("autumn", autumn, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("bone", bone, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("cividis", cividis, FunctionMetaData(-1, 1, "Plotting"));
@@ -1665,6 +1672,7 @@ namespace omlplot{
         evl.RegisterBuiltInFunction("viridis", viridis, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("white", white, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("winter", winter, FunctionMetaData(-1, 1, "Plotting"));
+
         return 0;
     }
 

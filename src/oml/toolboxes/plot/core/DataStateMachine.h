@@ -1,7 +1,7 @@
 /**
 * @file DataStateMachine.h
 * @date May 2017
-* Copyright (C) 2017-2022 Altair Engineering, Inc.  
+* Copyright (C) 2017-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -54,6 +54,8 @@ public:
     std::vector<LineData> getPatchData(const std::vector<Currency>& inputs);
     std::unique_ptr<ColorbarData> getColorbarData(const std::vector<Currency>& inputs);
     std::vector<LineData> getQuiverData(const std::vector<Currency>& inputs);
+    std::vector<LineData> getBar3Data(const std::vector<Currency>& inputs);
+    std::vector<LineData> getHist3Data(const std::vector<Currency>& inputs, std::vector<Currency>& hist3dData);
 
 private:
     enum State { START, GET_X, GET_Y, GET_Z, // general state

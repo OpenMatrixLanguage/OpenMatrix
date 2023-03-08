@@ -2040,7 +2040,6 @@ hwMathStatus hwTMatrix<T1, T2>::Diag(const hwTMatrix<T1, T2>& source, int k)
 
         if (source.IsReal())   // real
         {
-
             if (k >= 0)
             {
                 for (int i = 0; i < size; i++)
@@ -2091,7 +2090,7 @@ hwMathStatus hwTMatrix<T1, T2>::Diag(const hwTMatrix<T1, T2>& source, int k)
                 length = m;
         }
 
-        if (length > 0)
+        if (length >= 0)
         {
             status = Dimension(length, 1, source.Type());
 

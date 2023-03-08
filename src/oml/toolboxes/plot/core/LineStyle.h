@@ -1,7 +1,7 @@
 /**
 * @file LineStyle.h
 * @date May 2017
-* Copyright (C) 2017-2021 Altair Engineering, Inc.  
+* Copyright (C) 2017-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -29,11 +29,11 @@ namespace omlplot{
     public:
         explicit LineStyle(const LineData&, const Currency& parentColorOrder);
 
+        static bool isAbbrLine(const char& l);
+        static bool isAbbrMarker(const char& m);
     private:
         void SplitFormat(const string fmt, string &style, string &legend);
         bool isAbbrColor(const char &c);
-        bool isAbbrLine(const char &l);
-        bool isAbbrMarker(const char &m);
         void InitColorByIndex(int index, const Currency& parentColorOrder);
 
     public:
@@ -52,6 +52,8 @@ namespace omlplot{
         static std::vector<int> c3;
         static std::vector<int> c4;
         static std::vector<int> c5;
+
+        static std::vector<double> ColorAtIndex(int index);
     };
 }
 

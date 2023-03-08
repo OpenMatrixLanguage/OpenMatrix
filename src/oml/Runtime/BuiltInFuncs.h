@@ -28,7 +28,9 @@
 #include "EvaluatorInt.h"
 #include "Currency.h"
 #include "ErrorInfo.h"
-#include "hwMatrix.h"
+
+template <typename T1, typename T2> class hwTMatrix;
+typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
 
 struct BuiltinFunc;
 void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions);
@@ -175,6 +177,7 @@ bool oml_realmin(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
 bool oml_cell2mat(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_run(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_run2(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_run_internal(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_fflush(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_frewind(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_fwrite(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -243,8 +246,11 @@ bool oml_hypot(EvaluatorInterface, const std::vector<Currency>& inputs, std::vec
 bool oml_rank(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_qr(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_lu(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_ldl(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_schur(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_svd(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_null(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_orth(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_eps(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_eig(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_chol(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -411,12 +417,6 @@ bool conditionFunc(const std::vector<Currency>& inputs, std::vector<Currency>& o
 bool roundingFunc(const std::vector<Currency>& inputs, std::vector<Currency>& outputs, double (*roundFunc) (double));
 bool createCommonMatrix(EvaluatorInterface& eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs, Currency newval);
 bool createCommonNDMatrix(EvaluatorInterface& eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs, Currency newval);
-bool limitFunc(EvaluatorInterface& eval, const std::vector<Currency> &inputs, std::vector<Currency> &outputs, float (*floatFunc)(), double (*doubleFunc)());
-bool scalarToLogicalFunc(const std::vector<Currency> &inputs, std::vector<Currency> &outputs, double (*checker)(double));
-bool sortBasedOperation(EvaluatorInterface &eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs, bool allowRepeatIndices,
-    std::deque<std::string> (*workerCell)(std::deque<std::string>&, std::deque<std::string>&), std::deque<hwMatrix> (*workerRow)(std::deque<hwMatrix>&, std::deque<hwMatrix>&),
-    std::deque<double> (*workerReal)(std::deque<double>&, std::deque<double>&), std::deque<hwComplex> (*workerCplx)(std::deque<hwComplex>&, std::deque<hwComplex>&));
-bool allowComplexToLogical(const std::vector<Currency>& inputs, std::vector<Currency>& outputs, bool (*checker)(double), bool complexBoth);
 bool ineqOperatorFunc(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs, int op);
 bool eqOperatorFunc(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs, int op);
 bool binOperatorFunc(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs, int op);
@@ -453,87 +453,6 @@ void get1DStringsFromInput(const Currency& cur, std::vector<std::string>& vec);
 
 // output-related methods
 int getNumOutputs(const EvaluatorInterface &eval);
-hwMatrix* vectorToDiag(hwMatrix *mtx);
-hwMatrix* dequeToMatrix(const std::deque<hwComplex> &deq, bool row = true);
-hwMatrix* dequeToMatrix(const std::deque<hwMatrix> &deq);
-
-//! Converts a container to matrix (both real/complex)
-// if nrows or ncols are negative, treated as the size of deq
-// if both are -1, a column vector is returned
-// otherwise assumes nrows*ncols >= container.size()
-template<typename T>
-inline hwMatrix* containerToMatrix(const T &container, bool row = true)
-{
-    int containerSize = static_cast<int>(container.size());
-
-    // Although the matrix is created as real, if there is a complex element in
-    // the values, SetElement will flip matrix type to complex
-    hwMatrix* ret = (row)? 
-    EvaluatorInterface::allocateMatrix(1, containerSize, true) :
-    EvaluatorInterface::allocateMatrix(containerSize, 1, true);
-
-    int matrixSize = ret->Size();
-    // Check both the size of the container and matrix as the matrix size could
-    // be smaller than the container size requested.
-    for (int i = 0; i < containerSize && i < matrixSize; ++i)
-        ret->SetElement(i, container[i]);  // Don't assign values directly, see note above
-
-    return ret;
-}
-//! Converts a container to matrix (both real/complex)
-// pads any extra space with zeros
-// if nrows or ncols are negative, treated as the size of deq
-// if both are -1, a column vector is returned
-// otherwise assumes nrows*ncols >= container.size()
-template<typename T>
-inline hwMatrix* containerToMatrix(const T &container, int nrows, int ncols)
-{
-    hwMatrix* ret     = NULL;
-    int containerSize = static_cast<int>(container.size());
-
-    // Although the matrix is created as real, if there is a complex element in
-    // the values, SetElement will flip matrix type to complex
-    if (nrows < 0)
-        if (ncols < 0)
-            ret = EvaluatorInterface::allocateMatrix(containerSize, 1, true);
-        else
-            ret = EvaluatorInterface::allocateMatrix((int)(ceil(container.size() / (double) ncols)), ncols, true);
-    else if (ncols < 0)
-        ret = EvaluatorInterface::allocateMatrix(nrows, (int)(ceil(container.size() / (double) nrows)), true);
-    else
-        ret = EvaluatorInterface::allocateMatrix(nrows, ncols, true);
-
-    int matrixSize = ret->Size();
-
-    int i = 0;  // Outside as the loop any elements not set by container need to 
-                // be initialized to 0
-
-    // Check both the size of the container and matrix as the matrix size could
-    // be smaller than the container size requested.
-    for (; i < matrixSize && i < containerSize; i++)
-        ret->SetElement(i, (double)container[i]); // Don't assign values directly, see note above
-
-    while (i < matrixSize) 
-        (*ret)(i++) = 0.0;
-
-    return ret;
-}
-
-template <typename T>
-inline HML_CELLARRAY* containerToCellArray(const T &container, bool row)
-{
-    int size = (int)container.size();
-    HML_CELLARRAY *ret;
-    if (row)
-        ret = EvaluatorInterface::allocateCellArray(1, size);
-    else
-        ret = EvaluatorInterface::allocateCellArray(size, 1);
-
-    for (int i = 0; i < size; i++)
-        (*ret)(i) = container[i];
-
-    return ret;
-}
 
 Currency addStringMask(const hwMatrix *m);
 inline Currency addStringMask(double d) { return addStringMask(EvaluatorInterface::allocateMatrix(1, 1, d)); }
@@ -579,9 +498,6 @@ inline int indexOf(const std::deque<T> &d, T val, bool reverseReturn = false, bo
     return (allowDuplicate || reverseReturn ? minIndex : -1);
 }
 
-int indexOf(const std::deque<std::string> &v, const std::string &val, bool reverseReturn = false, bool allowDuplicate = false);
-int indexOf(const std::deque<hwComplex> &v, const hwComplex &val, bool reverseReturn = false, bool allowDuplicate = false);
-int indexOf(const std::deque<hwMatrix> &v, hwMatrix &val, bool reverseReturn = false, bool allowDuplicate = false);
 template <typename T>
 inline bool hasElement(std::deque<T> &v, double val) { return (indexOf(v, val, false) != -1); }
 bool complexLessThan(const hwComplex &cplx1, const hwComplex &cplx2);
@@ -668,14 +584,6 @@ hwMatrix *getInnerMatrix(const hwMatrix *mtx, int top, int bottom, int left, int
 std::deque<int> getprimes(int max);
 OMLDLL_DECLS bool fileExists(const std::string &file_name);
 bool isEscaped(const std::string &str, size_t index);
-Currency findUnsorted(EvaluatorInterface& eval, std::deque<hwMatrix> vals, const hwMatrix *searchin, bool forward);
-Currency findUnsorted(std::deque<double> vals, const hwMatrix *searchin, bool forward);
-Currency findUnsorted(std::deque<hwComplex> vals, const hwMatrix *searchin, bool forward);
-Currency findUnsorted(EvaluatorInterface& eval, std::deque<std::string> vals, const HML_CELLARRAY *searchin, bool forward);
-Currency findSorted(EvaluatorInterface& eval, std::deque<hwMatrix> vals, const hwMatrix *searchin);
-Currency findSorted(std::deque<double> vals, const hwMatrix *searchin);
-Currency findSorted(std::deque<hwComplex> vals, const hwMatrix *searchin);
-Currency findSorted(EvaluatorInterface& eval, std::deque<std::string> vals, const HML_CELLARRAY *searchin);
 int posIntFromDouble(double d);
 OMLDLL_DECLS void writeCol(EvaluatorInterface& eval, hwMatrix* mtx, hwMatrix* col, int index);
 OMLDLL_DECLS void writeRow(EvaluatorInterface& eval, hwMatrix* mtx, hwMatrix* row, int index);
@@ -784,36 +692,6 @@ std::pair<double, double> cart2polHelper(double theta, double r);
 // removePadding
 void _countZeros(const hwMatrix *mtx, int *count, int stop_count, int stop_inner, int incr, bool horiz);
 void _countZerosComplex(const hwMatrix *mtx, int *count, int stop_count, int stop_inner, int incr, bool horiz);
-
-// set-related helpers
-void dounique(std::deque<hwMatrix> &vals);
-void dounique(std::deque<double> &vals);
-void dounique(std::deque<hwComplex> &vals);
-void dounique(std::deque<std::string> &vals);
-
-// This allows all set-related functions to be simplified & combined
-std::deque<hwMatrix> doSetFunc(std::deque<hwMatrix> &a, std::deque<hwMatrix> &b, std::back_insert_iterator<std::deque<hwMatrix> > (*stdmethod)(std::deque<hwMatrix>::iterator,
-    std::deque<hwMatrix>::iterator, std::deque<hwMatrix>::iterator, std::deque<hwMatrix>::iterator, std::back_insert_iterator<std::deque<hwMatrix> >, bool (*)(const hwMatrix&, const hwMatrix&)));
-std::deque<hwComplex> doSetFunc(std::deque<hwComplex> &a, std::deque<hwComplex> &b, std::back_insert_iterator<std::deque<hwComplex> > (*stdmethod)(std::deque<hwComplex>::iterator,
-    std::deque<hwComplex>::iterator, std::deque<hwComplex>::iterator, std::deque<hwComplex>::iterator, std::back_insert_iterator<std::deque<hwComplex> >, bool (*)(const hwComplex&, const hwComplex&)));
-std::deque<double> doSetFunc(std::deque<double> &a, std::deque<double> &b, std::back_insert_iterator<std::deque<double> > (*stdmethod)(std::deque<double>::iterator,
-    std::deque<double>::iterator, std::deque<double>::iterator, std::deque<double>::iterator, std::back_insert_iterator<std::deque<double> >));
-std::deque<std::string> doSetFunc(std::deque<std::string> &a, std::deque<std::string> &b, std::back_insert_iterator<std::deque<std::string> > (*stdmethod)(std::deque<std::string>::iterator,
-    std::deque<std::string>::iterator, std::deque<std::string>::iterator, std::deque<std::string>::iterator, std::back_insert_iterator<std::deque<std::string> >));
-
-template <typename T>
-inline std::deque<T> dounion(std::deque<T> &a, std::deque<T> &b) { return doSetFunc(a, b, std::set_union); }
-template <typename T>
-inline std::deque<T> dointersect(std::deque<T> &a, std::deque<T> &b) { return doSetFunc(a, b, std::set_intersection); }
-template <typename T>
-inline std::deque<T> dosetxor(std::deque<T> &a, std::deque<T> &b) { dounique(a); dounique(b); return doSetFunc(a, b, std::set_symmetric_difference); }
-template <typename T>
-inline std::deque<T> dosetdiff(std::deque<T> &a, std::deque<T> &b) { dounique(a); dounique(b); return doSetFunc(a, b, std::set_difference); }
-// override these cases because we need to make a copy of a and b - they are used later in sortBasedOperation
-inline std::deque<std::string> dounion(std::deque<std::string> &a, std::deque<std::string> &b) { std::deque<std::string> aa(a); std::deque<std::string> bb(b); return dounion<std::string>(aa, bb); }
-inline std::deque<std::string> dointersect(std::deque<std::string> &a, std::deque<std::string> &b) { std::deque<std::string> aa(a); std::deque<std::string> bb(b); return dointersect<std::string>(aa, bb); }
-inline std::deque<std::string> dosetxor(std::deque<std::string> &a, std::deque<std::string> &b) { std::deque<std::string> aa(a); std::deque<std::string> bb(b); return dosetxor<std::string>(aa, bb); }
-inline std::deque<std::string> dosetdiff(std::deque<std::string> &a, std::deque<std::string> &b) { std::deque<std::string> aa(a); std::deque<std::string> bb(b); return dosetdiff<std::string>(aa, bb); }
 
 // Helper functions
 //!

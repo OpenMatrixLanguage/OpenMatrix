@@ -1,0 +1,11 @@
+function clean = lowbitcleanup(matrix, numbits)
+	% zero the lowest numbits bits of each matrix element
+	% relative to the element of largest magnitude.
+	maxmag = norm(matrix, 'inf');
+	if maxmag == 0
+		maxmag = 1;
+	end
+	left_bits = floor(log2(maxmag)) + 1;
+	right_bits = 53 - left_bits - numbits;
+	clean = round(matrix, right_bits, 'binary') + 0;
+end

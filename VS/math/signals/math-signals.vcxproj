@@ -1,0 +1,236 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A43408A8-61F7-476C-80D0-51D47B95E27E}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\OpenMatrix\PropertySheet.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\OpenMatrix\PropertySheet.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>hwsignals</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>hwsignals</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MATHSIGNALS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MATHSIGNALS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; SIGNALS_EXPORTS</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\polynom;$(OML_ROOT)\src\math\statistics;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\math\signals;$(OML_FFTWDIR)\api;$(OML_MKL_INCLUDE);$(OML_ROOT)\src</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_MKL_LIBDIR);$(OML_FFTWDIR)\fftw-3.2.2-libs/x64/Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mathcore.lib;hwmathutils.lib;hwpolynom.lib;hwstatistics.lib;libfftw-3.2.2-x64.lib;$(OML_MKL_LIBS)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; SIGNALS_EXPORTS</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\polynom;$(OML_ROOT)\src\math\statistics;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\math\signals;$(OML_FFTWDIR)\api;$(OML_MKL_INCLUDE);$(OML_ROOT)\src</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_MKL_LIBDIR);$(OML_FFTWDIR)\fftw-3.2.2-libs/x64/Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mathcore.lib;hwmathutils.lib;hwpolynom.lib;hwstatistics.lib;libfftw-3.2.2-x64.lib;mkl_rt.lib</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\FilterFuncs.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\FourierFuncs.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwAnalogFilter.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwAnalogFilterGen_AP.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwAnalogFilterGen_IIR.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwAnalogFilterGen_ZP.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwBessel_Design.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwBessel_Proto.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwBessel_s.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwBessel_z.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwBlackman.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwButterworth_Design.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwButterworth_Proto.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwButterworth_s.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwButterworth_z.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwChebyshev.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwChebyshev_II_Design.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwChebyshev_II_Proto.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwChebyshev_II_s.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwChebyshev_II_z.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwChebyshev_I_Design.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwChebyshev_I_Proto.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwChebyshev_I_s.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwChebyshev_I_z.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwCSD.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwDigitalFilter.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwDigitalFilterGen_AP.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwDigitalFilterGen_FIR.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwDigitalFilterGen_IIR.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwDigitalFilterGen_ZP.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwDigitalFilter_FIR.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwElliptic_Design.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwElliptic_Proto.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwElliptic_s.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwElliptic_z.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwFFT.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwFilter.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwFilterDesign.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwFilterManager.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwFilterSpecs.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwHamming.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwHanning.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwKaiserBessel.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwLowPass_Proto.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwParzen.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwPSD.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwWelch.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwWindowFunc.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwBartlettHann.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\WaveformFuncs.cxx" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\FilterFuncs.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\FourierFuncs.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwAnalogFilter.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwAnalogFilterGen_AP.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwAnalogFilterGen_IIR.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwAnalogFilterGen_ZP.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwBessel_Design.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwBessel_Proto.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwBessel_s.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwBessel_z.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwBlackman.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwButterworth_Design.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwButterworth_Proto.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwButterworth_s.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwButterworth_z.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwChebyshev.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwChebyshev_II_Design.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwChebyshev_II_Proto.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwChebyshev_II_s.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwChebyshev_II_z.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwChebyshev_I_Design.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwChebyshev_I_Proto.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwChebyshev_I_s.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwChebyshev_I_z.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwCSD.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwDigitalFilter.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwDigitalFilterGen_AP.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwDigitalFilterGen_FIR.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwDigitalFilterGen_IIR.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwDigitalFilterGen_ZP.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwDigitalFilter_FIR.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwElliptic_Design.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwElliptic_Proto.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwElliptic_s.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwElliptic_z.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwFFT.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwFilter.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwFilterDesign.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwFilterManager.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwFilterSpecs.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwHamming.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwHanning.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwKaiserBessel.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwLowPass_Proto.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwParzen.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwPSD.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwWelch.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwWindowFunc.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\SignalsExports.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\hwBartlettHann.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\WaveformFuncs.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

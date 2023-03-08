@@ -210,6 +210,14 @@ public:
     static bool Strcmpi(EvaluatorInterface,
                         const std::vector<Currency>&,
                         std::vector<Currency>&);
+    //!
+    //! Returns a matrix indicating which elements are printable [isprint]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //!
+    static bool IsPrint(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
+
 
 private:
     //!
@@ -328,7 +336,46 @@ private:
     //! \param Input matrix
     //!
     static Currency ToLowerString(const hwMatrix*);
+    //!
+    //! Returns true if this is a valid numeric format
+    //! \param Format for sprintf
+    //! 
+    static bool IsValidNumericFormat(const std::string&);
 
+    static Currency IsPrintImpl(const Currency&);
+    //!
+    //! Parse input string to get formats
+    //! \param Input
+    //! \param Base format
+    //! \param Full format
+    //! \param Skip format flag
+    //! \param True if warning needs to be shown
+    //! 
+    static bool ParseFormat(const std::string&, std::vector<std::string>&, std::vector<std::string>&, std::vector<bool>&, bool&);
+    //!
+    //! Returns true after scanning double data
+    //! \param Input string
+    //! \param Format
+    //! \param True if value is skipped
+    //! \param Outputs
+    //! \param String read
+    //! \param Number of chars read
+    static bool SscanfFloat(const std::string&,
+        const std::string& fmt,
+        bool usefmt,
+        std::vector<Currency>& outvals,
+        std::string& stringread,
+        int& numread);
+    //!
+    //! sscanf helper function, returns true after reading formatted string
+    //! \param Input string
+    //! \param Format
+    //! \param Base format
+    //! \param True if value is skipped
+    //! \param Output values
+    //! \param True if warning about invalid formats needs to be shown
+    //! 
+    static bool Sscanf(std::string&, const std::string&, const std::string&, bool, std::vector<Currency>&);
 };
 #endif
 

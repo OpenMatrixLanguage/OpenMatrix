@@ -188,7 +188,7 @@ void BuiltInFuncsElemMath::UniqueHelperFuncMtxN(EvaluatorInterface&    eval,
     {
         std::deque<double> y (funcs.UniqueHelperRealMtxN(x));
 
-        outputs.push_back(BuiltInFuncsUtils::ContainerToMatrix(y, singlerow));
+        outputs.push_back(BuiltInFuncsUtils::Deque2Currency(y, singlerow));
         if (outputIdx)
             outputs.push_back(funcs.GetMatrixNIndices(y, x, forward));
 
@@ -198,7 +198,7 @@ void BuiltInFuncsElemMath::UniqueHelperFuncMtxN(EvaluatorInterface&    eval,
     else
     {
         std::deque<hwComplex> y (funcs.UniqueHelperComplexMtxN(x));
-        outputs.push_back(BuiltInFuncsUtils::ContainerToMatrix(y, singlerow));
+        outputs.push_back(BuiltInFuncsUtils::Deque2Currency(y, singlerow));
         if (outputIdx)
             outputs.push_back(funcs.GetMatrixNIndices(x, y, forward));
 
@@ -484,7 +484,7 @@ void BuiltInFuncsElemMath::UniqueHelperFuncMtx(EvaluatorInterface&    eval,
     BuiltInFuncsElemMath funcs;
     std::deque<hwComplex> y (funcs.UniqueHelperComplexMtx(mtx));
 
-    outputs.push_back(BuiltInFuncsUtils::ContainerToMatrix(y, mtx->M() == 1));
+    outputs.push_back(BuiltInFuncsUtils::Deque2Currency(y, mtx->M() == 1));
     if (outputIdx)
         outputs.push_back(funcs.GetMatrixIndices(mtx, y, forward));
 

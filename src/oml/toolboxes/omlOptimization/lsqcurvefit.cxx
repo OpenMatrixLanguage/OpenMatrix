@@ -174,7 +174,7 @@ static hwMathStatus NLCurveFitJacobian(const hwMatrix& P,
         }
         else
         {
-            return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+            return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
         }
 
         LSQCURVEFIT_eval_ptr->Unmark();
@@ -182,12 +182,12 @@ static hwMathStatus NLCurveFitJacobian(const hwMatrix& P,
     catch (OML_Error&)
     {
         LSQCURVEFIT_eval_ptr->Restore();
-        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
     }
     catch (hwMathException&)
     {
         LSQCURVEFIT_eval_ptr->Restore();
-        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
     }
 
     if (outputs.size() == 2)
@@ -198,7 +198,7 @@ static hwMathStatus NLCurveFitJacobian(const hwMatrix& P,
         {
             if (P.Size() != 1 || J.Size() != 1)
             {
-                return hwMathStatus(HW_MATH_ERR_USERFUNCSIZE, 222);
+                return hwMathStatus(HW_MATH_ERR_USERFUNCSIZE, 111);
             }
 
             J(0) = objJac.Scalar();
@@ -220,12 +220,12 @@ static hwMathStatus NLCurveFitJacobian(const hwMatrix& P,
         }
         else
         {
-            return hwMathStatus(HW_MATH_ERR_USERFUNCREAL, 222);
+            return hwMathStatus(HW_MATH_ERR_USERFUNCREAL, 111);
         }
     }
     else
     {
-        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
     }
 
     return hwMathStatus();
@@ -497,6 +497,14 @@ bool OmlLsqcurvefit(EvaluatorInterface           eval,
         {
             if (status.GetArg1() == 111)
             {
+                if (funcName == "anonymous")
+                {
+                    funcName = funcInfo->RedirectedFunction();
+
+                    if (!funcName.size())
+                        funcName = "anonymous";
+                }
+
                 status.SetUserFuncName(funcName);
                 status.SetArg1(1);
             }

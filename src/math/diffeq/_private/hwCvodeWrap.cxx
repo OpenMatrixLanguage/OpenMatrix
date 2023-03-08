@@ -17,7 +17,7 @@
 #include "stdlib.h"                 // to free N_Vectors
 #include "hwCvodeWrap.h"
 #include "nvector/nvector_serial.h"
-#include "cvode/cvode_direct.h"     // access CVDls interface
+#include "cvode/cvode_direct.h"     // access CVode interface
 
 // Client function pointers
 static CVRhsFn_client sysfunc_client       = nullptr;
@@ -188,7 +188,7 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
         return;
     }
 
-    // Create dense SUNLinearSolver object for use by IDA
+    // Create dense SUNLinearSolver object for use by CVODE
     LS = SUNLinSol_Dense(y, A, sunctx);
 
     if (!LS)
@@ -197,8 +197,8 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
         return;
     }
 
-    // Call CVDlsSetLinearSolver to attach the matrix and linear solver to IDA
-    flag = CVDlsSetLinearSolver(cvode_mem, LS, A);
+    // Call CVodeSetLinearSolver to attach the matrix and linear solver to CVODE
+    flag = CVodeSetLinearSolver(cvode_mem, LS, A);
 
     if (flag < 0)
     {
@@ -217,7 +217,7 @@ hwCvodeWrap::hwCvodeWrap(CVRhsFn_client      sysfunc,
         }
 
         jacDfunc_client = jacDfunc;
-        flag = CVDlsSetJacFn(cvode_mem, (CVDlsJacFn) jacDfunc_CVODE);
+        flag = CVodeSetJacFn(cvode_mem, (CVLsJacFn) jacDfunc_CVODE);
 
         if (flag < 0)
         {

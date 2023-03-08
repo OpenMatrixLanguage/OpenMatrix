@@ -24,6 +24,7 @@
 
 #include "BuiltInFuncs.h"
 #include "BuiltInFuncsUtils.h"
+#include "hwMatrix.h"
 #include "OML_Error.h"
 #include "OutputFormat.h"
 

@@ -1,7 +1,7 @@
 /**
 * @file LineStyle.cxx
 * @date May 2018
-* Copyright (C) 2018-2021 Altair Engineering, Inc.  
+* Copyright (C) 2018-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -44,6 +44,12 @@ namespace omlplot{
                                 Color(LineStyle::c5)
     };
 	static const int COLORCOUNT = sizeof(InitColor) / sizeof(InitColor[0]);
+
+	std::vector<double> LineStyle::ColorAtIndex(int index)
+	{
+		return InitColor[index % COLORCOUNT].getComponent();
+	}
+
 
 	LineStyle::LineStyle(const LineData& ld, const Currency& parentColorOrder) {
 		try {
@@ -161,7 +167,7 @@ namespace omlplot{
         return false;
     }
 
-    static string LineStyles[] = {" ", "-", "--", ":", "-."};
+    static string LineStyles[] = {" ", "-", "--", ":", "-.", "-:"};
     bool LineStyle::isAbbrLine(const char &l){
         int count = sizeof(LineStyles) / sizeof(LineStyles[0]);
         for (int i = 0; i < count; i++){

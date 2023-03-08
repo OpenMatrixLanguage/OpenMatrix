@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsCore.cpp
 * @date February 2016
-* Copyright (C) 2016-2022 Altair Engineering, Inc.  
+* Copyright (C) 2016-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -83,6 +83,16 @@ bool BuiltInFuncsCore::Input(EvaluatorInterface           eval,
     {
         throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
     }
+    
+    std::string cmd;
+    SignalHandlerBase* handler = eval.GetSignalHandler();
+    if (handler && handler->IsWaiting(cmd))
+    {
+        BuiltInFuncsUtils::SetWarning(eval, 
+            "Warning: cannot run [input] as [" + cmd + "] is running");
+        outputs.emplace_back(EvaluatorInterface::allocateMatrix());
+        return true;
+    }
 
     std::string userInput;
 	std::string prompt (inputs[0].StringVal());
@@ -153,6 +163,17 @@ bool BuiltInFuncsCore::Pause(EvaluatorInterface           eval,
         wait = false;
     }
 
+    if (wait)
+    {
+        std::string cmd;
+        SignalHandlerBase* handler = eval.GetSignalHandler();
+        if (handler && handler->IsWaiting(cmd))
+        {
+            BuiltInFuncsUtils::SetWarning(eval,
+                "Warning: cannot run [pause] as [" + cmd + "] is running");
+            return true;
+        }
+    }
     if (!msg.empty())
     {
         Currency tmp(msg);
@@ -806,87 +827,25 @@ bool BuiltInFuncsCore::AddToolbox(EvaluatorInterface           eval,
 
 	std::string importDll(in.StringVal());
 
-	void *vResult = BuiltInFuncsCore::DyLoadLibrary(importDll.c_str());
-
-#ifndef OS_WIN
-	if (!vResult)
-	{
-		importDll = importDll + ".so";
-		vResult = BuiltInFuncsCore::DyLoadLibrary(importDll.c_str());
-	}
-
-	if (!vResult)
-	{
-		importDll = "lib" + importDll;
-		vResult = BuiltInFuncsCore::DyLoadLibrary(importDll.c_str());
-	}
-#endif
-
-    if (!vResult)
+    eval.SuspendFuncListUpdate();
+    // Any code updates should be added to AddLibraryImpl as this is used both
+    // by the addtoolbox command and the LoadDefaultLibraries method which is
+    // used for loading several libraries at once by the GUI
+    try
     {
-        BUILTINFUNCSCORE_DBG_ERR(importDll);
-	    throw OML_Error(OML_ERR_INVALID_DLL);
+        AddLibraryImpl(eval, in.StringVal());
     }
-
-	libs[importDll] = vResult;
-
-    void* symbol = BuiltInFuncsCore::DyGetFunction(vResult, "InitDll");
-    if (!symbol)  // Check if this is being loaded using oml wrappers
+    catch (const OML_Error& err)
     {
-        symbol = BuiltInFuncsCore::DyGetFunction(vResult, "InitDllOmlWrap");
+        // Unsuspend
+        eval.UnsuspendFuncListUpdate();
+        throw err;
     }
-    else // Additional version check for toolboxes
-    {
-        // Adding additional check only for omlziptoolbox now
-        if (!DyGetFunction(vResult, "GetToolboxVersion"))
-        {
-			// Setting a warning here so we know which dll has an issue
-			BuiltInFuncsUtils::SetWarning(eval,
-				"Warning: Invalid version in " + importDll);
-            throw OML_Error(OML_ERR_INVALID_VERSION, 1);  
-        }
-    }
-
-	if (!symbol)	
-	{
-		symbol = BuiltInFuncsCore::DyGetFunction(vResult, "InitToolbox");
-
-		if (symbol)
-		{
-			initAltFP fp = (initAltFP)symbol;
-			OMLInterfaceImpl impl(&eval);
-
-			eval.SuspendFuncListUpdate();
-			eval.RegisterDLL(vResult);
-#ifdef OS_WIN
-			eval.SetDLLContext(DyGetLibraryPath(vResult));
-#else
-			eval.SetDLLContext(DyGetLibraryPath(symbol));
-#endif
-			fp(&impl);
-			eval.SetDLLContext("");
-
-			eval.UnsuspendFuncListUpdate();
-			eval.OnUpdateFuncList();
-			return true;
-		}
-	}
-
-    initModuleFP fp = (initModuleFP)symbol;
-    if (!fp)
-    {
-        BUILTINFUNCSCORE_DBG_ERR(importDll);   
-        throw OML_Error(OML_ERR_INVALID_INITDLL);
-    }
-    // Suspend updating funcs till all functions in the toolbox are registered
-    eval.SuspendFuncListUpdate();  
-	eval.RegisterDLL(vResult);
-
-    fp(eval);
 
     // Unsuspend and add new functions registered in toolbox
     eval.UnsuspendFuncListUpdate();
     eval.OnUpdateFuncList();
+
     return true;
 }
 
@@ -907,10 +866,12 @@ bool BuiltInFuncsCore::RegisterLibrary(EvaluatorInterface           eval,
 	eval.SetDLLHierarchy(inputs[1].StringVal());
 	return BuiltInFuncsCore::AddToolbox(eval, ins, outs);
 }
-
-bool BuiltInFuncsCore::RemoveToolbox(EvaluatorInterface eval,
-	const std::vector<Currency>& inputs,
-	std::vector<Currency>& outputs)
+//------------------------------------------------------------------------------
+// Removes a library/toolbox [removelibrary
+//------------------------------------------------------------------------------
+bool BuiltInFuncsCore::RemoveToolbox(EvaluatorInterface           eval,
+	                                 const std::vector<Currency>& inputs,
+	                                 std::vector<Currency>&       outputs)
 {
 	if (inputs.empty()) throw OML_Error(OML_ERR_NUMARGIN);
 
@@ -922,6 +883,20 @@ bool BuiltInFuncsCore::RemoveToolbox(EvaluatorInterface eval,
 
 	bool success = eval.RemoveLibrary(removeDll);
 
+#ifndef OS_WIN
+    if (!success)
+    {
+        removeDll = removeDll + ".so";
+        success = eval.RemoveLibrary(removeDll);
+    }
+
+    if (!success)
+    {
+        removeDll = "lib" + removeDll;
+        success = eval.RemoveLibrary(removeDll);
+    }
+#endif
+
 	if (success)
 	{
 		void* handle = libs[removeDll];
@@ -932,7 +907,7 @@ bool BuiltInFuncsCore::RemoveToolbox(EvaluatorInterface eval,
 	}
 	else
 	{
-		// do we want a warning here?  I'm pretty sure we don't want an error -- JDS
+		// do we want a warning here?
 	}
 
 	return true;
@@ -1717,99 +1692,30 @@ void BuiltInFuncsCore::LoadDefaultLibraries(EvaluatorInterface              eval
 {
     eval.SuspendFuncListUpdate(); // Suspend function list update till done
     
-    try
+    for (std::vector<std::string>::const_iterator itr = tboxes.begin();
+        itr != tboxes.end(); ++itr)
     {
-        for (std::vector<std::string>::const_iterator itr = tboxes.begin();
-            itr != tboxes.end(); ++itr)
+        std::string name(*itr);
+        try
         {
-            std::string name(*itr);
-            try
-            {
-                void* vResult = DyLoadLibrary(name);
-
-#ifndef OS_WIN
-                if (!vResult)
-                {
-                    name += ".so";
-                    vResult = DyLoadLibrary(name);
-                }
-                if (!vResult)
-                {
-                    name = "lib" + name;
-                    vResult = DyLoadLibrary(name);
-                }
-#endif
-
-                if (vResult)
-                {
-                    libs[name] = vResult;
-
-                    void* symbol = DyGetFunction(vResult, "InitDll");
-                    if (symbol) // Additional version check for toolboxes
-                    {
-                        // Adding additional check only for omlziptoolbox now
-                        if (!DyGetFunction(vResult, "GetToolboxVersion"))
-                        {
-                        }
-                    }
-                    else  // Check if this is being loaded using oml wrappers
-                    {
-                        symbol = DyGetFunction(vResult, "InitDllOmlWrap");
-                    }
-
-                    bool isAltFP = false;
-                    if (!symbol)
-                    {
-                        symbol = DyGetFunction(vResult, "InitToolbox");
-                        if (symbol)
-                        {
-                            isAltFP = true;
-                            initAltFP fp = (initAltFP)symbol;
-                            OMLInterfaceImpl impl(&eval);
-
-                            eval.RegisterDLL(vResult);
-#ifdef OS_WIN
-                            eval.SetDLLContext(DyGetLibraryPath(vResult));
-#else
-                            eval.SetDLLContext(DyGetLibraryPath(symbol));
-#endif
-                            fp(&impl);
-                            eval.SetDLLContext("");
-                        }
-                    }
-
-                    if (!isAltFP)
-                    {
-                        initModuleFP fp = (initModuleFP)symbol;
-                        if (fp)
-                        {
-                            eval.RegisterDLL(vResult);
-                            fp(eval);
-                        }
-                    }
-                }
-            }
-            catch (const OML_Error&) 
-            {
-            }
+            AddLibraryImpl(eval, name, false);
         }
-
-        std::vector<Currency> scriptname = { Currency() };
-        for (std::vector<std::string>::const_iterator itr = scripts.begin();
-            itr != scripts.end(); ++itr)
+        catch (const OML_Error&) // Load silently
         {
-            scriptname[0] = *itr;
-            try
-            {
-                eval.CallFunction("run", scriptname);
-            }
-            catch (const OML_Error&) // Load silently
-            {
-            }
         }
     }
-    catch (const OML_Error&) // Load silently
+    std::vector<Currency> scriptname = { Currency() };
+    for (std::vector<std::string>::const_iterator itr = scripts.begin();
+        itr != scripts.end(); ++itr)
     {
+        scriptname[0] = *itr;
+        try
+        {
+            eval.CallFunction("run", scriptname);
+        }
+        catch (const OML_Error&) // Load silently
+        {
+        }
     }
 
     eval.UnsuspendFuncListUpdate(); // Update function list
@@ -1827,6 +1733,14 @@ bool BuiltInFuncsCore::Keyboard(EvaluatorInterface           eval,
     {
         return true;
     }
+    std::string cmd;
+    if (parentHandler->IsWaiting(cmd))
+    {
+        BuiltInFuncsUtils::SetWarning(eval,
+            "Warning: cannot run [keyboard] as [" + cmd + "] is running");
+        return true;
+    }
+
     std::string prompt("debug> ");
     if (!inputs.empty())
     {
@@ -1890,8 +1804,10 @@ bool BuiltInFuncsCore::IsFloat(EvaluatorInterface           eval,
                                const std::vector<Currency>& inputs,
                                std::vector<Currency>&       outputs)
 {
-    if (inputs.empty())
+    if (inputs.size() != 1)
+    {
         throw OML_Error(OML_ERR_NUMARGIN);
+    }
 
     const Currency& cur = inputs[0];
     if (cur.IsLogical() || cur.IsCellArray() || cur.IsNDCellArray() ||
@@ -1909,4 +1825,93 @@ bool BuiltInFuncsCore::IsFloat(EvaluatorInterface           eval,
         outputs.emplace_back(false);
     }
     return true;
+}
+//------------------------------------------------------------------------------
+// Helper method for adding a library - used addtoolbox command and adding libraries in GUI
+//------------------------------------------------------------------------------
+void BuiltInFuncsCore::AddLibraryImpl(EvaluatorInterface eval, 
+                                      const std::string& dllpath,
+                                      bool warn)
+{
+    std::string importDll(dllpath);
+    void* vResult = BuiltInFuncsCore::DyLoadLibrary(importDll.c_str());
+
+#ifndef OS_WIN
+    if (!vResult)
+    {
+        importDll = importDll + ".so";
+        vResult = BuiltInFuncsCore::DyLoadLibrary(importDll.c_str());
+    }
+
+    if (!vResult)
+    {
+        importDll = "lib" + importDll;
+        vResult = BuiltInFuncsCore::DyLoadLibrary(importDll.c_str());
+    }
+#endif
+
+    if (!vResult)
+    {
+        throw OML_Error(OML_ERR_INVALID_DLL);
+    }
+
+    libs[importDll] = vResult;
+
+    void* symbol = BuiltInFuncsCore::DyGetFunction(vResult, "InitDll");
+    if (!symbol)  // Check if this is being loaded using oml wrappers
+    {
+        symbol = BuiltInFuncsCore::DyGetFunction(vResult, "InitDllOmlWrap");
+    }
+    else // Additional version check for toolboxes
+    {
+        // Adding additional check only for omlziptoolbox now
+        if (!DyGetFunction(vResult, "GetToolboxVersion"))
+        {
+            // Setting a warning here so we know which dll has an issue
+            if (warn)
+            {
+                BuiltInFuncsUtils::SetWarning(eval,
+                    "Warning: Invalid version in " + importDll);
+            }
+            throw OML_Error(OML_ERR_INVALID_VERSION, 1);
+        }
+    }
+
+    if (!symbol)
+    {
+        symbol = BuiltInFuncsCore::DyGetFunction(vResult, "InitToolbox");
+
+        if (symbol)
+        {
+            initAltFP fp = (initAltFP)symbol;
+            OMLInterfaceImpl* impl = new OMLInterfaceImpl(&eval);
+
+            eval.RegisterDLL(vResult);
+#ifdef OS_WIN
+            eval.SetDLLContext(DyGetLibraryPath(vResult));
+#else
+            eval.SetDLLContext(DyGetLibraryPath(symbol));
+#endif
+            fp(impl);
+            eval.SetDLLContext("");
+
+            eval.BCIGarbageCollect();
+            return;
+        }
+    }
+
+    initModuleFP fp = (initModuleFP)symbol;
+    if (!fp)
+    {
+        throw OML_Error(OML_ERR_INVALID_INITDLL);
+    }
+    eval.RegisterDLL(vResult);
+
+#ifdef OS_WIN
+    eval.SetDLLContext(DyGetLibraryPath(vResult));
+#else
+    eval.SetDLLContext(DyGetLibraryPath(symbol));
+#endif
+    fp(eval);
+    eval.SetDLLContext("");
 }

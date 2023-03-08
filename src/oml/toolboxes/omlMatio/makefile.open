@@ -17,7 +17,7 @@ SOURCES += $(wildcard *.cxx)
 OBJECTS = $(foreach file,$(SOURCES),$(addprefix $(PLATFORM)/,$(addsuffix .o,$(basename $(notdir $(file))))))
 vpath %.cxx _private
 
-CXX_DEFINES += -DMATIOHML2TBOX_EXPORT 
+CXX_DEFINES += -DMATIOOMLTBOX_EXPORT 
 
 CXX_INCLUDES += -I. $(HWMATHKERNEL_INC)
 CXX_INCLUDES += -I$(MATIO_INCLUDE) 

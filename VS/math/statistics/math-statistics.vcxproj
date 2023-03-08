@@ -1,0 +1,190 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{64891040-05BB-452B-B3E3-B9A103700979}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\OpenMatrix\PropertySheet.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\OpenMatrix\PropertySheet.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>hwstatistics</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>hwstatistics</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MATHSTATISTICS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MATHSTATISTICS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; STATISTICS_EXPORTS</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\polynom;$(OML_ROOT)\src\math\optimization;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\math\statistics;$(OML_MKL_INCLUDE);$(OML_ROOT)\src</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>mathcore.lib; hwmathutils.lib; hwpolynom.lib; hwoptimization.lib; $(OML_MKL_LIBS)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration); $(OML_MKL_LIBDIR)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(OML_ROOT)\src\math\mathutils;$(OML_ROOT)\src\math\polynom;$(OML_ROOT)\src\math\optimization;$(OML_ROOT)\src\math\kernel;$(OML_ROOT)\src\math\statistics;$(OML_MKL_INCLUDE);$(OML_ROOT)\src</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; STATISTICS_EXPORTS</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_MKL_LIBDIR)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mathcore.lib; hwmathutils.lib; hwpolynom.lib; hwoptimization.lib; mkl_rt.lib</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\BoxBehnken.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\DistributionFuncs.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\FullFactorial.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwBeta.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwBetaInv.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwChiSquared.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwDistribution.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwExponential.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwGamma.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwGammaInv.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwJohnson_Su.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwLogNormal.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwMersenneTwister.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwNormal.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwPearson.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwPearson_III.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwPearson_IV.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwPearson_V.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwPearson_VII.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwPoisson.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwStudent_t.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwUniform.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hwWeibull.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\hw_F.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\StatisticsFuncs.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\StatisticsTests.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\statistics\_private\StatUtilFuncs.cxx" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\BoxBehnken.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\DistributionFuncs.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\FullFactorial.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwBeta.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwBetaInv.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwChiSquared.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwDistribution.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwExponential.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwGamma.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwGammaInv.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwJohnson_Su.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwLogNormal.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwMersenneTwister.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwNormal.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwPearson.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwPearson_III.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwPearson_IV.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwPearson_V.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwPearson_VII.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwPoisson.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwStudent_t.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwUniform.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hwWeibull.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\hw_F.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\StatisticsExports.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\StatisticsFuncs.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\StatisticsTests.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\statistics\StatUtilFuncs.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
