@@ -1,1 +1,1 @@
-ans = 1
+Error: invalid input in argument 2; dimension must be positive integer or 'all' in call to function prod at line number 1 in file prod22.oml

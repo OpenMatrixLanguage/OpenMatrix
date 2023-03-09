@@ -44,7 +44,7 @@ before_build:
 
 
 build:
-  project: c:\oss\VS2015\OpenMatrix\OpenMatrix.sln
+  project: c:\oss\VS\OpenMatrix\OpenMatrix.sln
   verbosity: minimal
   
 
@@ -52,7 +52,7 @@ test_script:
 - cmd: >-
     set PATH=C:\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1\mingw64\bin;%PATH%
     
-    set PATH=%OML_ROOT%\VS2015\OpenMatrix\x64\Release;%PATH%
+    set PATH=%OML_ROOT%\VS\OpenMatrix\x64\Release;%PATH%
     
     set PATH=%OML_THIRDPARTY%\intel\compilers_and_libraries_2019.5.281\windows\redist\intel64_win\compiler;%PATH%
     

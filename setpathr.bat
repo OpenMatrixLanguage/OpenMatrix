@@ -35,7 +35,6 @@ set path=%OML_THIRDPARTY%\matio\matio-1.5.19\win64\bin;%path%
 
 rem add hdf5 directory to path
 set path=%OML_THIRDPARTY%\hdf\hdf5-1.12.0\win64\bin;%path%
-rem add sundials directory to path
 
 rem add qhull directory to path
 set path=%OML_THIRDPARTY%\qhull\qhull-2015.2\bin;%path%

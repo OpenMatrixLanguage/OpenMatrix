@@ -1,2 +1,1 @@
-ans = [Matrix] 1 x 3
-1  8  27
+Error: invalid input in argument 2; dimension must be positive integer or 'all' in call to function prod at line number 1 in file prod8.oml
