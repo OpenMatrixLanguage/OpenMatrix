@@ -2026,7 +2026,7 @@ bool BuiltInFuncsMKL::Abs(EvaluatorInterface           eval,
                           const std::vector<Currency>& inputs,
                           std::vector<Currency>&       outputs)
 {
-    return ElemFunc3<abs, &hwComplex::Mag, vdAbs, vzAbs>
+    return ElemFunc3<fabs, &hwComplex::Mag, vdAbs, vzAbs>
         (eval, inputs, outputs);
 }
 
@@ -2064,7 +2064,7 @@ bool BuiltInFuncsMKL::Arg(EvaluatorInterface           eval,
             std::vector<Currency> inputs2;
             inputs2.push_back(mtx2);
 
-            return ElemFunc3<abs, &hwComplex::Arg, vdAbs, vzArg>
+            return ElemFunc3<fabs, &hwComplex::Arg, vdAbs, vzArg>
                 (eval, inputs2, outputs);
         }
     }
@@ -2079,12 +2079,12 @@ bool BuiltInFuncsMKL::Arg(EvaluatorInterface           eval,
             std::vector<Currency> inputs2;
             inputs2.push_back(mtx2);
 
-            return ElemFunc3<abs, &hwComplex::Arg, vdAbs, vzArg>
+            return ElemFunc3<fabs, &hwComplex::Arg, vdAbs, vzArg>
                 (eval, inputs2, outputs);
         }
     }
 
-    return ElemFunc3<abs, &hwComplex::Arg, vdAbs, vzArg>
+    return ElemFunc3<fabs, &hwComplex::Arg, vdAbs, vzArg>
         (eval, inputs, outputs);
 }
 
