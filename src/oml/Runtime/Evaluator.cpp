@@ -7941,7 +7941,7 @@ Currency ExprTreeEvaluator::PowOperator(const Currency& op1, const Currency& op2
 		{
 			double power = op2.Scalar();
 
-			if (isnan(power))
+			if (std::isnan(power))
 			{
 				const hwMatrix* m1 = op1.Matrix();
 				return allocateMatrix(m1->M(), m1->N(), hwComplex(power, power));

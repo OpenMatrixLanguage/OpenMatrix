@@ -29,7 +29,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cmath>		// Travis test
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -6906,15 +6905,15 @@ bool oml_issorted(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
                     for (int i = 1; i < mtx->Size(); i++)
                     {
                         double current = (*mtx)(i);
-                        if (sortedAscending && !isnan(current) &&
-                            (isnan(last) || last > current))
+                        if (sortedAscending && !std::isnan(current) &&
+                            (std::isnan(last) || last > current))
                         {
                             sortedAscending = false;
                             if (!sortedDescending)
                                 break;
                         }
-                        else if (sortedDescending && !isnan(last) &&
-                            (isnan(current) || last < current))
+                        else if (sortedDescending && !std::isnan(last) &&
+                            (std::isnan(current) || last < current))
                         {
                             sortedDescending = false;
                             if (!sortedAscending)
@@ -6929,15 +6928,15 @@ bool oml_issorted(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
                     for (int i = 1; i < mtx->Size(); i++)
                     {
                         hwComplex current = mtx->z(i);
-                        if (sortedAscending && !(isnan(current.Real()) || isnan(current.Imag())) &&
-                            (isnan(last.Real()) || isnan(last.Imag()) || complexGreaterThan(last, current)))
+                        if (sortedAscending && !(std::isnan(current.Real()) || std::isnan(current.Imag())) &&
+                            (std::isnan(last.Real()) || std::isnan(last.Imag()) || complexGreaterThan(last, current)))
                         {
                             sortedAscending = false;
                             if (!sortedDescending)
                                 break;
                         }
-                        else if (sortedDescending && !(isnan(last.Real()) || isnan(last.Imag())) &&
-                            (isnan(current.Real()) || isnan(current.Imag()) || complexLessThan(last, current)))
+                        else if (sortedDescending && !(std::isnan(last.Real()) || std::isnan(last.Imag())) &&
+                            (std::isnan(current.Real()) || std::isnan(current.Imag()) || complexLessThan(last, current)))
                         {
                             sortedDescending = false;
                             if (!sortedAscending)
@@ -7645,7 +7644,7 @@ bool oml_ismember(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
                     }
                     else
                     {
-                        if (!isnan(real_in1[i]))
+                        if (!std::isnan(real_in1[i]))
                         {
                             if (--index < 0)
                                 break;
@@ -7689,7 +7688,7 @@ bool oml_ismember(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
                         index += sameMagCount;
                         sameMagCount = 0;
 
-                        if (!isnan(real_in1[i]))
+                        if (!std::isnan(real_in1[i]))
                         {
                             if (--index < 0)
                                 break;
@@ -7720,7 +7719,7 @@ bool oml_ismember(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
                     }
                     else
                     {
-                        if (!isnan(complex_in1[i].Real()) && !isnan(complex_in1[i].Imag()))
+                        if (!std::isnan(complex_in1[i].Real()) && !std::isnan(complex_in1[i].Imag()))
                         {
                             if (--index < 0)
                                 break;
@@ -7764,7 +7763,7 @@ bool oml_ismember(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
                         index += sameMagCount;
                         sameMagCount = 0;
 
-                        if (!isnan(complex_in1[i].Real()) && !isnan(complex_in1[i].Imag()))
+                        if (!std::isnan(complex_in1[i].Real()) && !std::isnan(complex_in1[i].Imag()))
                         {
                             if (--index < 0)
                                 break;
@@ -21101,7 +21100,7 @@ bool oml_nextpow2(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
         double n = outputs3[1].Scalar();
 
         // if (IsNanT(f))
-        if (isnan(f))
+        if (std::isnan(f))
         {
             n = std::numeric_limits<double>::quiet_NaN();
         }
@@ -21126,7 +21125,7 @@ bool oml_nextpow2(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
         {
             double f = (*F)(i);
 
-            if (isnan(f))
+            if (std::isnan(f))
             {
                 (*N)(i) = std::numeric_limits<double>::quiet_NaN();
             }
@@ -21153,7 +21152,7 @@ bool oml_nextpow2(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
         {
             double f = (*F)(i);
 
-            if (isnan(f))
+            if (std::isnan(f))
             {
                 (*N)(i) = std::numeric_limits<double>::quiet_NaN();
             }
