@@ -29,6 +29,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>		// Travis test
 #include <iomanip>
 #include <iostream>
 #include <limits>
