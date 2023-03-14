@@ -1,3 +1,4 @@
+dist: bionic
 notifications:
   _webhooks: _
 install: true
@@ -7,7 +8,7 @@ addons:
    sources:
     - ubuntu-toolchain-r-test
    packages:
-    - g++-4.9
+#    - g++-4.9
   apt_packages:
     - gfortran
 sudo: required
@@ -15,7 +16,7 @@ python:
 - '3.6'
 before_install:
 - git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Linux_OS66.git Linux
-- if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
+#- if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
 env:
   SH=bash
   OML_ROOT=$PWD
