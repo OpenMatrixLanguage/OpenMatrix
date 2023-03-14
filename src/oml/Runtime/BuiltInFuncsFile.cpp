@@ -429,7 +429,7 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
         delete[] lineC;
         lineC = nullptr;
     }
-     fclose(f);
+    fclose(f);
 
     // Create the outputs. 
     if (!hasdata || (!outputs.empty() && outputs.size() != formats.size()))
