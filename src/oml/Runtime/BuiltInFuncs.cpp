@@ -6905,15 +6905,15 @@ bool oml_issorted(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
                     for (int i = 1; i < mtx->Size(); i++)
                     {
                         double current = (*mtx)(i);
-                        if (sortedAscending && !std::isnan(current) &&
-                            (std::isnan(last) || last > current))
+                        if (sortedAscending && !isnan(current) &&
+                            (isnan(last) || last > current))
                         {
                             sortedAscending = false;
                             if (!sortedDescending)
                                 break;
                         }
-                        else if (sortedDescending && !std::isnan(last) &&
-                            (std::isnan(current) || last < current))
+                        else if (sortedDescending && !isnan(last) &&
+                            (isnan(current) || last < current))
                         {
                             sortedDescending = false;
                             if (!sortedAscending)
@@ -6928,15 +6928,15 @@ bool oml_issorted(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
                     for (int i = 1; i < mtx->Size(); i++)
                     {
                         hwComplex current = mtx->z(i);
-                        if (sortedAscending && !(std::isnan(current.Real()) || std::isnan(current.Imag())) &&
-                            (std::isnan(last.Real()) || std::isnan(last.Imag()) || complexGreaterThan(last, current)))
+                        if (sortedAscending && !(isnan(current.Real()) || isnan(current.Imag())) &&
+                            (isnan(last.Real()) || isnan(last.Imag()) || complexGreaterThan(last, current)))
                         {
                             sortedAscending = false;
                             if (!sortedDescending)
                                 break;
                         }
-                        else if (sortedDescending && !(std::isnan(last.Real()) || std::isnan(last.Imag())) &&
-                            (std::isnan(current.Real()) || std::isnan(current.Imag()) || complexLessThan(last, current)))
+                        else if (sortedDescending && !(isnan(last.Real()) || isnan(last.Imag())) &&
+                            (isnan(current.Real()) || isnan(current.Imag()) || complexLessThan(last, current)))
                         {
                             sortedDescending = false;
                             if (!sortedAscending)
@@ -7644,7 +7644,7 @@ bool oml_ismember(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
                     }
                     else
                     {
-                        if (!std::isnan(real_in1[i]))
+                        if (!isnan(real_in1[i]))
                         {
                             if (--index < 0)
                                 break;
@@ -7688,7 +7688,7 @@ bool oml_ismember(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
                         index += sameMagCount;
                         sameMagCount = 0;
 
-                        if (!std::isnan(real_in1[i]))
+                        if (!isnan(real_in1[i]))
                         {
                             if (--index < 0)
                                 break;
@@ -7719,7 +7719,7 @@ bool oml_ismember(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
                     }
                     else
                     {
-                        if (!std::isnan(complex_in1[i].Real()) && !std::isnan(complex_in1[i].Imag()))
+                        if (!isnan(complex_in1[i].Real()) && !isnan(complex_in1[i].Imag()))
                         {
                             if (--index < 0)
                                 break;
@@ -7763,7 +7763,7 @@ bool oml_ismember(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
                         index += sameMagCount;
                         sameMagCount = 0;
 
-                        if (!std::isnan(complex_in1[i].Real()) && !std::isnan(complex_in1[i].Imag()))
+                        if (!isnan(complex_in1[i].Real()) && !isnan(complex_in1[i].Imag()))
                         {
                             if (--index < 0)
                                 break;
@@ -15853,52 +15853,52 @@ bool oml_min(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
                 }
                 else
                 {
-                std::vector<int> row;
-                std::vector<int> column;
-                hwMatrix* nz = new hwMatrix;
+                    std::vector<int> row;
+                    std::vector<int> column;
+                    hwMatrix* nz = new hwMatrix;
 
-                mtx->NZinfo(0, mtx->NNZ() - 1, row, column, *nz);
+                    mtx->NZinfo(0, mtx->NNZ() - 1, row, column, *nz);
 
-                std::vector<Currency> inputs2;
-                std::vector<Currency> outputs2;
-                inputs2.push_back(nz);
-                outputs2 = eval.DoMultiReturnFunctionCall(oml_min, inputs2, 1, 2, true);
+                    std::vector<Currency> inputs2;
+                    std::vector<Currency> outputs2;
+                    inputs2.push_back(nz);
+                    outputs2 = eval.DoMultiReturnFunctionCall(oml_min, inputs2, 1, 2, true);
 
-                if (mtx->NNZ() < mtx->Size())
-                {
-                    double minv = 0.0;
-
-                    if (mtx->IsReal())
-                        minv = outputs2[0].Scalar();
-
-                    if (minv < 0.0)
+                    if (mtx->NNZ() < mtx->Size())
                     {
-                        outputs.push_back(minv);
-                        int indx = static_cast<int>(outputs2[1].Scalar() - 1);
-                        outputs.push_back(mtx->M() * column[indx] + row[indx] + 1);
+                        double minv = 0.0;
+
+                        if (mtx->IsReal())
+                            minv = outputs2[0].Scalar();
+
+                        if (minv < 0.0)
+                        {
+                            outputs.push_back(minv);
+                            int indx = static_cast<int>(outputs2[1].Scalar() - 1);
+                            outputs.push_back(mtx->M() * column[indx] + row[indx] + 1);
+                        }
+                        else
+                        {
+                            // find first zero
+                            outputs.push_back(0.0);
+                            int indx = nz->Size();
+
+                            for (int i = 0; i < nz->Size(); ++i)
+                            {
+                                if (i != mtx->M() * column[i] + row[i])
+                                {
+                                    indx = i;
+                                    break;
+                                }
+                            }
+
+                            outputs.push_back(indx + 1);
+                        }
                     }
                     else
                     {
-                        // find first zero
-                        outputs.push_back(0.0);
-                        int indx = nz->Size();
-
-                        for (int i = 0; i < nz->Size(); ++i)
-                        {
-                            if (i != mtx->M() * column[i] + row[i])
-                            {
-                                indx = i;
-                                break;
-                            }
-                        }
-
-                        outputs.push_back(indx + 1);
+                        outputs = outputs2;
                     }
-                }
-                else
-                {
-                    outputs = outputs2;
-                }
                 }
 
                 return true;
@@ -15942,7 +15942,7 @@ bool oml_min(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
                         inputs2.push_back(0.0);
                         outputs.clear();
                         oml_min(eval, inputs2, outputs);
-            }
+                    }
                 }
             }
 
@@ -16578,57 +16578,57 @@ bool oml_max(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
                 }
                 else
                 {
-                std::vector<int> row;
-                std::vector<int> column;
-                hwMatrix* nz = new hwMatrix;
-                mtx->NZinfo(0, mtx->NNZ() - 1, row, column, *nz);
+                    std::vector<int> row;
+                    std::vector<int> column;
+                    hwMatrix* nz = new hwMatrix;
+                    mtx->NZinfo(0, mtx->NNZ() - 1, row, column, *nz);
 
-                std::vector<Currency> inputs2;
-                std::vector<Currency> outputs2;
-                inputs2.push_back(nz);
-                outputs2 = eval.DoMultiReturnFunctionCall(oml_max, inputs2, 1, 2, true);
+                    std::vector<Currency> inputs2;
+                    std::vector<Currency> outputs2;
+                    inputs2.push_back(nz);
+                    outputs2 = eval.DoMultiReturnFunctionCall(oml_max, inputs2, 1, 2, true);
 
-                if (mtx->NNZ() < mtx->Size())
-                {
-                    if (mtx->IsReal())
+                    if (mtx->NNZ() < mtx->Size())
                     {
-                        double maxv = outputs2[0].Scalar();
-
-                        if (maxv > 0.0)
+                        if (mtx->IsReal())
                         {
-                            outputs.push_back(maxv);
+                            double maxv = outputs2[0].Scalar();
+
+                            if (maxv > 0.0)
+                            {
+                                outputs.push_back(maxv);
+                                int indx = static_cast<int>(outputs2[1].Scalar() - 1);
+                                outputs.push_back(mtx->M() * column[indx] + row[indx] + 1);
+                            }
+                            else
+                            {
+                                // find first zero
+                                outputs.push_back(0.0);
+                                int indx = nz->Size();
+
+                                for (int i = 0; i < nz->Size(); ++i)
+                                {
+                                    if (i != mtx->M() * column[i] + row[i])
+                                    {
+                                        indx = i;
+                                        break;
+                                    }
+                                }
+
+                                outputs.push_back(indx + 1);
+                            }
+                        }
+                        else    // complex
+                        {
+                            outputs.push_back(outputs2[0]);
                             int indx = static_cast<int>(outputs2[1].Scalar() - 1);
                             outputs.push_back(mtx->M() * column[indx] + row[indx] + 1);
                         }
-                        else
-                        {
-                            // find first zero
-                            outputs.push_back(0.0);
-                            int indx = nz->Size();
-
-                            for (int i = 0; i < nz->Size(); ++i)
-                            {
-                                if (i != mtx->M() * column[i] + row[i])
-                                {
-                                    indx = i;
-                                    break;
-                                }
-                            }
-
-                            outputs.push_back(indx + 1);
-                        }
                     }
-                    else    // complex
+                    else
                     {
-                        outputs.push_back(outputs2[0]);
-                        int indx = static_cast<int>(outputs2[1].Scalar() - 1);
-                        outputs.push_back(mtx->M() * column[indx] + row[indx] + 1);
+                        outputs = outputs2;
                     }
-                }
-                else
-                {
-                    outputs = outputs2;
-                }
                 }
 
                 return true;
@@ -16662,7 +16662,7 @@ bool oml_max(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
                 {
                     outputs.clear();
                     outputs.push_back(0.0);
-            }
+                }
                 else
                 {
                     inputs2.clear();
@@ -21100,7 +21100,7 @@ bool oml_nextpow2(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
         double n = outputs3[1].Scalar();
 
         // if (IsNanT(f))
-        if (std::isnan(f))
+        if (isnan(f))
         {
             n = std::numeric_limits<double>::quiet_NaN();
         }
@@ -21125,7 +21125,7 @@ bool oml_nextpow2(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
         {
             double f = (*F)(i);
 
-            if (std::isnan(f))
+            if (isnan(f))
             {
                 (*N)(i) = std::numeric_limits<double>::quiet_NaN();
             }
@@ -21152,7 +21152,7 @@ bool oml_nextpow2(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
         {
             double f = (*F)(i);
 
-            if (std::isnan(f))
+            if (isnan(f))
             {
                 (*N)(i) = std::numeric_limits<double>::quiet_NaN();
             }
