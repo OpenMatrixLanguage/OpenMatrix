@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="optimset" /><meta name="abstract" content="Specify optimization function options." /><meta name="description" content="Specify optimization function options." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Optimization Commands" /><meta name="indexterms" content="optimset" /><meta name="DC.subject" content="optimset" /><meta name="keywords" content="optimset" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/optimization_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/fminunc.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/fsolve.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/lsqcurvefit.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/fminsearch.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>optimset</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2023" /><meta name="DC.rights.owner" content="(C) Copyright 2023" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="optimset" /><meta name="abstract" content="Specify optimization function options." /><meta name="description" content="Specify optimization function options." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Optimization Commands" /><meta name="indexterms" content="optimset" /><meta name="DC.subject" content="optimset" /><meta name="keywords" content="optimset" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/optimization_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/fminunc.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/fsolve.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/lsqcurvefit.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Optimization/fminsearch.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>optimset</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -49,91 +49,105 @@
         
           <dt class="dt pt dlterm"><span class="ph synph">options</span></dt>
 
-          <dd class="dd pd">A struct containing the options.</dd>
+          <dd class="dd pd">A struct containing the options. See Comments.</dd>
 
           <dd class="dd pd ddexpand">The available options are as follows: <dl class="dl table">
-              
-                <dt class="dt dlterm">MaxIter</dt>
+             
+               <dt class="dt dlterm">Method</dt>
 
-                <dd class="dd">The maximum number of iterations allowed.</dd>
+               <dd class="dd">The <span class="keyword cmdname">fmincon</span> method.
+                 <ul class="ul">
+                 <li class="li"><span class="keyword option">'sqp'</span>: sequential quadratic programming (default).</li>
 
-              
-              
-                <dt class="dt dlterm">MaxFunEvals</dt>
+                 <li class="li"><span class="keyword option">'grg'</span>: generalized reduced gradient.</li>
 
-                <dd class="dd">The maximum number of function evaluations allowed.</dd>
+                 </ul>
 
-              
-              
-              
-                <dt class="dt dlterm">TolFun</dt>
+               </dd>
 
-                <dd class="dd">The termination tolerance on the objective function convergence.</dd>
+             
+             
+               <dt class="dt dlterm">MaxIter</dt>
 
-              
-              
-                <dt class="dt dlterm">TolX</dt>
+               <dd class="dd">The maximum number of iterations allowed (default: 400).</dd>
 
-                <dd class="dd">The termination tolerance on the parameter convergence.</dd>
+             
+             
+               <dt class="dt dlterm">MaxFunEvals</dt>
 
-              
-              
-                <dt class="dt dlterm">TolCon</dt>
+               <dd class="dd">The maximum number of function evaluations allowed (default: 1,000,000).</dd>
 
-                <dd class="dd">The constraint violation allowance, as a percent.</dd>
+             
+             
+             
+               <dt class="dt dlterm">TolFun</dt>
 
-              
-              
-                <dt class="dt dlterm">TolKKT</dt>
+               <dd class="dd">The termination tolerance on the objective function convergence (default: 1.0e-7).</dd>
 
-                <dd class="dd">The termination tolerance on the Karush-Kuhn-Tucker conditions.</dd>
+             
+             
+               <dt class="dt dlterm">TolX</dt>
 
-              
-              
-                <dt class="dt dlterm">GradObj</dt>
+               <dd class="dd">The termination tolerance on the parameter convergence (default: 1.0e-7).</dd>
 
-                <dd class="dd">An 'on'/'off' flag to indicate whether the objective function will return the
-                  gradient as an optional second return value. (Only for
-                    <span class="keyword cmdname">fminunc</span>). The function signature is as follows:
-                    <span class="ph synph">function [sys, grad] = System(x)</span>, where <var class="keyword varname">sys</var>
-                  and <var class="keyword varname">grad</var> contain the system function and its gradient.</dd>
+             
+             
+               <dt class="dt dlterm">TolCon</dt>
 
-              
-              
-                <dt class="dt dlterm">GradConstr</dt>
+               <dd class="dd">The constraint violation allowance, as a percent (default: 0.5).</dd>
 
-                <dd class="dd">An 'on'/'off' flag to indicate whether the non-linear constraint function will
-                  return the gradients as the optional third and fourth return value. If a
-                  non-linear constraint is used, then <span class="keyword option">GradConstr</span> must be set the
-                  same as <span class="keyword option">GradObj</span>.  The function signature is as
-                  follows: <span class="ph synph">function [c, ceq, cj, ceqj] = ConFunc(x)</span>, where
-                    <var class="keyword varname">c</var> and <var class="keyword varname">ceq</var> contain inequality and equality
-                  contraints, respectively, and <var class="keyword varname">cj</var> and <var class="keyword varname">ceqj</var>
-                  contain their Jacobians. The inequality constraints are assumed to have upper
-                  bounds of 0.</dd>
+             
+             
+               <dt class="dt dlterm">TolKKT</dt>
 
-              
-              
-                <dt class="dt dlterm">Jacobian</dt>
+               <dd class="dd">The termination tolerance on the Karush-Kuhn-Tucker conditions (default: 1.0e-4).</dd>
 
-                <dd class="dd">An 'on'/'off' flag to indicate whether the objective function will return the
-                  Jacobian as an optional second return value (Only for <span class="keyword cmdname">fsolve</span>,
-                    <span class="keyword cmdname">lsqcurvefit</span>). The function signature is as follows:
-                    <span class="ph synph">function [res, jac] = System(x)</span>, where <var class="keyword varname">res</var> and
-                    <var class="keyword varname">jac</var> contain the residuals vector of the system function and
-                  its Jacobian.</dd>
+             
+             
+               <dt class="dt dlterm">GradObj</dt>
 
-              
-              
-                <dt class="dt dlterm">Display</dt>
+               <dd class="dd">An 'on'/'off' flag to indicate whether the objective function will return the
+                 gradient as an optional second return value. (Only for
+                 <span class="keyword cmdname">fminunc</span>). The function signature is as follows:
+                 <span class="ph synph">function [sys, grad] = System(x)</span>, where <var class="keyword varname">sys</var>
+                 and <var class="keyword varname">grad</var> contain the system function and its gradient.</dd>
 
-                <dd class="dd">An 'iter'/'off' flag to indicate whether objective function results will be
-                  displayed at each iteration. For more extensive iteration information, see the
-                    <var class="keyword varname">output</var> return argument of the <span class="keyword cmdname">optimization</span>
-                  function.</dd>
+             
+             
+               <dt class="dt dlterm">GradConstr</dt>
 
-              
-            </dl>
+               <dd class="dd">An 'on'/'off' flag to indicate whether the non-linear constraint function will
+                 return the gradients as the optional third and fourth return value. If a
+                 non-linear constraint is used, then <span class="keyword option">GradConstr</span> must be set the
+                 same as <span class="keyword option">GradObj</span>.  The function signature is as
+                 follows: <span class="ph synph">function [c, ceq, cj, ceqj] = ConFunc(x)</span>, where
+                 <var class="keyword varname">c</var> and <var class="keyword varname">ceq</var> contain inequality and equality
+                 contraints, respectively, and <var class="keyword varname">cj</var> and <var class="keyword varname">ceqj</var>
+                 contain their Jacobians. The inequality constraints are assumed to have upper
+                 bounds of 0.</dd>
+
+             
+             
+               <dt class="dt dlterm">Jacobian</dt>
+
+               <dd class="dd">An 'on'/'off' flag to indicate whether the objective function will return the
+                 Jacobian as an optional second return value (Only for <span class="keyword cmdname">fsolve</span>,
+                 <span class="keyword cmdname">lsqcurvefit</span>). The function signature is as follows:
+                 <span class="ph synph">function [res, jac] = System(x)</span>, where <var class="keyword varname">res</var> and
+                 <var class="keyword varname">jac</var> contain the residuals vector of the system function and
+                 its Jacobian.</dd>
+
+             
+             
+               <dt class="dt dlterm">Display</dt>
+
+               <dd class="dd">An 'iter'/'off' flag to indicate whether objective function results will be
+                 displayed at each iteration. For more extensive iteration information, see the
+                 <var class="keyword varname">output</var> return argument of the <span class="keyword cmdname">optimization</span>
+                 function.</dd>
+
+             
+           </dl>
 </dd>
 
         
@@ -151,8 +165,9 @@ MaxIter: 200
 ]</code></pre></div>
 
       <div class="p">Set options to specify that the analytical Jacobian function name is returned by the
-        objective
-        function:<pre class="pre codeblock"><code>options = optimset('Jacobian', 'on')</code></pre><pre class="pre codeblock"><code>options = struct [
+        objective function:
+<pre class="pre codeblock"><code>options = optimset('Jacobian', 'on')</code></pre>
+<pre class="pre codeblock"><code>options = struct [
 Jacobian: on
 ]</code></pre></div>
 
@@ -160,15 +175,17 @@ Jacobian: on
 
     <section class="section"><h2 class="title sectiontitle">Comments</h2>
       
-      <p class="p">For <span class="keyword cmdname">fminbnd</span>, the only available tolerance option is:
-          <span class="keyword option">TolX</span>.</p>
+      <p class="p">Care must be shown to select the options that apply to the solver of interest, as follows.
+        A solver will ignore any option that does not apply.</p>
 
-      
+      <p class="p">For <span class="keyword cmdname">fminbnd</span>, the only available tolerance option is:
+        <span class="keyword option">TolX</span>.</p>
+
       <p class="p">For <span class="keyword cmdname">fminunc</span>, the available tolerance options are:
-          <span class="keyword option">TolFun</span> and <span class="keyword option">TolX</span>.</p>
+        <span class="keyword option">TolFun</span> and <span class="keyword option">TolX</span>.</p>
 
       <p class="p">For <span class="keyword cmdname">fminsearch</span>, the only available tolerance option is:
-          <span class="keyword option">TolX</span>.</p>
+        <span class="keyword option">TolX</span>.</p>
 
       <p class="p">For <span class="keyword cmdname">fsolve</span>, the available tolerance options are: <span class="keyword option">TolFun</span>
         and <span class="keyword option">TolX</span>.</p>
@@ -177,32 +194,22 @@ Jacobian: on
         <span class="keyword option">TolX</span>.</p>
 
       <p class="p">For <span class="keyword cmdname">lsqcurvefit</span>, the available tolerance options are:
-          <span class="keyword option">TolFun</span> and <span class="keyword option">TolX</span>.</p>
+        <span class="keyword option">TolFun</span> and <span class="keyword option">TolX</span>.</p>
 
       <p class="p">The solver functions terminate the first time that any of the convergence tolerance
         criteria are met.</p>
 
-      
-      <p class="p">The default value for <span class="keyword option">MaxFunEvals</span> is 1,000,000.</p>
-
-      <p class="p">The default value for <span class="keyword option">MaxIter</span> is 400.</p>
-
-      <p class="p">The default value for <span class="keyword option">TolCon</span> is 0.5.</p>
-
-      <p class="p">The default value for <span class="keyword option">TolFun</span> is 1.0e-7.</p>
-
-      <p class="p">The default value for <span class="keyword option">TolKKT</span> is 1.0e-4.</p>
-
-      <p class="p">The default value for <span class="keyword option">TolX</span> is 1.0e-7.</p>
-
-      <p class="p"> For all other functions, <span class="keyword option">TolX</span> sets the convergence
-        criteria relative to the design variable magnitudes.</p>
 
       
-      <p class="p"><span class="keyword option">TolKKT</span> sets the convergence criterion for the optimal relationship between
-        the gradients of the objective and constraint functions, which is an equation involving
-        Lagrange multipliers.</p>
 
+      
+      
+
+      <p class="p"> <span class="keyword option">TolX</span> sets
+        the convergence criteria relative to the design variable magnitudes.</p>
+
+      
+      
     </section>
 
     <section class="section">

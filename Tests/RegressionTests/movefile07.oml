@@ -1,0 +1,31 @@
+% movefile-note move directory to a sub-directory. then move directory back using its name.
+
+returndir = pwd;
+cd FileManipulation
+
+cd movefile
+dir
+
+command = 'movefile(''dir1'', ''dir2'')'
+eval(command)
+
+dir
+
+command = 'dir dir1'
+eval(command)
+
+command = 'dir dir2'
+eval(command)
+
+command = 'movefile(''dir2/dir1'', ''dir1'')'
+eval(command)
+
+dir
+
+command = 'dir dir1'
+eval(command)
+
+command = 'dir dir2'
+eval(command)
+
+cd(returndir)

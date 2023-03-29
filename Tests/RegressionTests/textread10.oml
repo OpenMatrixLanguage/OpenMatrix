@@ -1,0 +1,1 @@
+c = textread('FileManipulation/textread_longline.c', '%s', 'delimiter', '\n')

@@ -1,0 +1,4 @@
+fname = FileManipulation/EmptyFile.txt
+fid = -1
+error = Permission denied
+Error: invalid input in argument 1; must be a string or a valid file stream in call to function fopen at line number 3 in file filetest7.oml

@@ -1,0 +1,86 @@
+% movefile-note copy files to cause normal movefile to fail retrieving multiple nargouts
+
+returndir = pwd;
+cd FileManipulation
+
+cd movefile
+dir
+
+disp('copy test files to dir2 prior to movefile test to cause fail')
+command = 'copyfile(''test*'', ''dir2'')'
+eval(command)
+
+command = 'dir dir1'
+eval(command)
+
+command = 'dir dir2'
+eval(command)
+
+disp('1 nargout - move file to directory, which should fail because the files were copied above')
+command = 'r1 = movefile(''test1.txt'', ''dir2/test1.txt'')'
+try 
+    eval(command)
+catch e
+    printf('Error caught, error message follows:\n')
+    e.message
+end
+
+disp('2 nargouts - move file to directory, which should fail because the files were copied above')
+command = '[r1, r2] = movefile(''test1.txt'', ''dir2/test1.txt'')'
+try 
+    eval(command)
+catch e
+    printf('Error caught, error message follows:\n')
+    e.message
+end
+
+disp('3 nargouts - move file to directory, which should fail because the files were copied above')
+command = '[r1, r2, r3] = movefile(''test1.txt'', ''dir2/test1.txt'')'
+try 
+    eval(command)
+catch e
+    printf('Error caught, error message follows:\n')
+    e.message
+end
+
+dir
+
+command = 'dir dir1'
+eval(command)
+
+command = 'dir dir2'
+eval(command)
+
+disp('3 nargouts - move file from directory to current directory which should fail')
+command = '[r1, r2, r3] = movefile(''dir2/test1.txt'', ''test1.txt'')'
+try 
+    eval(command)
+catch e
+    printf('Error caught, error message follows:\n')
+    e.message
+end
+
+dir
+
+command = 'dir dir1'
+eval(command)
+
+command = 'dir dir2'
+eval(command)
+
+
+disp('3 nargouts - move files back to root directory with force, which will restore the test directory.')
+command = '[r1, r2, r3] = movefile(''dir2/test1.txt'', ''.'', ''f'')'
+eval(command)
+command = '[r1, r2, r3] = movefile(''dir2/test2.txt'', ''.'', ''f'')'
+eval(command)
+
+dir
+
+command = 'dir dir1'
+eval(command)
+
+command = 'dir dir2'
+eval(command)
+
+cd(returndir)

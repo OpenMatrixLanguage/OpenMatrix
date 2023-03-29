@@ -1,0 +1,48 @@
+% movefile-note setup movefile tests
+% 
+% Notes for movefile tests.
+%
+% The movefile01.oml script creates some directores and files which are used by the
+% other movefile*.oml tests scripts.
+%
+% Creates a 'movefile' directory under 'FileManipulation'
+% Under the 'movefile' directory, creates the following entries:
+% <dir> dir1
+% <dir> dir2
+% <file> test1.txt
+% <file> test2.txt
+%
+% movefile01.oml should be the first script to run.
+%
+% movefile99.oml script deletes the above files and directories, including the 'movefile'
+% directory under 'FileManipulation'.
+% movefile99.oml should be the last script to be run for movefile testing.
+
+% Other movefilenn.oml scripts perform the tests.  Some tests add new files and directories.
+% Each existing test and any new tests should restore the 'movefile' directory to the above state.
+% Failure to do so may cause later tests to appear to fail as their test logs may no longer
+% match the reference log.  
+% Restoring the movefile test directory to the above state will help avoid false failed tests.
+
+
+returndir = pwd;
+cd FileManipulation
+
+mkdir movefile
+cd movefile
+dir
+
+disp('Create test directories')
+command = 'mkdir dir1'
+eval(command)
+command = 'mkdir dir2'
+eval(command)
+
+disp('Create test files')
+command = 'system(''echo test1 > test1.txt'')'
+eval(command)
+command = 'system(''echo test2 > test2.txt'')'
+eval(command)
+
+dir
+cd(returndir)

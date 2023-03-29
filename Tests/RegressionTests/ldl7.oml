@@ -1,0 +1,7 @@
+A = [6, 12, 3 -6; 12, -8, -13, 4; 3, -13, -7, 1; -6, 4, 1, 6]
+[L,D,P] = ldl(A, 'lower');
+C = A - P*L*D*L'*P';
+L = round(L, 46, 'binary')
+D = round(D, 46, 'binary')
+P = round(P, 46, 'binary')
+C = round(C, 46, 'binary')

@@ -1,0 +1,7 @@
+str = struct [
+  bytes: 8
+  class: double
+  complex: 0
+  name: a
+  size: 1x1
+]

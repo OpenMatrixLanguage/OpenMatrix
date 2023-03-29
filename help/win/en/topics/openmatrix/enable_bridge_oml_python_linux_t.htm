@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="task" /><meta name="DC.Title" content="Enable the Bridge between OML and Python on Linux" /><meta name="abstract" content="" /><meta name="description" content="Install/build Python 3.8.10 , Numpy 1.22.1, and scipy 1.6.1. Enable omlpythonbridge toolbox loading. Add the command loadtoolbox omlpythonbridge in the file ..." /><meta name="DC.Relation" scheme="URI" content="../../topics/openmatrix/using_openmatrix_linux_t.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_oql_wj4_2z" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Enable the Bridge between OML and Python on Linux</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2023" /><meta name="DC.rights.owner" content="(C) Copyright 2023" /><meta name="DC.Type" content="task" /><meta name="DC.Title" content="Enable the Bridge between OML and Python on Linux" /><meta name="abstract" content="" /><meta name="description" content="Install/build Python 3.5.2 , Numpy 1.14.5. Enable omlpythonbridge toolbox loading. Add the command loadtoolbox omlpythonbridge in the file &lt;INSTALLATION_HOME&gt;\OpenMatrix\scripts\loadtoolboxes.oml . In ..." /><meta name="DC.Relation" scheme="URI" content="../../topics/openmatrix/using_openmatrix_linux_t.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_oql_wj4_2z" /><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>Enable the Bridge between OML and Python on Linux</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../index.htm";
           
@@ -20,8 +20,7 @@
     <section class="section context" id="reference_oql_wj4_2z__section_nbp_sz3_vdb"></section>
 
     <ol class="ol steps"><li class="li step stepexpand">
-        <span class="ph cmd">Install/build <span class="keyword">Python</span> 3.8.10 , Numpy 1.22.1, and scipy
-          1.6.1.</span>
+        <span class="ph cmd">Install/build <span class="keyword">Python</span> 3.5.2 , Numpy 1.14.5.</span>
       </li>
 <li class="li step stepexpand">
         <span class="ph cmd">Enable omlpythonbridge toolbox loading.</span>
@@ -29,85 +28,107 @@
             <span class="ph filepath">&lt;INSTALLATION_HOME&gt;\OpenMatrix\scripts\loadtoolboxes.oml</span>.</div>
       </li>
 <li class="li step stepexpand">
-        <span class="ph cmd">In the file
-            <span class="ph filepath">&lt;INSTALLATION_HOME&gt;\OpenMatrix\scripts\run_omlconsole.sh</span>, add
-          the following:</span>
+        <span class="ph cmd">In file
+            <span class="ph filepath">&lt;INSTALLATION_HOME&gt;\OpenMatrix\scripts\run_omlconsole.sh</span>, adapt
+          the .<span class="ph filepath">sh</span> file to specific paths on your machine by adding the
+          following:</span>
         <ol type="a" class="ol substeps" id="reference_oql_wj4_2z__substeps_thj_3n1_42b">
           <li class="li substep substepexpand">
             <span class="ph cmd">Set the environment variable OML_PYTHONHOME to point to <span class="keyword">Python</span> home.</span>
             <div class="itemgroup stepresult">
-              <pre class="pre codeblock"><code>export OML_PYTHONHOME=/usr/local/python3.8.10</code></pre>
+              <pre class="pre codeblock"><code>export OML_PYTHONHOME=/usr/local/python3.5.2</code></pre>
             </div>
           </li>
 
           <li class="li substep substepexpand">
             <span class="ph cmd">Add the <span class="keyword">Python</span> library file
-                (<span class="ph filepath">libpython3.8m.so.1.0</span>) location to the environment variable
-              “LD_LIBRARY_PATH.”</span>
+                (<span class="ph filepath">libpython3.5m.so.1.0</span>) location to the environment variable
+              “LD_LIBRARY_PATH”</span>
             <div class="itemgroup stepresult">
-              <pre class="pre codeblock"><code>export LD_LIBRARY_PATH=/usr/local/python3.8.10/lib:$LD_LIBRARY_PATH</code></pre>
-            </div>
-          </li>
-
-          <li class="li substep substepexpand">
-            <span class="ph cmd">Set the environment variable LD_PRELOAD to point to
-                <span class="ph filepath">libpython3.8.so.1.0</span>.</span>
-            <div class="itemgroup stepresult">
-              <pre class="pre codeblock" id="reference_oql_wj4_2z__codeblock_q3g_bqv_tvb"><code>export LD_PRELOAD=/usr/local/Python38/lib/libpython3.8.so.1.0</code></pre>
+              <pre class="pre codeblock"><code>LD_LIBRARY_PATH=/usr/local/python3.5.2/lib:$LD_LIBRARY_PATH</code></pre>
             </div>
           </li>
 
         </ol>
 
         <div class="itemgroup stepresult">
-          <div class="note note"><span class="notetitle">Note:</span> omlpythonbridge toolbox is built using <span class="keyword">Python</span> binaries,
+          <div class="note note"><span class="notetitle">Note:</span> omlpythonbridge toolbox built using <span class="keyword">Python</span> binaries,
             which are built using RedHat <span class="keyword">Linux</span> 6.6 devtoolset-3
-            compilers, Intel 2016 Update 2 Fortran and C++ compilers. It is advised to use <span class="keyword">Python</span> binaries built using the same compiler versions.</div>
+            compilers, Intel 2016 Update 2 Fortran and C++ compilers . It is advised to use <span class="keyword">Python</span> binaries built using same compiler versions.</div>
 
-          <div class="note note"><span class="notetitle">Note:</span> <span class="keyword">OpenMatrix</span> binaries are built using RedHat <span class="keyword">Linux</span> 6.6 devtoolset-3 compilers, Intel 2016 Update 2 Fortran and
-            C++ compilers with:<ul class="ul" id="reference_oql_wj4_2z__ul_ijk_4qv_tvb">
-              <li class="li">Compilation Options: g++ -O2 -fPIC -std=c++11 -DLINUX -DOS_UNIX</li>
+          <div class="note note"><span class="notetitle">Note:</span> <span class="keyword">OpenMatrix</span> binaries built using RedHat <span class="keyword">Linux</span> 6.6 devtoolset-3 compilers.</div>
 
-              <li class="li">Link options: g++ -shared -Wl,-Bsymbolic –fPIC</li>
+          <div class="note note"><span class="notetitle">Note:</span> Verified omlpythonbridge toolbox using <span class="keyword">Python</span> 3.5.2
+            built from source. Installed Numpy, Scipy, Matplotlib using pip. The steps (may vary) are:<dl class="dl">
+              
+                <dt class="dt dlterm">CentOS 6.6</dt>
 
-            </ul>
-</div>
+                <dd class="dd">
+                  <p class="p">cd /opt</p>
 
-          <div class="note note"><span class="notetitle">Note:</span> Verified omlpythonbridge toolbox using <span class="keyword">Python</span> 3.8.10
-            built from source. Installed Numpy, Scipy, Matplotlib using pip.<p class="p">The steps to build
-              Python and install modules for RedHat 8.4 are:</p>
-<ol class="ol" type="a" id="reference_oql_wj4_2z__ol_tct_srv_tvb">
-              <li class="li"><code class="ph codeph" id="reference_oql_wj4_2z__codeblock_zvq_vrv_tvb">yum install zlib*</code></li>
+                  <p class="p">wget <a class="xref" href="https://www.python.org/ftp/python/3.5.1/Python-3.5.1.tgz" target="_blank">https://www.python.org/ftp/python/3.5.2/Python-3.5.2.tgz</a></p>
 
-              <li class="li"><code class="ph codeph" id="reference_oql_wj4_2z__codeblock_l1k_wrv_tvb">yum install openssl-devel</code></li>
+                  <p class="p">tar xzf Python-3.5.2.tgz</p>
 
-              <li class="li"><code class="ph codeph" id="reference_oql_wj4_2z__codeblock_ebf_yrv_tvb">cd /opt</code></li>
+                  <p class="p">cd Python-3.5.2</p>
 
-              <li class="li"><code class="ph codeph">wget
-                https://www.python.org/ftp/python/3.8.10/Python-3.8.10.tgz</code></li>
+                  <p class="p">./configure --enable-shared --prefix=/usr/local/python352 </p>
 
-              <li class="li"><code class="ph codeph">tar xzf Python-3.8.10.tgz</code></li>
+                  <p class="p">make altinstall</p>
 
-              <li class="li"><code class="ph codeph">cd Python-3.8*/</code></li>
+                  <p class="p">export LD_LIBRARY_PATH=/usr/local/python352/lib:$LD_LIBRARY_PATH</p>
 
-              <li class="li"><code class="ph codeph">./configure --enable-shared --prefix=/usr/local/python38</code></li>
+                  <p class="p">cd /usr/local/python352/bin</p>
 
-              <li class="li"><code class="ph codeph">make altinstall</code></li>
+                  <p class="p">python3.5 -m pip install --upgrade pip</p>
 
-              <li class="li"><code class="ph codeph">export
-                LD_LIBRARY_PATH=/usr/local/python38/lib:$LD_LIBRARY_PATH</code></li>
+                  <p class="p">python3.5 -m pip install numpy==1.14.5</p>
 
-              <li class="li"><code class="ph codeph">cd /usr/local/python38/bin</code></li>
+                  <p class="p">python3.5 -m pip install scipy==1.1.0</p>
 
-              <li class="li"><code class="ph codeph">python3.5 -m pip install --upgrade pip</code></li>
+                  <p class="p">python3.5 -m pip install matplotlib==2.2.2</p>
 
-              <li class="li"><code class="ph codeph">python3.5 -m pip install numpy==1.22.1</code></li>
+                </dd>
 
-              <li class="li"><code class="ph codeph">python3.5 -m pip install scipy==1.6.1</code></li>
+              
+              
+                <dt class="dt dlterm">CentOS 7.2</dt>
 
-              <li class="li"><code class="ph codeph">python3.5 -m pip install matplotlib==3.3.0 </code></li>
+                <dd class="dd">
+                  <p class="p">yum install zlib*</p>
 
-            </ol>
+                  <p class="p">yum install openssl-devel</p>
+
+                  <p class="p">yum install tkinter tk-devel</p>
+
+                  <p class="p">cd /opt</p>
+
+                  <p class="p">wget <a class="xref" href="https://www.python.org/ftp/python/3.5.1/Python-3.5.1.tgz" target="_blank">https://www.python.org/ftp/python/3.5.2/Python-3.5.2.tgz</a></p>
+
+                  <p class="p">tar xzf Python-3.5.2.tgz</p>
+
+                  <p class="p">cd Python-3.5.2</p>
+
+                  <p class="p">./configure --enable-shared --prefix=/usr/local/python352 </p>
+
+                  <p class="p">make altinstall</p>
+
+                  <p class="p">export LD_LIBRARY_PATH=/usr/local/python352/lib:$LD_LIBRARY_PATH</p>
+
+                  <p class="p">cd /usr/local/python352/bin</p>
+
+                  <p class="p">python3.5 -m pip install --upgrade pip</p>
+
+                  <p class="p">python3.5 -m pip install numpy==1.14.5</p>
+
+                  <p class="p">python3.5 -m pip install scipy==1.1.0</p>
+
+                  <p class="p">python3.5 -m pip install matplotlib=2.2.2</p>
+
+                </dd>
+
+              
+            </dl>
 </div>
 
         </div>

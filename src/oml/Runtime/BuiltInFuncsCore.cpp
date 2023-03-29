@@ -902,7 +902,10 @@ bool BuiltInFuncsCore::RemoveToolbox(EvaluatorInterface           eval,
 		void* handle = libs[removeDll];
 
 		if (handle)
+        {
+            Finalize(handle);
 			DyFreeLibrary(handle);
+        }
 		libs.erase(removeDll);
 	}
 	else

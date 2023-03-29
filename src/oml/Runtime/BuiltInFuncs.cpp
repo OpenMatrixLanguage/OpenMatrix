@@ -15853,52 +15853,52 @@ bool oml_min(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
                 }
                 else
                 {
-                    std::vector<int> row;
-                    std::vector<int> column;
-                    hwMatrix* nz = new hwMatrix;
+                std::vector<int> row;
+                std::vector<int> column;
+                hwMatrix* nz = new hwMatrix;
 
-                    mtx->NZinfo(0, mtx->NNZ() - 1, row, column, *nz);
+                mtx->NZinfo(0, mtx->NNZ() - 1, row, column, *nz);
 
-                    std::vector<Currency> inputs2;
-                    std::vector<Currency> outputs2;
-                    inputs2.push_back(nz);
-                    outputs2 = eval.DoMultiReturnFunctionCall(oml_min, inputs2, 1, 2, true);
+                std::vector<Currency> inputs2;
+                std::vector<Currency> outputs2;
+                inputs2.push_back(nz);
+                outputs2 = eval.DoMultiReturnFunctionCall(oml_min, inputs2, 1, 2, true);
 
-                    if (mtx->NNZ() < mtx->Size())
+                if (mtx->NNZ() < mtx->Size())
+                {
+                    double minv = 0.0;
+
+                    if (mtx->IsReal())
+                        minv = outputs2[0].Scalar();
+
+                    if (minv < 0.0)
                     {
-                        double minv = 0.0;
-
-                        if (mtx->IsReal())
-                            minv = outputs2[0].Scalar();
-
-                        if (minv < 0.0)
-                        {
-                            outputs.push_back(minv);
-                            int indx = static_cast<int>(outputs2[1].Scalar() - 1);
-                            outputs.push_back(mtx->M() * column[indx] + row[indx] + 1);
-                        }
-                        else
-                        {
-                            // find first zero
-                            outputs.push_back(0.0);
-                            int indx = nz->Size();
-
-                            for (int i = 0; i < nz->Size(); ++i)
-                            {
-                                if (i != mtx->M() * column[i] + row[i])
-                                {
-                                    indx = i;
-                                    break;
-                                }
-                            }
-
-                            outputs.push_back(indx + 1);
-                        }
+                        outputs.push_back(minv);
+                        int indx = static_cast<int>(outputs2[1].Scalar() - 1);
+                        outputs.push_back(mtx->M() * column[indx] + row[indx] + 1);
                     }
                     else
                     {
-                        outputs = outputs2;
+                        // find first zero
+                        outputs.push_back(0.0);
+                        int indx = nz->Size();
+
+                        for (int i = 0; i < nz->Size(); ++i)
+                        {
+                            if (i != mtx->M() * column[i] + row[i])
+                            {
+                                indx = i;
+                                break;
+                            }
+                        }
+
+                        outputs.push_back(indx + 1);
                     }
+                }
+                else
+                {
+                    outputs = outputs2;
+                }
                 }
 
                 return true;
@@ -15942,7 +15942,7 @@ bool oml_min(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
                         inputs2.push_back(0.0);
                         outputs.clear();
                         oml_min(eval, inputs2, outputs);
-                    }
+            }
                 }
             }
 
@@ -16578,57 +16578,57 @@ bool oml_max(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
                 }
                 else
                 {
-                    std::vector<int> row;
-                    std::vector<int> column;
-                    hwMatrix* nz = new hwMatrix;
-                    mtx->NZinfo(0, mtx->NNZ() - 1, row, column, *nz);
+                std::vector<int> row;
+                std::vector<int> column;
+                hwMatrix* nz = new hwMatrix;
+                mtx->NZinfo(0, mtx->NNZ() - 1, row, column, *nz);
 
-                    std::vector<Currency> inputs2;
-                    std::vector<Currency> outputs2;
-                    inputs2.push_back(nz);
-                    outputs2 = eval.DoMultiReturnFunctionCall(oml_max, inputs2, 1, 2, true);
+                std::vector<Currency> inputs2;
+                std::vector<Currency> outputs2;
+                inputs2.push_back(nz);
+                outputs2 = eval.DoMultiReturnFunctionCall(oml_max, inputs2, 1, 2, true);
 
-                    if (mtx->NNZ() < mtx->Size())
+                if (mtx->NNZ() < mtx->Size())
+                {
+                    if (mtx->IsReal())
                     {
-                        if (mtx->IsReal())
+                        double maxv = outputs2[0].Scalar();
+
+                        if (maxv > 0.0)
                         {
-                            double maxv = outputs2[0].Scalar();
-
-                            if (maxv > 0.0)
-                            {
-                                outputs.push_back(maxv);
-                                int indx = static_cast<int>(outputs2[1].Scalar() - 1);
-                                outputs.push_back(mtx->M() * column[indx] + row[indx] + 1);
-                            }
-                            else
-                            {
-                                // find first zero
-                                outputs.push_back(0.0);
-                                int indx = nz->Size();
-
-                                for (int i = 0; i < nz->Size(); ++i)
-                                {
-                                    if (i != mtx->M() * column[i] + row[i])
-                                    {
-                                        indx = i;
-                                        break;
-                                    }
-                                }
-
-                                outputs.push_back(indx + 1);
-                            }
-                        }
-                        else    // complex
-                        {
-                            outputs.push_back(outputs2[0]);
+                            outputs.push_back(maxv);
                             int indx = static_cast<int>(outputs2[1].Scalar() - 1);
                             outputs.push_back(mtx->M() * column[indx] + row[indx] + 1);
                         }
+                        else
+                        {
+                            // find first zero
+                            outputs.push_back(0.0);
+                            int indx = nz->Size();
+
+                            for (int i = 0; i < nz->Size(); ++i)
+                            {
+                                if (i != mtx->M() * column[i] + row[i])
+                                {
+                                    indx = i;
+                                    break;
+                                }
+                            }
+
+                            outputs.push_back(indx + 1);
+                        }
                     }
-                    else
+                    else    // complex
                     {
-                        outputs = outputs2;
+                        outputs.push_back(outputs2[0]);
+                        int indx = static_cast<int>(outputs2[1].Scalar() - 1);
+                        outputs.push_back(mtx->M() * column[indx] + row[indx] + 1);
                     }
+                }
+                else
+                {
+                    outputs = outputs2;
+                }
                 }
 
                 return true;
@@ -16662,7 +16662,7 @@ bool oml_max(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
                 {
                     outputs.clear();
                     outputs.push_back(0.0);
-                }
+            }
                 else
                 {
                     inputs2.clear();

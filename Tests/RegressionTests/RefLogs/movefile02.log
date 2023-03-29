@@ -1,0 +1,22 @@
+[.]
+[..]
+[dir1]
+[dir2]
+test1.txt
+test2.txt
+command = movefile('test1.txt', 'test3.txt')
+ans = 1
+[.]
+[..]
+[dir1]
+[dir2]
+test2.txt
+test3.txt
+command = movefile('test3.txt', 'test1.txt')
+ans = 1
+[.]
+[..]
+[dir1]
+[dir2]
+test1.txt
+test2.txt

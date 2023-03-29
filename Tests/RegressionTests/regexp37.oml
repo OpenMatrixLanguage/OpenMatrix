@@ -1,0 +1,3 @@
+str = '1abbbbbbbc';
+[s, e, ~, m, ~, ~, ~] = regexp(str,'b*')
+	

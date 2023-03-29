@@ -1622,7 +1622,7 @@ namespace omlplot{
         evl.RegisterBuiltInFunction("colorbar", colorbar, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("plotyy", plotyy, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("colormap", colormap, FunctionMetaData(-1, -1, "Plotting"));
-        evl.RegisterBuiltInFunction("delete", deletefun, FunctionMetaData(-1, 0, "Plotting"));
+        evl.RegisterBuiltInFunction("delete", deletefun, FunctionMetaData(-1, 0, "System"));
         evl.RegisterBuiltInFunction("ellipse", ellipse, FunctionMetaData(-1, 0, "Plotting"));
         evl.RegisterBuiltInFunction("rectangle", rectangle, FunctionMetaData(-1, 0, "Plotting"));
         evl.RegisterBuiltInFunction("waterfall", waterfall, FunctionMetaData(-1, 1, "Plotting"));
@@ -1640,10 +1640,10 @@ namespace omlplot{
         evl.RegisterBuiltInFunction("bar3", bar3, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("hist3", hist3, FunctionMetaData(-2, 1, "Plotting"));
 
-//#ifdef _DEBUG
+#ifdef _DEBUG
         evl.RegisterBuiltInFunction("dump", dump, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("out", out, FunctionMetaData(-1, 1, "Plotting"));
-//#endif
+#endif
 		// Not yet supported commands
         evl.RegisterBuiltInFunction("copystyle", copystyle, FunctionMetaData(-1, -1, "Plotting"));
         evl.RegisterBuiltInFunction("pastestyle", pastestyle, FunctionMetaData(-1, -1, "Plotting"));

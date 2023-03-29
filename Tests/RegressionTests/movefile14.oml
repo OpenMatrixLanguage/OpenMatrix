@@ -1,0 +1,21 @@
+% movefile-note movefile with spaces
+
+returndir = pwd;
+cd FileManipulation
+
+cd movefile
+
+disp('move file with spaces')
+command = 'movefile(''test1.txt'', ''test 1.txt'')'
+eval(command)
+
+dir
+
+disp('move file with spaces back')
+command = 'r1 = movefile(''test 1.txt'', ''test1.txt'')'
+eval(command)
+
+dir
+
+
+cd(returndir)
