@@ -1,7 +1,0 @@
-fname = 'FileManipulation/CreatedFile.txt'
-[fid, error] = fopen(fname,'w')
-delete(fname)
-fclose(fid)
-delete(fname)
-[fid, error]=fopen(fname)
-fclose(fid)
