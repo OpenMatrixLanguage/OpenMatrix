@@ -17528,6 +17528,8 @@ Currency ExprTreeEvaluator::CellExtraction(OMLTree* tree)
 		{
 			OMLTree* struct_tree = lhs->GetChild(0);
 
+			if (struct_tree->GetType() == STRUCT)
+			{
 			Currency base_struct = msm->GetMutableValue(struct_tree->GetChild(0)->GetText());
 			std::string field_name = struct_tree->GetChild(1)->GetText();
 
@@ -17544,7 +17546,10 @@ Currency ExprTreeEvaluator::CellExtraction(OMLTree* tree)
 			}
 
 			return base_struct;
-
+			}
+			else
+			{
+			}
 		}
 	}
 
