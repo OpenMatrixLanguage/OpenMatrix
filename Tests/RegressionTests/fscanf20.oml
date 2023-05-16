@@ -1,0 +1,11 @@
+filename = '1.txt';
+str = '10A 11A 12A';
+fid = fopen(filename,'w');
+fprintf(fid,'%s',str);
+fclose(fid);
+ 
+fid = fopen(filename, 'r');
+R = fscanf(fid,'%dA',[1 3])
+fclose(fid);
+
+delete(filename);

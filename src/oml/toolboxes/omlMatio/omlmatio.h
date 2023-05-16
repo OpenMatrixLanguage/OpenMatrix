@@ -1,7 +1,7 @@
 /**
 * @file omlmatio.h
 * @date August 2020
-* Copyright (C) 2020 Altair Engineering, Inc.
+* Copyright (C) 2020-2023 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -16,6 +16,9 @@
 #ifndef __OMLMATIO_H__
 #define __OMLMATIO_H__
 
+#include "MatioTboxDefs.h"
+
+#include <map>
 #include <string>
 
 #include "Currency.h"
@@ -27,7 +30,7 @@ struct matvar_t;
 //! \class OmlMatio
 //! \brief Interfaces with matio library for loading/saving variables
 //------------------------------------------------------------------------------
-class OmlMatio
+class MATIOOMLTBOX_DECLS OmlMatio
 {
 public:
     //!
@@ -48,7 +51,7 @@ public:
     //!
     //! Destructor
     //!
-    ~OmlMatio();
+    ~OmlMatio() {}
 
     //!
     //! Adds warning
@@ -62,8 +65,10 @@ public:
 
     //!
     //! Gets variable name, creating one if needed
+    //! \param Mat variable
+    //! \param True if warning about auto generated name needs to be created
     //!
-    std::string GetName(matvar_t*);
+    std::string GetName(matvar_t*, bool = true);
 
     //!
     //! Converts mat variable to currency
@@ -83,6 +88,24 @@ public:
     //! \param Version
     //!
     void SetVersion(MATFILEVERSION v) { _version = v; }
+    //!
+    //! Gets type description
+    //
+    std::string GetTypeString(matvar_t*);  
+    //!
+    //! Resets data
+    //! 
+    void Reset();
+    //!
+    //! Sets the name prefix
+    //! 
+    void SetNamePrefix(const std::string&);
+    //!
+    //! Helper method to get children
+    //! \param Evaluator
+    //! \param Parent
+    //! 
+    std::vector<matvar_t*> GetChildren(EvaluatorInterface, matvar_t*);
 
 private:
     std::string    _warn;       //!< Warning
@@ -90,13 +113,11 @@ private:
     int            _idx;        //!< Used in name if matvar_t->name is null
     int            _verbose;    //!< Verbose level
     MATFILEVERSION _version;    //!< Matio version
-    std::string    _stderrfile; //! Error file to redirect stdout
 
     OmlMatio();                             // Stubbed out 
     OmlMatio(const OmlMatio&);              // Stubbed out 
     OmlMatio& operator=(const OmlMatio&);   // Stubbed out
 
-    std::string GetTypeString(matvar_t*);                 // Gets type description
 
     // Conversion methods
     //!
@@ -232,9 +253,20 @@ private:
     Currency HandleInvalidRank(matvar_t*,
                                const std::string&);
 
+    //!
+    //! Adds warning about invalid dimensions
+    //! \param Variable
+    //! \param Name
+    //!
+    void AddInvalidDimsWarning(matvar_t*, const std::string&);
+    //!
+    //! Adds warning about invalid rank
+    //! \param Variable
+    //! \param Name
+    //!
+    void AddInvalidRankWarning(matvar_t*, const std::string&);
 
 };
-
 
 #endif
 

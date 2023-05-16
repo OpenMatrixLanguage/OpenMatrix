@@ -234,37 +234,37 @@ std::string BuiltInFuncsUtils::GetOrderedStringVal(const Currency& cur)
 // Parses given string input and gets a vector of format options
 //------------------------------------------------------------------------------
 std::vector<std::string> BuiltInFuncsUtils::GetFormats(const std::string& formatdesc,
-                                                       const std::string& validfmtdesc,
-                                                       bool&              validformat)
+    const std::string& validfmtdesc,
+    bool& validformat)
 {
     if (formatdesc.empty()) return std::vector<std::string>();
 
     std::vector<std::string> formats;
-    size_t                   startpos      = 0;
+    size_t                   startpos = 0;
     size_t                   formatdescLen = formatdesc.size();
-    std::string              allfmt (formatdesc);
-	while (!allfmt.empty())
-	{        
+    std::string              allfmt(formatdesc);
+    while (!allfmt.empty())
+    {
         size_t pos = allfmt.find_first_of("%");
         if (pos == std::string::npos) return formats;
 
         size_t      nextpos = allfmt.find("%", pos + 1);
-        std::string rawfmt  = (nextpos == std::string::npos) ?
-                               allfmt.substr(pos) :
-                               allfmt.substr(pos, nextpos - pos);
-        
+        std::string rawfmt = (nextpos == std::string::npos) ?
+            allfmt.substr(pos) :
+            allfmt.substr(pos, nextpos - pos);
+
         if (rawfmt.empty()) return formats;
 
         // Find the substring before the '%' if any
-        std::string prev; 
+        std::string prev;
         if (pos > 0)
             prev = allfmt.substr(0, pos);
 
         // Find the alpha character after the raw format. We should not allow
         // options like %.5f. This will be treated as %f and we can throw a warning
         std::string fmt;
-        size_t      rawfmtSize   = rawfmt.size();
-        
+        size_t      rawfmtSize = rawfmt.size();
+
         for (size_t i = 0; i < rawfmtSize; ++i)
         {
             char c = rawfmt[i];
@@ -275,12 +275,12 @@ std::vector<std::string> BuiltInFuncsUtils::GetFormats(const std::string& format
             }
             if (!isalpha(c))
             {
-                validformat = false; 
+                validformat = false;
                 continue;
             }
 
             // First alpha character
-            std::string thisfmt ("%");
+            std::string thisfmt("%");
             thisfmt += c;
             if (!validfmtdesc.empty() && validfmtdesc.find(thisfmt) == std::string::npos)
             {
@@ -297,7 +297,7 @@ std::vector<std::string> BuiltInFuncsUtils::GetFormats(const std::string& format
 
         if (fmt != "%" && !fmt.empty())
             formats.push_back(prev + fmt);
-        
+
         if (nextpos == std::string::npos) break;
 
         allfmt = allfmt.substr(nextpos);
@@ -341,315 +341,6 @@ void BuiltInFuncsUtils::GetSizeSpecifications(const Currency& cur,
     if (!IsInf_T(cols) && !IsInt(cols) && !(cols > 0))
         throw OML_Error(OML_ERR_POS_INTEGER_MTX_INF, varindex, OML_VAR_DIM);
     isMtx = true;
-}
-//------------------------------------------------------------------------------
-// Returns currency after reading formatted input from a file/string
-//------------------------------------------------------------------------------
-Currency BuiltInFuncsUtils::GetFormattedInput(const std::string& in,
-                                              const std::string& formatdesc,
-                                              const std::string& validfmtdesc,
-                                              double             rows,
-                                              double             cols,
-                                              bool               hasSizeMtx,
-                                              bool               hasSizeSpec,
-                                              bool&              validformat)
-{
-    assert(!in.empty());
-
-    // Split tokens in format description to get the vector of format options
-    std::vector<std::string> formats = GetFormats(formatdesc, validfmtdesc, validformat);
-
-    // For each format, read in one value from input and push into values vector
-    BuiltInFuncsUtils utils;
-    std::vector<Currency> values;
-    double sizelimit = (hasSizeMtx) ? rows * cols : rows;
-    utils.ReadFormattedInput(in, sizelimit, formats, values);
-
-    // Split the output values vector into the correct size (if any) Right now, 
-    // the result is Nx1 (which is the default)
-    // Handles cases where inf is passed. Don't cast and use values.size() as 
-    // compiler will convert
-    int    numvals      = values.empty() ? 0 : static_cast<int>(values.size());
-	int    numrows      = numvals;
-	int    numcols      = 1;
-	double rawnumcols   = 1.0;
-    bool   stringoutput = (formats.size() == 1 && formats[0].find("%s") != std::string::npos);
-	
-    if (hasSizeSpec)                // Has size specifications
-    {
-        if (hasSizeMtx)             // Has matrix
-        {
-            numrows    = (int)rows;
-            rawnumcols = cols;      // This can be infinity
-        }
-        else if (stringoutput)
-        {
-            rawnumcols   = numrows;
-            numrows      = (int)(IsInf_T(rows) ? numvals : rows);
-        }
-        else
-        {
-			rawnumcols = 1;
-            numrows    = (int)(IsInf_T(rows) ? numvals : rows);
-			if (numrows > values.size())  // Don't cast here when comparing
-			    numrows = numvals;
-        }
-    }
-
-
-	if (IsInf_T(rawnumcols) || IsNegInf_T(rawnumcols) || IsNaN_T(rawnumcols))
-    {
-        int tmp = (numrows == 0) ? 1 : numrows;
-		numcols = (int)values.size() / tmp;
-    }
-	else
-		numcols = static_cast<int>(rawnumcols);
-
-	if (values.size() < numrows * numcols)
-	{
-        int tmp = (numrows == 0) ? 1 : numrows;
-		if (values.size() % tmp == 0)
-			numcols = (int)values.size() / tmp;
-	}
-
-    if (stringoutput && !hasSizeSpec && numcols == 1 && numrows > 1)
-    {
-        numcols = numrows;
-        numrows = 1;
-    }
-
-	hwMatrix* mymat = EvaluatorInterface::allocateMatrix(numrows, numcols, 0.0);
-    assert(mymat);
-
-	for (int j = 0; j < values.size(); ++j)
-	{
-		if (j < values.size() && j < mymat->Size())
-			(*mymat)(j) = values[j].Scalar();
-	}
-
-	Currency result(mymat);
-	if (stringoutput)
-		result.SetMask(Currency::MASK_STRING);
-
-	return result;
-}
-//------------------------------------------------------------------------------
-// Reads formatted float from string using sscanf, returns true if successul
-//------------------------------------------------------------------------------
-bool BuiltInFuncsUtils::SscanfHelperFloat(const std::string&     in,
-                                          const std::string&     fmt,
-                                          std::vector<Currency>& outvals,
-                                          std::string&           stringread,
-                                          int&                   numread)
-{    
-    // Read into double to handle precision issues
-    std::string updatedfmt(fmt);
-    size_t pos = fmt.find("%g");
-    if (pos == std::string::npos)
-        pos = fmt.find("%f");                
-    if (pos != std::string::npos)
-        updatedfmt.replace(pos, 2, "%lf"); 
-
-    updatedfmt += "%n";
-    double output = 0.0;
-    int    result = sscanf(in.c_str(), updatedfmt.c_str(), &output, &numread);
-    
-    if (result != 1)
-    {
-        return false;
-    }
-
-    outvals.push_back(output);
-
-    if (numread > 0)
-    {
-        stringread = in.substr(0, numread);
-        return true;
-    }
-    // This section is probably not needed
-    std::ostringstream os;
-    os << output;
-    stringread = os.str();
-    if (stringread.find("e") != std::string::npos ||
-        stringread.find("E") != std::string::npos)
-    {
-        os.str("");
-        os.clear();
-
-        if (stringread.find("e") != std::string::npos)
-        {
-            os << std::scientific << output;
-        }
-        else
-        {
-            os << std::scientific << std::uppercase << output;
-        }
-        stringread = os.str();
-    }
-
-    // sscanf will ignore decimal point in the case of 5.0000
-    if (stringread.find(".") == std::string::npos)
-    {   // Read till we get to decimal point
-        pos = in.find_first_of(stringread);
-        if (pos != std::string::npos)
-        {
-            size_t len = in.size();
-            for (size_t i = pos + stringread.size(); i < len; ++i)
-            {
-                char c = in[i];
-                if (c == '.') 
-                {
-                    stringread += c;
-                    break;
-                }
-                else if (!isdigit(c)) 
-                    break;
-
-                stringread += c;
-            }
-        }
-    }
-    // sscanf will read '00' as 0, so we need to take care of this condition
-    pos = in.find_first_of(stringread);
-    if (pos != std::string::npos)
-    {
-        size_t len = in.size();
-        for (size_t i = pos + stringread.size(); i < len; ++i)
-        {
-            char c = in[i];
-            if (!isdigit(c)) break;
-            stringread += c;   
-        }
-    }
-    return true;
-}
-//------------------------------------------------------------------------------
-// Reads formatted string from string using sscanf and returns true if successul
-//------------------------------------------------------------------------------
-bool BuiltInFuncsUtils::SscanfHelperString(const std::string&     in,
-                                           const std::string&     fmt,
-                                           std::vector<Currency>& outvals,
-                                           std::string&           stringread)
-{
-    char output [1024];
-	if (sscanf(in.c_str(), fmt.c_str(), &output) != 1) return false;
-
-    size_t len = strlen(static_cast<char*>(output));
-	for (size_t j = 0; j < len; ++j)
-		outvals.push_back(static_cast<int>(output[j]));
-
-    stringread = output;
-    return true;
-}
-//------------------------------------------------------------------------------
-// sscanf helper function, reads formatted input from string, returns true if successful
-//------------------------------------------------------------------------------
-bool BuiltInFuncsUtils::SscanfHelper(std::string&           in,
-                                     const std::string&     fmt,
-                                     std::vector<Currency>& outvals)
-{
-    assert(!fmt.empty());
-
-    std::string stringread;
-
-    if (fmt.find("%f") != std::string::npos || fmt.find("%g") != std::string::npos)
-    {    // Float format
-        int numread = 0;
-        bool result = SscanfHelperFloat(in, fmt, outvals, stringread, numread);
-        if (!result)
-        {
-            return false;
-        }
-        // Chop the input string
-        if (numread > 0)
-        {
-            in = in.substr(numread);
-            return true;  // Done parsing
-        }
-    }
-    else if (fmt.find("%d") != std::string::npos) // Integer format
-	{
-        std::string format  = fmt + "%n";
-        int         numread = 0;
-        int         output  = 0;
-
-        if (sscanf(in.c_str(), format.c_str(), &output, &numread) != 1) 
-        {
-            return false;
-        }
-        outvals.push_back(output);
-
-        // Chop the input string
-        if (numread > 0)
-        {
-            in = in.substr(numread);
-        }
-        return true;  // Done parsing
-    }
-    else if (fmt.find("%s") != std::string::npos)  // String format
-	{
-        bool result = SscanfHelperString(in, fmt, outvals, stringread);
-        if (!result) return false;
-    }
-	
-    if (stringread.empty()) return false;
-
-    if (fmt.size() > 2)  // Tack whatever strings are there in format template
-        stringread += fmt.substr(2);
-
-    size_t curpos = in.find_first_of(stringread);
-    if (curpos !=  std::string::npos)
-        curpos += stringread.size();
-
-    if (curpos >= in.size())
-    {
-        in = "";  // Done parsing
-        return false;
-    }
-        
-    in = in.substr(curpos);   // Chop the input string
-    return true;
-}
-//------------------------------------------------------------------------------
-// Reads formatted input from string
-//------------------------------------------------------------------------------
-void BuiltInFuncsUtils::ReadFormattedInput(const std::string&              input,
-                                           double                          sizelimit,
-                                           const std::vector<std::string>& formats,
-                                           std::vector<Currency>&          values)
-{
-    // For each format, read in one value from input and push into values vector
-	int  count = 0;
-    bool keepgoing = true;
-    std::string in(input);
-    BuiltInFuncsUtils utils;
-
-    bool checkcount = (!IsInf_T(sizelimit) && !IsNegInf_T(sizelimit));
-    while (keepgoing && !in.empty())
-    {
-        size_t oldvaluesSize = values.empty() ? 0 : values.size();
-        for (std::vector<std::string>::const_iterator itr = formats.begin();
-             itr != formats.end(); ++itr)
-	    {
-            bool result = utils.SscanfHelper(in, *itr, values);
-            if (!result || in.empty())
-            {
-                keepgoing = false;
-                break;
-            }
-            if (checkcount)
-            {
-                count++;
-                if (count == sizelimit)
-                {
-                    keepgoing = false;
-                }
-            }
-        }
-
-        size_t newvaluesSize = values.empty() ? 0 : values.size();
-        if (oldvaluesSize == newvaluesSize) break; // Nothing has been read
-	}
 }
 //------------------------------------------------------------------------------
 // Returns true if file exists - works with wide characters
@@ -2306,11 +1997,169 @@ bool BuiltInFuncsUtils::HasWideChars(const hwMatrix* mtx)
     int len = mtx->Size();
     for (int i = 0; i < len; ++i)
     {
-        unsigned char ch = (*mtx)(i);
+        unsigned char ch = (unsigned char)(*mtx)(i);
         if (utf8_get_char_size(&ch) > 1)
         {
             return true;
         }
     }
     return false;
+}
+//------------------------------------------------------------------------------
+// Converts std::vector<double> to Currency
+//------------------------------------------------------------------------------
+Currency BuiltInFuncsUtils::Vector2Currency(const std::vector<double>& in, bool row)
+{
+    // This function should only be used where an empty input std::vector is
+    // expected to produce an empty row (1x0) or an empty column (0x1).
+    int containerSize = static_cast<int>(in.size());
+    int rows = row ? 1 : containerSize;
+    int cols = row ? containerSize : 1;
+
+    // Although the matrix is created as real, if there is a complex element in
+    // the values, SetElement will flip matrix type to complex
+    std::unique_ptr<hwMatrix> mtx(
+        EvaluatorInterface::allocateMatrix(rows, cols, true));
+
+    int matrixSize = mtx->Size();
+    // Check both the size of the container and matrix as the matrix size could
+    // be smaller than the container size requested.
+    for (int i = 0; i < containerSize && i < matrixSize; ++i)
+        mtx->SetElement(i, in[i]);  // Don't assign values directly, see note above
+
+    return mtx.release();
+}
+//------------------------------------------------------------------------------
+// Converts deque to Currency - Replaces ContainerToMatrix
+//------------------------------------------------------------------------------
+Currency BuiltInFuncsUtils::Deque2Currency(const std::deque<double>& in, bool row)
+{
+    int containerSize = static_cast<int>(in.size());
+    int rows = row ? 1 : containerSize;
+    int cols = row ? containerSize : 1;
+
+    // Although the matrix is created as real, if there is a complex element in
+    // the values, SetElement will flip matrix type to complex
+    std::unique_ptr<hwMatrix> mtx(
+        EvaluatorInterface::allocateMatrix(rows, cols, true));
+
+    int matrixSize = mtx->Size();
+    // Check both the size of the container and matrix as the matrix size could
+    // be smaller than the container size requested.
+    for (int i = 0; i < containerSize && i < matrixSize; ++i)
+        mtx->SetElement(i, in[i]);  // Don't assign values directly, see note above
+
+    return mtx.release();
+}
+//------------------------------------------------------------------------------
+// Converts deque to Currency - Replaces ContainerToMatrix
+//------------------------------------------------------------------------------
+Currency BuiltInFuncsUtils::Deque2Currency(const std::deque<hwComplex>& in, bool row)
+{
+    int containerSize = static_cast<int>(in.size());
+    int rows = row ? 1 : containerSize;
+    int cols = row ? containerSize : 1;
+
+    // Although the matrix is created as real, if there is a complex element in
+    // the values, SetElement will flip matrix type to complex
+    std::unique_ptr<hwMatrix> mtx(
+        EvaluatorInterface::allocateMatrix(rows, cols, true));
+
+    int matrixSize = mtx->Size();
+    // Check both the size of the container and matrix as the matrix size could
+    // be smaller than the container size requested.
+    for (int i = 0; i < containerSize && i < matrixSize; ++i)
+        mtx->SetElement(i, in[i]);  // Don't assign values directly, see note above
+
+    return mtx.release();
+}
+//------------------------------------------------------------------------------
+// Converts std::vector<hwComplex> to Currency
+//------------------------------------------------------------------------------
+Currency BuiltInFuncsUtils::Vector2Currency(const std::vector<hwComplex>& in, bool row)
+{
+    int containerSize = static_cast<int>(in.size());
+    int rows = row ? 1 : containerSize;
+    int cols = row ? containerSize : 1;
+
+    // Although the matrix is created as real, if there is a complex element in
+    // the values, SetElement will flip matrix type to complex
+    std::unique_ptr<hwMatrix> mtx(
+        EvaluatorInterface::allocateMatrix(rows, cols, true));
+
+    int matrixSize = mtx->Size();
+    // Check both the size of the container and matrix as the matrix size could
+    // be smaller than the container size requested.
+    for (int i = 0; i < containerSize && i < matrixSize; ++i)
+        mtx->SetElement(i, in[i]);  // Don't assign values directly, see note above
+
+    return mtx.release();
+}
+//------------------------------------------------------------------------------
+// Converts std::vector<int> to Currency
+//------------------------------------------------------------------------------
+Currency BuiltInFuncsUtils::Vector2Currency(const std::vector<int>& in, bool row)
+{
+    int containerSize = static_cast<int>(in.size());
+    int rows = row ? 1 : containerSize;
+    int cols = row ? containerSize : 1;
+
+    // Although the matrix is created as real, if there is a complex element in
+    // the values, SetElement will flip matrix type to complex
+    std::unique_ptr<hwMatrix> mtx(
+        EvaluatorInterface::allocateMatrix(rows, cols, true));
+
+    int matrixSize = mtx->Size();
+    // Check both the size of the container and matrix as the matrix size could
+    // be smaller than the container size requested.
+    for (int i = 0; i < containerSize && i < matrixSize; ++i)
+        mtx->SetElement(i, in[i]);  // Don't assign values directly, see note above
+
+    return mtx.release();
+}
+//------------------------------------------------------------------------------
+// Converts std::vector<std::string> to currency of type cell array
+//------------------------------------------------------------------------------
+Currency BuiltInFuncsUtils::Vector2Currency(const std::vector<std::string>& in, bool row)
+{
+    int size = static_cast<int>(in.size());
+    std::unique_ptr<HML_CELLARRAY> ret(nullptr);
+
+    if (row)
+    {
+        ret.reset(EvaluatorInterface::allocateCellArray(1, size));
+    }
+    else
+    {
+        ret.reset(EvaluatorInterface::allocateCellArray(size, 1));
+    }
+
+    for (int i = 0; i < size; ++i)
+    {
+        (*ret)(i) = in[i];
+    }
+    return ret.release();
+}
+//------------------------------------------------------------------------------
+// Converts string deque to cell array Currency
+//------------------------------------------------------------------------------
+Currency BuiltInFuncsUtils::Deque2Currency(const std::deque<std::string>& in, bool row)
+{
+    int size = static_cast<int>(in.size());
+    std::unique_ptr<HML_CELLARRAY> cell(nullptr);
+
+    if (row)
+    {
+        cell.reset(EvaluatorInterface::allocateCellArray(1, size));
+    }
+    else
+    {
+        cell.reset(EvaluatorInterface::allocateCellArray(size, 1));
+    }
+
+    for (int i = 0; i < size; ++i)
+    {
+        (*cell)(i) = in[i];
+    }
+    return cell.release();
 }

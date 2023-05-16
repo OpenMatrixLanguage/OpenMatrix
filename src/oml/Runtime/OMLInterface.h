@@ -23,15 +23,32 @@
 #include "StructData.h"
 #include "Evaluator.h"
 
+#include <mutex>
+
 template <typename T> class hwTComplex;
 template <typename T1, typename T2> class hwTMatrix;
 typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
 typedef hwTMatrix<Currency, void*> HML_CELLARRAY;
 
-class OMLInterfaceImpl : public OMLInterface5
+// NEVER create any of these Impl classes on the stack.  That will
+// break the new, automatic garbage collection in ways that will be difficult
+// to find via debugging
+
+class OMLImplBase
 {
 public:
-	OMLInterfaceImpl(EvaluatorInterface* in_eval) { _eval = in_eval; }
+	OMLImplBase(EvaluatorInterface* in_eval);
+	virtual ~OMLImplBase();
+
+protected:
+	EvaluatorInterface* _eval;
+};
+
+class OMLInterfaceImpl : public OMLInterface5, OMLImplBase
+{
+public:
+	OMLInterfaceImpl(EvaluatorInterface* in_eval);
+	~OMLInterfaceImpl();
 
 	void RegisterFunction(const char*, ALT_FUNCPTR);
 	void RegisterHiddenFunction(const char*, ALT_FUNCPTR);
@@ -48,15 +65,13 @@ public:
 	const OMLCurrency* CallFunction(const char* name, OMLCurrencyList* inputs);
 
 	OMLCurrencyList* CreateCurrencyList();
-
-private:
-	EvaluatorInterface* _eval;
 };
 
-class OMLCurrencyImpl : public OMLCurrency4
+class OMLCurrencyImpl : public OMLCurrency4, OMLImplBase
 {
 public:
-	OMLCurrencyImpl(Currency in_cur) { _cur = in_cur; cached_pointers.push_back(this); }
+	OMLCurrencyImpl(EvaluatorInterface* in_eval, Currency in_cur);
+	~OMLCurrencyImpl();
 
 	bool IsScalar() const;
 	bool IsComplex() const;
@@ -81,19 +96,16 @@ public:
 	const OMLStruct*         GetStruct() const;
 	const OMLFunctionHandle* GetFunctionHandle() const;
 	bool                     GetLogical() const;
-	
-	static void GarbageCollect();
 
 private:
 	Currency _cur;
-
-	static std::vector<OMLCurrencyImpl*> cached_pointers;
 };
 
-class OMLComplexImpl : public OMLComplex
+class OMLComplexImpl : public OMLComplex, OMLImplBase
 {
 public:
-	OMLComplexImpl(double real, double imag) : cplx(real, imag) { cached_pointers.push_back(this); }
+	OMLComplexImpl(EvaluatorInterface* in_eval, double real, double imag);
+	~OMLComplexImpl();
 
 	double GetReal() const;
 	double GetImag() const;
@@ -104,62 +116,55 @@ public:
 
 private:
 	hwComplex      cplx;
-
-	static std::vector<OMLComplexImpl*> cached_pointers;
 };
 
-class OMLMatrixImpl : public OMLMatrix
+class OMLMatrixImpl : public OMLMatrix, OMLImplBase
 {
 public:
-	OMLMatrixImpl(const hwMatrix* in_mtx)  { _mtx = (hwMatrix*)in_mtx; cached_pointers.push_back(this); }
+	OMLMatrixImpl(EvaluatorInterface* in_eval, const hwMatrix* in_mtx);
+	~OMLMatrixImpl();
 
-		bool    IsReal() const;
+	bool    IsReal() const;
 
-		int     GetRows() const;
-		int     GetCols() const;
+	int     GetRows() const;
+	int     GetCols() const;
 
-		const double* GetRealData() const;
-		const double* GetImaginaryData() const;
+	const double* GetRealData() const;
+	const double* GetImaginaryData() const;
 
-		OMLCurrency*   GetCurrency() const;
-		hwMatrix*      GetMatrixPointer() const;
-
-		static void GarbageCollect();
+	OMLCurrency*   GetCurrency() const;
+	hwMatrix*      GetMatrixPointer() const;
 
 private:
-		hwMatrix*  _mtx;
-		
-		static std::vector<OMLMatrixImpl*> cached_pointers;
+	hwMatrix*  _mtx;
 };
 
-class OMLNDMatrixImpl : public OMLNDMatrix
+class OMLNDMatrixImpl : public OMLNDMatrix, OMLImplBase
 {
 public:
-		OMLNDMatrixImpl(const hwMatrixN* in_mtx) { _mtx = (hwMatrixN*)in_mtx; cached_pointers.push_back(this); } 
+	OMLNDMatrixImpl(EvaluatorInterface* in_eval, const hwMatrixN* in_mtx);
+	~OMLNDMatrixImpl();
 
-		bool    IsReal() const;
+	bool    IsReal() const;
 
-		int     GetNumDimension() const;
-		int     GetDimension(int) const;
+	int     GetNumDimension() const;
+	int     GetDimension(int) const;
 
-		const double* GetRealData() const;
-		const double* GetImaginaryData() const;
+	const double* GetRealData() const;
+	const double* GetImaginaryData() const;
 
-		OMLCurrency*   GetCurrency() const;
-		hwMatrixN*     GetMatrixPointer() const;
-
-		static void GarbageCollect();
+	OMLCurrency*   GetCurrency() const;
+	hwMatrixN*     GetMatrixPointer() const;
 
 private:
-		hwMatrixN* _mtx;
-
-		static std::vector<OMLNDMatrixImpl*> cached_pointers;
+	hwMatrixN* _mtx;
 };
 
-class OMLSparseMatrixImpl : public OMLSparseMatrix
+class OMLSparseMatrixImpl : public OMLSparseMatrix, OMLImplBase
 {
 public:
-	OMLSparseMatrixImpl(const hwMatrixS* in_mtx) { _mtxs = (hwMatrixS*)in_mtx; cached_pointers.push_back(this); }
+	OMLSparseMatrixImpl(EvaluatorInterface* in_eval, const hwMatrixS* in_mtx);
+	~OMLSparseMatrixImpl();
 
 	bool    IsReal() const;
 
@@ -175,21 +180,17 @@ public:
 	OMLCurrency*   GetCurrency() const;
 	hwMatrixS*      GetMatrixPointer() const;
 
-	static void GarbageCollect();
-
 private:
 	hwMatrixS*  _mtxs;
-
-	static std::vector<OMLSparseMatrixImpl*> cached_pointers;
 };
 
-class OMLCellArrayImpl : public OMLCellArray
+class OMLCellArrayImpl : public OMLCellArray, OMLImplBase
 {
 public:
-	OMLCellArrayImpl(HML_CELLARRAY* in_cells) { _cells = in_cells; cached_pointers.push_back(this); _is_temp = false; }
-	OMLCellArrayImpl(HML_CELLARRAY* in_cells, bool temp) { _cells = in_cells; cached_pointers.push_back(this); _is_temp=temp; }
+	OMLCellArrayImpl(EvaluatorInterface* in_eval, HML_CELLARRAY* in_cells);
+	OMLCellArrayImpl(EvaluatorInterface* in_eval, HML_CELLARRAY* in_cells, bool temp);
 
-	~OMLCellArrayImpl() { if (_is_temp) delete _cells; }
+	~OMLCellArrayImpl();
 
 	OMLCurrency* GetValue(int index1) const;
 	OMLCurrency* GetValue(int index1, int index2) const;
@@ -203,19 +204,17 @@ public:
 	OMLCurrency*   GetCurrency() const;
 	HML_CELLARRAY* GetCells() const;
 
-	static void GarbageCollect();
-
 private:
 	HML_CELLARRAY* _cells;
 	bool           _is_temp;
 
-	static std::vector<OMLCellArrayImpl*> cached_pointers;
 };
 
-class OMLNDCellArrayImpl : public OMLNDCellArray
+class OMLNDCellArrayImpl : public OMLNDCellArray, OMLImplBase
 {
 public:
-	OMLNDCellArrayImpl(HML_ND_CELLARRAY* in_cells) { _cells = in_cells; cached_pointers.push_back(this); }
+	OMLNDCellArrayImpl(EvaluatorInterface* in_eval, HML_ND_CELLARRAY* in_cells);
+	~OMLNDCellArrayImpl();
 
 	int     GetNumDimension() const;
 	int     GetDimension(int) const;
@@ -226,18 +225,15 @@ public:
 	OMLCurrency*      GetCurrency() const;
 	HML_ND_CELLARRAY* GetCells() const;
 
-	static void GarbageCollect();
-
 private:
 	HML_ND_CELLARRAY* _cells;
-
-	static std::vector<OMLNDCellArrayImpl*> cached_pointers;
 };
 
-class OMLStructImpl : public OMLStruct
+class OMLStructImpl : public OMLStruct, OMLImplBase
 {
 public:
-	OMLStructImpl(StructData* in_sd) { _sd = in_sd; cached_pointers.push_back(this); } 
+	OMLStructImpl(EvaluatorInterface* in_eval, StructData* in_sd);
+	~OMLStructImpl();
 
 	OMLCurrency* GetValue(int index1, const char* field) const;
 	OMLCurrency* GetValue(int index1, int index2, const char* field) const;
@@ -251,33 +247,26 @@ public:
 	OMLCurrency* GetCurrency() const;
 	StructData*  GetStructData() const;
 
-	static void GarbageCollect();
-
 private:
 	StructData* _sd;
-
-	static std::vector<OMLStructImpl*> cached_pointers;
 };
 
-class OMLFunctionHandleImpl : public OMLFunctionHandle
+class OMLFunctionHandleImpl : public OMLFunctionHandle, OMLImplBase
 {
 public:
-		OMLFunctionHandleImpl(const FunctionInfo* in_fh) { _fi = (FunctionInfo*)in_fh; cached_pointers.push_back(this); } 
+	OMLFunctionHandleImpl(EvaluatorInterface* in_eval, const FunctionInfo* in_fh);
+	~OMLFunctionHandleImpl();
 
-		FunctionInfo*      GetFunctionInfo() const { return _fi; }
-
-		static void GarbageCollect();
+	FunctionInfo* GetFunctionInfo() const;
 
 private:
-		FunctionInfo* _fi;
-
-		static std::vector<OMLFunctionHandleImpl*> cached_pointers;
+	FunctionInfo* _fi;
 };
 
-class OMLCurrencyListImpl : public OMLCurrencyList3
+class OMLCurrencyListImpl : public OMLCurrencyList3, OMLImplBase
 {
 public:
-	OMLCurrencyListImpl() { _list = nullptr; _count = 0; }
+	OMLCurrencyListImpl(EvaluatorInterface* in_eval);
 	~OMLCurrencyListImpl();
 
 	int Size() const;

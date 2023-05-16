@@ -38,8 +38,9 @@ enum omlMathErrCode
     OML_ERR_CELLARRAY,                       // must be cell array
     OML_ERR_STRUCT,                          // must be struct
     OML_ERR_STRING,                          // must be string
-    OML_ERR_INTSTRING,                       // must be integer or string
     OML_ERR_SCALARSTRING,                    // must be scalar or string
+    OML_ERR_INTSTRING,                       // must be integer or string
+    OML_ERR_POSINTALL,                       // must be positive integer or 'all'
     OML_ERR_BAD_STRING,                      // unsupported option; see help for valid options
     OML_ERR_NUMERIC,                         // must be numeric
     OML_ERR_SCALAR,                          // must be a scalar
@@ -57,6 +58,7 @@ enum omlMathErrCode
     OML_ERR_MATRIX,                          // must be a matrix
     OML_ERR_REALMATRIX,                      // must be a real matrix
     OML_ERR_EMPTYMATRIX,                     // must be empty [] matrix
+    OML_ERR_VEC_2DMAT,                       // must be a vector or 2D matrix
     OML_ERR_HANDLE,                          // must be function handle
     OML_ERR_HANDLE_EMPTY,                    // must be function handle or []
     OML_ERR_FUNCNAME,                        // function not found
@@ -89,6 +91,7 @@ enum omlMathErrCode
     OML_ERR_POSITIVE_SCALAR,                 // must be a finite, positive scalar
     OML_ERR_SCALAR_COMPLEX,                  // must be a scalar or a complex number
     OML_ERR_STRING_STRINGCELL,               // must be a string or a cell array of strings
+    OML_ERR_ALLOCFAILED,                     // allocation failure
     OML_ERR_INVALID_INDEX,                   // must be a positive integer
     OML_ERR_INVALID_RANGE,                   // must be in valid range
     OML_ERR_INVALID_BASE,                    // must be an integer >= 2
@@ -110,7 +113,8 @@ enum omlMathErrCode
     OML_ERR_POSINTEGER_VEC,                  // must be a positive integer or vector
     OML_ERR_NONEMPTY_STR,                    // must be a non-empty string
     OML_ERR_ONEROW_STRING,                   // must be a string with one row
-    OML_ERR_SCALAR_REALMTX,                  // must be a scalar or real matrix
+    OML_ERR_SCALAR_REALVEC,                 // must be a scalar or real matrix
+    OML_ERR_SCALAR_REALMTX,                 // must be a scalar or real matrix
     OML_ERR_INTEGER_INTMTX,                  // must be an integer or a matrix of integers
     OML_ERR_LOGICAL,                         // must be true or false
     OML_ERR_INVALID_VERSION,                 // invalid version
@@ -340,9 +344,11 @@ enum omlMathVarCode
     OML_VAR_PERTM,
     OML_VAR_PERTV,
     OML_VAR_POPSIZE,
+    OML_VAR_INITPOP,
     OML_VAR_CRODIST,
     OML_VAR_INITSAMPNTS,
     OML_VAR_MAXFAIL,
+    OML_VAR_METHOD,
     OML_VAR_PNTSPERITER,
     OML_VAR_STOPNOIMPR,
     OML_VAR_TOLKKT,

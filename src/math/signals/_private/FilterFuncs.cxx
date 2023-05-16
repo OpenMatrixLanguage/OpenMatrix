@@ -2461,7 +2461,7 @@ hwMathStatus FindPeaks(const hwMatrix& signal,
 
     // apply minumum distance criterion
     if (minPeakDistance == -1)
-        minPeakDistance = 4;
+        minPeakDistance = 1;
 
     if (numPeaks && minPeakDistance > 0)
     {
@@ -2516,7 +2516,7 @@ hwMathStatus FindPeaks(const hwMatrix& signal,
 
     // apply minumum width criterion
     if (minPeakWidth == -1)
-        minPeakWidth = 2;
+        minPeakWidth = 1;
 
     if (extra)
     {

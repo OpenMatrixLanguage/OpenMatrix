@@ -1,7 +1,7 @@
 /**
 * @file Object.h
 * @date May 2017
-* Copyright (C) 2017-2022 Altair Engineering, Inc.  
+* Copyright (C) 2017-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -53,7 +53,7 @@ namespace omlplot{
         SCATTER, SCATTER_3D, SURFACE, MESH, CONTOUR_3D, 
         CONTOUR, STEM, LOGLOG, SEMILOGX, SEMILOGY, XLINE, 
         YLINE, WATERFALL, ELLIPSE, RECTANGLE, PCOLOR, PATCH,
-        LEGEND, COLORBAR, STEM3, HGGROUPVECTOR
+        LEGEND, COLORBAR, STEM3, HGGROUPVECTOR, HGGROUPBAR3
     };
 
     bool isSameDouble(const double& a, const double& b);
@@ -160,6 +160,10 @@ namespace omlplot{
         static FigureHandlePool * m_figureHandlePool;
         static map<double, Object *> m_objectMap;
         ObjectType m_type;
+
+    private:
+        bool validatePropertyType(const string& name, VALUETYPE value);
+        void validateStringPropertyValue(const string& name, const Currency& value);
     };
 
     class OMLPLOT_EXPORT Root: public Object{
@@ -374,6 +378,23 @@ namespace omlplot{
         bool setPropertyValue(const string& name, VALUETYPE value) override;
     };
 
+    class OMLPLOT_EXPORT HggroupBar3D : public Drawable {
+    public:
+        HggroupBar3D();
+        virtual ~HggroupBar3D() {}
+
+        void init(const LineData& ld) override;
+        string getUsingClause() override;
+        string getWithClause(int) override;
+        string getLegend(bool bold, bool italic) override;
+        string getLineStyle(int) override;
+        void cleanup(GnuplotOutput*) override;
+        void putData(GnuplotOutput*) override;
+        bool setPropertyValue(const string& name, VALUETYPE value) override;
+    private:
+        int m_numRows;
+    };
+
     class OMLPLOT_EXPORT Hist : public HggroupBar{
     public:
         Hist();
@@ -578,9 +599,11 @@ namespace omlplot{
         
         bool getVisible();
         bool objectCanBeDeleted() const override { return m_canBeDeleted; }
+        void setIndex(int index) { m_index = index; }
     private:
         string getModifiedString(const string& text);
         bool m_canBeDeleted;
+        int m_index;
     };
 
     class OMLPLOT_EXPORT Legend : public Object {

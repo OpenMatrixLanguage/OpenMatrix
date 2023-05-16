@@ -1,7 +1,7 @@
 /**
 * @file CoreMain.h
 * @date May 2017
-* Copyright (C) 2017-2022 Altair Engineering, Inc.  
+* Copyright (C) 2017-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -167,6 +167,7 @@ namespace omlplot{
         vector<double> patch(vector<LineData>&);
         vector<double> stem3(vector<LineData>&);
         vector<double> quiver(vector<LineData>&);
+        vector<double> bar3(vector<LineData>&);
 
         double figure(unique_ptr<FigureData> &);
         double axes(unique_ptr<AxesData> &);

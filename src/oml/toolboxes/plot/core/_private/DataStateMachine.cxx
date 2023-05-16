@@ -1,7 +1,7 @@
 /**
 * @file DataStateMachine.cxx
 * @date May 2018
-* Copyright (C) 2018-2022 Altair Engineering, Inc.  
+* Copyright (C) 2018-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -17,6 +17,7 @@
 #include "DataStateMachine.h"
 #include "CoreMain.h"
 #include <memory>
+#include "EvaluatorInt.h"
 
 using namespace std;
 
@@ -410,7 +411,7 @@ namespace omlplot{
             if (pos == inputSize){  // reach the end of input
                 if (state == GET_X){
                     if (x.get())
-                        ExtractData(x.get(), y.get(), res, count);
+                    ExtractData(x.get(), y.get(), res, count);
                     else
                         throw OML_Error(OML_ERR_PLOT_MATXY_NOT_MATCH);
                 }
@@ -479,20 +480,20 @@ namespace omlplot{
                             for (size_t i = start; i < end; i++) {
                                 res[i].xCategories = xCategories;
                             }
-                        }
+                    }
                         else {
-                            y = GetMatrix(input);
-                            ExtractData(x.get(), y.get(), res, count);
+                    y = GetMatrix(input);
+                    ExtractData(x.get(), y.get(), res, count);
                         }
                         ++pos;
-                        state = GET_Y;
+                    state = GET_Y;
                     }
                 } else {
                     // no y input
                     if (x.get()) {
-                        ExtractData(x.get(), y.get(), res, count);
-                        state = GET_Y;
-                    }
+                    ExtractData(x.get(), y.get(), res, count);
+                    state = GET_Y;
+                }
                     else {
                         state = STATE_ERROR;
                     }
@@ -866,9 +867,9 @@ namespace omlplot{
                         state = GET_PROP_VALUE;;
                     }
                     else {
-                        ld->legends.push_back(input.StringVal());
-                        ++pos;
-                        state = GET_LEGEND;
+                    ld->legends.push_back(input.StringVal());
+                    ++pos;
+                    state = GET_LEGEND;
                     }
                 } else if (input.IsMatrix()){
                     if ((pos + 1) >= inputSize) {
@@ -921,9 +922,9 @@ namespace omlplot{
                         state = GET_PROP_VALUE;
                     }
                     else {
-                        ld->legends.push_back(input.StringVal());
-                        ++pos;
-                        state = GET_LEGEND;
+                    ld->legends.push_back(input.StringVal());
+                    ++pos;
+                    state = GET_LEGEND;
                     }
                 } else if (input.IsCellArray()){
                     HML_CELLARRAY *c = input.CellArray();
@@ -949,7 +950,7 @@ namespace omlplot{
                         }
                         ld->properties.push_back(str);
                         ld->values.push_back(inputs[++pos]);
-                        ++pos;
+                ++pos;
                         state = GET_PROP_VALUE;
                     }
                     else {
@@ -1219,6 +1220,498 @@ namespace omlplot{
         return res;
     }
 
+    std::vector<LineData> DataStateMachine::getBar3Data(const std::vector<Currency>& inputs)
+    {
+        int pos = 0;
+        size_t inputSize = inputs.size();
+        Currency input;
+        LineData pd;
+        vector<LineData> res;
+        State state = START;
+        int count = 0;
+
+        bool hasXYValues = false;
+        int inputS = static_cast<int>(inputs.size());
+        do {
+            // this is the only state to quit the machine.
+            if (pos == inputSize) {
+                if (pd.z.empty())
+                    throw OML_Error(OML_ERR_NUMARGIN);
+                break;
+            }
+
+
+            input = getNextInput(inputs, pos);
+
+            switch (state)
+            {
+            case START:
+                if (input.IsScalar() && cm->isAxes(input.Scalar())) 
+                {
+                    pd.parent = input.Scalar();
+                    ++pos;
+                }
+                state = GET_HANDLE;
+                break;
+            case GET_HANDLE:
+                if (input.IsMatrix())
+                {
+                    std::shared_ptr<hwMatrix> z = GetMatrix(input);
+                    // zcolcount is the number of items per bar row
+                    pd.zcolcount = z->IsVector() ? 1 : z->N();
+                    int numRows = z->IsVector() ? z->Size(): z->M();
+                    z->Transpose();
+                    pd.z = MatrixToVector(z.get());
+                    
+                    pd.x.resize(pd.zcolcount);
+                    for (int i = 0; i < pd.zcolcount; ++i)
+                    {
+                        pd.x[i] = i + 1;
+                    }
+
+                    pd.y.resize(numRows);
+                    for (int i = 0; i < numRows; ++i)
+                    {
+                        pd.y[i] = i + 1;
+                    }
+
+                    state = GET_Z;
+                    pos += 1;
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_Z:
+                if (input.IsString())
+                {
+                    std::string str = input.StringVal();
+                    if (str == "rowhandle")
+                    {
+                        pd.bar3PerRow = true;
+                        ++pos;
+                        break;
+                    }
+                    else
+                    {
+                        pd.style = str;
+                        state = GET_COLOR_MAT;
+                        ++pos;
+                        break;
+                    }
+                }
+                state = STATE_ERROR;
+                break;
+            case GET_COLOR_MAT:
+                if (input.IsString() && input.StringVal() == "rowhandle")
+                {
+                    pd.bar3PerRow = true;
+                    ++pos;
+                    break;
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                break;
+            case STATE_ERROR:
+                throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
+                break;
+            }
+        } while (true);
+        res.push_back(pd);
+        return res;
+    }
+
+    void CreateEquallySpacedBins(hwMatrix* bins, double min, double max, int numBins)
+    {
+        if (min == max)
+        {
+            double startBin = min - numBins / 2;
+            for (int i = 0; i < numBins; i++)
+            {
+                (*bins)(i) = startBin + i;
+            }
+        }
+        else
+        {
+            double binXSize = (max - min) / (double)numBins;
+            for (int i = 0; i < numBins; i++)
+            {
+                (*bins)(i) = (i + 0.5) * binXSize + min;
+            }
+        }
+    }
+
+    Currency Get3DHistogramBins(const Currency& inputMat, int nBinsX, int nBinsY)
+    {
+        if (!inputMat.IsMatrix())
+            throw OML_Error(OML_ERR_MATRIX);
+
+        const hwMatrix* mat = inputMat.Matrix();
+        if (mat->N() != 2)
+            throw OML_Error("Input must be a Nx2 matrix");
+
+        bool isReal = mat->IsReal();
+        double initVal1 = isReal ? (*mat)(0, 0) : mat->z(0, 0).Real();
+        double initVal2 = isReal ? (*mat)(0, 1) : mat->z(0, 1).Real();
+        // find min/max per column
+        double min1 = initVal1;
+        double max1 = initVal1;
+        double min2 = initVal2;
+        double max2 = initVal2;
+        for (int ii = 0; ii < mat->M(); ++ii)
+        {
+            double tmp1 = isReal ? (*mat)(ii, 0) : mat->z(ii, 0).Real();
+            if (!isnan(tmp1))
+            {
+                if (tmp1 < min1)
+                    min1 = tmp1;
+                if (tmp1 > max1)
+                    max1 = tmp1;
+            }
+            double tmp2 = isReal ? (*mat)(ii, 1) : mat->z(ii, 1).Real();
+            if (!isnan(tmp2))
+            {
+                if (tmp2 < min2)
+                    min2 = tmp2;
+                if (tmp2 > max2)
+                    max2 = tmp2;
+            }
+        }
+
+        hwMatrix* binX = EvaluatorInterface::allocateMatrix(1, nBinsX, true);
+        CreateEquallySpacedBins(binX, min1, max1, nBinsX);
+
+        hwMatrix* binY = EvaluatorInterface::allocateMatrix(1, nBinsY, true);
+        CreateEquallySpacedBins(binY, min2, max2, nBinsY);
+
+        HML_CELLARRAY* cell = EvaluatorInterface::allocateCellArray(1, 2);
+
+        (*cell)(0) = Currency(binX);
+        (*cell)(1) = Currency(binY);
+
+        return Currency(cell);
+    }
+
+    std::vector<Currency> Get3DHistogramBinsAndDists(const Currency& inputMat,
+        const Currency& binsInput, int binsType)
+    {
+        // Validate inputs
+        if (!inputMat.IsMatrix())
+            throw OML_Error(OML_ERR_MATRIX);
+
+        const hwMatrix* mat = inputMat.Matrix();
+        if (mat->N() != 2)
+            throw OML_Error("must be a Nx2 matrix");
+
+        bool isBinsN = binsType == 0;
+        bool isCenters = binsType == 1;
+        bool isEdges = binsType == 2;
+
+        if (!(isBinsN || isCenters || isEdges))
+            throw OML_Error(OML_ERR_OPTION);
+
+        if (isCenters || isEdges)
+        {
+            if (!binsInput.IsCellArray())
+                throw OML_Error(OML_ERR_CELLARRAY);
+
+            HML_CELLARRAY* bc = binsInput.CellArray();
+            if (bc->Size() != 2 || !(*bc)(0).IsRealVector() || !(*bc)(1).IsRealVector())
+                throw OML_Error(OML_Error(OML_ERR_CELLARRAY).GetErrorMessage() + " that contains 2 vectors");
+
+            // monotonous increasing values
+            std::vector<double> tmp = (*bc)(0).Vector();
+            for (int i = 1; i < static_cast<int>(tmp.size()); ++i)
+            {
+                if (tmp[i] <= tmp[i - 1])
+                    throw OML_Error("values must be monotonously increasing");
+            }
+
+            tmp = (*bc)(1).Vector();
+            for (int i = 1; i < static_cast<int>(tmp.size()); ++i)
+            {
+                if (tmp[i] <= tmp[i - 1])
+                    throw OML_Error("values must be monotonously increasing");
+            }
+        }
+
+        // Create "center" and "edges" matrices
+        Currency binCenters; // hist3 output
+        hwMatrix* edgeX = nullptr;
+        hwMatrix* edgeY = nullptr;
+
+        if (isBinsN || isCenters)
+        {
+            if (isBinsN)
+            {
+                if (binsInput.IsVector() && binsInput.Vector().size() == 2)
+                {
+                    std::vector<double> nbins = binsInput.Vector();
+                    binCenters = Get3DHistogramBins(inputMat, (int)nbins[0], (int)nbins[1]);
+                }
+                else
+                {
+                    binCenters = Get3DHistogramBins(inputMat, 10, 10);
+                }
+            }
+            else
+            {
+                binCenters = binsInput;
+            }
+
+            // Calculate the bin edges
+            HML_CELLARRAY* bc = binCenters.CellArray();
+            const hwMatrix* cntr1 = (*bc)(0).Matrix();
+            const hwMatrix* cntr2 = (*bc)(1).Matrix();
+
+            edgeX = EvaluatorInterface::allocateMatrix(1, cntr1->Size() - 1, true);
+            for (int i = 1; i < cntr1->Size(); i++)
+            {
+                double tmpEdge = (*cntr1)(i - 1) + ((*cntr1)(i) - (*cntr1)(i - 1)) / 2.0;
+                (*edgeX)(i - 1) = tmpEdge;
+            }
+
+            edgeY = EvaluatorInterface::allocateMatrix(1, cntr2->Size() - 1, true);
+            for (int i = 1; i < cntr2->Size(); i++)
+            {
+                double tmpEdge = (*cntr2)(i - 1) + ((*cntr2)(i) - (*cntr2)(i - 1)) / 2.0;
+                (*edgeY)(i - 1) = tmpEdge;
+            }
+        }
+        else
+        {
+            HML_CELLARRAY* bc = binsInput.CellArray();
+            edgeX = EvaluatorInterface::allocateMatrix((*bc)(0).Matrix());
+            edgeY = EvaluatorInterface::allocateMatrix((*bc)(1).Matrix());
+
+            // calculate the center of the bins
+            hwMatrix* centerX = EvaluatorInterface::allocateMatrix(1, edgeX->Size(), true);
+            double tmpD = 0;
+            int i = 1;
+            for (; i < edgeX->Size(); i++)
+            {
+                tmpD = ((*edgeX)(i) - (*edgeX)(i - 1)) / 2.0;
+                (*centerX)(i - 1) = (*edgeX)(i - 1) + tmpD;
+            }
+            (*centerX)(i - 1) = (*edgeX)(i - 1) + tmpD;
+
+            hwMatrix* centerY = EvaluatorInterface::allocateMatrix(1, edgeY->Size(), true);
+            i = 1;
+            for (; i < edgeY->Size(); i++)
+            {
+                tmpD = ((*edgeY)(i) - (*edgeY)(i - 1)) / 2.0;
+                (*centerY)(i - 1) = (*edgeY)(i - 1) + tmpD;
+            }
+            (*centerY)(i - 1) = (*edgeY)(i - 1) + tmpD;
+
+            HML_CELLARRAY* cell = EvaluatorInterface::allocateCellArray(1, 2);
+
+            (*cell)(0) = Currency(centerX);
+            (*cell)(1) = Currency(centerY);
+
+            binCenters = Currency(cell);
+        }
+
+        if (!edgeX || !edgeY)
+            throw OML_Error(OML_ERR_PLOT_UNKNOWN_ERROR);
+
+        int dM = isEdges ? edgeX->Size() : edgeX->Size() + 1;
+        int dN = isEdges ? edgeY->Size() : edgeY->Size() + 1;
+        hwMatrix* dists = EvaluatorInterface::allocateMatrix(dM, dN, 0.0);
+
+        bool isReal = mat->IsReal();
+        // count elements in each bin
+        for (int ii = 0; ii < mat->M(); ++ii)
+        {
+            double tmp1 = isReal ? (*mat)(ii, 0) : mat->z(ii, 0).Real();
+            double tmp2 = isReal ? (*mat)(ii, 1) : mat->z(ii, 1).Real();
+
+            if (isnan(tmp1) || isnan(tmp2))
+                continue;
+
+            bool skipRow = false;
+            int j = 0;
+            for (; j < edgeX->Size(); ++j)
+            {
+                if (tmp1 < (*edgeX)(j))
+                {
+                    if (isEdges && j == 0)
+                        skipRow = true; // if 'edges' are given skip items less than min
+                    break;
+                }
+            }
+            if (skipRow)
+                continue;
+
+            int k = 0;
+            for (; k < edgeY->Size(); ++k)
+            {
+                if (tmp2 < (*edgeY)(k))
+                {
+                    if (isEdges && k == 0)
+                        skipRow = true; // if 'edges' are given skip items less than min
+                    break;
+                }
+            }
+            if (skipRow)
+                continue;
+
+            if (isEdges)
+            {
+                // if 'edges' skip items in the last bin except if they are equal to the edge
+                if (j == edgeX->Size() && tmp1 != (*edgeX)(edgeX->Size() - 1))
+                    continue;
+                if (k == edgeY->Size() && tmp2 != (*edgeY)(edgeY->Size() - 1))
+                    continue;
+            }
+            if (isEdges)
+            {
+                --j;
+                --k;
+            }
+            if (j < dists->M() && k < dists->N())
+            {
+                (*dists)(j, k)++;
+            }
+        }
+
+        delete edgeX;
+        delete edgeY;
+
+        std::vector<Currency> ret;
+        ret.push_back(dists);
+        ret.push_back(binCenters);
+
+        return ret;
+    }
+
+    std::vector<LineData> DataStateMachine::getHist3Data(const std::vector<Currency>& inputs, std::vector<Currency>& hist3dData)
+    {
+        int binType = -1; // 0: nbins, 1: centers, 2: edges
+        Currency binsInput;
+        Currency colorInput;
+        if (!inputs[0].IsMatrix())
+            throw OML_Error(OML_ERR_MATRIX, 1);
+
+        const hwMatrix* mtxInput = inputs[0].Matrix();
+        for (int ii = 1; ii < static_cast<int>(inputs.size()); ++ii)
+        {
+            if (inputs[ii].IsString())
+            {
+                // check if a next argument exists
+                if ((ii + 1) >= inputs.size())
+                {
+                    throw OML_Error(OML_ERR_OPTIONVAL, ii + 2, OML_VAR_PARAMETER);
+                }
+
+                // check if one of the options - 'nbins', 'ctrs', 'edges', or one of the bar3 properties
+                std::string opt = inputs[ii].StringVal();
+                std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
+                if (opt == "nbins")
+                {
+                    if (inputs[ii + 1].IsVector() && inputs[ii + 1].Vector().size() == 2)
+                    {
+                        binsInput = inputs[++ii];
+                        binType = 0;
+                    }
+                    else
+                    {
+                        throw OML_Error(OML_ERR_VECTOR2, ii + 2, OML_VAR_PARAMETER);
+                    }
+                }
+                else if (opt == "ctrs")
+                {
+                    if (inputs[ii + 1].IsCellArray())
+                    {
+                        binsInput = inputs[++ii];
+                        binType = 1;
+                    }
+                    else
+                    {
+                        throw OML_Error(OML_ERR_CELLARRAY, ii + 2, OML_VAR_PARAMETER);
+                    }
+                }
+                else if (opt == "edges")
+                {
+                    if (inputs[ii + 1].IsCellArray())
+                    {
+                        binsInput = inputs[++ii];
+                        binType = 2;
+                    }
+                    else
+                    {
+                        throw OML_Error(OML_ERR_CELLARRAY, ii + 2, OML_VAR_PARAMETER);
+                    }
+                }
+                else if (opt == "color") // only property of a bar3
+                {
+                    colorInput = inputs[++ii];
+                }
+                else
+                {
+                    throw OML_Error(OML_ERR_OPTIONVAL, ii + 1, OML_VAR_PARAMETER);
+                }
+
+            }
+            else if (inputs[ii].IsVector() && inputs[ii].Vector().size() == 2)
+            {
+                // nbins
+                binsInput = inputs[ii];
+                binType = 0;
+            }
+            else if (inputs[ii].IsCellArray())
+            {
+                // centers
+                binsInput = inputs[ii];
+                binType = 1;
+            }
+            else
+            {
+                throw OML_Error(OML_ERR_OPTIONVAL, ii + 1, OML_VAR_PARAMETER);
+            }
+        }
+
+        // no bin input given, set the default [10, 10]
+        if (binType == -1)
+        {
+            std::vector<double> nbins = { 10.0, 10.0 };
+            binsInput = Currency(nbins);
+            binType = 0;
+        }
+
+        // calculate histogram bins and dists
+        hist3dData = Get3DHistogramBinsAndDists(inputs[0], binsInput, binType);
+
+        // bar3 elements 
+        hwMatrix* mat = hist3dData[0].GetWritableMatrix();
+
+        LineData pd;
+        //mat->Transpose();
+        pd.z = MatrixToVector(mat);
+        pd.zcolcount = mat->M();
+
+        HML_CELLARRAY* cell = hist3dData[1].CellArray();
+        pd.x = MatrixToVector((*cell)(0).Matrix());
+        pd.y = MatrixToVector((*cell)(1).Matrix());
+
+        pd.properties.push_back("color");
+        if (!colorInput.IsEmpty())
+        {
+            pd.values.push_back(colorInput);
+        }
+        else
+        {
+            pd.values.push_back("b");
+        }
+
+        std::vector<LineData> ret;
+        ret.push_back(pd);
+        return ret;
+    }
+
     std::unique_ptr<TextData> DataStateMachine::getTextData(const std::vector<Currency> &inputs){
         int pos = 0;
         size_t inputSize = inputs.size();
@@ -1333,7 +1826,7 @@ namespace omlplot{
                     td->properties.push_back(strInput);
                     td->values.push_back(inputs[++pos]);
                     state = GET_PROP_VALUE;
-                    ++pos;
+                ++pos;
                 }
                 else {
                     state = STATE_ERROR;

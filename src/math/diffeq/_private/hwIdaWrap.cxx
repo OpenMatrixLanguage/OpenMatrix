@@ -17,7 +17,7 @@
 #include "stdlib.h"                 // to free N_Vectors
 #include "hwIdaWrap.h"
 #include "nvector/nvector_serial.h"
-#include "ida/ida_direct.h"         // access IDADls interface
+#include "ida/ida_direct.h"         // access IDA interface
 #include "sunmatrix/sunmatrix_dense.h"
 
 // Client function pointers
@@ -234,8 +234,8 @@ hwIdaWrap::hwIdaWrap(IDAResFn_client      sysfunc,
         return;
     }
 
-    // Call IDADlsSetLinearSolver to attach the matrix and linear solver to IDA
-    flag = IDADlsSetLinearSolver(ida_mem, LS, A);
+    // Call IDASetLinearSolver to attach the matrix and linear solver to IDA
+    flag = IDASetLinearSolver(ida_mem, LS, A);
 
     if (flag < 0)
     {

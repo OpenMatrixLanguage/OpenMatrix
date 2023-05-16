@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="sum" /><meta name="abstract" content="Sums up the elements within the input A, along the dimension d (if d is given)." /><meta name="description" content="Sums up the elements within the input A, along the dimension d (if d is given)." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Elementary Math Commands" /><meta name="indexterms" content="sum" /><meta name="DC.subject" content="sum" /><meta name="keywords" content="sum" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/cumsum.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/prod.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>sum</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2023" /><meta name="DC.rights.owner" content="(C) Copyright 2023" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="sum" /><meta name="abstract" content="Returns vector or matrix element sums." /><meta name="description" content="Returns vector or matrix element sums." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Elementary Math Commands" /><meta name="indexterms" content="sum" /><meta name="DC.subject" content="sum" /><meta name="keywords" content="sum" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/cumsum.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/prod.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>sum</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -15,8 +15,7 @@
 
   
   
-  <div class="body refbody"><p class="shortdesc">Sums up the elements within the input <var class="keyword varname">A</var>, along the dimension
-      <var class="keyword varname">d</var> (if <var class="keyword varname">d</var> is given).</p>
+  <div class="body refbody"><p class="shortdesc">Returns vector or matrix element sums.</p>
 
     <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       
@@ -33,9 +32,9 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">A</var></dt>
 
-          <dd class="dd pd">The argument to be summed.</dd>
+          <dd class="dd pd">The argument from which to sum elements.</dd>
 
-          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer | logical | struct | cell</span></dd>
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | complex | integer</span></dd>
 
           <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector | matrix</span></dd>
 
@@ -43,7 +42,7 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">dim</var></dt>
 
-          <dd class="dd pd">The dimension on which to sum.</dd>
+          <dd class="dd pd">The dimension on which to multiply.</dd>
 
           <dd class="dd pd ddexpand">Default: first non-singleton dimension.</dd>
 
@@ -63,7 +62,7 @@
         
           <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
 
-          <dd class="dd pd">The sum of elements for each vector.</dd>
+          <dd class="dd pd">The sums of elements.</dd>
 
         
       </dl>
@@ -83,6 +82,10 @@
       <pre class="pre codeblock"><code>R = [Matrix] 2 x 1
  6
 15</code></pre>
+      <p class="p">Matrix with all dimensions:</p>
+
+      <pre class="pre codeblock"><code>R = sum([1,2,3; 4 5 6],'all')</code></pre>
+      <pre class="pre codeblock"><code>R = 21</code></pre>
     </section>
 
     <section class="section">
@@ -96,12 +99,12 @@
 <div class="linklist linklist"><strong>See Also </strong><br />
 
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/ElementaryMath/cumsum.htm" title="The cumulative sum of an object's elements along a specified dimension.">cumsum</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/ElementaryMath/prod.htm" title="Takes the product of elements along dimension dim.">prod</a></div></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/ElementaryMath/prod.htm" title="Returns vector or matrix element products.">prod</a></div></div>
 </nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/ElementaryMath/elementarymath_commands.htm" title="Elementary Math Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Elementary Math Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         
         <div>
-            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2022)</p>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2023)</p>
                
         </div>
     </div></footer></body>

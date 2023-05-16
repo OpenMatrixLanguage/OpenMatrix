@@ -1,7 +1,10 @@
 #!/bin/bash
 
+# The user is advised to update paths as required on their system.
+# Here we are updating paths to following the example in BUILD_LINUX document.
+# Run this script from the OpenMatrix root directory.
 export PATH=$PWD/src/bin/linux64:$PATH
-export OML_THIRDPARTY=~/oss/third_party_os66
+export OML_THIRDPARTY=~/ombuild/Continuous_Integration_Linux_OS66/third_party
 export OML_ROOT=$PWD
 export OML_HELP=$PWD/help/win/en/topics/reference/oml_language/
 

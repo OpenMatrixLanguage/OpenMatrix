@@ -34,8 +34,9 @@
 #define OML_MSG_CELLARRAY     "Error: invalid input; must be cell array"
 #define OML_MSG_STRUCT        "Error: invalid input; must be struct"
 #define OML_MSG_STRING        "Error: invalid input; must be string"
-#define OML_MSG_INTSTRING     "Error: invalid input; must be integer or string"
 #define OML_MSG_SCALARSTRING  "Error: invalid input; must be scalar or string"
+#define OML_MSG_INTSTRING     "Error: invalid input; must be integer or string"
+#define OML_MSG_POSINTALL     "Error: invalid input; must be positive integer or 'all'"
 #define OML_MSG_BAD_STRING    "Error: unsupported option; see help for valid options"
 #define OML_MSG_NUMERIC       "Error: invalid input; must be numeric"
 #define OML_MSG_SCALAR        "Error: invalid input; must be a scalar"
@@ -53,6 +54,7 @@
 #define OML_MSG_MATRIX        "Error: invalid input; must be a matrix"
 #define OML_MSG_REALMATRIX    "Error: invalid input; must be a real matrix"
 #define OML_MSG_EMPTYMATRIX   "Error: invalid input; must be empty [] matrix"
+#define OML_MSG_VEC_2DMAT     "Error: invalid input; must be a vector or 2D matrix"
 #define OML_MSG_HANDLE        "Error: invalid input; must be function handle"
 #define OML_MSG_HANDLE_EMPTY  "Error: invalid input; must be function handle or []"
 #define OML_MSG_FUNCNAME      "Error: invalid input; function not found"
@@ -85,6 +87,7 @@
 #define OML_MSG_POSITIVE_SCALAR             "Error: invalid input; must be a finite, positive scalar"
 #define OML_MSG_SCALAR_COMPLEX              "Error: invalid input; must be a scalar or a complex number"
 #define OML_MSG_STRING_STRINGCELL           "Error: invalid input; must be a string or a cell array of strings"
+#define OML_MSG_ALLOCFAILED                 "Error: allocation failure"
 #define OML_MSG_INVALID_INDEX               "Error: invalid index; must be a positive integer"
 #define OML_MSG_INVALID_RANGE               "Error: invalid input; must be in valid range"
 #define OML_MSG_INVALID_BASE                "Error: invalid input; base must be an integer >= 2"
@@ -106,6 +109,7 @@
 #define OML_MSG_POSINTEGER_VEC              "Error: invalid input; must be a positive integer or vector"
 #define OML_MSG_NONEMPTY_STR                "Error: invalid input; must be a non-empty string"
 #define OML_MSG_ONEROW_STRING               "Error: invalid input; must be a string with one row"
+#define OML_MSG_SCALAR_REALVEC              "Error: invalid input; must be a scalar or real vector"
 #define OML_MSG_SCALAR_REALMTX              "Error: invalid input; must be a scalar or real matrix"
 #define OML_MSG_INTEGER_INTMTX              "Error: invalid input; must be an integer or a matrix of integers"
 #define OML_MSG_LOGICAL                     "Error: invalid input; must be true or false"
@@ -332,9 +336,11 @@
 #define OML_STR_PERTM           "Perturbation Method"
 #define OML_STR_PERTV           "Initial Perturbation Value"
 #define OML_STR_POPSIZE         "Population Size"
+#define OML_STR_INITPOP         "Initial Population"
 #define OML_STR_CRODIST         "Crowding Distance"
 #define OML_STR_INITSAMPNTS     "Number of Initial Sample Points"
 #define OML_STR_MAXFAIL         "Maximum Failed Iterations"
+#define OML_STR_METHOD          "Method"
 #define OML_STR_PNTSPERITER     "Points Per Iteration"
 #define OML_STR_STOPNOIMPR      "Iterations with no Improvement"
 #define OML_STR_TOLKKT          "TolKKT"
@@ -549,8 +555,9 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode code) const
         case OML_ERR_CELLARRAY:                   return OML_MSG_CELLARRAY;
         case OML_ERR_STRUCT:                      return OML_MSG_STRUCT;
         case OML_ERR_STRING:                      return OML_MSG_STRING;
-        case OML_ERR_INTSTRING:                   return OML_MSG_INTSTRING;
         case OML_ERR_SCALARSTRING:                return OML_MSG_SCALARSTRING;
+        case OML_ERR_INTSTRING:                   return OML_MSG_INTSTRING;
+        case OML_ERR_POSINTALL:                   return OML_MSG_POSINTALL;
         case OML_ERR_BAD_STRING:                  return OML_MSG_BAD_STRING;
         case OML_ERR_NUMERIC:                     return OML_MSG_NUMERIC;
         case OML_ERR_SCALAR:                      return OML_MSG_SCALAR;
@@ -568,6 +575,7 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode code) const
         case OML_ERR_MATRIX:                      return OML_MSG_MATRIX;
         case OML_ERR_REALMATRIX:                  return OML_MSG_REALMATRIX;
         case OML_ERR_EMPTYMATRIX:                 return OML_MSG_EMPTYMATRIX;
+        case OML_ERR_VEC_2DMAT:                   return OML_MSG_VEC_2DMAT;
         case OML_ERR_HANDLE:                      return OML_MSG_HANDLE;
         case OML_ERR_HANDLE_EMPTY:                return OML_MSG_HANDLE_EMPTY;
         case OML_ERR_FUNCNAME:                    return OML_MSG_FUNCNAME;
@@ -600,6 +608,7 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode code) const
         case OML_ERR_POSITIVE_SCALAR:             return OML_MSG_POSITIVE_SCALAR;
         case OML_ERR_SCALAR_COMPLEX:              return OML_MSG_SCALAR_COMPLEX;
         case OML_ERR_STRING_STRINGCELL:           return OML_MSG_STRING_STRINGCELL;
+        case OML_ERR_ALLOCFAILED:                 return OML_MSG_ALLOCFAILED;
         case OML_ERR_INVALID_INDEX:               return OML_MSG_INVALID_INDEX;
         case OML_ERR_INVALID_RANGE:               return OML_MSG_INVALID_RANGE;
         case OML_ERR_INVALID_BASE:                return OML_MSG_INVALID_BASE;
@@ -621,6 +630,7 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode code) const
         case OML_ERR_POSINTEGER_VEC:              return OML_MSG_POSINTEGER_VEC;
         case OML_ERR_NONEMPTY_STR:                return OML_MSG_NONEMPTY_STR;
         case OML_ERR_ONEROW_STRING:               return OML_MSG_ONEROW_STRING;
+        case OML_ERR_SCALAR_REALVEC:              return OML_MSG_SCALAR_REALVEC;
         case OML_ERR_SCALAR_REALMTX:              return OML_MSG_SCALAR_REALMTX;
         case OML_ERR_INTEGER_INTMTX:              return OML_MSG_INTEGER_INTMTX;
         case OML_ERR_LOGICAL:                     return OML_MSG_LOGICAL;
@@ -855,9 +865,11 @@ std::string OML_Error::GetOmlVarStr(omlMathVarCode varCode) const
     case OML_VAR_PERTM:        varStr = OML_STR_PERTM;        break;
     case OML_VAR_PERTV:        varStr = OML_STR_PERTV;        break;
     case OML_VAR_POPSIZE:      varStr = OML_STR_POPSIZE;      break;
+    case OML_VAR_INITPOP:      varStr = OML_STR_INITPOP;      break;
     case OML_VAR_CRODIST:      varStr = OML_STR_CRODIST;      break;
     case OML_VAR_INITSAMPNTS:  varStr = OML_STR_INITSAMPNTS;  break;
     case OML_VAR_MAXFAIL:      varStr = OML_STR_MAXFAIL;      break;
+    case OML_VAR_METHOD:       varStr = OML_STR_METHOD;       break;
     case OML_VAR_PNTSPERITER:  varStr = OML_STR_PNTSPERITER;  break;
     case OML_VAR_STOPNOIMPR :  varStr = OML_STR_STOPNOIMPR;   break;
     case OML_VAR_TOLKKT:       varStr = OML_STR_TOLKKT;       break;

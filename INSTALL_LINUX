@@ -1,185 +1,35 @@
-Building OpenMatrix for Linux
+Prerequisites (Tested versions, and newer versions might also work):
+	1. git  (git version 1.8.3.1)
+	2. git-lfs (git-lfs/2.10.0 (GitHub; linux amd64; go 1.12.7; git a526ba6b))
+	3. make  (GNU Make 4.2.1 - Built for x86_64-redhat-linux-gnu)
+	4. gcc (gcc (GCC) 8.3.1 20190311 (Red Hat 8.3.1-3))
+
+Steps to Build OpenMatrix from GitHub:
+
+	1. From user's root directory
+	   mkdir ombuild
+		create build directory
+	2. cd ~/ombuild
+		/users/<username>/ombuild
+	3. git clone https://github.com/OpenMatrixLanguage/OpenMatrix
+		
+	4. git clone https://github.com/OpenMatrixLanguage/Continuous_Integration_Linux_OS66
+		
+	5. cd OpenMatrix
+		
+	6. edit setupossoml.sh to specify third_party full path.
+		Update OML_THIRDPARTY to directory on your system.  For this build example:
+		export OML_THIRDPARTY=~/ombuild/Continuous_Integration_Linux_OS66/third_party
+		
+	7. source setupossoml.sh
+		sets up the environment variables and paths for OpenMatrix build
+		
+		export OML_THIRDPARTY=~/ombuild/Continuous_Integration_Linux_OS66/third_party
+		
+	8. cd src
+	
+		~/ombuild/OpenMatrix/src> 
+	
+	9. make -f makefile.open 2>&1 | tee build.log
+		Run the make process.  The redirection displays and logs the build output to the named logfile.
 
-Directory Structure for OpenMatrix
-Working directory/
-~/oss/
-    oml/
-        help/
-        src/
-        tests/
-        setupossoml.sh
-    third_party/
-        ANTLR/
-            libantlr3c-3.4/
-        boost/
-            boost_1_64_0/
-        lapack/
-            lapack-3.7.1/
-
-The makefiles use the environment variable OML_THIRDPARTY to reference the third-party directory.  
-
-Third-party version numbers will need to be updated in the makefiles if they are different from those shown above.
-
-Download the OpenMatrix source code from Github.
-
-
-Download the LAPACK and BLAS source code.
-Note:  The OpenMatrix Visual Studio solutions and makefiles expect a third-party directory structure as shown above. The software version numbers and directory names will change, and the makefiles and Visual Studio solutions will need to be updated accordingly.
-
-Follow the link below to download LAPACK lapack.tgz source code to ~/oss/third_party/lapack.
-http://netlib.org/lapack/lapack.tgz
-
-     2.  Extract the lapack.tgz file to your local drive.
-
-tar xvfz lapack.tgz
-
-This creates the lapack-<version_number> directory with the LAPACK source code.
-
-Build LAPACK and BLAS on Linux
-Change the directory to the LAPACK directory just created.  This is the directory where OpenMatrix makefiles are setup to find the LAPACK and BLAS files.
-~/oss/third_party/lapack/lapack-3.7.1
-
-     2.  Copy make.inc.example make.inc
-
-cp make.inc.example  make.inc
-
-     3.  Edit the make.inc file and add the highlighted command line options:
-
-FORTRAN = gfortran
-
-OPTS    = -O2 -frecursive -fPIC
-
-DRVOPTS = $(OPTS)
-
-NOOPT   = -O0 -frecursive -fPIC
-
-      4.  Run the following command to create LAPACK and BLAS files.
-
-make -f Makefile
-
-The makefile produces the following archive files which are specified in the OpenMatrix make files.
-
-librefblas.a
-
-liblapack.a
-
-libtmglib.a
-
-Download ANTLR source code and build ANTLR library files.
-Download and unzip the ANTLR 'C' file to the ~/oss/third_party/ANTLR directory.
-http://www.antlr3.org/download/C/
-
-http://www.antlr3.org/download/C/libantlr3c-3.4.tar.gz
-
-     2.  Expand the ANTLR libantlr3c-3.4.tar.gz file
-
-tar xvfz libantlr3c-3.4.tar.gz
-
-This creates the libantlr3c-3.4 directory.
-
-     3.  Switch to the new directory:
-
-cd libantlr3c-3.4
-
-     4.  ANTLR build instructions can be found here: http://www.antlr3.org/api/C/build.html
-
-     5.  Run the configure command to produce a Makefile
-
-configure --enable-64bit
-
-     6.  Edit the Makefile and add the highlighted -fPIC argument to CFLAGS.
-
-CFLAGS = -m64  -O2  -Wall -fPIC
-
-     7.  Run the following command to build ANTLR.
-
-make -f Makefile
-
-This command builds ANTLR in a ".libs" directory:
-
- ~/oss/third_party/ANTLR/libantlr3c-3.4/.libs/libantlr3c.a
-
-Download the BOOST source code.
-Follow this link https://dl.bintray.com/boostorg/release/1.64.0/source/ to download and unzip the boost_1_64_0.tar.gz source code to the ~/oss/third_party/boost directory.
-
-Expand the boost directory
-tar xvfz boost_1_64_0.tar.gz
-
-This creates the boost_1_64_0 directory (or version downloaded) with the boost source code.
-
-See http://www.boost.org/ for more information on BOOST.
-
-
-
-Build OpenMatrix source code using command line make.
-Verify the following directories are in the system path (version may vary).
-~/oss/third_party/lapack/lapack-3.7.1
-
-     2.  Set the following environment variables:
-
-Set OML_ROOT=~/oss/oml
-
-Set OML_THIRDPARTY=~/oss/third_party
-
-make -f makefile.open - This will build the omlconsole and shared object files in the following directory:
-
-~/oss/oml/src/bin/linux64
-
-Run omlconsole from the command prompt.
-Verify the following directories are in the system path (version may vary)
-~/oss/third_party/lapack/lapack-3.7.1
-
-~/oss/oml/src/bin/linux64
-
-     2.  Verify that LD_LIBRARY_PATH includes the following directories:
-
-~/oss/oml/src/bin/linux64
-
-~/oss/third_party/lapack/lapack-3.7.1
-
-~/oss/third_party/ANTLR/libantlr3c-3.4/.libs
-
-     3.  Set the following environment variables:
-
-Set OML_ROOT to  ~/oss/oml
-Set OML_THIRDPARTY  to ~/oss/third_party
-Set OML_PYTHONHOME to /usr   (use here the actual path to your Python installation)
-Set OML_PYTHONVERSION to python3.6 (use here the actual version of your Python installation)
-Set OML_PYTHON_NUMPYDIR=$OML_PYTHONHOME/lib64/$OML_PYTHONVERSION/site-packages/numpy/core/include/numpy/
-     4.  Type the following to launch the omlconsole program:
-
-omlconsole
-
-Run OpenMatrix developer regression tests.
-See the previous section for system path and environment variable requirements.  You must be able to run omlconsole to run the regression tests.
-
-Change directory to the following directory:
-cd $OML_ROOT/Tests/RegressionTests
-
-     2.  Run the following command to launch the Perl script
-
- ..\regressOMLConsole.pl
-
-     3.  The following is displayed as the regression tests are executed:
-
-bash-4.2$ ../regressOMLConsole.pl
-
-OS linux
-
-     4.  Run OpenMatrix regression test using omlconsole at this path:
-
-~/oss/oml/src/bin/linux64/omlconsole
-
-Running abs1.oml ... :: abs1.oml PASSED
-
-Running abs2.oml ... :: abs2.oml PASSED
-
-Running abs3.oml ... :: abs3.oml PASSED
-
-Running abs4.oml ... :: abs4.oml PASSED
-
-Running abs5.oml ... :: abs5.oml PASSED
-
-Running abs6.oml ... :: abs6.oml PASSED
-
-At the conclusion, a summary count of successful and failed regression tests will be displayed and failed tests will be listed by name.

@@ -391,9 +391,8 @@ hwMathStatus Delaunayn(const hwMatrix&    P,
     FORALLfacets
     {
         if (!facet->upperdelaunay)
-        nf++;
+            nf++;
 
-        // Double check.  Non-simplicial facets will cause segfault below
         if (!facet->simplicial)
         {
             return hwMathStatus(HW_MATH_ERR_QHULL_NS_FACET);

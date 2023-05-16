@@ -1,7 +1,7 @@
 /**
 * @file Object.cxx
 * @date May 2018
-* Copyright (C) 2018-2022 Altair Engineering, Inc.  
+* Copyright (C) 2018-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -108,16 +108,18 @@ namespace omlplot{
         if (p.getType() == PropertyType::POINTER)
             return true;
 
+        if (!validatePropertyType(name, value))
+            return true;
+
         if (name == "color"     || name == "xcolor"         ||
             name == "ycolor"    || name == "zcolor"         ||
             name == "facecolor" || name == "markerfacecolor"||
             name == "edgecolor" || name == "bordercolor"    ||
             name == "gridcolor" || name == "framecolor"     ||
-            name == "zerolinecolor"){
+            name == "zerolinecolor" || name == "backgroundcolor"){
             if (value.isCurrency()){
                 Currency c = value.getCurrency();
-                if (getObjectType() == ObjectType::RECTANGLE && 
-                    name == "facecolor"){
+                if (getObjectType() == ObjectType::RECTANGLE && name == "facecolor"){
                     if (c.IsString() && c.StringVal() == "none") {
                         static_cast<Rectangle*>(this)->SetFillNone(true);
                         return true;
@@ -216,17 +218,18 @@ namespace omlplot{
     void Object::setParent(Object *o){
         vector<double> parent;
         parent.push_back(o->getHandle());
-        setPropertyValue("parent", parent);
+        Property& pp = getProperty("parent");
+        pp.setValue(parent);
     }
 
     void Object::addChild(Object *o){
         vector<double> children = getAllChildren();
         children.push_back(o->getHandle());
-        setPropertyValue("children", children);
+        Property& ch = getProperty("children");
+        ch.setValue(children);
 
-        vector<double> parent;
-        parent.push_back(this->getHandle());
-        o->setPropertyValue("parent", parent);
+        Property& pp = o->getProperty("parent");
+        pp.setValue(this->getHandle());
     }
 
     void Object::removeChild(Object *o){
@@ -241,7 +244,8 @@ namespace omlplot{
         if (it != children.end()){
             children.erase(it);
         }
-        setPropertyValue("children", children);
+        Property& chP = getProperty("children");
+        chP.setValue(children);
     }
 
     vector<double> Object::getAllChildren()
@@ -259,6 +263,209 @@ namespace omlplot{
     ObjectType Object::getObjectType() const
     {
         return m_type;
+    }
+
+    bool Object::validatePropertyType(const string& name, VALUETYPE value)
+    {
+        // colors
+        if (name == "color"     || name == "xcolor"         || name == "ycolor"         || 
+            name == "zcolor"    || name == "facecolor"      || name == "markerfacecolor"||
+            name == "edgecolor" || name == "bordercolor"    || name == "gridcolor"      || 
+            name == "framecolor"|| name == "zerolinecolor"  || name == "backgroundcolor")
+        {
+            //  colors are also validated in the Color constructor
+            if (!value.isCurrency() && !value.isColor())
+                throw OML_Error(OML_ERR_PLOT_INVALID_COLOR);
+            return true;
+        }
+
+        // read-only properties
+        if (name == "children"      || name == "handle" || name == "parent"     ||
+            name == "type"          || name == "legend" || name == "colorbar"   ||
+            name == "secondaryyaxis"|| name == "areagroup" || name == "bargroup")
+        {
+            CoreMain::getInstance()->AddWarningString("cannot edit [" + name + "]");
+            return false;
+        }
+
+        // all other must be Currency
+        if (!value.isCurrency())
+            throw OML_Error(OML_ERR_OPTIONVAL);
+
+        Currency cur = value.getCurrency();
+        if (name == "handlevisibility"  || name == "showhiddenhandles"  || name == "visible"    ||
+            name == "xgrid"             || name == "ygrid"              || name == "zgrid"      ||
+            name == "xminorgrid"        || name == "yminorgrid"         || name == "zminorgrid" ||
+            name == "barlabels"         || name == "polartiptotail"     || name == "tiptotail"  ||
+            name == "meshlines"         || name == "showarrowhead"      || name == "autoscale")
+        {
+            // 'on'/'off' options
+            if (cur.IsString())
+            {
+                string val = cur.StringVal();
+                if (val != "on" && val != "off")
+                {
+                    throw OML_Error(OML_Error(OML_ERR_FUNCSWITCH).GetErrorMessage() + " to set [" + name + "]");
+                }
+            }
+            else
+            {
+                throw OML_Error(OML_Error(OML_ERR_FUNCSWITCH).GetErrorMessage() + " to set [" + name + "]");
+            }
+        }
+        else if (name == "tag"                  || name == "units"              || name == "toplabel"           || 
+                 name == "bottomlabel"          || name == "rightlabel"         || name == "leftlabel"          ||
+                 name == "title"                || name == "xlabel"             || name == "ylabel"             ||
+                 name == "zlabel"               || name == "xscale"             || name == "yscale"             ||
+                 name == "zscale"               || name == "nextplot"           || name == "fontangle"          ||
+                 name == "fontname"             || name == "fontweight"         || name == "xnumericformat"     ||
+                 name == "ynumericformat"       || name == "znumericformat"     || name == "barlabelsfontname"  ||
+                 name == "barlabelsfontweight"  || name == "barlabelsfontangle" || name == "colorbarscale"      ||
+                 name == "polarmethod"          || name == "xaxislocation"      || name == "yaxislocation"      ||
+                 name == "displayname"          || name == "linestyle"          || name == "marker"             ||
+                 name == "barlayout"            || name == "string"             || name == "horizontalalignment"||
+                 name == "verticalalignment")
+        {
+            // string options
+            if (!cur.IsString())
+                throw OML_Error(OML_Error(OML_ERR_STRING).GetErrorMessage() + " to set [" + name + "]");
+            
+            validateStringPropertyValue(name, cur);
+        }
+        else if (name == "position" || name == "xlim" || name == "ylim" || name == "zlim" || name == "clim")
+        {
+            // vector
+            if (!cur.IsVector())
+                throw OML_Error(OML_Error(OML_ERR_VECTOR).GetErrorMessage() + " to set [" + name + "]");
+
+        }
+        else if (name == "colormap" || name == "colororder")
+        {
+            // matrix
+            if (!cur.IsMatrix() || cur.Matrix()->N() != 3)
+                throw OML_Error("must be an Mx3 matrix to set [" + name + "]");
+
+        }
+        else if (name == "fontsize"         || name == "xnumericprecision"  || name == "ynumericprecision"  ||
+                 name == "znumericprecision"|| name == "barlabelsfontsize"  || name == "bargap"             ||
+                 name == "xminortick"       || name == "yminortick"         || name == "zminortick"         ||
+                 name == "linewidth"        || name == "markersize"         || name == "dataxoffset"        ||
+                 name == "datayoffset"      || name == "datazoffset"        || name == "dataxscale"         ||
+                 name == "datayscale"       || name == "datazscale"         || name == "markerevery"        ||
+                 name == "basevalue"        || name == "barwidth"           || name == "barstyle"           ||
+                 name == "x"                || name == "y"                  || name == "z"                  ||
+                 name == "offset"           || name == "borderwidth"        || name == "autoscalefactor"    ||
+                 name == "maxheadsize"      || name == "currentaxes"        || name == "currentfigure")
+        {
+            // scalar
+            if (!cur.IsScalar())
+                throw OML_Error(OML_Error(OML_ERR_SCALAR).GetErrorMessage() + " to set [" + name + "]");
+        }
+        else if (name == "xcategories" || name == "ycategories" || name == "xticklabel" || name == "yticklabel")
+        {
+            // cell
+            if (!cur.IsCellArray())
+                throw OML_Error(OML_Error(OML_ERR_CELL).GetErrorMessage() + " to set [" + name + "]");
+        }
+        else if (name == "colorlevels" || name == "xtick" || name == "ytick" || name == "ztick")
+        {
+            // scalar or vector
+            if (!cur.IsScalar() && !cur.IsVector())
+                throw OML_Error(OML_Error(OML_ERR_SCALARVECTOR).GetErrorMessage() + " to set [" + name + "]");
+        }
+        else if (name == "xdata" || name == "ydata" || name == "zdata" || name == "udata" || name == "vdata")
+        {
+            // scalar or matrix
+            if (!cur.IsScalar() && !cur.IsVector())
+                throw OML_Error(OML_Error(OML_ERR_SCALARMATRIX).GetErrorMessage() + " to set [" + name + "]");
+        }
+        else if (name == "location")
+        {
+            // legend location, string or vector
+            // scalar or matrix
+            if (!cur.IsString() && !cur.IsVector())
+                throw OML_Error("must be a string or vector to set [" + name + "]");
+        }
+        return true;
+    }
+
+    void Object::validateStringPropertyValue(const string& name, const Currency& value)
+    {
+        if (!value.IsString())
+            throw OML_Error(OML_Error(OML_ERR_STRING).GetErrorMessage() + " to set [" + name + "]");
+
+        string val = value.StringVal();
+        string commonError = OML_Error(OML_ERR_OPTION).GetErrorMessage() + " for [" + name + "]";
+        if (name == "xscale" || name == "yscale" || name == "zscale" || name == "colorbarscale")
+        {
+            if (val != "linear" && val != "log")
+                throw OML_Error(commonError+"; must be 'linear' or 'log'");
+        }
+        else if (name == "fontangle" || name == "barlabelsfontangle")
+        {
+            if (val != "regular" && val != "italic")
+                throw OML_Error(commonError+"; must be 'italic' or 'regular'");
+        }
+        else if (name == "fontweight" || name == "barlabelsfontweight")
+        {
+            if (val != "normal" && val != "bold")
+                throw OML_Error(commonError+"; must be 'bold' or 'normal'");
+        }
+        else if (name == "xnumericformat" || name == "ynumericformat" || name == "znumericformat")
+        {
+            if (val != "auto" && val != "scientific" && val != "fixed")
+                throw OML_Error(commonError+"; must be 'auto', 'fixed' or 'scientific'");
+        }
+        else if (name == "polarmethod")
+        {
+            if (val != "phasevsmag" && val != "vector" && val != "radar")
+                throw OML_Error(commonError+"; must be 'phasevsmag', 'radar' or 'vector'");
+        }
+        else if (name == "xaxislocation")
+        {
+            if (val != "bottom" && val != "top")
+                throw OML_Error(commonError+"; must be 'bottom' or 'top'");
+        }
+        else if (name == "yaxislocation")
+        {
+            if (val != "left" && val != "right")
+                throw OML_Error(commonError+"; must be 'left' or 'right'");
+        }
+        else if (name == "linestyle")
+        {
+            if (!LineStyle::isAbbrLine(*val.c_str()))
+                throw OML_Error(commonError + "; must be ' ', '-', '--', ':', '-.' or '-:'");
+        }
+        else if (name == "marker")
+        {
+            if (!val.empty() && !LineStyle::isAbbrMarker(*val.c_str()))
+                throw OML_Error(commonError + "; must be ' ', 's', '^', 'v', 'x', 'o', 'd', '+', '*' or '.'");
+        }
+        else if (name == "barlayout")
+        {
+            if (val != "grouped" && val != "stacked")
+                throw OML_Error(commonError+"; must be 'grouped' or 'stacked'");
+        }
+        else if (name == "horizontalalignment")
+        {
+            if (val != "left" && val != "right" && val != "center")
+                throw OML_Error(commonError+"; must be 'left', 'center' or 'right'");
+        }
+        else if (name == "verticalalignment")
+        {
+            if (val != "top" && val != "bottom" && val != "middle")
+                throw OML_Error(commonError+"; must be 'top', 'middle' or 'bottom'");
+        }
+        else if (name == "nextplot")
+        {
+            if (val != "replace" && val != "add")
+                throw OML_Error(commonError+"; must be 'add' or 'replace'");
+        }
+        else if (name == "units")
+        {
+            if (val != "pixels" && val != "normalized")
+                throw OML_Error(commonError+"; must be 'normalized' or 'pixels'");
+        }
     }
 
     void Object::dump(Object *o, int level){
@@ -345,6 +552,7 @@ namespace omlplot{
         m_ps.push_back(Property("currentaxes", double(0), PropertyType::DOUBLE) );
         m_ps.push_back(Property("visible", string("on"), PropertyType::STRING));
         m_ps.push_back(Property("units", string("pixels"), PropertyType::STRING));
+        m_ps.push_back(Property("color", Color(string("white")), PropertyType::COLOR));
         vector<double> pos;
         pos.push_back(0);pos.push_back(0);
         pos.push_back(800);pos.push_back(600);
@@ -387,6 +595,10 @@ namespace omlplot{
     void Figure::update(GnuplotOutput *out){
         m_out->printf("clear\n");
         m_out->printf("unset label\n");
+        // figure background color
+        string color = getPropertyValue("color").ColorString();
+        m_out->printf("set obj 1000 rectangle from screen 0,0 to screen 1,1 behind fc rgb '%s' fs noborder\n", color.c_str());
+
         m_out->printf("set multiplot\n");
         
         m_tLabel->update(m_out.get(), "tlabel");
@@ -401,6 +613,7 @@ namespace omlplot{
             double child = *it;
             o = getObject(child);
             o->update(m_out.get());
+            m_out->printf("unset object 1000\n");
         }
 
         m_out->printf("unset multiplot\n\n\n\n");
@@ -447,8 +660,10 @@ namespace omlplot{
             m_objectMap.erase(child);
         }
         children.clear();
-        setPropertyValue("children", children);
-        setPropertyValue("currentaxes", double(0));
+        Property& chP = getProperty("children");
+        chP.setValue(children);
+        Property& caP = getProperty("currentaxes");
+        caP.setValue(0);
         
         m_tLabel->setPropertyValue("string", "");
         m_bLabel->setPropertyValue("string", "");
@@ -617,6 +832,7 @@ namespace omlplot{
         m_ps.push_back(Property("barlabelsfontangle", string("regular"), PropertyType::STRING));
         m_ps.push_back(Property("bargap", 0.0, PropertyType::DOUBLE));
         m_ps.push_back(Property("xcategories", string(""), PropertyType::CELL));
+        m_ps.push_back(Property("ycategories", string(""), PropertyType::CELL));
         m_ps.push_back(Property("colororder", Currency(), PropertyType::MATRIX));
         m_ps.push_back(Property("colorbarscale", string("linear"), PropertyType::STRING));
         // default colormap 
@@ -650,11 +866,13 @@ namespace omlplot{
         m_legend->setParent(this);
         m_colorbar->setParent(this);
         m_secYAxis->setParent(this);
+        m_xlabel->setParent(this);
+        m_ylabel->setParent(this);
+        m_zlabel->setParent(this);
 
 		// not yet supported properties
 		m_ps.push_back(Property("mouseclickcallback", string("mouseclickcallback"), PropertyType::UNSUPPORTED));
 		m_ps.push_back(Property("contourtype", string("contourtype"), PropertyType::UNSUPPORTED));
-		m_ps.push_back(Property("ycategories", string("ycategories"), PropertyType::UNSUPPORTED));
         m_ps.push_back(Property("barorientation", string("barorientation"), PropertyType::UNSUPPORTED));
         m_ps.push_back(Property("xtickmethod", string("xtickmethod"), PropertyType::UNSUPPORTED));
         m_ps.push_back(Property("ytickmethod", string("ytickmethod"), PropertyType::UNSUPPORTED));
@@ -673,7 +891,8 @@ namespace omlplot{
         double h = parent->getPropertyValue("currentaxes").Scalar();
         if (isSameDouble(h, getHandle()))
         {
-            parent->setPropertyValue("currentaxes", 0.0);
+            Property& p = parent->getProperty("currentaxes");
+            p.setValue(0);
         }
     }
 
@@ -693,7 +912,8 @@ namespace omlplot{
         }
 
         children.clear();
-        setPropertyValue("children", children);
+        Property& p = getProperty("children");
+        p.setValue(children);
 
         m_title->setPropertyValue("string", string(""));
 
@@ -733,6 +953,7 @@ namespace omlplot{
         bool isBarPlot = false;
         bool isContourPlot = false;
         bool isPColorPlot = false;
+        bool isBar3Plot = false;
         vector<double> children = getAllChildren();
         vector<double>::const_iterator it = children.cbegin();
         for (; it != children.cend(); ++it) {
@@ -756,13 +977,17 @@ namespace omlplot{
                 isPColorPlot = true;
                 break;
             }
+            else if (obj->getObjectType() == ObjectType::HGGROUPBAR3) {
+                isBar3Plot = true;
+                break;
+            }
         }
 
         // unset any arrows (xline/yline)
         out->printf("unset arrow\n");
-        // unset any objects
-        out->printf("unset object\n");
-
+        // unset axes rectangle object
+        out->printf("unset object 1001\n");
+        
         // reset grids and tics
         out->printf("set border 31\n");
         out->printf("unset polar\nset size nosquare\nset grid nopolar\n");
@@ -793,7 +1018,7 @@ namespace omlplot{
         out->printf("unset logscale z\n");
 
         string framecolor = getPropertyValue("framecolor").ColorString();
-        out->printf("set obj rectangle from screen %g,%g to screen %g,%g behind fc rgb '%s' fs border rgb '%s'\n",
+        out->printf("set obj 1001 rectangle from screen %g,%g to screen %g,%g behind fc rgb '%s' fs border rgb '%s'\n",
             x, y, x + w, y + h, framecolor.c_str(), framecolor.c_str());
         string bgcolor = getPropertyValue("color").ColorString();
         out->printf("set obj rectangle from graph 0,0 to graph 1,1 behind fc rgb '%s' fs border rgb '%s'\n", bgcolor.c_str(), bgcolor.c_str());
@@ -841,15 +1066,56 @@ namespace omlplot{
         char numF[24];
         sprintf(numF, "%s.%d%s", "%", xnp, f.c_str());
 
-            string xtag(topXAxis ? "x2tics" : "xtics");
+        string xtag(topXAxis ? "x2tics" : "xtics");
 
-            out->printf("set %s format \"{%s {%s %s}}\" textcolor rgb '%s' font \"%s,%g\" \n", 
-                xtag.c_str(), boldString.c_str(), italicString.c_str(), numF, xcolor.c_str(), 
-                tickFontName.c_str(), tickFontSize);
-            int xtick = (int)getPropertyValue("xminortick").Scalar();
-            if (xtick > 0)
-                out->printf("set m%s %d\n", xtag.c_str(), xtick);
+        out->printf("set %s format \"{%s {%s %s}}\" textcolor rgb '%s' font \"%s,%g\" \n", 
+            xtag.c_str(), boldString.c_str(), italicString.c_str(), numF, xcolor.c_str(), 
+            tickFontName.c_str(), tickFontSize);
+        int xtick = (int)getPropertyValue("xminortick").Scalar();
+        if (xtick > 0)
+            out->printf("set m%s %d\n", xtag.c_str(), xtick);
 
+        // override xticks if it is a 3d bar plot and 'xcategories' are set
+        Currency xcat = getPropertyValue("xcategories").getCurrency();
+        if (isBar3Plot && xcat.IsCellArray() && xcat.CellArray()->Size() > 0)
+        {
+            // find all x values from the hggroupbar3 objects
+            std::vector<double> xValues;
+            it = children.cbegin();
+            for (; it != children.cend(); ++it) {
+                Object* obj = getObject(*it);
+                if (!obj)
+                    continue;
+
+                if (obj->getObjectType() == ObjectType::HGGROUPBAR3) {
+                    Currency tmpX = obj->getPropertyValue("xdata").getCurrency();
+                    if (!tmpX.IsVector())
+                        continue;
+                 
+                    std::vector<double> tmp = tmpX.Vector();
+                    std::vector<double>::const_iterator xit = tmp.cbegin();
+                    for (; xit != tmp.cend(); ++xit)
+                    {
+                        if (std::find(xValues.begin(), xValues.end(), (*xit)) == xValues.end())
+                            xValues.push_back(*xit);
+                    }
+                }
+            }
+
+            std::sort(xValues.begin(), xValues.end());
+
+            HML_CELLARRAY* ca = xcat.CellArray();
+            out->printf("set %s (", xtag.c_str());
+            for (int i = 0; i < ca->Size() && i<static_cast<int>(xValues.size()); ++i) {
+                string lbl = "";
+                if ((*ca)(i).IsString())
+                    lbl = (*ca)(i).StringVal();
+                out->printf("\"%s\" %g, ", lbl.c_str(), xValues[i]);
+            }
+            out->printf(")\n");
+        }
+        else
+        {
             Currency tmp = getPropertyValue("xtick").getCurrency();
             if (tmp.IsScalar()) {
                 if (!IsZero(tmp.Scalar()))
@@ -879,6 +1145,7 @@ namespace omlplot{
                     out->printf(")\n");
                 }
             }
+        }
 
         string ycolor = getPropertyValue("ycolor").ColorString();
         string ynf = getPropertyValue("ynumericformat").StringVal();
@@ -890,14 +1157,55 @@ namespace omlplot{
             f = "f";
         sprintf(numF, "%s.%d%s", "%", ynp, f.c_str());
 
-            string ytag(rightYAxis ? "y2tics" : "ytics");
-            out->printf("set %s format \"{%s {%s %s}}\" textcolor rgb '%s' font \"%s,%g\" \n", ytag.c_str(), boldString.c_str(),
-            italicString.c_str(), numF, ycolor.c_str(), tickFontName.c_str(), tickFontSize);
-            int ytick = (int)getPropertyValue("yminortick").Scalar();
-            if (ytick > 0)
-                out->printf("set m%s %d\n", ytag.c_str(), ytick);
+        string ytag(rightYAxis ? "y2tics" : "ytics");
+        out->printf("set %s format \"{%s {%s %s}}\" textcolor rgb '%s' font \"%s,%g\" \n", ytag.c_str(), boldString.c_str(),
+        italicString.c_str(), numF, ycolor.c_str(), tickFontName.c_str(), tickFontSize);
+        int ytick = (int)getPropertyValue("yminortick").Scalar();
+        if (ytick > 0)
+            out->printf("set m%s %d\n", ytag.c_str(), ytick);
 
-            tmp = getPropertyValue("ytick").getCurrency();
+        // override yticks if it is a 3d bar plot and 'ycategories' are set
+        Currency ycat = getPropertyValue("ycategories").getCurrency();
+        if (isBar3Plot && ycat.IsCellArray() && ycat.CellArray()->Size() > 0)
+        {
+            // find all x values from the hggroupbar3 objects
+            std::vector<double> yValues;
+            it = children.cbegin();
+            for (; it != children.cend(); ++it) {
+                Object* obj = getObject(*it);
+                if (!obj)
+                    continue;
+
+                if (obj->getObjectType() == ObjectType::HGGROUPBAR3) {
+                    Currency tmpY = obj->getPropertyValue("ydata").getCurrency();
+                    if (!tmpY.IsVector())
+                        continue;
+
+                    std::vector<double> tmp = tmpY.Vector();
+                    std::vector<double>::const_iterator yit = tmp.cbegin();
+                    for (; yit != tmp.cend(); ++yit)
+                    {
+                        if (std::find(yValues.begin(), yValues.end(), (*yit)) == yValues.end())
+                            yValues.push_back(*yit);
+                    }
+                }
+            }
+
+            std::sort(yValues.begin(), yValues.end());
+
+            HML_CELLARRAY* ca = ycat.CellArray();
+            out->printf("set %s (", ytag.c_str());
+            for (int i = 0; i < ca->Size() && i < static_cast<int>(yValues.size()); ++i) {
+                string lbl = "";
+                if ((*ca)(i).IsString())
+                    lbl = (*ca)(i).StringVal();
+                out->printf("\"%s\" %g, ", lbl.c_str(), yValues[i]);
+            }
+            out->printf(")\n");
+        }
+        else
+        {
+            Currency tmp = getPropertyValue("ytick").getCurrency();
             if (tmp.IsScalar()) {
                 if (!IsZero(tmp.Scalar()))
                     out->printf("set %s %g\n", ytag.c_str(), tmp.Scalar());
@@ -926,6 +1234,7 @@ namespace omlplot{
                     out->printf(")\n");
                 }
             }
+        }
 
         string zcolor = getPropertyValue("zcolor").ColorString();
         string znf = getPropertyValue("znumericformat").StringVal();
@@ -938,14 +1247,14 @@ namespace omlplot{
         sprintf(numF, "%s.%d%s", "%", znp, f.c_str());
         out->printf("set ztics format \"{%s {%s %s}}\" textcolor rgb '%s' font \"%s,%g\" \n", boldString.c_str(),
             italicString.c_str(), numF, zcolor.c_str(), tickFontName.c_str(), tickFontSize);
-            int ztick = (int)getPropertyValue("zminortick").Scalar();
-            if (ztick > 0)
-                out->printf("set mztics %d\n", ztick);
+        int ztick = (int)getPropertyValue("zminortick").Scalar();
+        if (ztick > 0)
+            out->printf("set mztics %d\n", ztick);
 
-            tmp = getPropertyValue("ztick").getCurrency();
-            if (tmp.IsScalar()) {
-                if (!IsZero(tmp.Scalar()))
-                    out->printf("set ztics %g\n", tmp.Scalar());
+        Currency tmp = getPropertyValue("ztick").getCurrency();
+        if (tmp.IsScalar()) {
+            if (!IsZero(tmp.Scalar()))
+                out->printf("set ztics %g\n", tmp.Scalar());
         }
         else {
                 vector<double> zticks = tmp.Vector();
@@ -1045,14 +1354,14 @@ namespace omlplot{
                 out->printf("set %s nomirror\n", rightYAxis ? "y2tics" : "ytics");
             }
             else {
-                if (m_secYAxisVisible)
-                    out->printf("set border 11\n");
-                else if (rightYAxis)
-                    out->printf("set border 9\n");
-        else
-                    out->printf("set border 3\n");
-                out->printf("set xtics nomirror\n");
-                out->printf("set %s nomirror\n", rightYAxis ? "y2tics" : "ytics");
+            if (m_secYAxisVisible)
+                out->printf("set border 11\n");
+            else if (rightYAxis)
+                out->printf("set border 9\n");
+            else
+                out->printf("set border 3\n");
+            out->printf("set xtics nomirror\n");
+            out->printf("set %s nomirror\n", rightYAxis ? "y2tics" : "ytics");
             }
         }
 
@@ -1070,6 +1379,7 @@ namespace omlplot{
         vector<string> shapeclause;
 
         int lineId = 1;
+        int textBoxIndex = 1;
         it = children.begin();
         for (; it != children.end(); ++it) {
             Object* obj = getObject(*it);
@@ -1094,10 +1404,6 @@ namespace omlplot{
                     pChild->getObjectType() == ObjectType::RECTANGLE) {
                     shapeclause.push_back(pChild->getUsingClause());
                 }
-                else if (pChild->getObjectType() == ObjectType::PATCH && 
-                    dynamic_cast<Patch*>(pChild)->Is3D()) {
-                    shapeclause.push_back(pChild->getUsingClause());
-                }
                 else {
                     usingclause.push_back(pChild->getUsingClause());
                     legend.push_back(pChild->getLegend(legendBold, legendItalic));
@@ -1105,11 +1411,12 @@ namespace omlplot{
                     zdata.push_back(pChild->getZdata());
                 }
 
-               
+
             }
             else if (obj->isText()) {
                 Text* pChild = static_cast<Text*>(obj);
                 if (pChild->getVisible()) {
+                    pChild->setIndex(textBoxIndex++);
                     pChild->update(out);
                 }
             }
@@ -1129,6 +1436,31 @@ namespace omlplot{
 
         if (is3D)
             m_colorbar->update(out);
+
+        if (isBar3Plot)
+        {
+            out->printf("set pm3d depthorder base\n");
+            it = children.cbegin();
+            for (; it != children.cend(); ++it) {
+                Object* obj = getObject(*it);
+                if (!obj)
+                    continue;
+
+                if (obj->getObjectType() == ObjectType::HGGROUPBAR3) {
+                    Currency tmpY = obj->getPropertyValue("ydata").getCurrency();
+                    if (tmpY.IsVector() && tmpY.Vector().size() > 2)
+                    {
+                        std::vector<double> tmp = tmpY.Vector();
+                        out->printf("set boxdepth %g\n", (tmp[1] - tmp[0]) / 2); 
+                    }
+                    else
+                    {
+                        out->printf("set boxdepth 0.4\n");
+                    }
+                    break;
+                }
+            }
+        }
 
         // common style for bar
         if (isBarPlot) {
@@ -1209,8 +1541,7 @@ namespace omlplot{
                 if (obj && obj->isDrawable()) {
                     ObjectType ot = obj->getObjectType();
                     if (ot == ObjectType::XLINE || ot == ObjectType::YLINE ||
-                        ot == ObjectType::RECTANGLE || ot == ObjectType::ELLIPSE ||
-                        (ot == ObjectType::PATCH && static_cast<Patch*>(obj)->Is3D()))
+                        ot == ObjectType::RECTANGLE || ot == ObjectType::ELLIPSE)
                         continue;
                     pChild = static_cast<Drawable*>(obj);
                     if (pChild->getVisible())
@@ -1799,13 +2130,13 @@ namespace omlplot{
         setPropertyValue("ydata", ld.y);
         setPropertyValue("zdata", ld.z);
 
-        for (int i = 0; i < ld.properties.size(); i++){
-            setPropertyValue(ld.properties[i], ld.values[i]);
-        }
-
         _xcolcount = ld.xcolcount;
         _ycolcount = ld.ycolcount;
         _zcolcount = ld.zcolcount;
+
+        for (int i = 0; i < ld.properties.size(); i++){
+            setPropertyValue(ld.properties[i], ld.values[i]);
+        }
     }
 
     void Drawable::update(GnuplotOutput *){
@@ -2100,6 +2431,9 @@ namespace omlplot{
             dt = 3;
         } else if (linestyle == "-."){
             dt = 4;
+        }
+        else if (linestyle == "-:") {
+            dt = 5;
         } else if (linestyle == ""){
             dt = 0;
         }
@@ -2355,7 +2689,8 @@ namespace omlplot{
 
         LineStyle ls = LineStyle(ld, colorOrder);
         setPropertyValue("facecolor", ls.m_lineColor);
-        setPropertyValue("areagroup", getPropertyValue("handle").Scalar());
+        Property& ap = getProperty("areagroup");
+        ap.setValue(getPropertyValue("handle").Scalar());
 
         size_t propSize = ld.properties.size();
         for (int i = 0; i < propSize; i++) {
@@ -2440,7 +2775,8 @@ namespace omlplot{
         LineStyle ls = LineStyle(ld, colorOrder);
         setPropertyValue("facecolor", ls.m_lineColor);
         setPropertyValue("displayname", ls.m_legend);
-        setPropertyValue("bargroup", getPropertyValue("handle").Scalar());
+        Property& bp = getProperty("bargroup");
+        bp.setValue(getPropertyValue("handle").Scalar());
 
         size_t propSize = ld.properties.size();
         for (int i = 0; i < propSize; i++){
@@ -2545,34 +2881,23 @@ namespace omlplot{
 
         vector<double> x = getXdata();
         vector<double> y = getYdata();
-        vector<double> z = getZdata();
 
-        if (z.size() == 0) {     // 2d data
-
-            if (catCA) {
-                size_t count = min(catCA->Size(), int(y.size()));
-                for (int j = 0; j < count; j++) {
-                    Currency cat = (*catCA)(j);
-                    if (cat.IsString())
-                        out->printf("%s %g\n", cat.StringVal().c_str(), y[j]);
-                    else if (cat.IsScalar())
-                        out->printf("%g %g\n", cat.Scalar(), y[j]);
-                    else
-                        out->printf("%g %g\n", x[j], y[j]);
-                }
-            }
-            else {
-                size_t count = min(x.size(), y.size());
-                for (int j = 0; j < count; j++) {
+        if (catCA) {
+            size_t count = min(catCA->Size(), int(y.size()));
+            for (int j = 0; j < count; j++) {
+                Currency cat = (*catCA)(j);
+                if (cat.IsString())
+                    out->printf("%s %g\n", cat.StringVal().c_str(), y[j]);
+                else if (cat.IsScalar())
+                    out->printf("%g %g\n", cat.Scalar(), y[j]);
+                else
                     out->printf("%g %g\n", x[j], y[j]);
-                }
             }
         }
-        else {                // 3d data
+        else {
             size_t count = min(x.size(), y.size());
-            count = min((int)count, (int)z.size());
             for (int j = 0; j < count; j++) {
-                out->printf("%g %g %g\n", x[j], y[j], z[j]);
+                out->printf("%g %g\n", x[j], y[j]);
             }
         }
         // end of data
@@ -3069,6 +3394,7 @@ namespace omlplot{
         m_ps.push_back(Property("horizontalalignment", string("center"), PropertyType::STRING));
         m_ps.push_back(Property("verticalalignment", string("middle"), PropertyType::STRING));
         m_ps.push_back(Property("offset", 1.0, PropertyType::DOUBLE));
+        m_ps.push_back(Property("backgroundcolor", Color(string("white")), PropertyType::COLOR));
 
         m_objectMap[handle] = this;
 
@@ -3085,6 +3411,7 @@ namespace omlplot{
         string text = getPropertyValue("string").StringVal();
 
         string color = getPropertyValue("color").ColorString();
+        string bgcolor = getPropertyValue("backgroundcolor").ColorString();
         string fontname = getPropertyValue("fontname").StringVal();
         double fontsize = getPropertyValue("fontsize").Scalar();
         string fontweight = getPropertyValue("fontweight").StringVal();
@@ -3132,9 +3459,10 @@ namespace omlplot{
             pointSize = 2;
         }
 
-        out->printf("set label \"%s\" at %g,%g,%g %s offset %g,%g point ps %d font \"%s,%g\" tc rgb \"%s\" enhanced\n",
+        out->printf("set style textbox %d opaque margins 6.0, 2 fc rgb \"%s\"\n", m_index, bgcolor);
+        out->printf("set label \"%s\" at %g,%g,%g %s offset %g,%g point ps %d font \"%s,%g\" tc rgb \"%s\" enhanced front boxed bs %d\n",
                     ss.str().c_str(), x, y, z, align.c_str(), offsetX, offsetY, pointSize,
-                    fontname.c_str(), fontsize, color.c_str());
+                    fontname.c_str(), fontsize, color.c_str(), m_index);
     }
 
     void Text::update(GnuplotOutput *out, const string& type){
@@ -3991,6 +4319,7 @@ namespace omlplot{
         m_ps.push_back(Property("datazoffset", 0.0, PropertyType::DOUBLE));
         m_ps.push_back(Property("datazscale", 1.0, PropertyType::DOUBLE));
     }
+
     void Patch::init(const LineData& ld)
     {
         setPropertyValue("xdata", ld.x);
@@ -4010,6 +4339,7 @@ namespace omlplot{
 
         LineStyle ls = LineStyle(ld, colorOrder);
         setPropertyValue("facecolor", ls.m_lineColor);
+        setPropertyValue("displayname", ls.m_legend);
 
         int vertIdx = -1;
         int facesIdx = -1;
@@ -4033,12 +4363,15 @@ namespace omlplot{
         {
             const hwMatrix* vertices = ld.values[vertIdx].Matrix();
             const hwMatrix* faces = ld.values[facesIdx].Matrix();
-            int n = faces->N();
-            int m = faces->M();
-
-            vector<double> xdata, ydata;
+            
+            vector<double> xdata, ydata, zdata;
             xdata.reserve(faces->Size());
             ydata.reserve(faces->Size());
+            if (vertices->N() == 3)
+            {
+                m_is3D = true;
+                zdata.reserve(faces->Size());
+            }
 
             int numFaces = faces->M();
             int numPoints = faces->N();
@@ -4056,66 +4389,54 @@ namespace omlplot{
                         numPoints++;
                         xdata.push_back((*vertices)(vidx - 1, 0));
                         ydata.push_back((*vertices)(vidx - 1, 1));
+                        if (m_is3D)
+                            zdata.push_back((*vertices)(vidx - 1, 2));
                     }
                     else
                     {
                         xdata.push_back(std::numeric_limits<double>::quiet_NaN());
                         ydata.push_back(std::numeric_limits<double>::quiet_NaN());
+                        if (m_is3D)
+                            zdata.push_back(std::numeric_limits<double>::quiet_NaN());
                     }
                 }
             }
 
             setPropertyValue("xdata", xdata);
             setPropertyValue("ydata", ydata);
+            setPropertyValue("zdata", zdata);
+
             _xcolcount = numFaces;
         }
     }
+
     string Patch::getUsingClause()
     {
         std::stringstream ss;
-
+        string lineColor = getPropertyValue("facecolor").ColorString();
         if (m_is3D)
         {
-            for (int i = 0; i < _xcolcount; ++i)
-            {
-                if (i != 0)
-                    ss << ", ";
-                ss << "'-' using 1:2:3 with polygons";// << m_lineID;
-            }
+            ss << "'-' using 1:2:3 with polygons fc rgb \""<<lineColor<<"\"";
         }
         else
         {
-            for (int i = 0; i < _xcolcount; ++i)
-            {
-                if (i != 0)
-                    ss << ", ";
-                ss << "'-' using 1:2 with filledcurves linestyle " << m_lineID;
-            }
+           ss << "'-' using 1:2 with polygons fs solid lc rgb '" << lineColor << "'";
         }
         return ss.str();
     }
+
     string Patch::getWithClause(int lineId)
     {
         return string();
     }
+
     string Patch::getLineStyle(int line)
     {
-        m_lineID = line;
-        int dt = 1;
-        string lineColor = getPropertyValue("facecolor").ColorString();
-
-        stringstream ss;
-        ss << "unset style line " << line << "\n";
-        ss << "set style line " << line << " linetype " << dt
-            << " lc rgb '" << lineColor
-            << "\n";
-        
         if (m_is3D)
-        {
-            ss << "set pm3d depthorder\n";
-        }
-        return ss.str();
+            return string("set pm3d depthorder base\nset pm3d border lc \"black\"\n");
+        return string();
     }
+
     void Patch::putData(GnuplotOutput* out)
     {
         if (m_is3D)
@@ -4127,13 +4448,33 @@ namespace omlplot{
             put2DData(out);
         }
     }
+
     string Patch::getLegend(bool bold, bool italic)
     {
-        return string();
+        string legend = getPropertyValue("displayname").StringVal();
+        stringstream ss;
+        ss << "title \"";
+        if (italic) {
+            ss << "{/:Italic ";
+        }
+        if (bold) {
+            ss << "{/:Bold ";
+        }
+        ss << legend;
+        if (bold) {
+            ss << "}";
+        }
+        if (italic) {
+            ss << "}";
+        }
+        ss << "\"";
+        return ss.str();
     }
+
     void Patch::cleanup(GnuplotOutput*)
     {
     }
+    
     void Patch::put2DData(GnuplotOutput* out)
     {
         vector<double> x = getXdata();
@@ -4156,8 +4497,10 @@ namespace omlplot{
                     out->printf("%g %g\n", x[k] * xScale + xOffset, y[k] * yScale + yOffset);
                 }
             }
-            out->printf("e\n");
+            out->printf("\n");
         }
+        out->printf("e\n");
+
     }
 
     void Patch::put3DData(GnuplotOutput* out)
@@ -4186,8 +4529,9 @@ namespace omlplot{
                     out->printf("%g %g %g\n", x[k] * xScale + xOffset, y[k] * yScale + yOffset, z[k] * zScale + zOffset);
                 }
             }
-            out->printf("e\n");
+            out->printf("\n");
         }
+        out->printf("e\n");
     }
 
     Legend::Legend()
@@ -4804,6 +5148,9 @@ namespace omlplot{
         else if (linestyle == "-.") {
             dt = 4;
         }
+        else if (linestyle == "-:") {
+            dt = 5;
+        }
         else if (linestyle == "") {
             dt = 0;
         }
@@ -4846,4 +5193,233 @@ namespace omlplot{
         }
         return vector<double>();
     }
+
+    HggroupBar3D::HggroupBar3D()
+        :m_numRows(1)
+    {
+        m_type = ObjectType::HGGROUPBAR3;
+
+        m_ps.push_back(Property("type", string("hggroup"), PropertyType::STRING));
+        m_ps.push_back(Property("color", Currency(), PropertyType::MATRIX));
+        m_ps.push_back(Property("visible", string("on"), PropertyType::STRING));
+    }
+
+    void HggroupBar3D::init(const LineData& ld)
+    {
+        Drawable::init(ld);
+
+        Currency colorOrder;
+        Object* p = getParentObject();
+        if (p && p->isAxes())
+            colorOrder = p->getPropertyValue("colororder").getCurrency();
+
+        // Calculate number of rows
+        int dataSize = static_cast<int>(ld.z.size());
+        if (_zcolcount == 0)
+            throw OML_Error(OML_ERR_PLOT_UNKNOWN_ERROR);
+        m_numRows = dataSize / _zcolcount;
+
+
+        const hwMatrix* co = colorOrder.Matrix();
+        int numColors = co->M();
+        hwMatrix* map = new hwMatrix(m_numRows, 3, hwMatrix::DataType::REAL);
+        for (int i = 0; i < m_numRows; ++i)
+        {
+            if (co->Size() > 0 && co->N() == 3)
+            {
+                (*map)(i, 0) = (*co)(i % numColors, 0);
+                (*map)(i, 1) = (*co)(i % numColors, 0);
+                (*map)(i, 2) = (*co)(i % numColors, 0);
+            }
+            else
+            {
+                std::vector<double> col =LineStyle::ColorAtIndex(ld.index + i);
+                (*map)(i, 0) = col[0];
+                (*map)(i, 1) = col[1];
+                (*map)(i, 2) = col[2];
+            }
+        }
+        // update line-specific properties
+        LineStyle ls = LineStyle(ld, colorOrder);
+        if (!ld.style.empty())
+        {
+            Color cl =  Color(ld.style);
+            setPropertyValue("color", cl);
+        }
+        else
+        {
+            setPropertyValue("color", Currency(map));
+        }
+        setPropertyValue("displayname", ls.m_legend);
+
+        size_t propSize = ld.properties.size();
+        for (int i = 0; i < propSize; i++) {
+            setPropertyValue(ld.properties[i], ld.values[i]);
+        }
+    }
+
+    string HggroupBar3D::getUsingClause()
+    {
+        string legend = getPropertyValue("displayname").StringVal();
+        bool legendBold = false;
+        bool legendItalic = false;
+        Object* p = getParentObject();
+        Axes* pAxes = p && p->getObjectType() == ObjectType::AXES ? static_cast<Axes*>(p) : nullptr;
+        if (pAxes) {
+            Object* lg = getObject(pAxes->getLegendHandle());
+            if (lg && lg->getObjectType() == ObjectType::LEGEND) {
+                legendBold = lg->getPropertyValue("fontweight").StringVal() == "bold";
+                legendItalic = lg->getPropertyValue("fontangle").StringVal() == "italic";
+            }
+        }
+
+        stringstream ss;
+        ss << "'-' using 1:2:3:4:5 with boxes fc rgb variable title \"";
+        if (legendItalic)   ss << "{/:Italic ";
+        if (legendBold)     ss << "{/:Bold ";
+        ss << legend;
+        if (legendBold)     ss << "}";
+        if (legendItalic)   ss << "}";
+        ss << "\"";
+        return ss.str();
+    }
+    string HggroupBar3D::getWithClause(int)
+    {
+        return string();
+    }
+    string HggroupBar3D::getLegend(bool bold, bool italic)
+    {
+        return string();
+    }
+    string HggroupBar3D::getLineStyle(int)
+    {
+        return string();
+    }
+    void HggroupBar3D::cleanup(GnuplotOutput*)
+    {
+    }
+    void HggroupBar3D::putData(GnuplotOutput* out)
+    {
+        Object* p = getParentObject();
+        if (!p)
+            return;
+
+        vector<double> x = getXdata();
+        vector<double> y = getYdata();
+        vector<double> z = getZdata();
+        int dataSize = static_cast<int>(z.size());
+        if (_zcolcount == 0)
+            throw OML_Error(OML_ERR_PLOT_UNKNOWN_ERROR);
+        // set numrows in case z data changed
+        m_numRows = dataSize / _zcolcount;
+
+        Currency colorCur = getPropertyValue("color").getCurrency();
+        const hwMatrix* colors = colorCur.IsMatrix() ? colorCur.Matrix() : nullptr;
+        
+        int zi = 0;
+        int xSize = std::min(static_cast<int>(x.size()), _zcolcount);
+        int ySize = std::min(static_cast<int>(y.size()), m_numRows);
+        double width = 0.4;
+        if (xSize> 1)
+            width = (x[1] - x[0]) / 2;
+        for (int i = 0; i < ySize; ++i)
+        {
+            int rgb = 255;
+            if (colors && i < colors->M())
+            {
+                double r = (*colors)(i, 0);
+                double g = (*colors)(i, 1);
+                double b = (*colors)(i, 2);
+                if (r <= 1 && g <= 1 && b <= 1)
+                {
+                    r *= 255;
+                    g *= 255;
+                    b *= 255;
+                }
+                rgb = (int)r;
+                rgb = (rgb << 8) + (int)g;
+                rgb = (rgb << 8) + (int)b;
+            }
+            double tmpY = y[i];
+            for (int j = 0; j < xSize; ++j)
+            {
+                int zIdx = i * _zcolcount + j;
+                out->printf("%g %g %g %g %d\n", x[j], tmpY, z[zIdx], width, rgb);
+                ++zi;
+            }
+        }
+        // end of data
+        out->printf("e\n");
+    }
+
+    bool HggroupBar3D::setPropertyValue(const string& name, VALUETYPE value)
+    {
+        if (name == "color")
+        {
+            Property& p = getProperty(name);
+            if (value.isCurrency() && value.getCurrency().IsMatrix())
+            {
+                // check matrix dimensions
+                const hwMatrix* matIn = value.getCurrency().Matrix();
+                if (matIn->M() == m_numRows)
+                {
+                    p.setValue(value);
+                }
+                else
+                {
+                    Currency colorCur = getPropertyValue("color").getCurrency();
+                    hwMatrix* colors = nullptr;
+                    if (colorCur.IsMatrix())
+                    {
+                        colors = colorCur.GetWritableMatrix();
+                    }
+                    else
+                    {
+                        colorCur = Currency(new hwMatrix(m_numRows, 3, hwMatrix::REAL));
+                        colors = colorCur.GetWritableMatrix();
+                    }
+                    for (int i = 0; i < m_numRows && i < matIn->M(); ++i)
+                    {
+                        (*colors)(i, 0) = (*matIn)(i, 0);
+                        (*colors)(i, 1) = (*matIn)(i, 1);
+                        (*colors)(i, 2) = (*matIn)(i, 2);
+                    }
+                    p.setValue(colorCur);
+                }
+                return true;
+            }
+            std::vector<double> singleColor;
+            if (value.isCurrency() && value.getCurrency().IsString())
+            {
+                Color clr(value.getCurrency().StringVal());
+                singleColor = clr.getComponent();
+            }
+            else if (value.isColor())
+            {
+                singleColor = value.getColor();
+            }
+
+            if (static_cast<int>(singleColor.size()) >= 3)
+            {
+                vector<double> z = getZdata();
+                int dataSize = static_cast<int>(z.size());
+                if (_zcolcount == 0)
+                    throw OML_Error(OML_ERR_PLOT_UNKNOWN_ERROR);
+
+                int numRows = dataSize / _zcolcount;
+                hwMatrix* cmap = new hwMatrix(numRows, 3, hwMatrix::DataType::REAL);
+                for (int i = 0; i < numRows; ++i)
+                {
+                    (*cmap)(i, 0) = singleColor[0];
+                    (*cmap)(i, 1) = singleColor[1];
+                    (*cmap)(i, 2) = singleColor[2];
+                }
+                Currency tmp(cmap);
+                p.setValue(tmp);
+            }
+            return true;
+        }
+        return Drawable::setPropertyValue(name, value);
+    }
+   
 }

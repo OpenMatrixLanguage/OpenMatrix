@@ -22,8 +22,9 @@
 //
 //:---------------------------------------------------------------------------
 
-#include <math/kernel/hwComplex.h>
 #include <complex>
+#include "math/kernel/hwComplex.h"
+
 typedef std::complex<double> complexD;
 
 //*******************************************************************
@@ -65,6 +66,11 @@ extern "C" double ddot_(int* N, double* DX, int* INCX, double* DY, int* INCY);
 // LU decomposition
 extern "C" void dgetrf_(int* M, int* N, double* A, int* LDA, int* IPIV, int* INFO);
 extern "C" void zgetrf_(int* M, int* N, complexD* A, int* LDA, int* IPIV, int* INFO);
+// LDL decomposition
+extern "C" void dsytrf_(char* UPLO, int* N, double* A, int* LDA, int* IPIV, double* WORK, int* LWORK, int* INFO);
+extern "C" void zhetrf_(char* UPLO, int* N, complexD* A, int* LDA, int* IPIV, complexD* WORK, int* LWORK, int* INFO);
+extern "C" void dsyconv_(char* UPLO, char* WAY, int* N, double* A, int* LDA, int* IPIV, double* E, int* INFO);
+extern "C" void zsyconv_(char* UPLO, char* WAY, int* N, complexD* A, int* LDA, int* IPIV, complexD* E, int* INFO);
 // Matrix inversion
 extern "C" void dgetri_(int* N, double* A, int* LDA, int* IPIV, double* WORK, int* LWORK, int* INFO);
 extern "C" void zgetri_(int* N, complexD* A, int* LDA, int* IPIV, complexD* WORK, int* LWORK, int* INFO);
@@ -1629,18 +1635,16 @@ inline hwMathStatus hwTMatrix<double>::ComplexLU(hwTMatrix<double>& L, hwTMatrix
 
         // convert pivot vector into a permutation vector that contains the
         // permutation matrix information
-        int temp;
-
-        for (i = 0; i < m; ++i)
+        for (i = 0; i < n; ++i)
             P(i) = i;
 
-        for (i = 0; i < nu; ++i)
+        for (i = 0; i < n; ++i)
         {
             j = ipiv[i] - 1;    // FORTRAN is 1 based
 
             if (i != j)
             {
-                temp = P(i);
+                int temp = P(i);
                 P(i) = P(j);
                 P(j) = temp;
             }
@@ -1653,6 +1657,480 @@ inline hwMathStatus hwTMatrix<double>::ComplexLU(hwTMatrix<double>& L, hwTMatrix
         for (int i = 0; i < m; ++i)
             P(i) = i;
     }
+
+    return status;
+}
+
+//! Real LDL' decomposition (A = PLDL'P')
+template<>
+inline hwMathStatus hwTMatrix<double>::RealLDL(hwTMatrix<double>& T, hwTMatrix<double>& D, hwTMatrix<double>& P, bool upper) const
+{
+    if (this == &T)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
+    if (this == &D)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
+    if (this == &P)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
+
+    const hwTMatrix<double>& A = (*this);
+    hwMathStatus status;
+
+    if (!A.IsSquare())
+        return status(HW_MATH_ERR_MTXNOTSQUARE, 0);
+
+    if (!A.IsReal())
+        return status(HW_MATH_ERR_COMPLEX, 1);
+
+    int n = A.m_nCols;
+    hwTMatrix<double> B(A);
+
+    // dimension output matrices
+    status = T.Dimension(n, n, REAL);
+
+    if (!status.IsOk())
+    {
+        if (status.GetArg1() == 0)
+            status.SetArg1(3);
+        else
+            status.ResetArgs();
+
+        return status;
+    }
+
+    status = D.Dimension(n, n, REAL);
+
+    if (!status.IsOk())
+    {
+        if (status.GetArg1() == 0)
+            status.SetArg1(4);
+        else
+            status.ResetArgs();
+
+        return status;
+    }
+
+    status = P.Dimension(n, n, REAL);
+
+    if (!status.IsOk())
+    {
+        if (status.GetArg1() == 0)
+            status.SetArg1(2);
+        else
+            status.ResetArgs();
+
+        return status;
+    }
+
+    if (A.Size() == 0)
+    {
+        return status;
+    }
+
+    char UPLO;
+    double* a = B.m_real;
+    int lda = n;
+    int* ipiv;
+    double worksize = 0.0;
+    int lwork = -1;
+    int info;
+
+    try
+    {
+        ipiv = new int[n];
+    }
+    catch (std::bad_alloc&)
+    {
+        return status(HW_MATH_ERR_ALLOCFAILED);
+    }
+
+    if (upper == false)
+        UPLO = 'L';
+    else
+        UPLO = 'U';
+
+    // workspace query
+    dsytrf_(&UPLO, &n, a, &lda, ipiv, &worksize, &lwork, &info);
+
+    if (info < 0)
+        return status(HW_MATH_ERR_DECOMPFAIL);
+
+    // decompose the matrix
+    lwork = static_cast<int>(worksize);
+    hwTMatrix<double> work(lwork, 1, REAL);
+    double* dwork = work.m_real;
+
+    if (!dwork)
+        return status(HW_MATH_ERR_ALLOCFAILED);
+
+    dsytrf_(&UPLO, &n, a, &lda, ipiv, dwork, &lwork, &info);
+
+    if (info != 0)
+        status(HW_MATH_WARN_SINGMATRIX, 1);
+
+    // construct T and D
+    char WAY = 'C';
+    hwTMatrix<double> E(n, 1, REAL);
+    double* e = E.m_real;
+
+    dsyconv_(&UPLO, &WAY, &n, a, &lda, ipiv, e, &info);
+
+    T.SetElements(0.0);
+    D.SetElements(0.0);
+    P.SetElements(0.0);
+
+    std::vector<int> idxvec(n);
+
+    for (int i = 0; i < n; ++i)
+        idxvec[i] = i;
+
+    if (!upper)
+    {
+        for (int j = 0; j < n; ++j)
+        {
+            for (int i = j + 1; i < n; ++i)
+            {
+                T(i, j) = B(i, j);
+            }
+
+            T(j, j) = 1.0;
+            D(j, j) = B(j, j);
+        }
+
+        // convert pivot vector into a permutation matrix
+        int k = 0;
+
+        while (k < n)
+        {
+            if (ipiv[k] > 0)
+            {
+                int kp = ipiv[k] - 1;    // FORTRAN is 1 based
+
+                if (kp != k)
+                {
+                    int temp = idxvec[k];
+                    idxvec[k] = idxvec[kp];
+                    idxvec[kp] = temp;
+                }
+
+                ++k;
+            }
+            else
+            {
+                int kp = -ipiv[k + 1] - 1;    // FORTRAN is 1 based
+
+                if (kp == -ipiv[k] - 1 && kp != k + 1)
+                {
+                    int temp = idxvec[k + 1];
+                    idxvec[k + 1] = idxvec[kp];
+                    idxvec[kp] = temp;
+                }
+
+                k += 2;
+            }
+        }
+
+        for (int i = 0; i < n - 1; ++i)     // ignore E(n-1)
+        {
+            D(i + 1, i) = E(i);
+            D(i, i + 1) = E(i);
+        }
+    }
+    else    // UPLO == 'U'
+    {
+        for (int j = 0; j < n; ++j)
+        {
+            for (int i = 0; i < j; ++i)
+            {
+                T(i, j) = B(i, j);
+            }
+
+            T(j, j) = 1.0;
+            D(j, j) = B(j, j);
+        }
+
+        // convert pivot vector into a permutation matrix
+        int k = n - 1;
+
+        while (k >= 0)
+        {
+            if (ipiv[k] > 0)
+            {
+                int kp = ipiv[k] - 1;    // FORTRAN is 1 based
+
+                if (kp != k)
+                {
+                    int temp = idxvec[k];
+                    idxvec[k] = idxvec[kp];
+                    idxvec[kp] = temp;
+                }
+
+                --k;
+            }
+            else
+            {
+                int kp = -ipiv[k] - 1;    // FORTRAN is 1 based
+
+                if (kp == -ipiv[k - 1] - 1 && kp != k - 1)
+                {
+                    int temp = idxvec[k - 1];
+                    idxvec[k - 1] = idxvec[kp];
+                    idxvec[kp] = temp;
+                }
+
+                k -= 2;
+            }
+        }
+
+        for (int i = 1; i < n; ++i)     // ignore E(0)
+        {
+            D(i, i - 1) = E(i);
+            D(i - 1, i) = E(i);
+        }
+    }
+
+    for (int i = 0; i < n; ++i)
+    {
+        P(idxvec[i], i) = 1.0;
+    }
+
+    delete[] ipiv;
+
+    return status;
+}
+
+//! Complex LDL' decomposition (A = PLDL'P')
+template<>
+inline hwMathStatus hwTMatrix<double>::ComplexLDL(hwTMatrix<double>& T, hwTMatrix<double>& D, hwTMatrix<double>& P, bool upper) const
+{
+    if (this == &T)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
+    if (this == &D)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
+    if (this == &P)
+        return hwMathStatus(HW_MATH_ERR_NOTIMPLEMENT);
+
+    const hwTMatrix<double>& A = (*this);
+    hwMathStatus status;
+
+    if (!A.IsSquare())
+        return status(HW_MATH_ERR_MTXNOTSQUARE, 0);
+
+    if (A.IsReal())
+        return status(HW_MATH_ERR_NEEDCOMPLEX, 1);
+
+    int n = A.m_nCols;
+    hwTMatrix<double> B(A);
+
+    // dimension output matrices
+    status = T.Dimension(n, n, COMPLEX);
+
+    if (!status.IsOk())
+    {
+        if (status.GetArg1() == 0)
+            status.SetArg1(3);
+        else
+            status.ResetArgs();
+
+        return status;
+    }
+
+    status = D.Dimension(n, n, COMPLEX);
+
+    if (!status.IsOk())
+    {
+        if (status.GetArg1() == 0)
+            status.SetArg1(4);
+        else
+            status.ResetArgs();
+
+        return status;
+    }
+
+    status = P.Dimension(n, n, REAL);
+
+    if (!status.IsOk())
+    {
+        if (status.GetArg1() == 0)
+            status.SetArg1(2);
+        else
+            status.ResetArgs();
+
+        return status;
+    }
+
+    if (A.Size() == 0)
+    {
+        return status;
+    }
+
+    char UPLO;
+    complexD* a = (complexD*) B.m_complex;
+    int lda = n;
+    int* ipiv;
+    complexD worksize;
+    int lwork = -1;
+    int info;
+
+    try
+    {
+        ipiv = new int[n];
+    }
+    catch (std::bad_alloc&)
+    {
+        return status(HW_MATH_ERR_ALLOCFAILED);
+    }
+
+    if (upper == false)
+        UPLO = 'L';
+    else
+        UPLO = 'U';
+
+    // workspace query
+    zhetrf_(&UPLO, &n, a, &lda, ipiv, &worksize, &lwork, &info);
+
+    if (info < 0)
+        return status(HW_MATH_ERR_DECOMPFAIL);
+
+    // decompose the matrix
+    lwork = static_cast<int>(worksize.real());
+    hwTMatrix<double> work(lwork, 1, COMPLEX);
+    complexD* dwork = (complexD*) work.m_complex;
+
+    if (!dwork)
+        return status(HW_MATH_ERR_ALLOCFAILED);
+
+    zhetrf_(&UPLO, &n, a, &lda, ipiv, dwork, &lwork, &info);
+
+    if (info != 0)
+        status(HW_MATH_WARN_SINGMATRIX, 1);
+
+    // construct T and D
+    char WAY = 'C';
+    hwTMatrix<double> E(n, 1, COMPLEX);
+    complexD* e = (complexD*) E.m_complex;
+
+    zsyconv_(&UPLO, &WAY, &n, a, &lda, ipiv, e, &info);
+
+    T.SetElements(0.0);
+    D.SetElements(0.0);
+    P.SetElements(0.0);
+
+    std::vector<int> idxvec(n);
+
+    for (int i = 0; i < n; ++i)
+        idxvec[i] = i;
+
+    if (!upper)
+    {
+        for (int j = 0; j < n; ++j)
+        {
+            for (int i = j + 1; i < n; ++i)
+            {
+                T.z(i, j) = B.z(i, j);
+            }
+
+            T.z(j, j) = 1.0;
+            D.z(j, j) = B.z(j, j);
+        }
+
+        // convert pivot vector into a permutation matrix
+        int k = 0;
+
+        while (k < n)
+        {
+            if (ipiv[k] > 0)
+            {
+                int kp = ipiv[k] - 1;    // FORTRAN is 1 based
+
+                if (kp != k)
+                {
+                    int temp = idxvec[k];
+                    idxvec[k] = idxvec[kp];
+                    idxvec[kp] = temp;
+                }
+
+                ++k;
+            }
+            else
+            {
+                int kp = -ipiv[k + 1] - 1;    // FORTRAN is 1 based
+
+                if (kp == -ipiv[k] - 1 && kp != k + 1)
+                {
+                    int temp = idxvec[k + 1];
+                    idxvec[k + 1] = idxvec[kp];
+                    idxvec[kp] = temp;
+                }
+
+                k += 2;
+            }
+        }
+
+        for (int i = 0; i < n - 1; ++i)     // ignore E(n-1)
+        {
+            D.z(i + 1, i) = E.z(i);
+            D.z(i, i + 1) = E.z(i);
+        }
+    }
+    else    // UPLO == 'U'
+    {
+        for (int j = 0; j < n; ++j)
+        {
+            for (int i = 0; i < j; ++i)
+            {
+                T.z(i, j) = B.z(i, j);
+            }
+
+            T.z(j, j) = 1.0;
+            D.z(j, j) = B.z(j, j);
+        }
+
+        // convert pivot vector into a permutation matrix
+        int k = n - 1;
+
+        while (k >= 0)
+        {
+            if (ipiv[k] > 0)
+            {
+                int kp = ipiv[k] - 1;    // FORTRAN is 1 based
+
+                if (kp != k)
+                {
+                    int temp = idxvec[k];
+                    idxvec[k] = idxvec[kp];
+                    idxvec[kp] = temp;
+                }
+
+                --k;
+            }
+            else
+            {
+                int kp = -ipiv[k] - 1;    // FORTRAN is 1 based
+
+                if (kp == -ipiv[k - 1] - 1 && kp != k - 1)
+                {
+                    int temp = idxvec[k - 1];
+                    idxvec[k - 1] = idxvec[kp];
+                    idxvec[kp] = temp;
+                }
+
+                k -= 2;
+            }
+        }
+
+        for (int i = 1; i < n; ++i)     // ignore E(0)
+        {
+            D.z(i, i - 1) = E.z(i);
+            D.z(i - 1, i) = E.z(i);
+        }
+    }
+
+    for (int i = 0; i < n; ++i)
+    {
+        P(idxvec[i], i) = 1.0;
+    }
+
+    delete[] ipiv;
 
     return status;
 }
@@ -4505,7 +4983,7 @@ inline hwMathStatus hwTMatrix<double>::DivideLeft(const hwTMatrix<double>& A, co
     if (A.m_nRows == A.m_nCols)
     {
         if (B.IsEmpty() && A.Size() == 1)   // treat A as a scalar
-            return Dimension(B.m_nRows, B.m_nCols, hwTMatrix<double>::REAL);
+            return Dimension(B.m_nRows, B.m_nCols, REAL);
 
         status = LSolve(A, B);
 
@@ -5394,7 +5872,17 @@ inline hwMathStatus hwTMatrix<double>::LSolveSI(const hwTMatrix<double>& A, cons
     return status;
 }
 
-//! LU decomposition (PA=LU, where A = *this and P is a permutation matrix)
+//! LDL decomposition (A=PLDL'P', where A = *this)
+template<>
+inline hwMathStatus hwTMatrix<double>::LDL(hwTMatrix<double>& T, hwTMatrix<double>& D, hwTMatrix<double>& P, bool upper) const
+{
+    if (IsReal())
+        return RealLDL(T, D, P, upper);
+    else
+        return ComplexLDL(T, D, P, upper);
+}
+
+//! LDL decomposition (PA=LU, where A = *this and P is a permutation matrix)
 template<>
 inline hwMathStatus hwTMatrix<double>::LU(hwTMatrix<int>& P, hwTMatrix<double>& L, hwTMatrix<double>& U) const
 {
@@ -5940,6 +6428,122 @@ inline hwMathStatus hwTMatrix<double>::Schur(bool real, hwTMatrix<double>& U, hw
     return status;
 }
 
+//! Null space orthonormal basis
+template<>
+inline hwMathStatus hwTMatrix<double>::NullSpace(hwTMatrix<double>& nullBasis, double tol) const
+{
+    if (IsEmpty())
+    {
+        return nullBasis.Dimension(0, 0, REAL);
+    }
+
+    hwTMatrix<double> S;
+    hwTMatrix<double> V;
+    hwMathStatus status = SVD(0, nullptr, S, &V);
+
+    if (!status.IsOk())
+        return status;
+
+    int m = m_nRows;
+    int n = m_nCols;
+    int nu = _min(m, n);
+
+    if (tol == -9999.0) // default
+        tol = _max(m, n) * S(0) * MACHEP2;
+
+    int rank = 0;
+
+    for (int i = 0; i < S.Size(); ++i)
+    {
+        if (S(i) > tol)
+            ++rank;
+        else
+            break;
+    }
+
+    status = nullBasis.ReadSubmatrix(0, rank, n, n - rank, V);
+
+    if (!status.IsOk())
+        return status;
+
+    if (nullBasis.IsReal())
+    {
+        for (int i = 0; i < nullBasis.Size(); ++i)
+        {
+            if (fabs(nullBasis(i)) < MACHEP2)
+                nullBasis(i) = 0.0;
+        }
+    }
+    else
+    {
+        for (int i = 0; i < nullBasis.Size(); ++i)
+        {
+            if (nullBasis.z(i).Mag() < MACHEP2)
+                nullBasis.z(i) = 0.0;
+        }
+    }
+
+    return status;
+}
+
+//! Column space orthonormal basis
+template<>
+inline hwMathStatus hwTMatrix<double>::Range(hwTMatrix<double>& rangeBasis, double tol) const
+{
+    if (IsEmpty())
+    {
+        return rangeBasis.Dimension(0, 0, REAL);
+    }
+
+    hwTMatrix<double> U;
+    hwTMatrix<double> S;
+    hwMathStatus status = SVD(0, &U, S, nullptr);
+
+    if (!status.IsOk())
+        return status;
+
+    int m = m_nRows;
+    int n = m_nCols;
+    int nu = _min(m, n);
+
+    if (tol == -9999.0) // default
+        tol = _max(m, n) * S(0) * MACHEP2;
+
+    int rank = 0;
+
+    for (int i = 0; i < S.Size(); ++i)
+    {
+        if (S(i) > tol)
+            ++rank;
+        else
+            break;
+    }
+
+    status = rangeBasis.ReadSubmatrix(0, 0, m, rank, U);
+
+    if (!status.IsOk())
+        return status;
+
+    if (rangeBasis.IsReal())
+    {
+        for (int i = 0; i < rangeBasis.Size(); ++i)
+        {
+            if (fabs(rangeBasis(i)) < MACHEP2)
+                rangeBasis(i) = 0.0;
+        }
+    }
+    else
+    {
+        for (int i = 0; i < rangeBasis.Size(); ++i)
+        {
+            if (rangeBasis.z(i).Mag() < MACHEP2)
+                rangeBasis.z(i) = 0.0;
+        }
+    }
+
+    return status;
+}
+
 //! Condition number
 template<>
 inline hwMathStatus hwTMatrix<double>::Cond(double& condNum) const
@@ -6001,7 +6605,7 @@ inline hwMathStatus hwTMatrix<double>::Rank(int& rank) const
     int m = m_nRows;
     int n = m_nCols;
     int nu = _min(m, n);
-    double tol = _max(m, n) * MachPrecision(S(0));
+    double tol = _max(m, n) * S(0) * MACHEP2;
 
     rank = 0;
 

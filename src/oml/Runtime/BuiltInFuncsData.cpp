@@ -723,7 +723,7 @@ bool BuiltInFuncsData::IsColumn(EvaluatorInterface           eval,
                                 const std::vector<Currency>& inputs,
                                 std::vector<Currency>&       outputs)
 {
-    if (inputs.empty())
+    if (inputs.size() != 1)
     {
         throw OML_Error(OML_ERR_NUMARGIN);
     }
@@ -872,6 +872,14 @@ bool BuiltInFuncsData::Num2Cell(EvaluatorInterface           eval,
 		outputs.push_back(temp);
 		return true;
 	}
+
+    if (inputs[0].IsComplex())
+    {
+        Currency temp = inputs[0];
+        temp.ConvertToCellArray();
+        outputs.push_back(temp);
+        return true;
+    }
 
 	if (inputs[0].IsNDMatrix())
 		return Num2CellNDHelper(inputs, outputs);

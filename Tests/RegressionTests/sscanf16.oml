@@ -1,0 +1,2 @@
+ s = 'WHEEL-RAIL CONTACT, LEFT WHEEL, 1 CONTACT PATCH';
+sscanf(s, 'WHEEL-R%*s CONTACT, %*s WHEEL, %d')

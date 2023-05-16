@@ -1,7 +1,7 @@
 	/**
 * @file BuiltInFuncsCore.h
 * @date February 2016
-* Copyright (C) 2016-2022 Altair Engineering, Inc.  
+* Copyright (C) 2016-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -296,7 +296,22 @@ public:
     //! \param Vector of outputs
     //!
     static bool IsFloat(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
-  
+    //!
+    //! Converts dimensions to string - whos helper method
+    //! \param Dimensions
+    //!
+    std::string DimensionToString(const std::vector<int>&) const;
+    //!
+    //! Gets class for given currency
+    //! \param Given currency
+    //!
+    std::string GetCurrencyClass(const Currency&) const;
+    //!
+    //! Gets number of bytes used by Currency
+    //! \param Given currency
+    //!
+    unsigned long long GetsBytesUsed(const Currency&) const;
+
 private:
     //!
     //! Constructor
@@ -308,23 +323,14 @@ private:
     //!
     void SleepFunc( double seconds) const;
     //!
-    //! Converts dimensions to string - whos helper method
-    //! \param dims Dimensions
-    //!
-    std::string DimensionToString( const std::vector<int>& dims) const;
-    //!
-    //! Gets class for given currency
-    //! \param cur Given currency
-    //!
-    std::string GetCurrencyClass( const Currency& cur) const;
-    //!
-    //! Gets number of bytes used by Currency
-    //! \param cur Given currency
-    //!
-    unsigned long long GetsBytesUsed( const Currency& cur) const;
+    //! Helper method for adding a library
+    //! \param Evaluator interface
+    //! \param Library name
+    //! \param True if warning needs to be added
+    //! 
+    static void AddLibraryImpl(EvaluatorInterface, const std::string&, bool = true);
 
-
-	static std::map<std::string, void*> libs;
+	static std::map<std::string, void*> libs;  //!< Oml libraries
 };
 
 #endif // __BUILTINFUNCSCORE__

@@ -1,7 +1,7 @@
 /**
 * @file CoreMain.cxx
 * @date May 2018
-* Copyright (C) 2018-2022 Altair Engineering, Inc.  
+* Copyright (C) 2018-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -146,7 +146,7 @@ namespace omlplot{
         Object *o = getObject(h);
         return o->getPropertyNames();
     }
-    
+
     bool CoreMain::isPropertySupported(double h, const string& name) {
         Object* o = getObject(h);
         return o->isPropertySupported(name);
@@ -734,7 +734,46 @@ namespace omlplot{
 
     vector<double> CoreMain::quiver(vector<LineData>& ldVec)
     {
-        return _T_2D_PLOT<HggroupVector>(ldVec);
+        return _T_3D_PLOT<HggroupVector>(ldVec);
+    }
+
+    vector<double> CoreMain::bar3(vector<LineData>& ldVec)
+    {
+        vector<double> ret;
+        // should be only one LineDta in the vector
+        if (ldVec.empty())
+            return ret;
+
+        LineData ld = ldVec.front();
+        if (ld.bar3PerRow)
+        {
+            vector<LineData> newData;
+            // create a new LineData for each z row
+            int dataSize = static_cast<int>(ld.z.size());
+            if (ld.zcolcount == 0)
+                throw OML_Error(OML_ERR_PLOT_UNKNOWN_ERROR);
+            int numRows = dataSize / ld.zcolcount;
+            for (int i = 0; i < numRows; ++i)
+            {
+                LineData tmp;
+                tmp.style = ld.style;
+                int start = i * ld.zcolcount;
+                int end = (i + 1) * ld.zcolcount;
+                tmp.x = ld.x;
+                tmp.y.push_back(i);
+                if ((end - 1) < ld.z.size())
+                    tmp.z.insert(tmp.z.end(), ld.z.begin() + start, ld.z.begin() + end);
+                tmp.zcolcount = ld.zcolcount;
+                newData.push_back(tmp);
+            }
+
+            ret = _T_3D_PLOT<HggroupBar3D>(newData);
+        }
+        else
+        {
+            ret = _T_3D_PLOT<HggroupBar3D>(ldVec);
+        }
+        return ret;
     }
 
     void CoreMain::set(unique_ptr<SetData> &data, vector<string>& notSupported)
@@ -753,7 +792,7 @@ namespace omlplot{
 					notSupported.push_back(data->properties[index]);
             }
             if (handle > 0)
-                repaintLater(handle);
+            repaintLater(handle);
         }
     }
 
@@ -1564,7 +1603,9 @@ namespace omlplot{
     }
 
     void CoreMain::AddWarningString(const std::string& wrn) {
-        m_warningStr += wrn + "\n";
+        if (!m_warningStr.empty())
+            m_warningStr += "\n";
+        m_warningStr += wrn;
     }
 
     void CoreMain::repaintLater(double handle)
@@ -1594,7 +1635,7 @@ namespace omlplot{
                 if (!obj)
                     return;
                 Object* parentObj = obj->getParentObject();
-                if (!parentObj)
+                if (!parentObj || parentObj->getObjectType() == ObjectType::ROOT)
                 {
                     // no parent figure found
                     tmpHandle = -1;

@@ -913,6 +913,10 @@ hwMathStatus PchipInterp(const hwMatrix& x_old,
     for (int i = 0; i < n-1; ++i)
     {
         h(i) = x_old(i+1) - x_old(i);
+
+        if (h(i) == 0.0)
+            return status(HW_MATH_ERR_NONUNIQUE, 1);
+
         delta(i) = (y_old(i+1) - y_old(i)) / h(i);
 
         if (i > 0 && (delta(i)*delta(i-1) > 0.0))
@@ -938,14 +942,23 @@ hwMathStatus PchipInterp(const hwMatrix& x_old,
         d(n-1) = 3.0 * delta(n-2);
 
     // interpolate
-    long idx;
     int nn = x_new.Size();
+    long idx;
+    bool ascendingX;
+
+    if (x_old(0) < x_old(n - 1))
+        ascendingX = true;
+    else
+        ascendingX = false;    // the sign changes take care of themselves
 
     if (extrap)
     {
         for (int i = 0; i < nn; i++)
         {
-            idx = BinarySearch(x_old.GetRealData(), n, x_new(i));
+            if (ascendingX)
+                idx = BinarySearch(x_old.GetRealData(), n, x_new(i));
+            else
+                idx = BinarySearchR(x_old.GetRealData(), n, x_new(i));
 
             if (idx < 0)
                 idx = 0;
@@ -963,7 +976,10 @@ hwMathStatus PchipInterp(const hwMatrix& x_old,
     {
         for (int i = 0; i < nn; i++)
         {
-            idx = BinarySearch(x_old.GetRealData(), n, x_new(i));
+            if (ascendingX)
+                idx = BinarySearch(x_old.GetRealData(), n, x_new(i));
+            else
+                idx = BinarySearchR(x_old.GetRealData(), n, x_new(i));
 
             if (idx < 0)
                 return status(HW_MATH_ERR_BADRANGE, 3);
@@ -1049,8 +1065,8 @@ static hwMathStatus SplineDerivatives2(const hwMatrix& x_old,
 	{
 		a(i) = x_old(i) - x_old(i-1);
 
-		if (a(i) <= 0.0)
-			return status(HW_MATH_ERR_NONINCREASE, 1);
+		if (a(i) == 0.0)
+			return status(HW_MATH_ERR_NONUNIQUE, 1);
 
 		b(i) = 2.0 * (x_old(i+1) - x_old(i-1));
 		c(i) = x_old(i+1) - x_old(i);
@@ -1083,8 +1099,8 @@ static hwMathStatus SplineDerivatives2(const hwMatrix& x_old,
     {
         h(i) = x_old(i+1) - x_old(i);
 
-		if (h(i) <= 0.0)
-			return status(HW_MATH_ERR_NONINCREASE, 1);
+		if (h(i) == 0.0)
+			return status(HW_MATH_ERR_NONUNIQUE, 1);
     }
 
     for (i = 0; i < n-3; i++)
@@ -1177,17 +1193,27 @@ hwMathStatus Spline(const hwMatrix& x_old,
 
     // compute interpolated/extrapolated points
 	int i;
-	int idx;
 	int n = x_old.Size();
 	int nn = x_new.Size();
-	double s1, s2, s3;
+    long idx;
+    double s1, s2, s3;
 	const double* x_start = x_old.GetRealData();
+    bool ascendingX;
+
+    if (x_old(0) < x_old(n - 1))
+        ascendingX = true;
+    else
+        ascendingX = false;    // the sign changes take care of themselves
 
 	if (extrap)
 	{
 		for (i = 0; i < nn; i++)
 		{
-			idx = BinarySearch(x_start, n, x_new(i));
+			// idx = BinarySearch(x_start, n, x_new(i));
+            if (ascendingX)
+                idx = BinarySearch(x_start, n, x_new(i));
+            else
+                idx = BinarySearchR(x_start, n, x_new(i));
 
 			if (idx < 0)
 				idx = 0;
@@ -1207,7 +1233,11 @@ hwMathStatus Spline(const hwMatrix& x_old,
 	{
 		for (i = 0; i < nn; i++)
 		{
-			idx = BinarySearch(x_start, n, x_new(i));
+			// idx = BinarySearch(x_start, n, x_new(i));
+            if (ascendingX)
+                idx = BinarySearch(x_start, n, x_new(i));
+            else
+                idx = BinarySearchR(x_start, n, x_new(i));
 
 			if (idx < 0)
             {

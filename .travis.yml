@@ -1,3 +1,4 @@
+dist: bionic
 notifications:
   _webhooks: _
 install: true
@@ -7,6 +8,8 @@ addons:
    sources:
     - ubuntu-toolchain-r-test
    packages:
+#    - g++-4.9
+#failed     - g++-8.3
   apt_packages:
     - gfortran
 sudo: required
@@ -36,6 +39,8 @@ script:
 - g++ --version
 - $CXX --version
 - which $CXX
+- ls -alF /usr/bin | grep g++
+- find /usr/bin -iname "g++*"
 - gfortran --version
 - which gfortran
 - ls -alF /usr/lib/x86_64-linux-gnu | grep fortran

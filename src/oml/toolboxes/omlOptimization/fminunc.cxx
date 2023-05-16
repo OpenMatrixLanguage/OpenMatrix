@@ -83,12 +83,12 @@ static hwMathStatus FMinUnconFunc(const hwMatrix& P,
     catch (OML_Error&)
     {
         FMINUNC_eval_ptr->Restore();
-        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL);
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
     }
     catch (hwMathException&)
     {
         FMINUNC_eval_ptr->Restore();
-        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL);
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
     }
 
     if (outputs.size() == 1 || outputs.size() == 2)
@@ -170,7 +170,7 @@ static hwMathStatus FMinUnconGradient(const hwMatrix& P,
         }
         else
         {
-            return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+            return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
         }
         
         FMINUNC_eval_ptr->Unmark();
@@ -178,17 +178,17 @@ static hwMathStatus FMinUnconGradient(const hwMatrix& P,
     catch (OML_Error&)
     {
         FMINUNC_eval_ptr->Restore();
-        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
     }
     catch (hwMathException&)
     {
         FMINUNC_eval_ptr->Restore();
-        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
     }
 
     if (outputs.size() != 2)
     {
-        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 222);
+        return hwMathStatus(HW_MATH_ERR_USERFUNCFAIL, 111);
     }
 
     Currency objGrad = outputs[1];
@@ -197,7 +197,7 @@ static hwMathStatus FMinUnconGradient(const hwMatrix& P,
     {
         if (P.Size() != 1 || grad.Size() != 1)
         {
-            return hwMathStatus(HW_MATH_ERR_USERFUNCSIZE, 222);
+            return hwMathStatus(HW_MATH_ERR_USERFUNCSIZE, 111);
         }
         grad(0) = objGrad.Scalar();
     }
@@ -207,11 +207,11 @@ static hwMathStatus FMinUnconGradient(const hwMatrix& P,
 
         if (!gradMatrix->IsReal())
         {
-            return hwMathStatus(HW_MATH_ERR_USERFUNCREAL, 222);
+            return hwMathStatus(HW_MATH_ERR_USERFUNCREAL, 111);
         }
         if (gradMatrix->M() != grad.M() || gradMatrix->N() != grad.N())
         {
-            return hwMathStatus(HW_MATH_ERR_USERFUNCSIZE, 222);
+            return hwMathStatus(HW_MATH_ERR_USERFUNCSIZE, 111);
         }
         for (int i = 0; i < grad.M(); ++i)
         {
@@ -220,7 +220,7 @@ static hwMathStatus FMinUnconGradient(const hwMatrix& P,
     }
     else
     {
-        return hwMathStatus(HW_MATH_ERR_USERFUNCREAL, 222);
+        return hwMathStatus(HW_MATH_ERR_USERFUNCREAL, 111);
     }
       
     return hwMathStatus();
@@ -472,6 +472,14 @@ bool OmlFminunc(EvaluatorInterface           eval,
         {
             if (status.GetArg1() == 111)
             {
+                if (funcName == "anonymous")
+                {
+                    funcName = funcInfo->RedirectedFunction();
+
+                    if (!funcName.size())
+                        funcName = "anonymous";
+                }
+
                 status.SetUserFuncName(funcName);
                 status.SetArg1(1);
             }

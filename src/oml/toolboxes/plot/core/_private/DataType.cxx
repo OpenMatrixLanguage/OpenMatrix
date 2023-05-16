@@ -1,7 +1,7 @@
 /**
 * @file DataType.cxx
 * @date May 2018
-* Copyright (C) 2018 Altair Engineering, Inc.  
+* Copyright (C) 2018-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -23,7 +23,7 @@
 namespace omlplot{
 
     LineData::LineData()
-        :index(0), xcolcount(1), ycolcount(1), zcolcount(1)
+        :index(0), xcolcount(1), ycolcount(1), zcolcount(1), bar3PerRow(false)
     {
     }
 

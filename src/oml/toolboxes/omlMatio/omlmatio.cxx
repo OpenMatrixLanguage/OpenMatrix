@@ -41,31 +41,36 @@ OmlMatio::OmlMatio(const std::string& filename, int verbose, MATFILEVERSION ver)
     , _name   ("empty")
     , _version(ver)
 {
-    assert(!filename.empty());
-
-    // This is in case the varible does not have a name defined
-    _name = BuiltInFuncsUtils::GetBaseName(filename);
-    size_t pos = _name.find(".");
-    if (pos != std::string::npos)
+    if (!filename.empty())
     {
-        _name = _name.substr(0, pos);
+        // This is in case the varible does not have a name defined
+        _name = BuiltInFuncsUtils::GetBaseName(filename);
+        size_t pos = _name.find(".");
+        if (pos != std::string::npos)
+        {
+            _name = _name.substr(0, pos);
+        }
     }
     _name += '_';
-
-#if 0 // Disabling redirection of stderr as this causes issues in other modules
-    _stderrfile = std::tmpnam(nullptr);
-    freopen(_stderrfile.c_str(), "w", stderr);
-#endif
 }
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-OmlMatio::~OmlMatio()
+void OmlMatio::Reset()
 {
-#if 0 // Disabling redirection of stderr as this causes issues in other modules
-    fclose(stderr);
-    remove(_stderrfile.c_str());
-#endif
+    _idx = 1;
+    _name = "empty_";
+}
+void OmlMatio::SetNamePrefix(const std::string& name)
+{
+    if (!name.empty())
+    {
+        // This is in case the varible does not have a name defined
+        _name = BuiltInFuncsUtils::GetBaseName(name);
+        size_t pos = _name.find(".");
+        if (pos != std::string::npos)
+        {
+            _name = _name.substr(0, pos);
+        }
+        _name += '_';
+    }
 }
 //------------------------------------------------------------------------------
 // Returns empty currency and adds invalid dimension warning
@@ -225,9 +230,9 @@ Currency OmlMatio::Char2Currency(matvar_t* var)
         const mat_uint16_t *data = (const mat_uint16_t*)var->data;
         for (int i = 0; i < m; ++i)
         {
-            std::wstring wrow;
             char tmp[256];
-            memset(tmp, 0, sizeof(tmp));
+
+            std::wstring wrow;
             for (int j = 0; j < n; ++j)
             {
                 const mat_uint16_t c = data[j * m + i];
@@ -257,11 +262,14 @@ Currency OmlMatio::Char2Currency(matvar_t* var)
         std::unique_ptr<hwMatrix> mtx(EvaluatorInterface::allocateMatrix(
             m, n, true));
         const char* tmp = (const char*)var->data;
-        for (int i = 0; i < m; ++i)
+        if (tmp)
         {
-            for (int j = 0; j < n; ++j)
+            for (int i = 0; i < m; ++i)
             {
-                (*mtx)(i, j) = (char)tmp[j * m + i];
+                for (int j = 0; j < n; ++j)
+                {
+                    (*mtx)(i, j) = (char)tmp[j * m + i];
+                }
             }
         }
         result = mtx.release();
@@ -325,7 +333,7 @@ Currency OmlMatio::Sparse2Currency(matvar_t* var)
 //------------------------------------------------------------------------------
 // Gets name, creating a default one if name is not defined in matvar_t
 //------------------------------------------------------------------------------
-std::string OmlMatio::GetName(matvar_t* var)
+std::string OmlMatio::GetName(matvar_t* var,bool warn)
 {
     assert(var);
     std::string name;
@@ -337,7 +345,10 @@ std::string OmlMatio::GetName(matvar_t* var)
     if (name.empty())
     {
         name = _name + std::to_string(static_cast<long long>(_idx++));
-        AddWarning("Variable name is [], creating name [" + name + "]");
+        if (warn)
+        {
+            AddWarning("Variable name is [], creating name [" + name + "]");
+        }
     }
     return name;
 }
@@ -1483,4 +1494,110 @@ matvar_t* OmlMatio::Currency2MatObj(const char* name, const Currency& cur)
     sd2->SetValue(0, 0, s_omlInternalClass, cur.GetClassname());
 
     return Currency2MatStruct(name, Currency(sd2.release()));
+}
+//------------------------------------------------------------------------------
+// Adds warning about invalid dimensions
+//------------------------------------------------------------------------------
+void OmlMatio::AddInvalidDimsWarning(matvar_t* var, const std::string& name)
+{
+    AddWarning("Cannot read variable [" + name + "]; dimensions are [] for "
+        + GetTypeString(var));
+}
+//------------------------------------------------------------------------------
+// Adds warning about invalid rank
+//------------------------------------------------------------------------------
+void OmlMatio::AddInvalidRankWarning(matvar_t* var, const std::string& name)
+{
+    std::string msg("Cannot read variable [" + name + "]; cannot process rank [");
+    if (var)
+    {
+        msg += std::to_string(static_cast<long long>(var->rank));
+    }
+
+    AddWarning(msg + "] for " + GetTypeString(var));
+}
+//------------------------------------------------------------------------------
+// Helper method to get children
+//------------------------------------------------------------------------------
+std::vector<matvar_t*> OmlMatio::GetChildren(EvaluatorInterface eval, matvar_t* var)
+{
+    std::vector<matvar_t*> children;
+    if (!var || !(var->class_type == MAT_C_CELL || var->class_type == MAT_C_STRUCT))
+    {
+        return children;
+    }
+    std::string name = (var->name) ? var->name : "";
+    if (!var->dims)
+    {
+        AddInvalidDimsWarning(var, name);
+        return children;
+    }
+
+    int rank = var->rank;
+    if (rank < 2)
+    {
+        AddInvalidRankWarning(var, name);
+        return children;
+    }
+
+    if (var->class_type == MAT_C_CELL)
+    {
+        matvar_t** vals = (matvar_t**)var->data;
+        if (vals)
+        {
+
+            int numcells = 1;
+            for (int i = 0; i < var->rank; ++i)
+            {
+                int val = static_cast<int>(var->dims[i]);
+                numcells *= val;
+            }
+
+            children.reserve(numcells);
+            for (int i = 0; i < numcells && !eval.IsInterrupt(); ++i)
+            {
+                children.emplace_back(vals[i]);
+            }
+        }
+    }
+    else
+    {   
+        // Struct
+        if (rank != 2)
+        {
+            AddInvalidRankWarning(var, name);
+            return children;
+        }
+
+        int m = static_cast<int>(var->dims[0]);
+        int n = static_cast<int>(var->dims[1]);
+        if (m == 1 && n == 1)
+        {
+            int nfields = Mat_VarGetNumberOfFields(var);
+            children.reserve(nfields);
+            for (int i = 0; i < nfields && !eval.IsInterrupt(); ++i)
+            {
+                matvar_t* child = Mat_VarGetStructFieldByIndex(var, i, 0);
+                if (child)
+                {
+                    children.emplace_back(child);
+                }
+            }
+        }
+        else
+        {
+            int numchildren = m * n;
+            children.reserve(numchildren);
+
+            for (int i = 0; i < numchildren && !eval.IsInterrupt(); ++i)
+            {
+                matvar_t* child = Mat_VarGetStructsLinear(var, i, 1, 1, 1);
+                if (child)
+                {
+                    children.emplace_back(child);
+                }
+            }
+        }
+    }
+    return children;
 }

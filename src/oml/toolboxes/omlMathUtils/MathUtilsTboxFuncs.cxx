@@ -23,8 +23,8 @@
 #include "OML_Error.h"
 #include "MathUtilsFuncs.h"
 #include "SpecialFuncs.h"
-#include "hwMatrix_NMKL.h"
-#include "hwMatrixN_NMKL.h"
+#include "hwMatrix.h"
+#include "hwMatrixN.h"
 #include "MatrixNUtils.h"
 
 #if defined(_DARWIN) || defined(LINUX)

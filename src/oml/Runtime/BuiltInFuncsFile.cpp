@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsFile.cpp
 * @date March 2016
-* Copyright (C) 2016-2022 Altair Engineering, Inc.  
+* Copyright (C) 2016-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -36,6 +36,7 @@
 #    include <sys/stat.h>
 #endif
 
+#include "BuiltInFuncsString.h"
 #include "BuiltInFuncsUtils.h"
 #include "Evaluator.h"
 #include "MatrixDisplay.h"
@@ -90,6 +91,15 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
     if (!f)
     {
 		throw OML_Error(OML_ERR_FILE_CANNOTOPEN, 1);
+    }
+
+    // Get the file size first
+    long filesize = 0;
+    if (f)
+    {
+        fseek(f, 0, SEEK_END);
+        filesize = ftell(f);
+        fseek(f, 0, SEEK_SET);
     }
 
     // Get input options - which are the second arguments if specified
@@ -261,19 +271,19 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
     
     // Read the data
     int linenum = 0;      
-    const int tmpbuffsize = 2048;
+    const int tmpbuffsize = static_cast<int>(filesize) + 1;
 
 #ifdef OS_WIN
-    wchar_t lineC [tmpbuffsize];
+    wchar_t* lineC = new wchar_t[tmpbuffsize];
 #else
-    char lineC[tmpbuffsize];
+    char* lineC = new char[tmpbuffsize];
 
 #endif
     bool hasdata = false;
     while (!eval.IsInterrupt() && !feof(f))
     {
         std::string line;
-
+        memset(lineC, 0, tmpbuffsize);
 #ifdef OS_WIN
         if (fgetws(lineC, tmpbuffsize, f) == nullptr)
         {
@@ -293,39 +303,6 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
 			linenum++;  // Skip the header/empty lines
 			continue; 
 		}
-
-#ifdef OS_WIN
-        if (!wcsstr(lineC, L"\n") && !wcsstr(lineC, L"\r"))
-#else
-        if (!strstr(lineC, "\n") && !strstr(lineC, "\r"))
-#endif
-        {
-            while(!feof(f))
-            {
-#ifdef OS_WIN
-                if (fgetws(lineC, tmpbuffsize, f) == nullptr)
-#else
-                if (fgets(lineC, tmpbuffsize, f) == nullptr)
-#endif
-                {
-                    break;
-                }
-#ifdef OS_WIN
-                line += utils.WString2StdString(lineC);
-#else
-                line += lineC;
-#endif
-
-#ifdef OS_WIN
-                if (!wcsstr(lineC, L"\n") && !wcsstr(lineC, L"\r"))
-#else
-                if (!strstr(lineC, "\n") && !strstr(lineC, "\r"))
-#endif
-                {
-                    break;
-                }
-            }
-        }
 
         if (line[line.size() - 1] == '\n' || line[line.size() - 1] == '\r')
         {
@@ -447,7 +424,12 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
         linenum++;
     }
     
-     fclose(f);
+    if (lineC)
+    {
+        delete[] lineC;
+        lineC = nullptr;
+    }
+    fclose(f);
 
     // Create the outputs. 
     if (!hasdata || (!outputs.empty() && outputs.size() != formats.size()))
@@ -2334,7 +2316,7 @@ bool BuiltInFuncsFile::Fscanf(EvaluatorInterface           eval,
     std::vector<std::string> basefmts;
     std::vector<std::string> rawfmts;
     std::string err;
-    bool validformat = utils.GetFormats(fmtdesc, basefmts, rawfmts, err);
+    bool validformat = GetFscanfFormats(fmtdesc, basefmts, rawfmts, err);
     if (!validformat)
     {
         if (err.empty())
@@ -2680,98 +2662,144 @@ int BuiltInFuncsFile::ReadDouble(FILE*              file,
                                  double&            realval,
                                  double&            complexval) 
 {
+    assert(!fmt.empty());
+
     int ival   = 0;
     int used   = 0;
-    int result = (isdouble) ? fscanf(file, fmt.c_str(), &realval, &used) :
-                              fscanf(file, fmt.c_str(), &ival,    &used);
-    if (result != 1)
+    char buff[1028];
+    if (fmt[0] == '%') // This is a number
     {
-        return result;
-    }
+        int result = (isdouble) ? fscanf(file, fmt.c_str(), &realval, &used) :
+            fscanf(file, fmt.c_str(), &ival, &used);
+        if (result != 1)
+        {
+            return result;
+        }
 
-    if (!isdouble)
-    {
-        realval = static_cast<double>(ival);
-    }
+        if (!isdouble)
+        {
+            realval = static_cast<double>(ival);
+        }
 
-    // Check if this is a complex number with/without spaces that is being read
-    long pos1 = ftell(file);
-    if (pos1 == -1)
-    {
-        return result;
-    }
+        // Check if this is a complex number with/without spaces that is being read
+        long pos1 = ftell(file);
+        if (pos1 == -1)
+        {
+            return result;
+        }
 
-    // Read the next string to determine if we are processing a complex number
-    char buff [1028];
-    memset(buff, 0, sizeof(buff));
-    int tmpresult = fscanf(file, "%s", buff);
-    if (tmpresult != 1)
-    {
-        fseek(file, pos1, SEEK_SET);   // Rewind as we are not dealing with complex num
-        return result;
-    }
-    long pos2 = ftell(file);
-    std::string tmp1(buff);
-
-    if (tmp1.empty())
-    {
-        fseek(file, pos1, SEEK_SET);   // Rewind as this is not a complex num
-        return result;
-    }
-
-    bool issignonly = (tmp1 == "+" || tmp1 == "-") ? true : false;
-    if (issignonly)  
-    {
-        // Since this is sign only, check if there is a number after
+        // Read the next string to determine if we are processing a complex number
         memset(buff, 0, sizeof(buff));
-        tmpresult = fscanf(file, "%s", buff);
+        int tmpresult = fscanf(file, "%s", buff);
         if (tmpresult != 1)
         {
             fseek(file, pos1, SEEK_SET);   // Rewind as we are not dealing with complex num
             return result;
         }
-        tmp1 += buff;
-    }
+        long pos2 = ftell(file);
+        std::string tmp1(buff);
 
-    // Check if there is an i at the end
-    if (tmp1.empty())
-    {
-        fseek(file, pos1, SEEK_SET);   // Rewind as we are not dealing with complex num
-        return result;
-    }
-
-    // Check if there is an imaginary part
-    iscomplex = IsComplex(tmp1, complexval);
-    if (iscomplex)
-    {
-        return result;
-    }
-
-    // Check if this has i - which means the first value is a complex number
-    std::string lower (tmp1);
-    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
-    if (lower == "i" || lower == "j")
-    {
-        fseek(file, pos2 - 2, SEEK_SET);  // Check if there is a space before i
-        char ch = fgetc(file);
-        if (!isdigit(ch) || pos2 != -1)
+        if (tmp1.empty())
         {
-            fseek(file, pos1, SEEK_SET);
+            fseek(file, pos1, SEEK_SET);   // Rewind as this is not a complex num
+            return result;
         }
-        else
+
+        bool issignonly = (tmp1 == "+" || tmp1 == "-") ? true : false;
+        if (issignonly)
         {
-            fseek(file, pos2, SEEK_SET);
+            // Since this is sign only, check if there is a number after
+            memset(buff, 0, sizeof(buff));
+            tmpresult = fscanf(file, "%s", buff);
+            if (tmpresult != 1)
+            {
+                fseek(file, pos1, SEEK_SET);   // Rewind as we are not dealing with complex num
+                return result;
+            }
+            tmp1 += buff;
+        }
+
+        // Check if there is an i at the end
+        if (tmp1.empty())
+        {
+            fseek(file, pos1, SEEK_SET);   // Rewind as we are not dealing with complex num
+            return result;
+        }
+
+        // Check if there is an imaginary part
+        iscomplex = IsComplex(tmp1, complexval);
+        if (iscomplex)
+        {
+            return result;
+        }
+
+        // Check if this has i - which means the first value is a complex number
+        std::string lower(tmp1);
+        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+        if (lower == "i" || lower == "j")
+        {
+            fseek(file, pos2 - 2, SEEK_SET);  // Check if there is a space before i
+            char ch = fgetc(file);
+            if (!isdigit(ch) || pos2 != -1)
+            {
+                fseek(file, pos1, SEEK_SET);
+            }
+            else
+            {
+                fseek(file, pos2, SEEK_SET);
+            }
+            return result;
+        }
+
+        // Check if there is an imaginary part
+        iscomplex = IsComplex(tmp1, complexval);
+        if (!iscomplex)
+        {
+            fseek(file, pos1, SEEK_SET);   // Rewind as this is not a complex num
         }
         return result;
     }
-
-    // Check if there is an imaginary part
-    iscomplex = IsComplex(tmp1, complexval);
-    if (!iscomplex)
+    // Scan as a string and then process
+    size_t pos = fmt.find('%');
+    if (pos == std::string::npos)
     {
-        fseek(file, pos1, SEEK_SET);   // Rewind as this is not a complex num
+        return 0;
     }
-    return result;
+    std::string prefix = fmt.substr(0, pos);
+
+    BuiltInFuncsString funcs;
+    while (1)
+    {
+        int result = fscanf(file, "%s%n", buff, &used);
+        if (used > 0)
+        {
+            std::string tmp(buff);
+            if (tmp.empty())
+            {
+                return 0;
+            }
+            if (tmp.find(prefix) != 0)
+            {
+                continue;
+            }
+            tmp = tmp.substr(prefix.length());
+            tmp = BuiltInFuncsUtils::RTrim(tmp, "\n");
+            tmp = BuiltInFuncsUtils::RTrim(tmp, "\\n");
+            tmp = BuiltInFuncsUtils::RTrim(tmp, "\r");
+            tmp = BuiltInFuncsUtils::RTrim(tmp, "\\r");
+            double ival = 0;
+            bool   isscalar = true;
+            if (funcs.Str2Num(tmp, realval, ival, isscalar))
+            {
+                return 1;
+            }
+        }
+        if (result != 1 || used == 0)
+        {
+            break;
+        }
+    }
+    return 0;
 }
 //------------------------------------------------------------------------------
 // Returns true and reads float/integer data from a file (dlmread)
@@ -3827,7 +3855,7 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
 
      return Dlmread(eval, in, outputs);
  }
- //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Returns true and writes a comma separated file [csvwrite]
 //-----------------------------------------------------------------------------
  bool BuiltInFuncsFile::Csvwrite(EvaluatorInterface           eval,
@@ -3941,4 +3969,156 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
          line += ch;
      }
      return line;
+ }
+//-----------------------------------------------------------------------------
+// Returns true if formats are valid fscanf
+//-----------------------------------------------------------------------------
+ bool BuiltInFuncsFile::GetFscanfFormats(const std::string& in,
+     std::vector<std::string>& basefmts,
+     std::vector<std::string>& rawfmts,
+     std::string& err)
+ {
+     if (in.empty())
+     {
+         basefmts.push_back("%f");
+         rawfmts.push_back("%lf");  // Default option
+         return true;
+     }
+
+     size_t pos = in.find('%');
+     if (pos == std::string::npos)
+     {
+         err = "Error: invalid format specified";
+         return false;
+     }
+     else
+     {
+         size_t len = in.length();
+         size_t idx = pos + 1;
+         char prevch = '%';
+         for (size_t i = idx; i < len; ++i)
+         {
+             char ch = in[i];
+             if (prevch == '%')
+             {
+                 if (isalpha(ch))
+                 {
+                     if (!(ch == 'c' || ch == 'd' || ch == 'e' || ch == 'f' ||
+                         ch == 'g' || ch == 'i' || ch == 's' || ch == 'n'))
+                     {
+                         err = "Error: invalid format specified";
+                         return false;
+                     }
+                 }
+                 else if (!(ch == '*' || ch == '.' || isdigit(ch)))
+                 {
+                     err = "Error: invalid format specified";
+                     return false;
+                 }
+             }
+             prevch = ch;
+         }
+     }
+     char* tok = strtok((char*)in.c_str(), "%");
+     std::string prefix;
+     while (tok)
+     {
+         std::string tmp(tok);
+
+         std::string basefmt;
+         std::string rawfmt;
+
+         int  numDecimalPts = 0;
+         bool hasOnlyDigits = true;
+
+         size_t len = tmp.size();
+
+         for (size_t i = 0; i < len; ++i)
+         {
+             char ch = tmp[i];
+             if (!basefmt.empty())
+             {
+                 rawfmt += ch; // Add any characters after the specifier are ok
+                 continue;
+             }
+             else if (ch == 'c' || ch == 'd' || ch == 'e' || ch == 'f' ||
+                 ch == 'g' || ch == 'i' || ch == 's' || ch == 'n')
+             {
+                 basefmt += ch;
+                 if (ch == 'f' || ch == 'g')
+                 {
+                     if (!hasOnlyDigits || numDecimalPts > 1)
+                     {
+                         rawfmt = "";
+                         err = "Error: invalid format %" + tmp;
+                         break;
+                     }
+                     rawfmt += "lf";
+                 }
+                 else if (ch == 'c' || ch == 'd' || ch == 'n')
+                 {
+                     if (!hasOnlyDigits || numDecimalPts > 0)
+                     {
+                         rawfmt = "";
+                         err = "Error: invalid format %" + tmp;
+                         break;
+                     }
+                     if (ch == 'n')
+                     {
+                         ch = 'd';
+                     }
+                     rawfmt += ch;
+                 }
+                 else
+                 {
+                     rawfmt += ch;
+                 }
+                 continue;
+             }
+             rawfmt += ch;
+
+             if (ch == '.')
+             {
+                 numDecimalPts++;
+             }
+             else if (!std::isdigit(static_cast<unsigned char>(ch)))
+             {
+                 hasOnlyDigits = false;
+             }
+         }
+
+         if (basefmt.empty() || rawfmt.empty())
+         {
+             if (!tmp.empty())
+             {
+                 prefix = tmp;
+                 tok = strtok(NULL, "%");
+                 continue;
+             }
+             return false;
+         }
+
+         basefmts.push_back("%" + basefmt);
+         rawfmts.push_back(prefix + "%" + rawfmt);
+         prefix = "";
+
+         tok = strtok(NULL, "%");
+     }
+
+     // Check if there are tabs in the format
+     size_t i = 0;
+     for (std::vector<std::string>::iterator itr = rawfmts.begin();
+         itr != rawfmts.end(); ++itr, ++i)
+     {
+         std::string fmt(*itr);
+         size_t      pos = fmt.find("\\t");
+         bool        replace = false;
+         if (pos != std::string::npos)
+         {
+             fmt.replace(pos, 2, "\t");
+             rawfmts[i] = fmt;
+         }
+     }
+
+     return true;
  }

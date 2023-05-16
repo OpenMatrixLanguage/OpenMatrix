@@ -778,7 +778,24 @@ void ConsoleWrapper::HandleOnGetUserInput(const std::string& prompt,
         FlushStdout();
     }
 
-    std::cout << prompt;
+    // Split prompt by new lines and just display them
+    std::vector<std::string> prompts(SplitInputPrompt(prompt));
+    std::string inputprompt(prompt);
+
+    if (!prompts.empty())
+    {
+        inputprompt = prompts.back();
+        prompts.pop_back();
+        for (std::vector<std::string>::const_iterator itr = prompts.begin();
+            itr != prompts.end(); ++itr)
+        {
+            std::vector<Currency> inputs;
+            inputs.emplace_back(*itr);
+            _interp->CallFunction("disp", inputs);
+        }
+    }
+
+    std::cout << inputprompt;
     FlushStdout();
     std::getline(std::cin, userInput);
 
@@ -1072,4 +1089,35 @@ void ConsoleWrapper::Print(const std::string& msg, bool forceFlush)
         }
         BuiltInFuncsUtils::SaveToOutputLog(msg);
     }
+}
+//------------------------------------------------------------------------------
+// Splits input prompt by new lines and returns the tokens
+//------------------------------------------------------------------------------
+std::vector<std::string> ConsoleWrapper::SplitInputPrompt(const std::string& in) const
+{
+    if (in.empty())
+    {
+        return std::vector<std::string>();
+    }
+
+    std::vector<std::string> tokens;
+    std::string prompt = in;
+
+    size_t len = std::string("\\n").length();
+    while (!prompt.empty())
+    {
+        size_t pos = prompt.find("\\n");
+        if (pos == std::string::npos)
+        {
+            if (!prompt.empty())
+            {
+                tokens.emplace_back(prompt);
+            }
+            break;
+        }
+        tokens.emplace_back(prompt.substr(0, pos));
+        tokens.emplace_back("");
+        prompt = prompt.substr(pos + len);
+    }
+    return tokens;
 }
