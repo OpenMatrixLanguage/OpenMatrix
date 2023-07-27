@@ -199,7 +199,7 @@ bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
     {
         char buf[256];
         memset(buf, 0, sizeof(buf));
-        if (fgets(buf, sizeof(buf), cmdoutput) <= 0)
+        if (!fgets(buf, sizeof(buf), cmdoutput))
         {
             std::cout << std::flush;
             break;
@@ -715,7 +715,7 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
 		while (1)
 		{
 			char buf[256];
-			if (fgets(buf, sizeof(buf), pipe) <= 0)
+			if (!fgets(buf, sizeof(buf), pipe))
 			{
 				break;
 			}
