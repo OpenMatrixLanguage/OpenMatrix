@@ -460,24 +460,23 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
     {
         throw OML_Error(OML_ERR_NUMARGIN);
     }
-
-    if (!inputs[0].IsString())
+    else if (!inputs[0].IsString())
     {
         throw OML_Error(OML_ERR_STRING, 1);
     }
     std::string in(inputs[0].StringVal());
-    BuiltInFuncsUtils utils;
-    in = utils.LTrim(in);
-    in = utils.RTrim(in);
+    in = BuiltInFuncsUtils::LTrim(in);
+    in = BuiltInFuncsUtils::RTrim(in);
     if (in.empty())
     {
-        throw (OML_ERR_NONEMPTY_STR, 1);
+        throw OML_Error(OML_ERR_NONEMPTY_STR, 1);
     }
+
+    BuiltInFuncsUtils utils;
 
     bool returnoutput      = false; // True if output from system command is returned
     bool async             = false; // True if system command runs asynchronously
     bool maxThreadAffinity = false; // True if async command needs to run on all cores on Linux
-
     int  nargin       = static_cast<int>(inputs.size());
     for (int i = 1; i < nargin; ++i)
     {

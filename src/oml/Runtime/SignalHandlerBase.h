@@ -242,6 +242,11 @@ public:
     //! \param wrapper handle to the wrapper
     //!
     virtual void SetWrapper(InterpWrapperBase* wrapper) {}
+    //!
+    //! Sets flag for running an OML command from the VS code extension
+    //! \param set Flag
+    //!
+    virtual void SetVSCodeCMDFlag(bool set) {}
 
 protected:
     //!

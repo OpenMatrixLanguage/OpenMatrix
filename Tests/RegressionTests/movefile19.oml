@@ -1,0 +1,14 @@
+% movefile-note movefile single file which does not exist.
+
+returndir = pwd;
+cd FileManipulation
+
+cd movefile
+
+disp('move wildcard directories with spaces to dir1 with force overwrite')
+command = '[r1, r2, r3] = movefile(''test3.txt'', ''test4.txt'')'
+eval(command)
+
+dir
+
+cd(returndir)

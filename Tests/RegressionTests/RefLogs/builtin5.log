@@ -1,1 +1,1 @@
-Error: input must be a string in call to function builtin at line number 1 in file builtin5.oml
+Error: invalid input in argument 1; must be string in call to function builtin at line number 1 in file builtin5.oml

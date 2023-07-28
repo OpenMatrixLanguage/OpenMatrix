@@ -14,7 +14,7 @@ try
 catch
 	message_computed = lasterr();
 end
-expected_message = 'Error: invalid class name in call to function eps at line number 13 in file lasterr1.oml';
+expected_message = 'Error: invalid option in argument 1; is incorrectly specified in call to function eps at line number 13 in file lasterr1.oml';
 if strcmp(message_computed, expected_message) ~= 1
 	error('lasterr does not work - Test 2');
 end

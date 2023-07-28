@@ -1,1 +1,1 @@
-Error: function name cannot have spaces in call to function cellfun at line number 1 in file cellfun16.oml
+Error: invalid input in argument 1; cannot contain spaces in call to function cellfun at line number 1 in file cellfun16.oml

@@ -1,0 +1,3 @@
+addToolbox omlstatistics
+m = [2,4,10,nan,5];
+v = nanmean(m)

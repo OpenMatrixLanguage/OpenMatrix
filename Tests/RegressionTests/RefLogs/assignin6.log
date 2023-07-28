@@ -1,1 +1,1 @@
-Error: context must be 'base' or 'caller' in call to function assignin at line number 1 in file assignin6.oml
+Error: invalid option in argument 1; must be 'base' or 'caller' in call to function assignin at line number 1 in file assignin6.oml

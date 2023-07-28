@@ -1,0 +1,3 @@
+filename = 'FileManipulation/textread14.txt';
+[Y, U, V, W] = textread(filename, '%f%f%f%f' , 'delimiter', '***', 'headerlines', 1);
+M = [Y U V W]

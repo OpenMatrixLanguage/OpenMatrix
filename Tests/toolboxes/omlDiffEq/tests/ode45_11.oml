@@ -1,4 +1,5 @@
 addtoolbox omldiffeq
+addpath([getenv('HW_ROOTDIR') '/hwcommon/oml/RegressionTests/functions']);
 
 function dx = MKC(t,x)
 	dx1dt = x(2) ;
@@ -19,4 +20,9 @@ function [position,isterminal,direction] = myEventsFcn(t,x)
 end
 
 opt = odeset('RelTol',1e-3,'AbsTol',[1e-6,1e-6],'Events',@myEventsFcn);
-[t,x,te,xe,ie] = ode45(@MKC, [0:0.1:20], [0;0], opt)
+[t,x,te,xe,ie] = ode45(@MKC, [0:0.1:20], [0;0], opt);
+t
+x = lowbitcleanup(x, 8)
+te
+xe = lowbitcleanup(xe, 8)
+ie

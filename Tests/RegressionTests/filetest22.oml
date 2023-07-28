@@ -1,0 +1,37 @@
+fname = 'FileManipulation/FileToRead.txt'
+fid = fopen(fname)
+[text, len] = fgets(fid, 9)
+[text, len] = fgets(fid);
+text
+if (ispc && len == 2) || (isunix && len == 1)
+	disp('len returns expected value: 2 for Windows, 1 for Linux')
+else
+	printf('len unexpected return value: %d\n', len)
+end
+
+[text, len] = fgets(fid,100);
+text
+if (ispc && len == 15) || (isunix && len == 14)
+	disp('len returns expected value: 15 for Windows, 14 for Linux')
+else
+	printf('len unexpected return value: %d\n', len)
+end
+
+[text, len] = fgets(fid);
+text
+if (ispc && len == 15) || (isunix && len == 14)
+	disp('len returns expected value: 15 for Windows, 14 for Linux')
+else
+	printf('len unexpected return value: %d\n', len)
+end
+
+[text, len] = fgets(fid);
+text
+if (ispc && len == 19) || (isunix && len == 18)
+	disp('len returns expected value: 19 for Windows, 18 for Linux')
+else
+	printf('len unexpected return value: %d\n', len)
+end
+
+[text, len] = fgets(fid)
+fclose(fid)

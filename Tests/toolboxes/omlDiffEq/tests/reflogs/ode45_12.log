@@ -1,5 +1,5 @@
-Warning: ODE solver terminated by Events function in call to function ode45 at line number 22 in file ode45_12.oml
-t = [Matrix] 27 x 1
+Warning: ODE solver terminated by Events function in call to function ode45 at line number 23 in file ode45_12.oml
+t = [Matrix] 28 x 1
 0.00000
 0.00103
 0.00915
@@ -27,9 +27,10 @@ t = [Matrix] 27 x 1
 2.46586
 2.66000
 2.85415
-x = [Matrix] 27 x 2
+3.01074
+x = [Matrix] 28 x 2
 0.00000e+00  0.00000e+00
-1.80356e-10  5.26926e-07
+1.80364e-10  5.26926e-07
 1.27375e-07  4.17314e-05
 1.88737e-06  2.51186e-04
 2.52780e-05  1.40901e-03
@@ -55,12 +56,13 @@ x = [Matrix] 27 x 2
 7.66427e-01  3.41198e-01
 8.22834e-01  2.36202e-01
 8.56862e-01  1.11446e-01
+8.65691e-01  0.00000e+00
 te = [Matrix] 2 x 1
 0.00000
 3.01074
 xe = [Matrix] 2 x 2
-0.00000e+00   0.00000e+00
-8.65691e-01  -2.63088e-14
+0.00000  0.00000
+0.86569  0.00000
 ie = [Matrix] 2 x 1
 1
 2

@@ -1,0 +1,8 @@
+addToolbox omlstatistics
+v = [0.03:0.05:0.98];
+x1 = betainv(v, 5, 3);
+v = [0.02:0.05:0.97];
+x2 = betainv(v, 5, 3);
+x = [x1(:), x2(:)];
+p = [0.0, 0.34, 0.5, 0.75, 1.0];
+q = quantile(x,p,1,1)

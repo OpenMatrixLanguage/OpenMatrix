@@ -1,0 +1,83 @@
+make directory with spaces
+command = mkdir('test dir 1')
+ans = 1
+[.]
+[..]
+[dir1]
+[dir2]
+[test dir 1]
+test1.txt
+test2.txt
+make second directory with spaces
+command = mkdir('test dir 2')
+ans = 1
+[.]
+[..]
+[dir1]
+[dir2]
+[test dir 1]
+[test dir 2]
+test1.txt
+test2.txt
+move wildcard directories with spaces to dir1
+command = r1 = movefile('test*', 'dir1')
+r1 = 1
+[.]
+[..]
+[dir1]
+[dir2]
+command = dir dir1
+[.]
+[..]
+test dir 1
+test dir 2
+test1.txt
+test2.txt
+command = dir dir2
+[.]
+[..]
+move wildcard directories` with spaces from dir1 to dir 2
+command = r1 = movefile('dir1/test*', 'dir2')
+r1 = 1
+[.]
+[..]
+[dir1]
+[dir2]
+command = dir dir1
+[.]
+[..]
+command = dir dir2
+[.]
+[..]
+test dir 1
+test dir 2
+test1.txt
+test2.txt
+move wildcard directories with spaces from dir2 to current dir
+command = r1 = movefile('dir2/test*', '.')
+r1 = 1
+[.]
+[..]
+[dir1]
+[dir2]
+[test dir 1]
+[test dir 2]
+test1.txt
+test2.txt
+command = dir dir1
+[.]
+[..]
+command = dir dir2
+[.]
+[..]
+remove directories with spaces to restore test environment
+command = rmdir('test dir 1')
+ans = 1
+command = rmdir('test dir 2')
+ans = 1
+[.]
+[..]
+[dir1]
+[dir2]
+test1.txt
+test2.txt

@@ -1,0 +1,65 @@
+% movefile-note movefile directories with spaces with force overwrite
+
+returndir = pwd;
+cd FileManipulation
+
+cd movefile
+
+disp('make directory with spaces')
+command = 'mkdir(''test dir 1'')'
+eval(command)
+
+dir
+
+disp('make second directory with spaces')
+command = 'mkdir(''test dir 2'')'
+eval(command)
+
+dir
+
+
+disp('move wildcard directories with spaces to dir1 with force overwrite')
+command = 'r1 = movefile(''test*'', ''dir1'', ''f'')'
+eval(command)
+
+dir
+
+command = 'dir dir1'
+eval(command)
+
+command = 'dir dir2'
+eval(command)
+
+disp('move wildcard directories` with spaces from dir1 to dir 2 with force overwrite')
+command = 'r1 = movefile(''dir1/test*'', ''dir2'', ''f'')'
+eval(command)
+
+dir
+
+command = 'dir dir1'
+eval(command)
+
+command = 'dir dir2'
+eval(command)
+
+disp('move wildcard directories with spaces from dir2 to current dir with force overwrite')
+command = 'r1 = movefile(''dir2/test*'', ''.'', ''f'')'
+eval(command)
+
+dir
+
+command = 'dir dir1'
+eval(command)
+
+command = 'dir dir2'
+eval(command)
+
+disp('remove directories with spaces to restore test environment')
+command = 'rmdir(''test dir 1'')'
+eval(command)
+command = 'rmdir(''test dir 2'')'
+eval(command)
+
+dir
+
+cd(returndir)

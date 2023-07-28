@@ -125,6 +125,9 @@ void* RunScript(void *arg)
     CommandArgs *pArgs = (CommandArgs*)arg;
     if(pArgs && pArgs->interp)
     {
+        Currency ret;
+        SignalHandlerBase* sh = pArgs->interp->GetSignalHandler();
+        sh->SetVSCodeCMDFlag(true);
         if ("evalfile" == pArgs->mode)
         {
            pArgs->interp->DoFile(pArgs->command);
@@ -133,6 +136,7 @@ void* RunScript(void *arg)
         {
             pArgs->interp->DoString(pArgs->command);
         }
+        sh->SetVSCodeCMDFlag(false);
 
         if(pArgs->sendinterpstate_func)
             pArgs->sendinterpstate_func(READY);

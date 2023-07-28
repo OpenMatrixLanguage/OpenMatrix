@@ -1,0 +1,3 @@
+fid = fopen('FileManipulation/textread12.txt','r');
+data = textread(fid,'%f')
+fclose(fid);

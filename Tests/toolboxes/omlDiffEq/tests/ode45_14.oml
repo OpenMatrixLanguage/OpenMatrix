@@ -1,0 +1,30 @@
+addtoolbox omldiffeq
+
+% Events function demo #2
+% Find x where the arc length of the unit circle = pi/4,
+% going clockwise = pi/4.
+
+function dLdx = Integrand(x,L)
+	% dydx = -x / sqrt(1 - x^2);
+	dLdx = sqrt(1 + x^2 / (1 - x^2));
+end
+ 
+function [position,isterminal,direction] = myEventsFcn(x,L)
+	position = L;		% check the function value
+	isterminal = 1;		% stop integration if root is found
+	direction = 1;		% look for increasing root
+end
+
+% Solve the system
+% sin(L(x)) = x. When L(x) = pi/4, x = sqrt(2)/2
+% We find xe by setting the initial length to -pi/4 and
+% then integrate until the shifted L(x) reaches 0, then stop.
+opt = odeset('Events',@myEventsFcn);
+[x,L,xe,Le,ie] = ode45(@Integrand, [0,1], -pi/4, opt)
+
+% The following condition triggers the error in VSM-9584
+% because the root is very close to the initial condition.
+% [x,L,xe,Le,ie] = ode45(@Integrand, [0,1], -sin(1e-5), opt)
+
+% The following condition does not trigger the error.
+% [x,L,xe,Le,ie] = ode45(@Integrand, [0,1], -sin(1e-3), opt)

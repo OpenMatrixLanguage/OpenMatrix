@@ -1,0 +1,17 @@
+addToolbox omlstatistics
+a = 5;
+b = 8;
+v = [0.01:0.02:0.99];
+x = betainv(v, a, b);
+m = length(x);
+x1 = x(1:2:m-1);
+x2 = x(2:2:m) + 0.3;
+rand('seed', 2023);
+rnd = rand(1,length(x1));
+[s,idx1] = sort(rnd);
+x1 = x1(idx1);
+rnd = rand(1,length(x1));
+[s,idx2] = sort(rnd);
+x2 = x2(idx2);
+x = reshape([x1',x2'], [1,length(x1),2]);
+[n,idx] = histc(x, [0.2:0.1:0.8], 2)

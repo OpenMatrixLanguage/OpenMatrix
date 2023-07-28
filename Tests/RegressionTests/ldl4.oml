@@ -1,0 +1,19 @@
+addToolbox omlstatistics
+
+rand('seed', 2023);
+v = randperm(100);
+A = reshape(v, 10, 10);
+A = A' * A;
+[v,d] = eig(A);
+d(2,2) = -d(2,2);
+d(3,3) = -d(3,3);
+d(5,5) = -d(5,5);
+d(7,7) = -d(7,7);
+d(8,8) = -d(8,8);
+A = v*d*v';
+[U,D,P] = ldl(A, 'upper');
+C = A - P*U*D*U'*P';
+U = round(U, 46, 'binary')
+D = round(D, 46, 'binary')
+P = round(P, 46, 'binary')
+C = round(C, 32, 'binary')

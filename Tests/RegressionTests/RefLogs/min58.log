@@ -1,0 +1,70 @@
+v = 
+slice(:, :, 1) = 
+[Matrix] 4 x 1
+111
+121
+131
+141
+
+slice(:, :, 2) = 
+[Matrix] 4 x 1
+112
+222
+132
+142
+
+slice(:, :, 3) = 
+[Matrix] 4 x 1
+113
+123
+233
+243
+
+slice(:, :, 4) = 
+[Matrix] 4 x 1
+114
+124
+134
+144
+
+slice(:, :, 5) = 
+[Matrix] 4 x 1
+115
+225
+135
+145
+idx = 
+slice(:, :, 1) = 
+[Matrix] 4 x 1
+1
+1
+1
+1
+
+slice(:, :, 2) = 
+[Matrix] 4 x 1
+1
+2
+1
+1
+
+slice(:, :, 3) = 
+[Matrix] 4 x 1
+1
+1
+2
+2
+
+slice(:, :, 4) = 
+[Matrix] 4 x 1
+1
+1
+1
+1
+
+slice(:, :, 5) = 
+[Matrix] 4 x 1
+1
+2
+1
+1

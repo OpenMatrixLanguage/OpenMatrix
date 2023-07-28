@@ -1,0 +1,23 @@
+addtoolbox omldiffeq
+addpath([getenv('HW_ROOTDIR') '/hwcommon/oml/RegressionTests/functions']);
+
+function dx = MKC(t,x)
+	dx1dt = x(2) ;
+	dx2dt = sin(t) - x(2) - x(1) ;
+	dx = [dx1dt ; dx2dt] ;
+end
+ 
+function [position,isterminal,direction] = myEventsFcn(t,x)
+	position = x(1:2);
+
+	if (t < 0.2)
+		isterminal = [0 0];
+	else
+		isterminal = [0 1];
+	end
+
+	direction = [0 0];
+end
+
+opt = odeset('RelTol',1e-3,'AbsTol',[1e-6,1e-6],'Events',@myEventsFcn);
+sol = ode45(@MKC, [0 20], [0;0], opt)

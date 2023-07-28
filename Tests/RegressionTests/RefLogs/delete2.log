@@ -1,0 +1,9 @@
+fname = FileManipulation/CreatedFile.txt
+fid = 3
+error = 
+Warning: failed to delete the following file(s):
+File [FileManipulation\CreatedFile.txt], error [Permission denied] in call to function delete at line number 3 in file delete2.oml
+ans = 0
+fid = -1
+error = No such file or directory
+Error: invalid file stream id [-1] specified in argument 1 in call to function fclose at line number 7 in file delete2.oml
