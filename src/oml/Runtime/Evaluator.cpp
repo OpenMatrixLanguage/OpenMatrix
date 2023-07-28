@@ -41,6 +41,7 @@
 #include <sys/stat.h>
 
 #include <cassert>
+#include <climits>
 #include <sstream>
 #include <thread>
 
