@@ -776,6 +776,21 @@ namespace omlplot{
         return ret;
     }
 
+    vector<double> CoreMain::triplot(vector<LineData>& ldVec)
+    {
+        return _T_2D_PLOT<Triplot>(ldVec);
+    }
+
+    vector<double> CoreMain::trimesh(vector<LineData>& ldVec)
+    {
+        return _T_3D_PLOT<Trimesh>(ldVec);
+    }
+
+    vector<double> CoreMain::trisurf(vector<LineData>& ldVec)
+    {
+        return _T_3D_PLOT<Trisurf>(ldVec);
+    }
+
     void CoreMain::set(unique_ptr<SetData> &data, vector<string>& notSupported)
 	{
         vector<double> hs =data->handles;

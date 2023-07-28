@@ -51,69 +51,31 @@ void hwTMatrixN<Currency, void*>::CopyMatrixLHS(const hwTMatrixN<Currency, void*
 
 	for (int i = 0; i < size; ++i)
 	{
-        // determine the best approach, depending on whether the slicing involves
-        // contiguous or equally spaced memory.
-        // 0. leading contiguous dimensions
-        // 1. largest equally spaced dimension
-        int S_case;
-        int keyDim[2]{ -1, -1 };
-        int keySize[2]{ 1,  1 };
+        int startLHS = Index(m_lhsMatrixIndex);
+        int startRHS = rhsMatrix.Index(m_rhsMatrixIndex);
 
-        for (int i = 0; i < rhsMatrix.m_dim.size(); ++i)
+        CopyData(m_real + startLHS, strideLHS, rhsMatrix.m_real + startRHS, strideRHS, keySize[S_case]);
+        i += keySize[S_case] - 1;
+
+        // advance rhs matrix indices
+        for (int j = startIndx; j < rhsMatrix.m_dim.size(); ++j)
         {
-            if (i == keyDim[0] + 1 && m_dim[i] == rhsMatrix.m_dim[i])
+            if (j == keyDim[S_case])
             {
-                keyDim[0] = i;
-                keySize[0] *= rhsMatrix.m_dim[i];
+                continue;
             }
 
-            if (m_dim[i] >= keySize[1])
+            // increment index j if possible
+            if (m_rhsMatrixIndex[j] < (int)rhsMatrix.m_dim[j] - 1)
             {
-                keyDim[1] = i;
-                keySize[1] = rhsMatrix.m_dim[i];
+                ++m_lhsMatrixIndex[j];
+                ++m_rhsMatrixIndex[j];
+                break;
             }
-        }
 
-        if (keySize[0] >= keySize[1])
-            S_case = 0;
-        else
-            S_case = 1;
-
-        // simulate nested loops to iterate over the rhsMatrix elements
-        // in order of contiguous memory location, copying blocks where possible
-        m_lhsMatrixIndex.clear();
-        m_rhsMatrixIndex.clear();
-        m_lhsMatrixIndex.resize(m_dim.size());
-        m_rhsMatrixIndex.resize(rhsMatrix.m_dim.size());
-
-        int size = rhsMatrix.Size();
-        int startIndx = (S_case == 0) ? keyDim[0] + 1 : 0;
-        int strideLHS = (S_case == 0) ? 1 : Stride(keyDim[S_case]);
-        int strideRHS = (S_case == 0) ? 1 : rhsMatrix.Stride(keyDim[S_case]);
-
-        for (int i = 0; i < size; ++i)
-        {
-            int startLHS = Index(m_lhsMatrixIndex);
-            int startRHS = rhsMatrix.Index(m_rhsMatrixIndex);
-
-            CopyData(m_real + startLHS, strideLHS, rhsMatrix.m_real + startRHS, strideRHS, keySize[S_case]);
-            i += keySize[S_case] - 1;
-
-            // advance rhs matrix indices
-            for (int j = startIndx; j < rhsMatrix.m_dim.size(); ++j)
-            {
-                // increment index j if possible
-                if (m_rhsMatrixIndex[j] < (int)rhsMatrix.m_dim[j] - 1)
-                {
-                    ++m_lhsMatrixIndex[j];
-                    ++m_rhsMatrixIndex[j];
-                    break;
-                }
-
-                // index j is maxed out, so reset and continue to j+1
-                m_lhsMatrixIndex[j] = 0;
-                m_rhsMatrixIndex[j] = 0;
-            }
+            // index j is maxed out, so reset and continue to j+1
+            m_lhsMatrixIndex[j] = 0;
+            m_rhsMatrixIndex[j] = 0;
         }
     }
 }

@@ -130,6 +130,17 @@ namespace omlplot{
         return res;
     }
 
+    std::string Color::getStringWithAlpha(double alpha)
+    {
+        stringstream ss;
+        ss << std::hex << "0x"
+            << std::setw(2) << std::setfill('0') << (int)((1-alpha)*255)
+            << std::setw(2) << std::setfill('0') << m_vComponent[0]
+            << std::setw(2) << std::setfill('0') << m_vComponent[1]
+            << std::setw(2) << std::setfill('0') << m_vComponent[2];
+        return ss.str();
+    }
+
     std::string Color::getString(){
         stringstream ss;
         ss << std::hex << '#' 

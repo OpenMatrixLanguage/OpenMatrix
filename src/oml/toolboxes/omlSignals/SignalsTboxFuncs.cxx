@@ -86,6 +86,7 @@ int InitDll(EvaluatorInterface eval)
     eval.RegisterBuiltInFunction("kaiser",      OmlKaiser,     FunctionMetaData(-3, 1, SIGN));
     eval.RegisterBuiltInFunction("filter",      OmlFilter,     FunctionMetaData(-4, 1, SIGN));
     eval.RegisterBuiltInFunction("filtfilt",    OmlFiltfilt,   FunctionMetaData(3, 1, SIGN));
+    eval.RegisterBuiltInFunction("filter2",     OmlFilter2,    FunctionMetaData(-3, 1, SIGN));
     eval.RegisterBuiltInFunction("sinc",        OmlSinc,       FunctionMetaData(1, 1, SIGN));
     eval.RegisterBuiltInFunction("upsample",    OmlUpsample,   FunctionMetaData(-3, 1, SIGN));
     eval.RegisterBuiltInFunction("downsample",  OmlDownsample, FunctionMetaData(-3, 1, SIGN));
@@ -2574,7 +2575,7 @@ bool OmlPwelch(EvaluatorInterface           eval,
                std::vector<Currency>&       outputs)
 {
     size_t nargin = inputs.size();
-    if (nargin < 1 || nargin > 6)
+    if (nargin < 1 || nargin > 7)
     {
         throw OML_Error(OML_ERR_NUMARGIN);
     }
@@ -2641,9 +2642,11 @@ bool OmlPwelch(EvaluatorInterface           eval,
     }
 
     // mangage default window size and/or overlap
+    // The general condition for overlapped windows is
+    // windowSize + (numfft - 1) * (windowSize - numOverlapPts) <= dataSize
+
     if (windowSize == -1)
     {
-        // 8 blocks
         int dataSize;
 
         if (input1.IsMatrix() || input1.IsScalar())
@@ -2660,13 +2663,23 @@ bool OmlPwelch(EvaluatorInterface           eval,
             dataSize = input1.MatrixN()->Dimensions()[0];
         }
 
+        // default inputs to produce numfft == 8 blocks
         if (numOverlapPts == -1)
         {
-            windowSize    = (2*dataSize) / 9;
-            numOverlapPts = windowSize / 2;
+            // solve general condition for numOverlapPts
+            numOverlapPts = dataSize / 9;
+            windowSize = 2 * numOverlapPts;
+
+            // previous calculation
+            // (changed because it can produce 7 windows
+            // for some cases. Example: dataSize = 95.)
+            // solve general condition for windowSize
+            // windowSize = (2*dataSize) / 9;
+            // numOverlapPts = windowSize / 2;
         }
         else
         {
+            // solve general condition for windowSize
             windowSize = ((dataSize + 7*numOverlapPts)) / 8;
         }
 
@@ -2715,7 +2728,7 @@ bool OmlPwelch(EvaluatorInterface           eval,
         }
         else if (inputs[4].IsMatrix())
         {
-            if (!(inputs[4].Matrix()->M() == 0 && inputs[4].Matrix()->N() == 0))
+            if (!(inputs[4].Matrix()->Is0x0()))
             {
                 throw OML_Error(OML_ERR_POSINTEGER, 5, OML_VAR_VALUE);
             }
@@ -2726,16 +2739,51 @@ bool OmlPwelch(EvaluatorInterface           eval,
         }
     }
 
-    //  spectrum sides argument
+    // spectrum sides argument
     bool onesided = true;
-    if (nargin > 1 && inputs.back().IsString())
+    if (nargin > 5)
     {
-        std::string opt = readOption(eval, inputs.back());
-        if (opt == "twosided")
+        if (inputs[5].IsString())
         {
-            onesided = false;
+            std::string opt = readOption(eval, inputs[5]);
+
+            if (opt == "twosided")
+            {
+                onesided = false;
+            }
+            else if (opt != "onesided")
+            {
+                throw OML_Error(HW_ERROR_INVALIDOPTION(opt));
+            }
         }
-        else if (opt != "onesided")
+        else if (inputs[5].IsMatrix())
+        {
+            if (!(inputs[5].Matrix()->Is0x0()))
+            {
+                throw OML_Error(OML_ERR_STRING, 6, OML_VAR_VALUE);
+            }
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_STRING, 6, OML_VAR_VALUE);
+        }
+    }
+
+    // spectrum type argument
+    bool powerSpectrum = false;
+    if (nargin > 6)
+    {
+        if (!inputs[6].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, 7);
+        }
+
+        std::string opt = readOption(eval, inputs[6]);
+        if (opt == "power")
+        {
+            powerSpectrum = true;
+        }
+        else if (opt != "psd")
         {
             throw OML_Error(HW_ERROR_INVALIDOPTION(opt));
         }
@@ -2758,8 +2806,10 @@ bool OmlPwelch(EvaluatorInterface           eval,
         if (matrix->IsVector())
         {
             hwMathStatus status = (window) ?
-                BlockPSD(*matrix, *window, numOverlapPts, sampFreq, *density, fftSize) :
-                BlockPSD(*matrix, *windowTemp, numOverlapPts, sampFreq, *density, fftSize);
+                BlockPSD(*matrix, *window, numOverlapPts, sampFreq,
+                         powerSpectrum, *density, fftSize) :
+                BlockPSD(*matrix, *windowTemp, numOverlapPts, sampFreq,
+                         powerSpectrum, *density, fftSize);
 
             BuiltInFuncsUtils::CheckMathStatus(eval, status);
 
@@ -2787,8 +2837,10 @@ bool OmlPwelch(EvaluatorInterface           eval,
                     hwMatrix col_in(matrix->M(), 1, reinterpret_cast<void*> (signal), hwMatrix::REAL);
 
                     hwMathStatus status = (window) ?
-                        BlockPSD(col_in, *window, numOverlapPts, sampFreq, col_out, fftSize) :
-                        BlockPSD(col_in, *windowTemp, numOverlapPts, sampFreq, col_out, fftSize);
+                        BlockPSD(col_in, *window, numOverlapPts, sampFreq,
+                                 powerSpectrum, col_out, fftSize) :
+                        BlockPSD(col_in, *windowTemp, numOverlapPts, sampFreq,
+                                 powerSpectrum, col_out, fftSize);
 
                     status = Fold(col_out, col_out2);
 
@@ -2808,8 +2860,10 @@ bool OmlPwelch(EvaluatorInterface           eval,
                     hwMatrix col_out(fftSize, 1, reinterpret_cast<void*> (response), hwMatrix::REAL);
 
                     hwMathStatus status = (window) ?
-                        BlockPSD(col_in, *window, numOverlapPts, sampFreq, col_out, fftSize) :
-                        BlockPSD(col_in, *windowTemp, numOverlapPts, sampFreq, col_out, fftSize);
+                        BlockPSD(col_in, *window, numOverlapPts, sampFreq,
+                                 powerSpectrum, col_out, fftSize) :
+                        BlockPSD(col_in, *windowTemp, numOverlapPts, sampFreq,
+                                 powerSpectrum, col_out, fftSize);
 
                     signal += matrix->M();
                     response += fftSize;
@@ -6997,6 +7051,91 @@ bool OmlFiltfilt(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
+// Filters a signal with a 2D FIR filter [filter2 command]
+//------------------------------------------------------------------------------
+bool OmlFilter2(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin != 2 && nargin != 3)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    std::vector<Currency> inputs2;
+    inputs2.push_back(inputs[1]);
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_REALVECTOR, 1, OML_VAR_TYPE);
+    }
+
+    const hwMatrix* b = inputs[0].ConvertToMatrix();
+    int bm = b->M();
+    int bn = b->N();
+
+    hwMatrix* br = EvaluatorInterface::allocateMatrix(bm, bn, true);
+
+    for (int i = 0; i < bm; ++i)
+    {
+        for (int j = 0; j < bn; ++j)
+        {
+            (*br)(bm - 1 - i, bn - 1 - j) = (*b)(i, j);
+        }
+    }
+
+    inputs2.push_back(br);
+
+    if (nargin == 3)
+    {
+        inputs2.push_back(inputs[2]);
+    }
+    else
+    {
+        inputs2.push_back("same");
+    }
+
+    try
+    {
+        oml_conv2(eval, inputs2, outputs);
+    }
+    catch (OML_Error& e)
+    {
+        hwMathStatus& status = e.Status();
+
+        if (!status.IsOk())
+        {
+            if (status.GetArg1() == 1)
+                status.SetArg1(2);
+            else if (status.GetArg1() == 2)
+                status.SetArg1(1);
+
+            if (status.GetArg2() == 1)
+                status.SetArg2(2);
+            else if (status.GetArg2() == 2)
+                status.SetArg2(1);
+        }
+        else
+        {
+            if (e.Arg1() == 1)
+                e.Arg1(2);
+            else if (e.Arg1() == 2)
+                e.Arg1(1);
+
+            if (e.Arg2() == 1)
+                e.Arg2(2);
+            else if (e.Arg2() == 2)
+                e.Arg2(1);
+        }
+
+        throw e;
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
 // Computes the sinc function [sinc command]
 //------------------------------------------------------------------------------
 bool OmlSinc(EvaluatorInterface           eval, 
@@ -7005,7 +7144,9 @@ bool OmlSinc(EvaluatorInterface           eval,
 {
     // This function should be in /common/math/signals, but it would need a new 
     // file. So keep it here for now.
-    if (eval.GetNarginValue() != 1)
+    size_t nargin = inputs.size();
+        
+    if (nargin != 1)
     {
         throw OML_Error(OML_ERR_NUMARGIN);
     }
@@ -7393,9 +7534,47 @@ bool OmlFindPeaks(EvaluatorInterface           eval,
     const hwMatrix* signal          = inputs[0].ConvertToMatrix();
     bool            twosided        = false;
     double          minPeakHeight   = -1.0;
-    int             minPeakDistance = -1;
-    int             minPeakWidth    = -1;
+    double          minPeakDistance = -1.0;
+    double          minPeakWidth    = -1.0;
     int             arg             = 1;
+    double          origin          = 1.0;
+    double          sampRate        = 1.0;
+    const hwMatrix* timeVec         = nullptr;
+
+    if (nargin > 1)
+    {
+        if (inputs[arg].IsScalar())
+        {
+            double sampFreq = inputs[arg].Scalar();
+            sampRate = 1.0 / sampFreq;
+            origin = 0.0;
+            ++arg;
+        }
+        else if (inputs[arg].IsMatrix())
+        {
+            timeVec = inputs[arg].Matrix();
+            int n = signal->Size();
+
+            if (!timeVec->IsVector())
+            {
+                throw OML_Error(OML_ERR_REALVECTOR, 2);
+            }
+
+            if (!timeVec->IsReal())
+            {
+                throw OML_Error(OML_ERR_REALVECTOR, 2);
+            }
+
+            if (timeVec->Size() != n)
+            {
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
+            }
+
+            sampRate = ((*timeVec)(n - 1) - (*timeVec)(0)) / (n - 1);
+            origin = (*timeVec)(0);
+            ++arg;
+        }
+    }
 
     while (arg < nargin)
     {
@@ -7418,24 +7597,33 @@ bool OmlFindPeaks(EvaluatorInterface           eval,
             }
             minPeakHeight = inputs[arg].Scalar();
             ++arg;
+
+            if (IsNaN_T(minPeakHeight))
+                throw OML_Error(OML_ERR_NUMERIC, arg);
         }
         else if (temp_str == "MinPeakDistance")
         {
-            if (!inputs[arg].IsInteger())
+            if (!inputs[arg].IsScalar())
             {
-                throw OML_Error(OML_ERR_INTEGER, arg+1, OML_VAR_TYPE);
+                throw OML_Error(OML_ERR_SCALAR, arg+1, OML_VAR_TYPE);
             }
-            minPeakDistance = static_cast<int>(inputs[arg].Scalar());
+            minPeakDistance = inputs[arg].Scalar();
             ++arg;
+
+            if (IsNaN_T(minPeakDistance))
+                throw OML_Error(OML_ERR_NUMERIC, arg);
         }
         else if (temp_str == "MinPeakWidth")
         {
-            if (!inputs[arg].IsInteger())
+            if (!inputs[arg].IsScalar())
             {
-                throw OML_Error(OML_ERR_INTEGER, arg+1, OML_VAR_TYPE);
+                throw OML_Error(OML_ERR_SCALAR, arg+1, OML_VAR_TYPE);
             }
-            minPeakWidth = static_cast<int>(inputs[arg].Scalar());
+            minPeakWidth = inputs[arg].Scalar();
             ++arg;
+
+            if (IsNaN_T(minPeakWidth))
+                throw OML_Error(OML_ERR_NUMERIC, arg);
         }
         else
         {
@@ -7445,32 +7633,25 @@ bool OmlFindPeaks(EvaluatorInterface           eval,
 
     // prepare algorithm function call
     std::unique_ptr<hwMatrix> peaks(EvaluatorInterface::allocateMatrix());
-    hwMatrixI index;
+    std::unique_ptr<hwMatrix> peakLocs(EvaluatorInterface::allocateMatrix());
     PeakInfo* extra = nullptr;
 
     if (nargout == 3)
     {
         extra = new PeakInfo;
     }
-    hwMathStatus status = FindPeaks(*signal, twosided, minPeakHeight,
-        minPeakDistance, minPeakWidth, *peaks, index, 1, extra);
+
+    hwMathStatus status = FindPeaks(*signal, sampRate, origin, twosided,
+                                    minPeakHeight, minPeakDistance,
+                                    minPeakWidth, *peaks, *peakLocs, extra);
 
     if (!status.IsOk())
     {
         throw OML_Error(status);
     }
 
-    hwMatrix* dindex = EvaluatorInterface::allocateMatrix(index.M(), 
-                                           index.N(), true);
-
-    int size = index.Size();
-    for (int i = 0; i < size; ++i)
-    {
-        (*dindex)(i) = static_cast<double>(index(i));
-    }
-
     outputs.push_back(peaks.release());
-    outputs.push_back(dindex);
+    outputs.push_back(peakLocs.release());
 
     if (extra)
     {

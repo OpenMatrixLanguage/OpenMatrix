@@ -6117,6 +6117,10 @@ inline hwMathStatus hwTMatrix<double>::Balance(bool noperm, hwTMatrix<double>& S
 {
     hwMathStatus status;
 
+    // Square matrix required
+    if (m_nRows != m_nCols)
+        return status(HW_MATH_ERR_MTXNOTSQUARE, 0);
+
     if (IsEmpty())
     {
         status = S.Dimension(0, 0, REAL);
@@ -6125,10 +6129,6 @@ inline hwMathStatus hwTMatrix<double>::Balance(bool noperm, hwTMatrix<double>& S
 
         return status;
     }
-
-    // Square matrix required
-    if (m_nRows != m_nCols)
-        return status(HW_MATH_ERR_MTXNOTSQUARE, 0);
 
     // Finite matrix required
     if (!IsFinite())

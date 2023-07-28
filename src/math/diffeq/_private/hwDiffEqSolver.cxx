@@ -228,26 +228,28 @@ hwMathStatus hwDiffEqSolver::FillMatrix(const hwMatrix& time,
 
         bool intervalComplete = Success(flag);
         bool oneStepInProgress = intervalComplete ? false : Continue(flag);
+        bool terminalEvent = (flag == -99) ? true : false;
 
-        if (flag == -99)
-            break;
-
-        if (intervalComplete || oneStepInProgress)
+        if (intervalComplete || oneStepInProgress || terminalEvent)
         {
             if (OneStepMode)
             {
-                m_status = timeSolution->Resize(i + 1, 1);
+                hwMathStatus status2;   // messy m_status return
 
-                if (!m_status.IsOk())
+                status2 = timeSolution->Resize(i + 1, 1);
+
+                if (!status2.IsOk())
                 {
+                    m_status = status2;
                     m_status.SetArg1(2);
                     return m_status;
                 }
 
-                m_status = ySolution.Resize(i + 1, numEqns);
+                status2 = ySolution.Resize(i + 1, numEqns);
 
-                if (!m_status.IsOk())
+                if (!status2.IsOk())
                 {
+                    m_status = status2;
                     m_status.SetArg1(3);
                     return m_status;
                 }
@@ -261,6 +263,12 @@ hwMathStatus hwDiffEqSolver::FillMatrix(const hwMatrix& time,
             for (int j = 0; j < numEqns; j++)
             {
                 ySolution(i, j) = m_y(j);
+            }
+
+            if (terminalEvent)
+            {
+                ++i;
+                break;
             }
         }
         else

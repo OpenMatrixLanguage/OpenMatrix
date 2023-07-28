@@ -463,6 +463,15 @@ bool OmlFiltfilt(EvaluatorInterface           eval,
                  const std::vector<Currency>& inputs, 
                  std::vector<Currency>&       outputs);
 //!
+//! Filters a signal with a 2D FIR filter [filter2 command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlFilter2(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs);
+//!
 //! Computes the sinc function [sinc command]
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs

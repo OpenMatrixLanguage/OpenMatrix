@@ -379,8 +379,7 @@ Currency ExprTreeEvaluator::CallFunction(const std::string* func_name, const std
 	MemoryScope* scope = msm->GetCurrentScope();
 
 	const std::string* current_filename_ptr = scope->GetFilenamePtr();
-	std::string my_file;
-	std::string my_extension;
+
 	std::string current_filename;
 
 	if (current_filename_ptr)
@@ -443,6 +442,9 @@ Currency ExprTreeEvaluator::CallFunction(const std::string* func_name, const std
 		}
 	}
 
+	std::string found_file;
+	std::string found_ext;
+
 	if (params.size() && HasOverloadedFunction(params[0], *func_name))
 	{
 		std::string class_name = params[0].GetClassname();
@@ -476,111 +478,60 @@ Currency ExprTreeEvaluator::CallFunction(const std::string* func_name, const std
 		Currency cur = ci->CreateEmpty();
 		return cur;
 	}
-	else if (FindPrecompiledFunction(*func_name, my_file))
+	else if (FindFunctionInPath(*func_name, found_file, found_ext))
 	{
-		OMLTree* tree = OMLTree::ReadTreeFromFile(my_file);
+		bool ret_val = false;
 
-		RUN(tree);
-
-		delete tree;
-
-		UserFunc*     uf = (*functions)[*func_name];
-		FunctionInfo* fi = NULL;
-		
-		if (uf)
-			fi = uf->fi;
-
-		if (!fi)
+		if (found_file != current_filename)
 		{
-			std::string error_message = "Error: '" + *func_name;
-			error_message += "' is not defined";
-			throw OML_Error(error_message);
+			if ((found_ext == "oml") || (found_ext == "m"))
+		{
+				ret_val = ParseAndRunFile(found_file, params.size() == 0);
 		}
-
-		return CallInternalFunction(fi, params);
+			else if (found_ext == "omc")
+			{
+				RunEncryptedFile(found_ext, found_file);
+				ret_val = true;
 	}
-	else if (FindFunction(*func_name, my_file) && (my_file != current_filename))
+			else if (found_ext == "omlp")
 	{
-		bool ret_val = ParseAndRunFile(my_file, params.size() == 0);
+				RunPrecompiledFile(found_file);
+				ret_val = true;
+			}
 
-		if (ret_val)
-		{
+			if (!ret_val)
+				return Currency(-1.0, Currency::TYPE_NOTHING);
+
 			if (functions->find(*func_name) == functions->end())
 			{
-				// in case it's a class w/o a constructor
-				if (class_info_map->find(*func_name) != class_info_map->end())
+				if (params.size() != 0)
 				{
-					ClassInfo* ci = (*class_info_map)[*func_name];
-					Currency cur = ci->CreateEmpty();
-					return cur;
+					std::string error_message = "Invalid function: " + *func_name;
+					throw OML_Error(error_message);
 				}
-
-				std::string error_message = "Invalid function: " + *func_name;
-				throw OML_Error(error_message);		
+				else
+				{
+					// if the function isn't found after running the file, but there are no inputs, it must have been a script file so no error
+					return Currency(-1.0, Currency::TYPE_NOTHING);
+				}
 			}
 			
 			UserFunc* uf = (*functions)[*func_name];
-			FunctionInfo* fi = uf->fi;
+			FunctionInfo* fi = NULL;
 
-			if (!fi)
+			if (uf)
+				fi = (*functions)[*func_name]->fi;
+
+			if (fi)
+			{
+				return CallInternalFunction(fi, params);
+			}
+			else
 			{
 				std::string error_message = "Error: '" + *func_name;
 				error_message += "' is not defined";
 				throw OML_Error(error_message);
 			}
-			return CallInternalFunction(fi, params);
-		}
-		else // FindFunction already ran the script
-		{
-			return Currency(-1.0, Currency::TYPE_NOTHING);
-		}
-	}
-	else if (FindEncryptedFunction(*func_name, my_file, my_extension))
-	{
-		RunEncryptedFile(my_extension, my_file);
-
-		UserFunc* uf = NULL;
-
-		if (functions->find(*func_name) != functions->end())
-			uf = (*functions)[*func_name];
-
-		if (uf)
-		{
-			FunctionInfo* fi = uf->fi;
-			return CallInternalFunction(fi, params);
-		}
-		else
-		{
-			return Currency(-1.0, Currency::TYPE_NOTHING);
-		}
-	}
-	else if (std_functions->find(*func_name) != std_functions->end())
-	{
-		FUNCPTR fptr = (*std_functions)[*func_name].fptr;
-
-		if (fptr)
-			return CallBuiltinFunction(fptr, *func_name, params);
-		else
-		{
-			ALT_FUNCPTR alt_fptr = (*std_functions)[*func_name].alt_fptr;
-			return CallBuiltinFunction(alt_fptr, *func_name, params);
-		}
-	}
-	else
-	{
-		if (ext_var_ptr)
-		{
-			Currency temp = CheckForExternalVariable(*func_name);
-
-			if (!temp.IsNothing())
-				return temp;
-		}
-
-		if (my_file != current_filename)
-		{
-			std::string error_message = "Error: '" + *func_name;
-			error_message += "' is not defined";
-			throw OML_Error(error_message);
 		}
 		else
 		{
@@ -588,7 +539,60 @@ Currency ExprTreeEvaluator::CallFunction(const std::string* func_name, const std
 			throw OML_Error(error_message);
 		}
 	}
+	else if (std_functions->find(*func_name) != std_functions->end())
+	{
+		FUNCPTR fptr = (*std_functions)[*func_name].fptr;
+
+		if (fptr)
+		{
+			return CallBuiltinFunction(fptr, *func_name, params);
+		}
+		else
+		{
+			ALT_FUNCPTR alt_fptr = (*std_functions)[*func_name].alt_fptr;
+			return CallBuiltinFunction(alt_fptr, *func_name, params);
+		}
+	}
+	else if (ext_var_ptr)
+	{
+		Currency temp = CheckForExternalVariable(*func_name);
+
+		if (!temp.IsNothing())
+			return temp;
+	}
+	else
+	{
+		std::string error_message = "Error: '" + *func_name;
+		error_message += "' is not defined";
+		throw OML_Error(error_message);
+	}
+
 	return 0.0;
+}
+
+Currency ExprTreeEvaluator::CallStaticClassMethod(const std::string& class_name, const std::string& method_name, const std::vector<Currency>& params)
+{
+	ClassInfo* ci = GetClassInfoFromName(class_name);
+
+	if (ci)
+	{
+		FunctionInfo* fi = ci->GetFunctionInfo(method_name);
+
+		if (ci->IsStaticClassMethod(fi))
+		{
+			return CallInternalFunction(fi, params);
+		}
+		else
+		{
+			throw OML_Error("Unknown class method");
+		}
+	}
+	else
+	{
+		throw OML_Error("Unknown class");
+	}
+
+	return Currency();
 }
 
 FunctionInfo* ExprTreeEvaluator::GetBaseClassFunctionInfo(const std::string* func_name, std::string* base_name, Currency* base_val)
@@ -8732,32 +8736,30 @@ bool ExprTreeEvaluator::FindFunctionByName(const std::string* var_ptr, FunctionI
 	{
 		*fi = msm->GetLocalFunction(var_ptr);
 	}
-	else if ((functions->find(*var_ptr) != functions->end()) || (found = FindFunction(*var_ptr, found_file)))
+	else if (functions->find(*var_ptr) != functions->end())
 	{
-		if (found)
-        {
-			ParseAndRunFile(found_file, false);
-            if (functions->find(*var_ptr) == functions->end())
-                return false;
-        }
-
 		*fi = (*functions)[*var_ptr]->fi;
 	}
 	else if (CheckForFunctionInAST(*var_ptr))
 	{
 		if (cur_fi && cur_fi->local_functions->find(var_ptr) != cur_fi->local_functions->end())
 			*fi = (*cur_fi->local_functions)[var_ptr];
-		else if ((functions->find(*var_ptr) != functions->end()) || (found = FindFunction(*var_ptr, found_file)))
+		else if (functions->find(*var_ptr) != functions->end())
 			*fi = (*functions)[*var_ptr]->fi;
 	}
-	else if (FindEncryptedFunction(*var_ptr, found_file, found_ext))
+	else if (FindFunctionInPath(*var_ptr, found_file, found_ext))
 	{
+		if (found_ext == "oml" || found_ext == "m")
+			ParseAndRunFile(found_file, false);
+		else if (found_ext == "omc")
 		RunEncryptedFile(found_ext, found_file);
+		else if (found_ext == "omlp")
+			RunPrecompiledFile(found_file);
 
-		if (functions->find(*var_ptr) != functions->end())
-			*fi = (*functions)[*var_ptr]->fi;
-		else
+		if (functions->find(*var_ptr) == functions->end())
 			return false;
+
+			*fi = (*functions)[*var_ptr]->fi;
 	}
 	else if (std_functions->find(*var_ptr) != std_functions->end())
 	{
@@ -9187,6 +9189,20 @@ void ExprTreeEvaluator::DoMultiReturnFunctionCall(FunctionInfo* fi, const std::v
 
 	int num_rets = out_tree->ChildCount();
 
+	if (out_tree->IsBroadcastOutput())
+	{
+		OMLTree* name_tree = out_tree->GetChild(0);
+		Currency target = RUN(name_tree);
+
+		if (target.IsCellArray())
+		{
+			HML_CELLARRAY* cells = target.CellArray();
+
+			if (cells)
+				num_rets = cells->Size();
+		}
+	}
+
 	if (fi->IsAnonymous())
 	{
 		std::vector<const std::string*> out_vars;
@@ -9285,6 +9301,7 @@ void ExprTreeEvaluator::DoMultiReturnFunctionCall(FunctionInfo* fi, const std::v
 	CloseScope();
 
 	int last = (int)return_values.size();
+	bool has_varargout = false;
 
 	if (last && (*return_values[last-1] == "varargout"))
 	{
@@ -9292,17 +9309,39 @@ void ExprTreeEvaluator::DoMultiReturnFunctionCall(FunctionInfo* fi, const std::v
 
 		if (varargout.IsCellArray())
 		{
+			has_varargout = true;
+
 			HML_CELLARRAY* varg_cells = varargout.CellArray();
 
 			if (varg_cells)
-			last = last-1+varg_cells->Size();
+				last = last-1+varg_cells->Size();
 		}
 	}
 
 	if (last < num_rets)
 		throw OML_Error(HW_ERROR_MISSRETURNS);
 
-	HML_CELLARRAY* cells;
+	// handle broadcast assignment
+	if (!has_varargout && out_tree->IsBroadcastOutput())
+	{
+		OMLTree* name_tree = out_tree->GetChild(0);
+		_lhs_eval = true;
+		Currency target = RUN(name_tree);
+		_lhs_eval = false;
+
+		for (int q = 0; q < return_values.size(); ++q)
+		{
+			std::vector<Currency> params;
+			params.push_back(q+1);
+
+			CellAssignmentHelper(*target.Pointer(), params, stored_vals->GetValue(return_values[q]));
+		}
+
+		PushResult(*target.Pointer(), !suppress_output);
+		num_rets = 0; // skip the next loop
+	}
+
+	HML_CELLARRAY* cells = NULL;
 
 	std::vector<Currency> ret;
 	for (int j=0; j<num_rets; j++)
@@ -9322,7 +9361,7 @@ void ExprTreeEvaluator::DoMultiReturnFunctionCall(FunctionInfo* fi, const std::v
 		{
 			cells = cur.CellArray();
 			inner_loop_size = cells->Size();
-		}		
+		}
 
 		bool skip_var = false;
 
@@ -9379,6 +9418,25 @@ void ExprTreeEvaluator::DoMultiReturnFunctionCall(FunctionInfo* fi, const std::v
 
 							PushResult(*target.Pointer(), !suppress_output);
 							k += idx->Size(); // advance the loop
+							need_assign = false;
+						}
+						else if (test.IsColon())
+						{
+							OMLTree* name_tree = child_n->GetChild(0);
+							_lhs_eval = true;
+							Currency target = RUN(name_tree);
+							_lhs_eval = false;
+
+							for (int q = 0; q < cells->Size(); ++q)
+							{
+								std::vector<Currency> params;
+								params.push_back(q + 1);
+
+								CellAssignmentHelper(*target.Pointer(), params, (*cells)(q));
+							}
+
+							PushResult(*target.Pointer(), !suppress_output);
+							k += cells->Size(); // advance the loop
 							need_assign = false;
 						}
 					}
@@ -9483,44 +9541,6 @@ Currency ExprTreeEvaluator::MultiReturnFunctionCall(OMLTree* tree)
 	if (!fi)
 		FindFunctionByName(my_func, &fi, &fptr, &aptr);
 
-	if (!fi)
-	{			
-		std::string my_file;
-
-		if (FindPrecompiledFunction(*my_func, my_file))
-		{
-			OMLTree* tree = OMLTree::ReadTreeFromFile(my_file);
-
-			RUN(tree);
-
-			delete tree;
-
-			UserFunc* uf = (*functions)[*my_func];
-			fi = uf->fi;
-		}
-	}
-
-	if (!fi)
-	{
-		std::string my_file;
-		std::string my_extension;
-
-		if (FindEncryptedFunction(*my_func, my_file, my_extension))
-		{
-			RunEncryptedFile(my_extension, my_file);
-
-			UserFunc* uf = NULL;
-
-			if (functions->find(*my_func) != functions->end())
-				uf = (*functions)[*my_func];
-
-			if (uf)
-				fi = uf->fi;
-			else
-				throw OML_Error("Error: '" + *my_func + "' is not defined");
-		}
-	}
-
 	if (fi)
 		parameters = fi->Parameters();
 
@@ -9574,6 +9594,8 @@ Currency ExprTreeEvaluator::MultiReturnFunctionCall(OMLTree* tree)
 
 					for (int k = 0; k < cells->Size(); k++)
 						param_values.push_back((*cells)(k));
+
+					extra_args = cells->Size() - 1;
 				}
 				else
 				{
@@ -10408,7 +10430,7 @@ void threadCallback(const std::string* loop_var,  LoopHelper* lh, ExprTreeEvalua
 			loop_cur.ReplaceScalar(lh->NextRealValue());
 
 			if (tree)
-				Currency dummy = eval->RunTree(tree);
+			Currency dummy = eval->RunTree(tree);
 		}
 	}
 	catch (OML_Error & e)
@@ -10422,167 +10444,167 @@ void ExprTreeEvaluator::ParforAnalyze(const std::string& loop_var, OMLTree* tree
 {
 	if (tree)
 	{
-		for (int j = 0; j < tree->ChildCount(); ++j)
+	for (int j = 0; j < tree->ChildCount(); ++j)
+	{
+		OMLTree* stmt = tree->GetChild(j);
+		OMLTree* parse_stmt = NULL;
+
+		if (stmt->GetType() == PARFOR)
 		{
-			OMLTree* stmt = tree->GetChild(j);
-			OMLTree* parse_stmt = NULL;
+			DebugInfo stored_dbg = DebugInfo::DebugInfoFromTree(stmt);
+			msm->GetCurrentScope()->SetDebugInfo(stored_dbg.FilenamePtr(), stored_dbg.LineNum());
+			throw OML_Error("Nested parfor loops are not supported");
+		}
 
-			if (stmt->GetType() == PARFOR)
+		if (stmt->GetType() == FOR)
+		{
+			if (stmt->ChildCount() == 3)
 			{
-				DebugInfo stored_dbg = DebugInfo::DebugInfoFromTree(stmt);
-				msm->GetCurrentScope()->SetDebugInfo(stored_dbg.FilenamePtr(), stored_dbg.LineNum());
-				throw OML_Error("Nested parfor loops are not supported");
-			}
+				OMLTree* loop_stmt  = stmt->GetChild(0);
+				OMLTree* range      = stmt->GetChild(1);
+				OMLTree* stmt_list  = stmt->GetChild(2);
 
-			if (stmt->GetType() == FOR)
-			{
-				if (stmt->ChildCount() == 3)
+				std::vector<std::string> loc_idents;
+				range->GetListOfIdents(loc_idents);
+
+				for (int j = 0; j < loc_idents.size(); ++j)
 				{
-					OMLTree* loop_stmt = stmt->GetChild(0);
-					OMLTree* range = stmt->GetChild(1);
-					OMLTree* stmt_list = stmt->GetChild(2);
-
-					std::vector<std::string> loc_idents;
-					range->GetListOfIdents(loc_idents);
-
-					for (int j = 0; j < loc_idents.size(); ++j)
+					if (loc_idents[j] == loop_var)
 					{
-						if (loc_idents[j] == loop_var)
-						{
-							continue;
-						}
-						else if (reduced_vars.find(loc_idents[j]) != reduced_vars.end())
-						{
-							continue;
-						}
-						else
-						{
-							broadcast_vars.insert(loc_idents[j]);
-						}
+						continue;
 					}
-
-					ParforAnalyze(loop_var, stmt_list, sliced_vars, broadcast_vars, reduced_vars, reduced_ops);
-				}
-			}
-			else if (stmt->GetType() == CONDITIONAL)
-			{
-				if (stmt->ChildCount() == 2)
-				{
-					OMLTree* cond_stmt = stmt->GetChild(0);
-					OMLTree* cond_check = cond_stmt->GetChild(0);
-					OMLTree* stmt_list = cond_stmt->GetChild(1);
-
-					std::vector<std::string> loc_idents;
-					cond_check->GetListOfIdents(loc_idents);
-
-					for (int j = 0; j < loc_idents.size(); ++j)
+					else if (reduced_vars.find(loc_idents[j]) != reduced_vars.end())
 					{
-						if (loc_idents[j] == loop_var)
-						{
-							continue;
-						}
-						else if (reduced_vars.find(loc_idents[j]) != reduced_vars.end())
-						{
-							continue;
-						}
-						else
-						{
-							broadcast_vars.insert(loc_idents[j]);
-						}
+						continue;
 					}
-
-					ParforAnalyze(loop_var, stmt_list, sliced_vars, broadcast_vars, reduced_vars, reduced_ops);
-				}
-			}
-
-			if (stmt->ChildCount())
-			{
-				parse_stmt = stmt->GetChild(0);
-
-				if ((parse_stmt->GetType() == ASSIGN) || (parse_stmt->GetType() == MR_FUNC))
-				{
-					OMLTree* LHS = parse_stmt->GetChild(0);
-					OMLTree* RHS = parse_stmt->GetChild(1);
-
-					std::vector<std::string> idents;
-					RHS->GetListOfIdents(idents);
-
-					if ((LHS->GetType() == FUNC) || (LHS->GetType() == CELL_VAL)) // sliced variable
+					else
 					{
-						OMLTree* func = LHS->GetChild(0);
+						broadcast_vars.insert(loc_idents[j]);
+					}
+				}
 
-						if (func->GetType() == IDENT)
+				ParforAnalyze(loop_var, stmt_list, sliced_vars, broadcast_vars, reduced_vars, reduced_ops);
+			}
+		}
+		else if (stmt->GetType() == CONDITIONAL)
+		{
+			if (stmt->ChildCount() == 2)
+			{
+				OMLTree* cond_stmt  = stmt->GetChild(0);
+				OMLTree* cond_check = cond_stmt->GetChild(0);
+ 				OMLTree* stmt_list  = cond_stmt->GetChild(1);
+
+				std::vector<std::string> loc_idents;
+				cond_check->GetListOfIdents(loc_idents);
+
+				for (int j = 0; j < loc_idents.size(); ++j)
+				{
+					if (loc_idents[j] == loop_var)
+					{
+						continue;
+					}
+					else if (reduced_vars.find(loc_idents[j]) != reduced_vars.end())
+					{
+						continue;
+					}
+					else
+					{
+						broadcast_vars.insert(loc_idents[j]);
+					}
+				}
+
+				ParforAnalyze(loop_var, stmt_list, sliced_vars, broadcast_vars, reduced_vars, reduced_ops);
+			}
+		}
+
+		if (stmt->ChildCount())
+		{
+			parse_stmt = stmt->GetChild(0);
+
+			if ((parse_stmt->GetType() == ASSIGN) || (parse_stmt->GetType() == MR_FUNC))
+			{
+				OMLTree* LHS = parse_stmt->GetChild(0);
+				OMLTree* RHS = parse_stmt->GetChild(1);
+
+				std::vector<std::string> idents;
+				RHS->GetListOfIdents(idents);
+
+				if ((LHS->GetType() == FUNC) || (LHS->GetType() == CELL_VAL)) // sliced variable
+				{
+					OMLTree* func = LHS->GetChild(0);
+
+					if (func->GetType() == IDENT)
+					{
+						OMLTree* indices = LHS->GetChild(1);
+
+						for (int k = 0; k < indices->ChildCount(); ++k)
 						{
-							OMLTree* indices = LHS->GetChild(1);
+							OMLTree* index = indices->GetChild(k);
 
-							for (int k = 0; k < indices->ChildCount(); ++k)
+							if (index->GetText() == loop_var)
 							{
-								OMLTree* index = indices->GetChild(k);
-
-								if (index->GetText() == loop_var)
-								{
-									sliced_vars.insert(func->GetText());
-									break;
-								}
+								sliced_vars.insert(func->GetText());
+								break;
 							}
 						}
 					}
-					else if (LHS->GetType() == IDENT)
+				}
+				else if (LHS->GetType() == IDENT)
+				{
+					if (std::find(idents.begin(), idents.end(), LHS->GetText()) != idents.end())
 					{
-						if (std::find(idents.begin(), idents.end(), LHS->GetText()) != idents.end())
-						{
-							std::string lhs_text = LHS->GetText();
-							reduced_vars.insert(lhs_text);
+						std::string lhs_text = LHS->GetText();
+						reduced_vars.insert(lhs_text);
 
-							const OMLTree* node = RHS->FindParentOf(lhs_text);
+						const OMLTree* node = RHS->FindParentOf(lhs_text);
 
-							if (node && (node->GetType() == PLUS))
-								reduced_ops[lhs_text] = PLUS;
-							else if (node && (node->GetType() == TIMES))
-								reduced_ops[lhs_text] = TIMES;
-						}
-					}
-
-					for (int j = 0; j < idents.size(); ++j)
-					{
-						if (idents[j] == loop_var)
-						{
-							continue;
-						}
-						else if (reduced_vars.find(idents[j]) != reduced_vars.end())
-						{
-							continue;
-						}
-						else
-						{
-							broadcast_vars.insert(idents[j]);
-						}
+						if (node && (node->GetType() == PLUS))
+							reduced_ops[lhs_text] = PLUS;
+						else if (node && (node->GetType() == TIMES))
+							reduced_ops[lhs_text] = TIMES;
 					}
 				}
-				else if (parse_stmt->GetType() == FUNC)
-				{
-					// check for broadcast variables in function calls here
-					std::vector<std::string> idents;
-					parse_stmt->GetListOfIdents(idents);
 
-					for (int j = 0; j < idents.size(); ++j)
+				for (int j = 0; j < idents.size(); ++j)
+				{
+					if (idents[j] == loop_var)
 					{
-						if (idents[j] == loop_var)
-						{
-							continue;
-						}
-						else if (reduced_vars.find(idents[j]) != reduced_vars.end())
-						{
-							continue;
-						}
-						else
-						{
-							broadcast_vars.insert(idents[j]);
-						}
+						continue;
+					}
+					else if (reduced_vars.find(idents[j]) != reduced_vars.end())
+					{
+						continue;
+					}
+					else
+					{
+						broadcast_vars.insert(idents[j]);
+					}
+				}
+			}
+			else if (parse_stmt->GetType() == FUNC)
+			{
+				// check for broadcast variables in function calls here
+				std::vector<std::string> idents;
+				parse_stmt->GetListOfIdents(idents);
+
+				for (int j = 0; j < idents.size(); ++j)
+				{
+					if (idents[j] == loop_var)
+					{
+						continue;
+					}
+					else if (reduced_vars.find(idents[j]) != reduced_vars.end())
+					{
+						continue;
+					}
+					else
+					{
+						broadcast_vars.insert(idents[j]);
 					}
 				}
 			}
 		}
+	}
 	}
 }
 
@@ -11061,7 +11083,6 @@ Currency ExprTreeEvaluator::AnonymousFunctionDefinition(OMLTree* tree)
 	{
 		 //it's a simple remapping
 		std::string func_name = tree->GetChild(0)->GetText();
-		std::string my_file;
 		std::string my_extension;
 
 		FUNCPTR     fptr = NULL;
@@ -11084,25 +11105,6 @@ Currency ExprTreeEvaluator::AnonymousFunctionDefinition(OMLTree* tree)
 			else
 			{
 				throw OML_Error(func_name + " is not a function handle");
-			}
-		}
-		else if (FindEncryptedFunction(func_name, my_file, my_extension))
-		{
-			RunEncryptedFile(my_extension, my_file);
-
-			UserFunc* uf = NULL;
-
-			if (functions->find(func_name) != functions->end())
-				uf = (*functions)[func_name];
-
-			if (uf)
-			{
-				fi = uf->fi;
-				fi->IncrRefCount();
-			}
-			else
-			{
-				throw OML_Error("Error: '" + func_name + "' is not defined");
 			}
 		}
 		else
@@ -13711,12 +13713,12 @@ void ExprTreeEvaluator::NDAssignmetHelper(Currency& target, const std::vector<Cu
 		LHS = target.GetWritableMatrixN();
 		if (!IgnoreCoW(LHS))
 		{
-			if (LHS->GetRefCount() != refcnt_target)
-			{
-				LHS = allocateMatrixN(LHS);
-				need_assign = true;
-			}
+		if (LHS->GetRefCount() != refcnt_target)
+		{
+			LHS = allocateMatrixN(LHS);
+			need_assign = true;
 		}
+	}
 	}
 	else if (target.IsScalar())
 	{
@@ -16547,6 +16549,14 @@ Currency ExprTreeEvaluator::ObjectMethodCall(Currency* parent, OMLTree* indices,
 
 	FunctionInfo* fi = ci->GetFunctionInfo(method_name);
 
+	bool access_allowed = !ci->IsMethodPrivate(method_name);
+
+	if (!access_allowed)
+		access_allowed = ci->IsClassMethod(msm->GetCurrentScope()->GetFunctionInfo());
+
+	if (!access_allowed)
+		throw OML_Error("Unable to call private method");
+
 	std::vector<Currency> inputs;
 
 	if (fi)
@@ -16646,67 +16656,6 @@ Currency ExprTreeEvaluator::ObjectMethodCall(Currency* parent, OMLTree* indices,
 
 }
 
-#if 0
-Currency ExprTreeEvaluator::ObjectMethodCall(Currency* parent, OMLTree* indices, OMLTree* field_tree)
-{
-	ClassInfo* ci = (*class_info_map)[parent->GetClassname()];
-
-	// ignore indices for now
-	std::string method_name = field_tree->GetChild(0)->GetText();
-
-	int num_field_children = field_tree->ChildCount();
-
-	FunctionInfo* fi = ci->GetFunctionInfo(method_name);
-
-	if (fi)
-	{
-		std::vector<Currency> inputs;
-
-		if (ci->IsSubclassOf("handle"))
-			inputs.push_back(parent);
-		else
-			inputs.push_back(*parent);
-
-		if (field_tree->ChildCount() > 1)
-		{
-			OMLTree* args_tree = field_tree->GetChild(1);
-			int num_args = args_tree->ChildCount();
-
-			for (int j=0; j<num_args; j++)
-			{
-				OMLTree* child_j = args_tree->GetChild(j);
-				inputs.push_back(RUN(child_j));
-			}
-		}
-
-		return CallInternalFunction(fi, inputs);
-	}
-	else
-	{
-        if (!ci->HasProperty(method_name))
-            throw OML_Error("Unknown property");
-
-		StructData* sd = parent->Struct();
-
-        bool isPrivate = ci->IsPropertyPrivate(method_name);
-        if (!isPrivate)
-		{
-			Currency temp(new StructData(*sd));
-			return StructValueHelper(&temp, indices, field_tree);
-		}
-
-		bool in_class_method = ci->IsClassMethod(
-                               msm->GetCurrentScope()->GetFunctionInfo());
-
-        if (in_class_method)
-	        return sd->GetValue(0, 0, method_name);
-
-        throw OML_Error("Unable to access private property");
-	}
-
-}
-#endif
-
 const Currency& ExprTreeEvaluator::GetValue(std::string varname, int offset) const 
 { 
 	return msm->GetValue(varname, offset);
@@ -16761,17 +16710,27 @@ void ExprTreeEvaluator::Clear(const std::regex& name)
 
 bool ExprTreeEvaluator::ClearFromFunctions(const std::string& name)
 {
+	bool cleared = false;
     std::map<std::string, UserFunc*>::iterator func_iter = functions->find(name);
 
 	if (func_iter != functions->end() && !func_iter->second->locked)
 	{
 		delete func_iter->second;
 		functions->erase(func_iter);
-
-		OnUpdateFuncList();
-		return true;
+		cleared = true;
 	}
-	return false;
+
+	std::vector<std::string>::iterator iter = std::find(preregistered_functions->begin(), preregistered_functions->end(), name);
+	if (iter != preregistered_functions->end())
+	{
+		preregistered_functions->erase(iter);
+		cleared = true;
+	}
+
+	if(cleared)
+		OnUpdateFuncList();
+
+	return cleared;
 }
 
 static bool matches(const std::regex& exp, const std::string& str)
@@ -17546,11 +17505,11 @@ Currency ExprTreeEvaluator::CellExtraction(OMLTree* tree)
 			}
 
 			return base_struct;
-			}
+		}
 			else
 			{
 			}
-		}
+	}
 	}
 
 	for (int j=0; j<num_lhs; j++)
@@ -17792,6 +17751,7 @@ Currency ExprTreeEvaluator::ClassDefinition(OMLTree* tree)
 		else if (my_tree->GetType() == METHODS)
 		{
 			bool is_static = false;
+			bool is_private = false;
 
 			OMLTree* methods_tree = my_tree->GetChild(0);
 
@@ -17802,6 +17762,9 @@ Currency ExprTreeEvaluator::ClassDefinition(OMLTree* tree)
 
 				if ((type->GetText() == "Static") && (value->GetText() == "true"))
 					is_static = true;
+
+				if ((type->GetText() == "Access") && (value->GetText() == "private"))
+					is_private = true;
 			}
 
 			int num_methods = methods_tree->ChildCount();
@@ -17830,7 +17793,7 @@ Currency ExprTreeEvaluator::ClassDefinition(OMLTree* tree)
 						if (is_static)
 							ci->AddStaticClassMethod(fi->FunctionName(), fi);
 						else
-							ci->AddClassMethod(fi->FunctionName(), fi);
+							ci->AddClassMethod(fi->FunctionName(), fi, is_private);
 					}
 				}
 			}
@@ -17873,21 +17836,22 @@ Currency ExprTreeEvaluator::ClassDefinition(OMLTree* tree)
 				}
 				else
 				{
-					std::string file_name;
-					std::string oml_file_name = base_class_name + ".oml";
-					std::string extension;
+					FunctionInfo* fi   = NULL;
+					FUNCPTR       fptr = NULL;
+					ALT_FUNCPTR   aptr = NULL;
 
-					if (FindFileInPath(oml_file_name, file_name))
+					if (FindFunctionByName(base_class_name, &fi, &fptr, &aptr))
 					{
-						ParseAndRunFile(file_name, false);
+						if (fi)
+					{
 						ClassInfo* base_class = (*class_info_map)[base_class_name];
 						ci->AddBaseClass(base_class);
 					}
-					else if (FindEncryptedFunction(base_class_name, file_name, extension))
+						else
 					{
-						RunEncryptedFile(extension, file_name);
-						ClassInfo* base_class = (*class_info_map)[base_class_name];
-						ci->AddBaseClass(base_class);
+							std::string err_str = "Invalid base class " + base_class_name;
+							throw OML_Error(err_str);
+						}
 					}
 					else
 					{
@@ -17903,77 +17867,121 @@ Currency ExprTreeEvaluator::ClassDefinition(OMLTree* tree)
 
 	return Currency();
 }
-//------------------------------------------------------------------------------
-// Returns true along with file name if given function name can be located
-//------------------------------------------------------------------------------
-bool ExprTreeEvaluator::FindFunction(const std::string& func_name,
-                                     std::string&       file_name)
-{
-	// to do
-	// locate a file based on func_name (either .m or .oml extension)
-	// create a lexer/parser to get a new tree from the file
-	// run the tree in this interpreter (so the functions get loaded)
-
-	// avoid having to search the file system unnecessarily
-	if (std::binary_search(not_found_functions->begin(), not_found_functions->end(), func_name))
-		return false;
-
-	std::string oml_file_name = func_name + ".oml";
-	std::string m_file_name   = func_name + ".m";
-
-	if (!(FindFileInPath(oml_file_name, file_name) || FindFileInPath(m_file_name, file_name)))
-	{
-		// Let FindEncryptedFunction modify the not_found_functions list
-		return false;
-	}
-
-	return true;
-}
 
 //------------------------------------------------------------------------------
 // Returns true along with file name if given function name can be located
 //------------------------------------------------------------------------------
-bool ExprTreeEvaluator::FindPrecompiledFunction(const std::string& func_name,
-                                     std::string&       file_name)
+bool ExprTreeEvaluator::FindFunctionInPath(const std::string& func_name, std::string& file_name, std::string& file_ext)
 {
 	// avoid having to search the file system unnecessarily
 	if (std::binary_search(not_found_functions->begin(), not_found_functions->end(), func_name))
 		return false;
 
-	std::string oml_file_name = func_name + ".omlp";
+	std::string cur_path = BuiltInFuncsUtils::GetCurrentWorkingDir();
+	std::replace(cur_path.begin(), cur_path.end(), '\\', '/'); // slash direction is important for the debugger
+	paths->insert(paths->begin(), cur_path);
 
-	if (!FindFileInPath(oml_file_name, file_name))
+	const std::string* lookup = Currency::pm.GetStringPointer(cur_path);
+
+	// only update the cached paths if we don't have data for this folder yet
+	if (cached_path_contents->find(lookup) == cached_path_contents->end())
+		UpdatePathCache(cur_path);
+
+	std::string file_plus_ext;
+	bool        ret_val = false;
+
+	std::vector<std::string>::iterator iter;
+	for (iter = paths->begin(); iter != paths->end(); iter++)
 	{
-		// Let FindEncryptedFunction modify the not_found_functions list
-		return false;
-	}
+		const std::string* lookup = Currency::pm.GetStringPointer(*iter);
+		std::vector<std::string> contents = (*cached_path_contents)[lookup];
 
-	return true;
-}
+		std::vector<std::string>::const_iterator file_iter;
 
-bool ExprTreeEvaluator::FindEncryptedFunction(const std::string& func_name, std::string& file_name, std::string& extension)
-{
-	// avoid having to search the file system unnecessarily
-	if (std::binary_search(not_found_functions->begin(), not_found_functions->end(), func_name))
-		return false;
-
-	std::map<std::string, ENCRPTR>::iterator iter;
-
-	for (iter = _decryptors->begin(); iter != _decryptors->end(); iter++)
-	{
-		std::string file_to_search = func_name + "." + iter->first;
-
-		if (FindFileInPath(file_to_search, file_name))
+		if (!ret_val)
 		{
-			extension = iter->first;
-			return true;
+			file_plus_ext = func_name + ".omlp";
+
+			// rather than looping through contents 4 times, refactor this to loop once and find a match for any valid extension
+			// if one or more are found, return the one with highest priority
+			// should be a tiny bit faster (maybe not enough to matter)
+			for (file_iter = contents.begin(); file_iter != contents.end(); ++file_iter)
+			{
+				if (*file_iter == file_plus_ext)
+				{
+					std::string temp = *iter + "/" + file_plus_ext;
+					file_name = temp;
+					file_ext = "omlp";
+					ret_val = true;
+					break;
+				}
+			}
+		}
+
+		if (!ret_val)
+		{
+			file_plus_ext = func_name + ".omc";
+
+			for (file_iter = contents.begin(); file_iter != contents.end(); ++file_iter)
+			{
+				if (*file_iter == file_plus_ext)
+	{
+					std::string temp = *iter + "/" + file_plus_ext;
+					file_name = temp;
+					file_ext  = "omc";
+					ret_val = true;
+					break;
+				}
+			}
+	}
+
+		if (!ret_val)
+		{
+			file_plus_ext = func_name + ".oml";
+
+			for (file_iter = contents.begin(); file_iter != contents.end(); ++file_iter)
+			{
+				if (*file_iter == file_plus_ext)
+				{
+					std::string temp = *iter + "/" + file_plus_ext;
+					file_name = temp;
+					file_ext = "oml";
+					ret_val = true;
+					break;
+				}
+			}
+		}
+
+		if (!ret_val)
+		{
+			file_plus_ext = func_name + ".m";
+
+			for (file_iter = contents.begin(); file_iter != contents.end(); ++file_iter)
+	{
+				if (*file_iter == file_plus_ext)
+		{
+					std::string temp = *iter + "/" + file_plus_ext;
+					file_name = temp;
+					file_ext = "m";
+					ret_val = true;
+					break;
+				}
+			}
 		}
 	
+		if (ret_val)
+			break;
 	}
 
+	paths->erase(paths->begin(), paths->begin() + 1);
+
+	if (!ret_val)
+	{
 	not_found_functions->push_back(func_name);
 	std::sort(not_found_functions->begin(), not_found_functions->end());
-	return false;
+	}
+
+	return ret_val;
 }
 
 bool ExprTreeEvaluator::ParseAndRunFile(const std::string& file_name, bool allow_script)
@@ -19465,8 +19473,15 @@ void ExprTreeEvaluator::PushResult(const Currency& cur, bool to_output)
 					std::vector<Currency> inputs;
 					std::vector<Currency> outputs;
 					inputs.push_back(cur);
+					// inputname doesn't work here b/c we don't have a tree to push into the function_args vector
+
+					const std::string* dummy_str = Currency::pm.GetStringPointer("dummy");
+					OMLTree temp_tree(PARAM_LIST, "PARAM_LIST", dummy_str, 1, 1);
+					temp_tree.AddChild(new OMLTree(IDENT, cur.GetOutputName(), dummy_str, 1, 0));
+					function_args.push_back(&temp_tree);
 					CallInternalFunction(fi, inputs);
 					results.push_back(cur);
+					function_args.pop_back();
 					return;
 				}
 			}
@@ -19595,6 +19610,15 @@ void ExprTreeEvaluator::AddPath(const std::string& pathname, bool end)
 		UpdatePathCache(pathname);
 
 		ResetFuncSearchCache(); // we do still need this
+	}
+	else
+	{
+		if (!end)
+		{
+			std::vector<std::string>::const_iterator iter = std::find(paths->begin(), paths->end(), pathname);
+			paths->erase(iter);
+			paths->insert(paths->begin() + NUM_MANDATORY_PATHS, pathname);
+		}
 	}
 }
 
@@ -20724,6 +20748,15 @@ bool ExprTreeEvaluator::IsExtensionEncrypted(const std::string& extension)
 	return true;
 }
 
+void ExprTreeEvaluator::RunPrecompiledFile(const std::string& file_name)
+{
+	OMLTree* tree = OMLTree::ReadTreeFromFile(file_name);
+
+	RUN(tree);
+
+	delete tree;
+}
+
 void ExprTreeEvaluator::RunEncryptedFile(const std::string& extension, const std::string& file_name)
 {
 	class EncryptedFunctionHelper
@@ -20757,13 +20790,6 @@ void ExprTreeEvaluator::RunEncryptedFile(const std::string& extension, const std
 void ExprTreeEvaluator::RegisterOMLDecryptor(const std::string& extension, ENCRPTR ptr)
 {
 	(*_decryptors)[extension] = ptr;
-}
-
-void ExprTreeEvaluator::RunPrecompiledFile(const std::string& filename)
-{
-	OMLTree* tree = OMLTree::ReadTreeFromFile(filename);
-	RUN(tree);
-	delete tree;
 }
 
 void ExprTreeEvaluator::RunFile(const std::string& filename)

@@ -196,7 +196,6 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
         return;
     }
 */
-
     int64_t flag;
 
     // Set the Jacobian routine to jacDfunc_ARKODE (user-supplied)
@@ -404,40 +403,62 @@ hwArkWrap::hwArkWrap(ARKRhsFn_client      sysfunc,
             return;
         }
 
-        // Take a small step
-        flag = ERKStepEvolve(arkode_mem, tin + 0.0001, y, &t_init, ARK_NORMAL);
+        bool rootFound = false;
 
-        if (flag != ARK_SUCCESS)
-        {
-            m_status(HW_MATH_ERR_USERFUNCFAIL);
-            return;
-        }
-
-        // Check for events after small step
-        flag = rootfunc_client(t_init, m_y.GetRealData(), gout2.GetRealData(), nullptr);
-
-        if (flag != 0)
-        {
-            m_status(HW_MATH_ERR_USERFUNCFAIL);
-            return;
-        }
-
-        // Reset
-        m_y = y_temp;
-
-        // Set event direction flags
         for (int i = 0; i < m_nrtfn; ++i)
         {
-            if (gout1(i) == 0.0)
+            if (fabs(gout1(i)) < MACHEP2)
             {
-                if (gout2(i) > 0.0)
-                    event_directon_actual[i] = 1;
-                else if (gout2(i) < 0.0)
-                    event_directon_actual[i] = -1;
+                rootFound = true;
+                break;
             }
         }
 
-        flag = ManageEvents(tin, true);
+        if (rootFound)
+        {
+            // Take a small step
+            flag = ERKStepEvolve(arkode_mem, tin + 0.0001, y, &t_init, ARK_NORMAL);
+
+            if (flag == ARK_ROOT_RETURN)
+            {
+                m_y = y_temp;   // reset
+                flag = ManageEvents(tin, true);
+            }
+            else if (flag == ARK_SUCCESS)
+            {
+                // Check for events after small step, just in case
+                // solver did not detect a root
+                flag = rootfunc_client(t_init, m_y.GetRealData(), gout2.GetRealData(), nullptr);
+
+                if (flag != 0)
+                {
+                    m_status(HW_MATH_ERR_USERFUNCFAIL);
+                    return;
+                }
+
+                // Set event direction flags
+                for (int i = 0; i < m_nrtfn; ++i)
+                {
+                    event_directon_actual[i] = 0;
+
+                    if (fabs(gout1(i)) < MACHEP2)
+                    {
+                        if (gout2(i) > 0.0)
+                            event_directon_actual[i] = 1;
+                        else if (gout2(i) < 0.0)
+                            event_directon_actual[i] = -1;
+                    }
+                }
+
+                m_y = y_temp;   // reset
+                flag = ManageEvents(tin, true);
+            }
+            else
+            {
+                m_status(HW_MATH_ERR_USERFUNCFAIL);
+                return;
+            }
+        }
     }
 }
 //------------------------------------------------------------------------------

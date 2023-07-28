@@ -40,10 +40,12 @@ CXX_DEFINES += -D_empty=NULL
 CXX_INCLUDES += -I.
 CXX_INCLUDES += -I..
 CXX_INCLUDES += -I$(MATHKERNEL_DIR)/kernel -I$(MATHKERNEL_DIR)/..
+CXX_INCLUDES += -I$(OML_ROOT)/src/oml/Server
 LIBS += $(ANTLR_LIBS)
 LIBS += $(MATHKERNEL_LIBS)
 LIBS += $(MKL_LIBS)
 LIBS += $(OML_LIBS)
+LIBS += $(SERVER_LIBS)
 
 # ====================================================================
 

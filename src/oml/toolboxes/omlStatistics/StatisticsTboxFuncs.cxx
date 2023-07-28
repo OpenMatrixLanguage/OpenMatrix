@@ -173,6 +173,8 @@ int InitDll(EvaluatorInterface eval)
     eval.RegisterBuiltInFunction("var",      &OmlVariance, FunctionMetaData(-2, 1, STATAN));
     eval.RegisterBuiltInFunction("std",      &OmlStd,      FunctionMetaData(-2, 1, STATAN));
     eval.RegisterBuiltInFunction("median",   &OmlMedian,   FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("quantile", &OmlQuantile, FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("histc",    &OmlHistC,    FunctionMetaData(-3, -2, STATAN));
     eval.RegisterBuiltInFunction("meandev",  &OmlMeandev,  FunctionMetaData(-2, 1, STATAN));
     eval.RegisterBuiltInFunction("mad",      &OmlMAD,      FunctionMetaData(-2, 1, STATAN));
     eval.RegisterBuiltInFunction("mean",     &OmlMean,     FunctionMetaData(-2, 1, STATAN));
@@ -188,6 +190,14 @@ int InitDll(EvaluatorInterface eval)
     eval.RegisterBuiltInFunction("randperm", &OmlRandperm,     FunctionMetaData(-2, 1, STATAN));
     eval.RegisterBuiltInFunction("bbdesign", &OmlBBdoe,        FunctionMetaData(1, 1, STATAN));
     eval.RegisterBuiltInFunction("fullfact", &OmlFulldoe,      FunctionMetaData(1, 1, STATAN));
+
+    eval.RegisterBuiltInFunction("nanmax",    &OmlNanMax,      FunctionMetaData(-2, -2, STATAN));
+    eval.RegisterBuiltInFunction("nanmin",    &OmlNanMin,      FunctionMetaData(-2, -2, STATAN));
+    eval.RegisterBuiltInFunction("nansum",    &OmlNanSum,      FunctionMetaData(-2, -1, STATAN));
+    eval.RegisterBuiltInFunction("nanmean",   &OmlNanMean,     FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("nanstd",    &OmlNanStd,      FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("nanvar",    &OmlNanVar,      FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("nanmedian", &OmlNanMedian,   FunctionMetaData(-2, 1, STATAN));
 
     return 1;
 }
@@ -9459,6 +9469,647 @@ bool OmlMedian(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
+// Computes quantile values [quantile]
+//------------------------------------------------------------------------------
+bool OmlQuantile(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 4)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    const hwMatrix* P = nullptr;
+
+    if (nargin > 1)
+    {
+        if (!inputs[1].IsMatrix() && !inputs[1].IsScalar())
+            throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_TYPE);
+
+        P = inputs[1].ConvertToMatrix();
+    }
+
+    if (nargin == 1 || P->Is0x0())
+    {
+        // default quantile request
+        hwMatrix* P = EvaluatorInterface::allocateMatrix(1, 5, true);
+        (*P)(0) = 0.0;
+        (*P)(1) = 0.25;
+        (*P)(2) = 0.50;
+        (*P)(3) = 0.75;
+        (*P)(4) = 1.0;
+
+        std::vector<Currency> inputs2;
+        inputs2.push_back(inputs[0]);
+        inputs2.push_back(P);
+
+        if (nargin > 1)
+        {
+            for (std::vector<Currency>::const_iterator it = inputs.begin() + 2; it != inputs.end(); it++)
+                inputs2.push_back(*it);
+        }
+
+        return OmlQuantile(eval, inputs2, outputs);
+    }
+
+    int dim = -1;
+
+    if (nargin > 2)
+    {
+        if (inputs[2].IsPositiveInteger())
+        {
+            dim = static_cast<int> (inputs[2].Scalar());
+        }
+        else if (inputs[2].IsMatrix())
+        {
+            if (!inputs[2].Matrix()->Is0x0())
+                throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_DATA);
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_DATA);
+        }
+    }
+
+    if (dim == -1)
+    {
+        if (inputs[0].IsMatrix() || inputs[0].IsScalar())
+        {
+            const hwMatrix* mtx = inputs[0].ConvertToMatrix();
+
+            if (!mtx->IsReal())
+                throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_TYPE);
+
+            if (mtx->M() == 1)
+                dim = 2;
+            else
+                dim = 1;
+        }
+        else if (inputs[0].IsNDMatrix())
+        {
+            const hwMatrixN* mtx = inputs[0].MatrixN();
+            const std::vector<int>& dims = mtx->Dimensions();
+
+            if (!mtx->IsReal())
+                throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_TYPE);
+
+            for (int i = 0; i < dims.size(); ++i)
+            {
+                if (dims[i] != 1)
+                {
+                    dim = i + 1;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
+        }
+    }
+
+    // ensure that inputs[0] is sorted
+    static bool unsorted = true;
+
+    if (dim != 1)
+    {
+        // permute matrix
+        std::vector<Currency> inputs2;
+        inputs2.push_back(inputs[0]);
+        oml_ndims(eval, inputs2, outputs);
+        int numDim = static_cast<int>(outputs[0].Scalar());
+
+        if (dim < 1 || dim > numDim)
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_DIM);
+        }
+
+        outputs.clear();
+        hwMatrix* permvec = new hwMatrix(numDim, 1, hwMatrix::REAL);
+
+        for (int i = 1; i < numDim; ++i)
+            (*permvec)(i) = i + 1;
+
+        (*permvec)(0) = dim;
+        (*permvec)(dim - 1) = 1;
+        Currency permCur(permvec);
+        inputs2.push_back(permCur);
+        oml_permute(eval, inputs2, outputs);
+
+        // compute permuted quantiles
+        inputs2.clear();
+        inputs2.push_back(outputs[0]);  // permuted data
+        inputs2.push_back(inputs[1]);   // percentiles
+        inputs2.push_back(1);           // dimension 1
+
+        if (nargin == 4)
+            inputs2.push_back(inputs[3]);   // method
+
+        outputs.clear();
+
+        OmlQuantile(eval, inputs2, outputs);
+
+        if (unsorted && inputs2[0].Matrix()->IsVector())
+        {
+            // unsorted has been reset, so preparing to exit
+            // check special vector case
+            hwMatrix* Q = outputs[0].GetWritableMatrix();
+
+            if (P->M() != Q->M())
+                Q->Transpose();
+        }
+        else
+        {
+            // ipermute quantiles
+            inputs2.clear();
+            inputs2.push_back(outputs[0]);
+            inputs2.push_back(permCur);
+            outputs.clear();
+            oml_ipermute(eval, inputs2, outputs);
+        }
+
+        return true;
+    }
+
+    if (inputs[0].IsNDMatrix())
+    {
+        const hwMatrixN* ndmat = inputs[0].MatrixN();
+        std::vector<int> dims = ndmat->Dimensions();
+
+        // reshape to 2D matrix
+        std::vector<Currency> inputs2;
+        inputs2.push_back(inputs[0]);
+        inputs2.push_back(dims[0]);
+        inputs2.push_back(Currency());
+        oml_reshape(eval, inputs2, outputs);
+
+        // compute quantiles
+        inputs2.clear();
+        inputs2.push_back(outputs[0]);
+
+        for (std::vector<Currency>::const_iterator it = inputs.begin() + 1; it != inputs.end(); it++)
+            inputs2.push_back(*it);
+
+        outputs.clear();
+        OmlQuantile(eval, inputs2, outputs);
+
+        if (unsorted && inputs2[0].Matrix()->IsVector())
+        {
+            // unsorted has been reset, so preparing to exit
+            // check special vector case
+            hwMatrix* Q = outputs[0].GetWritableMatrix();
+
+            if (P->M() != Q->M())
+                Q->Transpose();
+        }
+        else
+        {
+            // reshape quantiles
+            const hwMatrix* P = inputs[1].ConvertToMatrix();
+            hwMatrix* Q = outputs[0].GetWritableMatrix();
+
+            inputs2.clear();
+            inputs2.push_back(outputs[0]);  // Q
+            dims[0] = P->Size();
+
+            for (int i = 0; i < dims.size(); ++i)
+                inputs2.push_back(dims[i]);
+
+            outputs.clear();
+            oml_reshape(eval, inputs2, outputs);
+        }
+
+        return true;
+    }
+
+    if (unsorted)
+    {
+        // sort x
+        std::vector<Currency> inputs2;
+        inputs2.push_back(inputs[0]);           // push_back(x)
+        inputs2.push_back(dim);
+        inputs2.push_back("ascend");
+        outputs.clear();
+        oml_sort(eval, inputs2, outputs);   // sort(x)
+        inputs2.clear();
+        inputs2.push_back(outputs[0]);
+        outputs.clear();
+
+        for (std::vector<Currency>::const_iterator it = inputs.begin()+1; it != inputs.end(); it++)
+            inputs2.push_back(*it);
+
+        try
+        {
+            unsorted = false;
+            return OmlQuantile(eval, inputs2, outputs);
+        }
+        catch (OML_Error&)
+        {
+            unsorted = true;    // reset
+            throw;
+        }
+        catch (hwMathException&)
+        {
+            unsorted = true;    // reset
+            throw;
+        }
+
+        outputs.clear();
+    }
+
+    if (!inputs[1].IsMatrix() && !inputs[1].IsScalar())
+    {
+        unsorted = true;    // reset
+        throw OML_Error(OML_ERR_REAL, 2, OML_VAR_DATA);
+    }
+
+    const hwMatrix* data = inputs[0].ConvertToMatrix();
+    int method = 5;
+
+    if (nargin > 3)
+    {
+        if (!inputs[3].IsPositiveInteger())
+        {
+            unsorted = true;    // reset
+            throw OML_Error(OML_ERR_POSINTEGER, 4, OML_VAR_DIM);
+        }
+
+        method = static_cast<int> (inputs[3].Scalar());
+    }
+
+    hwMatrix* Q = EvaluatorInterface::allocateMatrix();
+    hwMathStatus status = Quantile(*data, *P, method, *Q);
+
+    unsorted = true;    // reset
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+    outputs.push_back(Q);
+
+    return true;
+}
+
+void SortedLookup(const double* edges, int numEdges, const double* values, int numValues,
+                  double* count, double* idx, int stride)
+{
+    int idx_e = 0;
+    int idx_v = 0;
+    int mem_v = 0;
+    int mem_c = 0;
+
+    while (idx_v < numValues && idx_e < numEdges - 1)
+    {
+        if (values[mem_v] < edges[0])
+        {
+            if (idx)
+            {
+                idx[mem_v] = 0;
+            }
+
+            ++idx_v;
+            mem_v += stride;
+            continue;
+        }
+
+        break;
+    }
+
+    while (idx_v < numValues && idx_e < numEdges - 1)
+    {
+        if (values[mem_v] < edges[idx_e + 1])
+        {
+            if (idx)
+            {
+                idx[mem_v] = idx_e + 1;
+            }
+
+            ++idx_v;
+            mem_v += stride;
+            ++count[mem_c];
+            continue;
+        }
+
+        ++idx_e;
+        mem_c += stride;
+    }
+
+    while (idx_v < numValues && idx_e == numEdges - 1)
+    {
+        if (values[mem_v] == edges[idx_e])
+        {
+            if (idx)
+            {
+                idx[mem_v] = numEdges;
+            }
+
+            ++idx_v;
+            mem_v += stride;
+            ++count[mem_c];
+            continue;
+        }
+
+        break;
+    }
+
+    while (idx && idx_v < numValues)
+    {
+        idx[mem_v] = 0;
+        ++idx_v;
+        mem_v += stride;
+    }
+}
+
+//------------------------------------------------------------------------------
+// Compute histogram counts [histc]
+//------------------------------------------------------------------------------
+bool OmlHistC(EvaluatorInterface           eval,
+              const std::vector<Currency>& inputs,
+              std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 2 || nargin > 3)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    int nargout = eval.GetNargoutValue();
+
+    if (nargout > 2)
+        throw OML_Error(OML_ERR_NUMARGOUT);
+
+    // get edges vector
+    if (!inputs[1].IsMatrix())
+    {
+        throw OML_Error(OML_ERR_MATRIX, 2);
+    }
+
+    const hwMatrix* edges = inputs[1].Matrix();
+
+    if (!edges->IsReal())
+    {
+        throw OML_Error(OML_ERR_REAL, 2);
+    }
+
+    if (!edges->IsVector())
+    {
+        throw OML_Error(OML_ERR_VECTOR, 2);
+    }
+
+    int numEdges = edges->Size();
+
+    // get dimension input
+    int dim = -1;
+
+    if (nargin == 3)
+    {
+        if (inputs[2].IsPositiveInteger())
+            dim = static_cast<int> (inputs[2].Scalar()) - 1;
+    }
+
+    // sort data
+    std::vector<Currency> inputs2;
+    std::vector<Currency> outputs2;
+    inputs2.push_back(inputs[0]);
+
+    if (dim != -1)
+    {
+        inputs2.push_back(dim + 1);
+    }
+
+    inputs2.push_back("ascend");
+    oml_sort(eval, inputs2, outputs2);   // sort(x)
+
+    if (outputs2[0].IsMatrix())
+    {
+        const hwMatrix* data = outputs2[0].Matrix();
+
+        if (!data->IsReal())
+        {
+            throw OML_Error(OML_ERR_REAL, 1);
+        }
+
+        if (dim == -1)
+        {
+            // first non-singleton
+            if (data->M() != 1 || data->N() == 1)
+                dim = 0;
+            else
+                dim = 1;
+        }
+        else if (dim != 0 && dim != 1)
+        {
+            throw OML_Error(OML_ERR_INVALID_RANGE, 3, OML_VAR_DIM);
+        }
+
+        hwMatrix* count = EvaluatorInterface::allocateMatrix();
+        hwMatrix* indx = nullptr;
+        double* indxVec = nullptr;
+        int m = data->M();
+        int n = data->N();
+
+        if (dim == 0)
+            count->Dimension(numEdges, n, hwMatrix::REAL);
+        else
+            count->Dimension(m, numEdges, hwMatrix::REAL);
+
+        count->SetElements(0.0);
+
+        if (nargout == 2)
+        {
+            indx = new hwMatrix(m, n, hwMatrix::REAL);
+        }
+
+        std::vector<int> dims = { m, n };
+        int numVecs = (dim == 0) ? n : m;
+        int stride = (dim == 0) ? 1 : m;
+        int row = 0;
+        int col = 0;
+
+        for (int i = 0; i < numVecs; ++i)
+        {
+            // set the matrix indices to the first index in each slice
+            int start = col * m + row;
+            const double* real = data->GetRealData() + start;
+
+            if (nargout == 2)
+            {
+                indxVec = indx->GetRealData() + start;
+            }
+
+            start = col * count->M() + row;
+            double* count_vec = count->GetRealData() + start;
+
+            // perform op
+            SortedLookup(edges->GetRealData(), numEdges, real, dims[dim],
+                         count_vec, indxVec, stride);
+
+            // advance slice indices
+            if (dim == 0)
+                ++col;
+            else
+                ++row;
+        }
+
+        outputs.push_back(count);
+
+        if (nargout == 2)
+        {
+            // unsort the indices
+            hwMatrix* sortIndx = outputs2[1].GetWritableMatrix();
+            hwMatrix* indx2 = new hwMatrix(m, n, hwMatrix::REAL);
+
+            if (dim == 0)
+            {
+                for (int j = 0; j < n; ++j)
+                {
+                    for (int i = 0; i < m; ++i)
+                    {
+                        (*indx2)(static_cast<int>((*sortIndx)(i, j)) - 1, j) = (*indx)(i, j);
+                    }
+                }
+            }
+            else
+            {
+                for (int j = 0; j < n; ++j)
+                {
+                    for (int i = 0; i < m; ++i)
+                    {
+                        (*indx2)(i, static_cast<int>((*sortIndx)(i, j)) - 1) = (*indx)(i, j);
+                    }
+                }
+            }
+
+            delete indx;
+            outputs.push_back(indx2);
+        }
+    }
+    else if (outputs2[0].IsNDMatrix())
+    {
+        const hwMatrixN* data = outputs2[0].MatrixN();
+
+        if (!data->IsReal())
+        {
+            throw OML_Error(OML_ERR_REAL, 1);
+        }
+
+        const std::vector<int>& dims = data->Dimensions();
+        int numDim = static_cast<int> (dims.size());
+
+        if (dim == -1)
+        {
+            // first non-singleton
+            for (int i = 0; i < numDim; ++i)
+            {
+                if (dims[i] != 1)
+                {
+                    dim = i;
+                    break;
+                }
+            }
+        }
+        else if (dim < 0 || dim > numDim - 1)
+        {
+            throw OML_Error(OML_ERR_INVALID_RANGE, 3, OML_VAR_DIM);
+        }
+
+        hwMatrixN* count = EvaluatorInterface::allocateMatrixN();
+        hwMatrixN* indx = nullptr;
+        double* indxVec = nullptr;
+        std::vector<int> countDims = dims;
+
+        countDims[dim] = numEdges;
+        count->Dimension(countDims, hwMatrixN::REAL);
+        count->SetElements(0.0);
+
+        if (nargout == 2)
+        {
+            indx = new hwMatrixN(dims, hwMatrixN::REAL);
+        }
+
+        int numVecs = data->Size() / dims[dim];
+        int stride = data->Stride(dim);
+        std::vector<int> matrixIndex(numDim);
+
+        for (int i = 0; i < numVecs; ++i)
+        {
+            // set the matrix indices to the first index in each slice
+            int start = data->Index(matrixIndex);
+            const double* real = data->GetRealData() + start;
+
+            if (nargout == 2)
+            {
+                indxVec = indx->GetRealData() + start;
+            }
+
+            start = count->Index(matrixIndex);
+            double* count_vec = count->GetRealData() + start;
+
+            // perform op
+            SortedLookup(edges->GetRealData(), numEdges, real, dims[dim],
+                         count_vec, indxVec, stride);
+
+            // advance slice indices
+            for (int j = 0; j < numDim; ++j)
+            {
+                if (j == dim)
+                    continue;
+
+                // increment index j if possible
+                if (matrixIndex[j] < static_cast<int> (dims[j]) - 1)
+                {
+                    ++matrixIndex[j];
+                    break;
+                }
+
+                // index j is maxed out, so reset and continue to j+1
+                matrixIndex[j] = 0;
+            }
+        }
+
+        outputs.push_back(count);
+
+        if (nargout == 2)
+        {
+            // unsort the indices
+            hwMatrixN* sortIndx = outputs2[1].GetWritableMatrixN();
+            hwMatrixN* indx2 = new hwMatrixN(dims, hwMatrixN::REAL);
+            int size = indx->Size();
+
+            for (int i = 0; i < size; ++i)
+            {
+                double rhs = (*indx)(matrixIndex);
+                int save_idx = matrixIndex[dim];
+                int sort_idx = static_cast<int>((*sortIndx)(matrixIndex)) - 1;
+
+                matrixIndex[dim] = sort_idx;
+                (*indx2)(matrixIndex) = rhs;
+                matrixIndex[dim] = save_idx;
+
+                // advance slice indices
+                for (int j = 0; j < numDim; ++j)
+                {
+                    // increment index j if possible
+                    if (matrixIndex[j] < static_cast<int> (dims[j]) - 1)
+                    {
+                        ++matrixIndex[j];
+                        break;
+                    }
+
+                    // index j is maxed out, so reset and continue to j+1
+                    matrixIndex[j] = 0;
+                }
+            }
+
+            delete indx;
+            outputs.push_back(indx2);
+        }
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
 // Computes mean absolute deviation values [meandev]
 //------------------------------------------------------------------------------
 bool OmlMeandev(EvaluatorInterface           eval,
@@ -10330,6 +10981,928 @@ bool OmlCorr(EvaluatorInterface           eval,
             BuiltInFuncsUtils::CheckMathStatus(eval, Corr(*m1, *m2, *corr));
             outputs.push_back(corr.release());
         }
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Utility reassigns NaN values to an input value
+//------------------------------------------------------------------------------
+void NanAssignmentUtil(hwMatrix& data, double value, hwMatrixI* count,
+                       int& dim)
+{
+    if (dim == -1)
+    {
+        // first non-singleton
+        if (data.M() != 1 || data.N() == 1)
+            dim = 0;
+        else
+            dim = 1;
+    }
+    else if (dim != 0 && dim != 1)
+    {
+        return;
+    }
+
+    if (count)
+    {
+        if (dim == 0)
+            count->Dimension(1, data.N(), hwMatrixI::REAL);
+        else
+            count->Dimension(data.M(), 1, hwMatrixI::REAL);
+    }
+
+    int m = data.M();
+    int n = data.N();
+    std::vector<int> dims = { m, n };
+    int numVecs = (dim == 0) ? n : m;
+    int stride = (dim == 0) ? 1 : m;
+    int row = 0;
+    int col = 0;
+
+    for (int i = 0; i < numVecs; ++i)
+    {
+        // set the matrix indices to the first index in each slice
+        int start = col * m + row;
+        int total = dims[dim];  // total non-NaN elements
+
+        if (data.IsReal())
+        {
+            double* real = data.GetRealData() + start;
+
+            for (int j = 0; j < dims[dim]; ++j)
+            {
+                // replace and count NaN values
+                if (IsNaN_T(*real))
+                {
+                    *real = value;
+                    --total;
+                }
+
+                real += stride;
+            }
+        }
+        else
+        {
+            hwComplex* cplx = data.GetComplexData() + start;
+
+            for (int j = 0; j < dims[dim]; ++j)
+            {
+                // replace and count NaN values
+                if (IsNaN_T(*cplx))
+                {
+                    *cplx = value;
+                    --total;
+                }
+
+                cplx += stride;
+            }
+        }
+
+        if (count)
+            (*count)(row, col) = total;
+
+        // advance slice indices
+        if (dim == 0)
+            ++col;
+        else
+            ++row;
+    }
+}
+//------------------------------------------------------------------------------
+// Utility reassigns NaN values to an input value
+//------------------------------------------------------------------------------
+void NanAssignmentUtil(hwMatrixN& data, double value, hwMatrixNI* count,
+                       int& dim)
+{
+    const std::vector<int>& dims = data.Dimensions();
+    int numDim = static_cast<int> (dims.size());
+
+    if (dim == -1)
+    {
+        // first non-singleton
+        for (int i = 0; i < numDim; ++i)
+        {
+            if (dims[i] != 1)
+            {
+                dim = i;
+                break;
+            }
+        }
+    }
+    else if (dim < 0 || dim > numDim - 1)
+    {
+        return;
+    }
+
+    if (count)
+    {
+        std::vector<int> countDims = dims;
+        countDims[dim] = 1;
+        count->Dimension(countDims, hwMatrixNI::REAL);
+    }
+
+    int numVecs = data.Size() / dims[dim];
+    int stride = data.Stride(dim);
+    std::vector<int> matrixIndex(numDim);
+
+    for (int i = 0; i < numVecs; ++i)
+    {
+        // set the matrix indices to the first index in each slice
+        int start = data.Index(matrixIndex);
+        int total = dims[dim];  // total non-NaN elements
+
+        if (data.IsReal())
+        {
+            double* real = data.GetRealData() + start;
+
+            for (int j = 0; j < dims[dim]; ++j)
+            {
+                // replace and count NaN values
+                if (IsNaN_T(*real))
+                {
+                    *real = value;
+                    --total;
+                }
+
+                real += stride;
+            }
+        }
+        else
+        {
+            hwComplex* cplx = data.GetComplexData() + start;
+
+            for (int j = 0; j < dims[dim]; ++j)
+            {
+                // replace and count NaN values
+                if (IsNaN_T(*cplx))
+                {
+                    *cplx = value;
+                    --total;
+                }
+
+                cplx += stride;
+            }
+        }
+
+        if (count)
+            (*count)(matrixIndex) = total;
+
+        // advance slice indices
+        for (int j = 0; j < numDim; ++j)
+        {
+            if (j == dim)
+                continue;
+
+            // increment index j if possible
+            if (matrixIndex[j] < static_cast<int> (dims[j]) - 1)
+            {
+                ++matrixIndex[j];
+                break;
+            }
+
+            // index j is maxed out, so reset and continue to j+1
+            matrixIndex[j] = 0;
+        }
+    }
+}
+//------------------------------------------------------------------------------
+// Computes min values, excluding NaN [nanmin]
+//------------------------------------------------------------------------------
+bool OmlNanMin(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs)
+{
+    return oml_min(eval, inputs, outputs);
+}
+//------------------------------------------------------------------------------
+// Computes max values, excluding NaN [nanmax]
+//------------------------------------------------------------------------------
+bool OmlNanMax(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs)
+{
+    return oml_max(eval, inputs, outputs);
+}
+//------------------------------------------------------------------------------
+// Computes sum values, excluding NaN [nansum]
+//------------------------------------------------------------------------------
+bool OmlNanSum(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 2)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    int dim = -1;
+
+    if (nargin == 2)
+    {
+        if (inputs[1].IsPositiveInteger())
+            dim = static_cast<int> (inputs[1].Scalar()) - 1;
+    }
+
+    std::vector<Currency> inputs2;
+    Currency copy = inputs[0].GetWritableCurrency();
+
+    if (inputs[0].IsMatrix())
+    {
+        hwMatrix* m = copy.GetWritableMatrix();
+        NanAssignmentUtil(*m, 0.0, nullptr, dim);
+        inputs2.push_back(copy);
+
+        if (nargin == 2)
+        {
+            inputs2.push_back(inputs[1]);
+        }
+
+        oml_sum(eval, inputs2, outputs);
+    }
+    else if (inputs[0].IsNDMatrix())
+    {
+        hwMatrixN* m = copy.GetWritableMatrixN();
+        NanAssignmentUtil(*m, 0.0, nullptr, dim);
+        inputs2.push_back(copy);
+
+        if (nargin == 2)
+        {
+            inputs2.push_back(inputs[1]);
+        }
+
+        oml_sum(eval, inputs2, outputs);
+    }
+    else if (copy.IsScalar())
+    {
+        if (IsNaN_T(copy.Scalar()))
+        {
+            outputs.push_back(0.0);
+        }
+        else
+        {
+            outputs.push_back(copy);
+        }
+    }
+    else if (copy.IsComplex())
+    {
+        if (IsNaN_T(copy.Complex()))
+        {
+            outputs.push_back(0.0);
+        }
+        else
+        {
+            outputs.push_back(copy);
+        }
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_SCALARMATRIX, 1, OML_VAR_DATA);
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Computes mean values, excluding NaN [nanmean]
+//------------------------------------------------------------------------------
+bool OmlNanMean(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 2)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    int dim = -1;
+
+    if (nargin == 2)
+    {
+        if (inputs[1].IsPositiveInteger())
+            dim = static_cast<int> (inputs[1].Scalar()) - 1;
+    }
+
+    std::vector<Currency> inputs2;
+    Currency copy = inputs[0].GetWritableCurrency();
+
+    if (copy.IsMatrix())
+    {
+        hwMatrix* m = copy.GetWritableMatrix();
+
+        if (!m->IsReal())
+        {
+            throw OML_Error(OML_ERR_REAL, 1);
+        }
+
+        hwMatrixI count;
+        NanAssignmentUtil(*m, 0.0, &count, dim);
+        inputs2.push_back(copy);
+
+        if (nargin == 2)
+        {
+            inputs2.push_back(inputs[1]);
+        }
+
+        oml_sum(eval, inputs2, outputs);
+
+        if (outputs[0].IsMatrix())
+        {
+            hwMatrix* mean = outputs[0].GetWritableMatrix();
+            int size = mean->Size();
+
+            for (int i = 0; i < size; ++i)
+            {
+                if (count(i))
+                    (*mean)(i) /= static_cast<int> (count(i));
+                else
+                    (*mean)(i) = std::numeric_limits<double>::quiet_NaN();
+            }
+        }
+        else // outputs[0].IsScalar()
+        {
+            double mean = outputs[0].Scalar();
+            
+            if (count(0))
+                mean /= count(0);
+            else
+                mean = std::numeric_limits<double>::quiet_NaN();
+            
+            outputs.clear();
+            outputs.push_back(mean);
+        }
+    }
+    else if (copy.IsNDMatrix())
+    {
+        hwMatrixN* m = copy.GetWritableMatrixN();
+
+        if (!m->IsReal())
+        {
+            throw OML_Error(OML_ERR_REAL, 1);
+        }
+
+        hwMatrixNI count;
+        NanAssignmentUtil(*m, 0.0, &count, dim);
+        inputs2.push_back(copy);
+
+        if (nargin == 2)
+        {
+            inputs2.push_back(inputs[1]);
+        }
+
+        oml_sum(eval, inputs2, outputs);
+
+        if (outputs[0].IsNDMatrix())
+        {
+            hwMatrixN* mean = outputs[0].GetWritableMatrixN();
+            int size = mean->Size();
+
+            for (int i = 0; i < size; ++i)
+            {
+                if (count(i))
+                    (*mean)(i) /= static_cast<int> (count(i));
+                else
+                    (*mean)(i) = std::numeric_limits<double>::quiet_NaN();
+            }
+        }
+        else if (outputs[0].IsMatrix())
+        {
+            // this happens if dim = 3
+            hwMatrix* mean = outputs[0].GetWritableMatrix();
+            int size = mean->Size();
+
+            for (int i = 0; i < size; ++i)
+            {
+                if (count(i))
+                    (*mean)(i) /= static_cast<int> (count(i));
+                else
+                    (*mean)(i) = std::numeric_limits<double>::quiet_NaN();
+            }
+        }
+        else // outputs[0].IsScalar()
+        {
+            double mean = outputs[0].Scalar() / count(0);
+
+            if (count(0))
+                mean /= count(0);
+            else
+                mean = std::numeric_limits<double>::quiet_NaN();
+
+            outputs.clear();
+            outputs.push_back(mean);
+        }
+    }
+    else if (copy.IsScalar())
+    {
+        if (IsNaN_T(copy.Scalar()))
+        {
+            outputs.push_back(0.0);
+        }
+        else
+        {
+            outputs.push_back(inputs[0]);
+        }
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_SCALARMATRIX, 1, OML_VAR_DATA);
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Computes standard deviation values, excluding NaN [nanstd]
+//------------------------------------------------------------------------------
+bool OmlNanStd(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs)
+{
+    OmlNanVar(eval, inputs, outputs);
+
+    if (outputs[0].IsScalar())
+    {
+        double std = sqrt(outputs[0].Scalar());
+        outputs.clear();
+        outputs.push_back(std);
+    }
+    else if (outputs[0].IsMatrix())
+    {
+        hwMatrix* var = outputs[0].GetWritableMatrix();
+        int size = var->Size();
+
+        for (int i = 0; i < size; ++i)
+            (*var)(i) = sqrt((*var)(i));
+    }
+    else // outputs[0].IsNDMatrix()
+    {
+        hwMatrixN* var = outputs[0].GetWritableMatrixN();
+        int size = var->Size();
+
+        for (int i = 0; i < size; ++i)
+            (*var)(i) = sqrt((*var)(i));
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Computes variance values, excluding NaN [nanvar]
+//------------------------------------------------------------------------------
+bool OmlNanVar(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 3)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    bool sampleStat;    // false = population statistic
+
+    if (nargin > 1)
+    {
+        if (inputs[1].IsScalar())
+        {
+            if (inputs[1].Scalar() == 0)
+                sampleStat = true;
+            else if (inputs[1].Scalar() == 1)
+                sampleStat = false;
+            else
+                throw OML_Error(OML_ERR_FLAG_01, 2);
+        }
+        else if (inputs[1].IsEmpty())
+        {
+            sampleStat = true;
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_FLAG_01, 2);
+        }
+    }
+    else
+    {
+        sampleStat = true;
+    }
+
+    int dim = -1;
+
+    if (nargin == 3)
+    {
+        if (inputs[2].IsPositiveInteger())
+            dim = static_cast<int> (inputs[2].Scalar()) - 1;
+    }
+
+    Currency copy = inputs[0].GetWritableCurrency();
+
+    if (copy.IsMatrix())
+    {
+        hwMatrix* data = copy.GetWritableMatrix();
+
+        if (!data->IsReal())
+        {
+            throw OML_Error(OML_ERR_REAL, 1);
+        }
+
+        hwMatrixI count;
+        NanAssignmentUtil(*data, 0.0, &count, dim);
+
+        if (dim != 0 && dim != 1)
+        {
+            outputs.push_back(copy);
+            return true;
+        }
+
+        int m = data->M();
+        int n = data->N();
+        hwMatrix* var = EvaluatorInterface::allocateMatrix();
+
+        if (dim == 0)
+            var->Dimension(1, n, hwMatrix::REAL);
+        else
+            var->Dimension(m, 1, hwMatrix::REAL);
+
+        std::vector<int> dims = { m, n };
+        int numVecs = (dim == 0) ? n : m;
+        int stride = (dim == 0) ? 1 : m;
+        int row = 0;
+        int col = 0;
+
+        for (int i = 0; i < numVecs; ++i)
+        {
+            // set the matrix indices to the first index in each slice
+            int start = col * m + row;
+
+            // shift data and compensate for replaced NaN values
+            double* real = data->GetRealData() + start;
+            int m = count(i);
+            int n = dims[dim];
+            double data_zero;
+
+            for (int j = 0; j < n; ++j)
+            {
+                if (!IsNaN_T(*(real + j)))
+                {
+                    data_zero = *(real + j);
+                    break;
+                }
+            }
+
+            double sum   = 0.0;
+            double sumSq = 0.0;
+            double value;
+
+            for (int j = 0; j < n; ++j)
+            {
+                value  = *real - data_zero;     // shift to reduce overflow risk
+                sum   += value;
+                sumSq += value * value;
+                real  += stride;
+            }
+
+            sum   += (n - m) * data_zero;
+            sumSq -= (n - m) * data_zero * data_zero;
+
+            if (sampleStat)
+            {
+                if (m != 1)
+                {
+                    (*var)(i) = ((double)m * sumSq - sum * sum) / ((double)m * (double)(m - 1));
+                }
+                else // (m == 1)
+                {
+                    (*var)(i) = 0.0;
+                }
+            }
+            else // population variance
+            {
+                (*var)(i) = ((double)m * sumSq - sum * sum) / ((double)(m * m));
+            }
+
+            // advance slice indices
+            if (dim == 0)
+                ++col;
+            else
+                ++row;
+        }
+
+        outputs.clear();
+        outputs.push_back(var);
+    }
+    else if (copy.IsNDMatrix())
+    {
+        hwMatrixN* data = copy.GetWritableMatrixN();
+
+        if (!data->IsReal())
+        {
+            throw OML_Error(OML_ERR_REAL, 1);
+        }
+
+        hwMatrixNI count;
+        NanAssignmentUtil(*data, 0.0, &count, dim);
+
+        const std::vector<int>& dims = data->Dimensions();
+        int numDim = static_cast<int> (dims.size());
+
+        if (dim > numDim - 1)
+        {
+            outputs.push_back(copy);
+            return true;
+        }
+
+        const std::vector<int>& varDims = count.Dimensions();
+        hwMatrixN* var = new hwMatrixN(varDims, hwMatrixN::REAL);
+
+        int numVecs = data->Size() / dims[dim];
+        int stride = data->Stride(dim);
+        std::vector<int> matrixIndex(numDim);
+
+        for (int i = 0; i < numVecs; ++i)
+        {
+            // set the matrix indices to the first index in each slice
+            int start = data->Index(matrixIndex);
+
+            // shift data and compensate for replaced NaN values
+            double* real = data->GetRealData() + start;
+            int m = count(i);
+            int n = dims[dim];
+            double data_zero;
+
+            for (int j = 0; j < n; ++j)
+            {
+                if (!IsNaN_T(*(real + j)))
+                {
+                    data_zero = *(real + j);
+                    break;
+                }
+            }
+
+            double sum   = 0.0;
+            double sumSq = 0.0;
+            double value;
+
+            for (int j = 0; j < n; ++j)
+            {
+                value  = *real - data_zero;        // shift to reduce overflow risk
+                sum   += value;
+                sumSq += value * value;
+                real  += stride;
+            }
+
+            sum   += (n - m) * data_zero;
+            sumSq -= (n - m) * data_zero * data_zero;
+
+            if (sampleStat)
+            {
+                if (m != 1)
+                {
+                    (*var)(i) = ((double)m * sumSq - sum * sum) / ((double)m * (double)(m - 1));
+                }
+                else // (m == 1)
+                {
+                    (*var)(i) = 0.0;
+                }
+            }
+            else // population variance
+            {
+                (*var)(i) = ((double)m * sumSq - sum * sum) / ((double)(m * m));
+            }
+
+            // advance slice indices
+            for (int j = 0; j < numDim; ++j)
+            {
+                if (j == dim)
+                    continue;
+
+                // increment index j if possible
+                if (matrixIndex[j] < static_cast<int> (dims[j]) - 1)
+                {
+                    ++matrixIndex[j];
+                    break;
+                }
+
+                // index j is maxed out, so reset and continue to j+1
+                matrixIndex[j] = 0;
+            }
+        }
+
+        outputs.clear();
+        outputs.push_back(var);
+    }
+    else if (copy.IsScalar())
+    {
+        if (IsNaN_T(copy.Scalar()))
+        {
+            outputs.push_back(0.0);
+        }
+        else
+        {
+            outputs.push_back(copy);
+        }
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_SCALARMATRIX, 1, OML_VAR_DATA);
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Computes median values, excluding NaN [nanmedian]
+//------------------------------------------------------------------------------
+bool OmlNanMedian(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 2)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    int dim = -1;
+
+    if (nargin == 2)
+    {
+        if (inputs[1].IsPositiveInteger())
+            dim = static_cast<int> (inputs[1].Scalar()) - 1;
+    }
+
+    std::vector<Currency> inputs2;
+    Currency copy = inputs[0].GetWritableCurrency();
+
+    if (copy.IsMatrix())
+    {
+        hwMatrix* data = copy.GetWritableMatrix();
+
+        if (!data->IsReal())
+        {
+            throw OML_Error(OML_ERR_REAL, 1);
+        }
+
+        hwMatrixI count;
+        NanAssignmentUtil(*data, std::numeric_limits<double>::infinity(), &count, dim);
+
+        if (dim != 0 && dim != 1)
+        {
+            outputs.push_back(inputs[0]);
+            return true;
+        }
+
+        inputs2.push_back(copy);
+
+        if (nargin == 2)
+        {
+            inputs2.push_back(inputs[1]);
+        }
+
+        oml_sort(eval, inputs2, outputs);
+
+        data = outputs[0].GetWritableMatrix();
+        int m = data->M();
+        int n = data->N();
+
+        hwMatrix* median = EvaluatorInterface::allocateMatrix();
+
+        if (dim == 0)
+            median->Dimension(1, n, hwMatrix::REAL);
+        else
+            median->Dimension(m, 1, hwMatrix::REAL);
+
+        std::vector<int> dims = { m, n };
+        int numVecs = (dim == 0) ? n : m;
+        int stride = (dim == 0) ? 1 : m;
+        int row = 0;
+        int col = 0;
+
+        for (int i = 0; i < numVecs; ++i)
+        {
+            // set the matrix indices to the first index in each slice
+            int start = col * m + row;
+
+            // compute median value
+            int cnt = count(i);
+            double* real = data->GetRealData() + start;
+
+            if (cnt == 0)
+            {
+                (*median)(i) = std::numeric_limits<double>::quiet_NaN();
+            }
+            else if (cnt % 2)
+            {
+                (*median)(i) = *(real + cnt / 2 * stride);
+            }
+            else
+            {
+                (*median)(i)  = *(real + (cnt / 2 - 1) * stride);
+                (*median)(i) += *(real + (cnt / 2) * stride);
+                (*median)(i) /= 2.0;
+            }
+
+            // advance slice indices
+            if (dim == 0)
+                ++col;
+            else
+                ++row;
+        }
+
+        outputs.clear();
+        outputs.push_back(median);
+    }
+    else if (copy.IsNDMatrix())
+    {
+        hwMatrixN* data = copy.GetWritableMatrixN();
+
+        if (!data->IsReal())
+        {
+            throw OML_Error(OML_ERR_REAL, 1);
+        }
+
+        hwMatrixNI count;
+        NanAssignmentUtil(*data, std::numeric_limits<double>::infinity(), &count, dim);
+
+        const std::vector<int>& dims = data->Dimensions();
+        int numDim = static_cast<int> (dims.size());
+
+        if (dim > numDim - 1)
+        {
+            outputs.push_back(inputs[0]);
+            return true;
+        }
+
+        inputs2.push_back(copy);
+
+        if (nargin == 2)
+        {
+            inputs2.push_back(inputs[1]);
+        }
+
+        oml_sort(eval, inputs2, outputs);
+
+        data = outputs[0].GetWritableMatrixN();
+
+        std::vector<int> medianDims = count.Dimensions();
+        hwMatrixN* median = new hwMatrixN(medianDims, hwMatrixN::REAL);
+
+        int numVecs = data->Size() / dims[dim];
+        int stride = data->Stride(dim);
+        std::vector<int> matrixIndex(numDim);
+
+        for (int i = 0; i < numVecs; ++i)
+        {
+            // set the matrix indices to the first index in each slice
+            int start = data->Index(matrixIndex);
+
+            // compute median values
+            int cnt = count(i);
+            double* real = data->GetRealData() + start;
+
+            if (cnt == 0)
+            {
+                (*median)(i) = std::numeric_limits<double>::quiet_NaN();
+            }
+            else if (cnt % 2)
+            {
+                (*median)(i) = *(real + cnt / 2 * stride);
+            }
+            else
+            {
+                (*median)(i) = *(real + (cnt / 2 - 1) * stride);
+                (*median)(i) += *(real + (cnt / 2) * stride);
+                (*median)(i) /= 2.0;
+            }
+
+            // advance slice indices
+            for (int j = 0; j < numDim; ++j)
+            {
+                if (j == dim)
+                    continue;
+
+                // increment index j if possible
+                if (matrixIndex[j] < static_cast<int> (dims[j]) - 1)
+                {
+                    ++matrixIndex[j];
+                    break;
+                }
+
+                // index j is maxed out, so reset and continue to j+1
+                matrixIndex[j] = 0;
+            }
+        }
+
+        outputs.clear();
+        outputs.push_back(median);
+    }
+    else if (copy.IsScalar())
+    {
+        if (IsNaN_T(copy.Scalar()))
+        {
+            outputs.push_back(0.0);
+        }
+        else
+        {
+            outputs.push_back(copy);
+        }
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_SCALARMATRIX, 1, OML_VAR_DATA);
     }
 
     return true;

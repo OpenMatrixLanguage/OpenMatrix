@@ -1,7 +1,7 @@
 /**
 * @file OmlPythonBridgeCore.h
 * @date February, 2019
-* Copyright (C) 2015-2019 Altair Engineering, Inc.
+* Copyright (C) 2019-2023 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -25,6 +25,7 @@ template <typename T> class hwTComplex;
 template <typename T1, typename T2> class hwTMatrixS;
 typedef hwTMatrixS<double, hwTComplex<double> > hwMatrixS;
 
+#define OMLPYBRIDGE_EXT_CLASS_NAME "OmlPythonBridgeExt"
 #ifndef PyObject_HEAD
 struct _object;
 typedef _object PyObject;
@@ -62,7 +63,7 @@ public:
     //! \param[in] obj is python variable name
     //! \param[in] var is oml variable name
     //! \return true if oml variable value can be represented in python
-    bool ConvertCurrencyToPyObject(PyObject*& obj, const Currency& var);
+    bool ConvertCurrencyToPyObject(PyObject*& obj, const Currency& var, EvaluatorInterface& eval);
     //! Convert Python variable value into data type in OML
     //! PythonDataType  OMLDataType      Limitation
     //! Bool            Logical
@@ -77,7 +78,7 @@ public:
     //! \param[out] outputs python variable value in OML type
     //! \param[in] obj is python variable name
     //! \return true if python variable value can be represented in OML
-    bool ConvertPyObjectToCurrency(std::vector<Currency>& outputs, PyObject* const& obj);
+    bool ConvertPyObjectToCurrency(std::vector<Currency>& outputs, PyObject* const& obj, EvaluatorInterface& eval);
     //! Convert python variable value in to string representation
     //! \param obj is the python variable name
     //! \return string representation of python variable value
@@ -85,18 +86,20 @@ public:
     //! Verifies if the given python variable value can be represented by types in oml
     //! \param obj is the python variable name
     //! \return true if python variable value can be represented in oml type, false otherwise
-    bool IsTypeSupported(PyObject* const& obj);
+    bool IsTypeSupported(PyObject* const& obj, EvaluatorInterface& eval);
 
     void HandleException(void);
     void SetErrorMessage(const std::string &error);
     std::string GetErrorMessage();
-
+    
+    void RegisterOmlPythonBridgeExt(EvaluatorInterface& eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
     //! 
     //! Gets argv as Py_initialize does not set sys.argv
     //! \param eval Evaluator interface
     //!
     std::vector<std::string> GetArgv(EvaluatorInterface eval);
 
+    bool IsExist(EvaluatorInterface& eval, std::string& classname, std::string& methodname);
 private:
     //! Constructor
     OmlPythonBridgeCore();
@@ -107,14 +110,16 @@ private:
     //! Destructor
     ~OmlPythonBridgeCore();
 
-    hwMatrixS* ConvertPyObjectToSparse(PyObject* const& obj, bool& status);
+    hwMatrixS* ConvertPyObjectToSparse(PyObject* const& obj, bool& status, EvaluatorInterface& eval);
     PyObject* ConvertSparseToPyObject(const hwMatrixS* spm);
 
     PyObject* GetSparseCscCls(std::string modulename = "scipy.sparse.csc");
     bool IsSparseCsc(PyObject* obj);
     void ClearPyError();
+    std::string GetUniquePythonVarName();
     static OmlPythonBridgeCore* _instance;
     std::string m_errorMessagePython;
+    Currency m_extlist;
 };
 
 #endif

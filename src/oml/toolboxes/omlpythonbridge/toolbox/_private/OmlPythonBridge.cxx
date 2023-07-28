@@ -84,7 +84,7 @@ OmlPythonBridge::~OmlPythonBridge()
     }
 }
 
-bool OmlPythonBridge::SetPythonVariable(const std::string& name, const Currency& value)
+bool OmlPythonBridge::SetPythonVariable(const std::string& name, const Currency& value, EvaluatorInterface& eval)
 {
     bool success = false;
     PyGILState_STATE state = PyGILState_Ensure();
@@ -93,10 +93,10 @@ bool OmlPythonBridge::SetPythonVariable(const std::string& name, const Currency&
     PyObject* nameobj = NULL;
     int status = -1;
 
-    OmlPythonBridgeCore::GetInstance()->ConvertCurrencyToPyObject(valueobj, value);
+    OmlPythonBridgeCore::GetInstance()->ConvertCurrencyToPyObject(valueobj, value, eval);
     if (valueobj != NULL)
     {
-        OmlPythonBridgeCore::GetInstance()->ConvertCurrencyToPyObject(nameobj, Currency(name));
+        OmlPythonBridgeCore::GetInstance()->ConvertCurrencyToPyObject(nameobj, Currency(name), eval);
                 
         if (nameobj != NULL)
         {
@@ -117,13 +117,13 @@ bool OmlPythonBridge::SetPythonVariable(const std::string& name, const Currency&
     return success;
 }
 
-bool OmlPythonBridge::GetPythonVariable(const std::string& name, std::vector<Currency>& outputs)
+bool OmlPythonBridge::GetPythonVariable(const std::string& name, std::vector<Currency>& outputs, EvaluatorInterface& eval)
 {
     bool success = false;
     PyGILState_STATE state = PyGILState_Ensure();
     PyObject *m = PyImport_AddModule("__main__");
     PyObject *nameobj = NULL;
-    OmlPythonBridgeCore::GetInstance()->ConvertCurrencyToPyObject(nameobj, Currency(name));
+    OmlPythonBridgeCore::GetInstance()->ConvertCurrencyToPyObject(nameobj, Currency(name), eval);
             
     if (PyObject_HasAttr(m,nameobj))
     {
@@ -135,7 +135,7 @@ bool OmlPythonBridge::GetPythonVariable(const std::string& name, std::vector<Cur
             //check for limitations:  1. list to cell 2. dict to struct
             if (PyList_Check(valueobj) || PyDict_Check(valueobj))
             {
-                is_type_supported = OmlPythonBridgeCore::GetInstance()->IsTypeSupported(valueobj);
+                is_type_supported = OmlPythonBridgeCore::GetInstance()->IsTypeSupported(valueobj, eval);
             } 
             else
             {
@@ -143,7 +143,7 @@ bool OmlPythonBridge::GetPythonVariable(const std::string& name, std::vector<Cur
             }
                 
             if (is_type_supported)
-                success = OmlPythonBridgeCore::GetInstance()->ConvertPyObjectToCurrency(outputs, valueobj);
+                success = OmlPythonBridgeCore::GetInstance()->ConvertPyObjectToCurrency(outputs, valueobj, eval);
                     
             Py_DECREF(valueobj);
         }
@@ -394,7 +394,7 @@ void OmlPythonBridge::InitializeCommandLineArgs(EvaluatorInterface eval)
         wcscpy(argv[i], wstr.c_str());
     }
 
-    PySys_SetArgvEx(argc, argv, 0);
+    PySys_SetArgvEx(static_cast<int>(argc), argv, 0);
     for (int i = 0; i < argc; i++)
     {
         delete[] argv[i];

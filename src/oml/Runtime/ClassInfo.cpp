@@ -45,22 +45,28 @@ FunctionInfo* ClassInfo::GetFunctionInfo(const std::string& name) const
     if (name.empty()) 
 		return NULL;
 
-    std::map<std::string, FunctionInfo*>::const_iterator itr = _methods.find(name);
-    if (itr != _methods.end()) 
-        return itr->second;
+	for (std::vector<MethodInfo*>::const_iterator itr = _methods.begin();
+		itr != _methods.end(); ++itr)
+	{
+		if ((*itr)->Name() == name)
+			return (*itr)->GetFunctionInfo();
+	}
 
+	// also check static methods
 	std::map<std::string, FunctionInfo*>::const_iterator stat_itr = _static_methods.find(name);
 	if (stat_itr != _static_methods.end())
 		return stat_itr->second;
 
-	for (int j=0; j<_baseclass.size(); ++j)
+	// check the base classes
+	for (int j = 0; j < _baseclass.size(); ++j)
 	{
-		FunctionInfo* fi = _baseclass[j]->GetFunctionInfo(name);
-		if (fi)
-			return fi;
+		FunctionInfo* temp_fi = _baseclass[j]->GetFunctionInfo(name);
+
+		if (temp_fi)
+			return temp_fi;
 	}
 
-    return NULL;
+	return NULL;
 }
 //------------------------------------------------------------------------------
 //! Adds a base class
@@ -100,10 +106,10 @@ bool ClassInfo::IsSubclassOf(const std::string& baseclass) const
 //! \param[in] name Name of the method in the language
 //! \param[in] fi   Function info
 //------------------------------------------------------------------------------
-void ClassInfo::AddClassMethod(const std::string& name, FunctionInfo* fi)
+void ClassInfo::AddClassMethod(const std::string& name, FunctionInfo* fi, bool is_private)
 {
     if (!name.empty())
-        _methods[name] = fi;
+        _methods.push_back(new MethodInfo(name, fi, is_private));
 
 	fi->SetParentClass(this);
 }
@@ -124,7 +130,7 @@ void ClassInfo::AddStaticClassMethod(const std::string& name, FunctionInfo* fi)
 //------------------------------------------------------------------------------
 bool ClassInfo::IsClassMethod(FunctionInfo* fi) const
 {
-    if (!fi) return false;
+	if (!fi) return false;
 
 	if (fi->IsConstructor())
 	{
@@ -132,14 +138,14 @@ bool ClassInfo::IsClassMethod(FunctionInfo* fi) const
 			return true;
 	}
 
-	std::map<std::string, FunctionInfo*>::const_iterator iter = _methods.begin();
-	for (; iter != _methods.end(); ++iter)
+	for (std::vector<MethodInfo*>::const_iterator itr = _methods.begin();
+		itr != _methods.end(); ++itr)
 	{
-		if (iter->second == fi)
+		if ((*itr)->GetFunctionInfo() == fi)
 			return true;
 	}
 
-	for (int j=0; j<_baseclass.size(); ++j)
+	for (int j = 0; j < _baseclass.size(); ++j)
 	{
 		if (_baseclass[j]->IsClassMethod(fi))
 			return true;
@@ -175,6 +181,25 @@ bool ClassInfo::IsStaticClassMethod(FunctionInfo* fi) const
 	}
 
 	return false;
+}
+
+MethodInfo* ClassInfo::GetMethod(const std::string& name) const
+{
+	if (name.empty()) return NULL;
+
+	for (std::vector<MethodInfo*>::const_iterator itr = _methods.begin();
+		itr != _methods.end(); ++itr)
+	{
+		if ((*itr)->Name() == name)
+			return (*itr);
+	}
+	return NULL;
+}
+
+bool ClassInfo::IsMethodPrivate(const std::string& name) const
+{
+	MethodInfo* method = GetMethod(name);
+	return (method && method->IsPrivate());
 }
 //------------------------------------------------------------------------------
 //! Registers a property
@@ -243,7 +268,6 @@ bool ClassInfo::IsPropertyPrivate(const std::string& name) const
     PropertyInfo* prop = GetProperty(name);
     return (prop && prop->IsPrivate());
 }
-// end of file:
 
 Currency ClassInfo::CreateEmpty() const
 {
@@ -293,14 +317,19 @@ std::vector<std::string> ClassInfo::GetPropertyNames() const
 	return results;
 }
 
-std::vector<std::string> ClassInfo::GetMethodNames() const
+std::vector<std::string> ClassInfo::GetMethodNames(bool public_only) const
 {
 	std::vector<std::string> results;
 
-	std::map<std::string, FunctionInfo*>::const_iterator iter;
+	std::vector<MethodInfo*>::const_iterator iter;
 
 	for (iter = _methods.begin(); iter != _methods.end(); ++iter)
-		results.push_back(iter->first);
+	{
+		MethodInfo* mi = *iter;
+
+		if (!(mi->IsPrivate() && public_only))
+			results.push_back(mi->Name());
+	}
 
 	return results;
 }

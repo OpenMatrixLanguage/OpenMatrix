@@ -269,6 +269,7 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
         }
     }
     
+
     // Read the data
     int linenum = 0;      
     const int tmpbuffsize = static_cast<int>(filesize) + 1;
@@ -279,11 +280,12 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
     char* lineC = new char[tmpbuffsize];
 
 #endif
+
     bool hasdata = false;
     while (!eval.IsInterrupt() && !feof(f))
     {
-        std::string line;
         memset(lineC, 0, tmpbuffsize);
+        std::string line;
 #ifdef OS_WIN
         if (fgetws(lineC, tmpbuffsize, f) == nullptr)
         {
@@ -339,15 +341,19 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
             linenum++;
             continue;
         }
+
+        if (newlinedelim)
+        {
+            delims = " ";
+        }
+        std::vector<std::string> vectok(BuiltInFuncsString::Split(line, delims));
         int   column = 0;
 
-        std::string tmpdelims = (newlinedelim) ? " " : delims;
-        char* tok    = strtok((char *)line.c_str(), tmpdelims.c_str());
-
-        while (tok)
+        size_t numtokens = (vectok.empty()) ? 0 : vectok.size();
+        for (size_t idx = 0; idx < numtokens; ++ idx)
         {
             std::string fmt (formats[column]);
-            std::string data (tok);
+            std::string data(vectok[idx]);
 
             bool createcur = (outputs.empty() || outputs.size() < column + 1) ?
                              true : false;
@@ -414,7 +420,6 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
                 }
             }
 
-            tok = strtok(NULL, tmpdelims.c_str());
             column++;
             if (column >= numformats)
             {
@@ -2669,95 +2674,95 @@ int BuiltInFuncsFile::ReadDouble(FILE*              file,
     char buff[1028];
     if (fmt[0] == '%') // This is a number
     {
-        int result = (isdouble) ? fscanf(file, fmt.c_str(), &realval, &used) :
-            fscanf(file, fmt.c_str(), &ival, &used);
-        if (result != 1)
-        {
-            return result;
-        }
+    int result = (isdouble) ? fscanf(file, fmt.c_str(), &realval, &used) :
+                              fscanf(file, fmt.c_str(), &ival,    &used);
+    if (result != 1)
+    {
+        return result;
+    }
 
-        if (!isdouble)
-        {
-            realval = static_cast<double>(ival);
-        }
+    if (!isdouble)
+    {
+        realval = static_cast<double>(ival);
+    }
 
-        // Check if this is a complex number with/without spaces that is being read
-        long pos1 = ftell(file);
-        if (pos1 == -1)
-        {
-            return result;
-        }
+    // Check if this is a complex number with/without spaces that is being read
+    long pos1 = ftell(file);
+    if (pos1 == -1)
+    {
+        return result;
+    }
 
-        // Read the next string to determine if we are processing a complex number
+    // Read the next string to determine if we are processing a complex number
+    memset(buff, 0, sizeof(buff));
+    int tmpresult = fscanf(file, "%s", buff);
+    if (tmpresult != 1)
+    {
+        fseek(file, pos1, SEEK_SET);   // Rewind as we are not dealing with complex num
+        return result;
+    }
+    long pos2 = ftell(file);
+    std::string tmp1(buff);
+
+    if (tmp1.empty())
+    {
+        fseek(file, pos1, SEEK_SET);   // Rewind as this is not a complex num
+        return result;
+    }
+
+    bool issignonly = (tmp1 == "+" || tmp1 == "-") ? true : false;
+    if (issignonly)  
+    {
+        // Since this is sign only, check if there is a number after
         memset(buff, 0, sizeof(buff));
-        int tmpresult = fscanf(file, "%s", buff);
+        tmpresult = fscanf(file, "%s", buff);
         if (tmpresult != 1)
         {
             fseek(file, pos1, SEEK_SET);   // Rewind as we are not dealing with complex num
             return result;
         }
-        long pos2 = ftell(file);
-        std::string tmp1(buff);
+        tmp1 += buff;
+    }
 
-        if (tmp1.empty())
-        {
-            fseek(file, pos1, SEEK_SET);   // Rewind as this is not a complex num
-            return result;
-        }
+    // Check if there is an i at the end
+    if (tmp1.empty())
+    {
+        fseek(file, pos1, SEEK_SET);   // Rewind as we are not dealing with complex num
+        return result;
+    }
 
-        bool issignonly = (tmp1 == "+" || tmp1 == "-") ? true : false;
-        if (issignonly)
-        {
-            // Since this is sign only, check if there is a number after
-            memset(buff, 0, sizeof(buff));
-            tmpresult = fscanf(file, "%s", buff);
-            if (tmpresult != 1)
-            {
-                fseek(file, pos1, SEEK_SET);   // Rewind as we are not dealing with complex num
-                return result;
-            }
-            tmp1 += buff;
-        }
+    // Check if there is an imaginary part
+    iscomplex = IsComplex(tmp1, complexval);
+    if (iscomplex)
+    {
+        return result;
+    }
 
-        // Check if there is an i at the end
-        if (tmp1.empty())
-        {
-            fseek(file, pos1, SEEK_SET);   // Rewind as we are not dealing with complex num
-            return result;
-        }
-
-        // Check if there is an imaginary part
-        iscomplex = IsComplex(tmp1, complexval);
-        if (iscomplex)
-        {
-            return result;
-        }
-
-        // Check if this has i - which means the first value is a complex number
+    // Check if this has i - which means the first value is a complex number
         std::string lower(tmp1);
-        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
-        if (lower == "i" || lower == "j")
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+    if (lower == "i" || lower == "j")
+    {
+        fseek(file, pos2 - 2, SEEK_SET);  // Check if there is a space before i
+        char ch = fgetc(file);
+        if (!isdigit(ch) || pos2 != -1)
         {
-            fseek(file, pos2 - 2, SEEK_SET);  // Check if there is a space before i
-            char ch = fgetc(file);
-            if (!isdigit(ch) || pos2 != -1)
-            {
-                fseek(file, pos1, SEEK_SET);
-            }
-            else
-            {
-                fseek(file, pos2, SEEK_SET);
-            }
-            return result;
+            fseek(file, pos1, SEEK_SET);
         }
-
-        // Check if there is an imaginary part
-        iscomplex = IsComplex(tmp1, complexval);
-        if (!iscomplex)
+        else
         {
-            fseek(file, pos1, SEEK_SET);   // Rewind as this is not a complex num
+            fseek(file, pos2, SEEK_SET);
         }
         return result;
+    }
+
+    // Check if there is an imaginary part
+    iscomplex = IsComplex(tmp1, complexval);
+    if (!iscomplex)
+    {
+        fseek(file, pos1, SEEK_SET);   // Rewind as this is not a complex num
+    }
+    return result;
     }
     // Scan as a string and then process
     size_t pos = fmt.find('%');

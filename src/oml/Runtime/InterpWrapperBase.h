@@ -1,0 +1,82 @@
+/**
+* @file InterpWrapperBase.h
+* @date January 2015
+* Copyright (C) 2015-2020 Altair Engineering, Inc.  
+* This file is part of the OpenMatrix Language ("OpenMatrix") software.
+* Open Source License Information:
+* OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+* OpenMatrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
+* You should have received a copy of the GNU Affero General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
+* 
+* Commercial License Information: 
+* For a copy of the commercial license terms and conditions, contact the Altair Legal Department at Legal@altair.com and in the subject line, use the following wording: Request for Commercial License Terms for OpenMatrix.
+* Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
+* Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
+*/
+
+#ifndef __INTERP_WRAPPER_BASE__
+#define __INTERP_WRAPPER_BASE__
+
+// Begin defines/includes
+#include "Currency.h"
+//#include "SignalHandlerBase.h"
+
+class CurrencyDisplay;
+class Interpreter;
+class SignalHandlerBase;
+
+//-------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
+//! Base class for handling interpretor signals and methods for console and atom client
+//-------------------------------------------------------------------------------------
+class OMLDLL_DECLS InterpWrapperBase
+{
+public:
+    //! Constructor
+    //! \param[in] interpretor
+    InterpWrapperBase(Interpreter* interp);
+    //! Destructor
+    virtual ~InterpWrapperBase() = 0;
+    //! Prints currency to console
+    //! \param[in] cur Currency to print
+    virtual void HandleOnPrintResult( const Currency& cur) {}
+    //! Clears results and pagination related to results
+    virtual void HandleOnClearResults() {}
+    //! Handles application exit
+    //! \param returnCode Code to exit the application with
+    virtual void HandleOnSaveOnExit(int returnCode = EXIT_SUCCESS) {}
+    //! Displays a prompt and gets user input
+	//! \param[in]  prompt    Prompt to display to user
+    //! \param[in]  type      Type, if specified
+	//! \param[out] userInput Input from user
+    virtual void HandleOnGetUserInput( const std::string& prompt,
+                               const std::string& type,
+                               std::string&       userInput) {}
+    //! Initiates a user defined pause
+    //! \param[in] msg  User message to display
+    //! \param[in] wait True if waiting for a keystroke input from user
+	virtual void HandleOnPauseStart( const std::string& msg, 
+                                     bool               wait) {}
+    //! Handles nested displays during pagination
+    //! \param[in] display Display to be added
+    virtual void HandleOnAddDisplay( CurrencyDisplay* display) {}
+
+	//!
+	//! Sets child signal handler
+	//!
+	virtual void SetChildSignalHandler( SignalHandlerBase* handler) {}
+
+protected:
+    
+    // Protected default constructor
+    InterpWrapperBase() : _interp(nullptr) {}
+
+    //! Connects oml signal handler
+    virtual void ConnectOmlSignalHandler() {}
+    //! Disconnect oml signal handler
+    virtual void DisconnectOmlSignalHandler();
+
+    Interpreter* _interp;  //! Interpreter
+};
+
+#endif

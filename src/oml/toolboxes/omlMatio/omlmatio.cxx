@@ -347,8 +347,8 @@ std::string OmlMatio::GetName(matvar_t* var,bool warn)
         name = _name + std::to_string(static_cast<long long>(_idx++));
         if (warn)
         {
-            AddWarning("Variable name is [], creating name [" + name + "]");
-        }
+        AddWarning("Variable name is [], creating name [" + name + "]");
+    }
     }
     return name;
 }
@@ -1569,14 +1569,14 @@ std::vector<matvar_t*> OmlMatio::GetChildren(EvaluatorInterface eval, matvar_t* 
             return children;
         }
 
-        int m = static_cast<int>(var->dims[0]);
-        int n = static_cast<int>(var->dims[1]);
+        int          m       = static_cast<int>(var->dims[0]);
+        int          n       = static_cast<int>(var->dims[1]);
         if (m == 1 && n == 1)
         {
-            int nfields = Mat_VarGetNumberOfFields(var);
+        int          nfields = Mat_VarGetNumberOfFields(var);
             children.reserve(nfields);
             for (int i = 0; i < nfields && !eval.IsInterrupt(); ++i)
-            {
+        {
                 matvar_t* child = Mat_VarGetStructFieldByIndex(var, i, 0);
                 if (child)
                 {

@@ -249,7 +249,8 @@ public:
 	Currency CallBuiltinFunction(ALT_FUNCPTR, const std::string&, const std::vector<Currency>&);
 	Currency CallInternalFunction(FunctionInfo*, const std::vector<Currency>&);
 	Currency CallInternalFunction(FunctionInfo*, const std::vector<Currency>&, bool, const std::string&, const Currency&);
-
+	Currency CallStaticClassMethod(const std::string&, const std::string&, const std::vector<Currency>&);
+	
 	HML_CELLARRAY* CreateVararginCell(const std::vector<Currency>& params, int start_index);
 
 	inline bool IsUserFunction(const std::string& func_name) { return functions->find(func_name) != functions->end(); }
@@ -631,16 +632,15 @@ private:
 	void ImportMemoryScope (const ExprTreeEvaluator*);
 	void ImportFunctionList(const ExprTreeEvaluator*);
 	void ImportUserFileList(const ExprTreeEvaluator*);
-	
-	bool FindFunction(const std::string& func_name, std::string& file_name);
-	bool FindPrecompiledFunction(const std::string& func_name, std::string& file_name);
-	bool FindEncryptedFunction(const std::string& func_name, std::string& file_name, std::string& extension);
+
+	bool FindFunctionInPath(const std::string& func_name, std::string& file_name, std::string& file_ext);
+
 	bool ParseAndRunFile(const std::string& file_name, bool allow_script);
 	bool ParseAndRunString(const std::string& str, const std::string& use_filename);
     bool RemoveFuncs(std::map<std::string, UserFunc*>& funcs, const std::regex& name);
     void RemoveFunctionsInPath(const std::string& path);
 	bool CheckForFunctionInAST(const std::string& func_name);
-
+	
     void Lock(const std::string& fname);
     void SetLock(const std::string& fname, bool state);
     UserFunc* GetUserFunc(const std::string& fname) const;

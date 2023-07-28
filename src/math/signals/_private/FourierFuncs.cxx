@@ -25,9 +25,9 @@
 //------------------------------------------------------------------------------
 // Get the mean sample rate from a time vector and compute the std deviation
 //------------------------------------------------------------------------------
-hwMathStatus SampleRate(const hwMatrix& time, 
+hwMathStatus SampleRate(const hwMatrix& time,
                         double&         meanSampRate,
-                        double&         stdDevRate, 
+                        double&         stdDevRate,
                         double          scale)
 {
     if (!time.IsReal())
@@ -1459,7 +1459,7 @@ hwMathStatus Stft(const hwMatrix& signal,
 //------------------------------------------------------------------------------
 // Circular convolution of a real signal pair for periodic signals 
 //------------------------------------------------------------------------------
-hwMathStatus ConvCirc(const hwMatrix& signal1, 
+hwMathStatus ConvCirc(const hwMatrix& signal1,
                       const hwMatrix& signal2,
                       hwMatrix&       conv, 
                       int             fftSize)
@@ -1566,9 +1566,9 @@ hwMathStatus ConvCirc(const hwMatrix& signal1,
 //------------------------------------------------------------------------------
 // Circular correlation of a real signal pair for periodic signals 
 //------------------------------------------------------------------------------
-hwMathStatus CorrCirc(const hwMatrix& signal1, 
+hwMathStatus CorrCirc(const hwMatrix& signal1,
                       const hwMatrix& signal2,
-                      hwMatrix&       corr, 
+                      hwMatrix&       corr,
                       int             fftSize)
 {
     if (!signal1.IsReal())
@@ -1694,11 +1694,11 @@ hwMathStatus CorrCirc(const hwMatrix& signal1,
 //------------------------------------------------------------------------------
 // Coherence of a real signal pair with a window function for periodic signals 
 //------------------------------------------------------------------------------
-hwMathStatus Coherence(const hwMatrix& sysInput, 
+hwMathStatus Coherence(const hwMatrix& sysInput,
                        const hwMatrix& sysOutput,
-                       const hwMatrix& window, 
+                       const hwMatrix& window,
                        int             num_overlap_points,
-                       hwMatrix&       cohere, 
+                       hwMatrix&       cohere,
                        int             fftSize)
 {
     if (!sysInput.IsReal())
@@ -1760,8 +1760,7 @@ hwMathStatus Coherence(const hwMatrix& sysInput,
         return hwMathStatus(HW_MATH_ERR_FFTSIZE, 3, 6);
     }
 
-    int num_ffts = (int)floor((double)(numPnts-blockSize)/
-                   (double)(blockSize-num_overlap_points)) + 1;
+    int num_ffts = (numPnts - blockSize) / (blockSize - num_overlap_points) + 1;
 
     if (num_ffts < 1)
     {
@@ -1836,11 +1835,11 @@ hwMathStatus Coherence(const hwMatrix& sysInput,
 //------------------------------------------------------------------------------
 // Coherence of a real signal pair for periodic signals 
 //------------------------------------------------------------------------------
-hwMathStatus Coherence(const hwMatrix& sysInput, 
+hwMathStatus Coherence(const hwMatrix& sysInput,
                        const hwMatrix& sysOutput,
                        int             blockSize,
                        int             num_overlap_points,
-                       hwMatrix&       cohere, 
+                       hwMatrix&       cohere,
                        int             fftSize)
 {
     if (!sysInput.IsReal())
@@ -1895,8 +1894,7 @@ hwMathStatus Coherence(const hwMatrix& sysInput,
         return hwMathStatus(HW_MATH_ERR_FFTSIZE, 3, 6);
     }
 
-    int num_ffts = (int)floor((double)(numPnts-blockSize)/
-                   (double)(blockSize-num_overlap_points)) + 1;
+    int num_ffts = (numPnts - blockSize) / (blockSize - num_overlap_points) + 1;
 
     if (num_ffts < 1)
     {
@@ -1992,9 +1990,9 @@ hwMathStatus Coherence(const hwMatrix& sysInput,
 //------------------------------------------------------------------------------
 // Power spectral density of a real signal 
 //------------------------------------------------------------------------------
-hwMathStatus PSD(const hwMatrix& signal, 
+hwMathStatus PSD(const hwMatrix& signal,
                  double          sampFreq,
-                 hwMatrix&       density, 
+                 hwMatrix&       density,
                  int             fftSize)
 {
     int numPnts = signal.Size();
@@ -2030,7 +2028,7 @@ hwMathStatus PSD(const hwMatrix& signal,
 
     hwPSD psd(sampFreq, fftSize);
 
-    status = psd.Compute(signal, density);
+    status = psd.Compute(signal, numPnts, density);
     if (!status.IsOk() && status.GetArg1() == 2)
     {
         status.SetArg1(3);
@@ -2041,7 +2039,7 @@ hwMathStatus PSD(const hwMatrix& signal,
 //------------------------------------------------------------------------------
 // Cross power spectral density of a real signal pair
 //------------------------------------------------------------------------------
-hwMathStatus CPSD(const hwMatrix& signal1, 
+hwMathStatus CPSD(const hwMatrix& signal1,
                   const hwMatrix& signal2,
                   double          sampFreq,
                   hwMatrix&       density,
@@ -2092,7 +2090,7 @@ hwMathStatus CPSD(const hwMatrix& signal1,
 
     hwCSD csd(sampFreq, fftSize);
 
-    status = csd.Compute(signal1, signal2, density);
+    status = csd.Compute(signal1, signal2, numPnts, density);
 
     if (!status.IsOk())
     {
@@ -2108,11 +2106,12 @@ hwMathStatus CPSD(const hwMatrix& signal1,
 //------------------------------------------------------------------------------
 // Block power spectral density of a real signal with a window function
 //------------------------------------------------------------------------------
-hwMathStatus BlockPSD(const hwMatrix& signal, 
+hwMathStatus BlockPSD(const hwMatrix& signal,
                       const hwMatrix& window,
-                      int             num_overlap_points, 
+                      int             num_overlap_points,
                       double          sampFreq,
-                      hwMatrix&       density, 
+                      bool            powerSpectrum,
+                      hwMatrix&       density,
                       int             fftSize)
 {
     if (!signal.IsReal())
@@ -2161,11 +2160,10 @@ hwMathStatus BlockPSD(const hwMatrix& signal,
     }
     else if (fftSize < blockSize)
     {
-        return hwMathStatus(HW_MATH_ERR_FFTSIZE, 2, 6);
+        return hwMathStatus(HW_MATH_ERR_FFTSIZE, 2, 7);
     }
 
-    int num_ffts = (int)floor((double)(numPnts - blockSize) /
-               (double)(blockSize - num_overlap_points)) + 1;
+    int num_ffts = (numPnts - blockSize) / (blockSize - num_overlap_points) + 1;
 
     if (num_ffts < 1)
     {
@@ -2203,7 +2201,7 @@ hwMathStatus BlockPSD(const hwMatrix& signal,
 
         winFunc.ApplyWindow(signal, index, temp, true);
 
-        status = psd.Compute(temp, resp);
+        status = psd.Compute(temp, blockSize, resp);
 
         if (!status.IsOk())
         {
@@ -2218,16 +2216,35 @@ hwMathStatus BlockPSD(const hwMatrix& signal,
     value = 1.0 / (double) num_ffts;
     density = sum * value;
 
+    if (powerSpectrum)
+    {
+        // scale PSD by equivalent noise bandwidth
+        double num = 0;
+        double den = 0;
+
+        for (int i = 0; i < blockSize; ++i)
+        {
+            num += window(i) * window(i);
+            den += window(i);
+        }
+
+        den *= den;
+
+        // nenbw = blockSize * (num / den)
+        // enbw = (fs / blockSize) * nenbw = fs * (num / den)
+        density *= sampFreq * (num / den);
+    }
+
     return status;
 }
 //------------------------------------------------------------------------------
 // Block power spectral density of a real signal
 //------------------------------------------------------------------------------
-hwMathStatus BlockPSD(const hwMatrix& signal, 
+hwMathStatus BlockPSD(const hwMatrix& signal,
                       int             blockSize,
-                      int             num_overlap_points, 
+                      int             num_overlap_points,
                       double          sampFreq,
-                      hwMatrix&       density, 
+                      hwMatrix&       density,
                       int             fftSize)
 {
     if (!signal.IsReal())
@@ -2272,8 +2289,8 @@ hwMathStatus BlockPSD(const hwMatrix& signal,
         return hwMathStatus(HW_MATH_ERR_FFTSIZE, 2, 6);
     }  
 
-    int num_ffts = (int)floor((double)(numPnts - blockSize) /
-                   (double)(blockSize - num_overlap_points)) + 1;
+    int num_ffts = (numPnts - blockSize) / (blockSize - num_overlap_points) + 1;
+
     if (num_ffts < 1)
     {
         return hwMathStatus(HW_MATH_ERR_ARRAYSIZE, 1, 2);
@@ -2327,7 +2344,7 @@ hwMathStatus BlockPSD(const hwMatrix& signal,
         if (discard == true)
             break;
 
-        status = psd.Compute(temp, resp);
+        status = psd.Compute(temp, blockSize, resp);
 
         if (!status.IsOk())
         {
@@ -2347,12 +2364,12 @@ hwMathStatus BlockPSD(const hwMatrix& signal,
 //------------------------------------------------------------------------------
 // Block crosss power spectral density of a real signal pair with a window function
 //------------------------------------------------------------------------------
-hwMathStatus BlockCPSD(const hwMatrix& signal1, 
+hwMathStatus BlockCPSD(const hwMatrix& signal1,
                        const hwMatrix& signal2,
-                       const hwMatrix& window, 
+                       const hwMatrix& window,
                        int             num_overlap_points,
-                       double          sampFreq, 
-                       hwMatrix&       density, 
+                       double          sampFreq,
+                       hwMatrix&       density,
                        int             fftSize)
 {
     if (!signal1.IsReal())
@@ -2422,8 +2439,8 @@ hwMathStatus BlockCPSD(const hwMatrix& signal1,
     hwMatrix temp2(fftSize, hwMatrix::REAL);
     hwMatrix resp;
 
-    int num_ffts = (int)floor((double)(numPnts - blockSize) /
-                   (double)(blockSize - num_overlap_points)) + 1;
+    int num_ffts = (numPnts - blockSize) / (blockSize - num_overlap_points) + 1;
+
     if (num_ffts < 1)
     {
         return hwMathStatus(HW_MATH_ERR_ARRAYSIZE, 1, 3);
@@ -2456,7 +2473,7 @@ hwMathStatus BlockCPSD(const hwMatrix& signal1,
         winFunc.ApplyWindow(signal1, index, temp1,  true);
         winFunc.ApplyWindow(signal2, index, temp2,  true);
 
-        status = cpsd.Compute(temp1, temp2, resp);
+        status = cpsd.Compute(temp1, temp2, blockSize, resp);
 
         if (!status.IsOk())
         {
@@ -2476,12 +2493,12 @@ hwMathStatus BlockCPSD(const hwMatrix& signal1,
 //------------------------------------------------------------------------------
 // Block crosss power spectral density of a real signal pair
 //------------------------------------------------------------------------------
-hwMathStatus BlockCPSD(const hwMatrix& signal1, 
+hwMathStatus BlockCPSD(const hwMatrix& signal1,
                        const hwMatrix& signal2,
-                       int             blockSize, 
+                       int             blockSize,
                        int             num_overlap_points,
-                       double          sampFreq, 
-                       hwMatrix&       density, 
+                       double          sampFreq,
+                       hwMatrix&       density,
                        int             fftSize)
 {   
     if (!signal1.IsReal())
@@ -2544,8 +2561,8 @@ hwMathStatus BlockCPSD(const hwMatrix& signal1,
     hwMatrix temp_in2(fftSize, hwMatrix::REAL);
     hwMatrix temp_out;
 
-    int num_ffts = (int)floor((double)(numPnts - blockSize) /
-                   (double)(blockSize - num_overlap_points)) + 1;
+    int num_ffts = (numPnts - blockSize) / (blockSize - num_overlap_points) + 1;
+
     if (num_ffts < 1)
     {
         return hwMathStatus(HW_MATH_ERR_ARRAYSIZE, 1, 3);
@@ -2595,7 +2612,7 @@ hwMathStatus BlockCPSD(const hwMatrix& signal1,
         if (discard == true)
             break;
 
-        status = cpsd.Compute(temp_in1, temp_in2, temp_out);
+        status = cpsd.Compute(temp_in1, temp_in2, blockSize, temp_out);
 
         if (!status.IsOk())
         {

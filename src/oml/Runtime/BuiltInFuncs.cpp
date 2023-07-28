@@ -1,7 +1,7 @@
 ﻿/**
 * @file BuiltInFuncs.cpp
 * @date October 2013
-* Copyright (C) 2013-2022 Altair Engineering, Inc.  
+* Copyright (C) 2013-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -532,6 +532,7 @@ void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions)
     (*std_functions)["dot"]                = BuiltinFunc(oml_dot, FunctionMetaData(3, 1, LINA));
     (*std_functions)["kron"]               = BuiltinFunc(oml_kron, FunctionMetaData(2, 1, LINA));
     (*std_functions)["diff"]               = BuiltinFunc(oml_diff, FunctionMetaData(3, 1, ELEM));
+    (*std_functions)["gradient"]           = BuiltinFunc(oml_gradient, FunctionMetaData(-2, -2, LINA));
     (*std_functions)["diag"]               = BuiltinFunc(oml_diag, FunctionMetaData(-2, 1, ELEM));
     (*std_functions)["sparse"]             = BuiltinFunc(oml_sparse, FunctionMetaData(-2, 1, LINA));
     (*std_functions)["issparse"]           = BuiltinFunc(oml_issparse, FunctionMetaData(1, 1, LINA));
@@ -549,7 +550,7 @@ void mapBuiltInFuncs(std::map<std::string, BuiltinFunc>* std_functions)
     (*std_functions)["rcond"]              = BuiltinFunc(oml_rcond, FunctionMetaData(1, 1, LINA));
     (*std_functions)["real"]               = BuiltinFunc(oml_real, FunctionMetaData(1, 1, ELEM));
     (*std_functions)["imag"]               = BuiltinFunc(oml_imag, FunctionMetaData(1, 1, ELEM));
-    (*std_functions)["conj"]               = BuiltinFunc(oml_conj, FunctionMetaData(1, 1, LINA));
+    (*std_functions)["conj"]               = BuiltinFunc(oml_conj, FunctionMetaData(1, 1, ELEM));
     (*std_functions)["sum"]                = BuiltinFunc(oml_sum, FunctionMetaData(2, 1, ELEM));
     (*std_functions)["cumsum"]             = BuiltinFunc(oml_cumsum, FunctionMetaData(2, 1, ELEM));
     (*std_functions)["prod"]               = BuiltinFunc(oml_prod, FunctionMetaData(2, 1, ELEM));
@@ -920,7 +921,7 @@ bool oml_ferror(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN);
 
     if (nargin > 1 && readOption(eval, inputs[1]) != "clear")
-        throw OML_Error(HW_ERROR_2NDARGONLYCLR);
+        throw OML_Error("Error: invalid input in argument 2; must be 'clear'");
 
     int fileID = getFileFromInput(eval, inputs[0]);
     BuiltInFuncsUtils::CheckFileIndex(eval, fileID, 1, true);
@@ -965,7 +966,7 @@ bool oml_munlock(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
             eval.Unlock(fname);
         }
         else
-            throw OML_Error(HW_ERROR_INPUTSTRING);
+            throw OML_Error(OML_ERR_STRING, 1);
     }
     else
     {
@@ -991,7 +992,7 @@ bool oml_mislocked(EvaluatorInterface           eval,
             outputs.push_back(HW_MAKE_BOOL_CURRENCY(eval.IsLocked(fname)));
         }
         else
-            throw OML_Error(HW_ERROR_INPUTSTRING);
+            throw OML_Error(OML_ERR_STRING, 1);
     }
     else
     {
@@ -1025,7 +1026,7 @@ bool oml_flintmax(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
                 throw OML_Error(HW_ERROR_INVALIDOPTION(opt));
         }
         else
-            throw OML_Error(HW_ERROR_INPUTSTRING);
+            throw OML_Error(OML_ERR_STRING, 1);
     }
 
     if (single)
@@ -1055,7 +1056,7 @@ bool oml_subsasgn(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
     const Currency* index = nullptr;
 
     if (!inputs[1].IsStruct())
-        throw OML_Error(HW_ERROR_INPUTSTRUCT);
+        throw OML_Error(OML_ERR_STRUCT, 2);
 
     const StructData* sd = inputs[1].Struct();
     VerifySubsStructFields(sd);
@@ -1140,7 +1141,7 @@ bool oml_subsasgn(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
 				return true;
             }
             else
-                throw OML_Error(HW_ERROR_DOTSTRUCTPARENTHESIS);
+                throw OML_Error("Error: invalid type value; must be '.', '()', or '{}'");
         }
     }
 
@@ -1157,7 +1158,7 @@ bool oml_subsref(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
 
     Currency val = inputs[0];
     if (!inputs[1].IsStruct())
-        throw OML_Error(HW_ERROR_INPUTSTRUCT);
+        throw OML_Error(OML_ERR_STRUCT, 2);
 
     const StructData* sd = inputs[1].Struct();
     VerifySubsStructFields(sd);
@@ -1438,7 +1439,7 @@ bool oml_builtin(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
         throw OML_Error(OML_ERR_NUMARGIN);
 
     if (!inputs[0].IsString())
-        throw OML_Error(HW_ERROR_INPUTSTRING);
+        throw OML_Error(OML_ERR_STRING, 1);
 
     std::string fname = readString(inputs[0]);
     FUNCPTR fptr = eval.GetStdFunction(fname);
@@ -1588,7 +1589,7 @@ bool oml_struct2cell(EvaluatorInterface eval, const std::vector<Currency>& input
         throw OML_Error(OML_ERR_NUMARGIN);
 
     if (!inputs[0].IsStruct())
-        throw OML_Error(HW_ERROR_INPUTSTRUCT);
+        throw OML_Error(OML_ERR_STRUCT, 1);
 
     const StructData* sd = inputs[0].Struct();
 
@@ -1634,7 +1635,7 @@ bool oml_cart2sph(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
     if (nargin == 1)
     {
         if (!inputs[0].IsMatrix())
-            throw OML_Error(HW_ERROR_1INPMUSTMAT);
+            throw OML_Error(OML_ERR_MATRIX, 1);
 
         const hwMatrix* mtx = inputs[0].Matrix();
         if (mtx->N() != 3)
@@ -1727,7 +1728,7 @@ bool oml_sph2cart(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
     if (nargin == 1)
     {
         if (!inputs[0].IsMatrix())
-            throw OML_Error(HW_ERROR_1INPMUSTMAT);
+            throw OML_Error(OML_ERR_MATRIX, 1);
 
         const hwMatrix* mtx = inputs[0].Matrix();
         if (mtx->N() != 3)
@@ -1820,7 +1821,7 @@ bool oml_cart2pol(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
     if (nargin == 1)
     {
         if (!inputs[0].IsMatrix())
-            throw OML_Error(HW_ERROR_1INPMUSTMAT);
+            throw OML_Error(OML_ERR_MATRIX, 1);
 
         const hwMatrix* mtx = inputs[0].Matrix();
         if (mtx->N() != 2 && mtx->N() != 3)
@@ -1990,7 +1991,7 @@ bool oml_pol2cart(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
     if (nargin == 1)
     {
         if (!inputs[0].IsMatrix())
-            throw OML_Error(HW_ERROR_1INPMUSTMAT);
+            throw OML_Error(OML_ERR_MATRIX, 1);
 
         const hwMatrix* mtx = inputs[0].Matrix();
         if (mtx->N() != 2 && mtx->N() != 3)
@@ -2498,7 +2499,7 @@ bool oml_assignin(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
     else if (context == "caller")
         base_context = false;
     else
-        throw OML_Error(HW_ERROR_CONTBASEORCALL);
+        throw OML_Error("Error: invalid option in argument 1; must be 'base' or 'caller'");
     
     if (!isvarname(varname))
         throw OML_Error("Error: invalid variable name: " + varname);
@@ -2581,12 +2582,13 @@ bool oml_struct(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
         bool checkingField = true;
         std::vector<Currency>::const_iterator iter = inputs.cbegin();
 
+        int index = 1;
         while (iter != inputs.cend())
         {
             if (checkingField)
             {
                 if (!iter->IsString())
-                    throw OML_Error(HW_ERROR_FIELDNAMESTR);
+                    throw OML_Error(OML_ERR_STRING, 1);
             }
             else
             {
@@ -2610,6 +2612,7 @@ bool oml_struct(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
 
             checkingField = !checkingField;
             ++iter;
+            ++index;
         }
 
         if (m == -1)
@@ -2963,7 +2966,7 @@ bool oml_linsolve(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
         lt = ut = uhess = sym = posdef = rect = transa = false;
 
         if (sd->M() != 1 || sd->N() != 1)
-            throw OML_Error(HW_ERROR_OPTSTRUCTSIZE1);
+            throw OML_Error("Error: invalid input in argument 3; must have a size of 1");
 
         const std::map<std::string, int>& fields = sd->GetFieldNames();
         std::map<std::string, int>::const_iterator iter;
@@ -3235,7 +3238,7 @@ bool oml_setenv(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
     if (setenv(varname.c_str(), value.c_str(), 1))
 #endif
     {
-        throw OML_Error(HW_ERROR_ENVVARFAIL);
+        throw OML_Error("Error: invalid inputs; cannot set environment variable");
     }
     return true;
 }
@@ -3283,7 +3286,9 @@ bool oml_sort(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
             if (cur.IsString())
             {
                 if (modeset)
-                    throw OML_Error(HW_ERROR_SETMODEMOREONCE);
+                    throw OML_Error("Error: invalid input in argument " +
+                        std::to_string(i + 1) + "; mode is already set");
+
                 std::string str = readOption(eval, cur);
                 if (str == "descend")
                     ascend = false;
@@ -3294,7 +3299,8 @@ bool oml_sort(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
             else
             {
                 if (dimset)
-                    throw OML_Error(HW_ERROR_SETDIMMOREONCE);
+                    throw OML_Error("Error: invalid input in argument " +
+                      std::to_string(i + 1) + "; dimension is already set");
 
                 if (!cur.IsPositiveInteger())
                     throw OML_Error(OML_ERR_POSINTEGER, i+1, OML_VAR_DIM);
@@ -3868,15 +3874,9 @@ bool oml_issymmetric(EvaluatorInterface eval, const std::vector<Currency>& input
 
     const Currency& input1 = inputs[0];
 
-    if (input1.IsScalar())
+    if (input1.IsMatrix() || input1.IsScalar() || input1.IsComplex())
     {
-        outputs.push_back(true);
-        return true;
-    }
-
-    if (input1.IsMatrix())
-    {
-        const hwMatrix* matrix = input1.Matrix();
+        const hwMatrix* matrix = input1.ConvertToMatrix();
 
         if (!matrix->IsSquare())
         {
@@ -3971,9 +3971,9 @@ bool oml_ishermitian(EvaluatorInterface eval, const std::vector<Currency>& input
 
     const Currency& input1 = inputs[0];
 
-    if (input1.IsMatrix())
+    if (input1.IsMatrix() || input1.IsScalar() || input1.IsComplex())
     {
-        const hwMatrix* matrix = input1.Matrix();
+        const hwMatrix* matrix = input1.ConvertToMatrix();
 
         if (!matrix->IsSquare())
         {
@@ -4791,7 +4791,7 @@ bool oml_cell2struct(EvaluatorInterface eval, const std::vector<Currency>& input
         }
     }
     else
-        throw OML_Error(HW_ERROR_2NDINPCELLSTR);
+        throw OML_Error(OML_ERR_CELLSTRING, 2);
 
     // verify there are no duplicates in field names
     std::set<std::string> fieldset(fields.begin(), fields.end());
@@ -6412,7 +6412,7 @@ bool oml_pathsep(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
     {
         std::string temp = readString(toCurrencyStr(eval, inputs[0], false, false));
         if (temp.length() > 1)
-            throw OML_Error(HW_ERROR_PATHSEP1CHAR);
+            throw OML_Error("Error: invalid input in argument 1; must be a single character");
         pathsep = temp.length() ? temp[0] : 0;
 		outputs.push_back(addStringMask((double) pathsep));
     }
@@ -6566,7 +6566,7 @@ bool oml_cellfun_nd_helper(EvaluatorInterface eval, const std::vector<Currency>&
 
 		for (size_t j = 1; j < num_inputs; j++)
 		{
-			Currency function_input = inputs[j];
+			const Currency& function_input = inputs[j];
 
 			if (function_input.IsNDCellArray())
 			{
@@ -6833,7 +6833,7 @@ bool oml_issorted(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
             if (option == "rows")
             {
                 if (rowsSet)
-                    throw OML_Error(HW_ERROR_NOTSETOPTROWTWICE);
+                    throw OML_Error("Error: invalid input in argument 3; option 'rows' has already been set");
                 rows = true;
             }
             else
@@ -6947,8 +6947,6 @@ bool oml_issorted(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
                 }
             }
         }
-        else
-            throw OML_Error(GetHMathErrMsg(HW_MATH_ERR_EMPTYMATRIX));
     }
     else if (input1.IsCellArray())
     {
@@ -7083,7 +7081,7 @@ bool oml_getfield(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
             if (!indexDefined)
             {
                 if (nextOutput.IsStruct() && nextOutput.Struct()->M() * nextOutput.Struct()->N() != 1)
-                    throw OML_Error(HW_ERROR_INDEXSTRUCTFIELDS);
+                    throw OML_Error("Error: cannot index list of struct fields");
                 nextIndex.first = nextIndex.second = 0;
             }
 
@@ -8446,7 +8444,7 @@ bool oml_fieldnames(EvaluatorInterface eval, const std::vector<Currency>& inputs
 
     const Currency &input = inputs[0];
     if (!input.IsStruct())
-        throw OML_Error(HW_ERROR_INPUTSTRUCT);
+        throw OML_Error(OML_ERR_STRUCT, 1);
 
     StructData *sd = input.Struct();
     const std::map<std::string, int> fieldnames = sd->GetFieldNames();
@@ -8902,7 +8900,7 @@ bool oml_feval(EvaluatorInterface eval, const std::vector<Currency>& inputs, std
     {
         std::string funcName = readString(input1);
         if (funcName.find(' ') != std::string::npos)
-            throw OML_Error(HW_ERROR_FUNCNAMENOTSPACE);
+            throw OML_Error("Error: invalid input in argument 1; cannot contain spaces");
 
         if (multi)
         {
@@ -11732,7 +11730,7 @@ bool oml_strrep(EvaluatorInterface eval, const std::vector<Currency>& inputs, st
                     overlap = cplx.Real() ? false : cplx.Imag() ? false : true;
                 }
                 else
-                    throw OML_Error(HW_ERROR_INVINP5THARG);
+                    throw OML_Error(OML_ERR_SCALAR_COMPLEX, 5);
             }
             else
                 throw OML_Error(HW_ERROR_INVALIDOPTION(str));
@@ -11882,7 +11880,7 @@ bool oml_strfind(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
             allowOverlap = (input4.Scalar()) ? true : false;
         }
         else if (!input4.IsComplex())
-            throw OML_Error(HW_ERROR_4THINPBOOL);
+            throw OML_Error(OML_ERR_LOGICAL, 4);
     }
 
     if (input1.IsString())
@@ -11989,7 +11987,7 @@ bool oml_isvarname(EvaluatorInterface eval, const std::vector<Currency>& inputs,
     const Currency &input = inputs[0];
 
     if (!input.IsString())
-        throw OML_Error(HW_ERROR_INPUTSTRING);
+        throw OML_Error(OML_ERR_STRING, 1);
 
     std::string str = orderedStringVal(input);
 
@@ -12808,7 +12806,7 @@ bool oml_poly(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
         e.reset(EvaluatorInterface::allocateMatrix(x));
     }
     else
-        throw OML_Error(HW_ERROR_INPSQUAREMATVEC);
+        throw OML_Error("Error: invalid input in argument 1; must be a square matrix or vector");
 
     hwMatrix *idx = checkMatrixFinite(e.get());
     Currency idxcur(idx);
@@ -13827,7 +13825,7 @@ bool oml_find(EvaluatorInterface           eval,
                 if (direc == "last")
                     incr = -1;
                 else if (direc != "first")
-                    throw OML_Error(HW_ERROR_DIRECT1STLAST);
+                    throw OML_Error("Error: invalid option in argument 3; must be 'first' or 'last'");
             }
         }
 
@@ -14010,7 +14008,7 @@ bool oml_find(EvaluatorInterface           eval,
             }
             else
             {
-                throw OML_Error(HW_ERROR_DIRECT1STLAST);
+                throw OML_Error("Error: invalid option in argument 3; must be 'first' or 'last'");
             }
         }
         else
@@ -15294,7 +15292,7 @@ bool oml_eps(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
     if (nargin < 2)
         scalarOut = true;
 
-    if (nargin)
+    if (nargin > 0)
     {
         const Currency &last = inputs[nargin - 1];
         if (last.IsString())
@@ -15304,7 +15302,7 @@ bool oml_eps(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
             if (className == "float" || className == "single")
                 usedouble = false;
             else if (className != "double")
-                throw OML_Error(HW_ERROR_INVCLASSNAME);
+                throw OML_Error(OML_ERR_OPTIONVAL, static_cast<int>(nargin + 1));
         }
     }
 
@@ -15503,12 +15501,13 @@ bool oml_min(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
 
         if (input1.IsScalar())
         {
-            if (input2.IsScalar())
+            if (IsNaN_T(input1.Scalar()))
             {
-                if (IsNaN_T(input1.Scalar()))
-                    outputs.push_back(input2.Scalar());
-                else
-                    outputs.push_back(std::min(input1.Scalar(), input2.Scalar()));
+                outputs.push_back(input2);
+            }
+            else if (input2.IsScalar())
+            {
+                outputs.push_back(std::min(input1.Scalar(), input2.Scalar()));
             }
             else if (input2.IsComplex())
             {
@@ -15853,52 +15852,52 @@ bool oml_min(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
                 }
                 else
                 {
-                std::vector<int> row;
-                std::vector<int> column;
-                hwMatrix* nz = new hwMatrix;
+                    std::vector<int> row;
+                    std::vector<int> column;
+                    hwMatrix* nz = new hwMatrix;
 
-                mtx->NZinfo(0, mtx->NNZ() - 1, row, column, *nz);
+                    mtx->NZinfo(0, mtx->NNZ() - 1, row, column, *nz);
 
-                std::vector<Currency> inputs2;
-                std::vector<Currency> outputs2;
-                inputs2.push_back(nz);
-                outputs2 = eval.DoMultiReturnFunctionCall(oml_min, inputs2, 1, 2, true);
+                    std::vector<Currency> inputs2;
+                    std::vector<Currency> outputs2;
+                    inputs2.push_back(nz);
+                    outputs2 = eval.DoMultiReturnFunctionCall(oml_min, inputs2, 1, 2, true);
 
-                if (mtx->NNZ() < mtx->Size())
-                {
-                    double minv = 0.0;
-
-                    if (mtx->IsReal())
-                        minv = outputs2[0].Scalar();
-
-                    if (minv < 0.0)
+                    if (mtx->NNZ() < mtx->Size())
                     {
-                        outputs.push_back(minv);
-                        int indx = static_cast<int>(outputs2[1].Scalar() - 1);
-                        outputs.push_back(mtx->M() * column[indx] + row[indx] + 1);
+                        double minv = 0.0;
+
+                        if (mtx->IsReal())
+                            minv = outputs2[0].Scalar();
+
+                        if (minv < 0.0)
+                        {
+                            outputs.push_back(minv);
+                            int indx = static_cast<int>(outputs2[1].Scalar() - 1);
+                            outputs.push_back(mtx->M() * column[indx] + row[indx] + 1);
+                        }
+                        else
+                        {
+                            // find first zero
+                            outputs.push_back(0.0);
+                            int indx = nz->Size();
+
+                            for (int i = 0; i < nz->Size(); ++i)
+                            {
+                                if (i != mtx->M() * column[i] + row[i])
+                                {
+                                    indx = i;
+                                    break;
+                                }
+                            }
+
+                            outputs.push_back(indx + 1);
+                        }
                     }
                     else
                     {
-                        // find first zero
-                        outputs.push_back(0.0);
-                        int indx = nz->Size();
-
-                        for (int i = 0; i < nz->Size(); ++i)
-                        {
-                            if (i != mtx->M() * column[i] + row[i])
-                            {
-                                indx = i;
-                                break;
-                            }
-                        }
-
-                        outputs.push_back(indx + 1);
+                        outputs = outputs2;
                     }
-                }
-                else
-                {
-                    outputs = outputs2;
-                }
                 }
 
                 return true;
@@ -15960,6 +15959,7 @@ bool oml_min(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
     {
         const hwMatrix* mtx = input1.Matrix();
         int index = 0;
+
         if (mtx->IsVector() && ((mtx->M() == 1 && dim == 2) || (mtx->N() == 1 && dim == 1)))
         {
 			if (mtx->IsEmpty())
@@ -16033,122 +16033,172 @@ bool oml_min(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
         }
         else if (dim == 1)
         {
-            if (mtx->M() == 0)
+            int m = mtx->M();
+            int n = mtx->N();
+
+            if (m == 0)
             {
-                outputs.push_back(EvaluatorInterface::allocateMatrix(0, mtx->N(), true)); // minimums
-                outputs.push_back(EvaluatorInterface::allocateMatrix(0, mtx->N(), true)); // indices
-            }
-            else
-            {
-                hwMatrix* result = EvaluatorInterface::allocateMatrix(1, mtx->N(), mtx->IsReal());
-                hwMatrix* indices = EvaluatorInterface::allocateMatrix(1, mtx->N(), mtx->IsReal());
-
-                if (mtx->IsReal())
-                {
-                    double loc_min;
-                    for (int i = 0; i < mtx->N(); ++i)
-                    {
-                        loc_min = (*mtx)(0, i);
-                        index = 0;
-                        for (int j = 1; j < mtx->M(); ++j)
-                        {
-                            double temp = (*mtx)(j, i);
-                            if (temp < loc_min)
-                            {
-                                loc_min = temp;
-                                index = j;
-                            }
-                        }
-                        result->SetElement(i, loc_min);
-                        indices->SetElement(i, index + 1);
-                    }
-                }
-                else
-                {
-                    hwComplex min;
-                    for (int i = 0; i < mtx->N(); ++i)
-                    {
-                        min = mtx->z(0, i);
-                        index = 0;
-                        for (int j = 1; j < mtx->M(); ++j)
-                        {
-                            hwComplex temp = mtx->z(j, i);
-                            if (complexLessThan(temp, min))
-                            {
-                                min = temp;
-                                index = j;
-                            }
-                        }
-                        result->SetElement(i, min);
-                        indices->SetElement(i, index + 1);
-                    }
-                }
-                outputs.push_back(result);
-                outputs.push_back(indices);
-            }
-        }
-        else if (dim == 2)
-        {
-            const hwMatrix* i1 = input1.Matrix();
-            hwMatrix* result;
-            int m = i1->M(), n = i1->N();
-
-            if (n > 0)
-                result = EvaluatorInterface::allocateMatrix(m, 1, i1->IsReal());
-            else
-                result = EvaluatorInterface::allocateMatrix(m, 0, i1->IsReal());
-
-            hwMatrix* indices = EvaluatorInterface::allocateMatrix(result->M(), result->N(), true);
-
-            if (result->IsEmpty())
-            {
-                outputs.push_back(result);
-                outputs.push_back(indices);
+                outputs.push_back(EvaluatorInterface::allocateMatrix(0, n, true)); // minimums
+                outputs.push_back(EvaluatorInterface::allocateMatrix(0, n, true)); // indices
                 return true;
             }
 
-            if (i1->IsReal())
-            {
-                double loc_min;
-                int min_index;
-                for (int i = 0; i < m; ++i)
-                {
-                    min_index = 0;
-                    loc_min = (*i1)(i, 0);
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(1, n, mtx->IsReal());
+            hwMatrix* indices = EvaluatorInterface::allocateMatrix(1, n, true);
 
-                    for (int j = 1; j < n; ++j)
+            if (mtx->IsReal())
+            {
+                double min;
+                for (int j = 0; j < n; ++j)
+                {
+                    for (index = 0; index < mtx->M(); ++index)
                     {
-                        double val = (*i1)(i, j);
-                        if (val < loc_min)
+                        if (!IsNaN_T((*mtx)(index, j)))
+                            break;
+                    }
+
+                    if (index == m)
+                    {
+                        min = std::numeric_limits<double>::quiet_NaN();
+                        index = 0;
+                    }
+                    else
+                    {
+                        min = (*mtx)(index, j);
+                        for (int i = index + 1; i < m; ++i)
                         {
-                            loc_min = val;
-                            min_index = j;
+                            double temp = (*mtx)(i, j);
+                            if (temp < min)
+                            {
+                                min = temp;
+                                index = i;
+                            }
                         }
                     }
-                    result->SetElement(i, loc_min);
-                    (*indices)(i) = min_index + 1.0;
+
+                    result->SetElement(j, min);
+                    indices->SetElement(j, index + 1);
                 }
             }
             else
             {
                 hwComplex min;
-                int min_index;
-                for (int i = 0; i < m; ++i)
+                for (int j = 0; j < n; ++j)
                 {
-                    min_index = 0;
-                    min = i1->z(i, 0);
-
-                    for (int j = 1; j < n; ++j)
+                    for (index = 0; index < m; ++index)
                     {
-                        hwComplex val = i1->z(i, j);
-                        if (complexLessThan(val, min))
+                        if (!IsNaN_T(mtx->z(index, j)))
+                            break;
+                    }
+
+                    if (index == m)
+                    {
+                        min = std::numeric_limits<double>::quiet_NaN();
+                        index = 0;
+                    }
+                    else
+                    {
+                        min = mtx->z(index, j);
+                        for (int i = index + 1; i < m; ++i)
                         {
-                            min = val;
-                            min_index = j;
+                            hwComplex temp = mtx->z(i, j);
+                            if (complexLessThan(temp, min))
+                            {
+                                min = temp;
+                                index = i;
+                            }
                         }
                     }
+
+                    result->SetElement(j, min);
+                    indices->SetElement(j, index + 1);
+                }
+            }
+            outputs.push_back(result);
+            outputs.push_back(indices);
+        }
+        else if (dim == 2)
+        {
+            int m = mtx->M();
+            int n = mtx->N();
+           
+            if (n == 0)
+            {
+                outputs.push_back(EvaluatorInterface::allocateMatrix(m, 0, true)); // minimums
+                outputs.push_back(EvaluatorInterface::allocateMatrix(m, 0, true)); // indices
+                return true;
+            }
+
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(m, 1, mtx->IsReal());
+            hwMatrix* indices = EvaluatorInterface::allocateMatrix(m, 1, true);
+
+            if (mtx->IsReal())
+            {
+                double min;
+                for (int i = 0; i < m; ++i)
+                {
+                    for (index = 0; index < n; ++index)
+                    {
+                        if (!IsNaN_T((*mtx)(i, index)))
+                            break;
+                    }
+
+                    if (index == n)
+                    {
+                        min = std::numeric_limits<double>::quiet_NaN();
+                        index = 0;
+                    }
+                    else
+                    {
+                        min = (*mtx)(i, index);
+                        for (int j = index + 1; j < n; ++j)
+                        {
+                            double val = (*mtx)(i, j);
+                            if (val < min)
+                            {
+                                min = val;
+                                index = j;
+                            }
+                        }
+                    }
+
                     result->SetElement(i, min);
-                    (*indices)(i) = min_index + 1.0;
+                    (*indices)(i) = index + 1.0;
+                }
+            }
+            else
+            {
+                hwComplex min;
+                for (int i = 0; i < m; ++i)
+                {
+                    for (index = 0; index < n; ++index)
+                    {
+                        if (!IsNaN_T(mtx->z(i, index)))
+                            break;
+                    }
+
+                    if (index == n)
+                    {
+                        min = std::numeric_limits<double>::quiet_NaN();
+                        index = 0;
+                    }
+                    else
+                    {
+                        min = mtx->z(i, index);
+
+                        for (int j = index + 1; j < n; ++j)
+                        {
+                            hwComplex val = mtx->z(i, j);
+                            if (complexLessThan(val, min))
+                            {
+                                min = val;
+                                index = j;
+                            }
+                        }
+                    }
+
+                    result->SetElement(i, min);
+                    (*indices)(i) = index + 1.0;
                 }
             }
 
@@ -16226,12 +16276,13 @@ bool oml_max(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
 
         if (input1.IsScalar())
         {
-            if (input2.IsScalar())
+            if (IsNaN_T(input1.Scalar()))
             {
-                if (IsNaN_T(input1.Scalar()))
-                    outputs.push_back(input2.Scalar());
-                else
-                    outputs.push_back(std::max(input1.Scalar(), input2.Scalar()));
+                outputs.push_back(input2);
+            }
+            else if (input2.IsScalar())
+            {
+                outputs.push_back(std::max(input1.Scalar(), input2.Scalar()));
             }
             else if (input2.IsComplex())
             {
@@ -16687,6 +16738,7 @@ bool oml_max(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
     {
         const hwMatrix* mtx = input1.Matrix();
         int index = 0;
+
         if (mtx->IsVector() && ((mtx->M() == 1 && dim == 2) || (mtx->N() == 1 && dim == 1)))
         {
 			if (mtx->IsEmpty())
@@ -16759,122 +16811,170 @@ bool oml_max(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
         }
         else if (dim == 1)
         {
-            if (mtx->M() == 0)
+            int m = mtx->M();
+            int n = mtx->N();
+
+            if (m == 0)
             {
-                outputs.push_back(EvaluatorInterface::allocateMatrix(0, mtx->N(), true)); // maximums
-                outputs.push_back(EvaluatorInterface::allocateMatrix(0, mtx->N(), true)); // indices
-            }
-            else
-            {
-                hwMatrix* result = EvaluatorInterface::allocateMatrix(1, mtx->N(), mtx->IsReal());
-                hwMatrix* indices = EvaluatorInterface::allocateMatrix(1, mtx->N(), mtx->IsReal());
-
-                if (mtx->IsReal())
-                {
-                    double loc_max;
-                    for (int i = 0; i < mtx->N(); ++i)
-                    {
-                        loc_max = (*mtx)(0, i);
-                        index = 0;
-                        for (int j = 1; j < mtx->M(); ++j)
-                        {
-                            double temp = (*mtx)(j, i);
-                            if (temp > loc_max)
-                            {
-                                loc_max = temp;
-                                index = j;
-                            }
-                        }
-                        result->SetElement(i, loc_max);
-                        indices->SetElement(i, index + 1);
-                    }
-                }
-                else
-                {
-                    hwComplex max;
-                    for (int i = 0; i < mtx->N(); ++i)
-                    {
-                        max = mtx->z(0, i);
-                        index = 0;
-                        for (int j = 1; j < mtx->M(); ++j)
-                        {
-                            hwComplex temp = mtx->z(j, i);
-                            if (complexGreaterThan(temp, max))
-                            {
-                                max = temp;
-                                index = j;
-                            }
-                        }
-                        result->SetElement(i, max);
-                        indices->SetElement(i, index + 1);
-                    }
-                }
-                outputs.push_back(result);
-                outputs.push_back(indices);
-            }
-        }
-        else if (dim == 2)
-        {
-            const hwMatrix* i1 = input1.Matrix();
-            hwMatrix* result;
-            int m = i1->M(), n = i1->N();
-
-            if (n > 0)
-                result = EvaluatorInterface::allocateMatrix(m, 1, i1->IsReal());
-            else
-                result = EvaluatorInterface::allocateMatrix(m, 0, i1->IsReal());
-
-            hwMatrix* indices = EvaluatorInterface::allocateMatrix(result->M(), result->N(), true);
-
-            if (result->IsEmpty())
-            {
-                outputs.push_back(result);
-                outputs.push_back(indices);
+                outputs.push_back(EvaluatorInterface::allocateMatrix(0, n, true)); // maximums
+                outputs.push_back(EvaluatorInterface::allocateMatrix(0, n, true)); // indices
                 return true;
             }
 
-            if (i1->IsReal())
-            {
-                double loc_max;
-                int max_index;
-                for (int i = 0; i < m; ++i)
-                {
-                    max_index = 0;
-                    loc_max = (*i1)(i, 0);
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(1, n, mtx->IsReal());
+            hwMatrix* indices = EvaluatorInterface::allocateMatrix(1, n, true);
 
-                    for (int j = 1; j < n; ++j)
+            if (mtx->IsReal())
+            {
+                double max;
+                for (int j = 0; j < n; ++j)
+                {
+                    for (index = 0; index < m; ++index)
                     {
-                        double val = (*i1)(i, j);
-                        if (val > loc_max)
-                        {
-                            loc_max = val;
-                            max_index = j;
-                        }
+                        if (!IsNaN_T((*mtx)(index, j)))
+                            break;
                     }
-                    result->SetElement(i, loc_max);
-                    (*indices)(i) = max_index + 1.0;
+
+                    if (index == m)
+                    {
+                        max = std::numeric_limits<double>::quiet_NaN();
+                        index = 0;
+                    }
+                    else
+                    {
+                        max = (*mtx)(index, j);
+                        for (int i = index + 1; i < m; ++i)
+                        {
+                            double temp = (*mtx)(i, j);
+                            if (temp > max)
+                            {
+                                max = temp;
+                                index = i;
+                            }
+                        }
+
+                        result->SetElement(j, max);
+                        indices->SetElement(j, index + 1);
+                    }
                 }
             }
             else
             {
                 hwComplex max;
-                int max_index;
+                for (int j = 0; j < n; ++j)
+                {
+                    for (index = 0; index < m; ++index)
+                    {
+                        if (!IsNaN_T(mtx->z(index, j)))
+                            break;
+                    }
+
+                    if (index == m)
+                    {
+                        max = std::numeric_limits<double>::quiet_NaN();
+                        index = 0;
+                    }
+                    else
+                    {
+                        max = mtx->z(index, j);
+                        for (int i = index + 1; i < mtx->M(); ++i)
+                        {
+                            hwComplex temp = mtx->z(i, j);
+                            if (complexGreaterThan(temp, max))
+                            {
+                                max = temp;
+                                index = i;
+                            }
+                        }
+                        result->SetElement(j, max);
+                        indices->SetElement(j, index + 1);
+                    }
+                }
+            }
+            outputs.push_back(result);
+            outputs.push_back(indices);
+        }
+        else if (dim == 2)
+        {
+            int m = mtx->M();
+            int n = mtx->N();
+
+            if (n == 0)
+            {
+                outputs.push_back(EvaluatorInterface::allocateMatrix(m, 0, true)); // minimums
+                outputs.push_back(EvaluatorInterface::allocateMatrix(m, 0, true)); // indices
+                return true;
+            }
+
+            hwMatrix* result = EvaluatorInterface::allocateMatrix(m, 1, mtx->IsReal());
+            hwMatrix* indices = EvaluatorInterface::allocateMatrix(m, 1, true);
+
+            if (mtx->IsReal())
+            {
+                double max;
                 for (int i = 0; i < m; ++i)
                 {
-                    max_index = 0;
-                    max = i1->z(i, 0);
-
-                    for (int j = 1; j < n; ++j)
+                    for (index = 0; index < n; ++index)
                     {
-                        hwComplex val = i1->z(i, j);
-                        if (complexGreaterThan(val, max))
+                        if (!IsNaN_T((*mtx)(i, index)))
+                            break;
+                    }
+
+                    if (index == n)
+                    {
+                        max = std::numeric_limits<double>::quiet_NaN();
+                        index = 0;
+                    }
+                    else
+                    {
+                        max = (*mtx)(i, index);
+
+                        for (int j = index + 1; j < n; ++j)
                         {
-                            max = val;
-                            max_index = j;
+                            double val = (*mtx)(i, j);
+                            if (val > max)
+                            {
+                                max = val;
+                                index = j;
+                            }
                         }
                     }
+
                     result->SetElement(i, max);
-                    (*indices)(i) = max_index + 1.0;
+                    (*indices)(i) = index + 1.0;
+                }
+            }
+            else
+            {
+                hwComplex max;
+                for (int i = 0; i < m; ++i)
+                {
+                    for (index = 0; index < n; ++index)
+                    {
+                        if (!IsNaN_T(mtx->z(i, index)))
+                            break;
+                    }
+
+                    if (index == n)
+                    {
+                        max = std::numeric_limits<double>::quiet_NaN();
+                        index = 0;
+                    }
+                    else
+                    {
+                        max = mtx->z(i, index);
+                        for (int j = index + 1; j < n; ++j)
+                        {
+                            hwComplex val = mtx->z(i, j);
+                            if (complexGreaterThan(val, max))
+                            {
+                                max = val;
+                                index = j;
+                            }
+                        }
+                        result->SetElement(i, max);
+                        (*indices)(i) = index + 1.0;
+                    }
                 }
             }
 
@@ -17619,7 +17719,7 @@ bool oml_qr(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::v
             throw OML_Error(OML_ERR_SCALAR, 2);
 
         if (inputs[1].Scalar() != 0)
-            throw OML_Error(HW_ERROR_INVINPVAL);
+            throw OML_Error("Error: invalid input in argument 2; must be 0");
 
         status = A->QR(*Q, *R);
     }
@@ -18001,6 +18101,482 @@ bool oml_diff(EvaluatorInterface eval, const std::vector<Currency>& inputs, std:
     return true;
 }
 //------------------------------------------------------------------------------
+// Returns the gradient of sampled data or a function [gradient]
+//------------------------------------------------------------------------------
+bool oml_gradient(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+    int nargin = static_cast<int> (inputs.size());
+
+    if (nargin < 1)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    int nargout = eval.GetNargoutValue();
+
+    // process derivative deltas
+    static bool arg2isDelta = false;
+    int firstDimArg = -1;
+
+    if ((inputs[0].IsMatrix() || inputs[0].IsNDMatrix()) && nargin > 1)
+        firstDimArg = 1;
+    else if ((inputs[0].IsFunctionHandle() || inputs[0].IsString()) && nargin > 2)
+        firstDimArg = 2;
+
+    int numDeriv = _max(nargout, 1);
+    const hwMatrix* delta = nullptr;
+    const hwMatrix* x = nullptr;
+
+    if (firstDimArg == -1)
+    {
+        hwMatrix* delta = eval.allocateMatrix(1, numDeriv, true);
+
+        for (int i = 0; i < numDeriv; ++i)
+        {
+            (*delta)(i) = 1.0;
+        }
+
+        std::vector<Currency> inputs2;
+        inputs2.push_back(inputs[0]);
+
+        if (nargin == 2)
+            inputs2.push_back(inputs[1]);
+
+        arg2isDelta = true;
+        inputs2.push_back(delta);
+        return oml_gradient(eval, inputs2, outputs);
+    }
+    else if (firstDimArg == nargin - 1)
+    {
+        if (inputs[firstDimArg].IsScalar())
+        {
+            if (numDeriv > 1)
+            {
+                hwMatrix* delta = eval.allocateMatrix(1, numDeriv, true);
+
+                for (int i = 0; i < numDeriv; ++i)
+                {
+                    (*delta)(i) = inputs[firstDimArg].Scalar();
+                }
+
+                std::vector<Currency> inputs2;
+                inputs2.push_back(inputs[0]);
+
+                if (firstDimArg == 2)
+                    inputs2.push_back(inputs[1]);
+
+                arg2isDelta = true;
+                inputs2.push_back(delta);
+                return oml_gradient(eval, inputs2, outputs);
+            }
+            else
+            {
+                delta = inputs[firstDimArg].ConvertToMatrix();
+                arg2isDelta = false;    // reset
+            }
+        }
+        else if (inputs[firstDimArg].IsMatrix())
+        {
+            if (arg2isDelta)
+            {
+                delta = inputs[firstDimArg].Matrix();
+                arg2isDelta = false;    // reset
+            }
+            else if (firstDimArg == 1)
+            {
+                x = inputs[firstDimArg].ConvertToMatrix();
+            }
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_SCALARMATRIX, firstDimArg + 1);
+        }
+    }
+    else
+    {
+        hwMatrix* delta = eval.allocateMatrix(1, nargin - firstDimArg, true);
+
+        for (int i = firstDimArg; i < nargin; ++i)
+        {
+            if (!inputs[i].IsScalar())
+                throw OML_Error(OML_ERR_SCALAR, i);
+
+            (*delta)(i - firstDimArg) = inputs[i].Scalar();
+        }
+
+        std::vector<Currency> inputs2;
+        inputs2.push_back(inputs[0]);
+
+        if (firstDimArg == 2)
+            inputs2.push_back(inputs[1]);
+
+        arg2isDelta = true;
+        inputs2.push_back(delta);
+        return oml_gradient(eval, inputs2, outputs);
+    }
+
+    // compute derivatives
+    if (inputs[0].IsMatrix())
+    {
+        const hwMatrix* data = inputs[0].Matrix();
+        int m = data->M();
+        int n = data->N();
+
+        if (!data->IsReal())
+        {
+            throw OML_Error(OML_ERR_REAL, 1);
+        }
+
+        if (delta)    // gradient(m, delta)
+        {
+            std::vector<int> dims = { m, n };
+            hwMatrix** gradient = new hwMatrix * [numDeriv];
+
+            for (int dim = 0; dim < numDeriv; ++dim)
+            {
+                int dim_map;    // map (dim[0], dim[1]) to (y, x)
+
+                if (dim == 0)
+                {
+                    if (n == 1)
+                        dim_map = 0;
+                    else
+                        dim_map = 1;
+                }
+                else
+                {
+                    dim_map = 0;
+                }
+
+                gradient[dim] = eval.allocateMatrix(m, n, true);
+                int numVecs = (dim_map == 0 && m != 1) ? n : m;
+                int stride = (dim_map == 0) ? 1 : m;
+                int row = 0;
+                int col = 0;
+
+                if (numDeriv > delta->Size())
+                {
+                    throw OML_Error(OML_ERR_ARGDIMENSIONS);
+                }
+
+                for (int i = 0; i < numVecs; ++i)
+                {
+                    // set the matrix indices to the first index in each vector
+                    int start = col * m + row;
+                    const double* real = data->GetRealData() + start;
+                    double* grad = gradient[dim]->GetRealData() + start;
+
+                    // perform op
+                    *grad = (*(real + stride) - *real) / (*delta)(dim);
+                    real += stride;
+                    grad += stride;
+
+                    for (int j = 1; j < dims[dim_map] - 1; ++j)
+                    {
+                        *grad = (*(real + stride) - *(real - stride)) / (2.0 * (*delta)(dim));
+                        real += stride;
+                        grad += stride;
+                    }
+
+                    *grad = (*real - *(real - stride)) / (*delta)(dim);
+
+                    // advance slice indices
+                    if (dim_map == 0)
+                        ++col;
+                    else
+                        ++row;
+                }
+            }
+
+            outputs.push_back(gradient[0]);
+
+            if (nargout == 2)
+                outputs.push_back(gradient[1]); // dx = gradient[1]
+        }
+        else    // gradient(y, x)
+        {
+            const hwMatrix* x = inputs[1].Matrix();
+            int xm = x->M();
+            int xn = x->N();
+
+            if (!x->IsReal())
+            {
+                throw OML_Error(OML_ERR_REAL, 2);
+            }
+
+            if (x->IsVector())
+            {
+                int xsize = xm * xn;
+
+                if (data->IsVector())
+                {
+                    if (data->Size() != xsize)
+                    {
+                        throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
+                    }
+                }
+                else if (xsize != m && xsize != n)
+                {
+                    throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
+                }
+            }
+            else if (xm != m || xn != n)
+            {
+                throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2);
+            }
+
+            int numVecs = (n == 1) ? 1 : m;
+            int ystride = (numVecs == 1) ? 1 : m;
+            int xstride = (xm == 1 || xn == 1) ? 1 : xm;
+            int dimSize = (n == 1) ? m : n;
+            int row = 0;
+            int col = 0;
+            hwMatrix* gradient = eval.allocateMatrix(m, n, true);
+
+            for (int i = 0; i < numVecs; ++i)
+            {
+                // set the matrix indices to the first index in each vector
+                int start = col * m + row;
+                const double* yelem = data->GetRealData() + start;
+                const double* xelem = x->GetRealData();
+                double* grad = gradient->GetRealData() + start;
+
+                if (xm != 1 && xn != 1)
+                    xelem += row;
+
+                // perform op
+                *grad = (*(yelem + ystride) - *yelem) / (*(xelem + xstride) - *xelem);
+                yelem += ystride;
+                xelem += xstride;
+                grad  += ystride;
+
+                for (int j = 1; j < dimSize - 1; ++j)
+                {
+                    *grad = (*(yelem + ystride) - *(yelem - ystride)) /
+                            (*(xelem + xstride) - *(xelem - xstride));
+                    yelem += ystride;
+                    xelem += xstride;
+                    grad  += ystride;
+                }
+
+                *grad = (*yelem - *(yelem - ystride)) / (*xelem - *(xelem - xstride));
+
+                // advance slice indices
+                ++row;
+            }
+
+            outputs.push_back(gradient);
+        }
+    }
+    else if (inputs[0].IsNDMatrix())
+    {
+        const hwMatrixN* data = inputs[0].MatrixN();
+
+        if (!data->IsReal())
+        {
+            throw OML_Error(OML_ERR_REAL, 1);
+        }
+
+        const std::vector<int>& dims = data->Dimensions();
+        int numDim = static_cast<int> (dims.size());
+        std::vector<int> matrixIndex(numDim);
+        hwMatrixN** gradient = new hwMatrixN* [numDeriv];
+
+        for (int dim = 0; dim < numDeriv; ++dim)
+        {
+            int dim_map;    // map (dim[0], dim[1]) to (y, x)
+
+            if (dim == 0)
+            {
+                dim_map = 1;
+            }
+            else if (dim == 1)
+            {
+                dim_map = 0;
+            }
+            else
+            {
+                dim_map = dim;
+            }
+
+            gradient[dim] = eval.allocateMatrixN(dims, true);
+            int numVecs = gradient[dim]->Size() / dims[dim_map];
+            int stride = gradient[dim]->Stride(dim_map);
+
+            if (numDeriv > delta->Size())
+            {
+                throw OML_Error(OML_ERR_ARGDIMENSIONS);
+            }
+
+            for (int i = 0; i < numVecs; ++i)
+            {
+                // set the matrix indices to the first index in each vector
+                int start = data->Index(matrixIndex);
+                const double* real = data->GetRealData() + start;
+                double* grad = gradient[dim]->GetRealData() + start;
+
+                // perform op
+                *grad = (*(real + stride) - *real) / (*delta)(dim);
+                real += stride;
+                grad += stride;
+
+                for (int j = 1; j < dims[dim_map] - 1; ++j)
+                {
+                    *grad = (*(real + stride) - *(real - stride)) / (2.0 * (*delta)(dim));
+                    real += stride;
+                    grad += stride;
+                }
+
+                *grad = (*real - *(real - stride)) / (*delta)(dim);
+
+                // advance slice indices
+                for (int j = 0; j < numDim; ++j)
+                {
+                    if (j == dim_map)
+                        continue;
+
+                    // increment index j if possible
+                    if (matrixIndex[j] < static_cast<int> (dims[j]) - 1)
+                    {
+                        ++matrixIndex[j];
+                        break;
+                    }
+
+                    // index j is maxed out, so reset and continue to j+1
+                    matrixIndex[j] = 0;
+                }
+            }
+        }
+
+        for (int dim = 0; dim < numDeriv; ++dim)
+            outputs.push_back(gradient[dim]);
+
+        delete[] gradient;
+    }
+    else if (inputs[0].IsFunctionHandle() || inputs[0].IsString())
+    {
+        FunctionInfo* funcInfo = NULL;  // used with scripted functions
+        FUNCPTR       funcPntr = NULL;  // used with built in functions
+        std::string funcName;
+
+        if (inputs[0].IsFunctionHandle())
+            funcName = inputs[0].FunctionHandle()->FunctionName();
+        else
+            funcName = inputs[0].StringVal();
+
+        if (funcName == "anonymous")
+        {
+            funcInfo = inputs[0].FunctionHandle();
+            funcName = funcInfo->RedirectedFunction();
+        }
+        else
+        {
+            if (!eval.FindFunctionByName(funcName, &funcInfo, &funcPntr, nullptr))
+                throw OML_Error(OML_ERR_FUNCNAME, 1);
+        }
+
+        if (!inputs[1].IsMatrix() && !inputs[1].IsScalar())
+            throw OML_Error(OML_ERR_MATRIX, 2, OML_VAR_DATA);
+
+        const hwMatrix* points = inputs[1].ConvertToMatrix();
+        int numPnts = points->M();
+        int numVars = points->N();
+
+        if (!points->IsReal())
+        {
+            throw OML_Error(OML_ERR_REAL, 2);
+        }
+
+        hwMatrix** gradient = new hwMatrix* [numDeriv];
+        hwMatrix** coords   = new hwMatrix* [numDeriv];     // store points by coordinate
+        std::vector<Currency> inputs2;
+
+        if (numDeriv == 1 && numPnts == 1 && numVars > 1)
+        {
+            // row vector case, swapping numVars and numPnts
+            gradient[0] = eval.allocateMatrix(1, numVars, true);
+            coords[0] = eval.allocateMatrix(points);
+            inputs2.push_back(coords[0]);
+        }
+        else
+        {
+            if (numDeriv > numVars)
+            {
+                numDeriv = numVars; // triggers error later
+            }
+
+            if (numVars != delta->Size())
+            {
+                throw OML_Error(OML_ERR_ARGDIMENSIONS);
+            }
+
+            // column vector case
+            for (int j = 0; j < numDeriv; ++j)
+            {
+                gradient[j] = eval.allocateMatrix(numPnts, 1, true);
+                coords[j] = eval.allocateMatrix();
+                points->ReadColumn(j, *(coords[j]));
+                inputs2.push_back(coords[j]);
+            }
+        }
+
+        Currency result1;
+        Currency result2;
+
+        for (int j = 0; j < numDeriv; ++j)
+        {
+            (*coords[j]) -= (*delta)(j);
+
+            if (funcInfo)
+            {
+                result1 = eval.CallInternalFunction(funcInfo, inputs2);
+            }
+            else if (funcPntr)
+            {
+                result1 = eval.CallFunction(funcName, inputs2);
+            }
+
+            (*coords[j]) += 2.0 * (*delta)(j);
+
+            if (funcInfo)
+            {
+                result2 = eval.CallInternalFunction(funcInfo, inputs2);
+            }
+            else if (funcPntr)
+            {
+                result2 = eval.CallFunction(funcName, inputs2);
+            }
+
+            if (numDeriv > 1 || numPnts >> 1 || numVars == 1)
+            {
+                // only for column vector case
+                points->ReadColumn(j, *(coords[j]));
+            }
+
+            if (result1.IsScalar())
+            {
+                (*gradient[j])(0) = (result2.Scalar() - result1.Scalar()) / (2.0 * (*delta)(j));
+            }
+            else
+            {
+                hwMatrix* g1 = result1.GetWritableMatrix();
+                hwMatrix* g2 = result2.GetWritableMatrix();
+                (*gradient[j]) = ((*g2) - (*g1)) / (2.0 * (*delta)(j));
+            }
+
+            outputs.push_back(gradient[j]);
+        }
+
+        inputs2.clear();    // delete coords[j] matrices first
+        delete[] coords;
+        delete[] gradient;
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
 // Returns an identity matrix [eye]
 //------------------------------------------------------------------------------
 bool oml_eye(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
@@ -18153,7 +18729,7 @@ bool oml_eig(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
             }
             else if (inputs[1].StringVal() != "nobalance")
             {
-                throw OML_Error(HW_ERROR_INVBALFLAG);
+                throw OML_Error(OML_ERR_OPTIONVAL, 2);
             }
         }
     }
@@ -18191,7 +18767,7 @@ bool oml_eig(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
         if (sameSize(i1, i2))
             status = i1->Eigen(*i1, *i2, V.get(), *D);
         else
-            throw OML_Error(HW_ERROR_INPMUSTSAMESIZE);
+            throw OML_Error(OML_ERR_PLOT_DIM_NOT_MATCH);
     }
 
     BuiltInFuncsUtils::CheckMathStatus(eval, status);
@@ -21454,7 +22030,7 @@ bool oml_logical(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
         {
             double d = (*mtx)((const int)j);
             if (IsNaN_T(d))
-                throw OML_Error(HW_ERROR_NOTCONVNANTOLOG);
+                throw OML_Error("Error: invalid input in argument 1; cannot have NaN values");
 
             if (d == 0.0)
                 (*res)((const int)j) = (0.0);
@@ -21463,7 +22039,7 @@ bool oml_logical(EvaluatorInterface eval, const std::vector<Currency>& inputs, s
         }
     }
     else
-        throw OML_Error(HW_ERROR_NOTCONVCOMPTOLOG);
+        throw OML_Error(OML_ERR_REAL, 1);
 
     Currency result(res);
     result.SetMask(Currency::MASK_LOGICAL);
@@ -22059,7 +22635,7 @@ bool oml_lastwarn(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
             throw OML_Error(OML_ERR_NUMARGOUT);
 
         if (!inputs[0].IsString())
-            throw OML_Error(HW_ERROR_INPUTSTRING);
+            throw OML_Error(OML_ERR_STRING, 1);
 
         EvaluatorInterface::SetLastWarning(inputs[0].StringVal());
     }
@@ -22788,6 +23364,9 @@ bool oml_ast(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::
 //------------------------------------------------------------------------------
 bool oml_writepfile(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
 {
+    if (inputs.size() != 2)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
 	if (inputs[0].IsString() && inputs[1].IsString())
 		eval.WritePFile(inputs[0].StringVal(), inputs[1].StringVal());
 	return true;
@@ -22893,7 +23472,7 @@ bool oml_helptest(EvaluatorInterface eval, const std::vector<Currency>& inputs, 
 	const char* ROOT_DIRECTORY = "OML_HELP";
 	char *c = getenv(ROOT_DIRECTORY);
 	if(c == nullptr)
-		throw OML_Error(HW_ERROR_ENVVARFAIL);
+		throw OML_Error("Error: invalid inputs; cannot get environment variable [OML_HELP]");
 
 	std::string base = c;
 
@@ -25511,7 +26090,7 @@ bool sortBasedOperation(EvaluatorInterface &eval, const std::vector<Currency>& i
     if (acell || bcell)
     {
         if (rows)
-            throw OML_Error(HW_ERROR_NOUNIONBYROWCELLINP);
+            throw OML_Error("Error: invalid inputs; cannot find union by rows for cell input");
 
         if ((acell && !isstr(acell)) || (bcell && !isstr(bcell)))
             throw OML_Error(OML_ERR_STRING_STRINGCELL);
@@ -25606,7 +26185,8 @@ bool sortBasedOperation(EvaluatorInterface &eval, const std::vector<Currency>& i
     {
         int n = a->N();
         if (n != b->N())
-            throw OML_Error(HW_ERROR_WHENUNIONINDROWVECSAMECOL);
+            throw OML_Error(
+                "Error: invalid inputs; vectors must have same number of columns when computing union of individual rows");
 
         std::deque<hwMatrix> avals, bvals, vals;
 
@@ -27136,7 +27716,7 @@ bool dostrcmp(const std::vector<Currency>& inputs, std::vector<Currency>& output
                 outputs.push_back(out);
             }
             else
-                throw OML_Error(HW_ERROR_INPMUSTSAMESIZE);
+                throw OML_Error(OML_ERR_PLOT_DIM_NOT_MATCH);
         }
         else
         {
@@ -27492,7 +28072,7 @@ Currency dostrcat(EvaluatorInterface& eval, const hwMatrix *first, const hwMatri
         return returnCur;
     }
     else
-        throw OML_Error(HW_ERROR_STRSAMENUMROWCONCAT);
+        throw OML_Error("Error: invalid inputs; must have the same number of rows");
 }
 
 void dostrcat(EvaluatorInterface& eval, Currency &out, const hwMatrix *new_str)
@@ -28157,10 +28737,10 @@ std::string sprintf(EvaluatorInterface& eval, std::vector<Currency>::const_itera
     if (iter == enditer)
         throw OML_Error(OML_ERR_NUMARGIN);
 
-    Currency input1 = *iter;
+    const Currency& input1 = *iter;
 
     if (!input1.IsString())
-        throw OML_Error(HW_ERROR_INPUTSTRING);
+        throw OML_Error(OML_ERR_STRING, 1);
 
     std::string tmplt = readString(input1);
     return sprintf(eval, tmplt, iter + 1, enditer);

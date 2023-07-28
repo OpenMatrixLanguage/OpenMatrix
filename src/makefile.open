@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Copyright (C) 2018 Altair Engineering, Inc.  
+# Copyright (C) 2023 Altair Engineering, Inc.  
 # This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 # Open Source License Information:
 # OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -15,6 +15,7 @@
 default: 
 	make -C math -f makefile.open
 	make -C oml/Runtime -f makefile.open
+	make -C oml/Server -f makefile.open
 	make -C oml/Console -f makefile.open
 	make -C oml/toolboxes -f makefile.open
 
@@ -23,12 +24,14 @@ default:
 clean:
 	make -C math clean -f makefile.open
 	make -C oml/Runtime clean -f makefile.open
+	make -C oml/Server  clean -f makefile.open
 	make -C oml/Console clean -f makefile.open
 	make -C oml/toolboxes clean -f makefile.open
 
 cleanall:
 	make -C math clean -f makefile.open
 	make -C oml/Runtime clean -f makefile.open
+	make -C oml/Server  clean -f makefile.open
 	make -C oml/Console clean -f makefile.open
 	make -C oml/toolboxes clean -f makefile.open
 

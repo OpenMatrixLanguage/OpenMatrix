@@ -639,13 +639,14 @@ struct PeakInfo
 //! \param extra     Optional argument
 //!
 SIGNALS_DECLS hwMathStatus FindPeaks(const hwMatrix& signal,
+                                     double          sampleRate,
+                                     double          origin,
                                      bool            twoSided,
                                      double          minPeakHeight,
-                                     int             minPeakDistance,
-                                     int             minPeakWidth,
+                                     double          minPeakDistance,
+                                     double          minPeakWidth,
                                      hwMatrix&       peaks,
-                                     hwMatrixI&      index,
-                                     int             indexOrigin,
+                                     hwMatrix&       peakLocs,
                                      PeakInfo*       extra = nullptr);
 
 #endif // _Signals_WrapperFuncs_h

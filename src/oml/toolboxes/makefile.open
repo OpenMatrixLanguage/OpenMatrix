@@ -12,7 +12,7 @@ default:
 	make -C plot            -f makefile.open
 	make -C omlMatio        -f makefile.open
 	make -C omlGeometry     -f makefile.open
-#	make -C omlpythonbridge -f makefile.open
+	make -C omlpythonbridge -f makefile.open
 	
 clean:
 	make -C omlMathUtils    clean -f makefile.open
@@ -26,4 +26,4 @@ clean:
 	make -C plot            clean -f makefile.open
 	make -C omlMatio        clean -f makefile.open
 	make -C omlGeometry     clean -f makefile.open
-#	make -C omlpythonbridge clean -f makefile.open
+	make -C omlpythonbridge clean -f makefile.open

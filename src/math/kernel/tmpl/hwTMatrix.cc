@@ -651,6 +651,9 @@ bool hwTMatrix<T1, T2>::IsSymmetric() const
                 if ((*this)(i, j) != (*this)(j, i))
                     return false;
             }
+
+            if (IsNaN_T((*this)(i, i))) // exclude NaN diagonal
+                return false;
         }
     }
 
@@ -663,6 +666,9 @@ bool hwTMatrix<T1, T2>::IsSymmetric() const
                 if (z(i, j) != z(j, i))
                     return false;
             }
+
+            if (IsNaN_T(z(i, i)))   // exclude NaN diagonal
+                return false;
         }
     }
 
@@ -689,6 +695,9 @@ bool hwTMatrix<T1, T2>::IsHermitian() const
                 if ((*this)(i, j) != (*this)(j, i))
                     return false;
             }
+
+            if (IsNaN_T((*this)(i, i))) // exclude NaN diagonal
+                return false;
         }
     }
 
@@ -702,7 +711,7 @@ bool hwTMatrix<T1, T2>::IsHermitian() const
                     return false;
             }
 
-            if (z(i, i).Imag() != 0.0)  // real diagonal
+            if (IsNaN_T(z(i, i).Real()) || z(i, i).Imag() != 0.0)  // real diagonal
                 return false;
         }
     }
@@ -5995,6 +6004,46 @@ hwMathStatus hwTMatrix<T1, T2>::Toeplitz(const hwTMatrix<T1, T2>& C, const hwTMa
     }
 
     return statusW;
+}
+
+// ****************************************************
+//                   COW Support
+// ****************************************************
+template<typename T1, typename T2>
+void hwTMatrix<T1, T2>::IncrRefCount() 
+{
+    std::unique_lock<std::mutex> lock(this->mutex, std::defer_lock);
+    lock.lock();
+    m_refCount++;
+    lock.unlock();
+}
+
+template<typename T1, typename T2>
+void hwTMatrix<T1, T2>::DecrRefCount() 
+{
+    std::unique_lock<std::mutex> lock(this->mutex, std::defer_lock);
+    lock.lock();
+    m_refCount--;
+    lock.unlock();
+
+}
+
+template<typename T1, typename T2>
+void  hwTMatrix<T1, T2>::ResetRefCount() 
+{ 
+    m_refCount = 1; 
+}
+
+template<typename T1, typename T2>
+unsigned int  hwTMatrix<T1, T2>::GetRefCount() const 
+{ 
+    return m_refCount; 
+}
+
+template<typename T1, typename T2>
+bool  hwTMatrix<T1, T2>::IsMatrixShared() const 
+{ 
+    return m_refCount != 1;
 }
 
 // ****************************************************

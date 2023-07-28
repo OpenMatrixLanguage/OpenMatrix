@@ -1,7 +1,7 @@
 /**
 * @file BetterCalc.cpp
 * @date June 2014
-* Copyright (C) 2014-2022 Altair Engineering, Inc.  
+* Copyright (C) 2014-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -36,7 +36,7 @@
 
 // Shows new prompt on console
 // \param Interpreter wrapper
-void CallNewConsolePrompting(ConsoleWrapper*);
+void CallNewConsolePrompting(ConsoleWrapper*, bool);
 // Runs input file(s)
 // \param String containing input files
 void RunInputFiles(const std::string&);
@@ -99,6 +99,7 @@ int main(int argc, char* argv[])
     std::string port;
     bool nextIsPort = false;
     bool isServer = false;
+    bool isVscodeServer = false;
 
     // File to execute, if specified
 	std::string scriptPath;
@@ -164,6 +165,10 @@ int main(int argc, char* argv[])
 			nextIsPort = false;
 			port = arg;
 		}
+        else if (cmd == "vscode-server")
+        {
+            isVscodeServer = true;
+        }
         else
         {
             argsToProcess.push_back(arg);
@@ -171,7 +176,7 @@ int main(int argc, char* argv[])
 	}
 
     // Wrapper for interpreter signals and methods
-    if (!isServer)
+    if (!isServer || isVscodeServer)
     {
         wrapper = new ConsoleWrapper (interp);
         assert(wrapper);
@@ -258,51 +263,68 @@ int main(int argc, char* argv[])
 			scriptPath = arg; 
 	}
 
-    if (isServer)
-	{
-        if (port.empty()) 
+	if (isVscodeServer || isServer)
+    {
+        if (port.empty())
         {
             port = DEFAULT_PORT;
         }
-        std::unique_ptr<OmlServer> omlserver(new OmlServer(interp));
-        omlserver->Start(port);
+        ServerArgs* args = new ServerArgs;
+        args->interp = interp;
+        args->port = port;
+
+		if(isVscodeServer)
+		{
+			args->handler = nullptr;
+			RunOmlServer(args, true);
     }
-    else
-    {
-	    std::setlocale(LC_ALL, "");
-	    std::setlocale(LC_NUMERIC, "C");
+		else
+	{
+			args->handler = new SignalHandler;
+			RunOmlServer(args, false);
 
-        if(!scriptPath.empty())
-	    {
-            RunInputFiles(scriptPath);
-            std::cout << std::flush;
-		    continueRequired = true;
-	    }
+        delete wrapper;
+        wrapper = nullptr;
+        delete interp;
+
+        return 0;
+    }
+	}
 	
-	    if(continueRequired && !continueAfterScript)
-	    {
-		    delete wrapper;
-		    delete interp;
-		    return 0;
-	    }
+    // launch the console terminal
+	std::setlocale(LC_ALL, "");
+	std::setlocale(LC_NUMERIC, "C");
 
-        // Start of interactive mode
-        CurrencyDisplay::SetPaginate(paginateVal);  // Reset pagination value
-        wrapper->InitCommandWindowInfo();
-        if (!bannerprinted)
-        {
-            PrintBanner();
-        }
-        SignalHandler* handler = static_cast<SignalHandler*>(interp->GetSignalHandler());
-        if (handler)
-        {
-            handler->SetConsoleBatchMode(false);
-        }
+    if(!scriptPath.empty())
+	{
+        RunInputFiles(scriptPath);
+        std::cout << std::flush;
+		continueRequired = true;
+	}
+	
+	if(continueRequired && !continueAfterScript)
+	{
+		delete wrapper;
+		delete interp;
+		return 0;
+	}
 
-        if (wrapper)  
-        {
-            CallNewConsolePrompting(wrapper);
-        }
+    // Start of interactive mode
+    CurrencyDisplay::SetPaginate(paginateVal);  // Reset pagination value
+    wrapper->InitCommandWindowInfo();
+    if (!bannerprinted)
+    {
+        PrintBanner();
+    }
+    SignalHandler* handler = static_cast<SignalHandler*>(interp->GetSignalHandler());
+    if (handler)
+    {
+        handler->SetConsoleBatchMode(false);
+    }
+
+    if (wrapper)  
+    {
+        CallNewConsolePrompting(wrapper, isVscodeServer);
     }
 
     delete wrapper;
@@ -315,7 +337,7 @@ int main(int argc, char* argv[])
 //------------------------------------------------------------------------------
 // Shows new prompt on console
 //------------------------------------------------------------------------------
-void CallNewConsolePrompting(ConsoleWrapper* wrapper)
+void CallNewConsolePrompting(ConsoleWrapper* wrapper, bool isVscodeServer)
 {
     assert(interp);
     assert(wrapper);
@@ -351,7 +373,35 @@ void CallNewConsolePrompting(ConsoleWrapper* wrapper)
             wrapper->SetWindowSize(true);
         }
 
-        Currency    output = interp->DoString(strCommand);
+        //special handling to support interrupt for vscode oml extension
+        if (isVscodeServer)
+        {
+            std::string evalCmd = "";
+            size_t splitIndex = strCommand.find_first_of("(");
+            if (splitIndex > 0)
+                evalCmd = strCommand.substr(0, splitIndex);
+            if (evalCmd == "run")
+            {
+                splitIndex = strCommand.find_first_of('\'');
+                size_t endIndex = strCommand.find_first_of(")");
+                if (endIndex > 0)
+                {
+                    endIndex = strCommand.find_last_of('\'');
+                    if (splitIndex && endIndex) {
+                        std::string filePath = strCommand.substr(splitIndex + 1, endIndex - splitIndex - 1);
+                        interp->DoFile(filePath);
+                    }
+                }
+            }
+            else
+            {
+                Currency output = interp->DoString(strCommand);
+            }
+        }
+        else
+        {
+            Currency output = interp->DoString(strCommand);
+        }
 #ifndef OS_WIN
         if (strCommand == "\r\n")
         {

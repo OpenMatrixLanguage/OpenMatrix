@@ -25,6 +25,7 @@
 #include <limits>
 #include "CoreMain.h"
 #include "GnuplotOutput.h"
+#include "hwMatrixN_NMKL.h"
 
 using namespace std;
 
@@ -255,9 +256,13 @@ namespace omlplot{
     }
 
     void Object::repaint(){
-        vector<double> parent = getPropertyValue("parent").Vector();
-        Object *o = getObject(parent[0]);
-        o->repaint();
+        Currency parent = getPropertyValue("parent").getCurrency(); 
+        if (parent.IsVector() && !parent.Vector().empty())
+        {
+            vector<double> p = parent.Vector();
+            Object* o = getObject(p[0]);
+            o->repaint();
+        }
     }
 
     ObjectType Object::getObjectType() const
@@ -355,7 +360,8 @@ namespace omlplot{
                  name == "basevalue"        || name == "barwidth"           || name == "barstyle"           ||
                  name == "x"                || name == "y"                  || name == "z"                  ||
                  name == "offset"           || name == "borderwidth"        || name == "autoscalefactor"    ||
-                 name == "maxheadsize"      || name == "currentaxes"        || name == "currentfigure")
+                 name == "maxheadsize"      || name == "currentaxes"        || name == "currentfigure"      ||
+                 name == "markerfacealpha")
         {
             // scalar
             if (!cur.IsScalar())
@@ -987,7 +993,7 @@ namespace omlplot{
         out->printf("unset arrow\n");
         // unset axes rectangle object
         out->printf("unset object 1001\n");
-        
+
         // reset grids and tics
         out->printf("set border 31\n");
         out->printf("unset polar\nset size nosquare\nset grid nopolar\n");
@@ -1066,14 +1072,14 @@ namespace omlplot{
         char numF[24];
         sprintf(numF, "%s.%d%s", "%", xnp, f.c_str());
 
-        string xtag(topXAxis ? "x2tics" : "xtics");
+            string xtag(topXAxis ? "x2tics" : "xtics");
 
-        out->printf("set %s format \"{%s {%s %s}}\" textcolor rgb '%s' font \"%s,%g\" \n", 
-            xtag.c_str(), boldString.c_str(), italicString.c_str(), numF, xcolor.c_str(), 
-            tickFontName.c_str(), tickFontSize);
-        int xtick = (int)getPropertyValue("xminortick").Scalar();
-        if (xtick > 0)
-            out->printf("set m%s %d\n", xtag.c_str(), xtick);
+            out->printf("set %s format \"{%s {%s %s}}\" textcolor rgb '%s' font \"%s,%g\" \n", 
+                xtag.c_str(), boldString.c_str(), italicString.c_str(), numF, xcolor.c_str(), 
+                tickFontName.c_str(), tickFontSize);
+            int xtick = (int)getPropertyValue("xminortick").Scalar();
+            if (xtick > 0)
+                out->printf("set m%s %d\n", xtag.c_str(), xtick);
 
         // override xticks if it is a 3d bar plot and 'xcategories' are set
         Currency xcat = getPropertyValue("xcategories").getCurrency();
@@ -1157,12 +1163,12 @@ namespace omlplot{
             f = "f";
         sprintf(numF, "%s.%d%s", "%", ynp, f.c_str());
 
-        string ytag(rightYAxis ? "y2tics" : "ytics");
-        out->printf("set %s format \"{%s {%s %s}}\" textcolor rgb '%s' font \"%s,%g\" \n", ytag.c_str(), boldString.c_str(),
-        italicString.c_str(), numF, ycolor.c_str(), tickFontName.c_str(), tickFontSize);
-        int ytick = (int)getPropertyValue("yminortick").Scalar();
-        if (ytick > 0)
-            out->printf("set m%s %d\n", ytag.c_str(), ytick);
+            string ytag(rightYAxis ? "y2tics" : "ytics");
+            out->printf("set %s format \"{%s {%s %s}}\" textcolor rgb '%s' font \"%s,%g\" \n", ytag.c_str(), boldString.c_str(),
+            italicString.c_str(), numF, ycolor.c_str(), tickFontName.c_str(), tickFontSize);
+            int ytick = (int)getPropertyValue("yminortick").Scalar();
+            if (ytick > 0)
+                out->printf("set m%s %d\n", ytag.c_str(), ytick);
 
         // override yticks if it is a 3d bar plot and 'ycategories' are set
         Currency ycat = getPropertyValue("ycategories").getCurrency();
@@ -1247,14 +1253,14 @@ namespace omlplot{
         sprintf(numF, "%s.%d%s", "%", znp, f.c_str());
         out->printf("set ztics format \"{%s {%s %s}}\" textcolor rgb '%s' font \"%s,%g\" \n", boldString.c_str(),
             italicString.c_str(), numF, zcolor.c_str(), tickFontName.c_str(), tickFontSize);
-        int ztick = (int)getPropertyValue("zminortick").Scalar();
-        if (ztick > 0)
-            out->printf("set mztics %d\n", ztick);
+            int ztick = (int)getPropertyValue("zminortick").Scalar();
+            if (ztick > 0)
+                out->printf("set mztics %d\n", ztick);
 
         Currency tmp = getPropertyValue("ztick").getCurrency();
-        if (tmp.IsScalar()) {
-            if (!IsZero(tmp.Scalar()))
-                out->printf("set ztics %g\n", tmp.Scalar());
+            if (tmp.IsScalar()) {
+                if (!IsZero(tmp.Scalar()))
+                    out->printf("set ztics %g\n", tmp.Scalar());
         }
         else {
                 vector<double> zticks = tmp.Vector();
@@ -1354,14 +1360,14 @@ namespace omlplot{
                 out->printf("set %s nomirror\n", rightYAxis ? "y2tics" : "ytics");
             }
             else {
-            if (m_secYAxisVisible)
-                out->printf("set border 11\n");
-            else if (rightYAxis)
-                out->printf("set border 9\n");
-            else
-                out->printf("set border 3\n");
-            out->printf("set xtics nomirror\n");
-            out->printf("set %s nomirror\n", rightYAxis ? "y2tics" : "ytics");
+                if (m_secYAxisVisible)
+                    out->printf("set border 11\n");
+                else if (rightYAxis)
+                    out->printf("set border 9\n");
+        else
+                    out->printf("set border 3\n");
+                out->printf("set xtics nomirror\n");
+                out->printf("set %s nomirror\n", rightYAxis ? "y2tics" : "ytics");
             }
         }
 
@@ -1411,7 +1417,7 @@ namespace omlplot{
                     zdata.push_back(pChild->getZdata());
                 }
 
-
+               
             }
             else if (obj->isText()) {
                 Text* pChild = static_cast<Text*>(obj);
@@ -1648,22 +1654,25 @@ namespace omlplot{
             Object* obj = getObject(*it);
             ObjectType t = obj->getObjectType();
             if (t == ObjectType::SURFACE || t == ObjectType::MESH ||
-                t == ObjectType::CONTOUR_3D || t == ObjectType::CONTOUR) {
+                t == ObjectType::CONTOUR_3D || t == ObjectType::CONTOUR ||
+                t == ObjectType::TRIMESH || t == ObjectType::TRISURF) {
                 
-                Surface* pChild = static_cast<Surface*>(obj);
+                Drawable* pChild = static_cast<Drawable*>(obj);
                 double min, max;
-                pChild->getMinMaxZ(min, max);
-                if (ret.empty())
+                if (pChild->getMinMaxZ(min, max))
                 {
-                    ret.push_back(min);
-                    ret.push_back(max);
-                }
-                else
-                {
-                    if (min < ret[0])
-                        ret[0] = min;
-                    if (max > ret[1])
-                        ret[1] = max;
+                    if (ret.empty())
+                    {
+                        ret.push_back(min);
+                        ret.push_back(max);
+                    }
+                    else
+                    {
+                        if (min < ret[0])
+                            ret[0] = min;
+                        if (max > ret[1])
+                            ret[1] = max;
+                    }
                 }
             }
         }
@@ -2882,24 +2891,24 @@ namespace omlplot{
         vector<double> x = getXdata();
         vector<double> y = getYdata();
 
-        if (catCA) {
-            size_t count = min(catCA->Size(), int(y.size()));
-            for (int j = 0; j < count; j++) {
-                Currency cat = (*catCA)(j);
-                if (cat.IsString())
-                    out->printf("%s %g\n", cat.StringVal().c_str(), y[j]);
-                else if (cat.IsScalar())
-                    out->printf("%g %g\n", cat.Scalar(), y[j]);
-                else
+            if (catCA) {
+                size_t count = min(catCA->Size(), int(y.size()));
+                for (int j = 0; j < count; j++) {
+                    Currency cat = (*catCA)(j);
+                    if (cat.IsString())
+                        out->printf("%s %g\n", cat.StringVal().c_str(), y[j]);
+                    else if (cat.IsScalar())
+                        out->printf("%g %g\n", cat.Scalar(), y[j]);
+                    else
+                        out->printf("%g %g\n", x[j], y[j]);
+                }
+            }
+            else {
+                size_t count = min(x.size(), y.size());
+                for (int j = 0; j < count; j++) {
                     out->printf("%g %g\n", x[j], y[j]);
+                }
             }
-        }
-        else {
-            size_t count = min(x.size(), y.size());
-            for (int j = 0; j < count; j++) {
-                out->printf("%g %g\n", x[j], y[j]);
-            }
-        }
         // end of data
         out->printf("e\n");
 
@@ -2964,6 +2973,7 @@ namespace omlplot{
         m_ps.push_back(Property("datazoffset", 0.0, PropertyType::DOUBLE));
         m_ps.push_back(Property("datazscale", 1.0, PropertyType::DOUBLE));
         m_ps.push_back(Property("markerevery", 1.0, PropertyType::DOUBLE));
+        m_ps.push_back(Property("markerfacealpha", 1.0, PropertyType::DOUBLE));
 
         // not yet supported properties
         m_ps.push_back(Property("units", string("units"), PropertyType::UNSUPPORTED));
@@ -3052,6 +3062,9 @@ namespace omlplot{
             
         string markerColor = getPropertyValue("markerfacecolor").ColorString();
         int markerSize = int(getPropertyValue("markersize").Scalar());
+        double markerAlpha = getPropertyValue("markerfacealpha").Scalar();
+        if (markerAlpha >= 0 && markerAlpha <= 1)
+            markerColor = getPropertyValue("markerfacecolor").ColorStringWithAlpha(markerAlpha);
 
         stringstream ss;
         ss << "unset style line " << line << "\n";
@@ -3144,7 +3157,7 @@ namespace omlplot{
     void Surface::cleanup(GnuplotOutput *out) {
     }
 
-    void Surface::getMinMaxZ(double& min, double& max)
+    bool Surface::getMinMaxZ(double& min, double& max)
     {
         if (m_recalcMinMax) {
             vector<double> z = getZdata();
@@ -3166,6 +3179,7 @@ namespace omlplot{
         }
         min = _minZ;
         max = _maxZ;
+        return true;
     }
 
     void Surface::putData(GnuplotOutput *out){
@@ -3646,6 +3660,11 @@ namespace omlplot{
 
     std::string CurrencyAndColor::ColorString(){
         return m_color.getString();
+    }
+
+    std::string CurrencyAndColor::ColorStringWithAlpha(double alpha)
+    {
+        return m_color.getStringWithAlpha(alpha);
     }
 
     Currency CurrencyAndColor::getCurrency(){
@@ -4363,7 +4382,7 @@ namespace omlplot{
         {
             const hwMatrix* vertices = ld.values[vertIdx].Matrix();
             const hwMatrix* faces = ld.values[facesIdx].Matrix();
-            
+
             vector<double> xdata, ydata, zdata;
             xdata.reserve(faces->Size());
             ydata.reserve(faces->Size());
@@ -4408,6 +4427,12 @@ namespace omlplot{
 
             _xcolcount = numFaces;
         }
+
+        if (m_is3D)
+        {
+            m_ps.push_back(Property("cdata", Currency(), PropertyType::MATRIX));
+        }
+
     }
 
     string Patch::getUsingClause()
@@ -4417,7 +4442,7 @@ namespace omlplot{
         if (m_is3D)
         {
             ss << "'-' using 1:2:3 with polygons fc rgb \""<<lineColor<<"\"";
-        }
+            }
         else
         {
            ss << "'-' using 1:2 with polygons fs solid lc rgb '" << lineColor << "'";
@@ -4435,7 +4460,7 @@ namespace omlplot{
         if (m_is3D)
             return string("set pm3d depthorder base\nset pm3d border lc \"black\"\n");
         return string();
-    }
+        }
 
     void Patch::putData(GnuplotOutput* out)
     {
@@ -4499,7 +4524,7 @@ namespace omlplot{
             }
             out->printf("\n");
         }
-        out->printf("e\n");
+            out->printf("e\n");
 
     }
 
@@ -4531,9 +4556,790 @@ namespace omlplot{
             }
             out->printf("\n");
         }
+            out->printf("e\n");
+        }
+
+    Triplot::Triplot()
+        :Patch()
+    {
+        m_type = ObjectType::TRIPLOT;
+        m_is3D = false;
+
+        std::vector<Property>::iterator fit = std::find_if(m_ps.begin(),
+            m_ps.end(), [](Property p) {return p.getName() == "facecolor"; });
+        if (fit != m_ps.end())
+            m_ps.erase(fit);
+
+        m_ps.push_back(Property("color", Color(string("blue")), PropertyType::COLOR));
+        m_ps.push_back(Property("linestyle", string("-"), PropertyType::STRING));
+        m_ps.push_back(Property("linewidth", 1.0, PropertyType::DOUBLE));
+        m_ps.push_back(Property("marker", string(""), PropertyType::STRING));
+        m_ps.push_back(Property("markerfacecolor", Color(string("blue")), PropertyType::COLOR));
+        m_ps.push_back(Property("markersize", 1.0, PropertyType::DOUBLE));
+    }
+
+    void Triplot::init(const LineData& ld)
+    {
+        std::vector<double> tri = ld.tri;
+        std::vector<double> x = ld.x;
+        std::vector<double> y = ld.y;
+        std::string style = ld.style;
+
+        // all matrices must have values
+        if (x.empty() || y.empty() || (x.size() != y.size()))
+            throw OML_Error(OML_ERR_PLOT_DIM_NOT_MATCH);
+
+        // check the tri indices
+        int M = static_cast<int>(x.size());
+        for (size_t i = 0; i < tri.size(); ++i)
+        {
+            int t = (int)tri[i];
+            t -= 1;
+            if (t < 0 || t >= M)
+            {
+                throw OML_Error(OML_ERR_INVALIDINDEX);
+            }
+        }
+
+        int nTri = ld.triCount;
+        // Create the x and y matrices
+        std::vector<double> xdata;
+        std::vector<double> ydata;
+        xdata.reserve(3 * nTri);
+        ydata.reserve(3 * nTri);
+
+        for (size_t i = 0; i < tri.size(); ++i)
+        {
+            int vidx = (int)(tri[i]) - 1;
+            xdata.push_back(x[vidx]);
+            ydata.push_back(y[vidx]);
+        }
+
+        setPropertyValue("xdata", xdata);
+        setPropertyValue("ydata", ydata);
+        setPropertyValue("zdata", ld.z);
+
+        _xcolcount = nTri;
+        _ycolcount = ld.ycolcount;
+        _zcolcount = ld.zcolcount;
+
+        Currency colorOrder;
+        Object* p = getParentObject();
+        if (p && p->isAxes())
+            colorOrder = p->getPropertyValue("colororder").getCurrency();
+
+        LineStyle ls = LineStyle(ld, colorOrder);
+        setPropertyValue("linestyle", ls.m_lineStyle);
+        setPropertyValue("color", ls.m_lineColor);
+        setPropertyValue("displayname", ls.m_legend);
+        setPropertyValue("linewidth", ls.m_lineWidth);
+        setPropertyValue("marker", ls.m_markerStyle);
+        setPropertyValue("markerfacecolor", ls.m_markerColor);
+        setPropertyValue("markersize", ls.m_markerSize);
+
+        size_t propSize = ld.properties.size();
+        for (int i = 0; i < propSize; i++) {
+            setPropertyValue(ld.properties[i], ld.values[i]);
+        }
+    }
+
+    string Triplot::getUsingClause()
+    {
+        std::stringstream ss;
+        string lineColor = getPropertyValue("color").ColorString();
+        ss << "'-' using 1:2 axis " << m_xaxisRef << m_yaxisRef;
+        return ss.str();
+    }
+
+    void Triplot::putData(GnuplotOutput* out)
+    {
+        vector<double> x = getXdata();
+        vector<double> y = getYdata();
+
+        double xOffset = getPropertyValue("dataxoffset").Scalar();
+        double yOffset = getPropertyValue("datayoffset").Scalar();
+        double xScale = getPropertyValue("dataxscale").Scalar();
+        double yScale = getPropertyValue("datayscale").Scalar();
+
+        int numFaces = _xcolcount;
+        int numPoints = static_cast<int>(std::min(x.size(), y.size()));
+        std::vector<double> xP, yP;
+        xP.resize(4);
+        yP.resize(4);
+        for (int i = 0; i < numFaces; ++i)
+        {
+            bool nextFace = false;
+            bool breakLoop = false;
+            // check there are no NaNs in all three points
+            for (int j = 0; j < 3; ++j)
+            {
+                int idx = 3 * i + j;
+                breakLoop = idx >= numPoints;
+                if (std::isnan(x[idx]) || std::isnan(y[idx]))
+                {
+                    nextFace = true;
+                    break;
+                }
+
+                xP[j] = x[idx] * xScale + xOffset;
+                yP[j] = y[idx] * yScale + yOffset;
+            }
+            if (breakLoop)
+                break;
+            if (nextFace)
+                continue;
+            xP[3] = xP[0];
+            yP[3] = yP[0];
+
+            for (int j = 0; j < 4; ++j)
+            {
+                out->printf("%g %g\n", xP[j], yP[j]);
+            }
+            out->printf("\n");
+        }
         out->printf("e\n");
     }
 
+    string Triplot::getWithClause(int lineId) {
+        string linestyle = getPropertyValue("linestyle").StringVal();
+        stringstream ss;
+        if (linestyle == "") {
+            ss << "with points linestyle " << lineId;
+        }
+        else {
+            ss << "with lp linestyle " << lineId;
+        }
+        return ss.str();
+    }
+
+    string Triplot::getLineStyle(int line) {
+        string linestyle = getPropertyValue("linestyle").StringVal();
+        int dt = 1;
+        if (linestyle == "-") {
+            dt = 1;
+        }
+        else if (linestyle == "--") {
+            dt = 2;
+        }
+        else if (linestyle == ":") {
+            dt = 3;
+        }
+        else if (linestyle == "-.") {
+            dt = 4;
+        }
+        else if (linestyle == "-:") {
+            dt = 5;
+        }
+        else if (linestyle == "") {
+            dt = 0;
+        }
+        string lineColor = getPropertyValue("color").ColorString();
+        int lineWidth = int(getPropertyValue("linewidth").Scalar());
+        string marker = getPropertyValue("marker").StringVal();
+        int pt = 0;
+        if (marker == "") {
+            pt = 0;
+        }
+        else if (marker == "s") {
+            pt = 5;
+        }
+        else if (marker == "^") {
+            pt = 9;
+        }
+        else if (marker == "v") {
+            pt = 11;
+        }
+        else if (marker == "x") {
+            pt = 2;
+        }
+        else if (marker == "o") {
+            pt = 7;
+        }
+        else if (marker == "d") {
+            pt = 13;
+        }
+        else if (marker == "+") {
+            pt = 1;
+        }
+        else if (marker == "*") {
+            pt = 3;
+        }
+        else if (marker == ".") {
+            pt = 0;
+        }
+        else {
+            pt = 6;
+        }
+
+        string markerColor = getPropertyValue("markerfacecolor").ColorString();
+        int markerSize = int(getPropertyValue("markersize").Scalar());
+        
+        stringstream ss;
+        ss << "unset style line " << line << "\n";
+        ss << "set style line " << line << " dt " << dt
+            << " lc rgb '" << lineColor << "' lw " << lineWidth
+            << " pt " << pt << " ps " << markerSize
+            //<< " tc rgb '" << markerColor << "'"
+            << "\n";
+        return ss.str();
+    }
+
+    Trimesh::Trimesh()
+        :Patch(), m_flatShading(true)
+    {
+        m_type = ObjectType::TRIMESH;
+        m_is3D = true;
+
+        std::vector<Property>::iterator fit = std::find_if(m_ps.begin(),
+            m_ps.end(), [](Property p) {return p.getName() == "facecolor"; });
+        if (fit != m_ps.end())
+            m_ps.erase(fit);
+
+        m_ps.push_back(Property("edgecolor", Color("blue"), PropertyType::COLOR));
+        m_ps.push_back(Property("cdata", Currency(), PropertyType::MATRIX));
+    }
+
+    void Trimesh::init(const LineData& ld)
+    {
+        // validate inputs
+        std::vector<double> tri = ld.tri;
+        std::vector<double> x = ld.x;
+        std::vector<double> y = ld.y;
+        std::vector<double> z = ld.z;
+        Currency tmp = ld.cData;
+        const hwMatrix* cdata = tmp.Matrix();
+        std::string style = ld.style;
+
+        int faceCount = ld.triCount;
+        int vertexCount = static_cast<int>(x.size());
+        // helper variable to identify the type of cdata
+        // 0: no cdata provided
+        // 1: scalar value per vertex
+        // 2: scalar value per face
+        // 3: rgb color per face 
+        int cdataType = 0;
+        // all matrices must have values
+        if (!tri.empty() && !x.empty() && !y.empty() && !z.empty())
+        {
+            if (x.size() != y.size() || x.size() != z.size())
+                throw OML_Error(OML_ERR_PLOT_DIM_NOT_MATCH);
+            
+            if (!cdata->IsEmpty())
+            {
+                // cdata M must be either z->M() (color per vertex) or 
+                // tri->M() (color per face)
+                if (cdata->IsVector())
+                {
+                    if (cdata->Size() != vertexCount && cdata->Size() != faceCount)
+                        throw OML_Error("Error: the number of colors must be equal to the number of triangles or the number of vertices");
+
+                    cdataType = (cdata->Size() == vertexCount) ? 1 : 2;
+                }
+                else
+                {
+                    if (cdata->M() != faceCount)
+                        throw OML_Error("Error: the number of colors must be equal to the number of triangles or the number of vertices");
+
+                    // cdata N must be 3 (rgb color)
+                    if (cdata->N() != 3)
+                        throw OML_Error("Error: must be an Mx3 matrix");
+
+                    cdataType = 3;
+                }
+            }
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_PLOT_UNKNOWN_ERROR);
+        }
+
+        // check the tri indices
+        for (int i = 0; i < static_cast<int>(tri.size()); ++i)
+        {
+            int t = (int)tri[i];
+            t -= 1;
+            if (t < 0 || t >= vertexCount)
+            {
+                throw OML_Error(OML_ERR_INVALIDINDEX);
+            }
+        }
+
+        std::vector<double> xdata, ydata, zdata;
+        xdata.reserve(3 * faceCount);
+        ydata.reserve(3 * faceCount);
+        zdata.reserve(3 * faceCount);
+        
+        Currency dataC;
+        if (cdataType == 1)
+        {
+            dataC = Currency(new hwMatrix(3, faceCount, hwMatrix::REAL));
+        }
+        else if (cdataType == 2)
+        {
+            dataC = Currency(new hwMatrix(1, faceCount, hwMatrix::REAL));
+        }
+        else if (cdataType == 3)
+        {
+            std::vector<int> dims;
+            dims.push_back(1);
+            dims.push_back(faceCount);
+            dims.push_back(3);
+            dataC = Currency(new hwMatrixN(dims, hwMatrixN::REAL));
+        }
+
+        for (int i = 0; i < faceCount; ++i)
+        {
+            if (cdataType == 3)
+            {
+                double r, g, b;
+                r = cdata->IsReal() ? (*cdata)(i, 0) : cdata->z(i, 0).Real();
+                g = cdata->IsReal() ? (*cdata)(i, 1) : cdata->z(i, 1).Real();
+                b = cdata->IsReal() ? (*cdata)(i, 2) : cdata->z(i, 2).Real();
+                hwMatrixN* tmp = dataC.GetWritableMatrixN();
+                (*tmp)(i) = r;
+                (*tmp)(faceCount + i) = g;
+                (*tmp)(2 * faceCount + i) = b;
+            }
+            else if (cdataType == 2)
+            {
+                double r = cdata->IsReal() ? (*cdata)(i) : cdata->z(i).Real();
+                hwMatrix* tmp = dataC.GetWritableMatrix();
+                (*tmp)(i) = r;
+            }
+
+            // Get the vertices of this face
+            for (int j = 0; j < 3; ++j)
+            {
+                int idx = i * 3 + j;
+                int t = (int)tri[idx];
+                t -= 1;
+                xdata.push_back(x[t]);
+                ydata.push_back(y[t]);
+                zdata.push_back(z[t]);
+                if (cdataType == 1)
+                {
+                    hwMatrix* tmp = dataC.GetWritableMatrix();
+                    (*tmp)(j, i) = cdata->IsReal() ? (*cdata)(t) : cdata->z(t).Real();
+                }
+            }
+        }
+
+        setPropertyValue("xdata", xdata);
+        setPropertyValue("ydata", ydata);
+        setPropertyValue("zdata", zdata);
+        if (cdataType == 0)
+        {
+            Currency tmp(zdata);
+            hwMatrix* mat = tmp.GetWritableMatrix();
+            mat->Reshape(3, faceCount);
+            setPropertyValue("cdata", tmp);
+
+        }
+        else
+        {
+            setPropertyValue("cdata", dataC);
+        }
+        
+        _xcolcount = faceCount;
+        _ycolcount = ld.ycolcount;
+        _zcolcount = ld.zcolcount;
+
+        Currency colorOrder;
+        Object* p = getParentObject();
+        if (p && p->isAxes())
+            colorOrder = p->getPropertyValue("colororder").getCurrency();
+
+        LineStyle ls = LineStyle(ld, colorOrder);
+        setPropertyValue(getColorPropertyName(), ls.m_lineColor);
+        setPropertyValue("displayname", ls.m_legend);
+
+        size_t propSize = ld.properties.size();
+        for (int i = 0; i < propSize; i++) {
+            setPropertyValue(ld.properties[i], ld.values[i]);
+        }
+    }
+
+    string Trimesh::getUsingClause()
+    {
+        Currency cDataCur = getPropertyValue("cdata").getCurrency();
+        std::stringstream ss;
+        if (cDataCur.IsNDMatrix() && m_flatShading)
+        {
+            ss << "'-' using 1:2:3:(rgb($4,$5,$6)) with lines lc rgb variable";
+        }
+        else if (m_flatShading)
+        {
+            ss << "'-' using 1:2:3:4 with lines lc palette";
+        }
+        else
+        {
+            string edgeColor = getPropertyValue(getColorPropertyName()).ColorString();
+            ss << "'-' using 1:2:3 with lines lc rgb \"" << edgeColor << "\"";
+        }
+
+        return ss.str();
+    }
+
+    void Trimesh::putData(GnuplotOutput* out)
+    {
+        vector<double> x = getXdata();
+        vector<double> y = getYdata();
+        vector<double> z = getZdata();
+
+        double xOffset = getPropertyValue("dataxoffset").Scalar();
+        double yOffset = getPropertyValue("datayoffset").Scalar();
+        double zOffset = getPropertyValue("datazoffset").Scalar();
+        double xScale = getPropertyValue("dataxscale").Scalar();
+        double yScale = getPropertyValue("datayscale").Scalar();
+        double zScale = getPropertyValue("datazscale").Scalar();
+
+        Currency cDataCur = getPropertyValue("cdata").getCurrency();
+        int numFaces = _xcolcount;
+        int numPoints = static_cast<int>(std::min(x.size(), y.size()));
+        numPoints = std::min(numPoints, static_cast<int>(z.size()));
+        bool isRGBPerFace = cDataCur.IsNDMatrix() && m_flatShading;
+
+        vector<string> colorStringPerFace = getColorStringPerFace();
+        std::vector<double> xP, yP, zP;
+        xP.resize(4);
+        yP.resize(4);
+        zP.resize(4);
+        stringstream ss;
+        for (int i = 0; i < numFaces; ++i)
+        {
+            bool nextFace = false;
+            bool breakLoop = false;
+            // check there are no NaNs in all three points
+            for (int j = 0; j < 3; ++j)
+            {
+                int idx = 3 * i + j;
+                breakLoop = idx >= numPoints;
+                if (std::isnan(x[idx]) || std::isnan(y[idx]) || std::isnan(z[idx]))
+                {
+                    nextFace = true;
+                    break;
+                }
+
+                xP[j] = x[idx] * xScale + xOffset;
+                yP[j] = y[idx] * yScale + yOffset;
+                zP[j] = z[idx] * zScale + zOffset;
+            }
+            if (breakLoop)
+                break;
+            if (nextFace)
+                continue;
+            xP[3] = xP[0];
+            yP[3] = yP[0];
+            zP[3] = zP[0];
+
+            if (isRGBPerFace || m_flatShading)
+            {
+                string color = colorStringPerFace[i];
+                for (int j = 0; j < 4; ++j)
+                {
+                    ss << xP[j] << " " << yP[j] << " " << zP[j] << " " << color.c_str() << "\n";
+                }
+            }
+            else
+            {
+                for (int j = 0; j < 4; ++j)
+                {
+                    ss << xP[j] << " " << yP[j] << " " << zP[j] << "\n";
+                }
+            }
+            ss << "\n\n";
+        }
+        out->printf(ss.str() + "e\n");
+    }
+
+    string Trimesh::getLineStyle(int)
+    {
+        return std::string("rgb(r,g,b) = 65536 * int(r) + 256 * int(g) + int(b)\n");
+    }
+
+    VALUETYPE Trimesh::getPropertyValue(const string& name)
+    {
+        if (name == getColorPropertyName() && m_flatShading)
+            return VALUETYPE("flat");
+        return Patch::getPropertyValue(name);
+    }
+
+    bool Trimesh::setPropertyValue(const string& name, VALUETYPE value)
+    {
+        if (name == getColorPropertyName())
+        {
+            if (value.isCurrency())
+            {
+                Currency c = value.getCurrency();
+                if (c.IsString())
+                {
+                    string val = c.StringVal();
+                    if (val == "flat")
+                    {
+                        m_flatShading = true;
+                        return true;
+                    }
+                    else if (val == "interp")
+                    {
+                        CoreMain::getInstance()->AddWarningString("value 'interp' for [" + name + "] is not supported in Open Matrix");
+                        return true;
+                    }
+                    else
+                    {
+                        Patch::setPropertyValue(name, value);
+                        m_flatShading = false;
+                        return true;
+                    }
+                }
+            }
+        }
+        return Patch::setPropertyValue(name, value);
+    }
+
+    bool Trimesh::getMinMaxZ(double& min, double& max)
+    {
+        bool ret = false;
+        if (m_flatShading)
+        {
+            Currency cDataCur = getPropertyValue("cdata").getCurrency();
+            if (cDataCur.IsMatrix() && !cDataCur.IsEmpty())
+            {
+                const hwMatrix* mat = cDataCur.Matrix();
+                bool isReal = mat->IsReal();
+                min = isReal ? (*mat)(0) : mat->z(0).Real();
+                max = min;
+                if ((_xcolcount != 1 && mat->IsVector()) || (_xcolcount == 1 && mat->Size() == 1))
+                {
+                    // cdata is a scalar value per face
+                    for (int i = 0; i < mat->Size(); i++) {
+                        double zVal = isReal ? (*mat)(i) : mat->z(i).Real();
+                        if (zVal < min)
+                            min = zVal;
+                        if (zVal > max)
+                            max = zVal;
+                    }
+                    ret = true;
+                }
+                else
+                {
+                    int cN = mat->N();
+                    for (int i = 0; i < _xcolcount; ++i)
+                    {
+                        if (i >= cN)
+                            break;
+
+                        double zVal = isReal? (*mat)(0, i) : mat->z(0, i).Real();
+                        if (zVal < min)
+                            min = zVal;
+                        if (zVal > max)
+                            max = zVal;
+                    }
+                }
+                ret = true;
+            }
+        }
+        return ret;
+    }
+
+    vector<string> Trimesh::getColorStringPerFace()
+    {
+        Currency cDataCur = getPropertyValue("cdata").getCurrency();
+        int numFaces = _xcolcount;
+        bool isRGBPerFace = cDataCur.IsNDMatrix() && m_flatShading;
+        bool singleFace = numFaces == 1;
+
+        std::vector<std::string> colorStringPerFace;
+        colorStringPerFace.reserve(numFaces);
+        if (isRGBPerFace)
+        {
+            // rgb per face
+            const hwMatrixN* cdata = cDataCur.MatrixN();
+            double r, g, b;
+            std::vector<int> dims = cdata->Dimensions();
+            int numFacesCData = 0;
+            if (dims.size() > 1)
+                numFacesCData = dims[1];
+
+            bool cDataIsReal = cdata->IsReal();
+            std::vector<std::string> colorsPerFace;
+            // set the same color value to all vertices of a face
+            for (int i = 0; i < numFaces; ++i)
+            {
+                r = g = b = 0.0;
+                if ((2 * numFacesCData + i) < cdata->Size())
+                {
+                    r = cDataIsReal ? (*cdata)(i) : cdata->z(i).Real();
+                    g = cDataIsReal ? (*cdata)(numFacesCData + i) : cdata->z(numFacesCData + i).Real();
+                    b = cDataIsReal ? (*cdata)(2 * numFacesCData + i) : cdata->z(2 * numFacesCData + i).Real();
+                }
+                if (r <= 1 && g <= 1 && b <= 1)
+                {
+                    r *= 255;
+                    g *= 255;
+                    b *= 255;
+                }
+
+                char buffer[100];
+                sprintf(buffer, "%d %d %d", (int)r, (int)g, (int)b);
+                colorStringPerFace.push_back(std::string(buffer));
+            }
+        }
+        else if (m_flatShading)
+        {
+            if (cDataCur.IsMatrix() && cDataCur.Matrix()->Size() > 0)
+            {
+                const hwMatrix* cdata = cDataCur.Matrix();
+                bool cDataIsReal = cdata->IsReal();
+
+                if ((!singleFace && cdata->IsVector()) || (singleFace && cdata->Size() == 1))
+                {
+                    int S = cdata->Size();
+                    // cdata is a scalar value per face
+                    for (int i = 0; i < numFaces; ++i)
+                    {
+                        double val = 0;
+                        if (i < S)
+                            val = cDataIsReal ? (*cdata)(i) : cdata->z(i).Real();
+
+                        char buffer[100];
+                        sprintf(buffer, "%g", val);
+                        colorStringPerFace.push_back(std::string(buffer));
+                    }
+                }
+                else
+                {
+                    int cN = cdata->N();
+                    for (int i = 0; i < numFaces; ++i)
+                    {
+                        double val = 0;
+                        if (i < cN)
+                            val = cDataIsReal ? (*cdata)(0, i) : cdata->z(0, i).Real();
+                        char buffer[100];
+                        sprintf(buffer, "%g", val);
+                        colorStringPerFace.push_back(std::string(buffer));
+                    }
+                }
+            }
+            else
+            {
+                colorStringPerFace.insert(colorStringPerFace.end(), numFaces, "0");
+            }
+        }
+        return colorStringPerFace;
+    }
+
+    Trisurf::Trisurf()
+        :Trimesh()
+    {
+        m_type = ObjectType::TRISURF;
+
+        std::vector<Property>::iterator fit = std::find_if(m_ps.begin(),
+            m_ps.end(), [](Property p) {return p.getName() == "edgecolor"; });
+        if (fit != m_ps.end())
+            m_ps.erase(fit);
+
+        m_ps.push_back(Property("facecolor", Color("blue"), PropertyType::COLOR));
+    }
+
+    string Trisurf::getUsingClause()
+    {
+        Currency cDataCur = getPropertyValue("cdata").getCurrency();
+        std::stringstream ss;
+        if (cDataCur.IsNDMatrix() && m_flatShading)
+        {
+            ss << "'-' using 1:2:3:(rgb($4,$5,$6)) with pm3d fc rgb variable";
+        }
+        else if (m_flatShading)
+        {
+            ss << "'-' using 1:2:3:4 with pm3d lc palette";
+        }
+        else
+        {
+            string color = getPropertyValue(getColorPropertyName()).ColorString();
+            ss << "'-' using 1:2:3 with polygons fc rgb \"" << color << "\"";
+        }
+
+        return ss.str();
+    }
+
+    void Trisurf::putData(GnuplotOutput* out)
+    {
+        vector<double> x = getXdata();
+        vector<double> y = getYdata();
+        vector<double> z = getZdata();
+
+        double xOffset = getPropertyValue("dataxoffset").Scalar();
+        double yOffset = getPropertyValue("datayoffset").Scalar();
+        double zOffset = getPropertyValue("datazoffset").Scalar();
+        double xScale = getPropertyValue("dataxscale").Scalar();
+        double yScale = getPropertyValue("datayscale").Scalar();
+        double zScale = getPropertyValue("datazscale").Scalar();
+
+        Currency cDataCur = getPropertyValue("cdata").getCurrency();
+        int numFaces = _xcolcount;
+        int numPoints = static_cast<int>(std::min(x.size(), y.size()));
+        numPoints = std::min(numPoints, static_cast<int>(z.size()));
+        bool isRGBPerFace = cDataCur.IsNDMatrix() && m_flatShading;
+        
+        vector<string> colorStringPerFace = getColorStringPerFace();
+        std::vector<double> xP, yP, zP;
+        xP.resize(3);
+        yP.resize(3);
+        zP.resize(3);
+        stringstream ss;
+        for (int i = 0; i < numFaces; ++i)
+        {
+            bool nextFace = false;
+            bool breakLoop = false;
+            // check there are no NaNs in all three points
+            for (int j = 0; j < 3; ++j)
+            {
+                int idx = 3 * i + j;
+                breakLoop = idx >= numPoints;
+                if (std::isnan(x[idx]) || std::isnan(y[idx]) || std::isnan(z[idx]))
+                {
+                    nextFace = true;
+                    break;
+                }
+
+                xP[j] = x[idx] * xScale + xOffset;
+                yP[j] = y[idx] * yScale + yOffset;
+                zP[j] = z[idx] * zScale + zOffset;
+            }
+            if (breakLoop)
+                break;
+            if (nextFace)
+                continue;
+
+            if (isRGBPerFace || m_flatShading)
+            {
+                string color = colorStringPerFace[i];
+                for (int j = 0; j < 2; ++j)
+                {
+                    ss << xP[j] << " " << yP[j] << " " << zP[j] << " " << color.c_str() << "\n";
+                }
+                ss << "\n";
+                ss << xP[2] << " " << yP[2] << " " << zP[2] << " " << color.c_str() << "\n";
+                ss << xP[2] << " " << yP[2] << " " << zP[2] << " " << color.c_str() << "\n";
+                ss << "\n\n";
+            }
+            else
+            {
+                for (int j = 0; j < 3; ++j)
+                {
+                    ss << xP[j] << " " << yP[j] << " " << zP[j] << "\n";
+                }
+                ss << "\n";
+            }
+        }
+        out->printf(ss.str() + "e\n");
+    }
+
+    string Trisurf::getLineStyle(int line)
+    {
+        return Trimesh::getLineStyle(line) + Patch::getLineStyle(line);
+    }
+    
     Legend::Legend()
         :Object(), m_legendLocation("top right")
     {

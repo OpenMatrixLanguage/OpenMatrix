@@ -1,7 +1,7 @@
 /**
 * @file ConsoleWrapper.cpp
 * @date June 2015
-* Copyright (C) 2015-2022 Altair Engineering, Inc.  
+* Copyright (C) 2015-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -68,7 +68,7 @@ void FlushStdout()
 // Constructor
 //------------------------------------------------------------------------------
 ConsoleWrapper::ConsoleWrapper(Interpreter* interp)
-    : WrapperBase(interp)
+    : InterpWrapperBase(interp)
     , _appendOutput     (false)
     , _addnewline       (false)
     , _getWindowSize    (false)
@@ -77,6 +77,8 @@ ConsoleWrapper::ConsoleWrapper(Interpreter* interp)
     memset(g_buf, 0, sizeof(g_buf));
     std::cout.rdbuf()->pubsetbuf(g_buf, g_buffsize);
     std::cin.tie(nullptr);
+
+    ConnectOmlSignalHandler();
 }
 //------------------------------------------------------------------------------
 // Destructor
@@ -86,6 +88,19 @@ ConsoleWrapper::~ConsoleWrapper()
     BuiltInFuncsUtils::CloseOutputLog();
 
     std::cout.rdbuf()->pubsetbuf(nullptr, 0);
+}
+//------------------------------------------------------------------------------
+// Connect to OML signal Handler
+//------------------------------------------------------------------------------
+void ConsoleWrapper::ConnectOmlSignalHandler()
+{
+    assert(_interp);
+
+    // Set the signal handler
+    SignalHandler* handler = new SignalHandler;
+    assert(handler);
+    handler->SetWrapper(this);
+    _interp->SetSignalHandler(handler);
 }
 //------------------------------------------------------------------------------
 // Slot called when printing result to console

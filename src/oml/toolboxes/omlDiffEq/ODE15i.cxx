@@ -598,6 +598,10 @@ bool OmlOde15i(EvaluatorInterface           eval,
             throw;
         }
     }
+    else
+    {
+        ODE15i_event_size = 0;
+    }
 
     std::unique_ptr<hwMatrix> pEventTime  = nullptr;
     std::unique_ptr<hwMatrix> pEventFnVal = nullptr;
@@ -741,14 +745,35 @@ bool OmlOde15i(EvaluatorInterface           eval,
     }
 
     // pack outputs
-    outputs.push_back(timeSolution);
-    outputs.push_back(ySolution);
-
-    if (nargout == 5)
+    if (nargout == 1)
     {
-        outputs.push_back(pEventTime.release());
-        outputs.push_back(pEventFnVal.release());
-        outputs.push_back(pEventIndx.release());
+        if (timeSolution->M() != 1)
+        {
+            timeSolution->Transpose();
+            ySolution->Transpose();
+        }
+
+        Currency out = EvaluatorInterface::allocateStruct();
+
+        out.Struct()->SetValue(0, -1, "x", timeSolution);
+        out.Struct()->SetValue(0, -1, "y", ySolution);
+        out.Struct()->SetValue(0, -1, "xe", pEventTime.release());
+        out.Struct()->SetValue(0, -1, "ye", pEventFnVal.release());
+        out.Struct()->SetValue(0, -1, "ie", pEventIndx.release());
+        out.Struct()->SetValue(0, -1, "solver", "ode15i");
+        outputs.push_back(out);
+    }
+    else
+    {
+        outputs.push_back(timeSolution);
+        outputs.push_back(ySolution);
+
+        if (nargout == 5)
+        {
+            outputs.push_back(pEventTime.release());
+            outputs.push_back(pEventFnVal.release());
+            outputs.push_back(pEventIndx.release());
+        }
     }
 
     return true;

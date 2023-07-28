@@ -391,7 +391,7 @@ hwMathStatus Delaunayn(const hwMatrix&    P,
     FORALLfacets
     {
         if (!facet->upperdelaunay)
-            nf++;
+        nf++;
 
         if (!facet->simplicial)
         {

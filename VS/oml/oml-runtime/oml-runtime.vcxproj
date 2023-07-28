@@ -172,6 +172,7 @@
     <ClCompile Include="$(OML_ROOT)\src\oml\Runtime\SparseDisplay.cpp" />
     <ClCompile Include="$(OML_ROOT)\src\oml\Runtime\utf8utils.cpp" />
     <ClCompile Include="$(OML_ROOT)\src\oml\Runtime\BuiltInFuncsMKL.cpp" />
+    <ClCompile Include="..\..\..\src\oml\Runtime\InterpWrapperBase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(OML_ROOT)\src\oml\runtime\ANTLRData.h" />
@@ -196,7 +197,6 @@
     <ClInclude Include="$(OML_ROOT)\src\oml\runtime\EvaluatorInt.h" />
     <ClInclude Include="$(OML_ROOT)\src\oml\runtime\FunctionInfo.h" />
     <ClInclude Include="$(OML_ROOT)\src\oml\runtime\FunctionMetaData.h" />
-    <ClInclude Include="$(OML_ROOT)\src\oml\runtime\Hml2Dll.h" />
     <ClInclude Include="$(OML_ROOT)\src\oml\runtime\Interpreter.h" />
     <ClInclude Include="$(OML_ROOT)\src\oml\runtime\MatrixDisplay.h" />
     <ClInclude Include="$(OML_ROOT)\src\oml\runtime\MatrixNDisplay.h" />
@@ -216,6 +216,8 @@
     <ClInclude Include="$(OML_ROOT)\src\oml\Runtime\BuiltInFuncsTime.h" />
     <ClInclude Include="$(OML_ROOT)\src\oml\Runtime\CellNDisplay.h" />
     <ClInclude Include="$(OML_ROOT)\src\oml\Runtime\BuiltInFuncsMKL.h" />
+    <ClInclude Include="..\..\..\src\oml\Runtime\InterpWrapperBase.h" />
+    <ClInclude Include="..\..\..\src\oml\Runtime\OMLDll.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

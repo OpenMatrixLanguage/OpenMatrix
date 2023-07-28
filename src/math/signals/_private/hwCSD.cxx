@@ -44,10 +44,10 @@ hwCSD::hwCSD(double sampFreq,
 //------------------------------------------------------------------------------
 hwMathStatus hwCSD::Compute(const hwMatrix& input1, 
                             const hwMatrix& input2, 
+                            int             dataSize,
                             hwMatrix&       csd)
 {
-    int dataSize = input2.Size();
-    if (input1.Size() != dataSize)
+    if (input1.Size() != input2.Size())
     {
         return hwMathStatus(HW_MATH_ERR_ARRAYSIZE, 1, 2);
     }
@@ -98,11 +98,11 @@ hwMathStatus hwCSD::Compute(const hwMatrix& input1,
 
     if (dataSize < fftSize)
     {
-        norm = 1.0 / ((double) dataSize * m_sampFreq);
+        norm = 1.0 / (double) (dataSize * m_sampFreq);
     }
     else
     {
-        norm = 1.0 / ((double) fftSize * m_sampFreq);
+        norm = 1.0 / (double) (fftSize * m_sampFreq);
     }
 
     csd *= norm;
@@ -114,10 +114,10 @@ hwMathStatus hwCSD::Compute(const hwMatrix& input1,
 //------------------------------------------------------------------------------
 hwMathStatus hwCSD::Compute(hwMatrix& input1,
                             hwMatrix& input2,
+                            int       dataSize,
                             hwMatrix& csd)
 {
-    int dataSize = input2.Size();
-    if (input1.Size() != dataSize)
+    if (input1.Size() != input2.Size())
     {
         return hwMathStatus(HW_MATH_ERR_ARRAYSIZE, 1, 2);
     }
@@ -164,11 +164,11 @@ hwMathStatus hwCSD::Compute(hwMatrix& input1,
 
     if (dataSize < fftSize)
     {
-        norm = 1.0 / ((double) dataSize * m_sampFreq);
+        norm = 1.0 / (double) (dataSize * m_sampFreq);
     }
     else
     {
-        norm = 1.0 / ((double) fftSize * m_sampFreq);
+        norm = 1.0 / (double) (fftSize * m_sampFreq);
     }
     csd *= norm;
 

@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsString.cpp
 * @date November 2015
-* Copyright (C) 2015-2022 Altair Engineering, Inc.  
+* Copyright (C) 2015-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -377,9 +377,9 @@ bool BuiltInFuncsString::Sscanf(EvaluatorInterface           eval,
     }
 
     // Third argument, if available, specifies size for output.
-    double rows = 0;
-    double cols = 0;
-    bool   hasSizeMtx = false;
+    double rows        = 0;
+    double cols        = 0;
+    bool   hasSizeMtx  = false;
     bool hasSizeSpec = (inputs.size() > 2);
     if (hasSizeSpec)
     {
@@ -394,7 +394,7 @@ bool BuiltInFuncsString::Sscanf(EvaluatorInterface           eval,
     std::vector<std::string> basefmt; // e.g. %s
     std::vector<std::string> fullfmt; // e.g. "WHEEL-R%s" (instead of WHEEL-R%*s)
     std::vector<bool>        skipfmt;  // True if format is skipped e.g "%*s"
-
+        
     bool showwarn = false;
     if (!ParseFormat(fmtdesc, basefmt, fullfmt, skipfmt, showwarn))
     {
@@ -449,7 +449,7 @@ bool BuiltInFuncsString::Sscanf(EvaluatorInterface           eval,
                     }
                 }
             }
-        }
+    }
 
         size_t newvaluesSize = values.empty() ? 0 : values.size();
         if (oldvaluesSize == newvaluesSize) break; // Nothing has been read
@@ -2587,7 +2587,7 @@ Currency BuiltInFuncsString::IsPrintImpl(const Currency& cur)
         result = out.release();
     }
 
-    return result;
+        return result;
 }
 //------------------------------------------------------------------------------
 // Parse input string to get formats
@@ -2739,7 +2739,7 @@ bool BuiltInFuncsString::Sscanf(std::string& in,
         stringread = prefix + stringread;
         size_t len = fmt.length();
         if (pos + findstr.length() < len - 1)
-        {
+    {
             stringread += fmt.substr(pos + findstr.length());
         }
     }
@@ -2776,7 +2776,7 @@ bool BuiltInFuncsString::SscanfFloat(const std::string&     in,
 
     if (result != 1)
     {
-        return false;
+    return false;
     }
     if (!skip)
     {
@@ -2844,4 +2844,70 @@ bool BuiltInFuncsString::SscanfFloat(const std::string&     in,
         }
     }
     return true;
+}
+//------------------------------------------------------------------------------
+// Splits a string into a vector of tokens 
+//------------------------------------------------------------------------------
+std::vector<std::string> BuiltInFuncsString::Split(const std::string& input, 
+                                                   const std::string& delim)
+{
+    std::vector<std::string> vec;
+
+    std::string in(input);
+    if (delim.find(" ") != std::string::npos)
+    {
+        in = BuiltInFuncsUtils::LTrim(in, " ");
+    }
+
+    if (in.empty())
+    {
+        return vec;
+    }
+    else if (delim.empty())
+    {
+        vec.emplace_back(in);
+        return vec;
+    }
+
+    size_t pos = in.find(delim);
+    if (pos == std::string::npos)
+    {
+        vec.emplace_back(in);
+        return vec;
+    }
+    size_t len = in.length();
+    size_t start = 0;
+    while (pos < len)
+    {
+        std::string token;
+        if (pos > start)
+        {
+            token = in.substr(start, pos);
+            if (!token.empty())
+            {
+                vec.emplace_back(token);
+            }
+        }
+
+        size_t newstart = pos + delim.length();
+        if (newstart > start)
+        {
+            start = newstart;
+        }
+        else
+        {
+            break;
+        }
+        pos = in.find(delim, start);
+    }
+
+    if (start < len)
+    {
+        std::string token(in.substr(start, pos));
+        if (!token.empty())
+        {
+            vec.emplace_back(token);
+        }
+    }
+    return vec;
 }

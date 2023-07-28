@@ -234,37 +234,37 @@ std::string BuiltInFuncsUtils::GetOrderedStringVal(const Currency& cur)
 // Parses given string input and gets a vector of format options
 //------------------------------------------------------------------------------
 std::vector<std::string> BuiltInFuncsUtils::GetFormats(const std::string& formatdesc,
-    const std::string& validfmtdesc,
-    bool& validformat)
+                                                       const std::string& validfmtdesc,
+                                                       bool&              validformat)
 {
     if (formatdesc.empty()) return std::vector<std::string>();
 
     std::vector<std::string> formats;
-    size_t                   startpos = 0;
+    size_t                   startpos      = 0;
     size_t                   formatdescLen = formatdesc.size();
     std::string              allfmt(formatdesc);
-    while (!allfmt.empty())
-    {
+	while (!allfmt.empty())
+	{        
         size_t pos = allfmt.find_first_of("%");
         if (pos == std::string::npos) return formats;
 
         size_t      nextpos = allfmt.find("%", pos + 1);
-        std::string rawfmt = (nextpos == std::string::npos) ?
-            allfmt.substr(pos) :
-            allfmt.substr(pos, nextpos - pos);
-
+        std::string rawfmt  = (nextpos == std::string::npos) ?
+                               allfmt.substr(pos) :
+                               allfmt.substr(pos, nextpos - pos);
+        
         if (rawfmt.empty()) return formats;
 
         // Find the substring before the '%' if any
-        std::string prev;
+        std::string prev; 
         if (pos > 0)
             prev = allfmt.substr(0, pos);
 
         // Find the alpha character after the raw format. We should not allow
         // options like %.5f. This will be treated as %f and we can throw a warning
         std::string fmt;
-        size_t      rawfmtSize = rawfmt.size();
-
+        size_t      rawfmtSize   = rawfmt.size();
+        
         for (size_t i = 0; i < rawfmtSize; ++i)
         {
             char c = rawfmt[i];
@@ -275,7 +275,7 @@ std::vector<std::string> BuiltInFuncsUtils::GetFormats(const std::string& format
             }
             if (!isalpha(c))
             {
-                validformat = false;
+                validformat = false; 
                 continue;
             }
 
@@ -297,7 +297,7 @@ std::vector<std::string> BuiltInFuncsUtils::GetFormats(const std::string& format
 
         if (fmt != "%" && !fmt.empty())
             formats.push_back(prev + fmt);
-
+        
         if (nextpos == std::string::npos) break;
 
         allfmt = allfmt.substr(nextpos);

@@ -63,6 +63,8 @@ public:
 
 	const OMLTree* FindParentOf(std::string& ident_name) const;
 
+	bool IsBroadcastOutput() const;
+
 	void*      u; // user data
 	TREE_FPTR  func_ptr;
 
