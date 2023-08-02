@@ -1,6 +1,0 @@
-a = 5/8192	% = 0.0000000000101 (b)
-b1 = round(a, 9, 'binary') * 8192
-b2 = round(a, 10, 'binary') * 8192
-b3 = round(a, 11, 'binary') * 8192
-b4 = round(a, 12, 'binary') * 8192
-b5 = round(a, 13, 'binary') * 8192

@@ -1,3 +1,4 @@
+addpath([getenv('OML_ROOT') '/Tests/RegressionTests/functions']);
 addToolbox omlstatistics
 
 rand('seed', 2023);
@@ -13,7 +14,7 @@ d(8,8) = -d(8,8);
 A = v*d*v';
 [L,D,P] = ldl(A, 'lower');
 C = A - P*L*D*L'*P';
-L = round(L, 46, 'binary')
-D = round(D, 46, 'binary')
-P = round(P, 46, 'binary')
-C = round(C, 32, 'binary')
+L = lowbitcleanup(L, 7)
+D = lowbitcleanup(D, 7)
+P = lowbitcleanup(P, 7)
+C = lowbitcleanup(C, 21)

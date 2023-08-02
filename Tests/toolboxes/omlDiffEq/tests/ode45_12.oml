@@ -1,5 +1,5 @@
 addtoolbox omldiffeq
-addpath([getenv('HW_ROOTDIR') '/hwcommon/oml/RegressionTests/functions']);
+addpath([getenv('OML_ROOT') '/Tests/RegressionTests/functions']);
 
 function dx = MKC(t,x)
 	dx1dt = x(2) ;

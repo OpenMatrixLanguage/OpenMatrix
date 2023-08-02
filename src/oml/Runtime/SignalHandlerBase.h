@@ -246,7 +246,7 @@ public:
     //! Sets flag for running an OML command from the VS code extension
     //! \param set Flag
     //!
-    virtual void SetVSCodeCMDFlag(bool set) {}
+    virtual void SetServerOutputPrint(bool set) {}
 
 protected:
     //!

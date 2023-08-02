@@ -108,9 +108,10 @@ namespace // anonymous
     //! A brief command structure to pass arguments to worker thread
     struct CommandArgs 
     {
-        CommandArgs() : interp(nullptr) {}
+        CommandArgs() : interp(nullptr), _printOutput(false) {}
 	    std::string mode;
 	    std::string command;
+        bool _printOutput;
         Interpreter* interp;
         std::function<void(InterpState)> sendinterpstate_func;
     };
@@ -127,7 +128,8 @@ void* RunScript(void *arg)
     {
         Currency ret;
         SignalHandlerBase* sh = pArgs->interp->GetSignalHandler();
-        sh->SetVSCodeCMDFlag(true);
+        if (sh)
+            sh->SetServerOutputPrint(pArgs->_printOutput);
         if ("evalfile" == pArgs->mode)
         {
            pArgs->interp->DoFile(pArgs->command);
@@ -136,7 +138,8 @@ void* RunScript(void *arg)
         {
             pArgs->interp->DoString(pArgs->command);
         }
-        sh->SetVSCodeCMDFlag(false);
+        if (sh)
+            sh->SetServerOutputPrint(false);
 
         if(pArgs->sendinterpstate_func)
             pArgs->sendinterpstate_func(READY);
@@ -249,6 +252,7 @@ public:
                 CommandArgs *cmdArgs = new CommandArgs;
                 cmdArgs->mode = command;
                 cmdArgs->command = cmd.substr(splitIndex+1);
+                cmdArgs->_printOutput = true;
                 cmdArgs->interp = _interp;
                 using std::placeholders::_1;
                 cmdArgs->sendinterpstate_func = std::bind(&OmlServer::Internal::SendInterpreterState,this, _1);

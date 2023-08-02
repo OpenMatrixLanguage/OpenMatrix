@@ -1,3 +1,4 @@
+addpath([getenv('OML_ROOT') '/Tests/RegressionTests/functions']);
 a = zeros(5,5);
 a(1, 1) =  1;
 a(2, 1) =  2;
@@ -16,4 +17,4 @@ a(5, 5) = 29-3i;
 b = sparse(a);
 c = b * [2,3,0,5,6]';
 d = b \ c;
-d = round(d, 44, 'binary')
+d = lowbitcleanup(d, 9)
