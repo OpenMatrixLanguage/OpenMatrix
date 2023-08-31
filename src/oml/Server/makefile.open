@@ -26,7 +26,6 @@ ifneq (,$(findstring win,$(PLATFORM)))
     TARGET = $(BINDIR)/$(PROJ).dll
 else
     TARGET = $(BINDIR)/lib$(PROJ).so
-#    SO_FLAGS = -Wl,--no-as-needed -ldl -lrt -rdynamic -pthread
 endif
 
 SOURCES += $(wildcard *.cpp)

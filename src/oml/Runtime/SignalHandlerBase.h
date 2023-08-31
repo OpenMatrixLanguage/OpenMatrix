@@ -243,11 +243,11 @@ public:
     //!
     virtual void SetWrapper(InterpWrapperBase* wrapper) {}
     //!
-    //! Sets flag for running an OML command from the VS code extension
+    //! Sets a flag to print output when running an OML command 
+    //! from the OmlServer (for VS code extension)
     //! \param set Flag
     //!
     virtual void SetServerOutputPrint(bool set) {}
-
 protected:
     //!
     //! Constructor
