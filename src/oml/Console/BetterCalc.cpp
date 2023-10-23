@@ -264,31 +264,31 @@ int main(int argc, char* argv[])
 	}
 
 	if (isVscodeServer || isServer)
-    {
-        if (port.empty())
+	{
+		if (port.empty())
         {
             port = DEFAULT_PORT;
         }
         ServerArgs* args = new ServerArgs;
         args->interp = interp;
         args->port = port;
-
+		
 		if(isVscodeServer)
 		{
 			args->handler = nullptr;
 			RunOmlServer(args, true);
-    }
+		}
 		else
-	{
+		{
 			args->handler = new SignalHandler;
 			RunOmlServer(args, false);
+			
+			delete wrapper;
+			wrapper = nullptr;
+			delete interp;
 
-        delete wrapper;
-        wrapper = nullptr;
-        delete interp;
-
-        return 0;
-    }
+			return 0;
+		}
 	}
 	
     // launch the console terminal
@@ -520,7 +520,7 @@ void PrintBanner()
 
     std::cout << line << std::endl;
 	std::cout << GetVersion(interp->GetApplicationDir()) << std::endl;
-	std::cout << "(c) Altair Engineering, Inc. and Contributors. (2007-2022)"  << std::endl;
+	std::cout << "(c) Altair Engineering, Inc. and Contributors. (2007-2023)"  << std::endl;
 	std::cout << line << std::endl;
 #endif
 }
