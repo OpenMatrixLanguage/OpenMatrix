@@ -31,6 +31,8 @@
 
       <p class="p"><span class="ph synph">Pxx=pwelch<span class="ph var">(x,window,overlap,nfft,fs,range)</span></span></p>
 
+      <p class="p"><span class="ph synph">Pxx=pwelch<span class="ph var">(x,window,overlap,nfft,fs,range,spectrumtype)</span></span></p>
+
       <p class="p"><span class="ph synph">[Pxx,freq]=pwelch<span class="ph var">(...)</span></span></p>
 
       <p class="p"><span class="ph synph">pwelch<span class="ph var">(...)</span></span></p>
@@ -56,6 +58,8 @@
 
           <dd class="dd pd">The window size, or the window vector.</dd>
 
+          <dd class="dd pd ddexpand">The default is a Hamming window with a length that produces eight data segments.</dd>
+
           <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer</span></dd>
 
           <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar | vector</span></dd>
@@ -65,6 +69,8 @@
           <dt class="dt pt dlterm"><var class="keyword varname">overlap</var></dt>
 
           <dd class="dd pd">The number of overlapping points in adjacent windows.</dd>
+
+          <dd class="dd pd ddexpand">The default is one half of the window length.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span></dd>
 
@@ -76,6 +82,9 @@
 
           <dd class="dd pd">The size of the fft.</dd>
 
+          <dd class="dd pd ddexpand">The default is the window length. A larger value will pad zeros to each block of windowed
+              data.</dd>
+
           <dd class="dd pd ddexpand">Type: <span class="keyword">integer</span></dd>
 
           <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
@@ -86,6 +95,8 @@
 
           <dd class="dd pd">The sampling frequency.</dd>
 
+          <dd class="dd pd ddexpand">The default is 1.0 Hz.</dd>
+
           <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
 
           <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
@@ -94,7 +105,19 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">range</var></dt>
 
-          <dd class="dd pd">The spectrum type: <span class="keyword option">'onesided'</span> or <span class="keyword option">'twosided'</span>. </dd>
+          <dd class="dd pd">The spectrum range: <span class="keyword option">'onesided'</span> or <span class="keyword option">'twosided'</span>. </dd>
+
+          <dd class="dd pd ddexpand">The default is <span class="keyword option">'onesided'</span>.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">spectrum type</var></dt>
+
+          <dd class="dd pd">The spectrum type: <span class="keyword option">'psd'</span> or <span class="keyword option">'power'</span>. </dd>
+
+          <dd class="dd pd ddexpand">The default is <span class="keyword option">'psd'</span>.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
 
@@ -110,7 +133,7 @@
         
           <dt class="dt pt dlterm"><span class="ph synph">Pxx</span></dt>
 
-          <dd class="dd pd">The power spectral density.</dd>
+          <dd class="dd pd">The power spectral density or power spectrum.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">vector</span></dd>
 
@@ -159,48 +182,11 @@ p = [Matrix] 1 x 8
       <p class="p">The <span class="keyword option">'onesided'</span> output has a length of <var class="keyword varname">nfft/2+1</var> if <var class="keyword varname">nfft</var> is even,
         or <var class="keyword varname">(nfft+1)/2</var> if <var class="keyword varname">nfft</var> is odd.</p>
 
+      <p class="p">The <span class="keyword option">'power'</span> scales the <span class="keyword option">'psd'</span> result by the equivalent noise bandwidth.</p>
+
       <p class="p">It is often recommended to remove the signal mean prior to calling <span class="keyword cmdname">pwelch</span>. The
         function does not remove the mean automatically.</p>
 
-      <div class="p">The optional arguments can be defaulted using []. The defaults are as follows:<dl class="dl table">
-          
-            <dt class="dt dlterm"><var class="keyword varname">window</var></dt>
-
-            <dd class="dd">A Hamming window with the largest length that produces eight data segments.</dd>
-
-          
-          
-            <dt class="dt dlterm"><var class="keyword varname">overlap</var></dt>
-
-            <dd class="dd">One half of the window length.</dd>
-
-          
-          
-            <dt class="dt dlterm"><var class="keyword varname">nfft</var></dt>
-
-            <dd class="dd">The window length. A larger value will pad zeros to each block of windowed
-              data.</dd>
-
-          
-          
-            <dt class="dt dlterm"><var class="keyword varname">fs</var></dt>
-
-            <dd class="dd">1.0 Hz.</dd>
-
-          
-          
-            <dt class="dt dlterm"><var class="keyword varname">range</var></dt>
-
-            <dd class="dd">'<span class="keyword option">onesided</span>'</dd>
-
-          
-        </dl>
-</div>
-
-    </section>
-
-    <section class="section"><h2 class="title sectiontitle">Comments</h2>
-      
       <p class="p">When <var class="keyword varname">x</var> is a 2D matrix <span class="keyword cmdname">pwelch</span> will operate on each column
         and the output vectors will be stored in the columns of <var class="keyword varname">Pxx</var>.</p>
 

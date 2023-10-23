@@ -25,6 +25,8 @@
 
       <p class="p"><span class="ph synph">[t,y,te,ye,ie] = ode113<span class="ph var">(...)</span></span></p>
 
+      <p class="p"><span class="ph synph">sol = ode113<span class="ph var">(...)</span></span></p>
+
       <?STOP?>
     </section>
 
@@ -97,6 +99,50 @@
           <dd class="dd pd">The event index corresponding to each zero value.</dd>
 
         
+        
+          <dt class="dt pt dlterm"><span class="ph synph">sol</span></dt>
+
+          <dd class="dd pd">A struct containing the solution data. The fields are as follows:<dl class="dl table">
+              
+                <dt class="dt dlterm">x</dt>
+
+                <dd class="dd">The times at which the solution is computed, stored as row vector.</dd>
+
+              
+              
+                <dt class="dt dlterm">y</dt>
+
+                <dd class="dd">The solution matrix, with the solution for each equation in the system stored by row.</dd>
+
+              
+              
+                <dt class="dt dlterm">solver</dt>
+
+                <dd class="dd">The solver name.</dd>
+
+              
+              
+                <dt class="dt dlterm">xe</dt>
+
+                <dd class="dd">The times at which the 'Events' function recorded a zero value.</dd>
+
+              
+              
+                <dt class="dt dlterm">ye</dt>
+
+                <dd class="dd">The system function values corresponding to each <span class="ph synph">xe</span> value.</dd>
+
+              
+              
+                <dt class="dt dlterm">ie</dt>
+
+                <dd class="dd">The index of the event that recorded each zero value.</dd>
+
+              
+            </dl>
+</dd>
+
+        
       </dl>
 
       <?STOPOUT?>
@@ -125,8 +171,7 @@ yi = [0, v/L];
 a = y(:,1)';
 plot(t,a);
 xlabel('time');
-ylabel('amplitude');
-</code></pre>
+ylabel('amplitude');</code></pre>
       <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_t5n_v4r_bt">
         
         <br /><img class="image" id="reference_wpv_kyv_pr__image_ofg_2xm_c5" src="images/ode113_help_figure1.png" height="350" width="350" /><br />

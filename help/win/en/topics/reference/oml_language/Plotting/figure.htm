@@ -88,16 +88,90 @@ figure('sizechangedfcn','onSizeChanged');
 % use the mouse to resize the figure and check the function output in the console
       </code></pre></div>
 
-      <div class="p">Usage of <span class="ph synph">keypressfcn</span> property:
-      <pre class="pre codeblock"><code>function onKeyPress(handle, data)
-  data
-  disp(['Figure ', num2str(handle), ' Key pressed: ', data.Character])
+    <div class="p">The <span class="ph synph">windowbuttondownfcn</span> and <span class="ph synph">windowbuttonupfcn</span> funtions are triggered on mouse button press and mouse button release events respectively. The first argument of the function is the handle of the figure. The second argument is a scalar: 
+      <ul class="ul" id="reference_wpv_kyv_pr__scalar_list">
+        <li class="li">1 if the left mouse button was pressed/released.</li>
+
+        <li class="li">2 if the middle mouse button was pressed/released.</li>
+
+        <li class="li">3 if the right mouse button was pressed/released.</li>
+
+      </ul>
+
+      <pre class="pre codeblock"><code>function onWindowButtonDown(handle, data)
+  point = get(handle, 'currentpoint');
+  disp(['Figure: ', num2str(handle), ', Button down: ', num2str(data), ', Point: (', num2str(point(1)), ',', num2str(point(2)),')']);
 end
 
-figure('keypressfcn','onKeyPress');
+function onWindowButtonUp(handle, data)
+  point = get(handle, 'currentpoint');
+  disp(['Figure: ', num2str(handle), ', Button up: ', num2str(data), ', Point: (', num2str(point(1)), ',', num2str(point(2)),')']);
+end
 
-% click on the figure to give focus, press any key and check the function output in the console
-      </code></pre></div>
+figure;
+set(gcf,'windowbuttondownfcn', 'onWindowButtonDown');
+set(gcf,'windowbuttonupfcn', 'onWindowButtonUp');
+      </code></pre>
+    </div>
+
+    <div class="p">Usage of <span class="ph synph">windowbuttonmotionfcn</span> property:
+      <pre class="pre codeblock"><code>function onWindowButtonMotion(handle, data)
+  point = get(handle, 'currentpoint');
+  disp(['Mouse motion, Point: (', num2str(point(1)), ',', num2str(point(2)),')']);
+end
+
+figure;
+set(gcf,'windowbuttonmotionfcn', 'onWindowButtonMotion');
+      </code></pre>
+    </div>
+
+    <div class="p">Usage of <span class="ph synph">windowscrollwheelfcn</span> property:
+      <pre class="pre codeblock"><code>function onWindowScrollWheel(handle, data)
+  disp(['Mouse scroll, Direction: ', num2str(data.VerticalScrollCount)]);
+end
+
+figure;
+set(gcf,'windowscrollwheelfcn', 'onWindowScrollWheel');
+      </code></pre>
+    </div>
+
+  <div class="p">The <span class="ph synph">keypressfcn</span> and <span class="ph synph">windowkeypressfcn</span> functions are triggered on a key press event:
+      <pre class="pre codeblock"><code>function onKeyPress(handle, data)
+  disp(['Key press: ', data.Key]);
+end
+
+function onWindowKeyPress(handle, data)
+  disp(['Window key press: ', data.Key]);
+end
+
+figure;
+h = uitree('text', 'My Tree', 'position', [10 10 200 300]);
+node1 = uitreenode(h, 'text', 'Node');
+leafnode = uitreenode(node1, 'text', 'Leaf Node');
+% 'keypressfcn' is triggered only if the figure has focus
+set(gcf,'keypressfcn',@onKeyPress)
+% 'windowkeypressfcn' is triggered if the figure or a child of the figure, in this example the uitree, has focus
+set(gcf,'windowkeypressfcn',@onWindowKeyPress)</code></pre>
+    </div>
+
+    <div class="p">The <span class="ph synph">keyreleasefcn</span> and <span class="ph synph">windowkeyreleasefcn</span> functions are triggered on a key release event:
+      <pre class="pre codeblock"><code>function onKeyRelease(handle, data)
+  disp(['Key release: ', data.Key]);
+end
+
+function onWindowKeyRelease(handle, data)
+  disp(['Window key release: ', data.Key]);
+end
+
+figure;
+h = uitree('text', 'My Tree', 'position', [10 10 200 300]);
+node1 = uitreenode(h, 'text', 'Node');
+leafnode = uitreenode(node1, 'text', 'Leaf Node');
+% 'keyreleasefcn' is triggered only if the figure has focus
+set(gcf,'keyreleasefcn',@onKeyRelease)
+% 'windowkeyreleasefcn' is triggered if the figure or a child of the figure, in this example the uitree, has focus
+set(gcf,'windowkeyreleasefcn',@onWindowKeyRelease)</code></pre>
+    </div>
 
     </section>
 
@@ -122,9 +196,9 @@ figure('keypressfcn','onKeyPress');
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/axes.htm" title="Create a new axes or set current axes by passing a handle argument.">axes</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/clf.htm" title="Clears the current figure or figure specified by handle.">clf</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/close.htm" title="Close the current, or a specific, or all figure window.">close</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/gcf.htm" title="Get current figure returns a handle to the current figure.">gcf</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/gcf.htm" title="Returns a handle to the current figure.">gcf</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/getmousepos.htm" title="Returns the mouse position in the figure area.">getmousepos</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/gcf.htm" title="Get current figure returns a handle to the current figure.">gcf</a></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/gcf.htm" title="Returns a handle to the current figure.">gcf</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/getmousepos.htm" title="Returns the mouse position in the figure area.">getmousepos</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/ginput.htm" title="Records the mouse position(s)/keyboard input(s) in the current figure.">ginput</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/guidata.htm" title="Gets or sets user defined data in the GUI.">guidata</a></div>

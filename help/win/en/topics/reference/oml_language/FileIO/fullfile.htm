@@ -18,31 +18,27 @@
   <div class="body refbody"><p class="shortdesc">Returns a filename from<var class="keyword varname"> dir1...dirN </var>and filename
       <var class="keyword varname">fname</var>.</p>
 
-    <section class="section" id="reference_wpv_kyv_pr__section_xqq_p1m_5pb"><h2 class="title sectiontitle">Syntax</h2>
-      
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       <p class="p"><span class="ph synph">R = fullfile<span class="ph var">('dir1','dir2',....'dirN','fname')</span></span></p>
+<?STOP?></section>
 
-      <?STOP?>
-    </section>
-
-    <section class="section" id="reference_wpv_kyv_pr__section_yqq_p1m_5pb"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
       
-      <dl class="dl parml" id="reference_wpv_kyv_pr__parml_zqq_p1m_5pb">
+      <dl class="dl parml">
         
           <dt class="dt pt dlterm"><var class="keyword varname">dir1,dirN,f</var></dt>
 
           <dd class="dd pd">Zero, 1 or more directory names provided as components to a full pathname.</dd>
 
-          <dd class="dd pd ddexpand">Type: <span class="keyword">string</span></dd>
+          <dd class="dd pd ddexpand">Type: <span class="keyword">char | string</span></dd>
 
         
         
           <dt class="dt pt dlterm"><var class="keyword varname">fname</var></dt>
 
-          <dd class="dd pd">Filename with or without file extension. If <var class="keyword varname">fname</var> is a cell,
-              <var class="keyword varname">R</var> will be a cell of file paths.</dd>
+          <dd class="dd pd">Filename with or without file extension.</dd>
 
-          <dd class="dd pd ddexpand">Type: <span class="keyword">cell | string</span></dd>
+          <dd class="dd pd ddexpand">Type: <span class="keyword">char | string | cell</span></dd>
 
         
       </dl>
@@ -50,15 +46,15 @@
       <?STOPINP?>
     </section>
 
-    <section class="section" id="reference_wpv_kyv_pr__section_arq_p1m_5pb"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
       
-      <dl class="dl parml" id="reference_wpv_kyv_pr__parml_brq_p1m_5pb">
+      <dl class="dl parml">
         
           <dt class="dt pt dlterm"><span class="ph synph">R</span></dt>
 
-          <dd class="dd pd">Full path to the file(s) specified by the components provided.</dd>
+          <dd class="dd pd">String of the full path to the file specified by the components provided.</dd>
 
-          <dd class="dd pd ddexpand">Type: <span class="keyword">cell | string</span></dd>
+          <dd class="dd pd ddexpand">Type: <span class="keyword">char | string | cell</span></dd>
 
         
       </dl>
@@ -66,10 +62,10 @@
       <?STOPOUT?>
     </section>
 
-    <section class="section" id="reference_wpv_kyv_pr__section_crq_p1m_5pb"><h2 class="title sectiontitle">Example:</h2>
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
       
       <div class="p">Example including the <span class="keyword cmdname">fullfile </span>
-        function.<pre class="pre codeblock" id="reference_wpv_kyv_pr__codeblock_drq_p1m_5pb"><code>% create a pathname from drive, directories and filename.
+        function.<pre class="pre codeblock"><code>% create a pathname from drive, directories and filename.
 pathname = fullfile('c:', 'tests', 'A', 'testscript.oml')
 
 % nargout 0
@@ -82,9 +78,7 @@ R = fileparts(pathname)
 [R1, R2] = fileparts(pathname)
 
 % nargout 3 path, filename and file extension
-[R1, R2, R3] = fileparts(pathname)
-
-pathname = c:\tests\A\testscript.oml
+[R1, R2, R3] = fileparts(pathname)</code></pre><pre class="pre codeblock"><code>pathname = c:\tests\A\testscript.oml
 ans = c:\tests\A
 R = c:\tests\A
 R1 = c:\tests\A
@@ -93,21 +87,17 @@ R1 = c:\tests\A
 R2 = testscript
 R3 = .oml</code></pre></div>
 
-      <div class="p">Example with multiple file names <pre class="pre codeblock" id="reference_wpv_kyv_pr__codeblock_erq_p1m_5pb"><code>
-R = fullfile('c:\\Program files', 'test', {'file1.txt', 'file2path/'})
-
+        <div class="p">Example with multiple file names.<pre class="pre codeblock"><code>R = fullfile('c:\\Program files', 'test', {'file1.txt', 'file2path/'})
+<code class="ph codeph">
 R =
 {
   [1,1] c:\Program files\test\file1.txt
   [1,2] c:\Program files\test\file2path\
-}</code></pre></div>
+}</code></code></pre></div>
 
     </section>
 
-    <section class="section" id="reference_wpv_kyv_pr__section_frq_p1m_5pb"><h2 class="title sectiontitle">Version History</h2>
-      
-      <p class="p"><span class="keyword">1.0.12</span></p>
-
+    <section class="section">
       
     </section>
 

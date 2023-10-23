@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2023" /><meta name="DC.rights.owner" content="(C) Copyright 2023" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="yline" /><meta name="abstract" content="Add one or more horizontal lines in the current axes or specified axes." /><meta name="description" content="Add one or more horizontal lines in the current axes or specified axes." /><meta name="DC.Coverage" content="OpenMatrixLanguage" /><meta name="indexterms" content="yline" /><meta name="DC.subject" content="yline" /><meta name="keywords" content="yline" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plot.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/line.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/xline.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>yline</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2023" /><meta name="DC.rights.owner" content="(C) Copyright 2023" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="yline" /><meta name="abstract" content="Add one or more horizontal lines in the current axes or a specified axes." /><meta name="description" content="Add one or more horizontal lines in the current axes or a specified axes." /><meta name="DC.Coverage" content="OpenMatrixLanguage" /><meta name="indexterms" content="yline" /><meta name="DC.subject" content="yline" /><meta name="keywords" content="yline" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/plot.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/line.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/Plotting/xline.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>yline</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -15,7 +15,7 @@
 
   
   
-  <div class="body refbody"><p class="shortdesc">Add one or more horizontal lines in the current axes or specified axes.</p>
+  <div class="body refbody"><p class="shortdesc">Add one or more horizontal lines in the current axes or a specified axes.</p>
 
     <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       
@@ -92,24 +92,20 @@
 
     <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
-      <div class="p">Simple <span class="keyword cmdname">yline</span> example:
-      <pre class="pre codeblock"><code>clf;
-        h = yline(2);
-      </code></pre>
-      <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_svl_v41_mv">
+      <div class="p">Simple <span class="keyword cmdname">yline</span> example: <pre class="pre codeblock"><code>clf;
+h = yline(2);</code></pre>
+        <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_svl_v41_mv">
           
           <img class="image" src="images/yline1.png" />
         <span class="figcap"><span class="fig--title-label">Figure 1. </span>Horizontal line at y = 2</span></figure>
 
       </div>
 
-      <div class="p">Create horizontal lines and set properties example:
-        <pre class="pre codeblock"><code>clf;
-          x=[0:0.1:3*pi];
-          plot(x, sin(x)); 
-          h = yline([-1;1],'color','r','linestyle','--');
-          ylim([-1.5 1.5])
-        </code></pre>
+      <div class="p">Create horizontal lines and set properties example: <pre class="pre codeblock"><code>clf;
+x=[0:0.1:3*pi];
+plot(x, sin(x)); 
+h = yline([-1;1],'color','r','linestyle','--');
+ylim([-1.5 1.5])</code></pre>
         <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_d1r_1p1_mv">
           
           <img class="image" src="images/yline2.png" />
@@ -121,10 +117,7 @@
 
     <section class="section"><h2 class="title sectiontitle">Comments</h2>
       
-      <p class="p">If there is no axis, one is created first. If <var class="keyword varname">y</var> is an Mx1 matrix, then M
-        horizontal lines are created.</p>
-
-      <p class="p">If an axis exists, lines are added to it without clearing existing lines.</p>
+      <p class="p">If there is no axis, one will be created first. If <var class="keyword varname">y</var> is an Mx1 matrix then M horizontal lines will be created.</p>
 
     </section>
 
@@ -140,7 +133,7 @@
 
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/plot.htm" title="Plots a given dataset in 2D axes.">plot</a></div>
 <div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/line.htm" title="Add a curve in current axes or a specified axes.">line</a></div>
-<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/xline.htm" title="Add one or more vertical lines in the current axes or specified axes.">xline</a></div></div>
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/Plotting/xline.htm" title="Add one or more vertical lines in the current axes or a specified axes.">xline</a></div></div>
 </nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
 <span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/Plotting/plotting_commands.htm" title="Plotting Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Plotting Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
         

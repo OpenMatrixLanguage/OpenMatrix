@@ -19,11 +19,15 @@
 
     <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       
-      <p class="p"><span class="ph synph">[pks,idx,extra] = findpeaks<span class="ph var">(signal)</span></span></p>
+      <p class="p"><span class="ph synph">[pks,locs,extra] = findpeaks<span class="ph var">(signal)</span></span></p>
 
-      <p class="p"><span class="ph synph">[pks,idx,extra] = findpeaks<span class="ph var">(signal,property,value,...)</span></span></p>
+      <p class="p"><span class="ph synph">[pks,locs,extra] = findpeaks<span class="ph var">(signal,fs,...)</span></span></p>
 
-      <p class="p"><span class="ph synph">[pks,idx,extra] = findpeaks<span class="ph var">(...,'DoubleSided')</span></span></p>
+      <p class="p"><span class="ph synph">[pks,locs,extra] = findpeaks<span class="ph var">(signal,time,...)</span></span></p>
+
+      <p class="p"><span class="ph synph">[pks,locs,extra] = findpeaks<span class="ph var">(...,property,value,...)</span></span></p>
+
+      <p class="p"><span class="ph synph">[pks,locs,extra] = findpeaks<span class="ph var">(...,'DoubleSided')</span></span></p>
 
       <?STOP?>
     </section>
@@ -34,7 +38,27 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">signal</var></dt>
 
-          <dd class="dd pd">The signal data, typically sampled at a constant rate.</dd>
+          <dd class="dd pd">The signal data, sampled at a constant rate.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">fs</var></dt>
+
+          <dd class="dd pd">The sampling frequency.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">time</var></dt>
+
+          <dd class="dd pd">A vector of increasing, equally spaced times.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
 
@@ -49,9 +73,9 @@
           <dd class="dd pd ddexpand">The available options are as follows:<ul class="ul" id="reference_wpv_kyv_pr__ul_kyf_f1j_gkb">
               <li class="li"><span class="keyword option">'MinPeakHeight'</span> (Default: eps)</li>
 
-              <li class="li"><span class="keyword option">'MinPeakDistance'</span> (Default: 1)</li>
+              <li class="li"><span class="keyword option">'MinPeakDistance'</span> (Default: 1 sample interval)</li>
 
-              <li class="li"><span class="keyword option">'MinPeakWidth'</span> (Default: 1)</li>
+              <li class="li"><span class="keyword option">'MinPeakWidth'</span> (Default: 1 sample interval)</li>
 
               <li class="li"><span class="keyword option">'DoubleSided'</span></li>
 
@@ -90,11 +114,15 @@
 
         
         
-          <dt class="dt pt dlterm"><span class="ph synph">idx</span></dt>
+          <dt class="dt pt dlterm"><span class="ph synph">locs</span></dt>
 
-          <dd class="dd pd">The indices at which the peaks are found.</dd>
+          <dd class="dd pd">The locations at which the peaks are found.</dd>
 
-          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+          <dd class="dd pd ddexpand">Units of time will be used when the inputs include <var class="keyword varname">fs</var> or
+            <var class="keyword varname">time</var>. For <var class="keyword varname">fs</var> the times will be relative to 0.
+            With no time input, sample indices are reported.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer</span></dd>
 
           <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector</span></dd>
 
@@ -114,7 +142,7 @@
 
               <li class="li"><span class="keyword option">baseline</span>: the height at which the widths are estimated.</li>
 
-              <li class="li"><span class="keyword option">roots</span>: the index locations at which the parabolas intersect the
+              <li class="li"><span class="keyword option">roots</span>: the locations at which the parabolas intersect the
                 baseline.</li>
 
             </ul>
@@ -129,26 +157,37 @@
 
     <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
-      <pre class="pre codeblock"><code>[pks,loc] = findpeaks([2,5,6,8,3,9,6,4,6,12,2,6,8,10,5],'MinPeakHeight',7,'MinPeakWidth',0)</code></pre>
-      <pre class="pre codeblock"><code>pks = [Matrix] 1 x 3
-9  12  10
-loc = [Matrix] 1 x 3
-6  10  14</code></pre>
+      <p class="p">With sample count inputs and output locations:</p>
+
+      <pre class="pre codeblock"><code>[pks,locs] = findpeaks([2,5,6,8,3,9,6,4,6,12,2,6,8,10,5],'MinPeakHeight',7,'MinPeakWidth',0)</code></pre>
+      <pre class="pre codeblock"><code>pks = [Matrix] 1 x 4
+8  9  12  10
+locs = [Matrix] 1 x 4
+4  6  10  14</code></pre>
+      <p class="p">With time inputs and output locations:</p>
+
+      <pre class="pre codeblock"><code>[pks,locs] = findpeaks([2,5,6,8,3,9,6,4,6,12,2,6,8,10,5],10,'MinPeakHeight',0.7,'MinPeakWidth',0.0)</code></pre>
+      <pre class="pre codeblock"><code>pks = [Matrix] 1 x 4
+8  9  12  10
+locs = [Matrix] 1 x 4
+0.30000  0.50000  0.90000  1.30000</code></pre>
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Comments</h2>
       
       <p class="p"><span class="keyword option">'MinPeakHeight'</span> sets the peak height threshold.</p>
 
-      <p class="p"><span class="keyword option">'MinPeakDistance'</span> sets the neighborhood threshold in units of sample
-        counts. Starting with the highest peak, other peaks within the specified half interval are
-        ignored.</p>
+      <p class="p"><span class="keyword option">'MinPeakDistance'</span> sets the neighborhood threshold. Starting with the
+        highest peak, other peaks within the specified half interval are ignored. The units are in
+        time when the inputs include <var class="keyword varname">fs</var> or <var class="keyword varname">time</var>, and are in
+        sample counts otherwise.</p>
 
-      <p class="p"><span class="keyword option">'MinPeakWidth'</span> sets the width threshold in units of sample counts. For
-        each peak, a parabola is fitted to the points in its neighboorhood based on
-        '<span class="keyword option">MinPeakDistance'</span>. The width is then measured halfway between the peak
-        height and the <span class="keyword option">MinPeakHeight</span> value. Peaks with widths narrower than the
-        threshold are ignored.</p>
+      <p class="p"><span class="keyword option">'MinPeakWidth'</span> sets the width threshold. For each peak, a parabola is
+        fitted to the points in its neighboorhood based on '<span class="keyword option">MinPeakDistance'</span>.
+        The width is then measured halfway between the peak height and the <span class="keyword option">MinPeakHeight</span>
+        value. Peaks with widths narrower than the threshold are ignored. The units are in
+        time when the inputs include <var class="keyword varname">fs</var> or <var class="keyword varname">time</var>, and are in
+        sample counts otherwise.</p>
 
       <p class="p"><span class="keyword option">'DoubleSided'</span> indicates that data has positive and negative values, and
         that both positive and negative peaks are desired. For this property, there is no associated
@@ -156,10 +195,10 @@ loc = [Matrix] 1 x 3
         is relative to the mean.</p>
  
       <p class="p"><span class="ph synph">extra</span>.<span class="keyword option">parabol</span> is a struct containing matrices x and pp. x
-        contains the indices in the neighborhood of each peak on which the parabola is fitted, and
-        pp contains the parabola coefficients.</p>
+        contains the neighborhood of each peak on which the parabola is fitted, and pp contains
+        the parabola coefficients.</p>
 
-      <p class="p"><span class="ph synph">extra</span>.<span class="keyword option">baseline</span> is the mean of each peak and the
+      <p class="p"><span class="ph synph">extra</span>.<span class="keyword option">baseline</span> is the average of each peak and the
         <span class="keyword option">'MinPeakHeight'</span> threshold.</p>
 
       <p class="p">In the presence of noise, parabola fitting to estimate peak widths is sensitive to the

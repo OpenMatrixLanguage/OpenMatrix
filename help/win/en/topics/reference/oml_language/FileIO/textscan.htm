@@ -142,17 +142,15 @@ If no <var class="keyword varname">fmt</var> is specified, '%f' or the float for
 
               
               
-                <dt class="dt dlterm"><span class="ph synph">whitespace</span>:<var class="keyword varname">space</var></dt>
+               <dt class="dt dlterm"><span class="ph synph">whitespace</span>:<var class="keyword varname">space</var></dt>
 
-                <dd class="dd">The character to be used as whitespace. If nothing is specified, ' ' will be
-                  used.</dd>
+               <dd class="dd">The character to be used as whitespace. If nothing is specified, ' '
+                 will be used.</dd>
 
-                <dd class="dd ddexpand">Type: <span class="keyword">string</span></dd>
+               <dd class="dd ddexpand">Type: <span class="keyword">string</span></dd>
 
-              
             </dl>
 </dd>
-
 
                 
        </dl>
@@ -365,6 +363,25 @@ textscan(str, '%2.3f/%d/%2n %2c %s')</code></pre><pre class="pre codeblock"><cod
   }
 }</code></pre></div>
 
+     <div class="p">Trim trailing characters.
+       <pre class="pre codeblock"><code>R = textscan('234 str    123      ', '%s %s %d', 'whitespace', ' ')</code></pre>
+       <pre class="pre codeblock"><code>R =
+{
+  [1,1]
+  {
+    [1,1] 234
+  }
+  [1,2]
+  {
+    [1,1] str
+  }
+  [1,3] 123
+}</code></pre></div>
+
+  <div class="p">Return with error if there is a format mismatch.
+    <pre class="pre codeblock"><code>textscan('45 62 three four 24.7e12 five six 56', '%s %s %f', 'ReturnOnError', 0)</code></pre>
+    <pre class="pre codeblock"><code>Error: invalid input; format(s) cannot be applied in field 3 [%f] to row [1] of the output in call to function textscan</code></pre>
+  </div>
     
 </section>
 

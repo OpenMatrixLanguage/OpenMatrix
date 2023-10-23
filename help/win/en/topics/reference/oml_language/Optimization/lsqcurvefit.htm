@@ -48,9 +48,10 @@
 
         
         
-          <dt class="dt pt dlterm"><var class="keyword varname">xdata</var></dt>
+          <dt class="dt pt dlterm">xdata</dt>
 
-          <dd class="dd pd">The domain values for which the best fit is performed.</dd>
+          <dd class="dd pd">The domain values for which the best fit is performed. If the domain is multivariate
+            then each variable is stored in <var class="keyword varname">xdata</var> by column.</dd>
 
         
         
@@ -64,7 +65,7 @@
 
           <dd class="dd pd">The fitting parameter lower bounds.</dd>
 
-          <dd class="dd pd ddexpand">Not currently supported; use [ ] when using <var class="keyword varname">options</var>.</dd>
+          <dd class="dd pd ddexpand">Use [ ] or -inf values if needed to specify unbounded conditions.</dd>
 
         
         
@@ -72,7 +73,7 @@
 
           <dd class="dd pd">The fitting parameter upper bounds.</dd>
 
-          <dd class="dd pd ddexpand">Not currently supported; use [ ] when using <var class="keyword varname">options</var>.</dd>
+          <dd class="dd pd ddexpand">Use [ ] or inf values if needed to specify unbounded conditions.</dd>
 
         
         
@@ -202,29 +203,59 @@ x = [1; 2; 3; 4];
 y = [8.025, 3.975, 2.025, 0.975];
 p0 = [15; 1];
 [p,res] = lsqcurvefit(@FittingFunc,p0,x,y)</code></pre><pre class="pre codeblock"><code>p = [Matrix] 2 x 1
-16.09848
+16.09850
  0.69669
-res = 0.00190995098</code></pre></div>
+res = 0.00190995097</code></pre></div>
 
-      <div class="p">Modify the previous example to pass an extra parameter to the function using a function
-        handle.<pre class="pre codeblock"><code>function y = FittingFunc(p, x, offset)
+      <div class="p">Modify the first example to pass an extra parameter to the system function using a
+        function handle.<pre class="pre codeblock"><code>function y = FittingFunc(p, x, offset)
     y = p(1) * exp(-p(2)*x) + offset;
 end
 
 handle = @(x, p) FittingFunc(x, p, 2);
-[p,res] = lsqcurvefit(handle,p0,x,y+2);</code></pre></div>
+[p,res] = lsqcurvefit(handle,p0,x,y+2)</code></pre><pre class="pre codeblock"><code>p = [Matrix] 2 x 1
+16.09850
+ 0.69669
+res = 0.00190995097</code></pre></div>
+
+      <div class="p">Modify the first example to include bounds constraints.
+<pre class="pre codeblock"><code>[p,res] = lsqcurvefit(@FittingFunc,p0,x,y,[10,0.7],[16.2,2])</code></pre>
+<pre class="pre codeblock"><code>p = [Matrix] 2 x 1
+16.16859
+ 0.70000
+resnorm = 0.00226086103
+</code></pre></div>
 
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Comments</h2>
       
-      <p class="p"><span class="keyword cmdname">lsqcurvefit</span> uses a modified Gauss-Netwon algorithm with a trust region method.</p>
+      <p class="p"><span class="keyword cmdname">lsqcurvefit</span> uses a modified Gauss-Netwon algorithm with a trust region method.
+         Bounds are supported with the addition of an affine scaling method drawn from the following sources.</p>
+
+      <ul class="ul" id="reference_wpv_kyv_pr__ul_mq1_jsl_gxb">
+        <li class="li">Francisco, J.B., N. Krejic, M. Martí­nez. 2005. "An interior-point method for solving
+          box-constrained underdetermined nonlinear systems." <em class="ph i">Journal of Computational and
+            Applied Mathematics</em> 177, no. 1: 67-88. <a class="xref" href="https://doi.org/10.1016/j.cam.2004.08.013" target="_blank">https://doi.org/10.1016/j.cam.2004.08.013</a></li>
+
+        <li class="li">Bellavia, Stefania, Maria Macconi, Sandra Pieraccini. 2012. "Constrained Dogleg Methods
+          for nonlinear systems with simple bounds." <em class="ph i">Computational Optimization and
+            Applications</em> 53, 771-794 <a class="xref" href="https://doi.org/10.1007/s10589-012-9469-8" target="_blank">https://doi.org/10.1007/s10589-012-9469-8</a></li>
+
+        <li class="li">Klug, Andreas. 2006. "Affine-Scaling Methods for Nonlinear Minimization Problems and
+          Nonlinear Systems of Equations with Bound Constraints" PhD Dissertation, Bavarian Julius
+          Maximilians University, Wurzburg <a class="xref" href="https://opus.bibliothek.uni-wuerzburg.de/opus4-wuerzburg/frontdoor/deliver/index/docId/1628/file/thesis.pdf" target="_blank">https://opus.bibliothek.uni-wuerzburg.de/opus4-wuerzburg/frontdoor/deliver/index/docId/1628/file/thesis.pdf</a></li>
+
+      </ul>
 
       <p class="p">Options for convergence tolerance controls and analytical derivatives are specified
         with <span class="keyword cmdname">optimset</span>.</p>
 
       <p class="p">To pass additional parameters to a function argument, use an <span class="keyword cmdname">anonymous</span>
         function.</p>
+
+      <p class="p">When using <var class="keyword varname">lb</var> or <var class="keyword varname">ub</var> with unbounded variables, use or +/-inf rather than
+        arbitrarily large +/- numeric values. Large numeric bound ranges will degrade the performance of the function.</p>
 
       <div class="p">The <span class="keyword cmdname">optimset</span> options and defaults are as follows: <ul class="ul">
           <li class="li"><span class="keyword option">MaxIter</span>: 400</li>
