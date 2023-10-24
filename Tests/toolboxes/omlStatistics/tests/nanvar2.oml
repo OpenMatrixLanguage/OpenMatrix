@@ -1,0 +1,3 @@
+addToolbox omlstatistics
+x = [9.3, 4.8; 10.6, 6.6; nan, 8.0; 11.9, nan; 13.3, 9.3; nan, nan; 15.1, 10.6; 18.2, 11.9];
+v = nanvar(x', [], 2)

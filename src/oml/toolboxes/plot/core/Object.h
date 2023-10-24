@@ -53,7 +53,8 @@ namespace omlplot{
         SCATTER, SCATTER_3D, SURFACE, MESH, CONTOUR_3D, 
         CONTOUR, STEM, LOGLOG, SEMILOGX, SEMILOGY, XLINE, 
         YLINE, WATERFALL, ELLIPSE, RECTANGLE, PCOLOR, PATCH,
-        LEGEND, COLORBAR, STEM3, HGGROUPVECTOR, HGGROUPBAR3
+        LEGEND, COLORBAR, STEM3, HGGROUPVECTOR, HGGROUPBAR3,
+        TRIPLOT, TRIMESH, TRISURF
     };
 
     bool isSameDouble(const double& a, const double& b);
@@ -101,6 +102,7 @@ namespace omlplot{
         std::vector<double> Vector();
         void *BoundObject();
         std::string ColorString();
+        std::string ColorStringWithAlpha(double alpha);
 
         Currency getCurrency();
         vector<double> getColor();
@@ -128,7 +130,7 @@ namespace omlplot{
 
         vector<string> getPropertyNames();
         virtual Property &getProperty(const string&);
-        VALUETYPE getPropertyValue(const string&);
+        virtual  VALUETYPE getPropertyValue(const string&);
         virtual bool setPropertyValue(const string& , VALUETYPE);
         bool isPropertySupported(const string&);
 
@@ -307,6 +309,7 @@ namespace omlplot{
         virtual void putData(GnuplotOutput *);
         virtual void cleanup(GnuplotOutput *) = 0;
         bool objectCanBeDeleted() const override { return true; }
+        virtual bool getMinMaxZ(double& min, double& max) { return false; }
 
         void plotOnSecondaryYAxis(bool plot);
         vector<double> getMinMaxData() override;
@@ -447,7 +450,7 @@ namespace omlplot{
         string getLineStyle(int) override;
         void putData(GnuplotOutput *) override;
         void cleanup(GnuplotOutput *) override;
-        void getMinMaxZ(double& min, double& max);
+        bool getMinMaxZ(double& min, double& max) override;
     protected:
         double _minZ, _maxZ;
         bool m_recalcMinMax;
@@ -578,10 +581,48 @@ namespace omlplot{
     private:
         void put2DData(GnuplotOutput*);
         void put3DData(GnuplotOutput*);
-
+    protected:
         int m_lineID;
         bool m_is3D;
         
+    };
+
+    class OMLPLOT_EXPORT Triplot : public Patch {
+    public:
+        Triplot();
+        void init(const LineData& ld) override;
+        string getUsingClause() override;
+        void putData(GnuplotOutput*) override;
+        string getWithClause(int) override;
+        string getLineStyle(int) override;
+    };
+
+    class OMLPLOT_EXPORT Trimesh : public Patch {
+    public:
+        Trimesh();
+        void init(const LineData& ld) override;
+        string getUsingClause() override;
+        void putData(GnuplotOutput*) override;
+        string getLineStyle(int) override;
+        VALUETYPE getPropertyValue(const string&) override;
+        bool setPropertyValue(const string& name, VALUETYPE value) override;
+        bool getMinMaxZ(double& min, double& max) override;
+    private:
+        virtual string getColorPropertyName() const { return string("edgecolor"); }
+    protected:
+        vector<string> getColorStringPerFace();
+
+        bool m_flatShading;
+    };
+
+    class OMLPLOT_EXPORT Trisurf: public Trimesh {
+    public:
+        Trisurf();
+        string getUsingClause() override;
+        void putData(GnuplotOutput*) override;
+        string getLineStyle(int) override;
+    private:
+        string getColorPropertyName() const override { return string("facecolor"); }
     };
 
     class OMLPLOT_EXPORT Stem3 : public Line3 {

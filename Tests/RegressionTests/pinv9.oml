@@ -1,0 +1,5 @@
+addpath([getenv('OML_ROOT') '/Tests/RegressionTests/functions']);
+A = [1,2,3;4,5,6;7,8,10;11,12,14]';
+B = pinv(A);
+B = lowbitcleanup(B, 7)
+lowbitcleanup(A * pinv(A), 9)

@@ -25,6 +25,7 @@
 
 class FunctionInfo;
 class PropertyInfo;
+class MethodInfo;
 // End defines/includes
 
 //------------------------------------------------------------------------------
@@ -48,13 +49,14 @@ public:
     //! Adds class method
     //! \param[in] name Name of the method in the language
     //! \param[in] fi   Function info
-    void AddClassMethod( const std::string& name,
-                         FunctionInfo*      fi);
+    void AddClassMethod( const std::string& name, FunctionInfo* fi, bool is_private = false);
 	void AddStaticClassMethod(const std::string& name, FunctionInfo* fi);
     //! Returns true if given function pointer is a method - used only in language
     //! \param[in] fi Given function pointer
 	bool IsClassMethod( FunctionInfo* fi) const;
 	bool IsStaticClassMethod(FunctionInfo* fi) const;
+    bool IsMethodPrivate(const std::string& name) const;
+    MethodInfo* GetMethod(const std::string& name) const;
     //! Adds a base class
     //! \param[in] name Given base class name
     void AddBaseClass( const ClassInfo* base_class);
@@ -86,7 +88,7 @@ public:
 
     std::string GetClassname() const { return _class_name; }
 	std::vector<std::string> GetPropertyNames() const;
-	std::vector<std::string> GetMethodNames() const;
+	std::vector<std::string> GetMethodNames(bool public_only) const;
 
 	Currency CreateEmpty() const;
 
@@ -94,7 +96,7 @@ private:
 	std::string                          _class_name;     //! External class name
     std::vector<PropertyInfo*>           _properties;     //! Properties
     std::vector<const ClassInfo*>        _baseclass;      //! Base classes
-    std::map<std::string, FunctionInfo*> _methods;        //! Methods in language
+    std::vector<MethodInfo*>             _methods;        //! Methods in language
 	std::map<std::string, FunctionInfo*> _static_methods; //! Static methods in language
 	std::map<std::string, Currency>      _defaults;       //! Methods in language
     FunctionInfo*                        _constructor;    //! Constructor FunctionInfo
@@ -121,6 +123,33 @@ public:
     bool IsPrivate() const { return _isPrivate; }
 
 private:
+    std::string    _name;       //! Name
+    bool           _isPrivate;  //! True if property is private
+};
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+//! Method info class
+//------------------------------------------------------------------------------
+class OMLDLL_DECLS MethodInfo
+{
+public:
+    //! Constructor
+    //! \param[in] name      Name
+    //! \param[in] isPrivate True if property is private, defaults to false
+    MethodInfo(const std::string& name, FunctionInfo* fi, bool isPrivate = false)
+        : _name(name), _isPrivate(isPrivate), _fi(fi) {}
+    //! Destructor
+    ~MethodInfo() {}
+
+    //! Returns property name
+    std::string Name() const { return _name; }
+    //! True if this is private
+    bool IsPrivate() const { return _isPrivate; }
+    FunctionInfo* GetFunctionInfo() const { return _fi; }
+
+private:
+    FunctionInfo*  _fi;
     std::string    _name;       //! Name
     bool           _isPrivate;  //! True if property is private
 };

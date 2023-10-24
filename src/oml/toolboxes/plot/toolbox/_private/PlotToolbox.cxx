@@ -1338,6 +1338,64 @@ namespace omlplot{
         return true;
     }
 
+    bool triplot(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+
+        if (inputs.empty())
+            throw OML_Error(OML_ERR_NUMARGIN);
+
+        if (inputs.size() < 3)
+            throw OML_Error(OML_ERR_NUMARGIN);
+        if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+            throw OML_Error(OML_ERR_SCALARMATRIX, 1);
+        if (!inputs[1].IsMatrix())
+            throw OML_Error(OML_ERR_MATRIX, 2);
+        if (!inputs[2].IsMatrix())
+            throw OML_Error(OML_ERR_MATRIX, 3);
+
+        std::vector<LineData> vld = dsm.getTriplotData(inputs);
+        outputs.push_back(cm->triplot(vld));
+        return true;
+    }
+
+    bool trimesh(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+
+        if (inputs.size() < 3)
+            throw OML_Error(OML_ERR_NUMARGIN);
+        if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+            throw OML_Error(OML_ERR_SCALARMATRIX, 1);
+        if (!inputs[1].IsMatrix())
+            throw OML_Error(OML_ERR_MATRIX, 2);
+        if (!inputs[2].IsMatrix())
+            throw OML_Error(OML_ERR_MATRIX, 3);
+
+        std::vector<LineData> vld = dsm.getTrisurfData(inputs);
+        // trimesh without z data falls back to triplot!
+        if (vld.front().z.empty())
+            outputs.push_back(cm->triplot(vld));
+        else
+            outputs.push_back(cm->trimesh(vld));
+        return true;
+    }
+
+    bool trisurf(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
+        
+        if (inputs.size() < 3)
+            throw OML_Error(OML_ERR_NUMARGIN);
+        if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+            throw OML_Error(OML_ERR_SCALARMATRIX, 1);
+        if (!inputs[1].IsMatrix())
+            throw OML_Error(OML_ERR_MATRIX, 2);
+        if (!inputs[2].IsMatrix())
+            throw OML_Error(OML_ERR_MATRIX, 3);
+
+        std::vector<LineData> vld = dsm.getTrisurfData(inputs);
+        // trimesh without z data falls back to triplot!
+        if (vld.front().z.empty())
+            throw OML_Error(OML_ERR_NUMARGIN);
+        outputs.push_back(cm->trisurf(vld));
+        return true;
+    }
+
     bool autumn(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs) {
         BuiltInFuncsUtils::SetWarning(eval, "Command [autumn] is not supported in OpenMatrix");
         return false;
@@ -1463,7 +1521,7 @@ namespace omlplot{
         return false;
     }
 
-#define TBOXVERSION 1.12
+#define TBOXVERSION 1.13
     extern "C" OMLPLOT_EXPORT
     double GetToolboxVersion(EvaluatorInterface eval){
         return TBOXVERSION;
@@ -1539,6 +1597,9 @@ namespace omlplot{
             evl.RegisterBuiltInFunction("datetick", oml_doNothing, FunctionMetaData(-4, 0, "Plotting"));
             evl.RegisterBuiltInFunction("bar3", oml_doNothing, FunctionMetaData(-1, 1, "Plotting"));
             evl.RegisterBuiltInFunction("hist3", oml_doNothing, FunctionMetaData(-2, 1, "Plotting"));
+            evl.RegisterBuiltInFunction("triplot", oml_doNothing, FunctionMetaData(-3, -1, "Plotting"));
+            evl.RegisterBuiltInFunction("trimesh", oml_doNothing, FunctionMetaData(-3, -1, "Plotting"));
+            evl.RegisterBuiltInFunction("trisurf", oml_doNothing, FunctionMetaData(-3, -1, "Plotting"));
 
             // Not yet supported commands
             evl.RegisterBuiltInFunction("copystyle", copystyle, FunctionMetaData(-1, -1, "Plotting"));
@@ -1639,6 +1700,9 @@ namespace omlplot{
         evl.RegisterBuiltInFunction("datetick", datetick, FunctionMetaData(-4, 0, "Plotting"));
         evl.RegisterBuiltInFunction("bar3", bar3, FunctionMetaData(-1, 1, "Plotting"));
         evl.RegisterBuiltInFunction("hist3", hist3, FunctionMetaData(-2, 1, "Plotting"));
+        evl.RegisterBuiltInFunction("triplot", triplot, FunctionMetaData(-3, -1, "Plotting"));
+        evl.RegisterBuiltInFunction("trimesh", trimesh, FunctionMetaData(-3, -1, "Plotting"));
+        evl.RegisterBuiltInFunction("trisurf", trisurf, FunctionMetaData(-3, -1, "Plotting"));
 
 #ifdef _DEBUG
         evl.RegisterBuiltInFunction("dump", dump, FunctionMetaData(-1, 1, "Plotting"));

@@ -1,7 +1,7 @@
 /**
 * @file SignalHandler.h
 * @date June 2016
-* Copyright (C) 2016-2020 Altair Engineering, Inc.  
+* Copyright (C) 2016-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -20,7 +20,7 @@
 // Begin defines/includes
 #include "Runtime/SignalHandlerBase.h"
 
-class WrapperBase;
+class ConsoleWrapper;
 // End defines/includes
 
 //------------------------------------------------------------------------------
@@ -54,7 +54,7 @@ public:
     //! Sets the console wrapper
     //! \param wrapper Wrapper pointer
     //!
-    void SetWrapper(WrapperBase* wrapper) { _wrapper = wrapper; }
+    void SetWrapper(ConsoleWrapper* wrapper) { _wrapper = wrapper; }
 
     //!
     //! Returns class info
@@ -112,7 +112,7 @@ public:
 
 private:
     const SignalHandler*       _src;            //!< Source, if this is a clone                 
-    WrapperBase*               _wrapper;        //!< Console wrapper
+    ConsoleWrapper*            _wrapper;        //!< Console wrapper
     bool                       _batchmode;      //!< True if application is in batch mode
 
     //!

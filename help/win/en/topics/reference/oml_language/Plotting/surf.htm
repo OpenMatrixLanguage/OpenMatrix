@@ -126,19 +126,6 @@ s=surf(x, y, z, 'meshlines', 'off');</code></pre>
         <br /><img class="image" id="reference_wpv_kyv_pr__image_qvb_ydq_rv2" src="../../../../images/math_solutions/plots/plotSurf2.PNG" /><br />
       <span class="figcap"><span class="fig--title-label">Figure 2. </span>Surf plot with meshlines off</span></figure>
 
-      <p class="p">Set the color of the surface:</p>
-
-      <pre class="pre codeblock"><code>clf;
-x=[0:0.1:2*pi];
-y=x;
-z=sin(x')*cos(y);
-s=surf(x, y, z, 'color', 'r');
-set(gca,'contourtype','none');</code></pre>
-      <figure class="fig fignone" id="reference_wpv_kyv_pr__plot_surf_3">
-        
-        <br /><img class="image" id="reference_wpv_kyv_pr__plot_surf_3_1" src="../../../../images/math_solutions/plots/plotSurf3.png" /><br />
-      <span class="figcap"><span class="fig--title-label">Figure 3. </span>Surface color</span></figure>
-
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Comments</h2>
@@ -148,8 +135,6 @@ set(gca,'contourtype','none');</code></pre>
         used for y coordinates. <span class="keyword cmdname">surf</span> takes optional arguments to control the
         surafce style. It can be either the color of the surface (not supported yet), or
         property/value pair(s), or both. </p>
-
-      <p class="p">The 'contourtype' of an axes object that contains a surface is set to 'blended'.</p>
 
     </section>
 

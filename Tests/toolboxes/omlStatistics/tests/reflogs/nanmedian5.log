@@ -1,0 +1,24 @@
+m = 
+slice(:, :, 1) = 
+[Matrix] 1 x 2
+2  9
+
+slice(:, :, 2) = 
+[Matrix] 1 x 2
+5  NaN
+
+slice(:, :, 3) = 
+[Matrix] 1 x 2
+6  4
+
+slice(:, :, 4) = 
+[Matrix] 1 x 2
+3  3
+
+slice(:, :, 5) = 
+[Matrix] 1 x 2
+NaN  2
+
+slice(:, :, 6) = 
+[Matrix] 1 x 2
+8  1

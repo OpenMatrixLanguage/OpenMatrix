@@ -1,0 +1,4 @@
+addToolbox omlstatistics
+a = [2, 5, 6, 3, nan, 8; 9, nan, 4, 3, 2, 1];
+a = reshape(a', [1,6,2]);
+m = nanmedian(a,2)

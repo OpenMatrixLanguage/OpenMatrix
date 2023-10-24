@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsSystem.cpp
 * @date October 2016
-* Copyright (C) 2016-2022 Altair Engineering, Inc.  
+* Copyright (C) 2016-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -199,7 +199,7 @@ bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
     {
         char buf[256];
         memset(buf, 0, sizeof(buf));
-        if (!fgets(buf, sizeof(buf), cmdoutput))
+        if (fgets(buf, sizeof(buf), cmdoutput) <= 0)
         {
             std::cout << std::flush;
             break;
@@ -460,24 +460,23 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
     {
         throw OML_Error(OML_ERR_NUMARGIN);
     }
-
-    if (!inputs[0].IsString())
+    else if (!inputs[0].IsString())
     {
         throw OML_Error(OML_ERR_STRING, 1);
     }
     std::string in(inputs[0].StringVal());
-    BuiltInFuncsUtils utils;
-    in = utils.LTrim(in);
-    in = utils.RTrim(in);
+    in = BuiltInFuncsUtils::LTrim(in);
+    in = BuiltInFuncsUtils::RTrim(in);
     if (in.empty())
     {
-        throw (OML_ERR_NONEMPTY_STR, 1);
+        throw OML_Error(OML_ERR_NONEMPTY_STR, 1);
     }
+
+    BuiltInFuncsUtils utils;
 
     bool returnoutput      = false; // True if output from system command is returned
     bool async             = false; // True if system command runs asynchronously
     bool maxThreadAffinity = false; // True if async command needs to run on all cores on Linux
-
     int  nargin       = static_cast<int>(inputs.size());
     for (int i = 1; i < nargin; ++i)
     {
@@ -715,7 +714,7 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
 		while (1)
 		{
 			char buf[256];
-			if (!fgets(buf, sizeof(buf), pipe))
+			if (fgets(buf, sizeof(buf), pipe) <= 0)
 			{
 				break;
 			}
@@ -755,17 +754,21 @@ bool BuiltInFuncsSystem::Unix(EvaluatorInterface           eval,
                               const std::vector<Currency>& inputs,
                               std::vector<Currency>&       outputs)
 {
+    if (inputs.empty())
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
 #ifdef OS_WIN
-    outputs.push_back(0);
+    outputs.push_back(1);
     int nargout = eval.GetNargoutValue();
     for (int i = 1; i < nargout; ++i)
     {
         outputs.push_back("");
     }
     return true;
-#endif
-
+#else
     return BuiltInFuncsSystem::System(eval, inputs, outputs);
+#endif
 }
 //------------------------------------------------------------------------------
 // Returns true after deleting given file(s) [delete command]

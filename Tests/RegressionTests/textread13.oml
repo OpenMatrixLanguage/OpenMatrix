@@ -1,0 +1,3 @@
+filename = 'FileManipulation/textread13.txt';
+[Y U V W] = textread(filename, '%f %f %f %f', 'delimiter', '<col>');
+M = [Y U V W]

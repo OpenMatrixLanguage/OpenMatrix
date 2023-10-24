@@ -1,0 +1,26 @@
+Warning: ODE solver terminated by Events function in call to function ode45 at line number 23 in file ode45_14.oml
+x = [Matrix] 10 x 1
+0.00000
+0.00003
+0.01329
+0.09626
+0.17924
+0.35529
+0.49625
+0.60327
+0.67866
+0.70710
+L = [Matrix] 10 x 1
+-7.85398e-01
+-7.85369e-01
+-7.72112e-01
+-6.88987e-01
+-6.05187e-01
+-4.22171e-01
+-2.66121e-01
+-1.37796e-01
+-3.94574e-02
+ 1.20078e-14
+xe = 0.707104983
+Le = 1.20078e-14
+ie = 1

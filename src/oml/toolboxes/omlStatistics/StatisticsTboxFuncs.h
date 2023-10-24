@@ -696,6 +696,24 @@ bool OmlMedian(EvaluatorInterface           eval,
                const std::vector<Currency>& inputs, 
                std::vector<Currency>&       outputs);
 //!
+//! Compute quantile values [quantile]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlQuantile(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs);
+//!
+//! Compute histogram counts [histc]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlHistC(EvaluatorInterface           eval,
+              const std::vector<Currency>& inputs,
+              std::vector<Currency>&       outputs);
+//!
 //! Computes mean absolute deviation values [meandev]
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
@@ -758,6 +776,76 @@ bool OmlCov(EvaluatorInterface           eval,
 bool OmlCorr(EvaluatorInterface           eval, 
              const std::vector<Currency>& inputs, 
              std::vector<Currency>&       outputs);
+
+//!
+//! Computes min values, excluding NaN [nanmin]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlNanMin(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs);
+
+//!
+//! Computes max values, excluding NaN [nanmax]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlNanMax(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs);
+
+//!
+//! Computes sum values, excluding NaN [nansum]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlNanSum(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs);
+
+//!
+//! Computes mean values, excluding NaN [nanmean]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlNanMean(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs);
+
+//!
+//! Computes standard deviation values, excluding NaN [nanstd]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlNanStd(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs);
+
+//!
+//! Computes variance values, excluding NaN [nanvar]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlNanVar(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs);
+
+//!
+//! Computes median values, excluding NaN [nanmedian]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlNanMedian(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs);
 
 //!
 //! Performs multiple linear regression using the model y = X * beta + e [regress]

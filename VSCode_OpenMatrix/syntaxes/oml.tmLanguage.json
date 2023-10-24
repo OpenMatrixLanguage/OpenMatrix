@@ -1,0 +1,197 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+
+	"fileTypes": [
+		"oml"
+	  ],
+	"name": "OML",
+	"patterns": [
+		{
+			"include": "#comment"
+		},
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#builtins"
+		},
+		{
+			"include": "#brackets"
+		},
+		{
+			"include": "#parentheses"
+		},
+		{
+			"include": "#operators"
+		},
+		{
+			"include": "#number"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#transpose"
+		}
+	],
+	"repository": {
+		"brackets": {
+			"patterns": [
+			  {
+				"begin": "(\\[)",
+				"beginCaptures": {
+				  "1": {
+					"name": "meta.bracket.oml"
+				  }
+				},
+				"end": "(\\])",
+				"endCaptures": {
+				  "1": {
+					"name": "meta.bracket.oml"
+				  }
+				},
+				"patterns": [
+					{
+						"include":"#numbers"
+					}
+				  ]
+			  }
+			]
+		},
+		"parentheses": {
+			"patterns": [
+			  {
+				"begin": "(\\()",
+				"beginCaptures": {
+				  "1": {
+					"name": "meta.bracket.oml"
+				  }
+				},
+				"end": "(\\))",
+				"endCaptures": {
+				  "1": {
+					"name": "meta.bracket.oml"
+				  }
+				},
+				  "patterns": [
+					{
+						"include":"#numbers"
+					}
+				]
+			  }
+			]
+		},
+		"keywords": {
+			"patterns": [
+				{
+					"match": "\\b(and|break|else|elseif|end|false|for|if|not|or|function|return|true|while|switch|continue|case|otherwise|which|varargin|varargout|classdef|methods|properties)\\b",
+					"name": "keyword.control.oml"	
+				}
+			]
+		},
+		"builtins": {
+			"patterns": [
+				{
+					"match": "\\b(I|Inf|J|NaN|OmlPythonBridgeExt|OmlPythonBridgeInt|OmlPythonBridgeTableDfImp|SEEK_CUR|SEEK_END|SEEK_SET|_fill_feature|_get_empty_idxs|_get_filler|_get_frequent_number|_get_valid_idxs|_prec_rec|abfadddata|abfclose|abfcreatesubcase|abfsetversion|abs|accumarray|accuracy|acker|acos|acosd|acosh|acot|acotd|acsc|acscd|adaptivethresholdcv|addToolbox|addaxis|addcv|addhiddenpath|addlibrary|addmenuitem|addmenuseparator|addpath|addpopupmenu|addribbonmenu|addribbonmenuchildbutton|addribbonpage|addribbonpagegroup|addspriteaction|addspriteactiongroup|addtoolbox|addweightedcv|agglomerativefit|agglomerativepredict|all|analysisusingpythonbegin|analysisusingpythonend|analyze|and|angle|any|append|applycolormapcv|apriori|area|arg|arrayfun|arsm|arsmoptimset|asec|asecd|asin|asind|asinh|assert|assignin|assoc|ast|atan|atan2|atan2d|atand|atanh|audioformats|audioinfo|audioread|audiowrite|augstate|autumn|axes|axis|backgroundsubtractorcv|balance|balreal|bar|bar3|barthannwin|bbdesign|bdschur|bernoullinbfit|bernoullinbpredict|besself|besself3|besselh|besseli|besselj|besselk|bessely|beta|betacdf|betafit|betainc|betainv|betaln|betapdf|betarnd|bi2de|bicgstab|bilateralfiltercv|bin2dec|binarize|binarizetransform|bins|bitand|bitor|bitwiseandcv|bitwisenotcv|bitwiseorcv|bitwisexorcv|bitxor|blackman|blanks|blkdiag|blurcv|bode|bone|box|boxplot|bsxfun|bubblechart|builtin|butter|buttord|c2d|caereaderoptions|callaltairbatch|cannycv|care|cart2pol|cart2sph|cat|cd|cdf|ceil|cell|cell2mat|cell2struct|cell2table|celldisp|cellfun|cellstr|char|chdir|cheb1ord|cheb2ord|chebwin|cheby1|cheby2|checksyntax|chi2cdf|chi2inv|chi2pdf|chi2rnd|chirp|chol|circlecv|circshift|cividis|cla|class|classificationerror|clc|clear|clearcv|clearprofiledata|clearvars|clf|clip|clock|close|closeh3dfile|colorbar|colormap|complex|composedir|cond|confusionmatrix|conj|contains|contour|contour3|conv|conv2|convertscaleabscv|convhull|convhulln|cool|copper|copycv|copyfile|copymakebordercv|copystyle|cora|corr|cos|cosd|cosh|cosinedistance|cosinesimilarity|cot|cotd|cov|covar|cplxpair|cpsd|cpsdplot|cputime|createabffile|createdistributable|createh3ddatatype|createh3dfile|createh3dlayer|createh3dpool|createh3dsubcase|createhdf5attribute|createhdf5dataset|createhdf5group|cropcv|cross|crossvalscore|csc|cscd|csvread|csvwrite|ctime|ctranspose|ctrb|ctrbf|cubehelix|cumprod|cumsum|cumtrapz|cvtcolorcv|d2c|damp|dare|datah3dtypehascorners|date|datenum|datestr|datetick|datevec|day|db2mag|dba|dbb|dbc|dbu|dcgain|de2bi|deblank|dec2bin|dec2hex|deconv|deg2rad|delaunay|delaunayn|delete|det|detrend|dftcv|diag|diary|diff|dilatecv|dir|diric|disp|disp1|disp2|display|distancetransformcv|dividecv|dlmread|dlmwrite|dlqr|dlyap|dlyapchol|dock|dos|dot|double|downsample|drawnow|dsacpsdplot|dsafftplot|dsafrfplot|dss|dss2ss|dssdata|dtcfit|dtcpredict|dtrfit|dtrpredict|e|edit|eig|ellip|ellipord|ellipse|enablespriteaction|encryptfile|eps|eq|erf|erodecv|error|errordlg|errormsgonly|esort|estim|euclideandistance|eval|evalin|evalpyfit|evalpythonfile|evalpythonfunction|evalpythonscript|evaltclfile|evaltclscript|exist|exit|exp|expcdf|expfit|expinv|explainedvariance|expm|exporttopython|exporttotcl|exppdf|exprnd|extract|eye|f1score|factor|factorial|false|fanplot|fcdf|fclose|feof|ferror|feval|fflush|fft|fft2|fftn|fftplot|fftshift|fgetl|fgets|fieldnames|figure|fileparts|filesep|fill|filt|filter|filter2|filter2Dcv|filtfilt|find|findall|findcontourscv|findobj|findpeaks|finv|fir1|firls|fix|flag|flintmax|flip|fliplr|flipud|floor|fminbnd|fmincon|fminsearch|fminunc|fold|fopen|format|fpdf|fprintf|fread|freq|freqs|freqz|frewind|frfplot|frnd|fscanf|fseek|fsolve|fspecial|ftell|full|fullfact|fullfile|func2str|funccount|funclist|fwrite|fzero|ga|gamcdf|gamfit|gaminv|gamma|gammainc|gammaln|gampdf|gamrnd|gaoptimset|gauspuls|gaussianblurcv|gaussiannbfit|gaussiannbpredict|gca|gcd|gcf|ge|genpath|gensig|genvarname|get|getappdata|getargc|getargv|getcmdinput|getcompindex|getcompindex3d|getcomplist|getcomplist3d|getcompname|getcompname3d|getcv|getelemindex3d|getelemlist3d|getelemname3d|getenv|getfield|getfilteredcomplist|getfilteredtypelist|getfold|getframe|getgaussiankernelcv|geth3ddatatypebind|geth3ddatatypeformat|geth3ddatatypes|geth3dlayers|geth3dpools|geth3dsubcases|getlayerindex3d|getlayername3d|getlayerslist3d|getmetadata|getmousepos|getnodeindex3d|getnodelist3d|getnodename3d|getnumcomps|getnumcomps3d|getnumelems3d|getnumlayers3d|getnumnodes3d|getnumofcmdinputs|getnumreqs|getnumsubcases3d|getnumtypes|getnumtypes3d|getpid|getprofiledata|getprojectdata|getpyfitdetails|getpyfitresponses|getpyfitvariables|getpythonvar|getreqindex|getreqlist|getreqname|getstructuringelementcv|getsubcaseindex|getsubcaseindex3d|getsubcaselist|getsubcaselist3d|getsubcasename|getsubcasename3d|getsyntax|gettclarray|gettcldict|gettcllist|gettclnumdict|gettclvar|gettimesteplist|gettimesteplist3d|gettotalsubcases|gettypeindex|gettypeindex3d|gettypelist|gettypelist3d|gettypename|gettypename3d|getunitlist|getunittypelist|ginput|gmres|goodfeaturestotrackcv|gradient|gram|gray|grid|grsm|grsmoptimset|gt|guidata|hamming|hankel|hann|help|helpmodule|helptest|hex2dec|hic|hicd|hideribbonmenupage|hist|hist3|histc|histogramcv|hmse|hold|horzcat|hot|houghcirclescv|hour|hstloadpythonpackages|hstpyfit_tbox_loader|hsv|hsvd|hypot|i|icdf|ifft|ifft2|ifftn|ifftshift|imadd|imag|image|imagesc|imattributes|imfilter|imfinfo|imfinfocv|importdata|impulse|impute|imputetransform|impz|imread|imreadcv|imshow|imshowcv|imsizecv|imsubtract|imwrite|imwritecv|ind2sub|inf|inferno|inpaintcv|input|inputdlg|inputname|inrangecv|installpythonpackage|interp1|interp2|intersect|inv|invfreqs|invfreqz|ipermute|isa|isaxes|isbanded|isbatch|isbool|isbw|iscell|iscellstr|ischar|iscolumn|iscomplex|isct|isctrb|isdiag|isdir|isdt|isempty|isequal|isfield|isfigure|isfile|isfinite|isfloat|isglobal|isgray|ishandle|ishermitian|ishold|isinf|isletter|islogical|ismac|ismatrix|ismember|isnan|isnumeric|iso18571|iso6487|isobsv|isonormals|ispc|isprime|isprint|isreal|isrow|isscalar|issiso|issorted|isspace|issparse|issquare|isstable|isstr|isstruct|issymmetric|istft|istril|istriu|isunix|isvarname|isvector|j|jet|kaiser|kalman|keyboard|keywordlist|kfold|kmeansfit|kmeanspredict|kmodes_fit|kmodes_predict|knnclassifierfit|knnclassifierpredict|knnregressorfit|knnregressorpredict|kron|kronprod|kurtosis|labelbinarizer|labelbinarizertransform|labelencoder|labelencodertransform|laplaciancv|lassofit|lassopredict|lasterr|lastwarn|lcm|ldivide|ldl|le|leaveoneout|legend|length|librarymanager|line|linearfit|linearpredict|linecv|lines|linsolve|linspace|listdlg|load|log|log10|log2|logical|logisticfit|logisticpredict|loglog|logloss|logm|logncdf|lognfit|logninv|lognpdf|lognrnd|logspace|lower|lqe|lqr|lqry|ls|lsim|lsqcurvefit|lt|lu|lyap|lyapchol|mad|mae|mag2db|magma|magnitudecv|make_absolute_filename|manhattandistance|margin|mat2cell|mat2str|matexplorer|max|maxabsnormalize|maxabsnormalizetransform|maxerror|mbcrossvalue|mbindexatvalue|mbipsd|mean|meandev|meb|median|medianblurcv|memoryuse|mergecv|mesh|meshgrid|min|minkowskidistance|minmaxnormalize|minmaxnormalizetransform|minreal|minus|minute|mislocked|mkdir|mldivide|mlock|mod|mode|moga|mogaoptimset|month|morphologyexcv|movefile|movesprite|movie|movmean|mpower|mrdivide|mscohere|mse|msgbox|mtimes|multinomialnbfit|multinomialnbpredict|multiplycv|multransposedcv|munlock|nan|naneuclideandistance|nanmax|nanmean|nanmedian|nanmin|nanstd|nansum|nanvar|nargin|narginchk|nargout|nargoutchk|nchoosek|ndgrid|ndims|ne|nextpow2|nnz|norm|normalize|normalizecv|normcdf|normfit|norminv|normpdf|normrnd|not|now|null|num2cell|num2str|numel|nyquist|obsv|obsvf|ocean|ode113|ode15i|ode15s|ode45|odeset|olsfit|olspredict|omlfilename|omllinenumber|omlpaginate|one_hot_decode|one_hot_encode|ones|openfig|optimset|or|orth|outputlog|p_add|p_assign|p_bitand|p_case|p_catch|p_cellarray|p_cellvalue|p_colon|p_conditional|p_ctranspose|p_definefunction|p_divide|p_else|p_elseif|p_entrydivide|p_entryleftdivide|p_entrypow|p_equal|p_forloop|p_func|p_global|p_greaterequal|p_greaterthan|p_handle|p_if|p_leftdivide|p_lessequal|p_lessthan|p_logand|p_logor|p_matrix|p_multassign|p_multiply|p_negate|p_notequal|p_or|p_otherwise|p_persistent|p_pow|p_range|p_registerfunction|p_return|p_statement|p_string|p_struct|p_subtract|p_switch|p_transpose|p_try|p_trycatch|p_uminus|p_vector|p_whileloop|padecoef|parallel|parcluster|parzenwin|pastestyle|patch|path|pathsep|pause|pcafit|pcatransform|pcg|pcolor|pdf|perceptronfit|perceptronpredict|permute|pi|pid|pink|pinv|place|plasma|plot|plot3|plotyy|plus|poisscdf|poissfit|poissinv|poisspdf|poissrnd|pol2cart|polar|pole|poly|polyder|polyfeatures|polyfeaturestransform|polyfit|polyint|polyline|polyval|pow2|power|ppplot|precision|prescale|primes|print_apriori|print_assoc|printf|prism|prod|profile|pulley|pulstran|putenv|puttextcv|pwd|pwelch|pyrdowncv|pyrupcv|qqplot|qr|quad|quadv|quantile|quarter|questdlg|quit|quiver|r2|rad2deg|rainbow|rainflow|rand|randn|random|randperm|rank|rat|rcond|rdivide|readcae|readcae3d|readfiletoc|readhdf5|readhdf5attributes|readhdf5toc|readmultvectors|readtable|readunits|readvector|readvectorbuilder|real|realmax|realmin|recall|rectangle|rectanglecv|rectpuls|refcnt|reg|regexp|regexprep|registerlibrary|registeromlpythonbridgeext|registerpath|regress|rehash|releasedata|releasefileinfo|releasefileinfo3d|rem|removehdf5attribute|removehdf5dataset|removehdf5group|removelibrary|removemenuitem|removepopupmenu|removeribbonmenu|removeribbonmenuchildbutton|removeribbonpage|removespriteaction|removespriteactiongroup|rename|renamehdf5attribute|renamehdf5dataset|renamehdf5group|replaceribbonmenupage|repmat|resample|reshape|resizecv|restoredefaultpath|rfcfit|rfcpredict|rfrfit|rfrpredict|ridgefit|ridgepredict|rlocus|rmdir|rmfield|rmhiddenpath|rmhiddenpathroot|rmpath|rms|rmse|roots|rot90|rotatecv|round|rsf2csf|rss|run|run2|run_internal|saefilt95|saefilter|saturatecastcv|save|saveas|savefig|savepath|sawtooth|scatter|scatter3|schur|sec|secd|second|semilogx|semilogy|series|set|setaltairbatch|setaltairfolder|setappdata|setdiff|setenv|setfield|seth3dcompression|setmenuaccel|setmsolveapi|setxor|shiftdim|showspriteaction|sign|sin|sinc|sind|single|sinh|size|skewness|skipformat|sleep|sobelcv|sort|sort_poles|sortrows|sparse|spectrogram|speye|sph2cart|spline|splitcv|splitdata|spones|spring|sprintf|sqrt|sqrtm|square|squaredeuclideandistance|squeeze|ss|ss2ss|ss2tf|ss2tfc|sscanf|ssdata|stairs|standardize|standardizetransform|startupscript_edit|startupscript_path|std|stderr|stdin|stdout|stem|stem3|step|stft|str2double|str2func|str2mat|str2num|stratifiedkfold|strcat|strcmp|strcmpi|strfind|strip|strjoin|strncmp|strncmpi|strrep|strsplit|strtok|strtrim|struct|struct2cell|structfun|strvcat|sub2ind|subcaseh3discomplex|subcaseh3dnumberofsims|subcaseh3dsimsnames|subcaseh3dsteps|subplot|subsasgn|subsref|subtractcv|sum|summer|suppresspythoncmdwindow|surf|svcfit|svcpredict|svd|svrfit|svrpredict|system|table|table2array|table2cell|tan|tand|tangent|tanh|tcdf|templatematchcv|text|textread|textscan|tf|tf2ss|tf2ssc|tf2zp|tf2zpk|tfdata|tfestimate|thresholdcv|tic|time|times|tinv|title|toascii|toc|toeplitz|tolower|toupper|tpdf|trace|transpose|trapz|treatasbuiltin|tril|trimesh|triplot|tripuls|trisurf|triu|trnd|true|ttest|ttest2|twilight|type|uibuttongroup|uicontextmenu|uicontextmenuitem|uicontrol|uidesigner|uigetdir|uigetfile|uimenu|uimenuitem|uipanel|uipushtool|uiputfile|uiresume|uisearchbox|uispinbox|uitab|uitabgroup|uitable|uitoolbar|uitree|uitreenode|uiwait|uminus|undock|unifcdf|unifinv|unifit|unifpdf|unifrnd|union|unique|unix|unloadextension|unwrap|unzip|uplus|upper|upsample|var|varlist|vartest|vartest2|vec2mat|verbose|version|vertcat|view|viridis|waitbar|waitforbuttonpress|warndlg|warning|warningmsgonly|waterfall|wblcdf|wblfit|wblinv|wblpdf|wblrnd|weekday|welchwin|which|white|who|whos|winch|winter|writeh3ddata|writehdf5attribute|writehdf5dataset|writepfile|writersp|writetable|xcorr|xlabel|xlim|xline|xlsclose|xlsfinfo|xlsopen|xlsread|xlswrite|year|ylabel|ylim|yline|zeros|zip|zlabel|zlim|zp2ss|zp2tf|zpk|zpkdata|ztest)\\b",
+					"name": "entity.name.function.oml"
+				}
+			]
+		},
+		"operators": {
+			"patterns": [
+				{
+					"match": "\\s*(?:<|<=|=|==|>=|>|~=)\\s*",
+					"name": "keyword.operator.relation.oml"
+				},
+				{
+					"match": "\\s*(?:\\+|-|\\*|/|\\\\|\\^)\\s*",
+					"name": "keyword.operator.arithmetic.oml"
+				},
+				{
+					"match": "\\s*(?:\\|\\||&&)\\s*",
+					"name": "keyword.operator.boolean.oml"
+				},
+				{
+					"match": "(?:\\.\\.\\.|\\=|:|\\~|@)",
+					"name": "keyword.other.oml"
+				}
+			]
+		},
+		"number": {
+			"patterns": [
+				{
+				 "comment": "hexa, octal, decimal, double, scientific and complex numbers",
+				 "match": "((\\b0x[0-9a-fA-F]+\\b)|(\\b0o[0-7]+\\b)|((\\b[0-9]+\\.?[0-9]*)|(\\.[0-9]+))([eE][+-]?[0-9]+)?([ij])?)",
+				 "name": "constant.numeric.oml"
+				}
+			]
+		},
+		"transpose": {
+            "match": "(\\]|\\))((?:\\.)?'*)",
+            "name": "keyword.operator.transpose.oml"
+        },
+		"strings": {
+			"patterns": [{
+				"begin": "'",
+				"beginCaptures": {
+					"0": {
+					"name": "punctuation.definition.string.begin.oml"
+					}
+				},
+				"end": "'(?!')",
+				"endCaptures": {
+					"0": {
+					"name": "punctuation.definition.string.end.oml"
+					}
+				},
+				"name": "string.quoted.single.oml",
+				"patterns": [{
+					"match": "\\\\.",
+					"name": "constant.character.escape.oml"
+				}]
+			}]
+		},
+		"comment": {
+			"patterns": [
+			  {
+				"include": "#comment_block"
+			  },
+			  {
+				"begin": "%",
+				"beginCaptures": {
+				  "0": {
+					"name": "punctuation.definition.comment.oml"
+				  }
+				},
+				"end": "\\n",
+				"name": "comment.line.percentage.oml"
+			  }
+			]
+		  },
+		  "comment_block": {
+			"patterns": [
+			  {
+				"begin": "%{",
+				"beginCaptures": {
+				  "0": {
+					"name": "punctuation.definition.comment.begin.oml"
+				  }
+				},
+				"end": "%}",
+				"endCaptures": {
+				  "0": {
+					"name": "punctuation.definition.comment.end.oml"
+				  }
+				},
+				"name": "comment.block.percentage.oml",
+				"patterns": [
+				  {
+					"include": "#comment_block"
+				  }
+				]
+			  }
+			]
+		}
+	},
+	"scopeName": "source.oml"
+}

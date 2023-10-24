@@ -1802,6 +1802,154 @@ hwMathStatus Median(const hwMatrix& A, hwMatrix& median)
     return status;
 }
 //------------------------------------------------------------------------------
+// Compute the quantiles of the columns of a sorted real matrix
+//------------------------------------------------------------------------------
+hwMathStatus Quantile(const hwMatrix& A,
+                      const hwMatrix& P,
+                      int             method,
+                      hwMatrix&       Q)
+{
+    if (!A.IsReal())
+    {
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 1);
+    }
+
+    if (!P.IsEmptyOrVector())
+    {
+        return hwMathStatus(HW_MATH_ERR_VECTOR, 2);
+    }
+
+    if (!P.IsReal())
+    {
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 2);
+    }
+
+    if (method < 1 || method > 9)
+        return hwMathStatus(HW_MATH_ERR_INVALIDINDEX, 3);
+
+    int n = A.M();
+    int numCols = A.N();
+    hwMathStatus status;
+
+    status = Q.Dimension(P.Size(), numCols, hwMatrix::REAL);
+
+    if (!status.IsOk())
+    {
+        status.SetArg1(4);
+        return status;
+    }
+
+    for (int i = 0; i < P.Size(); ++i)
+    {
+        if (P(i) == 0.0)
+        {
+            for (int k = 0; k < numCols; ++k)
+                Q(i, k) = A(0, k);
+
+            continue;
+        }
+        else if (P(i) == 1.0)
+        {
+            for (int k = 0; k < numCols; ++k)
+            {
+                int nanCount = 0;
+
+                for (int j = n - 1; j > -1; --j)
+                {
+                    if (IsNaN_T(A(j, k)))
+                        ++nanCount;
+                    else
+                        break;
+                }
+
+                Q(i, k) = A(n - 1 - nanCount, k);
+            }
+
+            continue;
+        }
+        else if (P(i) < 0.0 || P(i) > 1.0)
+        {
+            return status(HW_MATH_ERR_INVALIDPROB, 2);
+        }
+
+        double m;
+
+        switch (method)
+        {
+        case 1:
+            m = 0.0;
+            break;
+        case 2:
+            m = 0.0;
+            break;
+        case 3:
+            m = -0.5;
+            break;
+        case 4:
+            m = 0.0;
+            break;
+        case 5:
+            m = 0.5;
+            break;
+        case 6:
+            m = P(i);
+            break;
+        case 7:
+            m = 1.0 - P(i);
+            break;
+        case 8:
+            m = (P(i) + 1.0) / 3.0;
+            break;
+        case 9:
+            m = P(i) / 4.0 + 3.0 / 8.0;
+            break;
+        }
+
+        for (int k = 0; k < numCols; ++k)
+        {
+            int nanCount = 0;
+
+            for (int j = n - 1; j > -1; --j)
+            {
+                if (IsNaN_T(A(j, k)))
+                    ++nanCount;
+                else
+                    break;
+            }
+
+            double alpha = P(i) * (n - nanCount) + m;
+            double g = alpha - floor(alpha);
+            int j = static_cast<int>(alpha) - 1;
+            double gamma;
+
+            switch (method)
+            {
+            case 1:
+                gamma = (g == 0.0) ? 0.0 : 1.0;
+                break;
+            case 2:
+                gamma = (g == 0.0) ? 0.5 : 1.0;
+                break;
+            case 3:
+                gamma = (g == 0.0 && j % 2 == 1) ? 0.0 : 1.0;
+                break;
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+                gamma = g;
+                break;
+            }
+
+            Q(i, k) = (1.0 - gamma) * A(j, k) + gamma * A(j + 1, k);
+        }
+    }
+
+    return hwMathStatus();
+}
+//------------------------------------------------------------------------------
 // Compute the average absolute deviation of a data vector
 //------------------------------------------------------------------------------
 hwMathStatus AvgDev(const hwMatrix& data, double& avgDev)

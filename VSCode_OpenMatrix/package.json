@@ -1,0 +1,162 @@
+{
+  "name": "ComposeOMLOpenMatrixLanguage",
+  "displayName": "Compose OML - OpenMatrix Language",
+  "description": "OML Programming Language",
+  "version": "0.0.1",
+  "author": "Altair Engineering, Inc.",
+  "license": "MIT License",
+  "publisher": "AltairEngineering",
+  "icon": "images/iconCompose-128.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenMatrixLanguage/OpenMatrix/tree/master/VSCode_OpenMatrix"
+  },
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "keywords": [
+    "OML",
+    "OML language"
+  ],
+  "activationEvents": [
+    "onLanguage: oml"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "oml",
+        "aliases": [
+          "OML",
+          "oml"
+        ],
+        "extensions": [
+          ".oml"
+        ],
+        "icon": {
+          "light": "./images/iconCompose-16.png",
+          "dark": "./images/iconCompose-16.png"
+        },
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "oml",
+        "scopeName": "source.oml",
+        "path": "./syntaxes/oml.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "oml.Run",
+        "title": "OML: Run Source",
+        "icon": "$(run)"
+      },
+      {
+        "command": "oml.Stop",
+        "title": "OML: Stop Execution ",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "oml.newFileDocument",
+        "title": "OML: New Document",
+        "shortTitle": "OML File"
+      }
+    ],
+    "menus": {
+      "editor/title/run": [
+        {
+          "command": "oml.Run",
+          "when": "editorLangId == oml"
+        }
+      ],
+      "editor/context": [
+        {
+            "command": "oml.Run",
+            "when": "editorLangId == oml"
+        },
+        {
+            "command": "oml.Stop",
+            "when": "editorLangId == oml"
+        }
+    ],
+      "file/newFile": [
+        {
+          "command": "oml.newFileDocument",
+          "group": "OML"
+        }
+      ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "OML",
+      "properties": {
+        "OML.OML_EXE": {
+          "type": "string",
+          "default": "C:\\Program Files\\Altair\\2023\\Compose2023\\hwx\\bin\\win64\\Compose.exe",
+          "description": "Path to OML executable"
+        },
+        "OML.OML_INTEL_COMP": {
+          "type": "string",
+          "default": "/intel/compilers_and_libraries_2019.5.281/windows/redist/intel64_win/compiler",
+          "description": "Path to intel compiler"
+        },
+        "OML.OML_INTEL_MKL": {
+          "type": "string",
+          "default": "/intel/compilers_and_libraries_2019.5.281/windows/redist/intel64_win/mkl",
+          "description": "Path to mkl compiler"
+        },
+        "OML.OML_FFTW": {
+          "type": "string",
+          "default": "/fftw/fftw-3.2.2/fftw-3.2.2-libs/x64/Release",
+          "description": "Path to fftw executable"
+        },
+        "OML.OML_MATIO": {
+          "type": "string",
+          "default": "/matio/matio-1.5.19/win64/bin",
+          "description": "Path to matio executable"
+        },
+        "OML.OML_HDF": {
+          "type": "string",
+          "default": "/hdf/hdf5-1.12.0/win64/bin",
+          "description": "Path to hdf5 executable"
+        },
+        "OML.OML_QHULL": {
+          "type": "string",
+          "default": "/qhull/qhull-2015.2/bin",
+          "description": "Path to qhull executable"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.0.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "16.x",
+    "@types/vscode": "^1.74.0",
+    "@types/winreg": "^1.2.31",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "@vscode/test-electron": "^2.2.0",
+    "eslint": "^8.28.0",
+    "glob": "^8.0.3",
+    "mocha": "^10.1.0",
+    "typescript": "^4.9.3"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^8.0.2",
+    "winreg": "^1.2.4"
+  }
+}

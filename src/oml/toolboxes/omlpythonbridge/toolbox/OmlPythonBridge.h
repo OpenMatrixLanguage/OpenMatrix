@@ -43,13 +43,13 @@ public:
     //! \param name is name of python variable
     //! \param value is value to be set to Python variable
     //! \return true if setting value to Python variable value did not produce errors, false otherwise
-    bool SetPythonVariable(const std::string& name, const Currency& value);
+    bool SetPythonVariable(const std::string& name, const Currency& value, EvaluatorInterface& eval);
 
     //! Retrieve Python variable value from __main__ scope
     //! \param name is name of python variable value to be retrieve
     //! \param outputs is value of Python variable
     //! \return true if retrieve Python variable value did not produce errors, false otherwise
-    bool GetPythonVariable(const std::string& name, std::vector<Currency>& outputs);
+    bool GetPythonVariable(const std::string& name, std::vector<Currency>& outputs, EvaluatorInterface& eval);
 
     std::string GetLastErrorMessage();
     void SetLastErrorMessage(std::string error);

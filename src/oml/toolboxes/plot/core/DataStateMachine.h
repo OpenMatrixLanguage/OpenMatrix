@@ -56,6 +56,8 @@ public:
     std::vector<LineData> getQuiverData(const std::vector<Currency>& inputs);
     std::vector<LineData> getBar3Data(const std::vector<Currency>& inputs);
     std::vector<LineData> getHist3Data(const std::vector<Currency>& inputs, std::vector<Currency>& hist3dData);
+    std::vector<LineData> getTriplotData(const std::vector<Currency>& inputs);
+    std::vector<LineData> getTrisurfData(const std::vector<Currency>& inputs);
 
 private:
     enum State { START, GET_X, GET_Y, GET_Z, // general state

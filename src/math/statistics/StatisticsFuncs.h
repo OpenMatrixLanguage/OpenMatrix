@@ -160,6 +160,17 @@ STATISTICS_DECLS hwMathStatus Median(const hwMatrix& data,
 STATISTICS_DECLS hwMathStatus Median(const hwMatrix& A,
                                      hwMatrix&       median);
 //!
+//! Compute the quantiles of the columns of a real matrix
+//! \param A        Input
+//! \param P        Probabilities for the quantiles
+//! \param method   The interpolation method
+//! \param Q        Quantiles of the columns of A
+//!
+STATISTICS_DECLS hwMathStatus Quantile(const hwMatrix& A,
+                                       const hwMatrix& P,
+                                       int             method,
+                                       hwMatrix&       Q);
+//!
 //! Compute the average absolute deviation of a data vector
 //! \param data   Input
 //! \param avgDev Average absolute deviation

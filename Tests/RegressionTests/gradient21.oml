@@ -1,0 +1,7 @@
+function obj = Func(x,y)
+    obj = 2*(x-3).^2 - 5*(x-3).*(y-2) + 4*(y-2).^2 + 6;
+end
+
+points = [2,5;3,6;4,7];
+handle = @(x,y) Func(x,y);
+[dx,dy] = gradient(handle, points, 0.1, 0.2)

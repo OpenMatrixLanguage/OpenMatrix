@@ -121,11 +121,11 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(OML_ROOT)/src/oml;$(OML_ROOT)/src/oml/runtime;$(OML_ROOT)/src/math/kernel;$(OML_ROOT)/src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OML_ROOT)/src/oml;$(OML_ROOT)/src/oml/Server;$(OML_ROOT)/src/oml/runtime;$(OML_ROOT)/src/math/kernel;$(OML_ROOT)/src</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32; OS_WIN; _WIN64; _empty=NULL</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>oml.lib; mathcore.lib; antlr3c.lib; </AdditionalDependencies>
+      <AdditionalDependencies>oml.lib; mathcore.lib; antlr3c.lib; omlserver.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)/x64/$(Configuration);$(OML_THIRDPARTY)/ANTLR/libantlr3c-3.4/x64/release</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -133,18 +133,12 @@
     <ClCompile Include="$(OML_ROOT)\src\oml\console\BetterCalc.cpp" />
     <ClCompile Include="$(OML_ROOT)\src\oml\console\BetterCalcFuncs.cpp" />
     <ClCompile Include="$(OML_ROOT)\src\oml\console\ConsoleWrapper.cpp" />
-    <ClCompile Include="$(OML_ROOT)\src\oml\console\OmlServer.cpp" />
-    <ClCompile Include="$(OML_ROOT)\src\oml\console\ServerWrapper.cpp" />
     <ClCompile Include="$(OML_ROOT)\src\oml\console\SignalHandler.cpp" />
-    <ClCompile Include="$(OML_ROOT)\src\oml\console\WrapperBase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(OML_ROOT)\src\oml\console\BetterCalc.h" />
     <ClInclude Include="$(OML_ROOT)\src\oml\console\ConsoleWrapper.h" />
-    <ClInclude Include="$(OML_ROOT)\src\oml\console\OmlServer.h" />
-    <ClInclude Include="$(OML_ROOT)\src\oml\console\ServerWrapper.h" />
     <ClInclude Include="$(OML_ROOT)\src\oml\console\SignalHandler.h" />
-    <ClInclude Include="$(OML_ROOT)\src\oml\console\WrapperBase.h" />
     <ClInclude Include="$(OML_ROOT)\src\oml\Console\OpenMatrix_Version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

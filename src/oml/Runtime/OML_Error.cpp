@@ -65,6 +65,7 @@
 #define OML_MSG_POSINTEGER    "Error: invalid input; must be positive integer"
 #define OML_MSG_FINITE        "Error: invalid value; must be finite"
 #define OML_MSG_VECLENDIM     "Error: invalid vector length in specified dimension"
+#define OML_MSG_ARGDIMENSIONS "Error: incompatible argument dimensions"
 #define OML_MSG_ARRAYSIZE     "Error: incompatible matrices; dimensions must be consistent"
 #define OML_MSG_ARRAYCATDIM   "Error: incompatible array sizes; non-concatenated dimensions must match"
 #define OML_MSG_CELLSIZE      "Error: incompatible cell sizes; must match"
@@ -299,6 +300,14 @@
 #define OML_MSG_WINDOWSONLY_OP                   "Error: invalid operation; operation is only valid on Windows"
 #define OML_MSG_FILEALREADYOPEN_OP               "Error: invalid operation; file is already open in other application(s)"
 #define OML_MSG_OMLINTERFACE_OP                  "Error: invalid operation; cannot complete operation with 'oml'(default) interface"
+
+#define OML_MSG_MQTT_INVALID_OPTION              "Error: invalid option"
+#define OML_MSG_MQTT_CLIENTID_INUSE              "Error: client id is in use"
+#define OML_MSG_MQTT_CLIENTID_INVALID            "Error: no client exists with given client id"
+#define OML_MSG_MQTT_CLIENTCREATION_FAIL         "Error: failed to create client"
+#define OML_MSG_MQTT_CLIENTID_SIZE               "Error: invalid client id; client id length must be less than 24"
+#define OML_MSG_MQTT_MIN_IDLETIME                "Error: invalid idle time; idle time must be at least 0.001 seconds"
+
 
 // Variable type definitions
 #define OML_STR_MATRIX          "matrix"
@@ -586,6 +595,7 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode code) const
         case OML_ERR_POSINTEGER:                  return OML_MSG_POSINTEGER;
         case OML_ERR_FINITE:                      return OML_MSG_FINITE;
         case OML_ERR_VECLENDIM:                   return OML_MSG_VECLENDIM;
+        case OML_ERR_ARGDIMENSIONS:               return OML_MSG_ARGDIMENSIONS;
         case OML_ERR_ARRAYSIZE:                   return OML_MSG_ARRAYSIZE;
         case OML_ERR_ARRAYCATDIM:                 return OML_MSG_ARRAYCATDIM;
         case OML_ERR_CELLSIZE:                    return OML_MSG_CELLSIZE;
@@ -815,6 +825,13 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode code) const
         case OML_ERR_WINDOWSONLY_OP:     return OML_MSG_WINDOWSONLY_OP;
         case OML_ERR_FILEALREADYOPEN_OP: return OML_MSG_FILEALREADYOPEN_OP;
         case OML_ERR_OMLINTERFACE_OP:    return OML_MSG_OMLINTERFACE_OP;
+
+        case OML_ERR_MQTT_INVALID_OPTION:             return OML_MSG_MQTT_INVALID_OPTION;
+        case OML_ERR_MQTT_CLIENTID_INUSE:             return OML_MSG_MQTT_CLIENTID_INUSE;
+        case OML_ERR_MQTT_CLIENTID_INVALID:           return OML_MSG_MQTT_CLIENTID_INVALID;
+        case OML_ERR_MQTT_CLIENTCREATION_FAIL:        return OML_MSG_MQTT_CLIENTCREATION_FAIL;
+        case OML_ERR_MQTT_CLIENTID_SIZE:              return OML_MSG_MQTT_CLIENTID_SIZE;
+        case OML_ERR_MQTT_MIN_IDLETIME:               return OML_MSG_MQTT_MIN_IDLETIME;
 
         default: break;
     }

@@ -618,11 +618,11 @@ public:
     // ****************************************************
     //                   COW Support
     // ****************************************************
-    void IncrRefCount() { m_refCount++; }
-    void DecrRefCount() { m_refCount--; }
-    void ResetRefCount() { m_refCount = 1; }
-    unsigned int GetRefCount() const { return m_refCount; }
-    bool IsMatrixShared() const { return m_refCount != 1; }
+    void IncrRefCount();
+    void DecrRefCount();
+    void ResetRefCount();
+    unsigned int GetRefCount() const;
+    bool IsMatrixShared() const;
      
 	std::mutex mutex;
 

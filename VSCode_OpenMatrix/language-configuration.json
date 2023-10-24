@@ -1,0 +1,36 @@
+{
+    "comments": {
+        "lineComment": "%",
+        "blockComment": [ "%{", "%}" ]
+    },
+    "brackets": [
+        ["{", "}"],
+        ["[", "]"],
+        ["(", ")"]
+    ],
+    "autoClosingPairs": [
+        ["{", "}"],
+        ["[", "]"],
+        ["(", ")"],
+        //["%{", "%}"] TODO::
+       // ["\"", "\""], not supported
+       // ["'", "'"] interferes with transpose
+    ],
+    "surroundingPairs": [
+        ["{", "}"],
+        ["[", "]"],
+        ["(", ")"],
+        ["\"", "\""],
+        ["'", "'"]
+    ],
+    "folding": {
+		"markers": {
+			"start": "^\\s*%%|^\\s*%\\s*region",
+			"end": "^\\s*%%|^\\s*%\\s*end\\s?region"
+		}
+	},
+	"indentationRules": {
+		"increaseIndentPattern": "^\\s*\\b(function|if|else|elseif|switch|case|otherwise|for|parfor|while|try|catch|properties|methods)\\b",
+		"decreaseIndentPattern": "^\\s*\\b(end\\w*|catch|else|elseif|case|otherwise)\\b"
+	}
+}

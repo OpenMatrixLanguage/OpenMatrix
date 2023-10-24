@@ -1084,7 +1084,46 @@ Currency& MemoryScopeManager::GetMutableValue(const std::string* var_ptr)
 
 Currency* MemoryScopeManager::GetMutablePointer(const std::string* var_ptr)
 {
-	return GetCurrentScope()->GetMutablePointer(var_ptr);
+	Currency* temp_cur = NULL;
+	MemoryScope* scope = GetCurrentScope();
+
+	if (scope->Contains(var_ptr))
+	{
+		temp_cur = scope->GetMutablePointer(var_ptr);
+	}
+	else if (scope->IsNested())
+	{
+		// if we didn't find it, and the scope is nested, look
+		// in the parent's scope as well (and repeat until
+		// we hit a non-nested scope.  The -2/-1 are because we
+		// already checked the "current" scope and didn't find it.
+		size_t stack_size = memory_stack.size();
+		bool   found_it   = false;
+
+		for (int j = 0; j < stack_size - 1; j++)
+		{
+			int index = (int)stack_size - 2 - j;
+
+			MemoryScope* local = memory_stack[index];
+
+			if (local->Contains(var_ptr))
+			{
+				SetValue(var_ptr, local->GetValue(var_ptr));
+				found_it = true;
+			}
+
+			if (found_it)
+				break;
+
+			if (!local->IsNested())
+				break;
+		}
+	}
+
+	if (!temp_cur)
+		temp_cur = scope->GetMutablePointer(var_ptr);
+
+	return temp_cur;
 }
 
 Currency& MemoryScopeManager::GetMutableParentValue(const std::string& varname)

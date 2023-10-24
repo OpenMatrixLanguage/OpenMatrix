@@ -1,7 +1,7 @@
 /**
 * @file OmlPythonBridgeCore.cxx
 * @date February, 2015
-* Copyright (C) 2015-2021 Altair Engineering, Inc.
+* Copyright (C) 2015-2023 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -28,7 +28,9 @@
 #include "hwMatrix_NMKL.h"
 #include "hwMatrixS_NMKL.h"
 #include "hwMatrixN_NMKL.h"
+#include "OML_Error.h"
 
+#include <random>
 // End defines/includes
 
 OmlPythonBridgeCore* OmlPythonBridgeCore::_instance = nullptr;
@@ -49,7 +51,7 @@ void OmlPythonBridgeCore::ReleaseInstance()
 }
 
 //! Constructor
-OmlPythonBridgeCore::OmlPythonBridgeCore() : m_errorMessagePython("")
+OmlPythonBridgeCore::OmlPythonBridgeCore() : m_errorMessagePython(""), m_extlist(EvaluatorInterface::allocateCellArray())
 {
 }
 
@@ -68,7 +70,83 @@ std::string OmlPythonBridgeCore::GetErrorMessage()
     return m_errorMessagePython;
 }
 
-bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Currency& var)
+void OmlPythonBridgeCore::RegisterOmlPythonBridgeExt(EvaluatorInterface& eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (0 != (nargin % 2))
+        throw OML_Error("Wrong number of arguments.");
+
+    if (!nargin)
+    {
+        outputs.push_back(m_extlist);
+    }
+    else
+    {
+        for (size_t index = 0; index < nargin; index++)
+            if (!inputs[0].IsString())
+                throw OML_Error("Input arguments must be strings.");
+
+        HML_CELLARRAY* cell = m_extlist.CellArray();        
+
+        for (size_t index = 0; index < nargin;)
+        {
+            std::string val = inputs[index].StringVal();
+            if ("add" == val  || "append" == val)
+            {
+                int new_size = cell->N() + 1;
+                if (1 == new_size)
+                {
+                    cell = EvaluatorInterface::allocateCellArray(1, new_size);
+                    m_extlist = cell;
+                }                 
+                else
+                {
+                    cell->Resize(1, new_size);
+                }
+                (*cell)(new_size - 1) = inputs[index + 1].StringVal();
+            }
+            else if ("prepend" == val)
+            {
+                int new_size = cell->N() + 1;
+                if (1 == new_size)
+                {
+                    cell = EvaluatorInterface::allocateCellArray(1, new_size);
+                    m_extlist = cell;
+                }
+                else
+                {
+                    cell->Resize(1, new_size);
+                }
+                
+                for (int cellind = new_size; cellind > 1; cellind--)
+                {
+                    (*cell)(cellind - 1) = (*cell)(cellind - 2);
+                }
+                (*cell)(0) = inputs[index + 1];
+            }
+            else if ("remove" == val)
+            {
+                int size = cell->N();
+                for (int cellind = 0; cellind < size; cellind++)
+                {
+                    if (((*cell)(cellind)).StringVal() == inputs[index+1].StringVal())
+                    {
+                        for (int curcellind = cellind; curcellind < size - 1; curcellind++)
+                        {
+                            (*cell)(curcellind) = (*cell)(curcellind + 1);
+                        }
+                        cell->Resize(1, size - 1);
+                        break;
+                    }
+                }
+            }
+            index = index + 2;
+        }
+    }
+}
+
+bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Currency& var, EvaluatorInterface& eval)
 {
     
     if (var.IsScalar())
@@ -147,7 +225,7 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
                 {
                     const Currency& val = data->GetValue(0, 0, it->first);
                     PyObject* value_obj = nullptr;
-                    status = ConvertCurrencyToPyObject(value_obj, val);
+                    status = ConvertCurrencyToPyObject(value_obj, val, eval);
 
                     if (!status)
                     {
@@ -191,7 +269,7 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
                 {
                     PyObject* valueObj = nullptr;
                     const Currency& val = (*cell)(0, index);
-                    status = ConvertCurrencyToPyObject(valueObj, val);
+                    status = ConvertCurrencyToPyObject(valueObj, val, eval);
 
                     if (!status)
                     {
@@ -259,7 +337,7 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
                         {
                             PyObject* valueObj = nullptr;
                             const Currency& val = (*cell)(m_index, n_index);
-                            status = ConvertCurrencyToPyObject(valueObj, val);
+                            status = ConvertCurrencyToPyObject(valueObj, val, eval);
 
                             if (!status)
                             {
@@ -345,9 +423,55 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
     {
             obj = ConvertSparseToPyObject(var.MatrixS());
     }
-    else if (var.IsBoundObject())
+    else
     {
-        //ToDo:implement when in need
+        std::string classname(OMLPYBRIDGE_EXT_CLASS_NAME);
+        std::string funcname("ExportToPythonExt");
+        if (OmlPythonBridgeCore::GetInstance()->IsExist(eval, classname, funcname))
+        {
+            try
+            {
+                std::vector<Currency> temp_inputs;
+                Currency cls_obj = eval.CallFunction(classname, temp_inputs);
+                temp_inputs.push_back(cls_obj);
+                temp_inputs.push_back(var);
+                Currency result = eval.CallFunction(funcname, temp_inputs);
+                if (result.IsCellArray())
+                {
+                    const HML_CELLARRAY* cell = result.CellArray();
+                    if (1 == cell->M() && 2 == cell->N() && (*cell)(0, 0).IsScalar() && ((*cell)(0, 1)).IsString() && !(((*cell)(0, 1)).StringVal()).empty())
+                    {
+                        if (1 == static_cast<int>((*cell)(0, 0).Scalar()))
+                        {
+                            PyObject* main = PyImport_AddModule("__main__");
+                            PyObject* globals = PyModule_GetDict(main);
+                            if (globals)
+                            {
+                                if (PyDict_Check(globals))
+                                {
+                                    PyObject* key = PyString_FromString((*cell)(0, 1).StringVal().c_str());
+                                    if (1 == PyDict_Contains(globals, key))
+                                    {
+                                        obj = PyDict_GetItem(globals, key);
+                                        Py_INCREF(obj);
+                                        PyDict_DelItem(globals, key);
+                                    }
+                                    Py_XDECREF(key);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (...)
+            {
+                //Do nothing
+            }
+        }
+        else
+        {
+            //Do nothing
+        }
     }
     
     return (nullptr != obj) ? (true) : (false);
@@ -447,7 +571,7 @@ PyObject* OmlPythonBridgeCore::ConvertSparseToPyObject(const hwMatrixS* spm)
     return obj;
 }
 
-hwMatrixS* OmlPythonBridgeCore::ConvertPyObjectToSparse(PyObject* const& obj, bool& status)
+hwMatrixS* OmlPythonBridgeCore::ConvertPyObjectToSparse(PyObject* const& obj, bool& status, EvaluatorInterface& eval)
 {
     status = false;
     std::string indptr_attr  = "indptr";
@@ -462,7 +586,7 @@ hwMatrixS* OmlPythonBridgeCore::ConvertPyObjectToSparse(PyObject* const& obj, bo
     {
         PyObject* shape_ptr = PyObject_GetAttrString(obj, shape_attr.c_str());
         std::vector<Currency> out;
-        ConvertPyObjectToCurrency(out, shape_ptr);
+        ConvertPyObjectToCurrency(out, shape_ptr, eval);
         Py_XDECREF(shape_ptr);
         Currency shape = out.back();
         out.pop_back();
@@ -475,15 +599,15 @@ hwMatrixS* OmlPythonBridgeCore::ConvertPyObjectToSparse(PyObject* const& obj, bo
             PyObject* indices_ptr = PyObject_GetAttrString(obj, indices_attr.c_str());
             PyObject* data_ptr    = PyObject_GetAttrString(obj, data_attr.c_str());
 
-            ConvertPyObjectToCurrency(out, indptr_ptr);
+            ConvertPyObjectToCurrency(out, indptr_ptr, eval);
             Currency ind = out.back();
             out.pop_back();
 
-            ConvertPyObjectToCurrency(out, indices_ptr);
+            ConvertPyObjectToCurrency(out, indices_ptr, eval);
             Currency indices = out.back();
             out.pop_back();
 
-            ConvertPyObjectToCurrency(out, data_ptr);
+            ConvertPyObjectToCurrency(out, data_ptr, eval);
             Currency data = out.back();
             out.pop_back();
             
@@ -494,12 +618,12 @@ hwMatrixS* OmlPythonBridgeCore::ConvertPyObjectToSparse(PyObject* const& obj, bo
             std::vector<Currency> row;
             std::vector<Currency> col;
             PyObject* value = PyTuple_GetItem(shape_ptr, 0);
-            status = ConvertPyObjectToCurrency(row, value);
+            status = ConvertPyObjectToCurrency(row, value, eval);
             
             if (status)
             {
                 value = PyTuple_GetItem(shape_ptr, 1);
-                status = ConvertPyObjectToCurrency(col, value);
+                status = ConvertPyObjectToCurrency(col, value, eval);
 
                 if (status)
                 {
@@ -555,13 +679,13 @@ hwMatrixS* OmlPythonBridgeCore::ConvertPyObjectToSparse(PyObject* const& obj, bo
     return new hwMatrixS();;
 }
 
-bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outputs, PyObject* const& obj)
+bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outputs, PyObject* const& obj, EvaluatorInterface& eval)
 {
     bool success = true;
 
     if (IsSparseCsc(obj))
     {
-        hwMatrixS* sparse_mat = ConvertPyObjectToSparse(obj, success);
+        hwMatrixS* sparse_mat = ConvertPyObjectToSparse(obj, success, eval);
         if (success)
         {
             outputs.push_back(sparse_mat);
@@ -587,7 +711,7 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
                 PyObject* key = PyList_GetItem(keys, index);
                 std::vector<Currency> field;
                 std::vector<Currency> value;
-                status = ConvertPyObjectToCurrency(field, key);
+                status = ConvertPyObjectToCurrency(field, key, eval);
 
                 if (!status)
                 {
@@ -596,7 +720,7 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
                 }
 
                 PyObject* value_obj = PyDict_GetItem(obj, key);
-                status = ConvertPyObjectToCurrency(value, value_obj);
+                status = ConvertPyObjectToCurrency(value, value_obj, eval);
 
                 if (!status)
                 {
@@ -643,7 +767,7 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
         {
             std::vector<Currency> elements;
             PyObject* value = PyList_GetItem(obj, index);
-            status = ConvertPyObjectToCurrency(elements, value);
+            status = ConvertPyObjectToCurrency(elements, value, eval);
 
             if (!status)
             {
@@ -932,7 +1056,49 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
         else
         {
             success = false;
-            outputs.push_back("");
+            std::string classname(OMLPYBRIDGE_EXT_CLASS_NAME);
+            std::string funcname("GetPythonVarExt");
+            if (OmlPythonBridgeCore::GetInstance()->IsExist(eval, classname, funcname))
+            {
+                std::string varname = GetUniquePythonVarName();
+                PyObject* m = PyImport_AddModule("__main__");
+                PyObject_SetAttrString(m, varname.c_str(), obj);
+
+                try
+                {
+                    std::vector<Currency> temp_inputs;
+                    Currency cls_obj = eval.CallFunction(classname, temp_inputs);
+                    temp_inputs.push_back(cls_obj);
+                    temp_inputs.push_back(varname);
+                    Currency result = eval.CallFunction(funcname, temp_inputs);
+                    if (result.IsCellArray())
+                    {
+                        const HML_CELLARRAY* cell = result.CellArray();
+                        if (1 == cell->M() && 2 == cell->N() && (*cell)(0, 0).IsLogical())
+                        {
+                            if (1 == static_cast<int>((*cell)(0, 0).Scalar()))
+                            {
+                                success = true;
+                                outputs.push_back((*cell)(0, 1));
+                            }
+                        }
+                    }                  
+                }
+                catch(...)
+                {
+                    // do nothing                  
+                }
+
+                if (!success)
+                    outputs.push_back("");
+
+                PyObject_DelAttrString(m, varname.c_str());
+            }
+            else
+            {
+                success = false;
+                outputs.push_back("");
+            }
         }
     }
     
@@ -986,7 +1152,7 @@ void OmlPythonBridgeCore::HandleException(void)
     
 }
 
-bool OmlPythonBridgeCore::IsTypeSupported(PyObject* const& obj)
+bool OmlPythonBridgeCore::IsTypeSupported(PyObject* const& obj, EvaluatorInterface& eval)
 {
     bool is_supported = false;
     
@@ -1030,7 +1196,7 @@ bool OmlPythonBridgeCore::IsTypeSupported(PyObject* const& obj)
                 {
                     PyObject* value = PyList_GetItem(values, index);
 
-                    if (!IsTypeSupported(value))
+                    if (!IsTypeSupported(value, eval))
                     {
                         is_supported = false;
                         break;
@@ -1049,7 +1215,7 @@ bool OmlPythonBridgeCore::IsTypeSupported(PyObject* const& obj)
         {
             PyObject* value = PyList_GetItem(obj, index);
 
-            if (!IsTypeSupported(value))
+            if (!IsTypeSupported(value,eval))
             {
                 is_supported = false;
                 break;
@@ -1077,6 +1243,40 @@ bool OmlPythonBridgeCore::IsTypeSupported(PyObject* const& obj)
         if (PyArray_Check(obj))
         {
             is_supported = true;
+        }
+        else
+        {
+            is_supported = false;
+            
+            std::string classname(OMLPYBRIDGE_EXT_CLASS_NAME);
+            std::string funcname("CanGetPythonVarExt");
+
+            if (OmlPythonBridgeCore::GetInstance()->IsExist(eval, classname, funcname))
+            {
+
+                std::string varname = GetUniquePythonVarName();
+                PyObject* m = PyImport_AddModule("__main__");
+                PyObject_SetAttrString(m, varname.c_str(), obj);
+
+                try
+                {
+                    std::vector<Currency> temp_inputs;
+                    Currency cls_obj = eval.CallFunction(classname, temp_inputs);
+                    temp_inputs.push_back(cls_obj);
+                    temp_inputs.push_back(varname);
+                    Currency result = eval.CallFunction(funcname, temp_inputs);
+                    if (result.IsLogical() && 1 == result.Scalar())
+                    {
+                        is_supported = true;
+                    }
+                }
+                catch (...)
+                {
+                    // do nothing
+                }
+
+                PyObject_DelAttrString(m, varname.c_str());
+            }
         }
     }
     
@@ -1108,6 +1308,18 @@ std::vector<std::string> OmlPythonBridgeCore::GetArgv(EvaluatorInterface eval)
     }
     
     return argv;
+}
+
+bool OmlPythonBridgeCore::IsExist(EvaluatorInterface& eval, std::string& classname, std::string& methodname)
+{
+    //ToDo: remove following block after implementing "methods" oml function to work without initializing the class
+    {
+        std::vector<Currency> temp_inputs;
+        Currency cls_obj = eval.CallFunction(classname, temp_inputs);
+    }
+    std::vector<std::string> methods = eval.GetMethods(classname);
+    auto result = std::find(std::begin(methods), std::end(methods), methodname);
+    return std::end(methods) == result ? false : true;
 }
 
 //Return value : New reference
@@ -1166,4 +1378,18 @@ void OmlPythonBridgeCore::ClearPyError()
 {
     if (PyErr_Occurred())
         PyErr_Clear();
+}
+
+std::string  OmlPythonBridgeCore::GetUniquePythonVarName()
+{
+    std::string tempstr("_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+    std::random_device randevice;
+    std::mt19937 generator(randevice());
+    std::shuffle(tempstr.begin(), tempstr.end(), generator);
+    int size = 20; // to limit the size of the label
+    if (tempstr.size() > size)
+        tempstr = tempstr.substr(0, size);
+
+    return "_temp" + tempstr + "_pyvar";
+
 }

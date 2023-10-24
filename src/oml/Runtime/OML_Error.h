@@ -1,7 +1,7 @@
 /**
 * @file OML_Error.h
 * @date November 2015
-* Copyright (C) 2015-2022 Altair Engineering, Inc.  
+* Copyright (C) 2015-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -69,6 +69,7 @@ enum omlMathErrCode
     OML_ERR_POSINTEGER,                      // must be positive integer
     OML_ERR_FINITE,                          // invalid value; must be finite
     OML_ERR_VECLENDIM,                       // invalid vector length in specified dimension
+    OML_ERR_ARGDIMENSIONS,                   // incompatible argument dimensions
     OML_ERR_ARRAYSIZE,                       // incompatible matrices; dimensions must be consistent
     OML_ERR_ARRAYCATDIM,                     // incompatible array sizes; non-concatenated dimensions must match
     OML_ERR_CELLSIZE,                        // incompatible cell sizes; must match
@@ -114,7 +115,7 @@ enum omlMathErrCode
     OML_ERR_NONEMPTY_STR,                    // must be a non-empty string
     OML_ERR_ONEROW_STRING,                   // must be a string with one row
     OML_ERR_SCALAR_REALVEC,                 // must be a scalar or real matrix
-    OML_ERR_SCALAR_REALMTX,                 // must be a scalar or real matrix
+    OML_ERR_SCALAR_REALMTX,                  // must be a scalar or real matrix
     OML_ERR_INTEGER_INTMTX,                  // must be an integer or a matrix of integers
     OML_ERR_LOGICAL,                         // must be true or false
     OML_ERR_INVALID_VERSION,                 // invalid version
@@ -301,6 +302,14 @@ enum omlMathErrCode
     OML_ERR_WINDOWSONLY_OP,                  // invalid operation; operation is only valid on Windows
     OML_ERR_FILEALREADYOPEN_OP,              // invalid operation; file is already open in other application(s)
     OML_ERR_OMLINTERFACE_OP,                 // invalid operation; error with 'oml'(default) interface; use 'com' interface
+
+    //omlmqtt Codes
+    OML_ERR_MQTT_INVALID_OPTION,             //Invalid option 
+    OML_ERR_MQTT_CLIENTID_INUSE,             // client id is in use
+    OML_ERR_MQTT_CLIENTID_INVALID,           // no client with the given client id
+    OML_ERR_MQTT_CLIENTCREATION_FAIL,        // failed to create client
+    OML_ERR_MQTT_CLIENTID_SIZE,              // client id is more than 23 characters  
+    OML_ERR_MQTT_MIN_IDLETIME,              // minimum idle time is 0.001 seconds 
 
     OML_ERR_END
 };
@@ -504,7 +513,6 @@ private:
 
 #define HW_ERROR_UNSUPP2DIM "Error: more than 2 dimensions is not supported yet"
 
-#define HW_ERROR_INPSTRONLY1D "Error: input string can only be one-dimensional"
 #define HW_ERROR_STRINPMUST1DIM "Error: string inputs must be 1 dimensional; use a cell array for multiple strings"
 #define HW_ERROR_TYPE1DSTR "Error: type must be a 1D string"
 #define HW_ERROR_STRDIM "Error: all string inputs must be of the same dimensions"
@@ -545,7 +553,6 @@ private:
 #define HW_ERROR_NOTEMPSUBEXPNAME "Error: cannot have an empty sub-expression name"
 #define HW_ERROR_SUBEXPNAMNOCLOSINGGR "Error: sub-expression name in regular expression pattern did not have a closing '>'"
 #define HW_ERROR_NOTCONVINPTODOUBLE "Error: cannot convert input to double"
-#define HW_ERROR_LENNOTNEG "Error: length cannot be negative"
 #define HW_ERROR_SCALOUTCHARRANGE "Error: scalar outside of character range"
 #define HW_ERROR_INVINPSTRUCTANDCOMPNOTCONVSTR "Error: invalid input type: structs and complex values cannot be converted to strings"
 
@@ -554,58 +561,33 @@ private:
 #define HW_ERROR_OPTNOTSING "Error: option is not singular"
 #define HW_ERROR_MATMUST3COL "Error: matrix must have 3 columns"
 #define HW_ERROR_MATMUST2OR3COL "Error: matrix must have 2 or 3 columns"
-#define HW_ERROR_1INPMUSTMAT "Error: single input must be a matrix"
-#define HW_ERROR_WHENUNIONINDROWVECSAMECOL "Error: when finding union of individual rows, each vector must have the same number of columns"
-#define HW_ERROR_CELLINPMUSTSTR "Error: cell inputs must only contain strings"
-#define HW_ERROR_NOUNIONBYROWCELLINP "Error: cannot find union by rows for cell input"
 #define HW_ERROR_INVTYPESETELE "Error: invalid type to set all elements to"
 #define HW_ERROR_READ "Error: read error"
-#define HW_ERROR_NOTCONVNANTOLOG "Error: cannot convert NaN to logical"
-#define HW_ERROR_NOTCONVCOMPTOLOG "Error: cannot convert complex to logical"
-#define HW_ERROR_MATINPMUSTVEC "Error: all matrix inputs must be vectors"
 #define HW_ERROR_3INP1STVEC "Error: when using 3 arguments, the first argument must be a vector"
-#define HW_ERROR_INPMUSTSAMESIZE "Error: inputs must be the same size"
-#define HW_ERROR_INVBALFLAG "Error: invalid balance flag"
 
-#define HW_ERROR_INVCLASSNAME "Error: invalid class name"
-#define HW_ERROR_CONVFILEMODTIME "Error: problem converting file modified time"
-#define HW_ERROR_TRYSTR "Error: try expression must be a string"
-#define HW_ERROR_DIRECT1STLAST "Error: direction must be 'first' or 'last'"
-#define HW_ERROR_INVINP "Invalid inputs"
-#define HW_ERROR_INVINPVAL "Error: invalid input value"
 #define HW_ERROR_INVINPTYPE "Error: invalid input type"
-#define HW_ERROR_INVINP5THARG "Error: invalid input type for 5th argument"
 
-#define HW_ERROR_INPSQUAREMATVEC "Error: input must be square matrix or vector"
 #define HW_ERROR_3RDINPMUSTEMPMATSPMATUNSUPP "Error: third input must be an empty matrix; sparse matrices are not yet supported"
 
 #define HW_ERROR_NOTSETDIRECTTWICE "Error: cannot set direction twice"
-#define HW_ERROR_INPONLY1STLASTORROWS "Error: input can only be 'first', 'last', or 'rows'"
 #define HW_ERROR_NOTCONVINPTOSTR "Error: error converting input to string"
 #define HW_ERROR_DELCELLINVAMTOFELE "Error: delimiter cell array had an invalid amount of elements"
-#define HW_ERROR_INVMODESTR "Error: invalid mode string"
 #define HW_ERROR_NOTFTELLONSTDINOUTERR "Error: cannot call ftell on stdin, stdout, or stderr"
 #define HW_ERROR_NOTFSEEKONSTDINOUTERR "Error: cannot call fseek on stdin, stdout, or stderr"
 #define HW_ERROR_FRSTINPSTRORFILESTR "Error: first input should be a string of a file name"
 #define HW_ERROR_NOTSKIPBUILTINFUNC "Error: cannot use skip on built-in function streams"
 #define HW_ERROR_INVPRECTYPE "Error: invalid precision type"
 #define HW_ERROR_PRECBLOCKPOSINT "Error: precision block size must be a positive integer"
-#define HW_ERROR_INPNOTSTRUCT "Error: input cannot contain structs"
 #define HW_ERROR_INP1DINPMAT3ELE "Error: input at least one dimension of input matrices must have 3 elements"
 #define HW_ERROR_BADFUNCHANDLE "Error: bad function handle; was the function cleared or created in a different scope?"
-#define HW_ERROR_FUNCNAMENOTSPACE "Error: function name cannot have spaces"
 
-#define HW_ERROR_INVOPTMUSTROW "Error: invalid option; must be 'rows'"
 #define HW_ERROR_INPSMUSTCELLORSTR "Error: inputs must be cell arrays or strings"
 #define HW_ERROR_VALNOTSTRUCT "Error: value is not a struct"
 #define HW_ERROR_INPVECSORTROW "Error: input must be a vector if not checking sort by rows"
-#define HW_ERROR_NOTSETOPTROWTWICE "Error: cannot set option 'rows' twice"
 #define HW_ERROR_OUTNOTUNI "Error: outputs were not uniform"
 #define HW_ERROR_MISSVALUNIFOUTOPT "Error: missing value for UniformOutput option"
-#define HW_ERROR_PATHSEP1CHAR "Error: path separator can only be one character"
 #define HW_ERROR_NOTCONCINPTYPE "Error: cannot concatenate input types"
 #define HW_ERROR_CONCATSTRUCTWSTRUCT "Error: can only concatenate structs with other structs"
-#define HW_ERROR_STRSAMENUMROWCONCAT "Error: strings must have the same number of rows to be concatenated"
 #define HW_ERROR_CONCATMATWSCALCOMPMATORCELL "Error: can only concatenate matrices with scalars, complex values, other matrices, or cells"
 #define HW_ERROR_INVSHAPEFULLSAMEVALID "Error: invalid shape; must be 'full', 'same', or 'valid'"
 #define HW_ERROR_IFCONVMATINPMUSTVEC "Error: if using convolution matrix, other inputs must be vectors"
@@ -614,35 +596,20 @@ private:
 #define HW_ERROR_FIELDNAMEDIMINPCELL "Error: field names did not match dimension of input cell"
 #define HW_ERROR_INDINPSAMESIZE "Error: all index inputs must be the same size"
 #define HW_ERROR_STRUCTMUSTSAMEFIELDNAME "Error: struct must have the same field names to add to struct array"
-#define HW_ERROR_NOTINDINPTYPE "Error: cannot index input type"
 #define HW_ERROR_NOTINDTYPEOBJ "Error: cannot index this type of object"
 #define HW_ERROR_NOTCELLINDNONCELL "Error: cannot use cell indexing on a non-cell"
 #define HW_ERROR_NOTCOMPTOSTR "Error: cannot convert complex value to string"
-#define HW_ERROR_NOTSETEMPTYSTRUCT "Error: cannot set the value of an empty struct"
 
-#define HW_ERROR_SETDIMMOREONCE "Error: cannot set dimension more than once"
-#define HW_ERROR_SETMODEMOREONCE "Error: cannot set mode more than once"
 #define HW_ERROR_NOTSETEXTRAPMOREONCE "Error: cannot set extrap more than once"
 #define HW_ERROR_NOTSETMETHODMOREONCE "Error: cannot set method more than once"
-#define HW_ERROR_SEEDVALMORETHANONCE "Error: seed value was set more than once"
-#define HW_ERROR_STATESETMORETHANONCE "Error: state was set more than once"
 
-#define HW_ERROR_ENVVARFAIL "Error: problem setting environment variable"
-#define HW_ERROR_OPTSTRUCTSIZE1 "Error: opts struct must have a size of 1"
 #define HW_ERROR_NOTCALLRECURSEEVALIN "Error: cannot call evalin inside a call to evalin"
-#define HW_ERROR_CONTBASEORCALL "Error: context must be 'base' or 'caller'"
-#define HW_ERROR_2NDINPFINITEVAL "Error: second input must contain finite values"
 
 #define HW_ERROR_TEMPLATESTR "Error: template must be a string"
-#define HW_ERROR_INPUTSTRING "Error: input must be a string"
-#define HW_ERROR_INPUTALLSTRINGS "Error: inputs must all be strings"
 #define HW_ERROR_FUNCNAMESTR "Error: function name must be a string"
-#define HW_ERROR_FIELDNAMESTR "Error: field names must be strings"
 #define HW_ERROR_FIELDNAMENOTEMPTYSTR "Error: field name cannot be an empty string"
 #define HW_ERROR_EVERYVALFIELD "Error: must have a value for every field"
 
-#define HW_ERROR_4THINPBOOL "Error: 4th argument must be true or false"
-#define HW_ERROR_2NDINPCELLSTR "Error: second input must be a cell array or string"
 #define HW_ERROR_FUNCHANDLNAMEINPUT "Error: input must be a function handle or function name"
 #define HW_ERROR_INVTYPEVALDOTPARCURL "Error: invalid type value; must be '.', '()', or '{}'"
 #define HW_ERROR_SUBMUSTCELL "Error: subs must be ':' or a cell array"
@@ -657,11 +624,6 @@ private:
 #define HW_ERROR_INVDIR "Error: invalid directory name"
 #define HW_ERROR_INPROWVECT "Error: inputs must be row vectors"
 #define HW_ERROR_PROBCHANGCURDIR "Error: problem changing current directory"
-#define HW_ERROR_NOFMATCH "Error: no files matching the pattern were found"
-#define HW_ERROR_INVFNAMEPAT "Error: invalid file name pattern"
-#define HW_ERROR_2NDARGONLYCLR "Error: second argument can only be 'clear'"
-#define HW_ERROR_PROBLOADTREE "Error: problem loading tree"
-#define HW_ERROR_PROBSERTREE "Error: problem serializing tree"
 #define HW_ERROR_INVCELLEXT "Error: invalid cell extraction"
 #define HW_ERROR_INVAST "Error: Invalid AST"
 #define HW_ERROR_NOCONTEXTENDFUNC "Error: no available context for end function"
@@ -733,11 +695,7 @@ private:
 
 #define HW_ERROR_CELLINPSAMESASIZE "Error: all cell array inputs must be the same size"
 #define HW_ERROR_CELLARRAYSSAMESIZE "Error: cell arrays must be the same size"
-#define HW_ERROR_INDEXSTRUCTFIELDS "Error: cannot index list of struct fields"
-#define HW_ERROR_DOTSTRUCTPARENTHESIS "Error: invalid type value; must be '.', '()', or '{}'"
 #define HW_ERROR_REQCOMPSTARTINDEXLESS "Error: Comp and Req start index must be less than their respective end indexes"
-#define HW_ERROR_INPUTONOROFF "Error: Input must be 'on', 'off', or a text file name"
-#define HW_ERROR_ILLEGALCHARFORFILE "Error: file name input contains an illegal character"
 
 // End deprecated #define list
 

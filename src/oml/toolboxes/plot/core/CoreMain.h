@@ -168,6 +168,9 @@ namespace omlplot{
         vector<double> stem3(vector<LineData>&);
         vector<double> quiver(vector<LineData>&);
         vector<double> bar3(vector<LineData>&);
+        vector<double> triplot(vector<LineData>&);
+        vector<double> trimesh(vector<LineData>&);
+        vector<double> trisurf(vector<LineData>&);
 
         double figure(unique_ptr<FigureData> &);
         double axes(unique_ptr<AxesData> &);

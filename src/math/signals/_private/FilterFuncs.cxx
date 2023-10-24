@@ -2374,13 +2374,14 @@ hwMathStatus dBu(const hwMatrix& freq,
 // Find local extrema of a signal
 //------------------------------------------------------------------------------
 hwMathStatus FindPeaks(const hwMatrix& signal,
+                       double          sampleRate,
+                       double          origin,
                        bool            twoSided,
                        double          minPeakHeight,
-                       int             minPeakDistance,
-                       int             minPeakWidth,
+                       double          minPeakDistance,
+                       double          minPeakWidth,
                        hwMatrix&       peaks,
-                       hwMatrixI&      index,
-                       int             indexOrigin,
+                       hwMatrix&       peakLocs,
                        PeakInfo*       extra)
 {
     if (!signal.IsReal())
@@ -2388,6 +2389,9 @@ hwMathStatus FindPeaks(const hwMatrix& signal,
 
     if (!signal.IsEmptyOrVector())
         return hwMathStatus(HW_MATH_ERR_VECTOR, 1);
+
+    if (sampleRate <= 0.0)
+        return hwMathStatus(HW_MATH_ERR_NONPOSITIVE, 2);
 
     hwMathStatus status;
     hwMatrix signalD;
@@ -2460,10 +2464,14 @@ hwMathStatus FindPeaks(const hwMatrix& signal,
     }
 
     // apply minumum distance criterion
-    if (minPeakDistance == -1)
-        minPeakDistance = 1;
+    if (minPeakDistance == -1.0)
+        minPeakDistance = 1.0;
+    else
+        minPeakDistance = floor(minPeakDistance / sampleRate);
 
-    if (numPeaks && minPeakDistance > 0)
+    hwMatrixI index;
+
+    if (numPeaks && minPeakDistance > 0.0)
     {
         hwMatrix signalPeaks(numPeaks, 1, hwMatrix::REAL);
         hwMatrix dummy;
@@ -2480,7 +2488,7 @@ hwMathStatus FindPeaks(const hwMatrix& signal,
 
             for (int j = i + 1; j < numPeaks; ++j)
             {
-                if (abs(indexRaw(indexSorted(j)) - peakIndex) < minPeakDistance)
+                if (abs(indexRaw(indexSorted(j)) - peakIndex) < static_cast<int>(minPeakDistance))
                 {
                     status = indexSorted.DeleteRows(j);
                     --j;
@@ -2514,10 +2522,6 @@ hwMathStatus FindPeaks(const hwMatrix& signal,
         index = indexRaw;
     }
 
-    // apply minumum width criterion
-    if (minPeakWidth == -1)
-        minPeakWidth = 1;
-
     if (extra)
     {
         extra->parabol_pp = new hwMatrix(0, 3, hwMatrix::REAL);
@@ -2527,111 +2531,113 @@ hwMathStatus FindPeaks(const hwMatrix& signal,
         extra->roots = new hwMatrix(0, 2, hwMatrix::REAL);
     }
 
-    if (numPeaks && minPeakWidth > 0)
+    // apply minumum width criterion
+    if (minPeakWidth == -1.0)
+        minPeakWidth = sampleRate;
+
+    for (int i = 0; i < numPeaks; ++i)
     {
-        for (int i = 0; i < numPeaks; ++i)
+        int left  = _max(index(i) - (static_cast<int>(minPeakDistance)+1)/2, 0);
+        int right = _min(index(i) + (static_cast<int>(minPeakDistance)+1)/2, n-1);
+        int size = right - left + 1;
+        hwMatrix indexD(size, hwMatrix::REAL);
+        hwMatrix neighbors(size, hwMatrix::REAL);
+        hwMatrix coef;
+        int idx = left;
+
+        for (int j = 0; j < size; ++j)
         {
-            int left  = _max(index(i) - (minPeakDistance+1)/2, 0);
-            int right = _min(index(i) + (minPeakDistance+1)/2, n-1);
-            int size = right - left + 1;
-            hwMatrix indexD(size, hwMatrix::REAL);
-            hwMatrix neighbors(size, hwMatrix::REAL);
-            hwMatrix coef;
-            int idx = left;
+            indexD(j) = static_cast<double>(idx) * sampleRate + origin;
 
-            for (int j = 0; j < size; ++j)
+            if (twoSided)
+                neighbors(j) = signalD(idx++);
+            else
+                neighbors(j) = signal(idx++);
+        }
+
+        status = PolyCurveFit(indexD, neighbors, 2, coef);    // ascending coef
+
+        double a = coef(2);
+        double b = coef(1);
+        double c = coef(0);
+        double height = c - b*b/(4.0*a);
+        double zero1;
+        double zero2;
+        bool isOk;
+
+        if (height > minPeakHeight) // maxima peak for a good parabola fit
+            isOk = quadraticRoots(a, b, c-(height+minPeakHeight)/2.0, zero1, zero2);
+        else                        // minima peak for a good parabola fit
+            isOk = quadraticRoots(a, b, c+(height-minPeakHeight)/2.0, zero1, zero2);
+
+        double width = abs(zero2 - zero1);
+
+        if (!isOk || width < minPeakWidth)
+        {
+            status = index.DeleteRows(i);
+            --i;
+            --numPeaks;
+
+            if (!status.IsOk())
             {
-                indexD(j) = static_cast<double>(idx + indexOrigin);
-
-                if (twoSided)
-                    neighbors(j) = signalD(idx++);
-                else
-                    neighbors(j) = signal(idx++);
+                status.ResetArgs();
+                return status;
+            }
+        }
+        else if (extra)
+        {
+            if (i == 0)
+            {
+                extra->parabol_pp->Dimension(1, 3, hwMatrix::REAL);
+                extra->parabol_x->Dimension(1, 2, hwMatrix::REAL);
+                extra->height->Dimension(1, 1, hwMatrix::REAL);
+                extra->baseline->Dimension(1, 1, hwMatrix::REAL);
+                extra->roots->Dimension(1, 2, hwMatrix::REAL);
+            }
+            else
+            {
+                extra->parabol_pp->Resize(i+1, 3);
+                extra->parabol_x->Resize(i+1, 2);
+                extra->height->Resize(1, i+1);
+                extra->baseline->Resize(1, i+1);
+                extra->roots->Resize(i+1, 2);
             }
 
-            status = PolyCurveFit(indexD, neighbors, 2, coef);    // ascending coef
+            (*extra->parabol_pp)(i, 0) = a;
+            (*extra->parabol_pp)(i, 1) = b;
+            (*extra->parabol_pp)(i, 2) = c;
+            (*extra->parabol_x)(i, 0) = left * sampleRate + origin;
+            (*extra->parabol_x)(i, 1) = right * sampleRate + origin;
+            (*extra->height)(0, i) = height;
+            (*extra->baseline)(0, i) = (height+minPeakHeight) / 2.0;
 
-            double a = coef(2);
-            double b = coef(1);
-            double c = coef(0);
-            double height = c - b*b/(4.0*a);
-            double zero1;
-            double zero2;
-            bool isOk;
-
-            if (height > minPeakHeight) // maxima peak for a good parabola fit
-                isOk = quadraticRoots(a, b, c-(height+minPeakHeight)/2.0, zero1, zero2);
-            else                        // minima peak for a good parabola fit
-                isOk = quadraticRoots(a, b, c+(height-minPeakHeight)/2.0, zero1, zero2);
-
-            double width = abs(zero2 - zero1);
-
-            if (!isOk || width < minPeakWidth)
+            if (zero1 < zero2)
             {
-                status = index.DeleteRows(i);
-                --i;
-                --numPeaks;
-
-                if (!status.IsOk())
-                {
-                    status.ResetArgs();
-                    return status;
-                }
+                (*extra->roots)(i, 0) = zero1;
+                (*extra->roots)(i, 1) = zero2;
             }
-            else if (extra)
+            else
             {
-                if (i == 0)
-                {
-                    extra->parabol_pp->Dimension(1, 3, hwMatrix::REAL);
-                    extra->parabol_x->Dimension(1, 2, hwMatrix::REAL);
-                    extra->height->Dimension(1, 1, hwMatrix::REAL);
-                    extra->baseline->Dimension(1, 1, hwMatrix::REAL);
-                    extra->roots->Dimension(1, 2, hwMatrix::REAL);
-                }
-                else
-                {
-                    extra->parabol_pp->Resize(i+1, 3);
-                    extra->parabol_x->Resize(i+1, 2);
-                    extra->height->Resize(1, i+1);
-                    extra->baseline->Resize(1, i+1);
-                    extra->roots->Resize(i+1, 2);
-                }
-
-                (*extra->parabol_pp)(i, 0) = a;
-                (*extra->parabol_pp)(i, 1) = b;
-                (*extra->parabol_pp)(i, 2) = c;
-                (*extra->parabol_x)(i, 0) = left + indexOrigin;
-                (*extra->parabol_x)(i, 1) = right + indexOrigin;
-                (*extra->height)(0, i) = height;
-                (*extra->baseline)(0, i) = (height+minPeakHeight) / 2.0;
-
-                if (zero1 < zero2)
-                {
-                    (*extra->roots)(i, 0) = zero1;
-                    (*extra->roots)(i, 1) = zero2;
-                }
-                else
-                {
-                    (*extra->roots)(i, 0) = zero2;
-                    (*extra->roots)(i, 1) = zero1;
-                }
+                (*extra->roots)(i, 0) = zero2;
+                (*extra->roots)(i, 1) = zero1;
             }
         }
     }
 
     // populate peaks argument
     status = peaks.Dimension(numPeaks, 1, hwMatrix::REAL);
+    status = peakLocs.Dimension(numPeaks, 1, hwMatrix::REAL);
 
     for (int i = 0; i < numPeaks; ++i)
+    {
         peaks(i) = signal(index(i));
-
-    if (indexOrigin)
-        index += indexOrigin;
+        peakLocs(i) = index(i) * sampleRate + origin;
+    }
 
     if (signal.M() == 1 && signal.N() != 1)
     {
         peaks.Transpose();
-        index.Transpose();
+        peakLocs.Transpose();
     }
 
     return status;

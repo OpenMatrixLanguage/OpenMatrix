@@ -1,7 +1,7 @@
 /**
 * @file ConsoleWrapper.h
 * @date June 2015
-* Copyright (C) 2015-2022 Altair Engineering, Inc.  
+* Copyright (C) 2015-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -19,8 +19,7 @@
 
 // Begin defines/includes
 
-#include "WrapperBase.h"
-
+#include "Runtime/InterpWrapperBase.h"
 #include "Runtime/Currency.h"
 
 #include <stack>
@@ -42,7 +41,7 @@ class SignalHandler;
 //! \brief Handles interpretor signals and methods for console
 //!
 //------------------------------------------------------------------------------
-class ConsoleWrapper : public WrapperBase
+class ConsoleWrapper : public InterpWrapperBase
 {
 public:
     //!
@@ -150,6 +149,11 @@ public:
     //!
     void SetChildSignalHandler(SignalHandler* handler) { _childHandler = handler; }
 
+protected:
+
+    //! Connects oml signal handler
+    void ConnectOmlSignalHandler();
+
 private:
     bool _appendOutput;                           //! True if output is appended
     bool _addnewline;                             //! True if new line should be added
@@ -170,15 +174,15 @@ private:
     //!
     //! Private default constructor
     //!
-    ConsoleWrapper() : WrapperBase(nullptr), _childHandler(0) {}
+    ConsoleWrapper() : InterpWrapperBase(nullptr), _childHandler(0) {}
     //!
     //! Stubbed out copy constructor
     //!
-    ConsoleWrapper(const ConsoleWrapper&);
+    ConsoleWrapper(const ConsoleWrapper&) = delete;
     //!
     //! Stubbed out assignment operator
     //!
-    ConsoleWrapper& operator=(const ConsoleWrapper&);
+    ConsoleWrapper& operator=(const ConsoleWrapper&) = delete;
     //!
     //! Cleans up after pagination like clearing display
     //! \param printMsg True if end of pagination message needs to be printed

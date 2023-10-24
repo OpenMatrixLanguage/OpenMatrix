@@ -2087,15 +2087,22 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
 
         try
         {
-            if (numSlices == 1 && sliceArg[0].IsColon())    // handle a(:)
+            if (numSlices == 1)
             {
-                newDim.push_back(1);
-                std::vector<hwSliceArg> newSliceArg;
-                newSliceArg.push_back(hwSliceArg());
-                newSliceArg.push_back(0);
-                reshaped.Reshape(newDim);
-                reshaped.SliceLHS(newSliceArg, rhsMatrix);
-                return;
+                if (sliceArg[0].IsColon())    // handle a(:)
+                {
+                    newDim.push_back(1);
+                    std::vector<hwSliceArg> newSliceArg;
+                    newSliceArg.push_back(hwSliceArg());
+                    newSliceArg.push_back(0);
+                    reshaped.Reshape(newDim);
+                    reshaped.SliceLHS(newSliceArg, rhsMatrix);
+                    return;
+                }
+                else
+                {
+                    throw hwMathException(HW_MATH_ERR_SLICE_INDEX);
+                }
             }
 
             reshaped.Reshape(newDim);

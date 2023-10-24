@@ -1,0 +1,219 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
+      <meta name="copyright" content="(C) Copyright 2023" /><meta name="DC.rights.owner" content="(C) Copyright 2023" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="gradient" /><meta name="abstract" content="Compute the gradient of a real function or sampled data." /><meta name="description" content="Compute the gradient of a real function or sampled data." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Linear Algebra Commands" /><meta name="indexterms" content="gradient" /><meta name="DC.subject" content="gradient" /><meta name="keywords" content="gradient" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/LinearAlgebra/linearalgebra_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/ElementaryMath/diff.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>gradient</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+          
+          var prefix = "../../../../index.htm";
+          
+          --></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery-3.1.1.min.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.cookie.js"><!----></script><script type="text/javascript" src="../../../../oxygen-webhelp/resources/js/jquery.highlight-3.js"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/log.js?buildId=2018042310"><!----></script><script type="text/javascript" charset="utf-8" src="../../../../oxygen-webhelp/resources/js/webhelp_topic.js?buildId=2018042310"><!----></script></head>
+<body onload="highlightSearchTerm()" class="frmBody" id="reference_wpv_kyv_pr">
+<header role="banner"><table class="nav"><tbody><tr><td colspan="2"><div id="printlink"><a href="javascript:window.print();" title="Print this page"></a></div><div id="permalink"><a href="#" title="Link to this page"></a></div></td></tr><tr><td style="width:75%;"><span class="topic_breadcrumb_links"><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/LinearAlgebra/../../../../topics/reference/oml_language/oml_reference_guide_r.htm" title="The Reference Guide contains documentation for all functions supported in the OpenMatrix language.">Reference Guide for OpenMatrix Language Functions</a></span><span class="topic_breadcrumb_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/LinearAlgebra/linearalgebra_commands.htm" title="Linear Algebra Commands">Linear Algebra Commands</a></span></span></td><td><span id="topic_navigation_links" class="navheader">
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/LinearAlgebra/linearalgebra_commands.htm" title="Linear Algebra Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Linear Algebra Commands</span></a></span>  </span></td></tr></tbody></table></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+  <h1 class="title topictitle1" id="ariaid-title1">gradient</h1>
+
+  
+  
+  <div class="body refbody"><p class="shortdesc">Compute the gradient of a real function or sampled data.</p>
+
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
+      
+      <p class="p"><span class="ph synph">dx = gradient<span class="ph var">(yc,xc)</span></span></p>
+
+      <p class="p"><span class="ph synph">dx = gradient<span class="ph var">(m)</span></span></p>
+
+      <p class="p"><span class="ph synph">[dx,dy,...] = gradient<span class="ph var">(m)</span></span></p>
+
+      <p class="p"><span class="ph synph">[...] = gradient<span class="ph var">(m,d)</span></span></p>
+
+      <p class="p"><span class="ph synph">[...] = gradient<span class="ph var">(m,x,y,...)</span></span></p>
+
+      <p class="p"><span class="ph synph">[...] = gradient<span class="ph var">(f,p)</span></span></p>
+
+      <p class="p"><span class="ph synph">[...] = gradient<span class="ph var">(f,p,d)</span></span></p>
+
+      <p class="p"><span class="ph synph">[...] = gradient<span class="ph var">(f,p,x,y,...)</span></span></p>
+
+      <?STOP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">yc</var></dt>
+
+          <dd class="dd pd">Sampled y coordinate data from which to compute the gradient, paired with <var class="keyword varname">xc</var>.</dd>
+
+          <dd class="dd pd ddexpand">A vector can be either a row or a column. For a 2D matrix, gradients are computed by row.</dd>
+
+          <dd class="dd pd ddexpand">The gradients at the first and last points are computed with forward and
+            backward differences, respectively. The other points use central differences.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector | matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">xc</var></dt>
+
+          <dd class="dd pd">Sampled x coordinate data from which to compute the gradient, paired with <var class="keyword varname">yc</var>.</dd>
+
+          <dd class="dd pd ddexpand">A vector is used for each computed gradient vector in <var class="keyword varname">yc</var>. A 2D matrix must have the
+            same dimensions as <var class="keyword varname">yc</var>.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">vector | matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">m</var></dt>
+
+          <dd class="dd pd">A matrix of sampled data from which to compute the gradient.</dd>
+
+          <dd class="dd pd ddexpand">Data with two or more dimensions is stored by column. One dimensional data can
+            be stored either as a row or a column.</dd>
+
+          <dd class="dd pd ddexpand">The gradients at the first and last points are computed with forward and
+            backward differences, respectively. The other points use central differences.</dd>
+
+          <dd class="dd pd ddexpand">The first and second dimensions are assigned to 'y' and 'x', respectively.
+            This convention is so that the 'x' axis is horizontal.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">f</var></dt>
+
+          <dd class="dd pd">The function for which to compute the gradient.</dd>
+
+          <dd class="dd pd ddexpand">The function must operate on vector arguments for each coordinate. See the example below.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">char | string | handle</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">p</var></dt>
+
+          <dd class="dd pd">The points at which to compute the gradient when using <var class="keyword varname">f</var>.</dd>
+
+          <dd class="dd pd ddexpand">Data with two or more dimensions is stored by column. One dimensional data can
+            be stored either as a row or a column.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">matrix</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">d</var></dt>
+
+          <dd class="dd pd">One half of the central difference interval, used in all dimensions.</dd>
+
+          <dd class="dd pd ddexpand">The default is 1.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+        
+          <dt class="dt pt dlterm"><var class="keyword varname">x,y,...</var></dt>
+
+          <dd class="dd pd">Each value is one half of the central difference interval used in its corresponding dimension.</dd>
+
+          <dd class="dd pd ddexpand">The default for each value is 1.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+          <dd class="dd pd ddexpand">Dimension: <span class="keyword">scalar</span></dd>
+
+        
+      </dl>
+
+      <?STOPINP?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+      
+      <dl class="dl parml">
+        
+          <dt class="dt pt dlterm"><span class="ph synph">dx,dy,...</span></dt>
+
+          <dd class="dd pd">The gradient vector components for each dimension.</dd>
+
+          <dd class="dd pd ddexpand">Type: <span class="keyword">double</span></dd>
+
+        
+      </dl>
+
+      <?STOPOUT?>
+    </section>
+
+    <section class="section"><h2 class="title sectiontitle">Example</h2>
+      
+      <div class="p">Function input with a common interval size for all dimensions:
+<pre class="pre codeblock"><code>function obj = Func(x,y)
+    obj = 2*(x-3).^2 - 5*(x-3).*(y-2) + 4*(y-2).^2 + 6;
+end
+
+points = [2,5;3,6;4,7];
+[dx,dy] = gradient(@Func, points, 0.001)
+dx = [Matrix] 3 x 1
+-19.00000
+-20.00000
+-21.00000
+dy = [Matrix] 3 x 1
+29.00000
+32.00000
+35.00000</code></pre></div>
+
+      <div class="p">Matrix data input wtih separate interval sizes for each
+        dimension:<pre class="pre codeblock"><code>m = [1 125 729 2197; 8 216 1000 2744; 27 343 1331 3375; 64 512 1728 4096];
+[dx,dy] = gradient(m, 0.1, 0.2)
+dx = [Matrix] 4 x 4
+1240  3640  10360  14680
+2080  4960  12640  17440
+3160  6520  15160  20440
+4480  8320  17920  23680
+dy = [Matrix] 4 x 4
+ 35  455  1355  2735
+ 65  545  1505  2945
+140  740  1820  3380
+185  845  1985  3605</code></pre></div>
+
+      <div class="p">Matrix inputs with (x,y) coordinate data:<pre class="pre codeblock"><code>yc = [1, 4, 9, 16; 25, 36, 49, 64];
+xc = [1, 2, 3, 4];
+dx = gradient(yc, xc)
+dx = [Matrix] 2 x 4
+ 3   4   6   7
+11  12  14  15</code></pre></div>
+
+    </section>
+
+    <section class="section">
+      
+      
+    </section>
+
+  </div>
+
+<nav role="navigation" class="related-links">
+<div class="linklist linklist"><strong>See Also</strong><br />
+
+<div class="related_link"><a class="navheader_parent_path" href="../../../../topics/reference/oml_language/ElementaryMath/diff.htm" title="Returns a vector or matrix of differences.">diff</a></div></div>
+</nav></article></main><footer role="contentinfo"><div class="navfooter"><!---->
+<span class="navparent"><a class="link" href="../../../../topics/reference/oml_language/LinearAlgebra/linearalgebra_commands.htm" title="Linear Algebra Commands"><span class="navheader_label">Parent topic</span><span class="navheader_separator">: </span><span class="navheader_linktext">Linear Algebra Commands</span></a></span>  </div><div class="footer" id="webhelp_copyright_information">
+        
+        <div>
+            <p>(c) Altair Engineering, Inc. and Contributors. (2007-2023)</p>
+               
+        </div>
+    </div></footer></body>
+</html>

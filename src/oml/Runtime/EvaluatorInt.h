@@ -88,6 +88,7 @@ public:
 
     Currency CallFunction(const std::string& func_name, const std::vector<Currency>& params);
     Currency CallInternalFunction(FunctionInfo* fi, const std::vector<Currency>& param_values);
+    Currency CallStaticClassMethod(const std::string& class_name, const std::string& mehtod_name, const std::vector<Currency>& params);
     std::vector<Currency> DoMultiReturnFunctionCall(FUNCPTR fptr, std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars = nullptr);
 	std::vector<Currency> DoMultiReturnFunctionCall(ALT_FUNCPTR aptr, std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars = nullptr);
     std::vector<Currency> DoMultiReturnFunctionCall(FunctionInfo* fi, std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars = nullptr);
@@ -99,7 +100,7 @@ public:
    	Currency GetMetadata(const std::string& infile);
 
 	std::vector<std::string> GetProperties(const std::string& classname);
-	std::vector<std::string> GetMethods(const std::string& classname);
+	std::vector<std::string> GetMethods(const std::string& classname, bool public_only = true);
 
     void ClearPath();
     bool RemovePath(std::string &pathname);

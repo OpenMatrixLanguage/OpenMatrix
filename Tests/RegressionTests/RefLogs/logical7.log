@@ -1,1 +1,1 @@
-Error: cannot convert complex to logical in call to function logical at line number 1 in file logical7.oml
+Error: invalid input in argument 1; must be real in call to function logical at line number 1 in file logical7.oml

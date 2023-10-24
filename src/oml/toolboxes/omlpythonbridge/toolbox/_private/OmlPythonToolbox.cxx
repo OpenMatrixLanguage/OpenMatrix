@@ -106,7 +106,7 @@ bool Oml_GetPythonVariable(EvaluatorInterface eval, const std::vector<Currency>&
     if(OmlPythonBridge::GetInstance(eval))
     {
         OmlPythonBridge::GetInstance(eval)->SetLastErrorMessage("");
-        results = OmlPythonBridge::GetInstance(eval)->GetPythonVariable(inputs[0].StringVal(),outputs);
+        results = OmlPythonBridge::GetInstance(eval)->GetPythonVariable(inputs[0].StringVal(),outputs,eval);
         if (results)
 		{
 			outputs.push_back(1);
@@ -150,7 +150,7 @@ bool Oml_SetPythonVariable(EvaluatorInterface eval, const std::vector<Currency>&
     if(OmlPythonBridge::GetInstance(eval))
     {
         OmlPythonBridge::GetInstance(eval)->SetLastErrorMessage("");
-        results = OmlPythonBridge::GetInstance(eval)->SetPythonVariable(inputs[1].StringVal(),inputs[0]);
+        results = OmlPythonBridge::GetInstance(eval)->SetPythonVariable(inputs[1].StringVal(),inputs[0],eval);
         if (results)
 		{
 			outputs.push_back(1);

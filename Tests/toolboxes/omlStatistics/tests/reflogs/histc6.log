@@ -1,0 +1,128 @@
+n = 
+slice(:, :, 1) = 
+[Matrix] 1 x 2
+5  0
+
+slice(:, :, 2) = 
+[Matrix] 1 x 2
+7  0
+
+slice(:, :, 3) = 
+[Matrix] 1 x 2
+6  2
+
+slice(:, :, 4) = 
+[Matrix] 1 x 2
+4  5
+
+slice(:, :, 5) = 
+[Matrix] 1 x 2
+1  7
+
+slice(:, :, 6) = 
+[Matrix] 1 x 2
+0  6
+
+slice(:, :, 7) = 
+[Matrix] 1 x 2
+0  0
+idx = 
+slice(:, :, 1) = 
+[Matrix] 1 x 2
+0  3
+
+slice(:, :, 2) = 
+[Matrix] 1 x 2
+0  3
+
+slice(:, :, 3) = 
+[Matrix] 1 x 2
+1  4
+
+slice(:, :, 4) = 
+[Matrix] 1 x 2
+1  4
+
+slice(:, :, 5) = 
+[Matrix] 1 x 2
+1  4
+
+slice(:, :, 6) = 
+[Matrix] 1 x 2
+1  4
+
+slice(:, :, 7) = 
+[Matrix] 1 x 2
+1  4
+
+slice(:, :, 8) = 
+[Matrix] 1 x 2
+2  5
+
+slice(:, :, 9) = 
+[Matrix] 1 x 2
+2  5
+
+slice(:, :, 10) = 
+[Matrix] 1 x 2
+2  5
+
+slice(:, :, 11) = 
+[Matrix] 1 x 2
+2  5
+
+slice(:, :, 12) = 
+[Matrix] 1 x 2
+2  5
+
+slice(:, :, 13) = 
+[Matrix] 1 x 2
+2  5
+
+slice(:, :, 14) = 
+[Matrix] 1 x 2
+2  5
+
+slice(:, :, 15) = 
+[Matrix] 1 x 2
+3  6
+
+slice(:, :, 16) = 
+[Matrix] 1 x 2
+3  6
+
+slice(:, :, 17) = 
+[Matrix] 1 x 2
+3  6
+
+slice(:, :, 18) = 
+[Matrix] 1 x 2
+3  6
+
+slice(:, :, 19) = 
+[Matrix] 1 x 2
+3  6
+
+slice(:, :, 20) = 
+[Matrix] 1 x 2
+3  6
+
+slice(:, :, 21) = 
+[Matrix] 1 x 2
+4  0
+
+slice(:, :, 22) = 
+[Matrix] 1 x 2
+4  0
+
+slice(:, :, 23) = 
+[Matrix] 1 x 2
+4  0
+
+slice(:, :, 24) = 
+[Matrix] 1 x 2
+4  0
+
+slice(:, :, 25) = 
+[Matrix] 1 x 2
+5  0

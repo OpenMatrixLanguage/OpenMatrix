@@ -17,8 +17,7 @@
   
   <div class="body refbody"><p class="shortdesc">Creates 2D or 3D patches in an axis.</p>
 
-    <section class="section" id="reference_wpv_kyv_pr__section_pnq_p2q_dsb"><h2 class="title sectiontitle">Syntax</h2>
-      
+    <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       <p class="p"><span class="ph synph">h = patch<span class="ph var">(x, y, c)</span></span></p>
 
       <p class="p"><span class="ph synph">h = patch<span class="ph var">(x, y, z, c)</span></span></p>
@@ -29,9 +28,9 @@
 
     </section>
 
-    <section class="section" id="reference_wpv_kyv_pr__section_qnq_p2q_dsb"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Inputs</span></h2>
       
-      <dl class="dl parml" id="reference_wpv_kyv_pr__parml_rnq_p2q_dsb">
+      <dl class="dl parml">
         
           <dt class="dt pt dlterm"><var class="keyword varname">x, y, z</var></dt>
 
@@ -53,8 +52,7 @@
         
           <dt class="dt pt dlterm"><var class="keyword varname">vertices_matrix</var></dt>
 
-          <dd class="dd pd">An Mx2 or Mx3 matrix that contains the coordinates of the patch vertices. M is the
-            number of vertices.</dd>
+          <dd class="dd pd">An Mx2 or Mx3 matrix that contains the coordinates of the patch vertices. M is the number of vertices.</dd>
 
           <dd class="dd pd ddexpand">Type: <span class="keyword">double | integer</span></dd>
 
@@ -89,9 +87,9 @@
       <?STOPINP?>
     </section>
 
-    <section class="section" id="reference_wpv_kyv_pr__section_snq_p2q_dsb"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
+    <section class="section"><h2 class="title sectiontitle"><span class="keyword">Outputs</span></h2>
       
-      <dl class="dl parml" id="reference_wpv_kyv_pr__parml_tnq_p2q_dsb">
+      <dl class="dl parml">
         
           <dt class="dt pt dlterm"><span class="ph synph">h</span></dt>
 
@@ -103,21 +101,22 @@
       <?STOPOUT?>
     </section>
 
-    <section class="section" id="reference_wpv_kyv_pr__section_unq_p2q_dsb"><h2 class="title sectiontitle">Examples</h2>
+    <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
-      <div class="p">2D <span class="keyword cmdname">patch</span> plot example:<pre class="pre codeblock" id="reference_wpv_kyv_pr__codeblock_vnq_p2q_dsb"><code>clf;
+      <div class="p">2D <span class="keyword cmdname">patch</span> plot
+          example:<pre class="pre codeblock"><code>clf;
 t1 = (1/16:1/8:1) * 2*pi;
 t2 = ((1/16:1/8:1) + 1/32) * 2*pi;
 x = tan (t1) - 0.8;
 y = sin (t1);
 h = patch (x',y','r')</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_c3x_lpj_nmb">
           
-          <br /><img class="image" id="reference_wpv_kyv_pr__image_wnq_p2q_dsb" src="images/patch2dExample1.png" /><br />
+          <br /><img class="image" src="images/patch2dExample1.png" /><br />
         <span class="figcap"><span class="fig--title-label">Figure 1. </span>2D <span class="keyword cmdname">patch</span> plot example</span></figure>
 </div>
 
       <div class="p">2D <span class="keyword cmdname">patch</span> plot defined by vertices and faces matrices
-          examples:<pre class="pre codeblock" id="reference_wpv_kyv_pr__codeblock_xnq_p2q_dsb"><code>x = [0 0.25 0.5 1 1 0.5 0.25 0 -0.5 -0.5]';
+          examples:<pre class="pre codeblock"><code>x = [0 0.25 0.5 1 1 0.5 0.25 0 -0.5 -0.5]';
 y = [0 0 0 0.5 1 1.5 1.5 1.5 1 0.5]';
 verts = [x, y];
 
@@ -137,7 +136,7 @@ figure(3);
 faces = [2 3 4 5 6 7; 8 9 10 1 NaN NaN];
 h = patch('vertices',verts,'faces',faces);</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_yz4_mpj_nmb">
           
-          <br /><img class="image" id="reference_wpv_kyv_pr__image_ynq_p2q_dsb" src="images/patch2dExample2.png" /><br />
+          <br /><img class="image" src="images/patch2dExample2.png" /><br />
         <span class="figcap"><span class="fig--title-label">Figure 2. </span>2D <span class="keyword cmdname">patch</span> plot defined by vertices and faces matrices</span></figure>
 <figure class="fig fignone" id="reference_wpv_kyv_pr__fig_njv_mpj_nmb">
           
@@ -149,59 +148,59 @@ h = patch('vertices',verts,'faces',faces);</code></pre><figure class="fig fignon
         <span class="figcap"><span class="fig--title-label">Figure 4. </span>Create two-2D patches that have different number of vertices</span></figure>
 </div>
 
-      <div class="p">Example of 3D <span class="keyword cmdname">patch</span> plot. Patch faces are
-          triangles:<pre class="pre codeblock" id="reference_wpv_kyv_pr__codeblock_znq_p2q_dsb"><code>clf;
+      <div class="p">Example of 3D <span class="keyword cmdname">patch</span> plot. Patch faces are triangles:<pre class="pre codeblock"><code>clf;
 x = [0 1 1 0; 1 1 0 0; 0.5 0.5 0.5 0.5];
 y = [0 0 1 1; 0 1 1 0; 0.5 0.5 0.5 0.5];
 z = [0 0 0 0; 0 0 0 0; 1 1 1 1];
-h = patch(x,y,z,'r');</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_a4q_p2q_dsb">
+h = patch(x,y,z,'r');</code></pre><figure class="fig fignone">
           
-          <br /><img class="image" id="reference_wpv_kyv_pr__image_b4q_p2q_dsb" src="images/patch3dExample1.png" /><br />
+          <br /><img class="image" src="images/patch3dExample1.png" /><br />
         <span class="figcap"><span class="fig--title-label">Figure 5. </span>3D <span class="keyword cmdname">patch</span> plot example - triangles</span></figure>
 </div>
 
       <div class="p">Example of 3D <span class="keyword cmdname">patch</span> plot. Patch faces are
-          quads:<pre class="pre codeblock" id="reference_wpv_kyv_pr__codeblock_c4q_p2q_dsb"><code>clf;
+          quads:<pre class="pre codeblock"><code>clf;
 x = [0 1 1 0; 1 1 0 0; 1 1 0 0; 0 1 1 0];
 y = [0 0 1 1; 0 1 1 0; 0 1 1 0; 0 0 1 1];
 z = [0 0 0 0; 0 0 0 0; 1 1 1 1; 1 1 1 1];
 h = patch(x,y,z,'r');</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_hpx_5h3_nmb">
           
-          <br /><img class="image" id="reference_wpv_kyv_pr__image_d4q_p2q_dsb" src="images/patch3dExample2.png" /><br />
+          <br /><img class="image" src="images/patch3dExample2.png" /><br />
         <span class="figcap"><span class="fig--title-label">Figure 6. </span>3D <span class="keyword cmdname">patch</span> plot example - quads</span></figure>
 </div>
 
       <div class="p">Example of 3D <span class="keyword cmdname">patch</span> plot. Patch faces are polygons, triangulation is
-          performed:<pre class="pre codeblock" id="reference_wpv_kyv_pr__codeblock_e4q_p2q_dsb"><code>clf;
+          performed:<pre class="pre codeblock"><code>clf;
 x = [0.5 0; 1.5 0; 2 0; 1.5, 0; 0.5 0; 0 0];
 y = [0 0; 0 0.5; 0 1; 0 1.5; 0 1; 0 0.5];
 z = [0 0.5; 0 0; 0.5 0; 1 0.5; 1 1; 0.5 1];
 h = patch(x,y,z,'r');</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_amq_yrm_c5">
           
-          <br /><img class="image" id="reference_wpv_kyv_pr__image_f4q_p2q_dsb" src="images/patch3dExample3.png" /><br />
+          <br /><img class="image" src="images/patch3dExample3.png" /><br />
         <span class="figcap"><span class="fig--title-label">Figure 7. </span>3D <span class="keyword cmdname">patch</span> plot example - polygons</span></figure>
 </div>
 
       <div class="p">Example of 3D <span class="keyword cmdname">patch</span> plot defined by vertices and faces
-          matrices:<pre class="pre codeblock" id="reference_wpv_kyv_pr__codeblock_g4q_p2q_dsb"><code>clf;
+          matrices:<pre class="pre codeblock"><code>clf;
 verts = [0 2.5 0; 1 1.5 0; 1.5 1 0;   2 0.5 0; 2.5 0, 0.5; 2 0.5 1;
           1.5, 1 1; 1 1.5 0.5; 1 1.5 1; 0 2.5 1; 0.5 2 0.5];
 faces = [1 2 11 NaN NaN NaN; 9 10 11 NaN NaN NaN; 3 4 5 6 7 8];
 h = patch('vertices',verts,'faces',faces);</code></pre><figure class="fig fignone" id="reference_wpv_kyv_pr__fig_ohh_wh3_nmb">
           
-          <br /><img class="image" id="reference_wpv_kyv_pr__image_h4q_p2q_dsb" src="images/patch3dExample4.png" /><br />
+          <br /><img class="image" src="images/patch3dExample4.png" /><br />
         <span class="figcap"><span class="fig--title-label">Figure 8. </span>3D <span class="keyword cmdname">patch</span> plot defined by vertices and faces matrices</span></figure>
 </div>
 
+      
     </section>
 
-    <section class="section" id="reference_wpv_kyv_pr__section_i4q_p2q_dsb"><h2 class="title sectiontitle">Comments</h2>
+    <section class="section"><h2 class="title sectiontitle">Comments</h2>
       
       <p class="p">If there are no axes, they will be created first.</p>
 
     </section>
 
-    <section class="section" id="reference_wpv_kyv_pr__section_j4q_p2q_dsb">
+    <section class="section">
       
     </section>
 

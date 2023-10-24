@@ -653,19 +653,14 @@ bool BuiltInFuncsConvert::De2Bi(EvaluatorInterface           eval,
         }
         else if (cur2.IsMatrix())
         {
-            const hwMatrix* sizemat = cur2.Matrix();
-            if (sizemat->Size() == 1)
-            {
-                numcols = static_cast<int>((*sizemat)(0));
-                if (!IsValidNaturalNumber(numcols))
-                {
-                    throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_TYPE);
-                }
-            }
-            else if (!sizemat->IsEmpty())
+            if (!cur2.Matrix()->IsEmpty())
             {
                 throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_TYPE);
             }
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_TYPE);
         }
     }
 

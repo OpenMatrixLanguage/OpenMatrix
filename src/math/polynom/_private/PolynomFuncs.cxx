@@ -956,7 +956,7 @@ hwMathStatus PchipInterp(const hwMatrix& x_old,
         for (int i = 0; i < nn; i++)
         {
             if (ascendingX)
-                idx = BinarySearch(x_old.GetRealData(), n, x_new(i));
+            idx = BinarySearch(x_old.GetRealData(), n, x_new(i));
             else
                 idx = BinarySearchR(x_old.GetRealData(), n, x_new(i));
 
@@ -977,7 +977,7 @@ hwMathStatus PchipInterp(const hwMatrix& x_old,
         for (int i = 0; i < nn; i++)
         {
             if (ascendingX)
-                idx = BinarySearch(x_old.GetRealData(), n, x_new(i));
+            idx = BinarySearch(x_old.GetRealData(), n, x_new(i));
             else
                 idx = BinarySearchR(x_old.GetRealData(), n, x_new(i));
 
@@ -1196,7 +1196,7 @@ hwMathStatus Spline(const hwMatrix& x_old,
 	int n = x_old.Size();
 	int nn = x_new.Size();
     long idx;
-    double s1, s2, s3;
+	double s1, s2, s3;
 	const double* x_start = x_old.GetRealData();
     bool ascendingX;
 
@@ -1211,7 +1211,7 @@ hwMathStatus Spline(const hwMatrix& x_old,
 		{
 			// idx = BinarySearch(x_start, n, x_new(i));
             if (ascendingX)
-                idx = BinarySearch(x_start, n, x_new(i));
+			idx = BinarySearch(x_start, n, x_new(i));
             else
                 idx = BinarySearchR(x_start, n, x_new(i));
 
@@ -1235,7 +1235,7 @@ hwMathStatus Spline(const hwMatrix& x_old,
 		{
 			// idx = BinarySearch(x_start, n, x_new(i));
             if (ascendingX)
-                idx = BinarySearch(x_start, n, x_new(i));
+			idx = BinarySearch(x_start, n, x_new(i));
             else
                 idx = BinarySearchR(x_start, n, x_new(i));
 

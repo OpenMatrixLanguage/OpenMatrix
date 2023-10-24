@@ -471,3 +471,35 @@ const OMLTree* OMLTree::FindParentOf(std::string& ident_name) const
 	
 	return NULL;
 }
+
+bool OMLTree::IsBroadcastOutput() const
+{
+	OMLTree* first_child = NULL;
+
+	if (this->ChildCount())
+		first_child = this->GetChild(0);
+
+	if (first_child && (first_child->GetType() == CELL_VAL))
+	{
+		if (first_child->ChildCount() == 2)
+		{
+			OMLTree* second_grandchild = first_child->GetChild(1);
+
+			if (second_grandchild->GetType() == PARAM_LIST)
+			{
+				if (second_grandchild->ChildCount() == 1)
+				{
+					OMLTree* first_great_grandchild = second_grandchild->GetChild(0);
+
+					if (first_great_grandchild->GetType() == COLON)
+					{
+						return true;
+					}
+				}
+
+			}
+		}
+	}
+	
+	return false;
+}

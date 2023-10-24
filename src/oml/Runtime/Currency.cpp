@@ -1174,6 +1174,26 @@ hwMatrix* Currency::GetWritableMatrix()
 	return data.mtx;
 }
 
+Currency Currency::GetWritableCurrency() const
+{
+	Currency result(*this);
+
+	if (result.IsMatrix())
+		result.ReplaceMatrix(EvaluatorInterface::allocateMatrix(Matrix()));
+	else if (result.IsCellArray())
+		result.ReplaceCellArray(EvaluatorInterface::allocateCellArray(CellArray()));
+	else if (result.IsStruct())
+		result.ReplaceStruct(new StructData(StructData()));
+	else if (result.IsSparse())
+		result.ReplaceMatrixS(new hwMatrixS(*MatrixS()));
+	else if (result.IsNDMatrix())
+		result.ReplaceMatrixN(new hwMatrixN(*MatrixN()));
+	else if (result.IsNDCellArray())
+		result.ReplaceCellArrayND(new HML_ND_CELLARRAY(*CellArrayND()));
+
+	return result;
+}
+
 hwMatrixN* Currency::GetWritableMatrixN() 
 {
 	if (!data.mtxn)
@@ -1232,6 +1252,42 @@ void Currency::ReplaceStruct(StructData* new_sd)
 		{
 			DeleteStruct(data.sd);
 			data.sd = new_sd;
+		}
+	}
+}
+
+void Currency::ReplaceMatrixN(hwMatrixN* new_mtx)
+{
+	if (type == TYPE_ND_MATRIX)
+	{
+		if (new_mtx != data.mtxn)
+		{
+			DeleteMatrixN(data.mtxn);
+			data.mtxn = new_mtx;
+		}
+	}
+}
+
+void Currency::ReplaceMatrixS(hwMatrixS* new_mtx)
+{
+	if (type == TYPE_SPARSE)
+	{
+		if (new_mtx != data.mtxs)
+		{
+			DeleteMatrixS(data.mtxs);
+			data.mtxs = new_mtx;
+		}
+	}
+}
+
+void Currency::ReplaceCellArrayND(HML_ND_CELLARRAY* new_cells)
+{
+	if (type == TYPE_ND_CELLARRAY)
+	{
+		if (new_cells != data.cells_nd)
+		{
+			DeleteCellsN(data.cells_nd);
+			data.cells_nd = new_cells;
 		}
 	}
 }

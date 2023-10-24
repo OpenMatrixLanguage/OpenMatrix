@@ -1,0 +1,22 @@
+addtoolbox omldiffeq
+
+% Events function demo #1
+% Integrate dx/dt = -sin(t) from 0 to 2*pi and find
+% the result crosses zero, only when decreasing.
+% The desired integral is x(t) = cos(t), so set x(0) = 1.
+
+function dxdt = Integrand(t,x)
+	dxdt = -sin(t);
+end
+ 
+function [position,isterminal,direction] = myEventsFcn(t,x)
+	position = x;		% check the function value
+	isterminal = 0;		% continue integration if root is found
+	direction = -1;		% look for decreasing root
+end
+
+% Solve the system
+% The result has a root, x(te) = xe = 0 at te = pi/2.
+% The root at 3pi/2 is omitted due to the function is increasing.
+opt = odeset('Events',@myEventsFcn);
+[t,x,te,xe,ie] = ode45(@Integrand, [0,2*pi], 1, opt)

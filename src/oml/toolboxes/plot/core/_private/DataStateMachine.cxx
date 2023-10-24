@@ -1712,6 +1712,292 @@ namespace omlplot{
         return ret;
     }
 
+    std::vector<LineData> DataStateMachine::getTriplotData(const std::vector<Currency>& inputs)
+    {
+        int pos = 0;
+        size_t inputSize = inputs.size();
+        Currency input;
+        LineData data;
+        std::vector<LineData> res;
+        State state = START;
+        
+        int inputS = static_cast<int>(inputs.size());
+        do {
+            // this is the only state to quit the machine.
+            if (pos == inputSize)
+            {
+                if (data.x.empty() || data.y.empty())
+                    throw OML_Error(OML_ERR_NUMARGIN);
+                break;
+            }
+
+            input = getNextInput(inputs, pos);
+
+            switch (state)
+            {
+            case START:
+                if (input.IsScalar()) {
+                    double h = input.Scalar();
+                    if (cm->isAxes(h)) {
+                        data.parent = h;
+                        _temp_parent = h;
+                        ++pos;
+                    }
+                }
+                state = GET_HANDLE;
+                break;
+            case GET_HANDLE:
+                if (input.IsMatrix())
+                {
+                    std::shared_ptr<hwMatrix> tri = GetMatrix(input);
+                    if (tri->N() != 3)
+                    {
+                        state = STATE_ERROR;
+                        break;
+                    }
+                    if (!tri->IsVector())
+                        tri->Transpose();
+
+                    data.tri = MatrixToVector(tri.get());
+                    data.triCount = tri->IsVector() ? 1 : tri->N();
+                    state = GET_X;
+                    pos += 1;
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_X:
+                if (input.IsMatrix())
+                {
+                    std::shared_ptr<hwMatrix> x = GetMatrix(input);
+                    data.x = MatrixToVector(x.get());
+                    pos += 1;
+                    state = GET_Y;
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_Y:
+                if (input.IsMatrix())
+                {
+                    std::shared_ptr<hwMatrix> y =GetMatrix(input);
+                    data.y = MatrixToVector(y.get());
+                    pos += 1;
+                    state = GET_FMT;
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_FMT:
+                if (input.IsString())
+                {
+                    std::string strInput = input.StringVal();
+                    while (true)
+                    {
+                        if (cm->isObjectPropertyName<Line>(strInput))
+                        {
+                            // out of range
+                            if ((pos + 1) >= inputSize)
+                                throw OML_Error(OML_ERR_PLOT_MISSING_VALUE, pos + 1);
+
+                            data.properties.push_back(strInput);
+                            data.values.push_back(inputs[++pos]);
+                        }
+                        else
+                        {
+                            if (data.style.empty())
+                                data.style = strInput;
+                        }
+
+                        // there are more string input
+                        if (((pos + 1) < inputSize) && inputs[pos + 1].IsString())
+                        {
+                            ++pos;
+                            strInput = inputs[pos].StringVal();
+                        }
+                        else
+                        {    // no more string inputs, exit while loop
+                            break;
+                        }
+                    }
+                    pos += 1;
+                }
+                else
+                {
+                    throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
+                }
+                break;
+            case STATE_ERROR:
+                throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
+                break;
+            }
+        } while (true);
+        res.push_back(std::move(data));
+        return res;
+    }
+
+    std::vector<LineData> DataStateMachine::getTrisurfData(const std::vector<Currency>& inputs)
+    {
+        int pos = 0;
+        size_t inputSize = inputs.size();
+        Currency input;
+        LineData data;
+        std::vector<LineData> res;
+        State state = START;
+
+        int inputS = static_cast<int>(inputs.size());
+        do {
+            // this is the only state to quit the machine.
+            if (pos == inputSize)
+            {
+                if (data.x.empty() || data.y.empty() || data.z.empty())
+                    throw OML_Error(OML_ERR_NUMARGIN);
+                break;
+            }
+
+            input = getNextInput(inputs, pos);
+
+            switch (state)
+            {
+            case START:
+                if (input.IsScalar()) {
+                    double h = input.Scalar();
+                    if (cm->isAxes(h)) {
+                        data.parent = h;
+                        _temp_parent = h;
+                        ++pos;
+                    }
+                }
+                state = GET_HANDLE;
+                break;
+            case GET_HANDLE:
+                if (input.IsMatrix())
+                {
+                    std::shared_ptr<hwMatrix> tri = GetMatrix(input);
+                    if (tri->N() != 3)
+                    {
+                        state = STATE_ERROR;
+                        break;
+                    }
+                    if (!tri->IsVector())
+                        tri->Transpose();
+
+                    data.tri = MatrixToVector(tri.get());
+                    data.triCount = tri->IsVector() ? 1 : tri->N();
+                    state = GET_X;
+                    pos += 1;
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_X:
+                if (input.IsMatrix())
+                {
+                    std::shared_ptr<hwMatrix> x = GetMatrix(input);
+                    data.x = MatrixToVector(x.get());
+                    pos += 1;
+                    state = GET_Y;
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_Y:
+                if (input.IsMatrix())
+                {
+                    std::shared_ptr<hwMatrix> y = GetMatrix(input);
+                    data.y = MatrixToVector(y.get());
+                    pos += 1;
+                    state = GET_Z;
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_Z:
+                if (input.IsMatrix())
+                {
+                    std::shared_ptr<hwMatrix> z = GetMatrix(input);
+                    data.z = MatrixToVector(z.get());
+                    pos += 1;
+                    state = GET_FMT;
+                }
+                else
+                {
+                    state = STATE_ERROR;
+                }
+                break;
+            case GET_FMT:
+                if (input.IsMatrix() || input.IsNDMatrix())
+                {
+                    if (data.cData.IsEmpty())
+                    {
+                        data.cData = input;
+                        pos += 1;
+                        state = GET_FMT;
+                    }
+                    else
+                    {
+                        state = STATE_ERROR;
+                    }
+                }
+                else if (input.IsString())
+                {
+                    std::string strInput = input.StringVal();
+                    while (true)
+                    {
+                        if (cm->isObjectPropertyName<Line>(strInput))
+                        {
+                            // out of range
+                            if ((pos + 1) >= inputSize)
+                                throw OML_Error(OML_ERR_PLOT_MISSING_VALUE, pos + 1);
+
+                            data.properties.push_back(strInput);
+                            data.values.push_back(inputs[++pos]);
+                        }
+                        else
+                        {
+                            if (data.style.empty())
+                                data.style = strInput;
+                        }
+
+                        // there are more string input
+                        if (((pos + 1) < inputSize) && inputs[pos + 1].IsString())
+                        {
+                            ++pos;
+                            strInput = inputs[pos].StringVal();
+                        }
+                        else
+                        {    // no more string inputs, exit while loop
+                            break;
+                        }
+                    }
+                    pos += 1;
+                }
+                else
+                {
+                    throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
+                }
+                break;
+            case STATE_ERROR:
+                throw OML_Error(OML_ERR_OPTIONVAL, pos + 1, OML_VAR_PARAMETER);
+                break;
+            }
+        } while (true);
+        res.push_back(std::move(data));
+        return res;
+    }
+
     std::unique_ptr<TextData> DataStateMachine::getTextData(const std::vector<Currency> &inputs){
         int pos = 0;
         size_t inputSize = inputs.size();

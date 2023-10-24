@@ -1,1 +1,1 @@
-Error: invalid input type for 5th argument in call to function strrep at line number 1 in file strrep59.oml
+Error: invalid input in argument 5; must be a scalar or a complex number in call to function strrep at line number 1 in file strrep59.oml

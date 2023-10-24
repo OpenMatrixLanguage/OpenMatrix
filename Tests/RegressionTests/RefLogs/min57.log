@@ -1,0 +1,40 @@
+v = 
+slice(:, :, 1) = 
+[Matrix] 1 x 4
+111  121  131  141
+
+slice(:, :, 2) = 
+[Matrix] 1 x 4
+112  222  132  142
+
+slice(:, :, 3) = 
+[Matrix] 1 x 4
+113  123  233  243
+
+slice(:, :, 4) = 
+[Matrix] 1 x 4
+114  124  134  144
+
+slice(:, :, 5) = 
+[Matrix] 1 x 4
+115  225  135  145
+idx = 
+slice(:, :, 1) = 
+[Matrix] 1 x 4
+1  1  1  1
+
+slice(:, :, 2) = 
+[Matrix] 1 x 4
+1  2  1  1
+
+slice(:, :, 3) = 
+[Matrix] 1 x 4
+1  1  2  2
+
+slice(:, :, 4) = 
+[Matrix] 1 x 4
+1  1  1  1
+
+slice(:, :, 5) = 
+[Matrix] 1 x 4
+1  2  1  1

@@ -141,6 +141,11 @@ Currency EvaluatorInterface::CallFunction(const std::string& func_name, const st
     return eval->CallFunction(func_name, params);
 }
 
+Currency EvaluatorInterface::CallStaticClassMethod(const std::string& class_name, const std::string& method_name, const std::vector<Currency>& params)
+{
+    return eval->CallStaticClassMethod(class_name, method_name, params);
+}
+
 std::vector<Currency> EvaluatorInterface::DoMultiReturnFunctionCall(FunctionInfo* fi, std::vector<Currency>& param_values, int num_ins, int num_rets, bool suppress_output, std::vector<std::string>* out_vars)
 {
     return eval->DoMultiReturnFunctionCall(fi, param_values, num_ins, num_rets, suppress_output, out_vars);
@@ -1031,14 +1036,14 @@ std::vector<std::string> EvaluatorInterface::GetProperties(const std::string& cl
 	return results;
 }
 
-std::vector<std::string> EvaluatorInterface::GetMethods(const std::string& classname)
+std::vector<std::string> EvaluatorInterface::GetMethods(const std::string& classname, bool public_only)
 {
 	std::vector<std::string> results;
 
 	ClassInfo* ci = eval->GetClassInfoFromName(classname);
 
 	if (ci)
-		return ci->GetMethodNames();
+		return ci->GetMethodNames(public_only);
 
 	return results;
 }
@@ -1062,8 +1067,7 @@ void EvaluatorInterface::CacheBCIPointer(OMLImplBase* ptr)
 void EvaluatorInterface::BCIGarbageCollect()
 {
     eval->BCIGarbageCollect();
-}
-void EvaluatorInterface::RefreshPathCache()
+}void EvaluatorInterface::RefreshPathCache()
 {
     eval->RefreshPathCache();
 }

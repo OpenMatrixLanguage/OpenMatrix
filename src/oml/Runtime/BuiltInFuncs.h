@@ -133,7 +133,7 @@ bool oml_cell2struct(EvaluatorInterface eval, const std::vector<Currency>& input
 bool oml_cplxpair(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_ind2sub(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_isprime(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_conv2(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_conv2(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_vertcat(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_isletter(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_isspace(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -220,9 +220,9 @@ bool oml_iscellstr(EvaluatorInterface eval, const std::vector<Currency>& inputs,
 //! Concatenates n-dimensional array objects along given dimension.
 bool oml_cat(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 bool oml_poly(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_reshape(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_permute(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_ipermute(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_reshape(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_permute(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_ipermute(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_squeeze(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_norm(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_i(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -263,6 +263,7 @@ bool oml_dot(EvaluatorInterface, const std::vector<Currency>& inputs, std::vecto
 bool oml_kron(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_pow2(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_diff(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+bool oml_gradient(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_diag(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_sparse(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_issparse(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
@@ -291,7 +292,7 @@ bool oml_log2(EvaluatorInterface, const std::vector<Currency>& inputs, std::vect
 bool oml_nextpow2(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_round(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 OMLDLL_DECLS bool oml_max(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
-bool oml_min(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
+OMLDLL_DECLS bool oml_min(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_print(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_inv(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
 bool oml_pwd(EvaluatorInterface, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);

@@ -163,7 +163,10 @@ public:
 	void  MakeCell();
 
 	void  ReplaceMatrix(hwMatrix* new_matrix);
+	void  ReplaceMatrixN(hwMatrixN* new_matrix);
+	void  ReplaceMatrixS(hwMatrixS* new_matrix);
 	void  ReplaceCellArray(HML_CELLARRAY* new_cells);
+	void  ReplaceCellArrayND(HML_ND_CELLARRAY* new_cells);
 	void  ReplaceStruct(StructData* new_sd);
 
 	double              Scalar()    const;
@@ -172,6 +175,7 @@ public:
 	std::vector<double> Vector() const;
 	const hwMatrix*     Matrix() const;
 	hwMatrix*           GetWritableMatrix();
+	Currency            GetWritableCurrency() const;
 	const hwMatrixN*    MatrixN() const;
 	const hwMatrixS*    MatrixS() const;
 	hwMatrixN*          GetWritableMatrixN();

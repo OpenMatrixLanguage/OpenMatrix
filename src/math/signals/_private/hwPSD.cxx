@@ -42,6 +42,7 @@ hwPSD::hwPSD(double sampFreq,
 // Returns status after computing Power Spectral Density for const input
 //------------------------------------------------------------------------------
 hwMathStatus hwPSD::Compute(const hwMatrix& input,
+                            int             dataSize,
                             hwMatrix&       psd)
 {
     hwMatrix     fft_output;
@@ -59,13 +60,16 @@ hwMathStatus hwPSD::Compute(const hwMatrix& input,
     }
 
     int fftSize  = m_fft.Size();
-    int dataSize = input.Size();
-
     double norm;
+
     if (dataSize < fftSize)
-        norm = 1.0 / ((double) dataSize * m_sampFreq);
+    {
+        norm = 1.0 / (double)(dataSize * m_sampFreq);
+    }
     else
-        norm = 1.0 / ((double) fftSize * m_sampFreq);
+    {
+        norm = 1.0 / (double)(fftSize * m_sampFreq);
+    }
 
     psd *= norm;
 
@@ -75,6 +79,7 @@ hwMathStatus hwPSD::Compute(const hwMatrix& input,
 // Returns status after computing Power Spectral Density for non-const input
 //------------------------------------------------------------------------------
 hwMathStatus hwPSD::Compute(hwMatrix& input,
+                            int       dataSize,
                             hwMatrix& psd)
 {
     hwMatrix     fft_output;
@@ -92,16 +97,15 @@ hwMathStatus hwPSD::Compute(hwMatrix& input,
     }
 
     int fftSize  = m_fft.Size();
-    int dataSize = input.Size();
-
     double norm;
+
     if (dataSize < fftSize)
     {
-        norm = 1.0 / ((double) dataSize * m_sampFreq);
+        norm = 1.0 / (double) (dataSize * m_sampFreq);
     }
     else
     {
-        norm = 1.0 / ((double) fftSize * m_sampFreq);
+        norm = 1.0 / (double) (fftSize * m_sampFreq);
     }
 
     psd *= norm;

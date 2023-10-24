@@ -3,7 +3,7 @@
   PUBLIC "" "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />        
-      <meta name="copyright" content="(C) Copyright 2023" /><meta name="DC.rights.owner" content="(C) Copyright 2023" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="std" /><meta name="abstract" content="Returns the standard deviation of x." /><meta name="description" content="Returns the standard deviation of x." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Statistical Analysis Commands" /><meta name="indexterms" content="std" /><meta name="DC.subject" content="std" /><meta name="keywords" content="std" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/statisticalanalysis_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/mean.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/median.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/var.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>std</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
+      <meta name="copyright" content="(C) Copyright 2023" /><meta name="DC.rights.owner" content="(C) Copyright 2023" /><meta name="DC.Type" content="reference" /><meta name="DC.Title" content="std" /><meta name="abstract" content="Compute standard deviations." /><meta name="description" content="Compute standard deviations." /><meta name="DC.Coverage" content="OpenMatrix Language" /><meta name="DC.Coverage" content="Statistical Analysis Commands" /><meta name="indexterms" content="std" /><meta name="DC.subject" content="std" /><meta name="keywords" content="std" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/statisticalanalysis_commands.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/mean.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/median.htm" /><meta name="DC.Relation" scheme="URI" content="../../../../topics/reference/oml_language/StatisticalAnalysis/var.htm" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="reference_wpv_kyv_pr" /><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/commonltr.css?buildId=2018042310"><!----></link><title>std</title><!--  Generated with Oxygen version 20.0-SNAPSHOT, build number 2018042310.  --><link rel="stylesheet" type="text/css" href="../../../../oxygen-webhelp/resources/css/webhelp_topic.css?buildId=2018042310"><!----></link><link rel="stylesheet" type="text/css" href="../../../../open_matrix_custom.css" /><script type="text/javascript"><!--
           
           var prefix = "../../../../index.htm";
           
@@ -15,15 +15,15 @@
 
   
   
-  <div class="body refbody"><p class="shortdesc">Returns the standard deviation of <var class="keyword varname">x</var>.</p>
+  <div class="body refbody"><p class="shortdesc">Compute standard deviations.</p>
 
     <section class="section"><h2 class="title sectiontitle">Syntax</h2>
       
-      <p class="p"><span class="ph synph">s=std<span class="ph var">(x)</span></span></p>
+      <p class="p"><span class="ph synph">s = std<span class="ph var">(x)</span></span></p>
 
-      <p class="p"><span class="ph synph">s=std<span class="ph var">(x,scale)</span></span></p>
+      <p class="p"><span class="ph synph">s = std<span class="ph var">(x,scale)</span></span></p>
 
-      <p class="p"><span class="ph synph">s=std<span class="ph var">(x,scale,dim)</span></span></p>
+      <p class="p"><span class="ph synph">s = std<span class="ph var">(x,scale,dim)</span></span></p>
 
       <?STOP?>
     </section>
@@ -89,22 +89,22 @@
 
     <section class="section"><h2 class="title sectiontitle">Examples</h2>
       
-      <div class="p">Vector
-        example:<pre class="pre codeblock"><code>x=[9.3, 10.6, 11.9, 13.3, 15.1, 18.2];
-s=std(x)</code></pre><pre class="pre codeblock"><code>s = 3.2303</code></pre></div>
+      <div class="p">Vector example:
+      <pre class="pre codeblock"><code>x = [9.3, 10.6, 11.9, 13.3, 15.1, 18.2];
+s = std(x)</code></pre><pre class="pre codeblock"><code>s = 3.2303</code></pre></div>
 
-      <div class="p">Matrix
-        example:<pre class="pre codeblock"><code>x=[9.3, 4.8; 10.6, 6.6; 11.9, 8.0; 13.3, 9.3; 15.1, 10.6; 18.2, 11.9];
-s=std(x)</code></pre><pre class="pre codeblock"><code>s = [Matrix] 1 x 2
+      <div class="p">Matrix example:
+      <pre class="pre codeblock"><code>x = [9.3, 4.8; 10.6, 6.6; 11.9, 8.0; 13.3, 9.3; 15.1, 10.6; 18.2, 11.9];
+s = std(x)</code></pre><pre class="pre codeblock"><code>s = [Matrix] 1 x 2
 3.2303 2.6136</code></pre></div>
 
     </section>
 
     <section class="section"><h2 class="title sectiontitle">Comments</h2>
       
-      <p class="p"><code class="ph codeph">std (x) = sqrt(SUM(x(i) - mean(x))^2 / (n-1))</code></p>
+      <p class="p"><code class="ph codeph">std(x) = sqrt(SUM(x(i) - mean(x))^2 / (n-1))</code></p>
 
-      <p class="p">This is the definition for scale=0.</p>
+      <p class="p">This is the definition for scale = 0.</p>
 
     </section>
 

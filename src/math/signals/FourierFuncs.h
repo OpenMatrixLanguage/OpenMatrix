@@ -41,9 +41,9 @@ typedef hwTMatrixN<double, hwTComplex<double> > hwMatrixN;
 //! \param stdDevRate     Standard deviation rate
 //! \param scale          Optional parameter
 //!
-SIGNALS_DECLS hwMathStatus SampleRate(const hwMatrix& time, 
+SIGNALS_DECLS hwMathStatus SampleRate(const hwMatrix& time,
                                       double&         meanSampRate,
-                                      double&         stdDevRate, 
+                                      double&         stdDevRate,
                                       double          scale = 1.0);
 //!
 //! Get the sampling frequency from a time vector and returns the status
@@ -58,8 +58,8 @@ SIGNALS_DECLS hwMathStatus SampleFreq(const hwMatrix& time,
 //! \param sampFreq Sampling frequency
 //! \param freq     Frequency vector
 //!
-SIGNALS_DECLS hwMathStatus Freq(int         numPnts, 
-                                double      sampFreq, 
+SIGNALS_DECLS hwMathStatus Freq(int         numPnts,
+                                double      sampFreq,
                                 hwMatrix&   freq,
                                 const char* option);
 //!
@@ -92,8 +92,8 @@ SIGNALS_DECLS hwMathStatus Fft2(const hwMatrix& signal,
 //! \param freqRes 
 //!
 SIGNALS_DECLS hwMathStatus Fft2(const hwMatrix& signal,
-                                int             m, 
-                                int             n, 
+                                int             m,
+                                int             n,
                                 hwMatrix&       freqRes);
 //!
 //! ND FFT of a real or complex signal  
@@ -148,7 +148,7 @@ SIGNALS_DECLS hwMathStatus IfftN(const hwMatrixN& freqRes,
 //! \param freqRes
 //! \param fftSize Optional argument
 //!
-SIGNALS_DECLS hwMathStatus Fft(const hwMatrix& signal, 
+SIGNALS_DECLS hwMathStatus Fft(const hwMatrix& signal,
                                hwMatrix&       freqRes,
                                int             fftSize = 0);
 //!
@@ -178,7 +178,7 @@ SIGNALS_DECLS hwMathStatus Fft(const hwMatrixN& signal,
 //! \param fftSize Optional argument
 //!
 SIGNALS_DECLS hwMathStatus Ifft(const hwMatrix& freqRes,
-                                hwMatrix&       signal, 
+                                hwMatrix&       signal,
                                 int             fftSize = 0);
 //!
 //! Inverse FFT of a real or complex signal  
@@ -207,7 +207,7 @@ SIGNALS_DECLS hwMathStatus Ifft(const hwMatrixN& signal,
 //! \param fftSize Optional argument
 //!
 SIGNALS_DECLS hwMathStatus Stft(const hwMatrix& signal,
-                                hwMatrix& freqRes,
+                                hwMatrix&       freqRes,
                                 int             fftSize = 0);
 //!
 //! Circular convolution of a real signal pair for periodic signals 
@@ -216,9 +216,9 @@ SIGNALS_DECLS hwMathStatus Stft(const hwMatrix& signal,
 //! \param conv    Circular convolution
 //! \param fftSize Optional argument
 //!
-SIGNALS_DECLS hwMathStatus ConvCirc(const hwMatrix& signal1, 
+SIGNALS_DECLS hwMathStatus ConvCirc(const hwMatrix& signal1,
                                     const hwMatrix& signal2,
-                                    hwMatrix&       conv, 
+                                    hwMatrix&       conv,
                                     int             fftSize = 0);
 //!
 //! Circular correlation of a real signal pair for periodic signals 
@@ -227,7 +227,7 @@ SIGNALS_DECLS hwMathStatus ConvCirc(const hwMatrix& signal1,
 //! \param corr    Circular correlation
 //! \param fftSize Optional argument
 //!
-SIGNALS_DECLS hwMathStatus CorrCirc(const hwMatrix& signal1, 
+SIGNALS_DECLS hwMathStatus CorrCirc(const hwMatrix& signal1,
                                     const hwMatrix& signal2,
                                     hwMatrix&       corr,
                                     int             fftSize = 0);
@@ -240,11 +240,11 @@ SIGNALS_DECLS hwMathStatus CorrCirc(const hwMatrix& signal1,
 //! \param cohere             Coherence
 //! \param fftSize            Optional argument
 //!
-SIGNALS_DECLS hwMathStatus Coherence(const hwMatrix& sysInput, 
+SIGNALS_DECLS hwMathStatus Coherence(const hwMatrix& sysInput,
                                      const hwMatrix& sysOutput,
-                                     const hwMatrix& window, 
+                                     const hwMatrix& window,
                                      int             num_overlap_points,
-                                     hwMatrix&       cohere, 
+                                     hwMatrix&       cohere,
                                      int             fftSize = 0);
 //!
 //! Coherence of a real signal pair with a window function for periodic signals
@@ -255,11 +255,11 @@ SIGNALS_DECLS hwMathStatus Coherence(const hwMatrix& sysInput,
 //! \param cohere             Coherence
 //! \param fftSize            Optional argument
 //!
-SIGNALS_DECLS hwMathStatus Coherence(const hwMatrix& sysInput, 
+SIGNALS_DECLS hwMathStatus Coherence(const hwMatrix& sysInput,
                                      const hwMatrix& sysOutput,
-                                     int             blockSize, 
+                                     int             blockSize,
                                      int             num_overlap_points,
-                                     hwMatrix&       cohere, 
+                                     hwMatrix&       cohere,
                                      int             fftSize = 0);
 //!
 //! Power spectral density of a real signal
@@ -268,8 +268,8 @@ SIGNALS_DECLS hwMathStatus Coherence(const hwMatrix& sysInput,
 //! \param density  Power spectral density        
 //! \param fftSize  Optional argument
 //!
-SIGNALS_DECLS hwMathStatus PSD(const hwMatrix& signal, 
-                               double          sampFreq, 
+SIGNALS_DECLS hwMathStatus PSD(const hwMatrix& signal,
+                               double          sampFreq,
                                hwMatrix&       density,
                                int             fftSize = 0);
 //!
@@ -280,25 +280,27 @@ SIGNALS_DECLS hwMathStatus PSD(const hwMatrix& signal,
 //! \param density  Cross power spectral density        
 //! \param fftSize  Optional argument
 //!
-SIGNALS_DECLS hwMathStatus CPSD(const hwMatrix& signal1, 
-                                const hwMatrix& signal2, 
+SIGNALS_DECLS hwMathStatus CPSD(const hwMatrix& signal1,
+                                const hwMatrix& signal2,
                                 double          sampFreq,
-                                hwMatrix&       density, 
+                                hwMatrix&       density,
                                 int             fftSize = 0);
 //!
 //! Block power spectral density of a real signal with a window function
 //! \param signal             Input signal 
 //! \param window             Window function 
 //! \param num_overlap_points Number of overlapping points 
-//! \param sampFreq
+//! \param sampFreq           Sampling Frequency.
+//! \param powerSpectrum      Switch to select power spectrum
 //! \param density            Block power spectral density        
 //! \param fftSize            Optional argument
 //!
-SIGNALS_DECLS hwMathStatus BlockPSD(const hwMatrix& signal, 
-                                    const hwMatrix& window, 
+SIGNALS_DECLS hwMathStatus BlockPSD(const hwMatrix& signal,
+                                    const hwMatrix& window,
                                     int             num_overlap_points,
-                                    double          sampFreq, 
-                                    hwMatrix&       density, 
+                                    double          sampFreq,
+                                    bool            powerSpectrum,
+                                    hwMatrix&       density,
                                     int             fftSize = 0);
 //!
 //! Block power spectral density of a real signal
@@ -309,11 +311,11 @@ SIGNALS_DECLS hwMathStatus BlockPSD(const hwMatrix& signal,
 //! \param density            Block power spectral density        
 //! \param fftSize            Optional argument
 //!
-SIGNALS_DECLS hwMathStatus BlockPSD(const hwMatrix& signal, 
-                                    int             blockSize, 
+SIGNALS_DECLS hwMathStatus BlockPSD(const hwMatrix& signal,
+                                    int             blockSize,
                                     int             num_overlap_points,
-                                    double          sampFreq, 
-                                    hwMatrix&       density, 
+                                    double          sampFreq,
+                                    hwMatrix&       density,
                                     int             fftSize = 0);
 //!
 //! Block cross power spectral density of a real signal pair with a window function
@@ -325,12 +327,12 @@ SIGNALS_DECLS hwMathStatus BlockPSD(const hwMatrix& signal,
 //! \param density            Block power spectral density        
 //! \param fftSize            Optional argument
 //!
-SIGNALS_DECLS hwMathStatus BlockCPSD(const hwMatrix& signal1, 
+SIGNALS_DECLS hwMathStatus BlockCPSD(const hwMatrix& signal1,
                                      const hwMatrix& signal2,
-                                     const hwMatrix& window, 
+                                     const hwMatrix& window,
                                      int             num_overlap_points,
-                                     double          sampFreq, 
-                                     hwMatrix&       density, 
+                                     double          sampFreq,
+                                     hwMatrix&       density,
                                      int             fftSize = 0);
 //!
 //! Block cross power spectral density of a real signal pair
@@ -342,12 +344,12 @@ SIGNALS_DECLS hwMathStatus BlockCPSD(const hwMatrix& signal1,
 //! \param density            Block power spectral density        
 //! \param fftSize            Optional argument
 //!
-SIGNALS_DECLS hwMathStatus BlockCPSD(const hwMatrix& signal1, 
+SIGNALS_DECLS hwMathStatus BlockCPSD(const hwMatrix& signal1,
                                      const hwMatrix& signal2,
-                                     int             blockSize, 
+                                     int             blockSize,
                                      int             num_overlap_points,
-                                     double          sampFreq, 
-                                     hwMatrix&       density, 
+                                     double          sampFreq,
+                                     hwMatrix&       density,
                                      int             fftSize = 0);
 
 #endif // _Signals_FourierFuncs_h

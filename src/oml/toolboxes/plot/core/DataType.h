@@ -41,6 +41,7 @@ namespace omlplot{
         vector<double> u;
         vector<double> v;
         vector<double> colorMat;
+        vector<double> tri;
         string style;
         vector<string> properties;
         vector<Currency> values;
@@ -50,7 +51,9 @@ namespace omlplot{
         int xcolcount;
         int ycolcount;
         int zcolcount;
+        int triCount;
         Currency xCategories;
+        Currency cData; // trimesh, trisurf cdata
         bool bar3PerRow;
     };
 
@@ -135,6 +138,7 @@ namespace omlplot{
         void init(const hwMatrix *mat);
         vector<double> getComponent();
         std::string getString();
+        std::string getStringWithAlpha(double alpha);
     private:
         vector<int> m_vComponent;
     };
