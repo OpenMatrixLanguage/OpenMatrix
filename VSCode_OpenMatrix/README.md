@@ -1,14 +1,12 @@
 # Compose OML - OpenMatrix Language Extension for Visual Studio Code
 This VS Code Extension provides support for [Open Sourced OpenMatrix Language](https://www.openmatrix.org/) and [Compose OML](https://altair.com/compose).
 
-## Table of Contents
-
 ## Features include
 Extension provide Basic Compose OML Features, without installing Altair Compose or OpenSourced OpenMatrix Language. 
 
 1. Syntax highlighting
    
-	![Syntax highlighting](https://github.com/OpenMatrixLanguage/OpenMatrix/tree/master/VSCode_OpenMatrix/images/syntax_highlighting.png))
+	![Syntax highlighting](https://github.com/OpenMatrixLanguage/OpenMatrix/blob/master/VSCode_OpenMatrix/images/syntax_highlighting.png?raw=true)
 
 2. Declarative language features - 
    1. Comments
@@ -16,13 +14,15 @@ Extension provide Basic Compose OML Features, without installing Altair Compose 
    3. Indentation rules
    4. collapsible/folding
    
+   ![language_features](https://github.com/OpenMatrixLanguage/OpenMatrix/blob/master/VSCode_OpenMatrix/images/code_features.gif?raw=true)
 
 3. Advance Features
    1. Auto-completion
    2. Execution
    3. Plotting & Visualization
+   
+   ![Advance_language_features](https://github.com/OpenMatrixLanguage/OpenMatrix/blob/master/VSCode_OpenMatrix/images/run_execution.gif?raw=true)
 
-![language_features](https://github.com/OpenMatrixLanguage/OpenMatrix/tree/master/VSCode_OpenMatrix/images/code_features.gif)
       
 Advanced Features are supported, if either of below is installed or build on your system 
    1. [Altair Compose](https://altairone.com/Marketplace?queryText=compose&tab=Info&app=Compose) 2023 or later
@@ -46,7 +46,7 @@ OML_EXE
 C:\Program Files\Altair\2023\Compose2023\hwx\bin\win64\Compose.exe
 ```
 
-![OML_EXE](https://github.com/OpenMatrixLanguage/OpenMatrix/tree/master/VSCode_OpenMatrix/images/Configuration_oml_exe.gif)
+![OML_EXE](https://github.com/OpenMatrixLanguage/OpenMatrix/blob/master/VSCode_OpenMatrix/images/Configuration_oml_exe.gif?raw=true)
 
 
 ### Configuring Compose OML - OpenMatrix Language with Open Source OpenMatrix Language
