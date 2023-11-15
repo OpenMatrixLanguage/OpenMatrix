@@ -3,19 +3,23 @@ notifications:
   _webhooks: _
 install: true
 language: cpp
-addons:
-  apt:
-   sources:
-    - ubuntu-toolchain-r-test
-   packages:
+#addons:
+#  apt:
+#   sources:
+#    - ubuntu-toolchain-r-test
+#   packages:
 #    - g++-4.9
 #failed     - g++-8.3
-  apt_packages:
-    - gfortran
+#  apt_packages:
+#    - gfortran
 sudo: required
 python: 
 - '3.6'
 before_install:
+- sudo rm -f /etc/apt/sources.list.d/pgdg.list
+- sudo -E apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
+- sudo apt-get update -y
+- sudo -E apt-get -yq --no-install-suggests --no-install-recommends $(travis_apt_get_options) install gfortran
 - git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Linux_OS66.git Linux
 #- if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
 env:
