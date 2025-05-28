@@ -14,11 +14,9 @@
 * Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 #include "hwChebyshev_II_Proto.h"
+#include "hwMatrix.h"
 
 #include <math.h>
-
-#include "GeneralFuncs.h"
-
 
 //------------------------------------------------------------------------------
 // Constructor
@@ -81,4 +79,48 @@ void hwChebyshev_II_Proto::GetSPlaneInfo(int     i,
     poleReal = -m_sinh * value / (m_cosh * m_cosh - value * value);
     poleMagSq = 1.0 / (m_cosh * m_cosh - value * value);
     zeroMagSq = 2.0 / (1.0 + cos(angle));   // use half angle identity for cos^2()
+}
+//------------------------------------------------------------------------------
+// Compute the zeros and poles
+//------------------------------------------------------------------------------
+void hwChebyshev_II_Proto::GetSPlaneInfo(hwMatrix& zeros, hwMatrix& poles) const
+{
+    hwMathStatus status;
+    int numZeros = m_order;
+    
+    if (m_order % 2 == 1)
+    {
+        --numZeros;
+    }
+
+    status = zeros.Dimension(numZeros, hwMatrix::COMPLEX);
+
+    if (!status.IsOk())
+        return;
+
+    status = poles.Dimension(m_order, hwMatrix::COMPLEX);
+
+    if (!status.IsOk())
+        return;
+
+    if (m_order % 2 == 1)
+    {
+        poles.z((m_order - 1) / 2) = -1.0 / m_sinh;
+    }
+
+    int index = 0;
+
+    while (index < numZeros / 2)
+    {
+        double angle = PI * (2 * index + 1) / m_order;
+        double value = sin(0.5 * angle);
+        double poleReal = -m_sinh * value / (m_cosh * m_cosh - value * value);
+        double poleImag =  m_cosh * cos(0.5 * angle) / (m_cosh * m_cosh - value * value);
+        double zeroImag = 1.0 / cos(0.5 * angle);
+
+        zeros.z(index).Set(0.0, zeroImag);
+        zeros.z(numZeros - 1 - index).Set(0.0, -zeroImag);
+        poles.z(index++).Set(poleReal, -poleImag);
+        poles.z(m_order - index).Set(poleReal, poleImag);
+    }
 }

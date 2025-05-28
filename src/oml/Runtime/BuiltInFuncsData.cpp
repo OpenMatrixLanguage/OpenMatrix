@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsData.cpp
 * @date June 2016
-* Copyright (C) 2016-2022 Altair Engineering, Inc.  
+* Copyright (C) 2016-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -16,21 +16,17 @@
 
 // Begin defines/includes
 #include "BuiltInFuncsData.h"
-#include "CellND.cc"
+
 #include <cassert>
 #include <climits>
 #include <memory>
 
 #include "BuiltInFuncsUtils.h"
-#include "Evaluator.h"
-#include "MatrixNDisplay.h"
+#include "CellND.cc"
 #include "OML_Error.h"
 #include "StructData.h"
 
-#include "hwComplex.h"
-#include "hwMatrix.h"
-
-typedef hwTMatrix< double,  hwTComplex<double> > hwMatrix;
+#include "hwMatrixS_NMKL.h"
 
 //------------------------------------------------------------------------------
 // Returns true if the first complex number is less than the second
@@ -114,7 +110,7 @@ bool IsGreaterThanComplex(const std::pair<hwComplex, int>& p1,
     return (p1.first.Imag() > p2.first.Imag());
 }
 //------------------------------------------------------------------------------
-// Sets fields recursively. First currency is the input, last currency is value
+// Sets fields [setfield]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsData::Setfield(EvaluatorInterface           eval,
                                 const std::vector<Currency>& inputs,
@@ -408,59 +404,65 @@ void BuiltInFuncsData::SetStructElement(const Currency&            value,
                                         bool                       hasindex,
                                         Currency&                  cur) const
 {
-    assert(cur.Struct());
-
     StructData* sd = cur.Struct();
     assert(sd);
-
-	if (sd->GetRefCount() != 1)
-	{
-		StructData* temp = new StructData(*sd);
-		cur.ReplaceStruct(temp);
-	}
-
-    bool        isStructArray = (sd->M() > 1 || sd->N() > 1);
-    std::string err (HW_ERROR_UNSUPOP);
+    if (!sd)
+    {
+        return;
+    }
 
     // If an array of structs is being set, field index needs to be specified
-    if (!hasindex && isStructArray)
-        throw OML_Error(err);
+    if (!hasindex && (sd->M() > 1 || sd->N() > 1))
+        throw OML_Error("Error: unsupported operation; index needs to be specified when setting a struct array");
 
     bool isTargetStruct = value.IsStruct();
     if (field.empty() && !isTargetStruct)
-        throw OML_Error(err + "; field name must specified to set a value in a struct");
-
+    {
+        throw OML_Error("Error: unsupported operation; field name must specified to set a value in a struct");
+    }
+    
     if (isTargetStruct)
     {
         StructData* out = value.Struct();
         if ((value.Struct()->M() > 1 || value.Struct()->N() > 1))
-            throw OML_Error(err + "; cannot set struct array as an element");
+            throw OML_Error("Error: unsupported operation; cannot set struct array as an element");
 
-        std::map< std::string, int> outnames = out->GetFieldNames();
-        std::map< std::string, int> innames  = sd->GetFieldNames();
+        std::map< std::string, int> innames  (sd->GetFieldNames());
 
-        if (outnames.size() != innames.size())
-            throw OML_Error(err + "; struct field names must match");
-
-        for (std::map< std::string, int>::const_iterator itr = innames.begin();
-                itr != innames.end(); ++itr)
+        if (!innames.empty())
         {
-            std::string name = itr->first;
-            if (outnames.find(name) == outnames.end())
-                throw OML_Error(err + "; struct field names must match");
-        }
-        for (std::map< std::string, int>::const_iterator itr = outnames.begin();
-                itr != outnames.end(); ++itr)
-        {
-            std::string name = itr->first;
-            if (innames.find(name) == innames.end())
-                throw OML_Error(err + "; struct field names must match");
+            std::map< std::string, int> outnames = out->GetFieldNames();
+            if (outnames.size() != innames.size())
+            {
+                throw OML_Error("Error: unsupported operation; struct field names must match");
+            }
+
+            for (std::map< std::string, int>::const_iterator itr = innames.begin();
+                 itr != innames.end(); ++itr)
+            {
+                std::string name = itr->first;
+                if (outnames.find(name) == outnames.end())
+                    throw OML_Error("Error: unsupported operation; struct field names must match");
+            }
+            for (std::map< std::string, int>::const_iterator itr = outnames.begin();
+                 itr != outnames.end(); ++itr)
+            {
+                std::string name = itr->first;
+                if (innames.find(name) == innames.end())
+                    throw OML_Error("Error: unsupported operation; struct field names must match");
+            }
         }
     }
+
 
     int m = (index.first  > 0) ? index.first - 1 : 0;
     int n = (index.second > 0) ? index.second - 1 : -1;
 
+    if (sd->GetRefCount() != 1)
+    {
+        StructData* temp = new StructData(*sd);
+        cur.ReplaceStruct(temp);
+    }
     cur.Struct()->SetValue(m, n, field, value);
 }
 //------------------------------------------------------------------------------
@@ -1175,5 +1177,400 @@ bool BuiltInFuncsData::Sortrows(EvaluatorInterface           eval,
     {
         outputs.push_back(idx.release());
     }
+    return true;
+}
+//------------------------------------------------------------------------------
+// Outputs an array indicating which fields are empty in a struct [fieldempty]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsData::FieldEmpty(EvaluatorInterface           eval,
+                                  const std::vector<Currency>& inputs,
+                                  std::vector<Currency>& outputs)
+{
+    if (inputs.empty() || inputs.size() > 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+    else if (!inputs [0].IsStruct())
+    {
+        throw OML_Error(OML_ERR_STRUCT, 1);
+    }
+    const StructData* sd = inputs [0].Struct();
+    if (!sd || sd->Size() == 0)
+    {
+        outputs.emplace_back(EvaluatorInterface::allocateMatrix());
+        return true;
+    }
+    int m = sd->M();
+    int n = sd->N();
+
+    const std::map<std::string, int> fields = sd->GetFieldNames();
+    int nfields = static_cast<int>(fields.size());
+
+    std::unique_ptr<hwMatrix> mtx (nullptr);
+    if (inputs.size() == 2) // Field name(s) are given
+    {
+        if (!(inputs [1].IsString() || inputs[1].IsCellArray()))
+        {
+            throw OML_Error(OML_ERR_STRING_STRINGCELL, 2);
+        }       
+        else if (inputs [1].IsString())
+        {
+            std::string field (inputs [1].StringVal());
+            if (!sd->Contains(field))
+            {
+                throw OML_Error(OML_ERR_INVALID_FIELD, 2);
+            }
+            else if (m * n == 1)
+            {
+                bool isempty = IsStructFieldEmpty(sd, field, 0, 0) == 1 ? true : false;
+                outputs.emplace_back(isempty);
+                return true;
+            }
+            mtx.reset(EvaluatorInterface::allocateMatrix(m, n, true));
+            for (int i = 0; i < m; ++i)
+            {
+                for (int j = 0; j < n; ++j)
+                {
+                    (*mtx)(i, j) = IsStructFieldEmpty(sd, field, i, j);
+                }
+            }
+        }
+        else
+        {
+            HML_CELLARRAY* cell = inputs [1].CellArray();
+            int cellsize = (cell) ? cell->Size() : 0;
+            mtx.reset (EvaluatorInterface::allocateMatrix(m, n * cellsize, true));
+            for (int i = 0; i < m; ++i)
+            {
+                for (int j = 0; j < n; ++j)
+                {
+                    for (int k = 0; k < cellsize; ++k)
+                    {
+                        if (!(*cell)(k).IsString())
+                        {
+                            throw OML_Error(OML_ERR_STRING_STRINGCELL, 2);
+                        }
+                        std::string field ((*cell)(k).StringVal());
+                        (*mtx)(i, j + k) = IsStructFieldEmpty(sd, field, i, j);
+                    }
+                }
+            }
+        }
+    }
+    else // No field name
+    {
+        if (fields.empty())
+        {
+            mtx.reset (EvaluatorInterface::allocateMatrix(m, n, 0.0));
+        }
+        else
+        {
+            mtx.reset (EvaluatorInterface::allocateMatrix(m * nfields, n, true));
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i < m; ++i)
+                {
+                    int k = 0;
+                    for (std::map<std::string, int>::const_iterator itr = fields.begin();
+                         itr != fields.end(); ++itr, ++k)
+                    {
+                        std::string field (itr->first);
+                        (*mtx)(i + k, j) = IsStructFieldEmpty(sd, field, i, j);
+                    }
+                }
+            }
+        }
+    }
+
+    Currency out = mtx.release();
+    out.SetMask(Currency::MASK_LOGICAL);
+    outputs.emplace_back(out);
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Returns 1 if struct field at given index is empty, returns 0 otherwise
+//------------------------------------------------------------------------------
+double BuiltInFuncsData::IsStructFieldEmpty(const StructData* sd,
+                                            const std::string& field,
+                                            int                row,
+                                            int                col)
+{
+    assert(sd);
+    try
+    {
+        const Currency& cur = sd->GetValue(row, col, field);
+        if (cur.IsNothing()     ||
+            cur.IsString()      && cur.StringVal().empty()                             ||
+            cur.IsMatrix()      && cur.Matrix()        && cur.Matrix()->IsEmpty()      ||
+            cur.IsCellArray()   && cur.CellArray()     && cur.CellArray()->IsEmpty()   || 
+            cur.IsNDCellArray() && cur.CellArrayND()   && cur.CellArrayND()->IsEmpty() ||
+            cur.IsStruct()      && cur.Struct()        && cur.Struct()->IsEmpty()      ||
+            cur.IsNDMatrix()    && cur.MatrixN()       && cur.MatrixN()->IsEmpty()     ||
+            cur.IsSparse()      && cur.MatrixS()       && cur.MatrixS()->IsEmpty())
+        {
+            return 1;
+        }
+    }
+    catch (const OML_Error&)
+    {
+        throw OML_Error(OML_ERR_INVALID_FIELD, field, 2);
+    }
+    return 0;
+}
+//------------------------------------------------------------------------------
+// Outputs a cell which contains the contents of the given field [fields2cell]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsData::Fields2Cell(EvaluatorInterface           eval,
+                                   const std::vector<Currency>& inputs,
+                                   std::vector<Currency>& outputs)
+{
+    if (inputs.size() != 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+    else if (!inputs [0].IsStruct())
+    {
+        throw OML_Error(OML_ERR_STRUCT, 1);
+    }
+    else if (!inputs [1].IsString())
+    {
+        throw OML_Error(OML_ERR_STRING, 2);
+    }
+
+    const StructData* sd = inputs [0].Struct();
+    if (!sd || sd->Size() == 0)
+    {
+        outputs.emplace_back(EvaluatorInterface::allocateCellArray());
+        return true;
+    }
+
+    std::string field (inputs [1].StringVal());
+    if (!sd->Contains(field))
+    {
+        throw OML_Error(OML_ERR_INVALID_FIELD, 2);
+    }
+    int m = sd->M();
+    int n = sd->N();
+
+    std::unique_ptr<HML_CELLARRAY> cell(EvaluatorInterface::allocateCellArray(m, n));
+    for (int i = 0; i < m; ++i)
+    {
+        for (int j = 0; j < n; ++j)
+        {
+            (*cell)(i, j) = sd->GetValue(i, j, field);
+        }
+    }
+
+    outputs.emplace_back(cell.release());
+    return true;
+}
+//------------------------------------------------------------------------------
+// Converts cell array to struct of specified fields [cell2fields]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsData::Cell2Fields(EvaluatorInterface           eval,
+                                   const std::vector<Currency>& inputs,
+                                   std::vector<Currency>& outputs)
+{
+    if (inputs.size() < 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+    else if (!inputs [0].IsCellArray())
+    {
+        throw OML_Error(OML_ERR_CELLARRAY, 1);
+    }
+
+    std::vector<std::string> fields;
+    int nfields = 0;
+    if (inputs [1].IsString())
+    {
+        std::string field(inputs [1].StringVal());
+        if (field.empty())
+        {
+            throw OML_Error(OML_ERR_NONEMPTY_STR, 2);
+        }
+        fields.emplace_back(field);
+        nfields = 1;
+    }
+    else if (inputs [1].IsCellArray())
+    {
+        HML_CELLARRAY* cell = inputs [1].CellArray();
+        if (!cell || cell->Size() == 0)
+        {
+            throw OML_Error(OML_ERR_STRING_STRINGCELL, 2);
+        }
+        nfields = cell->Size();
+        fields.reserve(nfields);
+        for (int i = 0; i < nfields; ++i)
+        {
+            const Currency& cur = (*cell)(i);
+            if (!cur.IsString())
+            {
+                throw OML_Error(OML_ERR_STRING_STRINGCELL,
+                    "invalid format in index " + std::to_string (i + 1), 2);
+            }
+            std::string field (cur.StringVal());
+            if (field.empty())
+            {
+                throw OML_Error(OML_ERR_STRING_STRINGCELL, "empty string in index " + std::to_string (i + i), 2);
+            }
+            fields.emplace_back(field);
+        }
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_STRING_STRINGCELL, 2);
+    }
+
+    bool slicecol = true;
+    if (inputs.size() > 2)
+    {
+        if (!inputs [2].IsPositiveInteger())
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, "must be 1 or 2", 3);
+        }
+        int dim = static_cast<int>(inputs [2].Scalar());
+        if (dim == 1)
+        {
+            slicecol = false;
+        }
+        else if (dim != 2)
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, "must be 1 or 2", 3);
+        }
+    }
+
+    HML_CELLARRAY* data = inputs [0].CellArray();
+    if (!data || data->Size() == 0)
+    {
+        outputs.emplace_back(EvaluatorInterface::allocateStruct());
+        return true;
+    }
+
+    int m = data->M();
+    int n = data->N();
+    int datadims = (slicecol) ? n : m;
+    if (datadims != nfields)
+    {
+        std::string msg ("Error: invalid input in argument 2; ");
+        msg += "number of fields [" + std::to_string (nfields)
+            + "] must match data " + ((slicecol) ? "columns " : "rows ")
+            + "[" + std::to_string (datadims) + "]";
+        throw OML_Error(msg);
+    }
+
+    std::unique_ptr<StructData> sd(EvaluatorInterface::allocateStruct());
+    if (slicecol)
+    {
+        for (int i = 0; i < m; ++i)
+        {
+            for (int k = 0; k < nfields; ++k)
+            {
+                sd->SetValue(i, 0, fields [k], (*data)(i, k));
+            }
+        }
+    }
+    else
+    {
+        for (int j = 0; j < n; ++j)
+        {
+            for (int k = 0; k < nfields; ++k)
+            {
+                sd->SetValue(0, j, fields [k], (*data)(k, j));
+            }
+        }
+    }
+
+    outputs.emplace_back(sd.release());
+    return true;
+}
+//------------------------------------------------------------------------------
+// Concatenates structures along a specified dimension [structcat]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsData::Structcat(EvaluatorInterface           eval,
+                                 const std::vector<Currency>& inputs,
+                                 std::vector<Currency>& outputs)
+{
+    if (inputs.size() < 3)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+    else if (!inputs [0].IsPositiveInteger())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, "must be 1 or 2", 1);
+    }
+
+    int dim = static_cast<int>(inputs [0].Scalar());
+    if (dim != 1 && dim != 2)
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, "must be 1 or 2", 1);
+    }
+
+    bool hasDefault = (!inputs [1].IsStruct());
+    Currency defaultval = (hasDefault) ? inputs [1] : Currency();
+
+    int  startidx = (hasDefault) ? 2 : 1;
+    int  nargin = static_cast<int>(inputs.size());
+
+    std::unique_ptr<StructData> sd (EvaluatorInterface::allocateStruct());
+    int idx = 0;
+    for (int i = startidx; i < nargin; ++i)
+    {
+        const Currency& cur = inputs [i];
+        if (!cur.IsStruct())
+        {
+            throw OML_Error(OML_ERR_STRUCT, i + 1);
+        }
+
+        StructData* in = cur.Struct();
+        if (!in || in->Size() == 0)
+        {
+            throw OML_Error(OML_ERR_STRUCT, i + 1);
+        }
+        int m = in->M();
+        int n = in->N();
+        const std::map<std::string, int> fields (in->GetFieldNames());
+
+        for (int ii = 0; ii < m; ++ii)
+        {
+            for (int jj = 0; jj < n; ++jj)
+            {
+                int row = (dim == 1) ? 0   : idx; 
+                int col = (dim == 1) ? idx : 0;
+
+                for (std::map<std::string, int>::const_iterator itr = fields.begin();
+                     itr != fields.end(); ++itr)
+                {
+                    std::string field(itr->first);
+                    sd->SetValue(row, col, field, in->GetValue(ii, jj, field));
+                }
+                ++idx;
+            }
+        }
+    }
+
+    if (hasDefault)
+    {
+        const std::map<std::string, int> flds = sd->GetFieldNames();
+        int m = sd->M();
+        int n = sd->N();
+        for (int i = 0; i < m; ++i)
+        {
+            for (int j = 0; j < n; ++j)
+            {
+                for (std::map<std::string, int>::const_iterator itr = flds.begin();
+                     itr != flds.end(); ++itr)
+                {
+                    std::string field(itr->first);
+                    if (sd->GetValue(i, j, field).IsEmpty())
+                    {
+                        sd->SetValue(i, j, field, defaultval);
+                    }
+                }
+            }
+        }
+    }
+    outputs.emplace_back(sd.release());
     return true;
 }

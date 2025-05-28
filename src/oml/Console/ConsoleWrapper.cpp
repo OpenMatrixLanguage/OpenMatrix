@@ -1,7 +1,7 @@
 /**
 * @file ConsoleWrapper.cpp
 * @date June 2015
-* Copyright (C) 2015-2023 Altair Engineering, Inc.  
+* Copyright (C) 2015-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -236,7 +236,7 @@ bool ConsoleWrapper::PrintResult(const Currency& cur)
         }
     }
 
-    if (topdisplay->IsPaginatingCols() || topdisplay->IsPaginatingRows())
+    if (topdisplay && (topdisplay->IsPaginatingCols() || topdisplay->IsPaginatingRows()))
     {
         PrintPaginationMessage(topdisplay->CanPaginateColumns());
         return true;               // Done printing for pagination
@@ -661,7 +661,7 @@ void ConsoleWrapper::Paginate()
         assert(display);
         if (!display) break;
 
-        bool canPaginateCols = display ? display->CanPaginateColumns() : false;
+        bool canPaginateCols = display->CanPaginateColumns();
 
         if (CurrencyDisplay::IsPaginateInteractive())
         {
@@ -898,7 +898,7 @@ void ConsoleWrapper::HandleOnAddDisplay(CurrencyDisplay* display)
 //------------------------------------------------------------------------------
 void ConsoleWrapper::HandleOnPauseStart(const std::string& msg, bool wait)
 {
-    bool waspaginating = false;
+    bool waspaginating = false; // cppcheck-suppress unreadVariable
     while (1)
     {
         if (IsPaginating())
@@ -972,7 +972,7 @@ void ConsoleWrapper::PrintInfoToOmlWindow(const std::string& msg)
 {
 #ifdef OS_WIN
     // Gray background with black letters
-    SetConsoleTextAttribute(_outhandle, BACKGROUND_INTENSITY | 0);
+    SetConsoleTextAttribute(_outhandle, BACKGROUND_INTENSITY | 0); // cppcheck-suppress badBitmaskCheck
 
     Print(msg + '\n', true);
     SetConsoleTextAttribute(_outhandle, _defaultWinAttr); // Reset color info
@@ -1124,7 +1124,7 @@ std::vector<std::string> ConsoleWrapper::SplitInputPrompt(const std::string& in)
         size_t pos = prompt.find("\\n");
         if (pos == std::string::npos)
         {
-            if (!prompt.empty())
+            if (!prompt.empty()) // cppcheck-suppress knwonConditionTrueFalse
             {
                 tokens.emplace_back(prompt);
             }

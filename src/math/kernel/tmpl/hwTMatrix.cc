@@ -611,14 +611,20 @@ hwMathStatus hwTMatrix<T1, T2>::Reshape(int m, int n)
         if (n == -1)
             return hwMathStatus(HW_MATH_ERR_MATRIXRESHAPE1, 1, 2);
 
-        m = size / n;
+        if (n)
+            m = size / n;
+        else
+            m = 0;
     }
     else if (n == -1)
     {
-        n = size / m;
+        if (m)
+            n = size / m;
+        else
+            n = 0;
     }
 
-    if (m * n != Size())
+    if (m * n != size)
         return hwMathStatus(HW_MATH_ERR_MATRIXRESHAPE2, 1, 2);
 
     m_nRows = m;
@@ -1953,7 +1959,7 @@ hwMathStatus hwTMatrix<T1, T2>::WriteSubmatrix(int startRow, int startCol, const
 
     if (source.IsReal())
     {
-        if (!IsReal())
+        if (!IsReal() && !source.IsEmpty())
         {
             hwTMatrix<T1, T2> temp;
             temp.PackComplex(source);
@@ -2143,6 +2149,81 @@ hwMathStatus hwTMatrix<T1, T2>::Diag(const hwTMatrix<T1, T2>& source, int k)
         else
         {
             status = Dimension(0, 1, REAL);
+        }
+    }
+
+    return status;
+}
+
+//! Reverse the vectors along a direction
+template<typename T1, typename T2>
+hwMathStatus hwTMatrix<T1, T2>::FlipVectors(const hwTMatrix<T1, T2>& source, int dim)
+{
+    if (dim == -1)
+    {
+        if (source.M() == 1)
+            dim = 1;
+        else
+            dim = 0;
+    }
+    else if (dim > 1)
+    {
+        (*this) = source;
+        return hwMathStatus();
+    }
+    else if (dim < 0)
+    {
+        return hwMathStatus(HW_MATH_ERR_ARRAYDIM, 2);
+    }
+
+    int m = source.M();
+    int n = source.N();
+    hwMathStatus status = Dimension(m, n, source.Type());
+
+    if (dim == 0)   // flip columns
+    {
+        if (IsReal())
+        {
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i < m; ++i)
+                {
+                    (*this)(i, j) = source(m - 1 - i, j);
+                }
+            }
+        }
+        else    // complex
+        {
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i < m; ++i)
+                {
+                    this->z(i, j) = source.z(m - 1 - i, j);
+                }
+            }
+        }
+    }
+    else            // dim == 1, flip rows
+    {
+        if (IsReal())
+        {
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i < m; ++i)
+                {
+                    (*this)(i, j) = source(i, n - 1 - j);
+                }
+            }
+        }
+        else    // complex
+        {
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i < m; ++i)
+                {
+                    this->z(i, j) = source.z(i, n - 1 - j);
+                }
+            }
         }
     }
 
@@ -6195,7 +6276,7 @@ void hwTMatrix<T1, T2>::Allocate(DataType dataType)
 
         try
         {
-            m_real = new T1[m_capacity];
+            m_real = new T1[m_capacity];	// cppcheck-suppress negativeMemoryAllocationSize
         }
         catch (std::bad_alloc&)
         {
@@ -6214,7 +6295,7 @@ void hwTMatrix<T1, T2>::Allocate(DataType dataType)
 
         try
         {
-            m_complex = new T2[m_capacity];
+            m_complex = new T2[m_capacity];		// cppcheck-suppress negativeMemoryAllocationSize
         }
         catch (std::bad_alloc&)
         {
@@ -6361,7 +6442,7 @@ void hwTMatrix<T1, T2>::CopyBlock(const T1* real, int m, int n, int row1, int ro
         data_t = m_real + jj * m_nRows + ii;
         data_s = real + col1 * m + row1;
 
-        if (numRows > numCols)
+        if (numRows > _min(numCols, 31))
         {
             // copy by column
             int numElems = numRows;
@@ -6430,7 +6511,7 @@ void hwTMatrix<T1, T2>::CopyBlock(const T2* cmplx, int m, int n, int row1, int r
         data_t = m_complex + jj * m_nRows + ii;
         data_s = cmplx + col1 * m + row1;
 
-        if (numRows > numCols)
+        if (numRows > _min(numCols, 31))
         {
             // copy by column
             int numElems = numRows;

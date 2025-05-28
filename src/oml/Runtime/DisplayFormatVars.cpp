@@ -1,7 +1,7 @@
 /**
 * @file DisplayFormatVars.cpp
 * @date June, 2019
-* Copyright (C) 2019 Altair Engineering, Inc.
+* Copyright (C) 2019-2024 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -244,11 +244,8 @@ std::string DisplayFormatVars::RealToString(double val, const std::string& preci
         {
             fmt.replace(pos, 2, "lf"); // For sprintf invalid formats
         }
-    }
 
-    // Handle double precision issues
-    if (!isint)
-    {
+        // Handle double precision issues
         if (fmt.find("lf") == std::string::npos)
         {
             size_t pos = fmt.find("g");
@@ -272,7 +269,6 @@ std::string DisplayFormatVars::RealToString(double val, const std::string& preci
     }
     char tmp[1028];
     sprintf(tmp, fmt.c_str(), val);
-    std::string out(tmp);
     return tmp;
 }
 //------------------------------------------------------------------------------

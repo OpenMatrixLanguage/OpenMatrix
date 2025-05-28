@@ -1,7 +1,7 @@
 /**
 * @file CurrencyDisplay.cpp
 * @date January 2016
-* Copyright (C) 2016-2022 Altair Engineering, Inc.  
+* Copyright (C) 2016-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -24,22 +24,13 @@
 #include <memory>
 #include <climits>
 
-#ifndef OS_WIN
-#    include <float.h>
-# ifndef DECIMAL_DIG
-#     define DECIMAL_DIG 21
-# endif
-#endif
-
 #include "BuiltInFuncsUtils.h"
 #include "Interpreter.h"
 #include "OutputFormat.h"
 #include "SignalHandlerBase.h"
 #include "StructData.h"
 
-#include "hwMatrix.h"
 #include "hwMatrixS.h"
-#include "math/kernel/GeneralFuncs.h"
 
 int CurrencyDisplay::m_skipFormat   = 10000;
 int CurrencyDisplay::m_maxRows      = 0;
@@ -50,21 +41,12 @@ CurrencyDisplay::PAGINATE CurrencyDisplay::m_paginate = CurrencyDisplay::PAGINAT
 std::ofstream CurrencyDisplay::_outputlog;
 std::wstring CurrencyDisplay::_outputlogname = L"outputlog.txt";
 
-//# define CURRENCYDISPLAY_DBG 1  // Uncomment to print debug info
-#ifdef CURRENCYDISPLAY_DBG
-#    define CURRENCYDISPLAY_PRINT(str,val) { std::cout << str << val << std::endl; }
-#else
-#    define CURRENCYDISPLAY_PRINT(str,val) 0
-#endif
-// End defines/includes
-
 //------------------------------------------------------------------------------
 // Sets maximum columns for display
 //------------------------------------------------------------------------------
 void CurrencyDisplay::SetMaxCols(int val)
 {
     (val >= 0) ? m_maxCols = val : m_maxCols = 0;
-    CURRENCYDISPLAY_PRINT("CurrencyDisplay max cols: ", m_maxCols);
 }
 //------------------------------------------------------------------------------
 // Sets maximum rows for display
@@ -72,7 +54,6 @@ void CurrencyDisplay::SetMaxCols(int val)
 void CurrencyDisplay::SetMaxRows(int val)
 {
     (val >= 0) ? m_maxRows = val : m_maxRows = 0;
-    CURRENCYDISPLAY_PRINT("CurrencyDisplay max rows: ", m_maxRows);
 }
 //------------------------------------------------------------------------------
 // True if given currency can paginate
@@ -119,6 +100,23 @@ bool CurrencyDisplay::CanPaginate(const Currency& cur)
         return true;
     }
     return false;
+}
+//------------------------------------------------------------------------------
+// Constructor - Only currency or derived classes can access constructor
+//------------------------------------------------------------------------------
+CurrencyDisplay::CurrencyDisplay()
+    : m_colBegin      (-1)
+    , m_colEnd        (-1)
+    , m_rowBegin      (-1)
+    , m_rowEnd        (-1)
+    , m_mode          (DISPLAYMODE_FORWARD)
+    , m_parentDisplay (0)
+    , m_initialized   (false)
+    , m_signalHandler (nullptr)
+    , m_indent        (0)
+    , m_deleteLine    (false)
+    , m_cachedPaginate(-1)
+{
 }
 //------------------------------------------------------------------------------
 // Constructor - Only currency or derived classes can access constructor
@@ -305,7 +303,7 @@ void CurrencyDisplay::DeleteDisplay(CurrencyDisplay* display)
     {
         display->m_currency.SetDisplay(nullptr);
         delete display;
-        display = nullptr;
+        display = nullptr; // cppcheck-suppress uselessAssignmentPtrArg
     }
 }
 //------------------------------------------------------------------------------
@@ -356,7 +354,6 @@ std::string CurrencyDisplay::ScalarToString(const OutputFormat* fmt,
         {
             long long minfloat = (long long)std::pow(10.0, -(decpart+1));
             size_t len = intpart + decpart + 4; // decimal, e, buffer
-            bool isScientific = false;
             if (aval > minfloat)
 			{
 				sprintf(formatString, "%%-%d.%df", intpart, decpart);
@@ -364,20 +361,19 @@ std::string CurrencyDisplay::ScalarToString(const OutputFormat* fmt,
             else
             {
                 sprintf(formatString, "%%-%d.%de", intpart, decpart);
-                isScientific = true;
             }
 
             if (len >= 1024)
             {
-                std::ostringstream os;
-                os << std::left;
+                std::ostringstream os1;
+                os1 << std::left;
                 if (scientific)
-                    os << std::scientific;
+                    os1 << std::scientific;
                 else
-                    os << std::fixed;
-                os << std::setprecision(static_cast<std::streamsize>(decpart));
-                os << val;
-                return os.str();
+                    os1 << std::fixed;
+                os1 << std::setprecision(static_cast<std::streamsize>(decpart));
+                os1 << val;
+                return os1.str();
             }
         }
         else if (!(aval > 1e-6))
@@ -454,11 +450,11 @@ std::string CurrencyDisplay::IntToString(const OutputFormat* fmt,
     int intpart = fmt ? fmt->GetIntegerPart() : 0;
     int decpart = fmt ? fmt->GetDecimalPart() : 0;
 
-    double          aval        = fabs(val);
     std::streamsize totaldigits = static_cast<std::streamsize>(9);
     bool  customfmt = false;
     if (fmt)
     {
+        double aval = fabs(val);
         totaldigits = fmt->GetPrecision();
 
         // Check for very small floats
@@ -499,10 +495,10 @@ std::string CurrencyDisplay::IntToString(const OutputFormat* fmt,
                 scientific = true;
         }
 
-        if (!scientific ||
-            (scientific && fmt->GetFlags() == (std::ios::scientific | std::ios::uppercase)))
+        if (!scientific || 
+            fmt->GetFlags() == (std::ios::scientific | std::ios::uppercase))
             os.setf(fmt->GetFlags(), std::ios::floatfield);        
-        else if (scientific)
+        else if (scientific) // cppcheck-suppress knownConditionTrueFalse
             os.setf(std::ios::scientific, std::ios::floatfield); 
         
     }
@@ -545,8 +541,8 @@ CurrencyDisplay::DisplayFormat CurrencyDisplay::GetFormatInfo(
     int decpart = fmt ? fmt->GetDecimalPart() : 0;
 
     std::string     partialFmt;
-    std::streamsize precision  = fmt ? fmt->GetPrecision() : 
-                                 OutputFormat::PRECISION_SCALAR;
+    //std::streamsize precision  = fmt ? fmt->GetPrecision() : 
+    //                             OutputFormat::PRECISION_SCALAR;
     int         totaldigits = 12;
     double      aval        = fabs(val);
     long double maxfloat    = 1e+6;
@@ -564,16 +560,16 @@ CurrencyDisplay::DisplayFormat CurrencyDisplay::GetFormatInfo(
             os << std::left << std::fixed;
             os << std::setprecision(static_cast<std::streamsize>(decpart));
             os << val;
-            std::string val (os.str());
+            std::string val1 (os.str());
             bool setdefault = true;
-            if (!val.empty())
+            if (!val1.empty())
             {
-                size_t pos = val.find(".");
+                size_t pos = val1.find(".");
                 if (pos != std::string::npos)
                 {
                     setdefault = false;
-                    std::string intstr = val.substr(0, pos);
-                    std::string decstr = val.substr(pos + 1);
+                    std::string intstr = val1.substr(0, pos);
+                    std::string decstr = val1.substr(pos + 1);
                     
                     intpart = intstr.empty() ? 9 : static_cast<int>(intstr.size());
                     decpart = decstr.empty() ? 8 : static_cast<int>(decstr.size());
@@ -708,8 +704,10 @@ CurrencyDisplay::DisplayFormat CurrencyDisplay::GetFormatInfo(
     {
         if (tmp.find("e") != std::string::npos ||
             tmp.find("E") != std::string::npos ||
-            tmp.size()    > totaldigits) 
-            thisformat = DisplayFormatScientific;
+            tmp.size() > totaldigits)
+        {
+            //thisformat = DisplayFormatScientific;
+        }
         else if (tmp.find(".") == std::string::npos)
         {
             fmtstr = "";
@@ -842,19 +840,19 @@ std::string CurrencyDisplay::GetFormattedValue(double val,
 
     if (fmtstr.empty())
     {
-        std::ostringstream os;
+        std::ostringstream os1;
         if (fmt)
         {
-            os.setf(fmt->GetFlags(), std::ios::floatfield);
-            os.precision(static_cast<std::streamsize>(fmt->GetPrecision()));
+            os1.setf(fmt->GetFlags(), std::ios::floatfield);
+            os1.precision(static_cast<std::streamsize>(fmt->GetPrecision()));
         }
         else
         {
-            os.setf(static_cast<std::ios_base::fmtflags>(0), std::ios::floatfield);
-            os.precision(static_cast<std::streamsize>(9));
+            os1.setf(static_cast<std::ios_base::fmtflags>(0), std::ios::floatfield);
+            os1.precision(static_cast<std::streamsize>(9));
         }
-        os << val;
-        return std::string (os.str());
+        os1 << val;
+        return std::string (os1.str());
     }
         
     char tmp[1024];
@@ -972,7 +970,7 @@ std::string CurrencyDisplay::GetFormattedString(const char* fmt, double val)
         {
             std::unique_ptr<char[]> buf(new char[len + 1]);  // Include '\0'
             snprintf(buf.get(), len + 1, fmt, val);
-            return std::string(buf.get(), buf.get() + len); 
+            return std::string(static_cast<char*>(buf.get()), static_cast<char*>(buf.get()) + len);
         }
         catch (...)
         {
@@ -1029,35 +1027,7 @@ void CurrencyDisplay::SetOutputLogName(const std::wstring& name)
 //------------------------------------------------------------------------------
 std::string CurrencyDisplay::NonFormattedDoubleToString(double val)
 {
-    if (IsNegInf_T(val))
-    {
-        return "-Inf";
-    }
-    else if (IsInf_T(val))
-    {
-        return "Inf";
-    }
-    else if (IsNaN_T(val))
-    {
-        return "NaN";
-    }
-    else
-    {
-        char* tmp = new char[128];
-#ifdef OS_WIN
-        sprintf(tmp, "%.*g", DBL_DECIMAL_DIG, val);
-#else
-        sprintf(tmp, "%.*g", DECIMAL_DIG, val);
-#endif
-
-        std::string out(tmp);
-
-        delete[] tmp;
-        tmp = nullptr;
-
-        return out;
-    }
-    return "";
+    return BuiltInFuncsUtils::NonFormattedDouble2String(val, "NaN", "Inf", "-Inf");
 }
 //------------------------------------------------------------------------------
 // Utility to convert double to string without precision loss

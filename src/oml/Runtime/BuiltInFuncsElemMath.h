@@ -194,13 +194,6 @@ private:
     //! \param mtx Given matrix
     //!
     bool IsSingleRowND( const hwMatrixN* mtx) const;
-    //!
-    //! Helper function for flip methods which returns flipped matrix 
-    //! \param in  Input matrix
-    //! \param dim Dimension to flip
-    //!
-    hwMatrix* FlipHelper( const hwMatrix* in, 
-                          int             dim);
 };
 
 #endif // __BUILTINFUNCSELEMMATH__

@@ -1,7 +1,7 @@
 /**
 * @file SignalsTboxFuncs.cxx
 * @date January 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -23,6 +23,8 @@
 #include "FourierFuncs.h"
 #include "FilterFuncs.h"
 #include "WaveformFuncs.h"
+#include "SignalStatsFuncs.h"
+#include "StatisticsFuncs.h"
 
 #include "BuiltInFuncs.h"
 #include "BuiltInFuncsMKL.h"
@@ -51,9 +53,15 @@ int InitDll(EvaluatorInterface eval)
     eval.RegisterBuiltInFunction("spectrogram", OmlSpectrogram,FunctionMetaData(-2, -2, SIGN), false);
     eval.RegisterBuiltInFunction("fftshift",    OmlFftShift,   FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("ifftshift",   OmlIFftShift,  FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("shiftdata",   OmlShiftData,  FunctionMetaData(-2, -1, SIGN));
+    eval.RegisterBuiltInFunction("unshiftdata", OmlUnshiftData, FunctionMetaData(3, 1, SIGN));
+    eval.RegisterBuiltInFunction("hilbert",     OmlHilbert,    FunctionMetaData(-2, 1, SIGN));
+    // eval.RegisterBuiltInFunction("dct",         OmlDct,        FunctionMetaData(-2, 1, SIGN));
+    // eval.RegisterBuiltInFunction("idct",        OmlIdct,       FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("freq",        OmlFreq,       FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("fold",        OmlFold,       FunctionMetaData(-2, 1, SIGN));
-    eval.RegisterBuiltInFunction("xcorr",       OmlXcorr,      FunctionMetaData(-3, 1, SIGN));
+    eval.RegisterBuiltInFunction("xcorr",       OmlXcorr,      FunctionMetaData(-2, 2, SIGN));
+    eval.RegisterBuiltInFunction("xcov",        OmlXcov,       FunctionMetaData(-2, 2, SIGN));
     eval.RegisterBuiltInFunction("unwrap",      OmlUnwrap,     FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("pwelch",      OmlPwelch,     FunctionMetaData(-2, 2, SIGN), false);
     eval.RegisterBuiltInFunction("cpsd",        OmlCpsd,       FunctionMetaData(-3, 2, SIGN));
@@ -72,6 +80,12 @@ int InitDll(EvaluatorInterface eval)
     eval.RegisterBuiltInFunction("cheby1",      OmlCheby1,     FunctionMetaData(-4, 2, SIGN));
     eval.RegisterBuiltInFunction("cheby2",      OmlCheby2,     FunctionMetaData(-4, 2, SIGN));
     eval.RegisterBuiltInFunction("ellip",       OmlEllip,      FunctionMetaData(-5, 2, SIGN));
+    eval.RegisterBuiltInFunction("bessel3ap",   OmlBessel3ap,  FunctionMetaData(1, 3, SIGN));
+    eval.RegisterBuiltInFunction("besselap",    OmlBesselap,   FunctionMetaData(1, 3, SIGN));
+    eval.RegisterBuiltInFunction("buttap",      OmlButtap,     FunctionMetaData(1, 3, SIGN));
+    eval.RegisterBuiltInFunction("cheb1ap",     OmlCheb1ap,    FunctionMetaData(2, 3, SIGN));
+    eval.RegisterBuiltInFunction("cheb2ap",     OmlCheb2ap,    FunctionMetaData(2, 3, SIGN));
+    eval.RegisterBuiltInFunction("ellipap",     OmlEllipap,    FunctionMetaData(3, 3, SIGN));
     eval.RegisterBuiltInFunction("buttord",     OmlButtord,    FunctionMetaData(-5, 2, SIGN));
     eval.RegisterBuiltInFunction("cheb1ord",    OmlCheb1ord,   FunctionMetaData(-5, 2, SIGN));
     eval.RegisterBuiltInFunction("cheb2ord",    OmlCheb2ord,   FunctionMetaData(-5, 2, SIGN));
@@ -85,8 +99,12 @@ int InitDll(EvaluatorInterface eval)
     eval.RegisterBuiltInFunction("chebwin",     OmlChebwin,    FunctionMetaData(-3, 1, SIGN));
     eval.RegisterBuiltInFunction("kaiser",      OmlKaiser,     FunctionMetaData(-3, 1, SIGN));
     eval.RegisterBuiltInFunction("filter",      OmlFilter,     FunctionMetaData(-4, 1, SIGN));
+    eval.RegisterBuiltInFunction("filtic",      OmlFiltIC,     FunctionMetaData(-4, 1, SIGN));
     eval.RegisterBuiltInFunction("filtfilt",    OmlFiltfilt,   FunctionMetaData(3, 1, SIGN));
+    eval.RegisterBuiltInFunction("sosfilt",     OmlSosFilt,    FunctionMetaData(2, 1, SIGN));
     eval.RegisterBuiltInFunction("filter2",     OmlFilter2,    FunctionMetaData(-3, 1, SIGN));
+    eval.RegisterBuiltInFunction("medfilt1",    OmlMedfilt1,   FunctionMetaData(2, 1, SIGN));
+    eval.RegisterBuiltInFunction("grpdelay",    OmlGrpDelay,   FunctionMetaData(-2, -2, SIGN));
     eval.RegisterBuiltInFunction("sinc",        OmlSinc,       FunctionMetaData(1, 1, SIGN));
     eval.RegisterBuiltInFunction("upsample",    OmlUpsample,   FunctionMetaData(-3, 1, SIGN));
     eval.RegisterBuiltInFunction("downsample",  OmlDownsample, FunctionMetaData(-3, 1, SIGN));
@@ -104,6 +122,17 @@ int InitDll(EvaluatorInterface eval)
     eval.RegisterBuiltInFunction("sawtooth",    OmlSawtooth,   FunctionMetaData(-2, 1, SIGN));
     eval.RegisterBuiltInFunction("diric",       OmlDiric,      FunctionMetaData(2, 1, SIGN));
     eval.RegisterBuiltInFunction("chirp",       OmlChirp,      FunctionMetaData(-3, 1, SIGN));
+    eval.RegisterBuiltInFunction("morlet",      OmlMorlet,     FunctionMetaData(3, 1, SIGN));
+    eval.RegisterBuiltInFunction("cmorwavf",    OmlCmorwavf,   FunctionMetaData(5, 1, SIGN));
+    eval.RegisterBuiltInFunction("gmonopuls",   OmlGmonopuls,  FunctionMetaData(2, 1, SIGN));
+    eval.RegisterBuiltInFunction("shanwavf",    OmlShanwavf,   FunctionMetaData(5, 1, SIGN));
+    eval.RegisterBuiltInFunction("mexihat",     OmlMexihat,    FunctionMetaData(3, 1, SIGN));
+    eval.RegisterBuiltInFunction("meyeraux",    OmlMeyerAux,   FunctionMetaData(1, 1, SIGN));
+    eval.RegisterBuiltInFunction("rssq",        OmlRSSQ,       FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("peak2rms",    OmlPeak2RMS,   FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("peak2peak",   OmlPeak2Peak,  FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("uencode",     OmlUencode,    FunctionMetaData(-2, 1, SIGN));
+    eval.RegisterBuiltInFunction("udecode",     OmlUdecode,    FunctionMetaData(-2, 1, SIGN));
 
     return 1;
 }
@@ -115,7 +144,7 @@ bool OmlIfft(EvaluatorInterface           eval,
              std::vector<Currency>&       outputs)
 {
     size_t nargin = inputs.size();
-    if (nargin < 1 || nargin > 3)
+    if (nargin < 1 || nargin > 4)
     {
         throw OML_Error(OML_ERR_NUMARGIN);
     }
@@ -124,9 +153,24 @@ bool OmlIfft(EvaluatorInterface           eval,
     const Currency& input1 = inputs[0];
 
     if (!(input1.IsMatrix() || input1.IsNDMatrix() ||
-        input1.IsScalar() || input1.IsComplex()))
+          input1.IsScalar() || input1.IsComplex()))
     {
         throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
+    }
+
+    bool assumeConjSym = false;
+
+    if (inputs.back().IsString())
+    {
+        if (inputs.back().StringVal() == "symmetric")
+        {
+            assumeConjSym = true;
+            --nargin;
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_BAD_STRING, static_cast<int> (nargin));
+        }
     }
 
     int fftSize = -1;
@@ -236,12 +280,12 @@ bool OmlIfft(EvaluatorInterface           eval,
                 hwMathStatus status = input.PackComplex(*matrix);
                 BuiltInFuncsUtils::CheckMathStatus(eval, status);
 
-                status = Ifft(input, *signal, fftSize);
+                status = Ifft(input, *signal, fftSize, assumeConjSym);
                 BuiltInFuncsUtils::CheckMathStatus(eval, status);
             }
             else
             {
-                hwMathStatus status = Ifft(*matrix, *signal, fftSize);
+                hwMathStatus status = Ifft(*matrix, *signal, fftSize, assumeConjSym);
                 BuiltInFuncsUtils::CheckMathStatus(eval, status);
             }
         }
@@ -262,7 +306,7 @@ bool OmlIfft(EvaluatorInterface           eval,
                     stat = colin->MakeComplex();
                     BuiltInFuncsUtils::CheckMathStatus(eval, stat);
                 }
-                stat = Ifft(*colin, *colout, fftSize);
+                stat = Ifft(*colin, *colout, fftSize, assumeConjSym);
                 BuiltInFuncsUtils::CheckMathStatus(eval, stat);
                 if (colout->N() != 1)
                 {
@@ -276,7 +320,7 @@ bool OmlIfft(EvaluatorInterface           eval,
         {
             if (fftSize == matrix->N())
             {
-                hwMathStatus status = Ifft(*matrix, *signal, dim - 1, fftSize);
+                hwMathStatus status = Ifft(*matrix, *signal, dim - 1, fftSize, assumeConjSym);
             }
             else
             {
@@ -294,7 +338,7 @@ bool OmlIfft(EvaluatorInterface           eval,
                         stat = rowin->MakeComplex();
                         BuiltInFuncsUtils::CheckMathStatus(eval, stat);
                     }
-                    stat = Ifft(*rowin, *rowout, fftSize);
+                    stat = Ifft(*rowin, *rowout, fftSize, assumeConjSym);
                     BuiltInFuncsUtils::CheckMathStatus(eval, stat);
                     if (rowout->M() != 1)
                     {
@@ -321,7 +365,7 @@ bool OmlIfft(EvaluatorInterface           eval,
         {
             hwMatrixN* signal = new hwMatrixN;
 
-            hwMathStatus status = Ifft(*matrix, *signal, dim - 1, fftSize);
+            hwMathStatus status = Ifft(*matrix, *signal, dim - 1, fftSize, assumeConjSym);
             BuiltInFuncsUtils::CheckMathStatus(eval, status);
             outputs.push_back(signal);
         }
@@ -536,7 +580,7 @@ bool OmlFft(EvaluatorInterface           eval,
         }
         else
         {
-            throw OML_Error(OML_ERR_UNSUPPORTDIM, 3);
+            throw OML_Error(OML_ERR_INVALID_RANGE, 3, OML_VAR_DIM);
         }
 
         outputs.push_back(freq.release());
@@ -1135,7 +1179,7 @@ bool OmlStft(EvaluatorInterface           eval,
         std::vector<Currency> title;
         viewType.push_back(2);
         x_label.push_back("Time [sec]");
-        y_label.push_back("Frequency (Hz)");
+        y_label.push_back("Frequency [Hz]");
 
         if (sideOpt == "onesided_db")
             title.push_back("Short Time Fourier Transform [dB]");
@@ -1467,7 +1511,7 @@ bool OmlIstft(EvaluatorInterface           eval,
     hwMatrix signalMatrix;
     hwMathStatus status;
 
-    status = Ifft(*freqRes, signalMatrix, 0, 0);
+    status = Ifft(*freqRes, signalMatrix, 0, 0, false);
 
     // perform istft ops and create output
     // Daniel W. Griffin and Jae S. Lim "Signal Estimation from Modified Short - Time Fourier Transform",
@@ -1913,7 +1957,7 @@ bool OmlSpectrogram(EvaluatorInterface           eval,
         std::vector<Currency> title;
         viewType.push_back(2);
         x_label.push_back("Time [sec]");
-        y_label.push_back("Frequency (Hz)");
+        y_label.push_back("Frequency [Hz]");
 
         if (sideOpt == "onesided_db")
             title.push_back("Spectrogram [dB]");
@@ -2281,6 +2325,927 @@ bool OmlIFftShift(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
+// Shift data dimension
+//------------------------------------------------------------------------------
+bool OmlShiftData(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin != 1 && nargin != 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    int dim = -1;
+    int shifts = -1;
+    int numDims;
+
+    if (nargin == 2)
+    {
+        if (inputs[1].IsPositiveInteger())
+        {
+            dim = static_cast<int> (inputs[1].Scalar());
+        }
+        else if (!inputs[1].IsMatrix() || !inputs[1].Matrix()->Is0x0())
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_DIM);
+        }
+    }
+
+    if (inputs[0].IsMatrix() || inputs[0].IsScalar() || inputs[0].IsComplex())
+    {
+        numDims = 2;
+    }
+    else if (inputs[0].IsNDMatrix())
+    {
+        const std::vector<int>& dims = inputs[0].MatrixN()->Dimensions();
+        numDims = static_cast<int> (dims.size());
+    }
+    else if (inputs[0].IsSparse())
+    {
+        throw OML_Error(OML_ERR_DATATYPE, 1);
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_DATA);
+    }
+
+    if (nargin == 1 || dim == -1)
+    {
+        // get first non-singleton dimension
+        if (inputs[0].IsMatrix() || inputs[0].IsScalar() || inputs[0].IsComplex())
+        {
+            if (inputs[0].ConvertToMatrix()->M() == 1)
+            {
+                dim = 2;
+            }
+            else
+            {
+                dim = 1;
+            }
+        }
+        else if (inputs[0].IsNDMatrix())
+        {
+            const std::vector<int>& dims = inputs[0].MatrixN()->Dimensions();
+
+            for (int i = 0; i < dims.size(); ++i)
+            {
+                if (dims[i] != 1)
+                {
+                    dim = i + 1;
+                    break;
+                }
+            }
+        }
+
+        shifts = dim - 1;
+    }
+
+    // perform permutation
+    hwMatrix* perm = EvaluatorInterface::allocateMatrix(1, _max(numDims, dim), true);
+
+    (*perm)(0) = dim;
+
+    for (int i = 1; i < dim; ++i)
+    {
+        (*perm)(i) = i;
+    }
+
+    for (int i = dim; i < numDims; ++i)
+    {
+        (*perm)(i) = i + 1;
+    }
+
+    std::vector<Currency> inputs2;
+    inputs2.push_back(inputs[0]);
+    Currency permCur(perm);
+    inputs2.push_back(permCur);
+
+    oml_permute(eval, inputs2, outputs);
+
+    if (shifts != -1)
+    {
+        outputs.push_back(Currency());
+        outputs.push_back(shifts);
+    }
+    else
+    {
+        outputs.push_back(permCur);
+        outputs.push_back(Currency());
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Unshift data dimension
+//------------------------------------------------------------------------------
+bool OmlUnshiftData(EvaluatorInterface           eval,
+                    const std::vector<Currency>& inputs,
+                    std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 3)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[1].IsMatrix())
+    {
+        throw OML_Error(OML_ERR_POSINTVECTOR, 2, OML_VAR_DIMS);
+    }
+
+    const hwMatrix* perm = inputs[1].Matrix();
+
+    if (!perm->IsEmptyOrVector() || !perm->IsRealData())
+    {
+        throw OML_Error(OML_ERR_POSINTVECTOR, 2, OML_VAR_DIMS);
+    }
+
+    int shifts = -1;
+
+    if (inputs[2].IsInteger())
+    {
+        shifts = static_cast<int> (inputs[2].Scalar());
+    }
+    else if (!inputs[2].IsMatrix() || !inputs[2].Matrix()->Is0x0())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_DIM);
+    }
+
+    int dim;
+
+    if (!perm->Is0x0())
+    {
+        dim = static_cast<int> ((*perm)(0));
+    }
+    else if (shifts != -1)
+    {
+        dim = shifts + 1;
+    }
+    else
+    {
+        throw OML_Error("Error: invalid inputs in arguments #2,3; both cannot be empty");
+    }
+
+    int numDims = -1;
+
+    if (inputs[0].IsMatrix() || inputs[0].IsScalar() || inputs[0].IsComplex())
+    {
+        numDims = 2;
+    }
+    else if (inputs[0].IsNDMatrix())
+    {
+        const std::vector<int>& dims = inputs[0].MatrixN()->Dimensions();
+        numDims = static_cast<int> (dims.size());
+    }
+
+    // perform permutation
+    hwMatrix* iperm = EvaluatorInterface::allocateMatrix(1, _max(numDims, dim), true);
+
+    (*iperm)(0) = dim;
+
+    for (int i = 1; i < dim; ++i)
+    {
+        (*iperm)(i) = i;
+    }
+
+    for (int i = dim; i < numDims; ++i)
+    {
+        (*iperm)(i) = i + 1;
+    }
+
+    std::vector<Currency> inputs2;
+    inputs2.push_back(inputs[0]);
+    Currency ipermCur(iperm);
+    inputs2.push_back(ipermCur);
+
+    oml_ipermute(eval, inputs2, outputs);
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Hilbert transform
+//------------------------------------------------------------------------------
+bool OmlHilbert(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 3)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    // check for real input
+    std::vector<Currency> inputs2;
+    inputs2.push_back(inputs[0]);
+
+    Currency realcheck = eval.CallFunction("isreal", inputs2);
+
+    if (realcheck.Scalar() != 1.0)
+    {
+        BuiltInFuncsUtils::SetWarning(eval, "Warning: complex data in argument #1; imaginary components are ignored");
+        Currency real = eval.CallFunction("real", inputs2);
+        inputs2.clear();
+        inputs2.push_back(real);
+
+        for (std::vector<Currency>::const_iterator it = inputs.begin() + 1; it != inputs.end(); it++)
+            inputs2.push_back(*it);
+
+        return OmlHilbert(eval, inputs2, outputs);
+    }
+
+    // shift data
+    std::vector<Currency> outputsSD;
+
+    if (nargin > 2)
+    {
+        if (!inputs[2].IsPositiveInteger())
+            throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_DIM);
+
+        inputs2.push_back(inputs[2]);
+    }
+
+    OmlShiftData(eval, inputs2, outputsSD);    // [out, perm, shifts] = shiftdata(x, dim)
+
+    // get size of shifted data matrix
+    inputs2.clear();
+    inputs2.push_back(outputsSD[0]);
+    outputs = eval.DoMultiReturnFunctionCall(oml_size, inputs2, 1, 1, true);
+    Currency sizeSD = outputs[0];
+    outputs.clear();
+
+    // reshape data to 2D matrix
+    hwMatrix* size = sizeSD.GetWritableMatrix();
+
+    if (nargin > 2)
+    {
+        int dim = static_cast<int> (inputs[2].Scalar());
+
+        if (dim > size->Size())
+        {
+            throw OML_Error(OML_ERR_INVALID_RANGE, 3, OML_VAR_DIM);
+        }
+    }
+
+    int m = static_cast<int> ((*size)(0));
+    inputs2.clear();
+    inputs2.push_back(outputsSD[0]);
+    inputs2.push_back(m);
+    inputs2.push_back(Currency());  // default dim 2
+    oml_reshape(eval, inputs2, outputs);
+    Currency inputSD2D = outputs[0];
+    outputs.clear();
+
+    // Hilbert transform
+    inputs2.clear();
+    inputs2.push_back(inputSD2D);
+
+    if (nargin > 1)
+    {
+        if (inputs[1].IsPositiveInteger())
+            m = static_cast<int> (inputs[1].Scalar());
+
+        inputs2.push_back(inputs[1]);
+    }
+
+    OmlFft(eval, inputs2, outputs);
+    Currency outputFFT = outputs[0];
+    outputs.clear();
+
+    hwMatrix* FFT = outputFFT.GetWritableMatrix();
+    hwMatrix subMatrix;
+    hwMathStatus status;
+    status = subMatrix.ReadSubmatrix(1, 0, (m - 1) / 2, FFT->N(), *FFT);
+    subMatrix *= 2.0;
+    status = FFT->WriteSubmatrix(1, 0, subMatrix);
+    subMatrix.SetElements(0.0);
+    status = FFT->WriteSubmatrix(m / 2 + 1, 0, subMatrix);
+
+    inputs2.clear();
+    inputs2.push_back(outputFFT);
+    OmlIfft(eval, inputs2, outputs);
+
+    // reshape data to original number of dimensions
+    inputs2.clear();
+    inputs2.push_back(outputs[0]);
+
+    if (nargin > 1)
+    {
+        (*size)(0) = m;
+    }
+
+    inputs2.push_back(sizeSD);
+    outputs.clear();
+    oml_reshape(eval, inputs2, outputs);
+
+    // unshift data
+    inputs2.clear();
+    inputs2.push_back(outputs[0]);
+    inputs2.push_back(outputsSD[1]);
+    inputs2.push_back(outputsSD[2]);
+    outputs.clear();
+    OmlUnshiftData(eval, inputs2, outputs);
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Discrete cosine transform
+//------------------------------------------------------------------------------
+
+#include "MKLutilities.h"
+
+bool OmlDct(EvaluatorInterface           eval,
+            const std::vector<Currency>& inputs,
+            std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (inputs[0].IsNDMatrix())
+    {
+        // switch to 2D matrix
+        const hwMatrixN* signal = inputs[1].MatrixN();
+        const std::vector<int>& dims = signal->Dimensions();
+        hwMatrix* sig2D = EvaluatorInterface::allocateMatrix();
+        signal->ConvertNDto1D(*sig2D);
+        sig2D->Reshape(dims[0], -1);
+
+        // call dct on 2D matrix
+        std::vector<Currency> inputs2;
+        inputs2.push_back(inputs[0]);
+        inputs2.push_back(sig2D);
+
+        if (nargin == 2)
+            inputs2.push_back(inputs[1]);
+
+        OmlDct(eval, inputs2, outputs);
+
+        // switch back to ND matrix
+        hwMatrix* out2D = outputs[0].GetWritableMatrix();
+        hwMatrixN* outND = EvaluatorInterface::allocateMatrixN();
+        outND->Convert2DtoND(*out2D, false);
+        outputs.clear();
+        outND->Reshape(dims);
+        outputs.push_back(outND);
+        return true;
+    }
+
+    const hwMatrix* signal = inputs[0].ConvertToMatrix();
+    int dctsize;
+
+    if (!signal->IsReal())
+    {
+        throw OML_Error(OML_ERR_SCALAR_REALMTX, 1);
+    }
+
+    if (nargin == 1)
+    {
+        dctsize = (signal->M() == 1) ? signal->N() : signal->M();
+    }
+    else
+    {
+        if (!inputs[1].IsPositiveInteger())
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_TYPE);
+        }
+
+        dctsize = static_cast<int> (inputs[1].Scalar());
+    }
+
+    if (!signal->IsReal())
+    {
+        throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_TYPE);
+    }
+
+    int m = signal->M();
+    int n = signal->N();
+
+    if (m == 1)
+    {
+        if (dctsize > n)
+        {
+            hwMatrix* temp = EvaluatorInterface::allocateMatrix(1, dctsize, true);
+            temp->SetElements(0.0);
+
+            hwMathStatus status = temp->WriteSubmatrix(0, 0, *signal);
+
+            std::vector<Currency> inputs2;
+            inputs2.push_back(temp);
+            return OmlDct(eval, inputs2, outputs);
+        }
+        else if (dctsize < n)
+        {
+            hwMatrix* temp = EvaluatorInterface::allocateMatrix();
+
+            hwMathStatus status = temp->ReadSubmatrix(0, 0, 1, dctsize, *signal);
+
+            std::vector<Currency> inputs2;
+            inputs2.push_back(temp);
+            return OmlDct(eval, inputs2, outputs);
+        }
+    }
+    else if (dctsize > m)
+    {
+        hwMatrix* temp = EvaluatorInterface::allocateMatrix(dctsize, n, true);
+        temp->SetElements(0.0);
+
+        hwMathStatus status = temp->WriteSubmatrix(0, 0, *signal);
+
+        std::vector<Currency> inputs2;
+        inputs2.push_back(temp);
+        return OmlDct(eval, inputs2, outputs);
+    }
+    else if (dctsize < m)
+    {
+        hwMatrix* temp = EvaluatorInterface::allocateMatrix();
+
+        hwMathStatus status = temp->ReadSubmatrix(0, 0, dctsize, n, *signal);
+
+        std::vector<Currency> inputs2;
+        inputs2.push_back(temp);
+        return OmlDct(eval, inputs2, outputs);
+    }
+
+    // The DCT is implemented here in its FFT related form. For faster
+    // execution implement FFTW_REDFT10.
+
+    hwMatrix* x = nullptr;
+
+    if (signal->IsVector())
+    {
+        x = EvaluatorInterface::allocateMatrix();
+        
+        int m2 = _max(1, signal->M());
+        int n2 = _max(1, signal->N());
+        int len = _max(m2, n2);
+        int dim = (n2 == 1) ? 0 : 1;
+        double a = -PI / (2.0 * len);
+        double b = sqrt(2.0 / len);     // normalization
+        hwMatrix angle(m2, n2, hwMatrix::REAL);
+
+        for (int i = 0; i < len; ++i)
+        {
+            angle(i) = a * i;
+        }
+
+        hwMatrix b_cos_ai;
+        hwMatrix b_sin_ai;
+        hwMatrix w;
+        hwMatrix fftvec;
+        hwMatrix temp;
+
+        MKLutilitiesD::Cos(angle, b_cos_ai);
+        MKLutilitiesD::Sin(angle, b_sin_ai);
+        b_cos_ai *= b;
+        b_sin_ai *= b;
+        w.PackComplex(b_cos_ai, &b_sin_ai);
+
+        if (len % 2 == 0)
+        {
+            hwMatrix vec(m2, n2, hwMatrix::REAL);
+            int idx1 = 0;
+            int idx2 = len - 1;
+
+            for (int i = 0; i < len; i += 2)
+            {
+                vec(idx1++) = (*signal)(i);
+                vec(idx2--) = (*signal)(i + 1);
+            }
+
+            hwMathStatus status = Fft(vec, fftvec, dim, dctsize);
+
+            MKLutilitiesD::MultByElems(w, fftvec, temp);
+        }
+        else
+        {
+            int m3 = (m2 == 1) ? 1 : 2 * m2;
+            int n3 = (n2 == 1) ? 1 : 2 * n2;
+            hwMatrix vec(m3, n3, hwMatrix::REAL);
+            int idx1 = 0;
+            int idx2 = 2 * len - 1;
+
+            for (int i = 0; i < len; ++i)
+            {
+                vec(idx1++) = (*signal)(i);
+                vec(idx2--) = (*signal)(i);
+            }
+
+            hwMathStatus status = Fft(vec, fftvec, dim, dctsize);
+
+            hwMatrix fftvec2;
+            fftvec2.ReadSubmatrix(0, 0, m2, n2, fftvec);
+            MKLutilitiesD::MultByElems(w, fftvec2, temp);
+            temp /= 2.0;
+        }
+
+        temp.z(0) /= sqrt(2.0);
+        temp.UnpackComplex(x, nullptr);
+    }
+    else
+    {
+        x = EvaluatorInterface::allocateMatrix();
+
+        double a = -PI / (2.0 * m);
+        double b = sqrt(2.0 / m);     // normalization
+        hwMatrix angle(m, 1, hwMatrix::REAL);
+
+        for (int i = 0; i < m; ++i)
+        {
+            angle(i) = a * i;
+        }
+
+        hwMatrix b_cos_ai;
+        hwMatrix b_sin_ai;
+        hwMatrix w;
+        hwMatrix fftvec;
+        hwMatrix temp(dctsize, n, hwMatrix::COMPLEX);
+
+        MKLutilitiesD::Cos(angle, b_cos_ai);
+        MKLutilitiesD::Sin(angle, b_sin_ai);
+        b_cos_ai *= b;
+        b_sin_ai *= b;
+        w.PackComplex(b_cos_ai, &b_sin_ai);
+
+        const double* signalData = signal->GetRealData();
+        hwComplex* dctData = temp.GetComplexData();
+
+        for (int j = 0; j < n; ++j)
+        {
+            hwMatrix signalCol(dctsize, 1, (void*) signalData, hwMatrix::REAL);
+            hwMatrix dctCol(dctsize, 1, dctData, hwMatrix::COMPLEX);
+
+            if (dctsize % 2 == 0)
+            {
+                hwMatrix vec(dctsize, 1, hwMatrix::REAL);
+                int idx1 = 0;
+                int idx2 = dctsize - 1;
+
+                for (int i = 0; i < dctsize; i += 2)
+                {
+                    vec(idx1++) = signalCol(i);
+                    vec(idx2--) = signalCol(i + 1);
+                }
+
+                hwMathStatus status = Fft(vec, fftvec, 0, dctsize);
+
+                MKLutilitiesD::MultByElems(w, fftvec, dctCol);
+                dctCol.z(0) /= sqrt(2.0);
+            }
+            else
+            {
+                hwMatrix vec(2 * dctsize, 1, hwMatrix::REAL);
+                int idx1 = 0;
+                int idx2 = 2 * dctsize - 1;
+
+                for (int i = 0; i < dctsize; ++i)
+                {
+                    vec(idx1++) = signalCol(i);
+                    vec(idx2--) = signalCol(i);
+                }
+
+                hwMathStatus status = Fft(vec, fftvec, 0, dctsize);
+
+                hwMatrix fftvec2;
+                fftvec2.ReadSubmatrix(0, 0, dctsize, 1, fftvec);
+                MKLutilitiesD::MultByElems(w, fftvec2, dctCol);
+                dctCol.z(0) /= sqrt(2.0);
+                dctCol /= 2.0;
+            }
+
+            signalData += dctsize;
+            dctData += dctsize;
+        }
+
+        temp.UnpackComplex(x, nullptr);
+    }
+
+    outputs.push_back(x);
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Inverse discrete cosine transform
+//------------------------------------------------------------------------------
+bool OmlIdct(EvaluatorInterface           eval,
+             const std::vector<Currency>& inputs,
+             std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (inputs[0].IsNDMatrix())
+    {
+        // switch to 2D matrix
+        const hwMatrixN* dct = inputs[1].MatrixN();
+        const std::vector<int>& dims = dct->Dimensions();
+        hwMatrix* dct2D = EvaluatorInterface::allocateMatrix();
+        dct->ConvertNDto1D(*dct2D);
+        dct2D->Reshape(dims[0], -1);
+
+        // call dct on 2D matrix
+        std::vector<Currency> inputs2;
+        inputs2.push_back(inputs[0]);
+        inputs2.push_back(dct2D);
+
+        if (nargin == 2)
+            inputs2.push_back(inputs[1]);
+
+        OmlIdct(eval, inputs2, outputs);
+
+        // switch back to ND matrix
+        hwMatrix* out2D = outputs[0].GetWritableMatrix();
+        hwMatrixN* outND = EvaluatorInterface::allocateMatrixN();
+        outND->Convert2DtoND(*out2D, false);
+        outputs.clear();
+        outND->Reshape(dims);
+        outputs.push_back(outND);
+        return true;
+    }
+
+    const hwMatrix* dct = inputs[0].ConvertToMatrix();
+    int dctsize;
+
+    if (!dct->IsReal())
+    {
+        throw OML_Error(OML_ERR_SCALAR_REALMTX, 1);
+    }
+
+    if (nargin == 1)
+    {
+        dctsize = (dct->M() == 1) ? dct->N() : dct->M();
+    }
+    else
+    {
+        if (!inputs[1].IsPositiveInteger())
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_TYPE);
+        }
+
+        dctsize = static_cast<int> (inputs[1].Scalar());
+    }
+
+    if (!dct->IsReal())
+    {
+        throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_TYPE);
+    }
+
+    int m = dct->M();
+    int n = dct->N();
+
+    if (m == 1)
+    {
+        if (dctsize > n)
+        {
+            hwMatrix* temp = EvaluatorInterface::allocateMatrix(1, dctsize, true);
+            temp->SetElements(0.0);
+
+            hwMathStatus status = temp->WriteSubmatrix(0, 0, *dct);
+
+            std::vector<Currency> inputs2;
+            inputs2.push_back(temp);
+            return OmlIdct(eval, inputs2, outputs);
+        }
+        else if (dctsize < n)
+        {
+            hwMatrix* temp = EvaluatorInterface::allocateMatrix();
+
+            hwMathStatus status = temp->ReadSubmatrix(0, 0, 1, dctsize, *dct);
+
+            std::vector<Currency> inputs2;
+            inputs2.push_back(temp);
+            return OmlIdct(eval, inputs2, outputs);
+        }
+    }
+    else if (dctsize > m)
+    {
+        hwMatrix* temp = EvaluatorInterface::allocateMatrix(dctsize, n, true);
+        temp->SetElements(0.0);
+
+        hwMathStatus status = temp->WriteSubmatrix(0, 0, *dct);
+
+        std::vector<Currency> inputs2;
+        inputs2.push_back(temp);
+        return OmlIdct(eval, inputs2, outputs);
+    }
+    else if (dctsize < m)
+    {
+        hwMatrix* temp = EvaluatorInterface::allocateMatrix();
+
+        hwMathStatus status = temp->ReadSubmatrix(0, 0, dctsize, n, *dct);
+
+        std::vector<Currency> inputs2;
+        inputs2.push_back(temp);
+        return OmlIdct(eval, inputs2, outputs);
+    }
+
+    // The IDCT is implemented here in its FFT related form. For faster
+    // execution implement FFTW_REDFT01.
+
+    hwMatrix* x = nullptr;
+
+    if (dct->IsVector())
+    {
+        int m2 = _max(1, dct->M());
+        int n2 = _max(1, dct->N());
+        int len = _max(m2, n2);
+        int dim = (n2 == 1) ? 0 : 1;
+        double a = PI / (2.0 * len);
+        hwMatrix b_cos_ai;
+        hwMatrix b_sin_ai;
+        hwMatrix w;
+        hwMatrix fftvec;
+        hwMatrix temp;
+
+        if (len % 2 == 0)
+        {
+            double b = sqrt(len / 2.0);     // normalization
+            hwMatrix angle(m2, n2, hwMatrix::REAL);
+
+            for (int i = 0; i < len; ++i)
+            {
+                angle(i) = a * i;
+            }
+
+            MKLutilitiesD::Cos(angle, b_cos_ai);
+            MKLutilitiesD::Sin(angle, b_sin_ai);
+            b_cos_ai *= b;
+            b_sin_ai *= b;
+            w.PackComplex(b_cos_ai, &b_sin_ai);
+            w.z(0) = sqrt(len / 4.0);
+            MKLutilitiesD::MultByElems(w, *dct, fftvec);
+
+            hwMathStatus status = Ifft(fftvec, temp, dim, dctsize, false);
+            hwMatrix vec;
+
+            temp.UnpackComplex(&vec, nullptr);
+
+            vec *= 2.0;
+            int idx1 = 0;
+            int idx2 = len - 1;
+
+            x = EvaluatorInterface::allocateMatrix(m2, n2, true);
+
+            for (int i = 0; i < len; i = i + 2)
+            {
+                (*x)(i) = vec(idx1++);
+                (*x)(i + 1) = vec(idx2--);
+            }
+        }
+        else
+        {
+            // step 1:
+            double b = sqrt(2.0 * len);     // normalization
+            hwMatrix angle2(m2, n2, hwMatrix::REAL);
+
+            for (int i = 0; i < len; ++i)
+            {
+                angle2(i) = a * i;
+            }
+
+            MKLutilitiesD::Cos(angle2, b_cos_ai);
+            MKLutilitiesD::Sin(angle2, b_sin_ai);
+            b_cos_ai *= b;
+            b_sin_ai *= b;
+            w.PackComplex(b_cos_ai, &b_sin_ai);
+            w.z(0) = sqrt(4.0 * len);
+            MKLutilitiesD::MultByElems(w, *dct, fftvec);
+
+            // step 2:
+            double a = PI / len;
+            int m3 = _max(1, m2 - 1);
+            int n3 = _max(1, n2 - 1);
+            hwMatrix angle3(m3, n3, hwMatrix::REAL);
+            hwMatrix vec3(m3, n3, hwMatrix::COMPLEX);
+
+            for (int i = 0; i < len - 1; ++i)
+            {
+                angle3(i) = -a * (len - 1 - i);
+                vec3.z(i) = fftvec.z(len - 1 - i);
+            }
+
+            MKLutilitiesD::Cos(angle3, b_cos_ai);
+            MKLutilitiesD::Sin(angle3, b_sin_ai);
+            w.PackComplex(b_cos_ai, &b_sin_ai);
+
+            hwMatrix fftvec2;
+            MKLutilitiesD::MultByElems(w, vec3, fftvec2);
+
+            // step 4:
+            int m4 = (m2 == 1) ? 1 : 2 * m2;
+            int n4 = (n2 == 1) ? 1 : 2 * n2;
+            hwMatrix vec(m4, n4, hwMatrix::COMPLEX);
+
+            vec.WriteSubmatrix(0, 0, fftvec);
+
+            m3 = (m2 == 1) ? 0 : m2;
+            n3 = (n2 == 1) ? 0 : n2;
+            vec.z(m3, n3) = 0.0;
+            m3 = (m2 == 1) ? 0 : m2 + 1;
+            n3 = (n2 == 1) ? 0 : n2 + 1;
+            vec.WriteSubmatrix(m3, n3, fftvec2);
+
+            hwMathStatus status = Ifft(vec, temp, dim, 2 * dctsize, false);
+
+            x = EvaluatorInterface::allocateMatrix();
+
+            temp.UnpackComplex(x, nullptr);
+
+            status = x->Resize(m2, n2);
+        }
+    }
+    else
+    {
+        x = EvaluatorInterface::allocateMatrix(dctsize, n, true);
+
+        double a = PI / (2.0 * m);
+
+        if (dctsize % 2 == 0)
+        {
+            double b = sqrt(m / 2.0);     // normalization
+            hwMatrix angle(m, 1, hwMatrix::REAL);
+
+            for (int i = 0; i < m; ++i)
+            {
+                angle(i) = a * i;
+            }
+
+            hwMatrix b_cos_ai;
+            hwMatrix b_sin_ai;
+            hwMatrix w;
+            hwMatrix fftvec;
+            hwMatrix temp(dctsize, n, hwMatrix::REAL);
+            hwMatrix tempCol;
+
+            MKLutilitiesD::Cos(angle, b_cos_ai);
+            MKLutilitiesD::Sin(angle, b_sin_ai);
+            b_cos_ai *= b;
+            b_sin_ai *= b;
+            w.PackComplex(b_cos_ai, &b_sin_ai);
+            w.z(0) = sqrt(m / 4.0);
+
+            const double* dctData = dct->GetRealData();
+            double* signalData = x->GetRealData();
+
+            for (int j = 0; j < n; ++j)
+            {
+                hwMatrix dctCol(dctsize, 1, (void*)dctData, hwMatrix::REAL);
+                hwMatrix signalCol(dctsize, 1, signalData, hwMatrix::REAL);
+
+                MKLutilitiesD::MultByElems(w, dctCol, fftvec);
+
+                hwMathStatus status = Ifft(fftvec, tempCol, 0, dctsize, false);
+
+                hwMatrix vec;
+                tempCol.UnpackComplex(&vec, nullptr);
+
+                vec *= 2.0;
+                int idx1 = 0;
+                int idx2 = m - 1;
+
+                for (int i = 0; i < m; i = i + 2)
+                {
+                    signalCol(i) = vec(idx1++);
+                    signalCol(i + 1) = vec(idx2--);
+                }
+
+                signalData += dctsize;
+                dctData += dctsize;
+            }
+        }
+        else
+        {
+            // TODO: fill with modification from vector case
+            const double* dctData = dct->GetRealData();
+            double* signalData = x->GetRealData();
+
+            for (int j = 0; j < n; ++j)
+            {
+                hwMatrix dctCol(dctsize, 1, (void*)dctData, hwMatrix::REAL);
+                hwMatrix signalCol(dctsize, 1, signalData, hwMatrix::REAL);
+
+
+                signalData += dctsize;
+                dctData += dctsize;
+            }
+        }
+    }
+
+    outputs.push_back(x);
+
+    return true;
+}
+//------------------------------------------------------------------------------
 // Generates a vector of frequency locations
 //------------------------------------------------------------------------------
 bool OmlFreq(EvaluatorInterface           eval, 
@@ -2469,51 +3434,333 @@ bool OmlFold(EvaluatorInterface           eval,
 //------------------------------------------------------------------------------
 bool OmlXcorr(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
 {
-    size_t nargin = inputs.size();
-    if (nargin < 1 || nargin > 2)
+    int nargin = static_cast<int> (inputs.size());
+
+    if (nargin < 1 || nargin > 4)
     {
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
-    Currency cur1 = inputs[0];
-    if (!cur1.IsMatrix() && !cur1.IsScalar())
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
     {
-        throw OML_Error(OML_ERR_REALVECTOR, 1, OML_VAR_DATA);
+        throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_DATA);
     }
 
-    const hwMatrix* v1 = cur1.ConvertToMatrix();
+    const hwMatrix* v1 = inputs[0].ConvertToMatrix();
+    const hwMatrix* v2 = nullptr;
+    int maxlag = -1;
+    std::string scale;
     std::unique_ptr<hwMatrix> result(EvaluatorInterface::allocateMatrix());
 
-    if (v1->IsVector())
+    if (nargin == 2)
     {
-        const hwMatrix* v2 = nullptr;
-        if (nargin == 1)
+        if (inputs[1].IsMatrix())
         {
-            v2 = v1;
+            v2 = inputs[1].Matrix();
+        }
+        else if (inputs[1].IsInteger())
+        {
+            maxlag = static_cast<int> (inputs[1].Scalar());
+        }
+        else if (inputs[1].IsString())
+        {
+            scale = inputs[1].StringVal();
         }
         else
         {
-            if (!inputs[1].IsMatrix() && !inputs[1].IsScalar())
-            {
-                throw OML_Error(OML_ERR_REALVECTOR, 2, OML_VAR_DATA);
-            }
-            v2 = inputs[1].ConvertToMatrix();
+            throw OML_Error(OML_ERR_OPTION, 2);
         }
-        hwMathStatus stat = result->CorrLin(*v1, *v2);
-        BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+    }
+    else if (nargin == 3)
+    {
+        if (inputs[1].IsMatrix())
+        {
+            v2 = inputs[1].Matrix();
+
+            if (inputs[2].IsInteger())
+            {
+                maxlag = static_cast<int> (inputs[2].Scalar());
+            }
+            else if (inputs[2].IsString())
+            {
+                scale = inputs[2].StringVal();
+            }
+            else if (!inputs[2].IsMatrix() || !inputs[2].Matrix()->Is0x0())
+            {
+                throw OML_Error(OML_ERR_OPTION, 3);
+            }
+        }
+        else if (inputs[1].IsInteger() && inputs[2].IsString())
+        {
+            maxlag = static_cast<int> (inputs[1].Scalar());
+            scale = inputs[2].StringVal();
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_OPTION);
+        }
+    }
+    else if (nargin == 4)
+    {
+        if (!inputs[1].IsMatrix() && !inputs[1].IsScalar())
+        {
+            throw OML_Error(OML_ERR_REALVECTOR, 2, OML_VAR_DATA);
+        }
+
+        if (inputs[2].IsInteger())
+        {
+            maxlag = static_cast<int> (inputs[2].Scalar());
+        }
+        else if (!inputs[2].IsMatrix() || !inputs[2].Matrix()->Is0x0())
+        {
+            throw OML_Error(OML_ERR_INTEGER, 3, OML_VAR_TYPE);
+        }
+
+        if (!inputs[3].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, 4, OML_VAR_TYPE);
+        }
+
+        v2 = inputs[1].Matrix();
+        scale = inputs[3].StringVal();
+    }
+
+    if (!v1->IsVector())
+    {
+        if (v2)
+        {
+            throw OML_Error(OML_ERR_REALVECTOR, 1, OML_VAR_DATA);
+        }
+
+        if (maxlag == -1)
+        {
+            maxlag = v1->M() - 1;
+        }
+
+        hwMathStatus status = CorrLin(*v1, maxlag, *result);
+        BuiltInFuncsUtils::CheckMathStatus(eval, status);
+    }
+    else if (!v2)
+    {
+        v2 = v1;
+
+        if (maxlag == -1)
+        {
+            maxlag = v1->Size() - 1;
+        }
+
+        hwMathStatus status = CorrLin(*v1, *v2, maxlag, *result);
+        BuiltInFuncsUtils::CheckMathStatus(eval, status);
+    }
+    else if (v2->IsVector())
+    {
+        if (v1->Size() != v2->Size() && !scale.empty() && scale != "none")
+            throw OML_Error(OML_ERR_OPTION, nargin);
+
+        if (maxlag == -1)
+        {
+            maxlag = _max(v1->Size(), v2->Size()) - 1;
+        }
+
+        hwMathStatus status = CorrLin(*v1, *v2, maxlag, *result);
+        BuiltInFuncsUtils::CheckMathStatus(eval, status);
     }
     else
     {
-        if (nargin != 1)
-        {
-            throw OML_Error(OML_ERR_NUMARGIN);
-        }
-
-        hwMathStatus stat = result->CorrLin(*v1);
-        BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+        throw OML_Error(OML_ERR_ARRAYSIZE, 1, 2, OML_VAR_DIMS);
     }
 
-    outputs.push_back(result.release());
+    bool rowVec = false;
+
+    if (result->M() == 1)
+    {
+        result->Transpose();
+        rowVec = true;
+    }
+
+    // process scale options
+    if (!scale.empty() && scale != "none")
+    {
+        int N = v1->IsVector() ? v1->Size() : v1->M();
+
+        if (scale == "biased")
+        {
+            (*result) /= N;
+        }
+        else if (scale == "unbiased")
+        {
+            int k = _max(N - 1, maxlag);
+
+            for (int j = 0; j < result->N(); ++j)
+            {
+                (*result)(k, j) /= N;
+
+                for (int i = 1; i <= _min(N - 1, maxlag); ++i)
+                {
+                    (*result)(k - i, j) /= N - i;
+                    (*result)(k + i, j) /= N - i;
+                }
+            }
+        }
+        else if (scale == "coeff")
+        {
+            hwMathStatus status;
+
+            if (!v1->IsVector())
+            {
+                int count = 0;
+
+                for (int j = 0; j < v1->N(); ++j)
+                {
+                    for (int k = 0; k < v1->N(); ++k)
+                    {
+                        const double* v1c1 = v1->GetRealData() + j * v1->M();
+                        const double* v1c2 = v1->GetRealData() + k * v1->M();
+                        hwMatrix v1v1(v1->M(), 1, (void*)v1c1, hwMatrix::REAL);
+                        hwMatrix v1v2(v1->M(), 1, (void*)v1c2, hwMatrix::REAL);
+                        double rmsv1, rmsv2;
+                        status = RMS(v1v1, rmsv1);
+                        status = RMS(v1v2, rmsv2);
+
+                        double* resData = result->GetRealData() + count * result->M();
+                        hwMatrix resVec(result->M(), 1, resData, hwMatrix::REAL);
+                        resVec /= N * rmsv1 * rmsv2;
+                        ++count;
+                    }
+                }
+            }
+            else if (!v2)
+            {
+                double rmsx;
+
+                status = RMS(*v1, rmsx);
+                (*result) /= (N * rmsx * rmsx);
+            }
+            else if (v2->IsVector())
+            {
+                double rmsx;
+                double rmsy;
+
+                status = RMS(*v1, rmsx);
+                status = RMS(*v2, rmsy);
+                (*result) /= (N * rmsx * rmsy);
+            }
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_OPTION, 4);
+        }
+    }
+
+    // process lag counts
+    int length = 2 * maxlag + 1;
+    hwMathStatus status;
+    std::unique_ptr<hwMatrix> result2(EvaluatorInterface::allocateMatrix());
+
+    if (result->M() != length)
+    {
+        status = result2->Dimension(length, result->N(), hwMatrix::REAL);
+
+        if (!status.IsOk())
+        {
+            status.ResetArgs();
+            throw OML_Error(status);
+        }
+
+        if (result->M() < length)
+        {
+            result2->SetElements(0.0);
+            int first = (length - result->M()) / 2;
+            status = result2->WriteSubmatrix(first, 0, *result);
+        }
+        else
+        {
+            int xn = v1->IsVector() ? v1->Size() : v1->M();
+            int yn;
+
+            if (v2)
+                yn = v2->Size();
+            else
+                yn = xn;
+
+            int cn = _max(xn + yn - 1, 2 * maxlag + 1);
+            int first = (cn - 1) / 2 - maxlag;
+           
+            status = result2->ReadSubmatrix(first, 0, length, result->N(), *result);
+        }
+    }
+
+    if (!status.IsOk())
+    {
+        status.ResetArgs();
+        throw OML_Error(status);
+    }
+
+    if (rowVec)
+    {
+        result->Transpose();
+        result2->Transpose();
+    }
+
+    if (result2->IsEmpty())
+        outputs.push_back(result.release());
+    else
+        outputs.push_back(result2.release());
+
+    if (eval.GetNargoutValue() == 2)
+    {
+        int length = 2 * maxlag + 1;
+        hwMatrix* lagVec = EvaluatorInterface::allocateMatrix(1, length, true);
+
+        for (int i = 0; i < length; ++i)
+            (*lagVec)(i) = i - maxlag;
+
+        outputs.push_back(lagVec);
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Performs cross covariance [xcov command]
+//------------------------------------------------------------------------------
+bool OmlXcov(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
+{
+    int nargin = static_cast<int> (inputs.size());
+
+    if (nargin < 1 || nargin > 4)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    // center inputs[0]
+    std::vector<Currency> inputs2;
+    std::vector<Currency> inputs3;
+    inputs2.push_back(inputs[0]);
+    Currency out2 = eval.CallFunction("center", inputs2);
+    inputs3.push_back(out2);
+
+    if (nargin > 1)
+    {
+        // center inputs[1] if matrix
+        if (inputs[1].IsMatrix())
+        {
+            inputs2.clear();
+            inputs2.push_back(inputs[1]);
+            Currency out3 = eval.CallFunction("center", inputs2);
+            inputs3.push_back(out3);
+
+            for (int i = 2; i < nargin; ++i)
+                inputs3.push_back(inputs[i]);
+        }
+        else
+        {
+            for (int i = 1; i < nargin; ++i)
+                inputs3.push_back(inputs[i]);
+        }
+    }
+
+    OmlXcorr(eval, inputs3, outputs);
+
     return true;
 }
 //------------------------------------------------------------------------------
@@ -3495,7 +4742,7 @@ bool OmlFreqz(EvaluatorInterface           eval,
         // label axes
         std::vector<Currency> x_label;
         std::vector<Currency> y_label;
-        x_label.push_back("Frequency (Hz)");
+        x_label.push_back("Frequency [Hz]");
         y_label.push_back("Magnitude");
         dummyOutput.clear();
         xLabelPtr(eval, x_label, dummyOutput);
@@ -6067,6 +7314,219 @@ bool OmlEllip(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
+// Creates a Bessel analog prototype filter [besselap command]
+//------------------------------------------------------------------------------
+bool OmlBesselap(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 1)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsPositiveInteger())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 1);
+    }
+
+    int order = static_cast<int>(inputs[0].Scalar());
+    std::unique_ptr<hwMatrix> zeros(EvaluatorInterface::allocateMatrix());
+    std::unique_ptr<hwMatrix> poles(EvaluatorInterface::allocateMatrix());
+    double gain;
+
+    hwMathStatus status = Besselap(order, "besself", *zeros, *poles, gain);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+    outputs.push_back(zeros.release());
+    outputs.push_back(poles.release());
+    outputs.push_back(gain);
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Creates a Bessel analog prototype filter [bessel3ap command]
+//------------------------------------------------------------------------------
+bool OmlBessel3ap(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 1)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsPositiveInteger())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 1);
+    }
+
+    int order = static_cast<int>(inputs[0].Scalar());
+    std::unique_ptr<hwMatrix> zeros(EvaluatorInterface::allocateMatrix());
+    std::unique_ptr<hwMatrix> poles(EvaluatorInterface::allocateMatrix());
+    double gain;
+
+    hwMathStatus status = Besselap(order, "besself3", *zeros, *poles, gain);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+    outputs.push_back(zeros.release());
+    outputs.push_back(poles.release());
+    outputs.push_back(gain);
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Creates a Butterworth analog prototype filter [buttap command]
+//------------------------------------------------------------------------------
+bool OmlButtap(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 1)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsPositiveInteger())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 1);
+    }
+
+    int order = static_cast<int>(inputs[0].Scalar());
+    std::unique_ptr<hwMatrix> zeros(EvaluatorInterface::allocateMatrix());
+    std::unique_ptr<hwMatrix> poles(EvaluatorInterface::allocateMatrix());
+    double gain;
+
+    hwMathStatus status = Buttap(order, *zeros, *poles, gain);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+    outputs.push_back(zeros.release());
+    outputs.push_back(poles.release());
+    outputs.push_back(gain);
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Creates a Chebyshev type I analog prototype filter [cheb1ap command]
+//------------------------------------------------------------------------------
+bool OmlCheb1ap(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsPositiveInteger())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 1);
+    }
+
+    if (!inputs[1].IsScalar())
+    {
+        throw OML_Error(OML_ERR_SCALAR, 2);
+    }
+
+    int order = static_cast<int>(inputs[0].Scalar());
+    double Rp = inputs[1].Scalar();
+
+    std::unique_ptr<hwMatrix> zeros(EvaluatorInterface::allocateMatrix());
+    std::unique_ptr<hwMatrix> poles(EvaluatorInterface::allocateMatrix());
+    double gain;
+
+    hwMathStatus status = Cheb1ap(order, Rp, *zeros, *poles, gain);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+    outputs.push_back(zeros.release());
+    outputs.push_back(poles.release());
+    outputs.push_back(gain);
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Creates a Chebyshev type II analog prototype filter [cheb2ap command]
+//------------------------------------------------------------------------------
+bool OmlCheb2ap(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsPositiveInteger())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 1);
+    }
+
+    if (!inputs[1].IsScalar())
+    {
+        throw OML_Error(OML_ERR_SCALAR, 2);
+    }
+
+    int order = static_cast<int>(inputs[0].Scalar());
+    double Rs = inputs[1].Scalar();
+
+    std::unique_ptr<hwMatrix> zeros(EvaluatorInterface::allocateMatrix());
+    std::unique_ptr<hwMatrix> poles(EvaluatorInterface::allocateMatrix());
+    double gain;
+
+    hwMathStatus status = Cheb2ap(order, Rs, *zeros, *poles, gain);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+    outputs.push_back(zeros.release());
+    outputs.push_back(poles.release());
+    outputs.push_back(gain);
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Creates a Elliptic analog prototype filter [ellipap command]
+//------------------------------------------------------------------------------
+bool OmlEllipap(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 3)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsPositiveInteger())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 1);
+    }
+
+    if (!inputs[1].IsScalar())
+    {
+        throw OML_Error(OML_ERR_SCALAR, 2);
+    }
+
+    if (!inputs[2].IsScalar())
+    {
+        throw OML_Error(OML_ERR_SCALAR, 3);
+    }
+
+    int order = static_cast<int>(inputs[0].Scalar());
+    double Rp = inputs[1].Scalar();
+    double Rs = inputs[2].Scalar();
+
+    std::unique_ptr<hwMatrix> zeros(EvaluatorInterface::allocateMatrix());
+    std::unique_ptr<hwMatrix> poles(EvaluatorInterface::allocateMatrix());
+    double gain;
+
+    hwMathStatus status = Ellipap(order, Rp, Rs, *zeros, *poles, gain);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+    outputs.push_back(zeros.release());
+    outputs.push_back(poles.release());
+    outputs.push_back(gain);
+
+    return true;
+}
+//------------------------------------------------------------------------------
 // Designs a Butterworth filter
 //------------------------------------------------------------------------------
 bool OmlButtord(EvaluatorInterface           eval, 
@@ -6850,6 +8310,8 @@ bool OmlFilter(EvaluatorInterface           eval,
                std::vector<Currency>&       outputs)
 {
     size_t nargin = inputs.size();
+    int nargout = eval.GetNargoutValue();
+    
     if (nargin < 3 || nargin > 5)
     {
         throw OML_Error(OML_ERR_NUMARGIN);
@@ -6864,36 +8326,61 @@ bool OmlFilter(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_REALVECTOR, 2, OML_VAR_TYPE);
     }
 
-    const hwMatrix* num = inputs[0].ConvertToMatrix();
-    const hwMatrix* den = inputs[1].ConvertToMatrix();
-
-    if (inputs[2].IsMatrix() || inputs[2].IsScalar())
+    if (!inputs[2].IsMatrix() && !inputs[2].IsScalar())
     {
-        const hwMatrix* data = inputs[2].ConvertToMatrix();
-        int dim;
-
-        if (nargin < 5)
+        if (inputs[2].IsNDMatrix())
         {
-            dim = data->M() == 1 ? 2 : 1;
+            if (nargin < 5)
+                return oml_MatrixNUtil4(eval, inputs, outputs, OmlFilter, 0, 3);
+            else
+                return oml_MatrixNUtil4(eval, inputs, outputs, OmlFilter, 5, 3);
         }
         else
         {
-            if (!inputs[3].IsEmpty())
-            {
-                throw OML_Error(HW_ERROR_INITSTEMPTOSPECDIM);
-            }
+            throw OML_Error(OML_ERR_MATRIX, 3, OML_VAR_TYPE);
+        }
+    }
 
-            if (!inputs[4].IsPositiveInteger())
-            {
-                throw OML_Error(OML_ERR_POSINTEGER, 5);
-            }
-            dim = static_cast<int>(inputs[4].Scalar());
+    const hwMatrix* num = inputs[0].ConvertToMatrix();
+    const hwMatrix* den = inputs[1].ConvertToMatrix();
+    const hwMatrix* data = inputs[2].ConvertToMatrix();
+    const hwMatrix* initCond = nullptr;
 
-            if (dim > 2)
+    if (nargin > 3)
+    {
+        if (!inputs[3].IsEmpty())
+        {
+            if (inputs[3].IsMatrix() || inputs[3].IsScalar())
             {
-                throw OML_Error(HW_ERROR_UNSUPP2DIM);
+                initCond = inputs[3].ConvertToMatrix();
+            }
+            else
+            {
+                throw OML_Error(HW_ERROR_INITSTEMPTOSPECDIM);   // fix this
             }
         }
+    }
+
+    int dim;
+
+    if (nargin > 4)
+    {
+        if (!inputs[4].IsPositiveInteger())
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 5);
+        }
+
+        dim = static_cast<int>(inputs[4].Scalar());
+
+        if (dim > 2)
+        {
+            throw OML_Error(HW_ERROR_UNSUPP2DIM);
+        }
+    }
+    else
+    {
+        dim = data->M() == 1 ? 2 : 1;
+    }
 
 #if 0 // Commented code
         // This is the condensed, less-redundant way, but casting lambdas doesn't work in VS 2010:
@@ -6909,83 +8396,177 @@ bool OmlFilter(EvaluatorInterface           eval,
         //return true;
 #endif
 
-        std::unique_ptr<hwMatrix> result(EvaluatorInterface::allocateMatrix());
-        std::unique_ptr<hwMatrix> temp(EvaluatorInterface::allocateMatrix());
+    std::unique_ptr<hwMatrix> result(EvaluatorInterface::allocateMatrix());
+    std::unique_ptr<hwMatrix> zf(nullptr);
 
-        if (data->IsVector())
-        {
-            hwMathStatus stat = Filter(*num, den, *data, *result);
-            BuiltInFuncsUtils::CheckMathStatus(eval, stat);
-        }
-        else if (dim == 1)
-        {
-            std::unique_ptr<hwMatrix> col(EvaluatorInterface::allocateMatrix());
-            if (data->N())
-            {
-                for (int i = 0; i < data->N(); ++i)
-                {
-                    hwMathStatus stat = data->ReadColumn(i, *col);
-                    BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+    if (nargout == 2)
+        zf.reset(EvaluatorInterface::allocateMatrix());
 
-                    stat = Filter(*num, den, *col, *temp);
-                    BuiltInFuncsUtils::CheckMathStatus(eval, stat);
-                    if (!i)
-                    {
-                        result.reset(EvaluatorInterface::allocateMatrix(temp->Size(), 
-                            data->N(), true));
-                    }
-                    writeCol(eval, result.get(), temp.get(), i);
-                }
-            }
-            else
-            {
-                result.reset(EvaluatorInterface::allocateMatrix());
-            }
-        }
-        else // dim == 2
-        {
-            std::unique_ptr<hwMatrix> row(EvaluatorInterface::allocateMatrix());
-            if (data->M())
-            {
-                for (int i = 0; i < data->M(); ++i)
-                {
-                    hwMathStatus stat = data->ReadRow(i, *row);
-                    BuiltInFuncsUtils::CheckMathStatus(eval, stat);
-
-                    stat = Filter(*num, den, *row, *temp);
-                    BuiltInFuncsUtils::CheckMathStatus(eval, stat);
-                    if (!i)
-                    {
-                        result.reset(EvaluatorInterface::allocateMatrix(data->M(), 
-                            temp->Size(), true));
-                    }
-                    writeRow(eval, result.get(), temp.get(), i);
-                }
-            }
-            else
-            {
-                result.reset(EvaluatorInterface::allocateMatrix());
-            }
-        }
-
-        outputs.push_back(result.release());
-    }
-    else if (inputs[2].IsNDMatrix())
+    if (data->IsVector())
     {
-        if (nargin < 5)
-            return oml_MatrixNUtil4(eval, inputs, outputs, OmlFilter, 0, 3);
-        else
-            return oml_MatrixNUtil4(eval, inputs, outputs, OmlFilter, 5, 3);
+        hwMathStatus stat = Filter(*num, den, *data, initCond, *result, zf.get());
+        BuiltInFuncsUtils::CheckMathStatus(eval, stat);
     }
-    else
+    else if (dim == 1)
     {
-        throw OML_Error(OML_ERR_MATRIX, 3, OML_VAR_TYPE);
+        std::unique_ptr<hwMatrix> colRes(EvaluatorInterface::allocateMatrix());
+        std::unique_ptr<hwMatrix> colSig(EvaluatorInterface::allocateMatrix());
+        std::unique_ptr<hwMatrix> colzf(nullptr);
+        std::unique_ptr<hwMatrix> colIC(nullptr);
+
+        if (initCond)
+        {
+            if (data->N() != initCond->N())
+                throw OML_Error(OML_ERR_ARRAYSIZE, 3, 4);
+
+            colIC.reset(EvaluatorInterface::allocateMatrix());
+        }
+
+        if (nargout == 2)
+            colzf.reset(EvaluatorInterface::allocateMatrix());
+
+        for (int i = 0; i < data->N(); ++i)
+        {
+            hwMathStatus status = data->ReadColumn(i, *colSig);
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+            if (initCond)
+            {
+                status = initCond->ReadColumn(i, *colIC);
+                BuiltInFuncsUtils::CheckMathStatus(eval, status);
+            }
+
+            status = Filter(*num, den, *colSig, colIC.get(), *colRes, colzf.get());
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+            if (!i)
+            {
+                result.reset(EvaluatorInterface::allocateMatrix(colRes->Size(),
+                    data->N(), true));
+
+                if (nargout == 2)
+                    zf.reset(EvaluatorInterface::allocateMatrix(colzf->Size(),
+                        data->N(), true));
+            }
+            writeCol(eval, result.get(), colRes.get(), i);
+
+            if (nargout == 2)
+                writeCol(eval, zf.get(), colzf.get(), i);
+        }
     }
+    else // dim == 2
+    {
+        std::unique_ptr<hwMatrix> rowRes(EvaluatorInterface::allocateMatrix());
+        std::unique_ptr<hwMatrix> rowSig(EvaluatorInterface::allocateMatrix());
+        std::unique_ptr<hwMatrix> rowzf(nullptr);
+        std::unique_ptr<hwMatrix> rowIC(nullptr);
+
+        if (initCond)
+        {
+            if (data->M() != initCond->M())
+                throw OML_Error(OML_ERR_ARRAYSIZE, 3, 4);
+
+            rowIC.reset(EvaluatorInterface::allocateMatrix());
+        }
+
+        if (nargout == 2)
+            rowzf.reset(EvaluatorInterface::allocateMatrix());
+
+        for (int i = 0; i < data->M(); ++i)
+        {
+            hwMathStatus status = data->ReadRow(i, *rowSig);
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+            if (initCond)
+            {
+                status = initCond->ReadRow(i, *rowIC);
+                BuiltInFuncsUtils::CheckMathStatus(eval, status);
+            }
+
+            status = Filter(*num, den, *rowSig, rowIC.get(), *rowRes, rowzf.get());
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+            if (!i)
+            {
+                result.reset(EvaluatorInterface::allocateMatrix(data->M(), 
+                    rowRes->Size(), true));
+
+                if (nargout == 2)
+                    zf.reset(EvaluatorInterface::allocateMatrix(data->M(),
+                        rowzf->Size(), true));
+            }
+            writeRow(eval, result.get(), rowRes.get(), i);
+
+            if (nargout == 2)
+            {
+                writeRow(eval, zf.get(), rowzf.get(), i);
+            }
+        }
+    }
+
+    outputs.push_back(result.release());
+
+    if (nargout == 2)
+        outputs.push_back(zf.release());
 
     return true;
 }
+
 //------------------------------------------------------------------------------
-// Filter a signal forward and then backward, compensating for end effects
+// Returns IIR filter initial conditions that match input/output signals [filtic command]
+//------------------------------------------------------------------------------
+bool OmlFiltIC(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+    int nargout = eval.GetNargoutValue();
+
+    if (nargin < 3 || nargin > 4)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_REALVECTOR, 1, OML_VAR_TYPE);
+    }
+
+    if (!inputs[1].IsMatrix() && !inputs[1].IsScalar())
+    {
+        throw OML_Error(OML_ERR_REALVECTOR, 2, OML_VAR_TYPE);
+    }
+
+    if (!inputs[2].IsMatrix() && !inputs[2].IsScalar())
+    {
+        throw OML_Error(OML_ERR_REALVECTOR, 3, OML_VAR_TYPE);
+    }
+
+    const hwMatrix* num = inputs[0].ConvertToMatrix();
+    const hwMatrix* den = inputs[1].ConvertToMatrix();
+    const hwMatrix* output = inputs[2].ConvertToMatrix();
+    const hwMatrix* input = nullptr;
+
+    if (nargin == 4)
+    {
+        if (!inputs[3].IsMatrix() && !inputs[3].IsScalar())
+        {
+            throw OML_Error(OML_ERR_REALVECTOR, 4, OML_VAR_TYPE);
+        }
+
+        input = inputs[3].ConvertToMatrix();
+    }
+
+    hwMatrix* initCond = EvaluatorInterface::allocateMatrix();
+    hwMathStatus status = FiltIC(*num, *den, *output, input, *initCond);
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+    outputs.push_back(initCond);
+
+    return true;
+}
+
+//------------------------------------------------------------------------------
+// Filters a signal forward and then backward, compensating for end effects
 // [filtfilt command]
 //------------------------------------------------------------------------------
 bool OmlFiltfilt(EvaluatorInterface           eval, 
@@ -7032,8 +8613,8 @@ bool OmlFiltfilt(EvaluatorInterface           eval,
                 hwMatrix dataCol(outM, 1, (void*) &(*data)(0,i), hwMatrix::REAL);
                 hwMatrix resultCol(outM, 1, (void*) &(*result)(0,i), hwMatrix::REAL);
 
-                hwMathStatus stat = FiltFilt(*num, den, dataCol, resultCol);
-                BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+                hwMathStatus status = FiltFilt(*num, den, dataCol, resultCol);
+                BuiltInFuncsUtils::CheckMathStatus(eval, status);
             }
         }
 
@@ -7047,6 +8628,124 @@ bool OmlFiltfilt(EvaluatorInterface           eval,
     {
         throw OML_Error(OML_ERR_MATRIX, 3, OML_VAR_TYPE);
     }
+
+    return true;
+}
+
+//------------------------------------------------------------------------------
+// Filters a signal with a second order section IIR filter [sosfilt command]
+//------------------------------------------------------------------------------
+bool OmlSosFilt(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrix())
+    {
+        throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_TYPE);
+    }
+
+    if (inputs[1].IsNDMatrix())
+    {
+        // switch to 2D matrix
+        const hwMatrixN* signal = inputs[1].MatrixN();
+        const std::vector<int>& dims = signal->Dimensions();
+        hwMatrix* sig2D = EvaluatorInterface::allocateMatrix();
+        signal->ConvertNDto1D(*sig2D);
+        sig2D->Reshape(dims[0], -1);
+
+        // call sosfilt on 2D matrix
+        std::vector<Currency> inputs2;
+        inputs2.push_back(inputs[0]);
+        inputs2.push_back(sig2D);
+        OmlSosFilt(eval, inputs2, outputs);
+
+        // switch back to ND matrix
+        hwMatrix* out2D = outputs[0].GetWritableMatrix();
+        hwMatrixN* outND = EvaluatorInterface::allocateMatrixN();
+        outND->Convert2DtoND(*out2D, false);
+        outputs.clear();
+        outND->Reshape(dims);
+        outputs.push_back(outND);
+        return true;
+    }
+
+    if (!inputs[1].IsScalar() && !inputs[1].IsMatrix())
+    {
+        throw OML_Error(OML_ERR_REALMATRIX, 2, OML_VAR_TYPE);
+    }
+
+    const hwMatrix* sos = inputs[0].Matrix();
+    const hwMatrix* signal = inputs[1].ConvertToMatrix();
+
+    if (!sos->IsReal())
+    {
+        throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_TYPE);
+    }
+
+    if (!signal->IsReal())
+    {
+        throw OML_Error(OML_ERR_REALMATRIX, 2, OML_VAR_TYPE);
+    }
+
+    if (sos->N() != 6)
+    {
+        throw OML_Error("Error: invalid dimension in argument #1; matrix must have 6 columns");
+    }
+
+    int numSec = sos->M();
+    int m = signal->M();
+    int n = signal->N();
+
+    hwMatrix* x = EvaluatorInterface::allocateMatrix(signal);
+    hwMatrix* y = EvaluatorInterface::allocateMatrix(m, n, true);
+
+    if (m == 1 && n > 0)
+    {
+        // handle row vector
+        m = n;
+        n = 1;
+    }
+
+    for (int k = 0; k < numSec; ++k)    // section loop
+    {
+        double a0 = (*sos)(k, 3);
+        double a1 = (*sos)(k, 4) / a0;
+        double a2 = (*sos)(k, 5) / a0;
+        double b0 = (*sos)(k, 0) / a0;
+        double b1 = (*sos)(k, 1) / a0;
+        double b2 = (*sos)(k, 2) / a0;
+
+        for (int j = 0; j < n; ++j)     // column loop
+        {
+            const double* xcol = &((*x)(0, j));
+            double* ycol = &((*y)(0, j));
+            double v0;
+            double v1 = 0.0;
+            double v2 = 0.0;
+
+            // direct form II realization
+            for (int i = 0; i < m; ++i) // row loop
+            {
+                v0 = (*xcol++) - a1 * v1 - a2 * v2;
+                (*ycol++) = b0 * v0 + b1 * v1 + b2 * v2;
+                v2 = v1;
+                v1 = v0;
+            }
+        }
+
+        // swap input and output matrices for next section
+        hwMatrix* temp = y;
+        y = x;
+        x = temp;
+    }
+
+    delete y;
+    outputs.push_back(x);
 
     return true;
 }
@@ -7131,6 +8830,400 @@ bool OmlFilter2(EvaluatorInterface           eval,
         }
 
         throw e;
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Filters a signal with a moving median filter [medfilt1 command]
+//------------------------------------------------------------------------------
+bool OmlMedfilt1(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 2 || nargin > 6)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar() &&
+        !inputs[0].IsNDMatrix())
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_TYPE);
+    }
+
+    if (!inputs[1].IsPositiveInteger())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_VALUE);
+    }
+
+    int winSize = static_cast<int> (inputs[1].Scalar());
+    int dim = -1;
+
+    if (nargin > 2)
+    {
+        if (inputs[2].IsMatrix())
+        {
+            if (!inputs[2].Matrix()->Is0x0())
+                throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_DIM);
+        }
+        else if (!inputs[2].IsString())
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_DIM);
+        }
+    }
+
+    if (nargin > 3)
+    {
+        if (inputs[3].IsPositiveInteger())
+            dim = static_cast<int>(inputs[3].Scalar());
+        else if (!inputs[3].IsString())
+            throw OML_Error(OML_ERR_POSINTEGER, 4, OML_VAR_DIM);
+    }
+
+    bool includeNaN = true;
+    bool zeroPad = true;
+    bool nanflag = false;
+
+    if (inputs.back().IsString())
+    {
+        if (inputs.back().StringVal() == "zeropad") {}
+        else if (inputs.back().StringVal() == "truncate")
+            zeroPad = false;
+        else if (inputs.back().StringVal() == "includenan")
+            nanflag = true;
+        else if (inputs.back().StringVal() == "omitnan")
+        {
+            includeNaN = false;
+            nanflag = true;
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_BAD_STRING, static_cast<int> (nargin));
+        }
+
+        if (inputs[nargin - 2].IsString())
+        {
+            if (nanflag)
+                throw OML_Error(OML_ERR_POSINTEGER, 4, OML_VAR_DIM);
+
+            if (inputs[nargin - 2].StringVal() == "includenan") {}
+            else if (inputs[nargin - 2].StringVal() == "omitnan")
+            {
+                includeNaN = false;
+            }
+            else
+            {
+                throw OML_Error(OML_ERR_BAD_STRING, static_cast<int> (nargin) - 1);
+            }
+        }
+    }
+
+    if (dim == -1)
+    {
+        if (inputs[0].IsMatrix() || inputs[0].IsScalar() || inputs[0].IsComplex())
+        {
+            const hwMatrix* mtx = inputs[0].ConvertToMatrix();
+
+            if (mtx->M() == 1)
+                dim = 2;
+            else
+                dim = 1;
+        }
+        else if (inputs[0].IsNDMatrix())
+        {
+            const hwMatrixN* mtx = inputs[0].MatrixN();
+            const std::vector<int>& dims = mtx->Dimensions();
+
+            for (int i = 0; i < dims.size(); ++i)
+            {
+                if (dims[i] != 1)
+                {
+                    dim = i + 1;
+                    break;
+                }
+            }
+        }
+    }
+
+    int nb = winSize / 2;
+    int na = winSize - nb - 1;
+    std::string endproperty;
+    double userVal = 0.0;
+
+    if (zeroPad)
+        endproperty = "userval";
+    else
+        endproperty = "shrink";
+
+    if (inputs[0].IsMatrix() || inputs[0].IsScalar())
+    {
+        // switch to ND
+        const hwMatrix* matrix = inputs[0].ConvertToMatrix();
+        hwMatrixN matrixN;
+        matrixN.Convert2DtoND(*matrix, false);
+        hwMatrixN medianN;
+
+        hwMathStatus status = MovMedian(matrixN, nb, na, dim - 1, includeNaN,
+                                        endproperty, userVal, medianN);
+
+        if (!status.IsOk())
+        {
+            int arg1 = status.GetArg1();
+
+            if (arg1 > 2 && arg1 < 5)
+                status.SetArg1(arg1 - 1);
+
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+        }
+
+        hwMatrix* median = EvaluatorInterface::allocateMatrix();
+        medianN.ConvertNDto2D(*median, false);
+        outputs.push_back(median);
+    }
+
+    if (inputs[0].IsNDMatrix())
+    {
+        const hwMatrixN* matrix = inputs[0].MatrixN();
+        std::unique_ptr<hwMatrixN> median(EvaluatorInterface::allocateMatrixN());
+
+        hwMathStatus status = MovMedian(*matrix, nb, na, dim - 1, includeNaN,
+                                        endproperty, userVal, *median);
+
+        outputs.push_back(median.release());
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Group delay of a digital filter [grpdelay command]
+//------------------------------------------------------------------------------
+bool OmlGrpDelay(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+    int nargout = eval.GetNargoutValue();
+
+    if (nargin < 1 || nargin > 5)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_TYPE);
+    }
+
+    const hwMatrix* b = inputs[0].ConvertToMatrix();
+    const hwMatrix* a = nullptr;
+
+    if (nargin > 1)
+    {
+        if (!inputs[1].IsMatrix() && !inputs[1].IsScalar())
+        {
+            throw OML_Error(OML_ERR_MATRIX, 2, OML_VAR_TYPE);
+        }
+
+        a = inputs[1].ConvertToMatrix();
+    }
+    else
+    {
+        a = EvaluatorInterface::allocateMatrix(1, 1, 1.0);
+    }
+
+    int n = 512;
+    const hwMatrix* omega = nullptr;
+
+    if (nargin > 2)
+    {
+        if (inputs[2].IsPositiveInteger())
+        {
+            n = static_cast<int> (inputs[2].Scalar());
+        }
+        else if (inputs[2].IsMatrix())
+        {
+             omega = inputs[2].Matrix();
+
+             if (!omega->Is0x0())
+                 n = omega->Size();
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_TYPE);
+        }
+    }
+
+    std::string type = "half";
+    double fs = -1.0;
+
+    if (nargin > 3)
+    {
+        if (inputs[3].IsScalar())
+        {
+            fs = inputs[3].Scalar();
+        }
+        else if (inputs[3].IsString())
+        {
+            if (omega)
+            {
+                throw OML_Error(OML_ERR_NUMARGIN);
+            }
+
+            type = inputs[3].StringVal();
+
+            if (type != "half" && type != "whole")
+            {
+                throw OML_Error(OML_ERR_OPTIONVAL, 4, OML_VAR_STRING);
+            }
+        }
+    }
+
+    if (type == "half")
+    {
+        n = 2 * n;
+    }
+
+    std::unique_ptr<hwMatrix> delay(EvaluatorInterface::allocateMatrix());
+    hwMathStatus status;
+
+    if (!omega || omega->Is0x0())
+    {
+        status = GroupDelay(*b, *a, n, *delay);
+
+        if (!delay->IsEmpty() && type == "half")
+        {
+            n = n / 2;
+            hwMathStatus status2 = delay->Resize(n, 1);
+            BuiltInFuncsUtils::CheckMathStatus(eval, status2);
+        }
+    }
+    else
+    {
+        status = GroupDelay(*b, *a, *omega, fs, *delay);
+    }
+
+    if (!status.IsOk() && status == HW_MATH_ERR_DIVIDEZERO)
+    {
+        if (type != "half" || status.GetArg1() < n)
+        {
+            BuiltInFuncsUtils::SetWarning(eval, "Warning: group delay set to 0 at singularity");
+        }
+
+        status = hwMathStatus();
+    }
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+    if (nargout > 0)
+    {
+        outputs.push_back(delay.release());
+    }
+
+    std::unique_ptr<hwMatrix> omega2(EvaluatorInterface::allocateMatrix());
+
+    if (nargout != 1)
+    {
+        if (omega && !omega->Is0x0())
+        {
+            if (nargout == 2)
+            {
+                throw OML_Error(OML_ERR_NUMARGOUT);
+            }
+        }
+        else    // populate omega2
+        {
+            omega2.reset(EvaluatorInterface::allocateMatrix(n, 1, true));
+
+            double limit = 2.0 * PI;
+
+            if (nargin > 3)
+            {
+                if (inputs[3].IsScalar())
+                {
+                    limit = inputs[3].Scalar(); // fs
+                }
+                else if (!inputs[3].IsString())
+                {
+                    throw OML_Error(OML_ERR_SCALARSTRING, 4, OML_VAR_TYPE);
+                }
+            }
+
+            if (nargin > 4)
+            {
+                if (!inputs[3].IsString())
+                {
+                    throw OML_Error(OML_ERR_OPTION, 5);
+                }
+
+                if (!inputs[4].IsScalar())
+                {
+                    throw OML_Error(OML_ERR_POSINTEGER, 5, OML_VAR_TYPE);
+                }
+
+                limit = inputs[4].Scalar(); // fs
+            }
+
+            if (type == "half")
+            {
+                limit /= 2.0;
+            }
+
+            double incr = limit / n;
+
+            for (int i = 0; i < n; ++i)
+            {
+                (*omega2)(i) = i * incr;
+            }
+
+            if (nargout == 2)
+                outputs.push_back(omega2.release());
+        }
+    }
+
+    if (nargout == 0)
+    {
+        // get plot function pointers
+        FUNCPTR plotPtr = eval.GetStdFunction("plot");
+        FUNCPTR xLabelPtr = eval.GetStdFunction("xlabel");
+        FUNCPTR yLabelPtr = eval.GetStdFunction("ylabel");
+        FUNCPTR plotTitle = eval.GetStdFunction("title");
+
+        // create plot
+        std::vector<Currency> plotInput;
+        std::vector<Currency> dummyOutput;
+
+        if (omega && !omega->Is0x0())
+        {
+            omega2.reset(EvaluatorInterface::allocateMatrix(omega));
+        }
+
+        plotInput.push_back(omega2.release());
+        plotInput.push_back(delay.release());
+        plotPtr(eval, plotInput, dummyOutput);
+        dummyOutput.clear();
+
+        // add label axes and title
+        std::vector<Currency> x_label;
+        std::vector<Currency> y_label;
+        std::vector<Currency> title;
+
+        if (fs != -1.0)
+            x_label.push_back("Frequency [Hz]");
+        else
+            x_label.push_back("Frequency [normalized radians/sec]");
+
+        y_label.push_back("Delay [samples]");
+        title.push_back("Filter Group Delay");
+
+        xLabelPtr(eval, x_label, dummyOutput);
+        dummyOutput.clear();
+        yLabelPtr(eval, y_label, dummyOutput);
+        dummyOutput.clear();
+        plotTitle(eval, title, dummyOutput);
+        dummyOutput.clear();
     }
 
     return true;
@@ -8362,10 +10455,759 @@ bool OmlChirp(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
+// Computes Morlet wavelet [morlet command]
+//------------------------------------------------------------------------------
+bool OmlMorlet(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin != 3)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_SCALAR, 1, OML_VAR_VALUE);
+    }
+
+    if (!inputs[1].IsScalar())
+    {
+        throw OML_Error(OML_ERR_SCALAR, 2, OML_VAR_VALUE);
+    }
+
+    if (!inputs[2].IsPositiveInteger())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_VALUE);
+    }
+
+    double lb = inputs[0].Scalar();
+    double ub = inputs[1].Scalar();
+    int n = static_cast<int> (inputs[2].Scalar());
+
+    std::unique_ptr<hwMatrix> time(EvaluatorInterface::allocateMatrix());
+    std::unique_ptr<hwMatrix> waveForm(EvaluatorInterface::allocateMatrix());
+
+    hwMathStatus status = Morlet(lb, ub, n, *time, *waveForm);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+    outputs.push_back(waveForm.release());
+
+    if (eval.GetNargoutValue() == 2)
+    {
+        outputs.push_back(time.release());
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Computes Complex Morlet wavelet [cmorwavf command]
+//------------------------------------------------------------------------------
+bool OmlCmorwavf(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin != 5)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_SCALAR, 1, OML_VAR_VALUE);
+    }
+
+    if (!inputs[1].IsScalar())
+    {
+        throw OML_Error(OML_ERR_SCALAR, 2, OML_VAR_VALUE);
+    }
+
+    if (!inputs[2].IsPositiveInteger())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_VALUE);
+    }
+
+    if (!inputs[3].IsScalar())
+    {
+        throw OML_Error(OML_ERR_POSITIVE_SCALAR, 4, OML_VAR_VALUE);
+    }
+
+    if (!inputs[4].IsScalar())
+    {
+        throw OML_Error(OML_ERR_POSITIVE_SCALAR, 5, OML_VAR_VALUE);
+    }
+
+    double lb = inputs[0].Scalar();
+    double ub = inputs[1].Scalar();
+    int n = static_cast<int> (inputs[2].Scalar());
+    double fb = inputs[3].Scalar();
+    double fc = inputs[4].Scalar();
+
+    std::unique_ptr<hwMatrix> time(EvaluatorInterface::allocateMatrix());
+    hwMatrix* waveForm = EvaluatorInterface::allocateMatrix();
+
+    hwMathStatus status = CMorWavf(lb, ub, n, fb, fc, *time, *waveForm);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+    outputs.push_back(waveForm);
+
+    if (eval.GetNargoutValue() == 2)
+    {
+        outputs.push_back(time.release());
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Computes Gaussian monopulse wavelet [gmonopuls command]
+//------------------------------------------------------------------------------
+bool OmlGmonopuls(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin != 1 && nargin != 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_TYPE);
+    }
+
+    const hwMatrix* time = inputs[0].ConvertToMatrix();
+    double fc = 1000;
+    
+    if (nargin == 2)
+    {
+        if (!inputs[1].IsScalar())
+        {
+            throw OML_Error(OML_ERR_POSITIVE_SCALAR, 2, OML_VAR_VALUE);
+        }
+
+        fc = inputs[1].Scalar();
+    }
+    
+    hwMatrix* waveForm = EvaluatorInterface::allocateMatrix();
+
+    hwMathStatus status = Gmonopuls(*time, fc, *waveForm);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+    outputs.push_back(waveForm);
+    return true;
+}
+//------------------------------------------------------------------------------
+// Computes Shannon wavelet [shanwavf command]
+//------------------------------------------------------------------------------
+bool OmlShanwavf(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin != 5)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_SCALAR, 1, OML_VAR_VALUE);
+    }
+
+    if (!inputs[1].IsScalar())
+    {
+        throw OML_Error(OML_ERR_SCALAR, 2, OML_VAR_VALUE);
+    }
+
+    if (!inputs[2].IsPositiveInteger())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_VALUE);
+    }
+
+    if (!inputs[3].IsScalar())
+    {
+        throw OML_Error(OML_ERR_POSITIVE_SCALAR, 4, OML_VAR_VALUE);
+    }
+
+    if (!inputs[4].IsScalar())
+    {
+        throw OML_Error(OML_ERR_POSITIVE_SCALAR, 5, OML_VAR_VALUE);
+    }
+
+    double lb = inputs[0].Scalar();
+    double ub = inputs[1].Scalar();
+    int n = static_cast<int> (inputs[2].Scalar());
+    double fb = inputs[3].Scalar();
+    double fc = inputs[4].Scalar();
+
+    std::unique_ptr<hwMatrix> time(EvaluatorInterface::allocateMatrix());
+    hwMatrix* waveForm = EvaluatorInterface::allocateMatrix();
+
+    hwMathStatus status = ShanWavf(lb, ub, n, fb, fc, *time, *waveForm);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+    outputs.push_back(waveForm);
+
+    if (eval.GetNargoutValue() == 2)
+    {
+        outputs.push_back(time.release());
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Computes Mexican hat wavelet [mexihat]
+//------------------------------------------------------------------------------
+bool OmlMexihat(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin != 3)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_SCALAR, 1, OML_VAR_VALUE);
+    }
+
+    if (!inputs[1].IsScalar())
+    {
+        throw OML_Error(OML_ERR_SCALAR, 2, OML_VAR_VALUE);
+    }
+
+    if (!inputs[2].IsPositiveInteger())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_VALUE);
+    }
+
+    double lb = inputs[0].Scalar();
+    double ub = inputs[1].Scalar();
+    int n = static_cast<int> (inputs[2].Scalar());
+
+    std::unique_ptr<hwMatrix> time(EvaluatorInterface::allocateMatrix());
+    std::unique_ptr<hwMatrix> waveForm(EvaluatorInterface::allocateMatrix());
+
+    hwMathStatus status = Mexihat(lb, ub, n, *time, *waveForm);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+    outputs.push_back(waveForm.release());
+
+    if (eval.GetNargoutValue() == 2)
+    {
+        outputs.push_back(time.release());
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+//! Computes Meyer wavelet auxillary wavelet [meyeraux]
+//------------------------------------------------------------------------------
+bool OmlMeyerAux(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 1)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1, OML_VAR_TYPE);
+    }
+
+    const hwMatrix* time = inputs[0].ConvertToMatrix();
+    hwMatrix* waveForm = EvaluatorInterface::allocateMatrix();
+
+    MeyerAux(*time, *waveForm);
+    outputs.push_back(waveForm);
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Computes root sum squared values [rssq]
+//------------------------------------------------------------------------------
+bool OmlRSSQ(EvaluatorInterface           eval,
+             const std::vector<Currency>& inputs,
+             std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    const Currency& input1 = inputs[0];
+    int dim = -1;
+
+    if (nargin > 1)
+    {
+        const Currency& input2 = inputs[1];
+
+        if (nargin == 2 && !input2.IsPositiveInteger())
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_DIM);
+        }
+
+        dim = static_cast<int>(input2.Scalar()) - 1;
+    }
+
+    if (input1.IsMatrix() || input1.IsScalar())
+    {
+        const hwMatrix* data = input1.ConvertToMatrix();
+        hwMatrix* result = eval.allocateMatrix();
+
+        hwMathStatus status = RSSQ(*data, dim, *result);
+        BuiltInFuncsUtils::CheckMathStatus(eval, status);
+        outputs.push_back(result);
+    }
+    else if (input1.IsNDMatrix())
+    {
+        const hwMatrixN* data = input1.MatrixN();
+        hwMatrixN* result = eval.allocateMatrixN();
+
+        hwMathStatus status = RSSQ(*data, dim, *result);
+        BuiltInFuncsUtils::CheckMathStatus(eval, status);
+        outputs.push_back(result);
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_REAL, 1, OML_VAR_TYPE);
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Computes peak to rms values [peak2rms]
+//------------------------------------------------------------------------------
+bool OmlPeak2RMS(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    const Currency& input1 = inputs[0];
+    int dim = -1;
+
+    if (nargin > 1)
+    {
+        const Currency& input2 = inputs[1];
+
+        if (nargin == 2 && !input2.IsPositiveInteger())
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_DIM);
+        }
+
+        dim = static_cast<int>(input2.Scalar()) - 1;
+    }
+
+    if (input1.IsMatrix() || input1.IsScalar())
+    {
+        const hwMatrix* data = input1.ConvertToMatrix();
+        hwMatrix* result = eval.allocateMatrix();
+
+        hwMathStatus status = Peak2RMS(*data, dim, *result);
+        BuiltInFuncsUtils::CheckMathStatus(eval, status);
+        outputs.push_back(result);
+    }
+    else if (input1.IsNDMatrix())
+    {
+        const hwMatrixN* data = input1.MatrixN();
+        hwMatrixN* result = eval.allocateMatrixN();
+
+        hwMathStatus status = Peak2RMS(*data, dim, *result);
+        BuiltInFuncsUtils::CheckMathStatus(eval, status);
+        outputs.push_back(result);
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_REAL, 1, OML_VAR_TYPE);
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Computes peak to peak values [peak2peak]
+//------------------------------------------------------------------------------
+bool OmlPeak2Peak(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    const Currency& input1 = inputs[0];
+    int dim = -1;
+
+    if (nargin > 1)
+    {
+        const Currency& input2 = inputs[1];
+
+        if (nargin == 2 && !input2.IsPositiveInteger())
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_DIM);
+        }
+
+        dim = static_cast<int>(input2.Scalar()) - 1;
+    }
+
+    if (input1.IsMatrix() || input1.IsScalar())
+    {
+        const hwMatrix* data = input1.ConvertToMatrix();
+        hwMatrix* result = eval.allocateMatrix();
+
+        hwMathStatus status = Peak2Peak(*data, dim, *result);
+        BuiltInFuncsUtils::CheckMathStatus(eval, status);
+        outputs.push_back(result);
+    }
+    else if (input1.IsNDMatrix())
+    {
+        const hwMatrixN* data = input1.MatrixN();
+        hwMatrixN* result = eval.allocateMatrixN();
+
+        hwMathStatus status = Peak2Peak(*data, dim, *result);
+        BuiltInFuncsUtils::CheckMathStatus(eval, status);
+        outputs.push_back(result);
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_REAL, 1, OML_VAR_TYPE);
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Quantizes array values [uencode]
+//------------------------------------------------------------------------------
+bool OmlUencode(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 2 || nargin > 4)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    const Currency& input1 = inputs[0];
+
+    if (!input1.IsMatrix() && !input1.IsNDMatrix() && !input1.IsScalar())
+    {
+        throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_TYPE);
+    }
+
+    int n;
+    double val = 1.0;
+    std::string sgn = "unsigned";
+
+    if (!inputs[1].IsPositiveInteger())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_TYPE);
+    }
+
+    n = static_cast<int> (inputs[1].Scalar());
+
+    if (n < 2 || n > 32)
+    {
+        throw OML_Error(OML_ERR_INVALID_RANGE, 2, OML_VAR_TYPE);
+    }
+
+    if (nargin > 2)
+    {
+        if (!inputs[2].IsScalar())
+        {
+            throw OML_Error(OML_ERR_SCALAR, 3, OML_VAR_TYPE);
+        }
+
+        val = inputs[2].Scalar();
+
+        if (val <= 0.0)
+        {
+            throw OML_Error(OML_ERR_POSITIVE_SCALAR, 3, OML_VAR_TYPE);
+        }
+    }
+
+    if (nargin > 3)
+    {
+        if (!inputs[3].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, 4, OML_VAR_TYPE);
+        }
+
+        sgn = inputs[3].StringVal();
+
+        if (sgn != "signed" && sgn != "unsigned")
+        {
+            throw OML_Error(OML_ERR_BAD_STRING, 4, OML_VAR_TYPE);
+        }
+    }
+
+    double incr = 2.0 * val * pow(2.0, -n);    // [-val:incr:val]
+    const double* real_in = nullptr;
+    double* real_out = nullptr;
+    int size = -1;  // default to invalid
+
+    if (input1.IsMatrix() || input1.IsScalar())
+    {
+        const hwMatrix* data = input1.ConvertToMatrix();
+
+        if (!data->IsReal())
+        {
+            throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_TYPE);
+        }
+
+        hwMatrix* result = new hwMatrix(data->M(), data->N(), hwMatrix::REAL);
+        outputs.push_back(result);
+        size = result->Size();
+        real_in = data->GetRealData();
+        real_out = result->GetRealData();
+    }
+    else if (input1.IsNDMatrix())
+    {
+        const hwMatrixN* data = input1.MatrixN();
+
+        if (!data->IsReal())
+        {
+            throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_TYPE);
+        }
+
+        hwMatrixN* result = new hwMatrixN(data->Dimensions(), hwMatrixN::REAL);
+        outputs.push_back(result);
+        size = result->Size();
+        real_in = data->GetRealData();
+        real_out = result->GetRealData();
+    }
+
+    for (int i = 0; i < size; ++i)
+    {
+        if (*real_in >= val)
+        {
+            *real_out = pow(2.0, n) - 1.0;
+        }
+        else if (*real_in > -val)
+        {
+            *real_out = floor((*real_in + val) / incr); // increments above -v
+        }
+        else
+        {
+            *real_out = 0.0;
+        }
+
+        ++real_in;
+        ++real_out;
+    }
+
+    if (sgn == "signed")
+    {
+        std::vector<Currency> inputs2;
+        inputs2.push_back(outputs[0]);
+        inputs2.push_back(pow(2.0, n - 1));
+        outputs.clear();
+        oml_minus(eval, inputs2, outputs);
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Reverses quantization of array values [udecode]
+//------------------------------------------------------------------------------
+bool OmlUdecode(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 2 || nargin > 4)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    const Currency& input1 = inputs[0];
+
+    if (!input1.IsMatrix() && !input1.IsNDMatrix() && !input1.IsScalar())
+    {
+        throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_TYPE);
+    }
+
+    int n;
+    double val = 1.0;
+    std::string overflows = "saturate";
+
+    if (!inputs[1].IsPositiveInteger())
+    {
+        throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_TYPE);
+    }
+
+    n = static_cast<int> (inputs[1].Scalar());
+
+    if (n < 2 || n > 32)
+    {
+        throw OML_Error(OML_ERR_INVALID_RANGE, 2, OML_VAR_TYPE);
+    }
+
+    if (nargin > 2)
+    {
+        if (!inputs[2].IsScalar())
+        {
+            throw OML_Error(OML_ERR_SCALAR, 3, OML_VAR_TYPE);
+        }
+
+        val = inputs[2].Scalar();
+
+        if (val <= 0.0)
+        {
+            throw OML_Error(OML_ERR_POSITIVE_SCALAR, 3, OML_VAR_TYPE);
+        }
+    }
+
+    if (nargin > 3)
+    {
+        if (!inputs[3].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, 4, OML_VAR_TYPE);
+        }
+
+        overflows = inputs[3].StringVal();
+
+        if (overflows != "saturate" && overflows != "wrap")
+        {
+            throw OML_Error(OML_ERR_BAD_STRING, 4, OML_VAR_TYPE);
+        }
+    }
+
+    const double* real_in = nullptr;
+    double* real_out = nullptr;
+    int size = -1;  // default to invalid
+
+    if (input1.IsMatrix() || input1.IsScalar())
+    {
+        const hwMatrix* data = input1.ConvertToMatrix();
+
+        if (!data->IsReal())
+        {
+            throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_TYPE);
+        }
+
+        hwMatrix* result = new hwMatrix(data->M(), data->N(), hwMatrix::REAL);
+        outputs.push_back(result);
+        size = result->Size();
+        real_in = data->GetRealData();
+        real_out = result->GetRealData();
+    }
+    else if (input1.IsNDMatrix())
+    {
+        const hwMatrixN* data = input1.MatrixN();
+
+        if (!data->IsReal())
+        {
+            throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_TYPE);
+        }
+
+        hwMatrixN* result = new hwMatrixN(data->Dimensions(), hwMatrixN::REAL);
+        outputs.push_back(result);
+        size = result->Size();
+        real_in = data->GetRealData();
+        real_out = result->GetRealData();
+    }
+
+    int origin = 0;
+
+    for (int i = 0; i < size; ++i)
+    {
+        // if all(*real_in) >= 0 it is assumed
+        // that the original encoding was unsigned.
+        if (*real_in < 0.0)
+        {
+            origin = 1 << (n - 1);
+            break;
+        }
+    }
+
+    double lower = 0.0 - origin;
+    double upper = pow(2.0, n) - 1.0 - origin;
+    double incr = 2.0 * val * pow(2.0, -n);    // [-val:incr:val]
+
+    if (overflows == "saturate")
+    {
+        for (int i = 0; i < size; ++i)
+        {
+            if (*real_in >= upper)
+            {
+                *real_out = val - incr;
+            }
+            else if (*real_in <= lower)
+            {
+                *real_out = -val;
+            }
+            else
+            {
+                *real_out = (static_cast<int> (*real_in) + origin) * incr - val;
+            }
+
+            ++real_in;
+            ++real_out;
+        }
+    }
+    else    // wrap
+    {
+        for (int i = 0; i < size; ++i)
+        {
+            if (*real_in > upper)
+            {
+                int m = (1 << n) - 1;
+                int r = (static_cast<int> (*real_in) + origin) % m;
+                *real_out = (r - 1) * incr - val;
+            }
+            else if (*real_in <= lower)
+            {
+                int m = (1 << n);
+                int r = (static_cast<int> (*real_in) + origin) % m;
+                *real_out = r * incr + val;
+            }
+            else
+            {
+                *real_out = (static_cast<int> (*real_in) + origin) * incr - val;
+            }
+
+            ++real_in;
+            ++real_out;
+        }
+
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
 // Returns toolbox version
 //------------------------------------------------------------------------------
 double GetToolboxVersion(EvaluatorInterface eval)
 {
     return TBOXVERSION;
 }
-

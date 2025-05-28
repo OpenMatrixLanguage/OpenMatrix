@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsMKL.cpp
 * @date September 2021
-* Copyright (C) 2016-2021 Altair Engineering, Inc.  
+* Copyright (C) 2016-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -50,6 +50,9 @@ static bool ElemFunc1(EvaluatorInterface           eval,
     }
     else if (cur.IsComplex())
     {
+        if (funcC == nullptr)
+            return false;
+
         outputs.push_back(funcC(cur.Complex()));
     }
     else if (cur.IsMatrix())
@@ -67,6 +70,9 @@ static bool ElemFunc1(EvaluatorInterface           eval,
         }
         else
         {
+            if (funcC_MKL == nullptr)
+                return false;
+
             hwComplex* input = const_cast<hwComplex*> (mtx->GetComplexData());
             hwComplex* output = result->GetComplexData();
             MKL_Complex16* inputMKL = reinterpret_cast<MKL_Complex16*> (input);
@@ -93,6 +99,9 @@ static bool ElemFunc1(EvaluatorInterface           eval,
         }
         else
         {
+            if (funcC_MKL == nullptr)
+                return false;
+
             hwComplex* input = const_cast<hwComplex*> (mtx->GetComplexData());
             hwComplex* output = result->GetComplexData();
             MKL_Complex16* inputMKL = reinterpret_cast<MKL_Complex16*> (input);
@@ -289,7 +298,7 @@ static bool ElemFunc3(EvaluatorInterface           eval,
 }
 
 //------------------------------------------------------------------------------
-// Helper method for elementary functions
+// Helper method for functions that operate on real / imag separately
 //------------------------------------------------------------------------------
 template <double (*funcR)(double),
           void   (*funcR_MKL)(const MKL_INT, const double*, double*)>
@@ -383,10 +392,16 @@ static bool ElemFunc5(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN);
 
     const Currency& input1 = inputs[0];
-    const Currency& input2 = inputs[1];
+    if (input1.IsLogical())
+    {
+        throw OML_Error(OML_ERR_NOTLOGICAL, 1);
+    }
 
-    if (input1.IsLogical() || input2.IsLogical())
-        throw OML_Error(HW_ERROR_INPUTISLOGICAL);
+    const Currency& input2 = inputs[1];
+    if (input2.IsLogical())
+    {
+        throw OML_Error(OML_ERR_NOTLOGICAL, 2);
+    }
 
     if (input1.IsScalar())
     {
@@ -766,7 +781,7 @@ bool BuiltInFuncsMKL::CosD(EvaluatorInterface           eval,
         else
         {
             hwMatrixN* copy = new hwMatrixN(*mtx);
-            hwMatrix temp(copy->Size(), (void*)copy->GetComplexData(), hwMatrix::COMPLEX);
+            hwMatrix temp(copy->Size(), static_cast<void*>(copy->GetComplexData()), hwMatrix::COMPLEX); // cppcheck-suppress cstyleCast
             temp *= (PI / 180.0);
             std::vector<Currency> inputs2;
             inputs2.push_back(copy);
@@ -940,7 +955,7 @@ bool BuiltInFuncsMKL::SinD(EvaluatorInterface           eval,
         else
         {
             hwMatrixN* copy = new hwMatrixN(*mtx);
-            hwMatrix temp(copy->Size(), (void*)copy->GetComplexData(), hwMatrix::COMPLEX);
+            hwMatrix temp(copy->Size(), (void*)copy->GetComplexData(), hwMatrix::COMPLEX); // cppcheck-suppress cstyleCast
             temp *= (PI / 180.0);
             std::vector<Currency> inputs2;
             inputs2.push_back(copy);
@@ -1112,7 +1127,7 @@ bool BuiltInFuncsMKL::TanD(EvaluatorInterface           eval,
         else
         {
             hwMatrixN* copy = new hwMatrixN(*mtx);
-            hwMatrix temp(copy->Size(), (void*)copy->GetComplexData(), hwMatrix::COMPLEX);
+            hwMatrix temp(copy->Size(), (void*)copy->GetComplexData(), hwMatrix::COMPLEX); // cppcheck-suppress cstyleCast
             temp *= (PI / 180.0);
             std::vector<Currency> inputs2;
             inputs2.push_back(copy);
@@ -1475,7 +1490,7 @@ bool BuiltInFuncsMKL::aCosD(EvaluatorInterface           eval,
 
         if (mtx->IsReal())
         {
-            hwMatrix temp(mtx->Size(), (void*)mtx->GetRealData(), hwMatrix::REAL);
+            hwMatrix temp(mtx->Size(), (void*)mtx->GetRealData(), hwMatrix::REAL); // cppcheck-suppress cstyleCast
             temp.MultEquals(180.0);
             outputs.push_back(cur);
         }
@@ -1534,7 +1549,7 @@ bool BuiltInFuncsMKL::aSinD(EvaluatorInterface           eval,
 
         if (mtx->IsReal())
         {
-            hwMatrix temp(mtx->Size(), (void*)mtx->GetRealData(), hwMatrix::REAL);
+            hwMatrix temp(mtx->Size(), static_cast<void*>(mtx->GetRealData()), hwMatrix::REAL); // cppcheck-suppress cstyleCast
             temp.MultEquals(180.0);
             outputs.push_back(cur);
         }
@@ -1668,11 +1683,17 @@ bool BuiltInFuncsMKL::aTan2(EvaluatorInterface           eval,
     if (inputs.size() != 2)
         throw OML_Error(OML_ERR_NUMARGIN);
 
-    const Currency& input1 = inputs[0];
-    const Currency& input2 = inputs[1];
+    const Currency& input1 = inputs [0];
+    if (input1.IsLogical())
+    {
+        throw OML_Error(OML_ERR_NOTLOGICAL, 1);
+    }
 
-    if (input1.IsLogical() || input2.IsLogical())
-        throw OML_Error(HW_ERROR_INPUTISLOGICAL);
+    const Currency& input2 = inputs [1];
+    if (input2.IsLogical())
+    {
+        throw OML_Error(OML_ERR_NOTLOGICAL, 2);
+    }
 
     if (input1.IsScalar())
     {
@@ -1905,16 +1926,6 @@ bool BuiltInFuncsMKL::aSinh(EvaluatorInterface           eval,
 }
 
 //------------------------------------------------------------------------------
-// Returns exponential of input [exp]
-//------------------------------------------------------------------------------
-bool BuiltInFuncsMKL::Exp(EvaluatorInterface           eval,
-                          const std::vector<Currency>& inputs,
-                          std::vector<Currency>&       outputs)
-{
-    return ElemFunc1<exp, hwComplex::exp, vdExp, vzExp>(eval, inputs, outputs);
-}
-
-//------------------------------------------------------------------------------
 // Returns inverse hyperbolic cosine of input [acosh]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsMKL::aCosh(EvaluatorInterface           eval,
@@ -2009,6 +2020,266 @@ bool BuiltInFuncsMKL::Log10(EvaluatorInterface           eval,
 }
 
 //------------------------------------------------------------------------------
+// Returns exponential of input [exp]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsMKL::Exp(EvaluatorInterface          eval,
+                         const std::vector<Currency>& inputs,
+                         std::vector<Currency>&       outputs)
+{
+    return ElemFunc1<exp, hwComplex::exp, vdExp, vzExp>(eval, inputs, outputs);
+}
+
+//------------------------------------------------------------------------------
+// Returns exponential of input, minus 1 [expm1 command]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsMKL::Expm1(EvaluatorInterface           eval,
+                            const std::vector<Currency>& inputs,
+                            std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 1)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    const Currency& cur = inputs[0];
+    bool switchToComplex = false;
+
+    if (cur.IsComplex())
+    {
+        switchToComplex = true;
+    }
+    else if (cur.IsMatrix())
+    {
+        if (!cur.Matrix()->IsReal())
+        {
+            switchToComplex = true;
+        }
+    }
+    else if (cur.IsNDMatrix())
+    {
+        if (!cur.Matrix()->IsReal())
+        {
+            switchToComplex = true;
+        }
+    }
+
+    if (!switchToComplex)
+    {
+        if (ElemFunc1<expm1, nullptr, vdExpm1, nullptr>(eval, inputs, outputs))
+            return true;
+    }
+
+    if (cur.IsComplex())
+    {
+        hwComplex z = hwComplex::exp(cur.Complex()) - 1.0; // cppcheck-suppress unpreciseMathCall
+        outputs.push_back(z);
+    }
+    else if (cur.IsMatrix())
+    {
+        const hwMatrix* mtx = cur.Matrix();
+        int size = mtx->Size();
+        hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), false);
+
+        for (int i = 0; i < size; ++i)
+        {
+            if (mtx->z(i).Imag() == 0.0)
+            {
+                result->z(i) = expm1(mtx->z(i).Real());
+            }
+            else
+            {
+                result->z(i) = hwComplex::exp(mtx->z(i)) - 1.0; // cppcheck-suppress unpreciseMathCall
+            }
+        }
+
+        outputs.push_back(result);
+    }
+    else if (cur.IsNDMatrix())
+    {
+        const hwMatrixN* mtx = cur.MatrixN();
+        int size = mtx->Size();
+        hwMatrixN* result = EvaluatorInterface::allocateMatrixN(mtx->Dimensions(), false);
+
+        for (int i = 0; i < size; ++i)
+        {
+            if (mtx->z(i).Imag() == 0.0)
+            {
+                result->z(i) = expm1(mtx->z(i).Real());
+            }
+            else
+            {
+                result->z(i) = hwComplex::exp(mtx->z(i)) - 1.0; // cppcheck-suppress unpreciseMathCall
+            }
+        }
+
+        outputs.push_back(result);
+    }
+
+    return true;
+}
+
+//------------------------------------------------------------------------------
+// Returns natural logarithm of input + 1 [log1p command]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsMKL::Log1p(EvaluatorInterface       eval,
+                        const std::vector<Currency>& inputs,
+                        std::vector<Currency>&       outputs)
+{
+    if (inputs.size() != 1)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    const Currency& cur = inputs[0];
+    bool switchToComplex = false;
+
+    if (cur.IsScalar())
+    {
+        double value = cur.Scalar();
+
+        if (value < -1.0)
+        {
+            switchToComplex = true;
+        }
+    }
+    else if (cur.IsComplex())
+    {
+        switchToComplex = true;
+    }
+    else if (cur.IsMatrix())
+    {
+        const hwMatrix* mtx = cur.Matrix();
+        int size = mtx->Size();
+
+        if (mtx->IsReal())
+        {
+            for (int i = 0; i < size; ++i)
+            {
+                if ((*mtx)(i) < -1.0)
+                {
+                    switchToComplex = true;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            switchToComplex = true;
+        }
+    }
+    else if (cur.IsNDMatrix())
+    {
+        const hwMatrixN* mtx = cur.MatrixN();
+        int size = mtx->Size();
+
+        if (mtx->IsReal())
+        {
+            for (int i = 0; i < size; ++i)
+            {
+                if ((*mtx)(i) < -1.0)
+                {
+                    switchToComplex = true;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            switchToComplex = true;
+        }
+    }
+
+    if (!switchToComplex)
+    {
+        if (ElemFunc1<log1p, nullptr, vdLog1p, nullptr>(eval, inputs, outputs))
+            return true;
+    }
+
+    if (cur.IsScalar())
+    {
+        hwComplex z = hwComplex::log(hwComplex(cur.Scalar() + 1.0, 0.0));
+        outputs.push_back(z);
+    }
+    else if (cur.IsComplex())
+    {
+        hwComplex z = hwComplex::log(cur.Complex() + 1.0); // cppcheck-suppress unpreciseMathCall
+        outputs.push_back(z);
+    }
+    else if (cur.IsMatrix())
+    {
+        const hwMatrix* mtx = cur.Matrix();
+        int size = mtx->Size();
+        hwMatrix* result = EvaluatorInterface::allocateMatrix(mtx->M(), mtx->N(), false);
+
+        if (mtx->IsReal())
+        {
+            for (int i = 0; i < size; ++i)
+            {
+                if ((*mtx)(i) >= -1.0)
+                {
+                    result->z(i) = log1p((*mtx)(i));
+                }
+                else
+                {
+                    result->z(i) = hwComplex::log(hwComplex((*mtx)(i) + 1.0, 0.0));
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < size; ++i)
+            {
+                if (mtx->z(i).Real() >= -1.0 && mtx->z(i).Imag() == 0.0)
+                {
+                    result->z(i) = log1p(mtx->z(i).Real());
+                }
+                else
+                {
+                    result->z(i) = hwComplex::log(mtx->z(i) + 1.0); // cppcheck-suppress unpreciseMathCall
+                }
+            }
+        }
+
+        outputs.push_back(result);
+    }
+    else if (cur.IsNDMatrix())
+    {
+        const hwMatrixN* mtx = cur.MatrixN();
+        int size = mtx->Size();
+        hwMatrixN* result = EvaluatorInterface::allocateMatrixN(mtx->Dimensions(), false);
+
+        if (mtx->IsReal())
+        {
+            for (int i = 0; i < size; ++i)
+            {
+                if ((*mtx)(i) >= -1.0)
+                {
+                    result->z(i) = log1p((*mtx)(i));
+                }
+                else
+                {
+                    result->z(i) = hwComplex::log(hwComplex((*mtx)(i) + 1.0, 0.0));
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < size; ++i)
+            {
+                if (mtx->z(i).Real() >= -1.0 && mtx->z(i).Imag() == 0.0)
+                {
+                    result->z(i) = log1p(mtx->z(i).Real());
+                }
+                else
+                {
+                    result->z(i) = hwComplex::log(mtx->z(i) + 1.0); // cppcheck-suppress unpreciseMathCall
+                }
+            }
+        }
+
+        outputs.push_back(result);
+    }
+
+    return true;
+}
+
+//------------------------------------------------------------------------------
 // Returns square root of input [sqrt]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsMKL::Sqrt(EvaluatorInterface           eval,
@@ -2044,9 +2315,11 @@ bool BuiltInFuncsMKL::Arg(EvaluatorInterface           eval,
 
     if (cur.IsScalar())
     {
-        if (cur.Scalar() >= 0.0)
+        double value = cur.Scalar();
+
+        if (value >= 0.0)
             outputs.push_back(0.0);
-        else if (cur.Scalar() < 0.0)
+        else if (value < 0.0)
             outputs.push_back(PI);
         else
             outputs.push_back(std::numeric_limits<double>::quiet_NaN());
@@ -2148,11 +2421,17 @@ bool BuiltInFuncsMKL::Mod(EvaluatorInterface           eval,
     if (inputs.size() != 2)
         throw OML_Error(OML_ERR_NUMARGIN);
 
-    const Currency& input1 = inputs[0];
-    const Currency& input2 = inputs[1];
+    const Currency& input1 = inputs [0];
+    if (input1.IsLogical())
+    {
+        throw OML_Error(OML_ERR_NOTLOGICAL, 1);
+    }
 
-    if (input1.IsLogical() || input2.IsLogical())
-        throw OML_Error(HW_ERROR_INPUTISLOGICAL);
+    const Currency& input2 = inputs [1];
+    if (input2.IsLogical())
+    {
+        throw OML_Error(OML_ERR_NOTLOGICAL, 2);
+    }
 
     if (input1.IsScalar())
     {

@@ -1,7 +1,7 @@
 /**
 * @file OMLInterfacePublic.cpp
 * @date January 2017
-* Copyright (C) 2017-2018 Altair Engineering, Inc.  
+* Copyright (C) 2017-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -230,6 +230,14 @@ class OMLFunctionHandle
 {
 };
 
+class OMLAST
+{
+public:
+	virtual void AddChild(OMLAST*) = 0;
+
+	virtual ~OMLAST() {};
+};
+
 class OMLCurrencyList
 {
 public:
@@ -276,6 +284,12 @@ class OMLCurrencyList3 : public OMLCurrencyList2
 public:
 	virtual void AddLogical(bool) = 0;
 	virtual OMLCellArray* CreateTemporaryCellArray(int rows, int cols) = 0;
+};
+
+class OMLCurrencyList4 : public OMLCurrencyList3
+{
+public:
+	virtual OMLAST* CreateAST(int type, const char* label) = 0;
 };
 
 #endif

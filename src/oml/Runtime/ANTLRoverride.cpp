@@ -1,7 +1,7 @@
 /**
 * @file ANTLRoverride.cpp
 * @date March 2014
-* Copyright (C) 2014-2018 Altair Engineering, Inc.  
+* Copyright (C) 2014-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -38,7 +38,7 @@ void displayRecognitionErrorNew  (pANTLR3_BASE_RECOGNIZER recognizer, pANTLR3_UI
 	if (recognizer->state->exception->streamName != NULL)
 	{
 		unsigned char *ch = recognizer->state->exception->streamName->chars;
-		errFile =(char*)ch;
+		errFile =(char*)ch; // cppcheck-suppress cstyleCast
 	}
 	
 	ErrorInfo err(errFile,lin, chPosit);
@@ -60,7 +60,7 @@ public:
 	~AntlrMemoryPool();
 	void* Get();
 	void  Free(void*);
-	bool  Owns(void*);
+	bool  Owns(const void*);
 
 private:
 	void AddBlock();
@@ -81,6 +81,11 @@ AntlrMemoryPool::AntlrMemoryPool(int isize, int bsize) : item_size(isize), items
 
 AntlrMemoryPool::~AntlrMemoryPool()
 {
+	for (auto ptr : blocks)
+	{
+		if (ptr)
+			delete[] ptr;
+	}
 }
 
 void AntlrMemoryPool::AddBlock()
@@ -99,7 +104,7 @@ void* AntlrMemoryPool::Get()
 
 	if (freed_ptrs.size())
 	{
-		ret_ptr = (unsigned char*)freed_ptrs.back();
+		ret_ptr = (unsigned char*)freed_ptrs.back(); // cppcheck-suppress cstyleCast
 		freed_ptrs.pop_back();
 	}
 	else
@@ -116,13 +121,13 @@ void* AntlrMemoryPool::Get()
 	return ret_ptr;
 }
 
-bool AntlrMemoryPool::Owns(void* ptr)
+bool AntlrMemoryPool::Owns(const void* ptr)
 {
 	for (int j=0; j<blocks.size(); j++)
 	{
 		unsigned char* block = blocks[j];
 
-		unsigned char* block_end   = block + allocation_size;
+		const unsigned char* block_end   = block + allocation_size;
 
 		if ((ptr >= block) && (ptr < block_end))
 			return true;

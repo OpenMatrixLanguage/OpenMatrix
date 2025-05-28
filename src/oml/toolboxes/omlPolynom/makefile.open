@@ -22,11 +22,12 @@ CXX_DEFINES += -DPOLYNOMIALOMLTBOX_EXPORT
 CXX_INCLUDES += -I. $(HWMATHKERNEL_INC)
 CXX_INCLUDES += -I$(OML_ROOT)/src/oml/Runtime
 CXX_INCLUDES += -I$(OML_ROOT)/src/math/polynom
+CXX_INCLUDES += -I$(OML_ROOT)/src/math/mathutils
 
 ifneq (,$(findstring NT,$(UNAME)))
-   LIBS += hwpolynom.lib
+   LIBS += hwpolynom.lib hwmathutils.lib
 else
-   LIBS += -lhwpolynom
+   LIBS += -lhwpolynom -lhwmathutils
 endif
 
 LIBS += $(MATHKERNEL_LIBS)

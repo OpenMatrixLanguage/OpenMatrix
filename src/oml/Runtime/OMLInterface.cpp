@@ -1,7 +1,7 @@
 /**
 * @file OMLInterface.cpp
 * @date January 2017
-* Copyright (C) 2017-2018 Altair Engineering, Inc.  
+* Copyright (C) 2017-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -24,6 +24,7 @@
 #include "hwMatrixN_NMKL.h"
 #include "hwMatrixS_NMKL.h"
 #include "OML_Error.h"
+#include "OMLTree.h"
 
 OMLImplBase::OMLImplBase(EvaluatorInterface* in_eval)
 { 
@@ -88,12 +89,12 @@ const OMLCurrency* OMLInterfaceImpl::CallFunction(const OMLFunctionHandle* handl
 	for (int j=0; j<inputs->Size(); j++)
 	{
 		const OMLCurrency* temp = inputs->Get(j);
-		OMLCurrencyImpl* impl = (OMLCurrencyImpl*)temp;
+		const OMLCurrencyImpl* impl = (OMLCurrencyImpl*)temp; // cppcheck-suppress cstyleCast
 
 		ins.push_back(impl->GetCurrency());
 	}
 
-	OMLFunctionHandleImpl* fh = (OMLFunctionHandleImpl*)handle;
+	const OMLFunctionHandleImpl* fh = (OMLFunctionHandleImpl*)handle; // cppcheck-suppress cstyleCast
 	Currency result = _eval->CallInternalFunction(fh->GetFunctionInfo(), ins);
 	return new OMLCurrencyImpl(_eval, result);
 }
@@ -105,7 +106,7 @@ const OMLCurrency* OMLInterfaceImpl::CallFunction(const char* name, OMLCurrencyL
 	for (int j = 0; j < inputs->Size(); j++)
 	{
 		const OMLCurrency* temp = inputs->Get(j);
-		OMLCurrencyImpl* impl = (OMLCurrencyImpl*)temp;
+		const OMLCurrencyImpl* impl = (OMLCurrencyImpl*)temp; // cppcheck-suppress cstyleCast
 
 		ins.push_back(impl->GetCurrency());
 	}
@@ -120,9 +121,10 @@ const OMLCurrency* OMLInterfaceImpl::GetGlobalValue(const char* varname)
 	return new OMLCurrencyImpl(_eval, result);
 }
 
-OMLCurrencyImpl::OMLCurrencyImpl(EvaluatorInterface* in_eval, Currency in_cur) : OMLImplBase(in_eval)
+OMLCurrencyImpl::OMLCurrencyImpl(EvaluatorInterface* in_eval, const Currency& in_cur)
+	: OMLImplBase(in_eval)
+	, _cur (in_cur)
 {
-	_cur = in_cur;
 }
 
 OMLCurrencyImpl::~OMLCurrencyImpl()
@@ -452,13 +454,13 @@ OMLCurrency* OMLCellArrayImpl::GetValue(int index1, int index2) const
 
 void OMLCellArrayImpl::SetValue(int index1, OMLCurrency* val)
 {
-	OMLCurrencyImpl* ci = (OMLCurrencyImpl*)val;
+	OMLCurrencyImpl* ci = (OMLCurrencyImpl*)val; // cppcheck-suppress cstyleCast
 	(*_cells)(index1)   = ci->GetCurrency();
 }
 
 void OMLCellArrayImpl::SetValue(int index1, int index2, OMLCurrency* val)
 {
-	OMLCurrencyImpl* ci = (OMLCurrencyImpl*)val;
+	const OMLCurrencyImpl* ci = (OMLCurrencyImpl*)val; // cppcheck-suppress cstyleCast
 	(*_cells)(index1, index2)   = ci->GetCurrency();
 }
 
@@ -498,7 +500,7 @@ OMLCurrency* OMLNDCellArrayImpl::GetValue(int index1) const
 
 void OMLNDCellArrayImpl::SetValue(int index1, OMLCurrency* val)
 {
-	OMLCurrencyImpl* ci = (OMLCurrencyImpl*)val;
+	const OMLCurrencyImpl* ci = (OMLCurrencyImpl*)val; // cppcheck-suppress cstyleCast
 	(*_cells)(index1) = ci->GetCurrency();
 }
 
@@ -528,7 +530,7 @@ HML_ND_CELLARRAY* OMLNDCellArrayImpl::GetCells() const
 
 OMLFunctionHandleImpl::OMLFunctionHandleImpl(EvaluatorInterface* in_eval, const FunctionInfo* in_fh) : OMLImplBase(in_eval)
 {
-	_fi = (FunctionInfo*)in_fh;
+	_fi = (FunctionInfo*)in_fh; // cppcheck-suppress cstyleCast
 }
 
 OMLFunctionHandleImpl::~OMLFunctionHandleImpl()
@@ -664,7 +666,7 @@ void OMLCurrencyListImpl::AddStruct(OMLStruct* in_struct)
 	_list[_count-1] = in_struct->GetCurrency();
 }
 
-void OMLCurrencyListImpl::AddStruct(StructData* in_sd)
+void OMLCurrencyListImpl::AddStruct(const StructData* in_sd)
 {
 	Expand();
 	_list[_count-1] = new OMLCurrencyImpl(_eval, new StructData(*in_sd));
@@ -819,13 +821,19 @@ OMLSparseMatrix* OMLCurrencyListImpl::CreateSparseMatrix(int num_vals, int* ivec
 
 	for (int j = 0; j < num_vals; ++j)
 	{
-		ivector[j]     = ivec[j];
-		jvector[j]     = jvec[j];
+		ivector[j] = ivec[j];
+		jvector[j] = jvec[j];
 		(*temp_mtx)(j) = vals[j];
 	}
 
-	hwMatrixS* temp =  new hwMatrixS(ivector, jvector, *temp_mtx, rows, cols);
+	hwMatrixS* temp = new hwMatrixS(ivector, jvector, *temp_mtx, rows, cols);
 	return new OMLSparseMatrixImpl(_eval, temp);
+}
+
+OMLAST* OMLCurrencyListImpl::CreateAST(int type, const char* label)
+{
+	OMLTree* my_tree = new OMLTree(type, label);
+	return new OMLASTImpl(_eval, my_tree);
 }
 
 OMLComplexImpl::OMLComplexImpl(EvaluatorInterface* in_eval, double real, double imag) : OMLImplBase(in_eval), cplx(real, imag)
@@ -884,13 +892,13 @@ int OMLStructImpl::GetCols() const
 
 void OMLStructImpl::SetValue(int index, const char* field, OMLCurrency* val)
 {
-	OMLCurrencyImpl* ci = (OMLCurrencyImpl*)val;
+	const OMLCurrencyImpl* ci = (OMLCurrencyImpl*)val; // cppcheck-suppress cstyleCast
 	_sd->SetValue(index, -1, field, ci->GetCurrency());
 }
 
 void OMLStructImpl::SetValue(int index1, int index2, const char* field, OMLCurrency* val)
 {
-	OMLCurrencyImpl* ci = (OMLCurrencyImpl*)val;
+	const OMLCurrencyImpl* ci = (OMLCurrencyImpl*)val; // cppcheck-suppress cstyleCast
 	_sd->SetValue(index1, index2, field, ci->GetCurrency());
 }
 
@@ -902,4 +910,24 @@ OMLCurrency* OMLStructImpl::GetCurrency() const
 StructData* OMLStructImpl::GetStructData() const
 {
 	return _sd;
+}
+
+OMLASTImpl::OMLASTImpl(EvaluatorInterface* in_eval, OMLTree* in_tree)
+{
+	_tree = in_tree;
+}
+
+OMLASTImpl::~OMLASTImpl()
+{
+}
+
+void OMLASTImpl::AddChild(OMLAST* child_tree)
+{
+	OMLASTImpl* tree_impl = (OMLASTImpl*)child_tree; // cppcheck-suppress cstyleCast
+	_tree->AddChild(tree_impl->GetTree());
+}
+
+OMLTree* OMLASTImpl::GetTree()
+{
+	return _tree;
 }

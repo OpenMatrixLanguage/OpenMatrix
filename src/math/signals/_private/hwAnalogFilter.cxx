@@ -50,9 +50,8 @@ static void EvalPoly_s(const hwMatrix* poly,
     double    omega2 = omega * omega;
     double    omega4 = omega2 * omega2;
     double    sum[4];
-    double*   pCoef;
-    hwMatrix* P = (hwMatrix*) poly;     // overreide const
-    double* pStart = P->GetRealData();
+    const double* pCoef;
+    const double* pStart = poly->GetRealData();
 
     // separate the sum into four components based on powers of j
     // each component is a polynomial of omega^4

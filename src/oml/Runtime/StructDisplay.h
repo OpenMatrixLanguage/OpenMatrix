@@ -1,7 +1,7 @@
 /**
 * @file StructDisplay.h
 * @date February 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -39,67 +39,65 @@ public:
 
     //!
     //! Gets output - called from Currency::GetOutputString
-    //! \param fmt Output format
-    //! \param os  Output stream
+    //! \param Output format
+    //! \param Output stream
     //!
-    std::string GetOutput(const OutputFormat* fmt,
-                          std::ostringstream& os) const;
+    std::string GetOutput(const OutputFormat*, std::ostringstream&) const override;
     //!
     //! Returns true if end of pagination message needs to be printed
-    //! \param msg Additional message that needs to be printed
+    //! \param Additional message that needs to be printed
     //!
-    virtual bool GetPaginationEndMsg(std::string& msg) const;
+    virtual bool GetPaginationEndMsg(std::string&) const override;
     //!
     //! Gets number of rows and cols in the currency
-    //! \param rows Number of rows
-    //! \param cols Number of columns
+    //! \param Number of rows
+    //! \param Number of columns
     //!
-    virtual void GetCurrencySize(int& rows, 
-                                 int& cols) const;
+    virtual void GetCurrencySize(int&, int&) const override;
+
 protected:
     //!
     //! Sets data for forward pagination
     //!
-    virtual void SetForwardDisplayData();
+    virtual void SetForwardDisplayData() override;
     //!
     //! Sets data for back pagination
     //!
-    virtual void SetBackDisplayData();
+    virtual void SetBackDisplayData() override;
     //!
     //! Gets values as a string
-    //! \param fmt Output format
+    //! \param Output format
     //!
-    virtual std::string GetValues(const OutputFormat* fmt) const;
+    virtual std::string GetValues(const OutputFormat*) const override;
+
 private:
     //!
     //! Constructor - Only currency is allowed to construct
-    //! \param cur Currency associated with this display
+    //! \param Currency associated with this display
     //!
-    StructDisplay(const Currency& cur);
+    StructDisplay(const Currency&);
 
-    StructDisplay();                                      // Stubbed out 
-    StructDisplay(const StructDisplay& src) ;             // Stubbed out 
-    StructDisplay& operator=(const StructDisplay& src);   // Stubbed out
+    StructDisplay();                                 // Stubbed out // cppcheck-suppress noExplicitConstructor 
+    StructDisplay(const StructDisplay&);             // Stubbed out 
+    StructDisplay& operator=(const StructDisplay&);  // Stubbed out
 
     //!
     //! Gets output with no pagination
-    //! \param fmt Format
-    //! \param os  Output stream
+    //! \param Format
+    //! \param Output stream
     //!
-    std::string GetOutputNoPagination(const OutputFormat* fmt,
-                                      std::ostringstream& os) const;
+    std::string GetOutputNoPagination(const OutputFormat*, std::ostringstream&) const;
     //!
     //! Gets outputfor forward/down pagination
-    //! \param fmt Format
-    //! \param os  Output stream
+    //! \param Format
+    //! \param Output stream
     //!
-    std::string GetOutputForwardPagination(const OutputFormat* fmt,
-                                           std::ostringstream& os) const;
+    std::string GetOutputForwardPagination(const OutputFormat*, std::ostringstream&) const;
     //!
     //! Gets outputfor back/up pagination
-    //! \param fmt Format
+    //! \param Format
     //!
-    std::string GetOutputBackPagination(const OutputFormat* fmt) const;
+    std::string GetOutputBackPagination(const OutputFormat*) const;
     //!
     //! Updates the number of rows to fit
     //!

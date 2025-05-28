@@ -1,7 +1,7 @@
 /**
 * @file StructData.cpp
 * @date September 2013
-* Copyright (C) 2013-2018 Altair Engineering, Inc.  
+* Copyright (C) 2013-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -19,13 +19,11 @@
 #include "OML_Error.h"
 
 StructData::StructData(const StructData& in)
+	: field_names (in.field_names)
+	, field_values (nullptr)
 {
-	field_names  = in.field_names;
-
 	if (in.field_values)
 		field_values = new HML_FIELDVALS(*in.field_values);	
-	else
-		field_values = NULL;
 
 	next_key     = in.next_key;
 }
@@ -106,7 +104,7 @@ const Currency* StructData::GetPointer(int index_1, int index_2, const std::stri
 	return ret_val;
 }
 
-void StructData::SetValue(int index_1, int index_2, const std::string& field, Currency value)
+void StructData::SetValue(int index_1, int index_2, const std::string& field, const Currency& value)
 {
 	const std::string* field_ptr = Currency::vm.GetStringPointer(field);
 	return SetValue(index_1, index_2, field_ptr, value);
@@ -143,7 +141,7 @@ void StructData::SetValue(int index_1, int index_2, const std::string* field, Cu
 
 	if (field_names.find(field) == field_names.end())
 	{
-		field_names[field] = next_key;
+		field_names.emplace(field, next_key);
 		next_key++;
 	}
 
@@ -276,7 +274,10 @@ void StructData::addField(const std::string& field)
 void StructData::addField(const std::string* field)
 {
 	if (field_names.find(field) == field_names.end())
-		field_names[field] = next_key++;
+	{
+		field_names.emplace(field, next_key);
+		next_key++;
+	}
 }
 
 bool StructData::Contains(const std::string& field) const

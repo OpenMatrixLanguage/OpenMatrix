@@ -1,7 +1,7 @@
 /**
 * @file Currency.h
 * @date August 2013
-* Copyright (C) 2013-2021 Altair Engineering, Inc.  
+* Copyright (C) 2013-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -18,6 +18,11 @@
 #define __Currency_h
 
 #include "OMLDll.h"
+
+#ifdef OS_WIN
+// disable warnings on "needs to have dll-interface to be used by clients of class"
+#   pragma warning (disable : 4251)
+#endif  // OS_WIN
 
 #include <string>
 #include <vector>
@@ -46,7 +51,6 @@ typedef hwTMatrixN<Currency, void*> HML_ND_CELLARRAY;
 
 typedef Currency (*EXTPTR) (const std::string&);
 
-
 class OMLDLL_DECLS StringManager
 {
 public:
@@ -74,29 +78,29 @@ private:
 class OMLDLL_DECLS Currency
 {
 public:
-	Currency(double val);
-	Currency(int val);
-	Currency(size_t val);
+	Currency(double);                               // cppcheck-suppress noExplicitConstructor
+	Currency(int);                                  // cppcheck-suppress noExplicitConstructor
+	Currency(size_t);                               // cppcheck-suppress noExplicitConstructor
 	Currency(double val, int in_type); // used for break, error, etc.
-	Currency(double val, std::string error_msg);
-	Currency(const std::string& str);
-	Currency(const char* str);
-	Currency(const std::vector<double>& data);
-	Currency(const std::vector<std::string>& data);
-	Currency(bool logical_val);
-	Currency(hwMatrix* data);
-	Currency(hwMatrixN* data);
-	Currency(hwMatrixS* data);
-	Currency(const hwComplex& cplx);
+	Currency(double val, const std::string& error_msg);
+	Currency(const std::string& str);               // cppcheck-suppress noExplicitConstructor
+	Currency(const char* str);                      // cppcheck-suppress noExplicitConstructor
+	Currency(const std::vector<double>& data);      // cppcheck-suppress noExplicitConstructor
+	Currency(const std::vector<std::string>& data); // cppcheck-suppress noExplicitConstructor
+	Currency(bool logical_val);                     // cppcheck-suppress noExplicitConstructor
+	Currency(hwMatrix*);                            // cppcheck-suppress noExplicitConstructor
+	Currency(hwMatrixN*);                           // cppcheck-suppress noExplicitConstructor
+	Currency(hwMatrixS*);                           // cppcheck-suppress noExplicitConstructor
+	Currency(const hwComplex&);                     // cppcheck-suppress noExplicitConstructor
 	Currency(); // Microsoft STL forces this 
 	Currency(const Currency& cur);
-	Currency(HML_CELLARRAY* cells);
-	Currency(HML_ND_CELLARRAY* cells);
-	Currency(FunctionInfo* fi);
-	Currency(StructData* sd);
-    Currency(OutputFormat* fmt);
-    Currency(Currency* ptr);	
-	Currency(OMLTree* ptr);
+	Currency(HML_CELLARRAY*);                      // cppcheck-suppress noExplicitConstructor
+	Currency(HML_ND_CELLARRAY*);                   // cppcheck-suppress noExplicitConstructor
+	Currency(FunctionInfo*);                       // cppcheck-suppress noExplicitConstructor
+	Currency(StructData*);                         // cppcheck-suppress noExplicitConstructor
+    Currency(OutputFormat*);                       // cppcheck-suppress noExplicitConstructor
+    Currency(Currency*);	                       // cppcheck-suppress noExplicitConstructor
+	Currency(OMLTree*);                            // cppcheck-suppress noExplicitConstructor
     //! Constructor for swig bound objects
     //! \param[in] obj  Pointer to bound object
     //! \param[in] name Class name associated with the bound object

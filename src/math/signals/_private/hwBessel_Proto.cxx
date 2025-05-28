@@ -14,7 +14,7 @@
 * Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 #include "hwBessel_Proto.h"
-
+#include "hwMatrix.h"
 #include "PolynomFuncs.h"
 
 #ifndef OS_WIN
@@ -28,6 +28,8 @@ hwBessel_Proto::hwBessel_Proto(int         order,
                                const char* type)
 	: hwLowPass_Proto(order)
 {
+    m_roots = new hwMatrix;
+
     // generate H(s) denominator coefficients in descending order
     double factor;
     hwMatrix Hs_denom(m_order+1, hwMatrix::REAL);
@@ -95,7 +97,7 @@ hwBessel_Proto::hwBessel_Proto(int         order,
         // solve |H(omega^2)|^2 = 1/2 to find angular cutoff frequency
         Hs22_denom(m_order) = -Hs22_denom(m_order);
 
-        hwMathStatus status = PolyRoots(Hs22_denom, m_roots);
+        hwMathStatus status = PolyRoots(Hs22_denom, *m_roots);
         if (!status.IsOk())
         {
             m_status = status;
@@ -106,21 +108,21 @@ hwBessel_Proto::hwBessel_Proto(int         order,
         for (int k = 0; k <= m_order; ++k)
         {
             // find the positive real root
-            if (m_roots.IsReal())
+            if (m_roots->IsReal())
             {
-                if (m_roots(k) > 1.0e-8)
+                if ((*m_roots)(k) > 1.0e-8)
                 {
-                    m_scale = 1.0 / sqrt(m_roots(k));
+                    m_scale = 1.0 / sqrt((*m_roots)(k));
                     break;
                 }
             }
             else
             {
-                if (m_roots.z(k).IsReal(1.0e-8))
+                if (m_roots->z(k).IsReal(1.0e-8))
                 {
-                    if (m_roots.z(k).Real() > 0.0)
+                    if (m_roots->z(k).Real() > 0.0)
                     {
-                        m_scale = 1.0 / sqrt(m_roots.z(k).Real());
+                        m_scale = 1.0 / sqrt(m_roots->z(k).Real());
                         break;
                     }
                 }
@@ -134,7 +136,7 @@ hwBessel_Proto::hwBessel_Proto(int         order,
     }
 
     // get poles of H(s) denominator
-    hwMathStatus status = PolyRoots(Hs_denom, m_roots);
+    hwMathStatus status = PolyRoots(Hs_denom, *m_roots);
     if (!status.IsOk())
     {
         m_status = status;
@@ -147,6 +149,7 @@ hwBessel_Proto::hwBessel_Proto(int         order,
 //------------------------------------------------------------------------------
 hwBessel_Proto::~hwBessel_Proto()
 {
+    delete m_roots;
 }
 //------------------------------------------------------------------------------
 // Compute location of the real pole
@@ -157,21 +160,21 @@ void hwBessel_Proto::GetSPlaneInfo(double& poleReal) const
     for (int k = 0; k < m_order; ++k)
     {
         // find the real pole in the left half plane
-        if (m_roots.IsReal())
+        if (m_roots->IsReal())
         {
-            if (m_roots(k) < 1.0e-8)
+            if ((*m_roots)(k) < 1.0e-8)
             {
-                poleReal = m_roots(k) * m_scale;
+                poleReal = (*m_roots)(k) * m_scale;
                 break;
             }
         }
         else
         {
-            if (m_roots.z(k).IsReal(1.0e-8))
+            if (m_roots->z(k).IsReal(1.0e-8))
             {
-                if (m_roots.z(k).Real() < 0.0)
+                if (m_roots->z(k).Real() < 0.0)
                 {
-                    poleReal = m_roots.z(k).Real() * m_scale;
+                    poleReal = m_roots->z(k).Real() * m_scale;
                     break;
                 }
             }
@@ -193,11 +196,11 @@ void hwBessel_Proto::GetSPlaneInfo(int     i,
     for (int k = 0; k < m_order; ++k)
     {
         // find the ith left half plane pole with a positive imaginary component
-        imag = m_roots.z(k).Imag();
+        imag = m_roots->z(k).Imag();
 
         if (imag > 1.0e-8)
         {
-            real = m_roots.z(k).Real();
+            real = m_roots->z(k).Real();
 
             if (real < 0.0)
             {
@@ -214,4 +217,11 @@ void hwBessel_Proto::GetSPlaneInfo(int     i,
             }
         }
     }
+}
+//------------------------------------------------------------------------------
+// Compute poles
+//------------------------------------------------------------------------------
+void hwBessel_Proto::GetSPlaneInfo(hwMatrix& poles) const
+{
+    poles = (*m_roots) * m_scale;
 }

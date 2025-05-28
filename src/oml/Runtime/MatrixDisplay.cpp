@@ -36,6 +36,26 @@
 //------------------------------------------------------------------------------
 // Constructor - Only currency is allowed to construct
 //------------------------------------------------------------------------------
+MatrixDisplay::MatrixDisplay()
+    : _uppercase      (false)
+    , _precision      (OutputFormat::PRECISION_SHORT)
+    , _displayformat  (DisplayFormatInt)
+    , _haslargeint    (false)
+    , _formatinteger  (0)
+    , _formatdecimal  (0)
+    , _maxint         (static_cast<long long>  (1e+12))
+    , _maxfloat       (static_cast<long double>(1e+6))
+    , _minfloat       (static_cast<long double>(1e-6))
+    , _maxdigits      (static_cast<long long>(1e+15))
+    , _totaldigits    (12)
+    , _delimiter      ("  ")
+    , _skipformatwidth(-1)
+{}
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// Constructor - Only currency is allowed to construct
+//------------------------------------------------------------------------------
 MatrixDisplay::MatrixDisplay(const Currency& cur) 
     : CurrencyDisplay (cur)
     , _uppercase      (false)
@@ -1515,7 +1535,7 @@ void MatrixDisplay::WriteNonFormattedOutputValues(const Currency&    in,
         fflush(fp);
         return;
     }
-    else if (in.IsMatrix()) // Just get the values without format
+    else if (in.IsMatrixOrString()) // Just get the values without format
     {
         const hwMatrix* mtx = in.Matrix();
         int             nrows = mtx ? mtx->M() : 0;

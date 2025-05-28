@@ -1,7 +1,7 @@
 /**
 * @file CalculusTboxFuncs.cxx
 * @date January, 2015
-* Copyright (C) 2015-2019 Altair Engineering, Inc.  
+* Copyright (C) 2015-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -24,9 +24,10 @@
 #include "FunctionInfo.h"
 #include "OML_Error.h"
 #include "hwMatrix.h"
+#include "hwMatrixN.h"
 
 #define CALC "Calculus"
-#define TBOXVERSION 2019.0
+#define TBOXVERSION 2025
 
 // file scope variables and functions
 static std::vector<FunctionInfo*>       quad_oml_sys_func_stack;
@@ -225,19 +226,11 @@ bool OmlQuad(EvaluatorInterface           eval,
         }
 
         // pack outputs
-        size_t nargout = eval.GetNargoutValue();
-
-        if (nargout >= 0)
-            outputs.push_back(area);
-
-        if (nargout > 1)
-            outputs.push_back(count);
+        outputs.push_back(area);
+        outputs.push_back(count);
     }
     else if (inputs[1].IsScalar() && inputs[2].IsMatrix())
     {
-        int i   = 0;
-        int cnt = 0; 
-
         double a = inputs[1].Scalar();
         const hwMatrix* B = inputs[2].Matrix();
 
@@ -248,9 +241,9 @@ bool OmlQuad(EvaluatorInterface           eval,
                                        B->M(), B->N(), true));
         std::unique_ptr<hwMatrix> count(EvaluatorInterface::allocateMatrix(
                                        B->M(), B->N(), true));
-        for (i = 0; i < B->Size(); ++i)
+        for (int i = 0; i < B->Size(); ++i)
         {
-            cnt = 0;
+            int cnt = 0;
             status = Quad(quad_file_func, a, (*B)(i), (*area)(i), cnt, reltol, abstol);
             (*count)(i) = static_cast<double>(cnt);
 
@@ -280,21 +273,14 @@ bool OmlQuad(EvaluatorInterface           eval,
         }
 
         // pack outputs
-        size_t nargout = eval.GetNargoutValue();
+        outputs.push_back(area.release());
 
-        if (nargout >= 0)
-            outputs.push_back(area.release());
-
-        if (nargout > 1)
+        if (eval.GetNargoutValue() > 1)
             outputs.push_back(count.release());
     }
     else if (inputs[1].IsMatrix() && inputs[2].IsScalar())
     {
-        int i   = 0;
-        int cnt = 0;
-
         const hwMatrix* A = inputs[1].Matrix();
-
         if (!A->IsReal())
             throw OML_Error(OML_ERR_REAL, 2, OML_VAR_MATRIX);
 
@@ -302,9 +288,9 @@ bool OmlQuad(EvaluatorInterface           eval,
         std::unique_ptr<hwMatrix> area(EvaluatorInterface::allocateMatrix(A->M(), A->N(), true));
         std::unique_ptr<hwMatrix> count(EvaluatorInterface::allocateMatrix(A->M(), A->N(), true));
 
-        for (i = 0; i < A->Size(); ++i)
+        for (int i = 0; i < A->Size(); ++i)
         {
-            cnt = 0;
+            int cnt = 0;
             status = Quad(quad_file_func, (*A)(i), b, (*area)(i), cnt, reltol, abstol);
             (*count)(i) = (double) cnt;
 
@@ -333,39 +319,33 @@ bool OmlQuad(EvaluatorInterface           eval,
             }
         }
 
-        // pack outputs
+        outputs.push_back(area.release());
+
         size_t nargout = eval.GetNargoutValue();
-
-        if (nargout >= 0)
-            outputs.push_back(area.release());
-
         if (nargout > 1)
             outputs.push_back(count.release());
     }
     else if (inputs[1].IsMatrix() && inputs[2].IsMatrix())
     {
         const hwMatrix* A = inputs[1].Matrix();
-        const hwMatrix* B = inputs[2].Matrix();
-
         if (!A->IsReal())
             throw OML_Error(OML_ERR_REAL, 2, OML_VAR_MATRIX);
 
+        const hwMatrix* B = inputs[2].Matrix();
         if (!B->IsReal())
             throw OML_Error(OML_ERR_REAL, 3, OML_VAR_MATRIX);
 
-        if (A->M() != B->M() || A->M() != B->M())
+        if (A->M() != B->M() || A->N() != B->N())
             throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
         std::unique_ptr<hwMatrix> area(EvaluatorInterface::allocateMatrix(
                                        A->M(), A->N(), true));
         std::unique_ptr<hwMatrix> count(EvaluatorInterface::allocateMatrix(
                                        A->M(), A->N(), true));
-        int i   = 0;
-        int cnt = 0;
 
-        for (i = 0; i < A->Size(); ++i)
+        for (int i = 0; i < A->Size(); ++i)
         {
-            cnt = 0;
+            int cnt = 0;
             status = Quad(quad_file_func, (*A)(i), (*B)(i), (*area)(i), cnt, reltol, abstol);
             (*count)(i) = (double) cnt;
 
@@ -394,13 +374,8 @@ bool OmlQuad(EvaluatorInterface           eval,
             }
         }
 
-        // pack outputs
-        size_t nargout = eval.GetNargoutValue();
-
-        if (nargout >= 0)
-            outputs.push_back(area.release());
-
-        if (nargout > 1)
+        outputs.push_back(area.release());
+        if (eval.GetNargoutValue() > 1)
             outputs.push_back(count.release());
     }
 
@@ -510,8 +485,7 @@ bool OmlQuadv(EvaluatorInterface           eval,
         // pack outputs
         size_t nargout = eval.GetNargoutValue();
 
-        if (nargout >= 0)
-            outputs.push_back(area);
+        outputs.push_back(area);
 
         if (nargout > 1)
             outputs.push_back(count);
@@ -523,14 +497,13 @@ bool OmlQuadv(EvaluatorInterface           eval,
         const hwMatrix* B = inputs[2].Matrix();
         std::unique_ptr<hwMatrix> area(EvaluatorInterface::allocateMatrix(B->M(), B->N(), true));
         std::unique_ptr<hwMatrix> count(EvaluatorInterface::allocateMatrix(B->M(), B->N(), true));
-        int cnt;
 
         if (!B->IsReal())
             throw OML_Error(OML_ERR_REAL, 3, OML_VAR_MATRIX);
 
         for (i = 0; i < B->Size(); ++i)
         {
-            cnt = 0;
+            int cnt = 0;
             status = QuadV(quadv_file_func, a, (*B)(i), (*area)(i), cnt, abstol);
             (*count)(i) = (double) cnt;
 
@@ -562,8 +535,7 @@ bool OmlQuadv(EvaluatorInterface           eval,
         // pack outputs
         size_t nargout = eval.GetNargoutValue();
 
-        if (nargout >= 0)
-            outputs.push_back(area.release());
+        outputs.push_back(area.release());
 
         if (nargout > 1)
             outputs.push_back(count.release());
@@ -575,14 +547,13 @@ bool OmlQuadv(EvaluatorInterface           eval,
         double b = inputs[2].Scalar();
         std::unique_ptr<hwMatrix> area(EvaluatorInterface::allocateMatrix(A->M(), A->N(), true));
         std::unique_ptr<hwMatrix> count(EvaluatorInterface::allocateMatrix(A->M(), A->N(), true));
-        int cnt;
 
         if (!A->IsReal())
             throw OML_Error(OML_ERR_REAL, 2, OML_VAR_MATRIX);
 
         for (i = 0; i < A->Size(); ++i)
         {
-            cnt = 0;
+            int cnt = 0;
             status = QuadV(quadv_file_func, (*A)(i), b, (*area)(i), cnt, abstol);
             (*count)(i) = (double) cnt;
 
@@ -614,8 +585,7 @@ bool OmlQuadv(EvaluatorInterface           eval,
         // pack outputs
         size_t nargout = eval.GetNargoutValue();
 
-        if (nargout >= 0)
-            outputs.push_back(area.release());
+        outputs.push_back(area.release());
 
         if (nargout > 1)
             outputs.push_back(count.release());
@@ -632,16 +602,16 @@ bool OmlQuadv(EvaluatorInterface           eval,
         if (!B->IsReal())
             throw OML_Error(OML_ERR_REAL, 3, OML_VAR_MATRIX);
 
-        if (A->M() != B->M() || A->M() != B->M())
+        //if (A->M() != B->M() || A->M() != B->M()) // original code which is probably a typo
+        if (A->M() != B->M() || A->N() != B->N())
             throw OML_Error(OML_ERR_ARRAYSIZE, 2, 3);
 
         std::unique_ptr<hwMatrix> area(EvaluatorInterface::allocateMatrix(A->M(), A->N(), true));
         std::unique_ptr<hwMatrix> count(EvaluatorInterface::allocateMatrix(A->M(), A->N(), true));
-        int cnt;
 
         for (i = 0; i < A->Size(); ++i)
         {
-            cnt = 0;
+            int cnt = 0;
             status = QuadV(quadv_file_func, (*A)(i), (*B)(i), (*area)(i), cnt, abstol);
             (*count)(i) = (double) cnt;
 
@@ -672,9 +642,7 @@ bool OmlQuadv(EvaluatorInterface           eval,
 
         // pack outputs
         size_t nargout = eval.GetNargoutValue();
-
-        if (nargout >= 0)
-            outputs.push_back(area.release());
+        outputs.push_back(area.release());
 
         if (nargout > 1)
             outputs.push_back(count.release());
@@ -694,43 +662,176 @@ bool OmlTrapz(EvaluatorInterface           eval,
               const std::vector<Currency>& inputs,
               std::vector<Currency>&       outputs)
 {
-    if (inputs.size() != 1 && inputs.size() != 2)
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 3)
         throw OML_Error(OML_ERR_NUMARGIN);
 
-    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
-        throw OML_Error(OML_ERR_VECTOR, 1, OML_VAR_VARIABLE);
+    // get dimension of interest, and its length if needed
+    int dim    = -1;
+    int length = -1;
 
-    const hwMatrix* mtx1 = inputs[0].ConvertToMatrix();
-    double result;
-
-    if (inputs.size() == 1)
+    if (nargin == 1)
     {
-        hwMatrix units(mtx1->Size(), 1, hwMatrix::REAL);
-
-        for (int i = 0; i < units.M(); ++i)
-            units(i) = static_cast<double> (i);
-
-        hwMathStatus status = TrapZ(units, *mtx1, result);
-
-        if (!status.IsOk())
+        if (inputs[0].IsMatrix() || inputs[0].IsScalar())
         {
-            if (status.GetArg1() == 2)
-                status.SetArg1(1);
-        }
+            const hwMatrix* mtx1 = inputs[0].ConvertToMatrix();
 
-        BuiltInFuncsUtils::CheckMathStatus(eval, status);
+            if (mtx1->M() == 1)
+            {
+                dim = 2;
+                length = mtx1->N();
+            }
+            else
+            {
+                dim = 1;
+                length = mtx1->M();
+            }
+        }
+        else if (inputs[0].IsNDMatrix())
+        {
+            const hwMatrixN* mtx = inputs[0].MatrixN();
+            const std::vector<int>& dims = mtx->Dimensions();
+            int ndims = static_cast<int>(dims.size());
+            for (int i = 0; i < ndims; ++i)
+            {
+                if (dims[i] != 1)
+                {
+                    dim = i + 1;
+                    break;
+                }
+            }
+
+            length = (dim > 0) ? dims [dim - 1] : 0;
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_TYPE);
+        }
+    }
+    else if (nargin == 2)
+    {
+        if (inputs[1].IsPositiveInteger())
+        {
+            dim = static_cast<int>(inputs[1].Scalar());
+
+            if (inputs[0].IsMatrix() || inputs[0].IsScalar())
+            {
+                const hwMatrix* mtx1 = inputs[0].ConvertToMatrix();
+
+                if (dim == 1)
+                {
+                    length = mtx1->M();
+                }
+                else
+                {
+                    length = mtx1->N();
+                }
+            }
+            else if (inputs[0].IsNDMatrix())
+            {
+                const hwMatrixN* mtx2 = inputs[0].MatrixN();
+                const std::vector<int>& dims = mtx2->Dimensions();
+
+                length = dims[dim - 1];
+            }
+            else
+            {
+                throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_TYPE);
+            }
+        }
+        else if (!inputs[1].IsMatrix() && !inputs[1].IsNDMatrix() && !inputs[1].Scalar())
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_DIM);
+        }
     }
     else
     {
-        if (!inputs[1].IsMatrix() && !inputs[1].IsScalar())
-            throw OML_Error(OML_ERR_VECTOR, 2, OML_VAR_VARIABLE);
-
-        const hwMatrix* mtx2 = inputs[1].ConvertToMatrix();
-
-        BuiltInFuncsUtils::CheckMathStatus(eval, TrapZ(*mtx1, *mtx2, result));
+        if (inputs[2].IsPositiveInteger())
+        {
+            dim = static_cast<int>(inputs[2].Scalar());
+        }
+        else if (inputs[2].IsMatrix())
+        {
+            if (!inputs[2].Matrix()->Is0x0())
+                throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_DIM);
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_DIM);
+        }
     }
 
-    outputs.push_back(result);
+    if (dim != -1)
+        --dim;
+
+    if (length != -1)
+    {
+        hwMatrix units(length, 1, hwMatrix::REAL);
+
+        for (int i = 0; i < length; ++i)
+            units(i) = static_cast<double> (i);
+
+        if (inputs[0].IsMatrix() || inputs[0].IsScalar())
+        {
+            // switch to ND
+            const hwMatrix* mtx1 = inputs[0].Matrix();
+            hwMatrixN matrixN;
+            matrixN.Convert2DtoND(*mtx1, false);
+            hwMatrixN integralN;
+
+            hwMathStatus status = TrapZ(units, matrixN, dim, integralN);
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+            hwMatrix* integral = EvaluatorInterface::allocateMatrix();
+            integralN.ConvertNDto2D(*integral, false);
+            outputs.push_back(integral);
+        }
+        else if (inputs[0].IsNDMatrix())
+        {
+            const hwMatrixN* mtx2 = inputs[0].MatrixN();
+            std::unique_ptr<hwMatrixN> integralN(EvaluatorInterface::allocateMatrixN());
+
+            hwMathStatus status = TrapZ(units, *mtx2, dim, *integralN);
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+            outputs.push_back(integralN.release());
+        }
+    }
+    else
+    {
+        if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+            throw OML_Error(OML_ERR_VECTOR, 1, OML_VAR_VARIABLE);
+
+        const hwMatrix* mtx1 = inputs[0].ConvertToMatrix();
+
+        if (inputs[1].IsMatrix() || inputs[1].IsScalar())
+        {
+            // switch to ND
+            const hwMatrix* mtx2 = inputs[1].ConvertToMatrix();
+            hwMatrixN matrixN;
+            matrixN.Convert2DtoND(*mtx2, false);
+            hwMatrixN integralN;
+
+            hwMathStatus status = TrapZ(*mtx1, matrixN, dim, integralN);
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+            hwMatrix* integral = EvaluatorInterface::allocateMatrix();
+            integralN.ConvertNDto2D(*integral, false);
+            outputs.push_back(integral);
+        }
+        else if (inputs[1].IsNDMatrix())
+        {
+            const hwMatrixN* mtx2 = inputs[1].MatrixN();
+            std::unique_ptr<hwMatrixN> integralN(EvaluatorInterface::allocateMatrixN());
+
+            hwMathStatus status = TrapZ(*mtx1, *mtx2, dim, *integralN);
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+            outputs.push_back(integralN.release());
+        }
+    }
+
     return true;
 }
 //------------------------------------------------------------------------------
@@ -738,43 +839,177 @@ bool OmlTrapz(EvaluatorInterface           eval,
 //------------------------------------------------------------------------------
 bool OmlCumtrapz(EvaluatorInterface eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs)
 {
-    if (inputs.size() != 1 && inputs.size() != 2)
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 3)
         throw OML_Error(OML_ERR_NUMARGIN);
 
-    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
-        throw OML_Error(OML_ERR_VECTOR, 1, OML_VAR_VARIABLE);
+    // get dimension of interest, and its length if needed
+    int dim = -1;
+    int length = -1;
 
-    const hwMatrix* mtx1 = inputs[0].ConvertToMatrix();
-    std::unique_ptr<hwMatrix> result(EvaluatorInterface::allocateMatrix());
-
-    if (inputs.size() == 1)
+    if (nargin == 1)
     {
-        hwMatrix units(mtx1->M(), mtx1->N(), hwMatrix::REAL);
-
-        for (int i = 0; i < units.Size(); ++i)
-            units(i) = static_cast<double> (i);
-
-        hwMathStatus status = CumTrapZ(units, *mtx1, *result);
-
-        if (!status.IsOk())
+        if (inputs[0].IsMatrix() || inputs[0].IsScalar())
         {
-            if (status.GetArg1() == 2)
-                status.SetArg1(1);
-        }
+            const hwMatrix* mtx1 = inputs[0].ConvertToMatrix();
 
-        BuiltInFuncsUtils::CheckMathStatus(eval, status);
+            if (mtx1->M() == 1)
+            {
+                dim = 2;
+                length = mtx1->N();
+            }
+            else
+            {
+                dim = 1;
+                length = mtx1->M();
+            }
+        }
+        else if (inputs[0].IsNDMatrix())
+        {
+            const hwMatrixN* mtx = inputs[0].MatrixN();
+            const std::vector<int>& dims = mtx->Dimensions();
+
+            int ndims = static_cast<int>(dims.size());
+            for (int i = 0; i < ndims; ++i)
+            {
+                if (dims[i] != 1)
+                {
+                    dim = i + 1;
+                    break;
+                }
+            }
+
+            length = (dim > 0) ? dims[dim - 1] : 0;
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_TYPE);
+        }
+    }
+    else if (nargin == 2)
+    {
+        if (inputs[1].IsPositiveInteger())
+        {
+            dim = static_cast<int>(inputs[1].Scalar());
+
+            if (inputs[0].IsMatrix() || inputs[0].IsScalar())
+            {
+                const hwMatrix* mtx1 = inputs[0].ConvertToMatrix();
+
+                if (dim == 1)
+                {
+                    length = mtx1->M();
+                }
+                else
+                {
+                    length = mtx1->N();
+                }
+            }
+            else if (inputs[0].IsNDMatrix())
+            {
+                const hwMatrixN* mtx2 = inputs[0].MatrixN();
+                const std::vector<int>& dims = mtx2->Dimensions();
+
+                length = dims[dim - 1];
+            }
+            else
+            {
+                throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_TYPE);
+            }
+        }
+        else if (!inputs[1].IsMatrix() && !inputs[1].IsNDMatrix() && !inputs[1].Scalar())
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_DIM);
+        }
     }
     else
     {
-        if (!inputs[1].IsMatrix() && !inputs[1].IsScalar())
-            throw OML_Error(OML_ERR_VECTOR, 2, OML_VAR_VARIABLE);
-
-        const hwMatrix* mtx2 = inputs[1].ConvertToMatrix();
-
-        BuiltInFuncsUtils::CheckMathStatus(eval, CumTrapZ(*mtx1, *mtx2, *result));
+        if (inputs[2].IsPositiveInteger())
+        {
+            dim = static_cast<int>(inputs[2].Scalar());
+        }
+        else if (inputs[2].IsMatrix())
+        {
+            if (!inputs[2].Matrix()->Is0x0())
+                throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_DIM);
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_DIM);
+        }
     }
 
-    outputs.push_back(result.release());
+    if (dim != -1)
+        --dim;
+
+    if (length != -1)
+    {
+        hwMatrix units(length, 1, hwMatrix::REAL);
+
+        for (int i = 0; i < length; ++i)
+            units(i) = static_cast<double> (i);
+
+        if (inputs[0].IsMatrix() || inputs[0].IsScalar())
+        {
+            // switch to ND
+            const hwMatrix* mtx1 = inputs[0].Matrix();
+            hwMatrixN matrixN;
+            matrixN.Convert2DtoND(*mtx1, false);
+            hwMatrixN integralN;
+
+            hwMathStatus status = CumTrapZ(units, matrixN, dim, integralN);
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+            hwMatrix* integral = EvaluatorInterface::allocateMatrix();
+            integralN.ConvertNDto2D(*integral, false);
+            outputs.push_back(integral);
+        }
+        else if (inputs[0].IsNDMatrix())
+        {
+            const hwMatrixN* mtx2 = inputs[0].MatrixN();
+            std::unique_ptr<hwMatrixN> integralN(EvaluatorInterface::allocateMatrixN());
+
+            hwMathStatus status = CumTrapZ(units, *mtx2, dim, *integralN);
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+            outputs.push_back(integralN.release());
+        }
+    }
+    else
+    {
+        if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+            throw OML_Error(OML_ERR_VECTOR, 1, OML_VAR_VARIABLE);
+
+        const hwMatrix* mtx1 = inputs[0].ConvertToMatrix();
+
+        if (inputs[1].IsMatrix() || inputs[1].IsScalar())
+        {
+            // switch to ND
+            const hwMatrix* mtx2 = inputs[1].ConvertToMatrix();
+            hwMatrixN matrixN;
+            matrixN.Convert2DtoND(*mtx2, false);
+            hwMatrixN integralN;
+
+            hwMathStatus status = CumTrapZ(*mtx1, matrixN, dim, integralN);
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+            hwMatrix* integral = EvaluatorInterface::allocateMatrix();
+            integralN.ConvertNDto2D(*integral, false);
+            outputs.push_back(integral);
+        }
+        else if (inputs[1].IsNDMatrix())
+        {
+            const hwMatrixN* mtx2 = inputs[1].MatrixN();
+            std::unique_ptr<hwMatrixN> integralN(EvaluatorInterface::allocateMatrixN());
+
+            hwMathStatus status = CumTrapZ(*mtx1, *mtx2, dim, *integralN);
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+            outputs.push_back(integralN.release());
+        }
+    }
+
     return true;
 }
 //------------------------------------------------------------------------------

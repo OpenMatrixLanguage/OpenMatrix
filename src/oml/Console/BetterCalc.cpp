@@ -1,7 +1,7 @@
 /**
 * @file BetterCalc.cpp
 * @date June 2014
-* Copyright (C) 2014-2023 Altair Engineering, Inc.  
+* Copyright (C) 2014-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
     CurrencyDisplay::PAGINATE paginateVal = CurrencyDisplay::GetPaginate();
     CurrencyDisplay::SetPaginate(CurrencyDisplay::PAGINATE_OFF);  // Disable pagination
 
-    char* clocale = std::setlocale(LC_ALL, "");
+    std::setlocale(LC_ALL, "");
     std::setlocale(LC_NUMERIC, "C");
 
     // Flags for command line arguments
@@ -246,8 +246,15 @@ int main(int argc, char* argv[])
         else if (lower_str == "-v")
         {
             // Added for python, ignore this and the next argument
-            itr++;
-            continue;
+            if (itr != argsToProcess.end())
+            {
+                ++itr; // // cppcheck-suppress StlMissingComparison
+                continue;
+            }
+            else
+            {
+                break;
+            }
         }
 		else if(f_argument_flag)
 		{
@@ -342,7 +349,6 @@ void CallNewConsolePrompting(ConsoleWrapper* wrapper, bool isVscodeServer)
     assert(interp);
     assert(wrapper);
 
-    int  hearbeatcounter = 1;
 	while (1)
     {
         if (std::cin.fail())
@@ -520,7 +526,7 @@ void PrintBanner()
 
     std::cout << line << std::endl;
 	std::cout << GetVersion(interp->GetApplicationDir()) << std::endl;
-	std::cout << "(c) Altair Engineering, Inc. and Contributors. (2007-2023)"  << std::endl;
+	std::cout << "(c) Altair Engineering, Inc. and Contributors. (2007-2022)"  << std::endl;
 	std::cout << line << std::endl;
 #endif
 }
@@ -618,20 +624,10 @@ void RegisterBuiltInFuncs()
         interp->RegisterBuiltInFunction("getargv", OmlGetArgV,
             FunctionMetaData(1, 1, "CoreMinimalInterpreter"));
     }
-    interp->RegisterBuiltInFunction("version",            OmlVersion, 
+    interp->RegisterBuiltInFunction("version",OmlVersion, 
         FunctionMetaData(0, 1, "CoreMinimalInterpreter"));
-
-    // Lock api_utility functions
-    interp->LockBuiltInFunction("clearenvvalue");
-    interp->LockBuiltInFunction("cloneenv");
-    interp->LockBuiltInFunction("getbaseenv");
-    interp->LockBuiltInFunction("getcurrentenv");
-    interp->LockBuiltInFunction("getenvvalue");
-    interp->LockBuiltInFunction("getnewenv");
-    interp->LockBuiltInFunction("importenv");
-    interp->LockBuiltInFunction("importenvin");
-    interp->LockBuiltInFunction("setenvvalue");
-}//------------------------------------------------------------------------------
+}
+//------------------------------------------------------------------------------
 // Runs input file(s)
 //------------------------------------------------------------------------------
 void RunInputFiles(const std::string& files)

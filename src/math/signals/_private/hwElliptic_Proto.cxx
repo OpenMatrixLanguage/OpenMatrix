@@ -14,11 +14,10 @@
 * Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 #include "hwElliptic_Proto.h"
+#include "EllipticFuncs.h"
+#include "hwMatrix.h"
 
 #include <math.h>
-
-#include "EllipticFuncs.h"
-#include "GeneralFuncs.h"
 
 //------------------------------------------------------------------------------
 // Constructor
@@ -125,6 +124,59 @@ void hwElliptic_Proto::GetSPlaneInfo(int     i,
     zeroMagSq = b * b;
 }
 //------------------------------------------------------------------------------
+// Compute the zeros and poles
+//------------------------------------------------------------------------------
+void hwElliptic_Proto::GetSPlaneInfo(hwMatrix& zeros, hwMatrix& poles) const
+{
+    hwMathStatus status;
+    int numZeros = m_order;
+
+    if (m_order % 2 == 1)
+    {
+        --numZeros;
+    }
+
+    status = zeros.Dimension(numZeros, hwMatrix::COMPLEX);
+
+    if (!status.IsOk())
+        return;
+
+    status = poles.Dimension(m_order, hwMatrix::COMPLEX);
+
+    if (!status.IsOk())
+        return;
+
+    if (m_order % 2 == 1)
+    {
+        poles.z((m_order - 1) / 2) = -m_sn / m_cn;
+    }
+
+    int index = 0;
+
+    while (index < numZeros / 2)
+    {
+        double a = m_order - 1 - index - index;
+        double b = a * m_Kk / m_order;
+
+        double sn;
+        double cn;
+        double dn;
+        double phi;
+        ellpj(b, m_m, sn, cn, dn, phi);
+
+        double r = m_k * sn * m_sn;
+        b = m_cn * m_cn + r * r;
+        double poleReal = -cn * dn * m_sn * m_cn / b;
+        double poleImag = sn * m_dn / b;
+        double zeroImag = 1.0 / (m_k * sn);
+
+        zeros.z(index).Set(0.0, zeroImag);
+        zeros.z(numZeros - 1 - index).Set(0.0, -zeroImag);
+        poles.z(index++).Set(poleReal, poleImag);
+        poles.z(m_order - index).Set(poleReal, -poleImag);
+    }
+}
+//------------------------------------------------------------------------------
 // Compute low pass ripple factor at DC
 //------------------------------------------------------------------------------
 double hwElliptic_Proto::GetRippleFactor() const
@@ -159,4 +211,3 @@ void hwElliptic_Proto::LambdaPln()
 
     ellpj(u, 1.0 - m_m, m_sn, m_cn, m_dn, phi); // dummy use of phi
 }
-

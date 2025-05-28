@@ -1,7 +1,7 @@
 /**
 * @file OMLTree.cpp
 * @date October 2017
-* Copyright (C) 2017-2018 Altair Engineering, Inc.  
+* Copyright (C) 2017-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -53,11 +53,22 @@ OMLTree::OMLTree(int type, const std::string& text, const std::string* filename,
 	_children.reserve(num_children);
 }
 
+OMLTree::OMLTree(int type, const std::string& text)
+	: _text(text)
+	, _type(type)
+	, _line (0)
+{
+	func_ptr = ExprTreeEvaluator::GetFuncPointerFromType(type);
+	u = NULL;
+
+	_filename = Currency::pm.GetStringPointer("");
+}
+
 OMLTree::~OMLTree()
 {
 	if ((_type == NUMBER) || (_type == HML_STRING) || (_type == HEXVAL))
 	{
-		Currency* temp = (Currency*)u;
+		Currency* temp = static_cast<Currency*>(u);
 		delete temp;
 	}
 
@@ -66,8 +77,8 @@ OMLTree::~OMLTree()
 }
 
 OMLTree::OMLTree(const OMLTree& tree)
+	: _text (tree._text)
 {
-	_text     = tree._text;
 	_line     = tree._line;
 	_filename = tree._filename;
 	_type     = tree._type;
@@ -92,7 +103,7 @@ void OMLTree::SetDebugInfo(const char* filename, int line_number)
 
 OMLTree* OMLTree::ConvertTree(void* antlr_tree)
 {
-	pANTLR3_BASE_TREE tree = (pANTLR3_BASE_TREE)antlr_tree;
+	pANTLR3_BASE_TREE tree = (pANTLR3_BASE_TREE)antlr_tree; // cppcheck-suppress cstyleCast
 
 	if (!tree)
 		return NULL;
@@ -111,7 +122,7 @@ OMLTree* OMLTree::ConvertTree(void* antlr_tree)
 	std::string filename;
 
 	if (tok->input)
-		filename =(char *)tok->input->fileName->chars;
+		filename =(char *)tok->input->fileName->chars; // cppcheck-suppress cstyleCast
 
 	const std::string* file_ptr = Currency::pm.GetStringPointer(filename);
 
@@ -123,7 +134,7 @@ OMLTree* OMLTree::ConvertTree(void* antlr_tree)
 	{
 		for (int j=0; j<num_children; j++)
 		{
-			pANTLR3_BASE_TREE child_j = (pANTLR3_BASE_TREE)getChild(tree, j);
+			pANTLR3_BASE_TREE child_j = (pANTLR3_BASE_TREE)getChild(tree, j); // cppcheck-suppress cstyleCast
 			pANTLR3_COMMON_TOKEN child_j_tok = child_j->getToken(child_j);
 			loc_tree->AddChild(ConvertTree(child_j));
 		}
@@ -156,68 +167,68 @@ std::string OMLTree::GetStringRepresentation() const
 	}
 	else if (tok == ASSIGN)
 	{
-		OMLTree* child_1 = GetChild(0);
-		OMLTree* child_2 = GetChild(1);
+		const OMLTree* child_1 = GetChild(0);
+		const OMLTree* child_2 = GetChild(1);
 		result = child_1->GetStringRepresentation() + " = " + child_2->GetStringRepresentation();
 	}
 	else if (tok == PLUS)
 	{
-		OMLTree* child_1 = GetChild(0);
-		OMLTree* child_2 = GetChild(1);
+		const OMLTree* child_1 = GetChild(0);
+		const OMLTree* child_2 = GetChild(1);
 		result = child_1->GetStringRepresentation() + " + " + child_2->GetStringRepresentation();
 	}
 	else if (tok == MINUS)
 	{
-		OMLTree* child_1 = GetChild(0);
-		OMLTree* child_2 = GetChild(1);
+		const OMLTree* child_1 = GetChild(0);
+		const OMLTree* child_2 = GetChild(1);
 		result = child_1->GetStringRepresentation() + " - " + child_2->GetStringRepresentation();
 	}
 	else if (tok == TIMES)
 	{
-		OMLTree* child_1 = GetChild(0);
-		OMLTree* child_2 = GetChild(1);
+		const OMLTree* child_1 = GetChild(0);
+		const OMLTree* child_2 = GetChild(1);
 		result = child_1->GetStringRepresentation() + " * " + child_2->GetStringRepresentation();
 	}
 	else if (tok == DIV)
 	{
-		OMLTree* child_1 = GetChild(0);
-		OMLTree* child_2 = GetChild(1);
+		const OMLTree* child_1 = GetChild(0);
+		const OMLTree* child_2 = GetChild(1);
 		result = child_1->GetStringRepresentation() + " / " + child_2->GetStringRepresentation();
 	}
 	else if (tok == POW)
 	{
-		OMLTree* child_1 = GetChild(0);
-		OMLTree* child_2 = GetChild(1);
+		const OMLTree* child_1 = GetChild(0);
+		const OMLTree* child_2 = GetChild(1);
 		result = child_1->GetStringRepresentation() + " ^ " + child_2->GetStringRepresentation();
 	}
 	else if (tok == ETIMES)
 	{
-		OMLTree* child_1 = GetChild(0);
-		OMLTree* child_2 = GetChild(1);
+		const OMLTree* child_1 = GetChild(0);
+		const OMLTree* child_2 = GetChild(1);
 		result = child_1->GetStringRepresentation() + " .* " + child_2->GetStringRepresentation();
 	}
 	else if (tok == EDIV)
 	{
-		OMLTree* child_1 = GetChild(0);
-		OMLTree* child_2 = GetChild(1);
+		const OMLTree* child_1 = GetChild(0);
+		const OMLTree* child_2 = GetChild(1);
 		result = child_1->GetStringRepresentation() + " ./ " + child_2->GetStringRepresentation();
 	}
 	else if (tok == DOTPOW)
 	{
-		OMLTree* child_1 = GetChild(0);
-		OMLTree* child_2 = GetChild(1);
+		const OMLTree* child_1 = GetChild(0);
+		const OMLTree* child_2 = GetChild(1);
 		result = child_1->GetStringRepresentation() + " .^ " + child_2->GetStringRepresentation();
 	}
 	else if (tok == LDIV)
 	{
-		OMLTree* child_1 = GetChild(0);
-		OMLTree* child_2 = GetChild(1);
+		const OMLTree* child_1 = GetChild(0);
+		const OMLTree* child_2 = GetChild(1);
 		result = child_1->GetStringRepresentation() + " \\ " + child_2->GetStringRepresentation();
 	}
 	else if (tok == ELDIV)
 	{
-		OMLTree* child_1 = GetChild(0);
-		OMLTree* child_2 = GetChild(1);
+		const OMLTree* child_1 = GetChild(0);
+		const OMLTree* child_2 = GetChild(1);
 		result = child_1->GetStringRepresentation() + " .\\ " + child_2->GetStringRepresentation();
 	}
 	else if ((tok == IDENT) || (tok == NUMBER))
@@ -230,8 +241,8 @@ std::string OMLTree::GetStringRepresentation() const
 	}
 	else if (tok == FUNC)
 	{
-		OMLTree* child_1 = GetChild(0);
-		OMLTree* child_2 = GetChild(1);
+		const OMLTree* child_1 = GetChild(0);
+		const OMLTree* child_2 = GetChild(1);
 		result = child_1->GetStringRepresentation();
 		result += "(";
 
@@ -317,7 +328,7 @@ OMLTree* OMLTree::ReadTreeFromFile(const std::string& filename)
 	if (file)
 	{
 		short version;
-		size_t res = fread(&version, sizeof(short), 1, file);
+		fread(&version, sizeof(short), 1, file);
 
 		if (version != 3)
 		{
@@ -329,9 +340,9 @@ OMLTree* OMLTree::ReadTreeFromFile(const std::string& filename)
 
 		tree = new OMLTree(0, "", file_ptr, 0, 0);
 		tree->ReadFromBinaryFile(file, file_ptr);
-	}
 
-	fclose(file);
+		fclose(file);
+	}	
 	return tree;
 }
 
@@ -339,19 +350,19 @@ void OMLTree::ReadFromBinaryFile(FILE* outfile, const std::string* filename)
 {
 	// read the type
 	short dummy;
-	size_t res = fread(&dummy, sizeof(short), 1, outfile);
+	fread(&dummy, sizeof(short), 1, outfile);
 	_type = dummy;
 
 	func_ptr = ExprTreeEvaluator::GetFuncPointerFromType(_type);
 
 	// read the text
 	short num_chars;
-	res = fread(&num_chars, sizeof(short), 1, outfile);
+	fread(&num_chars, sizeof(short), 1, outfile);
 
 	if (num_chars)
 	{
 		char* my_string = new char[num_chars+1];
-		res = fread(my_string, sizeof(char), num_chars, outfile);
+		fread(my_string, sizeof(char), num_chars, outfile);
 
 		my_string[num_chars] = '\0';
 		_text = my_string;
@@ -360,13 +371,13 @@ void OMLTree::ReadFromBinaryFile(FILE* outfile, const std::string* filename)
 	}
 
 	// read the line
-	res = fread(&dummy, sizeof(short), 1, outfile);
+	fread(&dummy, sizeof(short), 1, outfile);
 	_line = dummy;
 
 	// read the children
 	int num_children = 0;
 
-	res = fread(&num_children, sizeof(int), 1, outfile);
+	fread(&num_children, sizeof(int), 1, outfile);
 	_children.reserve(num_children);
 
 	for (int j=0; j<num_children; j++)
@@ -380,38 +391,38 @@ void OMLTree::ReadFromBinaryFile(FILE* outfile, const std::string* filename)
 void OMLTree::WriteTreeToFile(const std::string& filename)
 {
 	FILE* file = fopen(filename.c_str(), "wb");
-
-	short version = 3;
-	size_t res = fwrite(&version, sizeof(short), 1, file);
-
 	if (file)
-		WriteToBinaryFile(file);
+	{
+		short version = 3;
+		fwrite(&version, sizeof(short), 1, file);
 
-	fclose(file);
+		WriteToBinaryFile(file);
+		fclose(file);
+	}
 }
 
 void OMLTree::WriteToBinaryFile(FILE* outfile)
 {
 	// write the type
-	size_t res = fwrite(&_type, sizeof(short), 1, outfile);
+	fwrite(&_type, sizeof(short), 1, outfile);
 
 	// write the string
 	int num_chars = 0;
 	if ((_type == IDENT) || (_type == NUMBER) || (_type == HEXVAL) || (_type == QUOTE))	
 		num_chars = (short)_text.length();
 
-	res = fwrite(&num_chars, sizeof(short), 1, outfile);
+	fwrite(&num_chars, sizeof(short), 1, outfile);
 
 	if (num_chars)
-		res = fwrite(_text.c_str(), sizeof(char), num_chars, outfile);
+		fwrite(_text.c_str(), sizeof(char), num_chars, outfile);
 
 	// write the line
-	res = fwrite(&_line, sizeof(short), 1, outfile);
+	fwrite(&_line, sizeof(short), 1, outfile);
 
 	// write the children
 	int num_children = (int)_children.size();
 
-	res = fwrite(&num_children, sizeof(int), 1, outfile);
+	fwrite(&num_children, sizeof(int), 1, outfile);
 
 	for (int j=0; j < num_children; j++)
 		_children[j]->WriteToBinaryFile(outfile);
@@ -432,7 +443,7 @@ const std::string* OMLTree::GetLeadingIdent()
 	if (_type == IDENT)
 	{
 		if (!u)
-			u = (void*)Currency::vm.GetStringPointer(_text);
+			u = (void*)Currency::vm.GetStringPointer(_text); // cppcheck-suppress cstyleCast
 		return (const std::string*)u;
 	}
 
@@ -474,7 +485,7 @@ const OMLTree* OMLTree::FindParentOf(std::string& ident_name) const
 
 bool OMLTree::IsBroadcastOutput() const
 {
-	OMLTree* first_child = NULL;
+	const OMLTree* first_child = NULL;
 
 	if (this->ChildCount())
 		first_child = this->GetChild(0);
@@ -483,13 +494,13 @@ bool OMLTree::IsBroadcastOutput() const
 	{
 		if (first_child->ChildCount() == 2)
 		{
-			OMLTree* second_grandchild = first_child->GetChild(1);
+			const OMLTree* second_grandchild = first_child->GetChild(1);
 
 			if (second_grandchild->GetType() == PARAM_LIST)
 			{
 				if (second_grandchild->ChildCount() == 1)
 				{
-					OMLTree* first_great_grandchild = second_grandchild->GetChild(0);
+					const OMLTree* first_great_grandchild = second_grandchild->GetChild(0);
 
 					if (first_great_grandchild->GetType() == COLON)
 					{

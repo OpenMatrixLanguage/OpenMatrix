@@ -1,7 +1,7 @@
 /**
 * @file CAETboxFuncs.cxx
 * @date February 2017
-* Copyright (C) 2017-2018 Altair Engineering, Inc.  
+* Copyright (C) 2017-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -210,7 +210,7 @@ bool OmlISO6487(EvaluatorInterface           eval,
 
         for (int i = 0; i < inSignal->N(); ++i)
         {
-            hwMatrix inCol(outM, 1, (void*) &(*inSignal)(0,i), hwMatrix::REAL);
+            hwMatrix inCol(outM, 1, (void*) &(*inSignal)(0,i), hwMatrix::REAL); 
             hwMatrix outCol(outM, 1, (void*) &(*outSignal)(0,i), hwMatrix::REAL);
 
             hwMathStatus status = ISO6487(inCol, sampFreq, cfc, outCol);

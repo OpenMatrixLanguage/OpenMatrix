@@ -42,6 +42,12 @@ public:
         MATFILEVERSION_5     //!< Version 5
     };
     //!
+    //! Gets matio error description
+    //! \param Error code
+    //! 
+    static std::string MatioError(int);
+
+    //!
     //! Constructor
     //! \param Filename
     //! \param Verbose level
@@ -75,8 +81,7 @@ public:
     //! \param Mat variable
     //! \param Evaluator interface
     //!
-    Currency MatVarToCurrency(matvar_t*,
-                              EvaluatorInterface);
+    Currency MatVarToCurrency(matvar_t*, EvaluatorInterface);
     //!
     //! Converts currency to matvar
     //! \param Currency

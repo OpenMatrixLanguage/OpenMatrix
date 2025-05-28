@@ -97,6 +97,8 @@ public:
     void Resize(const hwTMatrixN<T1, T2>& source, const std::vector<int>& dim, bool initZero = false);
     //! Change the dimensions of a matrix while maintaining the same number of elements
     void Reshape(const std::vector<int>& dim);
+    //! Reverse the vectors along a direction
+    void FlipVectors(const hwTMatrixN<T1, T2>& source, int dim = -1);
     //! Reorder matrix dimensions, a generalized transpose
     void Permute(const hwTMatrixN<T1, T2>& source, const std::vector<int>& permuteVec);
     //! Verify permutation vector validity

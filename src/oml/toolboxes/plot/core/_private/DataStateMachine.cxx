@@ -863,13 +863,23 @@ namespace omlplot{
             case START:
                 if (input.IsString()){
                     string str = input.StringVal();
-                    if(cm->isObjectPropertyName<Legend>(str)) {
+                    if (str == "boxon"){
+                        ld->properties.push_back("box");
+                        ld->values.push_back("on");
+                        ++pos;
+                    }
+                    else if (str == "boxoff") {
+                        ld->properties.push_back("box");
+                        ld->values.push_back("off");
+                        ++pos;
+                    }
+                    else if(cm->isObjectPropertyName<Legend>(str)) {
                         state = GET_PROP_VALUE;;
                     }
                     else {
-                    ld->legends.push_back(input.StringVal());
-                    ++pos;
-                    state = GET_LEGEND;
+                        ld->legends.push_back(input.StringVal());
+                        ++pos;
+                        state = GET_LEGEND;
                     }
                 } else if (input.IsMatrix()){
                     if ((pos + 1) >= inputSize) {

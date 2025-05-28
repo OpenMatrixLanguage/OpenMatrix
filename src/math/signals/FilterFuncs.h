@@ -34,6 +34,18 @@ typedef hwTMatrix<int, hwTComplex<int> > hwMatrixI;
 // Filter generation
 
 //!
+//! Computes Bessel analog prototype filter zero-pole-gain values and returns status
+//! \param order          Filter order
+//! \param zeros
+//! \param poles
+//! \param gain
+//!
+SIGNALS_DECLS hwMathStatus Besselap(int         order,
+                                    const char* type,
+                                    hwMatrix&   zeros,
+                                    hwMatrix&   poles,
+                                    double&     gain);
+//!
 //! Computes filter transfer function coefficients and returns status
 //! \param order          Filter order
 //! \param lowCutoffFreq
@@ -64,6 +76,17 @@ SIGNALS_DECLS hwMathStatus Besself3(int         order,
                                     hwMatrix&   denomCoef, 
                                     const char* type = "z");
 //!
+//! Computes Butterworth analog prototype filter zero-pole-gain values and returns status
+//! \param order          Filter order
+//! \param zeros
+//! \param poles
+//! \param gain
+//!
+SIGNALS_DECLS hwMathStatus Buttap(int       order,
+                                  hwMatrix& zeros,
+                                  hwMatrix& poles,
+                                  double&   gain);
+//!
 //! Computes Butterworth filter transfer function coefficients and returns status
 //! \param order          Filter order
 //! \param lowCutoffFreq
@@ -78,6 +101,19 @@ SIGNALS_DECLS hwMathStatus Butter(int         order,
                                   hwMatrix&   numerCoef, 
                                   hwMatrix&   denomCoef, 
                                   const char* type = "z");
+//!
+//! Computes Chebyshev type I analog prototype filter zero-pole-gain values and returns status
+//! \param order          Filter order
+//! \param passEdgeDb
+//! \param zeros
+//! \param poles
+//! \param gain
+//!
+SIGNALS_DECLS hwMathStatus Cheb1ap(int       order,
+                                   double    passEdgeDb,
+                                   hwMatrix& zeros,
+                                   hwMatrix& poles,
+                                   double&   gain);
 //!
 //! Computes Chebyshev type I filter transfer function coefficients and returns status
 //! \param order          Filter order
@@ -96,6 +132,19 @@ SIGNALS_DECLS hwMathStatus Cheby1(int         order,
                                   hwMatrix&   denomCoef, 
                                   const char* type = "z");
 //!
+//! Computes Chebyshev type II analog prototype filter zero-pole-gain values and returns status
+//! \param order          Filter order
+//! \param stopEdgeDb
+//! \param zeros
+//! \param poles
+//! \param gain
+//!
+SIGNALS_DECLS hwMathStatus Cheb2ap(int       order,
+                                   double    stopEdgeDb,
+                                   hwMatrix& zeros,
+                                   hwMatrix& poles,
+                                   double&   gain);
+//!
 //! Computes Chebyshev type II filter transfer function coefficients and returns status
 //! \param order          Filter order
 //! \param lowCutoffFreq
@@ -112,6 +161,20 @@ SIGNALS_DECLS hwMathStatus Cheby2(int         order,
                                   hwMatrix&   numerCoef, 
                                   hwMatrix&   denomCoef, 
                                   const char* type = "z");
+//!
+//! Computes Elliptic analog prototype filter zero-pole-gain values and returns status
+//! \param order          Filter order
+//! \param stopEdgeDb
+//! \param zeros
+//! \param poles
+//! \param gain
+//!
+SIGNALS_DECLS hwMathStatus Ellipap(int       order,
+                                   double    passEdgeDb,
+                                   double    stopEdgeDb,
+                                   hwMatrix& zeros,
+                                   hwMatrix& poles,
+                                   double& gain);
 //!
 //! Computes Elliptic filter transfer function coefficients and returns status
 //! \param order          Filter order
@@ -370,7 +433,21 @@ hwMathStatus EllipOrd(const hwMatrix& passBandFreq,
 SIGNALS_DECLS hwMathStatus Filter(const hwMatrix& numerCoef, 
                                   const hwMatrix* denomCoef,
                                   const hwMatrix& inSignal, 
-                                  hwMatrix&       outSignal);
+                                  const hwMatrix* initCond,
+                                  hwMatrix&       outSignal,
+                                  hwMatrix*       finalCond);
+//!
+//! Compute IIR filter initial conditions that match input/output signals and return the status
+//! \param numerCoef
+//! \param denomCoef
+//! \param inSignal
+//! \param outSignal
+//!
+SIGNALS_DECLS hwMathStatus FiltIC(const hwMatrix& numerCoef,
+                                  const hwMatrix& denomCoef,
+                                  const hwMatrix& outSignal,
+                                  const hwMatrix* inSignal,
+                                  hwMatrix&       initCond);
 //!
 //! Filter a signal using the transfer function, making two passes to produce a
 //! zero phase shift due to two-pass transer function
@@ -648,5 +725,19 @@ SIGNALS_DECLS hwMathStatus FindPeaks(const hwMatrix& signal,
                                      hwMatrix&       peaks,
                                      hwMatrix&       peakLocs,
                                      PeakInfo*       extra = nullptr);
+
+//!
+//! Compute group delay of a digital filter and return the status
+//! \param numerCoef
+//! \param denomCoef
+//! \param freq
+//! \param fs
+//! \param delay
+//!
+SIGNALS_DECLS hwMathStatus GroupDelay(const hwMatrix& numerCoef,
+                                      const hwMatrix& denomCoef,
+                                      const hwMatrix& freq,
+                                      double          sampFreq,
+                                      hwMatrix&       delay);
 
 #endif // _Signals_WrapperFuncs_h

@@ -1,7 +1,7 @@
 /**
 * @file ANTLRData.cpp
 * @date April 2015
-* Copyright (C) 2015-2022 Altair Engineering, Inc.  
+* Copyright (C) 2015-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -258,7 +258,7 @@ int ANTLRData::PreprocessMatrixOrCell(pANTLR3_COMMON_TOKEN_STREAM& tokens, int s
 		for (k = start + 1; k < num_tokens; k++)
 		{
 			pANTLR3_COMMON_TOKEN tok = (pANTLR3_COMMON_TOKEN)vec->get(vec, k);
-			int token_type = tok->getType(tok);
+			int token_type1 = tok->getType(tok);
 
 			pANTLR3_COMMON_TOKEN prev_tok = (pANTLR3_COMMON_TOKEN)vec->get(vec, k - 1);
 
@@ -275,64 +275,64 @@ int ANTLRData::PreprocessMatrixOrCell(pANTLR3_COMMON_TOKEN_STREAM& tokens, int s
 			if (prev_tok->getType(prev_tok) == IDENT)
 				prev_tok_check = false;
 
-			if ((token_type == QUOTE) && prev_tok_check)
+			if ((token_type1 == QUOTE) && prev_tok_check)
 			{
 				int  q;
 				bool true_string = true;
 
 				for (q = k + 1; q < num_tokens; q++)
 				{
-					pANTLR3_COMMON_TOKEN tok = (pANTLR3_COMMON_TOKEN)vec->get(vec, q);
+					pANTLR3_COMMON_TOKEN tok1 = (pANTLR3_COMMON_TOKEN)vec->get(vec, q);
 
-					if (tok->getType(tok) == NEWLINE)
+					if (tok1->getType(tok1) == NEWLINE)
 					{
 						true_string = false;
 						break;
 					}
 
-					if (tok->getType(tok) == QUOTE)
+					if (tok1->getType(tok1) == QUOTE)
 						break;
 				}
 
 				if (true_string)
 					k = PreprocessString(tokens, k);
 			}
-			else if (token_type == LPAREN)
+			else if (token_type1 == LPAREN)
 			{
 				k = PreprocessParentheses(tokens, k);
 			}
-			else if (token_type == LBRACKET)
+			else if (token_type1 == LBRACKET)
 			{
 				k = PreprocessMatrixOrCell(tokens, k);
 			}
-			else if (token_type == LCURLY)
+			else if (token_type1 == LCURLY)
 			{
 				k = PreprocessMatrixOrCell(tokens, k);
 			}
-			else if (token_type == NUMBERHACK)
+			else if (token_type1 == NUMBERHACK)
 			{
 				k = PreprocessNumberHack(tokens, k);
 			}
-			else if (token_type == END)
+			else if (token_type1 == END)
 			{
 				tok->setType(tok, IDENT);
 				pANTLR3_STRING str = tok->getText(tok);
 				str->set(str, "end");
 				tok->setText(tok, str);
 			}
-			else if (token_type == CONT)
+			else if (token_type1 == CONT)
 			{
 				k = PreprocessContinue(tokens, k);
 			}
-			else if (token_type == EQUOTE)
+			else if (token_type1 == EQUOTE)
 			{
 				k = PreprocessEquote(tokens, k);
 			}
-			else if (token_type == exit_token_type)
+			else if (token_type1 == exit_token_type)
 			{
 				return k;
 			}
-			else if ((token_type == WS) && (k != brace_token + 1))
+			else if ((token_type1 == WS) && (k != brace_token + 1))
 			{
 				pANTLR3_COMMON_TOKEN tok2 = (pANTLR3_COMMON_TOKEN)vec->get(vec, k + 1);
 
@@ -452,7 +452,7 @@ int ANTLRData::PreprocessString(pANTLR3_COMMON_TOKEN_STREAM& tokens, int start)
 
 			// not sure if we need these lines to force an evaluation or not
 			pANTLR3_STRING str = tok3->getText(tok3);
-			char* c_str3 = (char*)str->chars;
+			//char* c_str3 = (char*)str->chars; // cppcheck-suppress unreadVariable
 
 			if (tok3->getType(tok3) == QUOTE)
 				break;
@@ -525,6 +525,19 @@ int ANTLRData::PreprocessParentheses(pANTLR3_COMMON_TOKEN_STREAM& tokens, int st
 			else if (tok2_type == CONT)
 			{
 				k = PreprocessContinue(tokens, k);
+			}
+			else if (tok2_type == PROPERTIES)
+			{
+				if (k < (num_tokens - 1))
+				{
+					pANTLR3_COMMON_TOKEN tok3 = (pANTLR3_COMMON_TOKEN)vec->get(vec, k + 1);
+
+					if (tok3->getType(tok3) == LPAREN)
+					{
+						tok2->setType(tok2, IDENT);
+						// the text for tok should already by properties
+					}
+				}
 			}
 		}
 	}

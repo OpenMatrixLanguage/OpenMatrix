@@ -1,7 +1,7 @@
 /**
 * @file StatisticsTboxFuncs.cxx
 * @date January 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -167,26 +167,31 @@ int InitDll(EvaluatorInterface eval)
     eval.RegisterBuiltInFunction("vartest2", &OmlFtest,    FunctionMetaData(-3, 3, STATAN));
     eval.RegisterBuiltInFunction("ztest",    &OmlZtest,    FunctionMetaData(-4, 3, STATAN));
 
-    eval.RegisterBuiltInFunction("rms",      &OmlRms,      FunctionMetaData(-2, 1, STATAN));
-    eval.RegisterBuiltInFunction("skewness", &OmlSkewness, FunctionMetaData(-2, 1, STATAN));
-    eval.RegisterBuiltInFunction("kurtosis", &OmlKurtosis, FunctionMetaData(-2, 1, STATAN));
-    eval.RegisterBuiltInFunction("var",      &OmlVariance, FunctionMetaData(-2, 1, STATAN));
-    eval.RegisterBuiltInFunction("std",      &OmlStd,      FunctionMetaData(-2, 1, STATAN));
-    eval.RegisterBuiltInFunction("median",   &OmlMedian,   FunctionMetaData(-2, 1, STATAN));
-    eval.RegisterBuiltInFunction("quantile", &OmlQuantile, FunctionMetaData(-2, 1, STATAN));
-    eval.RegisterBuiltInFunction("histc",    &OmlHistC,    FunctionMetaData(-3, -2, STATAN));
-    eval.RegisterBuiltInFunction("meandev",  &OmlMeandev,  FunctionMetaData(-2, 1, STATAN));
-    eval.RegisterBuiltInFunction("mad",      &OmlMAD,      FunctionMetaData(-2, 1, STATAN));
-    eval.RegisterBuiltInFunction("mean",     &OmlMean,     FunctionMetaData(-2, 1, STATAN));
-    eval.RegisterBuiltInFunction("mode",     &OmlMode,     FunctionMetaData(-2, 1, STATAN));
-    eval.RegisterBuiltInFunction("movmean",  &OmlMovMean,  FunctionMetaData(-2, 1, STATAN));
-    eval.RegisterBuiltInFunction("cov",      &OmlCov,      FunctionMetaData(1, 1, STATAN));
-    eval.RegisterBuiltInFunction("corr",     &OmlCorr,     FunctionMetaData(1, 1, STATAN));
-    eval.RegisterBuiltInFunction("detrend",  &OmlDetrend,  FunctionMetaData(2, 1, STATAN));
-    eval.RegisterBuiltInFunction("polyfit",  &OmlPolyfit,  FunctionMetaData(4, 4, STATAN));
-    eval.RegisterBuiltInFunction("nchoosek", &OmlNchooseK, FunctionMetaData(2, 1, STATAN));
+    eval.RegisterBuiltInFunction("rms",       &OmlRms,       FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("skewness",  &OmlSkewness,  FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("kurtosis",  &OmlKurtosis,  FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("var",       &OmlVariance,  FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("std",       &OmlStd,       FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("median",    &OmlMedian,    FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("quantile",  &OmlQuantile,  FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("histc",     &OmlHistC,     FunctionMetaData(-3, -2, STATAN));
+    eval.RegisterBuiltInFunction("meandev",   &OmlMeandev,   FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("mad",       &OmlMAD,       FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("mean",      &OmlMean,      FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("center",    &OmlCenter,    FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("mode",      &OmlMode,      FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("movmean",   &OmlMovMean,   FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("movmedian", &OmlMovMedian, FunctionMetaData(-2, 1, STATAN));
+    eval.RegisterBuiltInFunction("cov",       &OmlCov,       FunctionMetaData(1, 1, STATAN));
+    eval.RegisterBuiltInFunction("corr",      &OmlCorr,      FunctionMetaData(1, 1, STATAN));
+    eval.RegisterBuiltInFunction("detrend",   &OmlDetrend,   FunctionMetaData(2, 1, STATAN));
+    eval.RegisterBuiltInFunction("polyfit",   &OmlPolyfit,   FunctionMetaData(4, 4, STATAN));
+    eval.RegisterBuiltInFunction("nchoosek",  &OmlNchooseK,  FunctionMetaData(2, 1, STATAN));
+    eval.RegisterBuiltInFunction("pdist",     &OmlPDist,     FunctionMetaData(-3, 1, STATAN));
+    eval.RegisterBuiltInFunction("pdist2",    &OmlPDist2,    FunctionMetaData(-2, 1, STATAN));
 
     eval.RegisterBuiltInFunction("regress",  &OmlMultiregress, FunctionMetaData(-3, 5, STATAN));
+    eval.RegisterBuiltInFunction("randi",    &OmlRandIntegers, FunctionMetaData(-2, 1, STATAN));
     eval.RegisterBuiltInFunction("randperm", &OmlRandperm,     FunctionMetaData(-2, 1, STATAN));
     eval.RegisterBuiltInFunction("bbdesign", &OmlBBdoe,        FunctionMetaData(1, 1, STATAN));
     eval.RegisterBuiltInFunction("fullfact", &OmlFulldoe,      FunctionMetaData(1, 1, STATAN));
@@ -3398,8 +3403,7 @@ bool OmlGammaInc(EvaluatorInterface           eval,
     inputs2.push_back(inputs[1]);
     inputs2.push_back(1.0);
 
-    if (!OmlGamcdf(eval, inputs2, outputs))
-        return false;
+    OmlGamcdf(eval, inputs2, outputs);
 
     if (nargin == 3)
     {
@@ -7594,7 +7598,6 @@ bool OmlRandom(EvaluatorInterface           eval,
         return OmlWeibullrnd(eval, newinputs, outputs);
 
     throw OML_Error(HW_ERROR_INVALIDOPTION(type));
-    return false;
 }
 //------------------------------------------------------------------------------
 // Computes inverse cumulative distribution function values [icdf]
@@ -7646,7 +7649,6 @@ bool OmlInvcdf(EvaluatorInterface           eval,
         return OmlWeibullinv(eval, newinputs, outputs);
 
     throw OML_Error(HW_ERROR_INVALIDOPTION(type));
-    return false;
 }
 //------------------------------------------------------------------------------
 // Computes cumulative distribution function values [cdf]
@@ -7698,7 +7700,6 @@ bool OmlCdf(EvaluatorInterface           eval,
         return OmlWeibullcdf(eval, newinputs, outputs);
 
     throw OML_Error(HW_ERROR_INVALIDOPTION(type));
-    return false;
 }
 //------------------------------------------------------------------------------
 // Computes probability density function values [pdf]
@@ -7750,7 +7751,6 @@ bool OmlPdf(EvaluatorInterface           eval,
         return OmlWeibullpdf(eval, newinputs, outputs);
 
     throw OML_Error(HW_ERROR_INVALIDOPTION(type));
-    return false;
 }
 //------------------------------------------------------------------------------
 // Generates uniform random values on the interval (0,1) [rand]
@@ -8931,17 +8931,17 @@ bool OmlSkewness(EvaluatorInterface           eval,
     }
     else if (dim == 1)
     {
-        const double* colPtr;
         hwMatrix* skew;
+        
 
         if (data->M())
         {
             skew = new hwMatrix(1, data->N(), hwMatrix::REAL);
-
+            const double* colPtr = nullptr;
             for (int i = 0; i < data->N(); ++i)
             {
                 colPtr = &((*data)(0, i));
-                hwMatrix col(data->M(), (void*)colPtr, hwMatrix::REAL);
+                hwMatrix col(data->M(), (void*)colPtr, hwMatrix::REAL); 
                 status = Skewness(col, (*skew)(0, i), correctBias);
             }
         }
@@ -8968,7 +8968,7 @@ bool OmlSkewness(EvaluatorInterface           eval,
 
             for (int i = 0; i < data->M(); ++i)
             {
-                status = data->ReadRow(i, row);
+                data->ReadRow(i, row);
                 status = Skewness(row, (*skew)(i, 0), correctBias);
             }
         }
@@ -9360,17 +9360,16 @@ bool OmlStd(EvaluatorInterface           eval,
     }
     else if (dim == 1)
     {
-        const double* colPtr;
         hwMatrix* std;
 
         if (data->M())
         {
             std = new hwMatrix(1, data->N(), hwMatrix::REAL);
-
+            const double* colPtr = nullptr;
             for (int i = 0; i < data->N(); ++i)
             {
                 colPtr = &((*data)(0, i));
-                hwMatrix col(data->M(), (void*) colPtr, hwMatrix::REAL);
+                hwMatrix col(data->M(), (void*) colPtr, hwMatrix::REAL); // cppcheck-suppress cstyleCast 
                 status = StdDev(col, (*std)(0, i), sampleStat);
             }
         }
@@ -9397,7 +9396,7 @@ bool OmlStd(EvaluatorInterface           eval,
 
             for (int i = 0; i < data->M(); ++i)
             {
-                status = data->ReadRow(i, row);
+                data->ReadRow(i, row);
                 status = StdDev(row, (*std)(i, 0), sampleStat);
             }
         }
@@ -9493,20 +9492,20 @@ bool OmlQuantile(EvaluatorInterface           eval,
     if (nargin == 1 || P->Is0x0())
     {
         // default quantile request
-        hwMatrix* P = EvaluatorInterface::allocateMatrix(1, 5, true);
-        (*P)(0) = 0.0;
-        (*P)(1) = 0.25;
-        (*P)(2) = 0.50;
-        (*P)(3) = 0.75;
-        (*P)(4) = 1.0;
+        hwMatrix* P1 = EvaluatorInterface::allocateMatrix(1, 5, true);
+        (*P1)(0) = 0.0;
+        (*P1)(1) = 0.25;
+        (*P1)(2) = 0.50;
+        (*P1)(3) = 0.75;
+        (*P1)(4) = 1.0;
 
         std::vector<Currency> inputs2;
         inputs2.push_back(inputs[0]);
-        inputs2.push_back(P);
+        inputs2.push_back(P1);
 
         if (nargin > 1)
         {
-            for (std::vector<Currency>::const_iterator it = inputs.begin() + 2; it != inputs.end(); it++)
+            for (std::vector<Currency>::const_iterator it = inputs.begin() + 2; it != inputs.end(); ++it)
                 inputs2.push_back(*it);
         }
 
@@ -9648,7 +9647,7 @@ bool OmlQuantile(EvaluatorInterface           eval,
         inputs2.clear();
         inputs2.push_back(outputs[0]);
 
-        for (std::vector<Currency>::const_iterator it = inputs.begin() + 1; it != inputs.end(); it++)
+        for (std::vector<Currency>::const_iterator it = inputs.begin() + 1; it != inputs.end(); ++it)
             inputs2.push_back(*it);
 
         outputs.clear();
@@ -9666,12 +9665,12 @@ bool OmlQuantile(EvaluatorInterface           eval,
         else
         {
             // reshape quantiles
-            const hwMatrix* P = inputs[1].ConvertToMatrix();
-            hwMatrix* Q = outputs[0].GetWritableMatrix();
+            const hwMatrix* P1 = inputs[1].ConvertToMatrix();
+            //hwMatrix* Q = outputs[0].GetWritableMatrix(); // Not used
 
             inputs2.clear();
             inputs2.push_back(outputs[0]);  // Q
-            dims[0] = P->Size();
+            dims[0] = P1->Size();
 
             for (int i = 0; i < dims.size(); ++i)
                 inputs2.push_back(dims[i]);
@@ -9696,7 +9695,7 @@ bool OmlQuantile(EvaluatorInterface           eval,
         inputs2.push_back(outputs[0]);
         outputs.clear();
 
-        for (std::vector<Currency>::const_iterator it = inputs.begin()+1; it != inputs.end(); it++)
+        for (std::vector<Currency>::const_iterator it = inputs.begin()+1; it != inputs.end(); ++it)
             inputs2.push_back(*it);
 
         try
@@ -10319,16 +10318,38 @@ bool OmlMean(EvaluatorInterface           eval,
     }
     else if (mean_type == Geometric)
     {
-        const hwMatrix* data = inputs[0].ConvertToMatrix();
-        outputs.push_back(oml_MatrixUtil(eval, data, dim, &callOnVector<&GeoMean>));
+        const hwMatrix* data1 = inputs[0].ConvertToMatrix();
+        outputs.push_back(oml_MatrixUtil(eval, data1, dim, &callOnVector<&GeoMean>));
     }
 
     return true;
 }
 //------------------------------------------------------------------------------
+// Computes zero mean, or centered values [center]
+//------------------------------------------------------------------------------
+bool OmlCenter(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 1 || nargin > 2)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    std::vector<Currency> inputs2;
+    std::vector<Currency> outputs2;
+
+    OmlMean(eval, inputs, outputs2);
+
+    inputs2.push_back(inputs[0]);
+    inputs2.push_back(outputs2[0]);
+
+    return oml_minus(eval, inputs2, outputs);
+}
+//------------------------------------------------------------------------------
 // Mode helper
 //------------------------------------------------------------------------------
-void ModeHelper(double* data, int n, int stride, double* modeData)
+void ModeHelper(const double* data, int n, int stride, double* modeData)
 {
     int idx = 0;
     modeData[0] = 1;
@@ -10415,7 +10436,6 @@ bool OmlMode(EvaluatorInterface           eval,
     // compute based on matrix type
     int stride;
     int length;
-    int vecDelta;
     int numVecs;
 
     std::vector<Currency> inputsMax;
@@ -10431,6 +10451,7 @@ bool OmlMode(EvaluatorInterface           eval,
         hwMatrix* modeData = EvaluatorInterface::allocateMatrix(m, n, true);
         modeData->SetElements(0.0);
         double* mData = modeData->GetRealData();
+        int vecDelta;
 
         if (dim == 1)
         {
@@ -10454,9 +10475,9 @@ bool OmlMode(EvaluatorInterface           eval,
             onesM->SetElements(1.0);
             outputs.push_back(onesM);
 
-            std::vector<Currency> outputs2;
-            BuiltInFuncsData::Num2Cell(eval, inputs, outputs2);
-            outputs.push_back(outputs2[0]);
+            std::vector<Currency> outputs3;
+            BuiltInFuncsData::Num2Cell(eval, inputs, outputs3);
+            outputs.push_back(outputs3[0]);
 
             return true;
         }
@@ -10546,9 +10567,9 @@ bool OmlMode(EvaluatorInterface           eval,
             onesM->SetElements(1.0);
             outputs.push_back(onesM);
 
-            std::vector<Currency> outputs2;
-            BuiltInFuncsData::Num2Cell(eval, inputs, outputs2);
-            outputs.push_back(outputs2[0]);
+            std::vector<Currency> outputs3;
+            BuiltInFuncsData::Num2Cell(eval, inputs, outputs3);
+            outputs.push_back(outputs3[0]);
 
             return true;
         }
@@ -10608,8 +10629,8 @@ bool OmlMode(EvaluatorInterface           eval,
         {
             // set the rhsMatrix indices to the first index in each slice
             int start = mtx->Index(rhsMatrixIndex);
-            double* data = mtx->GetRealData() + start;
-            double* mData = modeData->GetRealData() + start;
+            const double* data = mtx->GetRealData() + start;
+            const double* mData = modeData->GetRealData() + start;
 
             hwMatrix* modeVals = EvaluatorInterface::allocateMatrix(1, 1, true);
             (*cArray)(i) = Currency(modeVals);
@@ -10682,7 +10703,6 @@ bool OmlMovMean(EvaluatorInterface           eval,
     int na = -1;
     int nb = -1;
 
-    if (nargin > 1)
     {
         if (inputs[1].IsPositiveInteger())
         {
@@ -10831,6 +10851,208 @@ bool OmlMovMean(EvaluatorInterface           eval,
     return true;
 }
 //------------------------------------------------------------------------------
+// Computes moving median values [movmedian]
+//------------------------------------------------------------------------------
+bool OmlMovMedian(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs)
+{
+    size_t nargin = inputs.size();
+
+    if (nargin < 2 || nargin > 6)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    int dim = -1;
+    int na = -1;
+    int nb = -1;
+
+    {
+        if (inputs[1].IsPositiveInteger())
+        {
+            int wlen = static_cast<int> (inputs[1].Scalar());
+
+            if (wlen % 2 == 0)
+            {
+                nb = wlen / 2;
+                na = nb - 1;
+            }
+            else
+            {
+                na = nb = (wlen - 1) / 2;
+            }
+        }
+        else if (inputs[1].IsVector())
+        {
+            const hwMatrix* data = inputs[1].Matrix();
+
+            if (data->Size() != 2)
+            {
+            }
+
+            nb = static_cast<int> ((*data)(0));
+            na = static_cast<int> ((*data)(1));
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_POSINTEGER_VEC, 2, OML_VAR_DIM);
+        }
+    }
+
+    int nextArgIdx = 3;
+
+    if (nargin > 2)
+    {
+        if (inputs[2].IsPositiveInteger())
+            dim = static_cast<int>(inputs[2].Scalar());
+        else if (inputs[2].IsString())
+            nextArgIdx = 2;
+        else if (!inputs[2].IsMatrix() || !inputs[2].Matrix()->Is0x0())
+            throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_DIM);
+    }
+
+    if (dim == -1)
+    {
+        if (inputs[0].IsMatrix() || inputs[0].IsScalar() || inputs[0].IsComplex())
+        {
+            const hwMatrix* mtx = inputs[0].ConvertToMatrix();
+
+            if (mtx->M() == 1)
+                dim = 2;
+            else
+                dim = 1;
+        }
+        else if (inputs[0].IsNDMatrix())
+        {
+            const hwMatrixN* mtx = inputs[0].MatrixN();
+            const std::vector<int>& dims = mtx->Dimensions();
+
+            for (int i = 0; i < dims.size(); ++i)
+            {
+                if (dims[i] != 1)
+                {
+                    dim = i + 1;
+                    break;
+                }
+            }
+        }
+    }
+
+    bool includeNaN = true;
+    std::string endproperty = "shrink";
+    double userVal = std::numeric_limits<double>::quiet_NaN();
+
+    int nanArg = -1;
+    int endArg = -1;
+
+    if (nextArgIdx < nargin)
+    {
+        if (!inputs[nextArgIdx].IsString())
+            throw OML_Error(OML_ERR_STRING, nextArgIdx + 1, OML_VAR_TYPE);
+
+        if (inputs[nextArgIdx].StringVal() == "Endpoints")
+        {
+            endArg = nextArgIdx;
+        }
+        else if (inputs[nextArgIdx].StringVal() == "includenan")
+        {
+            nanArg = nextArgIdx;
+        }
+        else if (inputs[nextArgIdx].StringVal() == "omitnan")
+        {
+            nanArg = nextArgIdx;
+            includeNaN = false;
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_OPTION, nextArgIdx + 1);
+        }
+
+        ++nextArgIdx;
+    }
+
+    if (nextArgIdx < nargin && nanArg != -1)
+    {
+        if (!inputs[nextArgIdx].IsString())
+            throw OML_Error(OML_ERR_STRING, nextArgIdx + 1, OML_VAR_TYPE);
+
+        if (inputs[nextArgIdx].StringVal() == "Endpoints")
+        {
+            endArg = nextArgIdx;
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_OPTION, nextArgIdx + 1);
+        }
+    }
+
+    if (endArg == nargin - 2)
+    {
+        if (inputs[++endArg].IsScalar())
+        {
+            endproperty = "userval";
+            userVal = inputs[endArg].Scalar();
+        }
+        else if (inputs[endArg].IsString())
+        {
+            endproperty = inputs[endArg].StringVal();
+        }
+        else
+        {
+            throw OML_Error(OML_ERR_SCALARSTRING, endArg + 1, OML_VAR_TYPE);
+        }
+    }
+
+    if (inputs[0].IsMatrix() || inputs[0].IsScalar() || inputs[0].IsComplex())
+    {
+        const hwMatrix* matrix = inputs[0].ConvertToMatrix();
+        hwMatrixN matrixN;
+        matrixN.Convert2DtoND(*matrix, false);
+        hwMatrixN xBarN;
+        hwMathStatus status = MovMedian(matrixN, nb, na, dim - 1, includeNaN,
+                                        endproperty, userVal, xBarN);
+
+        if (!status.IsOk())
+        {
+            int arg1 = status.GetArg1();
+
+            if (arg1 > 2 && arg1 < 7)
+                status.SetArg1(arg1 - 1);
+
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+        }
+
+        hwMatrix* xBar = EvaluatorInterface::allocateMatrix();
+        xBarN.ConvertNDto2D(*xBar, false);
+        outputs.push_back(xBar);
+    }
+    else if (inputs[0].IsNDMatrix())
+    {
+        const hwMatrixN* matrix = inputs[0].MatrixN();
+        std::unique_ptr<hwMatrixN> xBar(EvaluatorInterface::allocateMatrixN());
+
+        hwMathStatus status = MovMedian(*matrix, nb, na, dim - 1, includeNaN,
+                                        endproperty, userVal, *xBar);
+
+        if (!status.IsOk())
+        {
+            int arg1 = status.GetArg1();
+
+            if (arg1 > 2 && arg1 < 7)
+                status.SetArg1(arg1 - 1);
+
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
+        }
+
+        outputs.push_back(xBar.release());
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_MATRIX, 1);
+    }
+
+    return true;
+}
+//------------------------------------------------------------------------------
 // Computes covariances [cov]
 //------------------------------------------------------------------------------
 bool OmlCov(EvaluatorInterface           eval,
@@ -10892,8 +11114,6 @@ bool OmlCov(EvaluatorInterface           eval,
             throw OML_Error(OML_ERR_FLAG_01, 3);
     }
 
-    hwMatrix* cov = EvaluatorInterface::allocateMatrix();
-
     if (!m2)
     {
         if (m1->IsVector())
@@ -10943,7 +11163,6 @@ bool OmlCorr(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_REAL, 1, OML_VAR_DATA);
 
     const hwMatrix* m1         = inputs[0].ConvertToMatrix();
-    bool            sampleStat = true;
     std::unique_ptr<hwMatrix> corr(EvaluatorInterface::allocateMatrix());
 
     if (nargin == 1)
@@ -10954,9 +11173,9 @@ bool OmlCorr(EvaluatorInterface           eval,
         }
         else
         {
-            std::unique_ptr<hwMatrix> corr(EvaluatorInterface::allocateMatrix());
-            BuiltInFuncsUtils::CheckMathStatus(eval, Corr(*m1, *corr));
-            outputs.push_back(corr.release());
+            std::unique_ptr<hwMatrix> corr1(EvaluatorInterface::allocateMatrix());
+            BuiltInFuncsUtils::CheckMathStatus(eval, Corr(*m1, *corr1));
+            outputs.push_back(corr1.release());
         }
     }
     else
@@ -11510,25 +11729,25 @@ bool OmlNanVar(EvaluatorInterface           eval,
             return true;
         }
 
-        int m = data->M();
-        int n = data->N();
+        int rows = data->M();
+        int cols = data->N();
         hwMatrix* var = EvaluatorInterface::allocateMatrix();
 
         if (dim == 0)
-            var->Dimension(1, n, hwMatrix::REAL);
+            var->Dimension(1, cols, hwMatrix::REAL);
         else
-            var->Dimension(m, 1, hwMatrix::REAL);
+            var->Dimension(rows, 1, hwMatrix::REAL);
 
-        std::vector<int> dims = { m, n };
-        int numVecs = (dim == 0) ? n : m;
-        int stride = (dim == 0) ? 1 : m;
+        std::vector<int> dims = { rows, cols };
+        int numVecs = (dim == 0) ? cols : rows;
+        int stride = (dim == 0) ? 1 : rows;
         int row = 0;
         int col = 0;
 
         for (int i = 0; i < numVecs; ++i)
         {
             // set the matrix indices to the first index in each slice
-            int start = col * m + row;
+            int start = col * rows + row;
 
             // shift data and compensate for replaced NaN values
             double* real = data->GetRealData() + start;
@@ -11547,11 +11766,10 @@ bool OmlNanVar(EvaluatorInterface           eval,
 
             double sum   = 0.0;
             double sumSq = 0.0;
-            double value;
 
             for (int j = 0; j < n; ++j)
             {
-                value  = *real - data_zero;     // shift to reduce overflow risk
+                double value  = *real - data_zero;     // shift to reduce overflow risk
                 sum   += value;
                 sumSq += value * value;
                 real  += stride;
@@ -11623,7 +11841,7 @@ bool OmlNanVar(EvaluatorInterface           eval,
             double* real = data->GetRealData() + start;
             int m = count(i);
             int n = dims[dim];
-            double data_zero;
+            double data_zero = 0;
 
             for (int j = 0; j < n; ++j)
             {
@@ -11636,11 +11854,10 @@ bool OmlNanVar(EvaluatorInterface           eval,
 
             double sum   = 0.0;
             double sumSq = 0.0;
-            double value;
 
             for (int j = 0; j < n; ++j)
             {
-                value  = *real - data_zero;        // shift to reduce overflow risk
+                double value  = *real - data_zero;        // shift to reduce overflow risk
                 sum   += value;
                 sumSq += value * value;
                 real  += stride;
@@ -11765,7 +11982,6 @@ bool OmlNanMedian(EvaluatorInterface           eval,
         else
             median->Dimension(m, 1, hwMatrix::REAL);
 
-        std::vector<int> dims = { m, n };
         int numVecs = (dim == 0) ? n : m;
         int stride = (dim == 0) ? 1 : m;
         int row = 0;
@@ -11985,6 +12201,101 @@ bool OmlMultiregress(EvaluatorInterface           eval,
     if (nargout == 5)
         outputs.push_back(stats.release());
     
+    return true;
+}
+//------------------------------------------------------------------------------
+// Generates a random permutation vector [randi]
+//------------------------------------------------------------------------------
+bool OmlRandIntegers(EvaluatorInterface           eval,
+                     const std::vector<Currency>& inputs,
+                     std::vector<Currency>& outputs)
+{
+    int nargin = eval.GetNarginValue();
+
+    if (nargin < 1)
+        throw OML_Error(OML_ERR_NUMARGIN);
+
+    int imin;
+    int imax;
+
+    if (inputs[0].IsInteger())
+    {
+        imin = 1;
+        imax = static_cast<int>(inputs[0].Scalar());
+    }
+    else if (inputs[0].IsMatrix())
+    {
+        const hwMatrix* rng = inputs[0].Matrix();
+
+        if (rng->Size() != 2)
+        {
+            throw OML_Error(OML_ERR_VECTOR2, 1, OML_VAR_DATA);
+        }
+
+        if (!IsInteger((*rng)(0)).IsOk())
+        {
+            throw OML_Error(OML_ERR_NATURALNUM, 1, OML_VAR_DATA);
+        }
+
+        if (!IsInteger((*rng)(1)).IsOk())
+        {
+            throw OML_Error(OML_ERR_NATURALNUM, 1, OML_VAR_DATA);
+        }
+
+        imin = static_cast<int>((*rng)(0));
+        imax = static_cast<int>((*rng)(1));
+    }
+    else
+    {
+        throw OML_Error(OML_ERR_SCALARVECTOR, 1, OML_VAR_DATA);
+    }
+
+    std::vector<int> dims;
+
+    if (nargin == 1)
+    {
+        dims.push_back(1);
+        dims.push_back(1);
+    }
+    else
+    {
+        for (int i = 1; i < nargin; ++i)
+        {
+            if (!inputs[i].IsPositiveInteger())
+            {
+                throw OML_Error(OML_ERR_NATURALNUM, i + 1, OML_VAR_DATA);
+            }
+
+            dims.push_back(static_cast<int>(inputs[i].Scalar()));
+        }
+    }
+
+    if (nargin == 2)
+    {
+        dims.push_back(dims[0]);
+    }
+
+    hwMathStatus status;
+    CreateTwister();
+    hwMatrixN* integers = EvaluatorInterface::allocateMatrixN(dims, true);
+
+    status = RandIntegers(imin, imax, twister, *integers);
+
+    if (!status.IsOk())
+    {
+        if (status.GetArg2() == 2)
+        {
+            status.SetArg2(-1);
+        }
+        else
+        {
+            status.ResetArgs();
+        }
+    }
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+    outputs.push_back(integers);
+
     return true;
 }
 //------------------------------------------------------------------------------
@@ -12253,13 +12564,10 @@ bool OmlPolyfit(EvaluatorInterface           eval,
     }
 
     // reverse coefficients for decreasing order
-    int    index;
-    double temp;
-
     for (int i = 0; i < coef->Size()/2; i++)
     {
-        index = coef->Size()-1-i;
-        temp = (*coef)(i);
+        int index = coef->Size()-1-i;
+        double temp = (*coef)(i);
         (*coef)(i) = (*coef)(index);
         (*coef)(index) = temp;
     }
@@ -12330,6 +12638,403 @@ bool OmlNchooseK(EvaluatorInterface           eval,
     {
         throw OML_Error(OML_ERR_POSINTEGER_VEC, 1, OML_VAR_TYPE);
     }
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Helper function for pdist
+//------------------------------------------------------------------------------
+template <double (*dist1)(const double* pt1, int stride1,
+                          const double* pt2, int stride2, int n),
+          double (*dist2)(const double* pt1, int stride1,
+                          const double* pt2, int stride2, int n, int power)>
+static hwMathStatus PDist(const hwMatrix& A, hwMatrix& D, int power = -1)
+{
+    hwMathStatus status;
+
+    int m = A.M();
+    int n = A.N();
+    int p = m * (m - 1) / 2;
+    int idx = 0;
+
+    status = D.Dimension(1, p, hwMatrix::REAL);
+
+    for (int i = 0; i < m - 1; ++i)
+    {
+        const double* data1 = A.GetRealData() + i;
+        
+        for (int j = i + 1; j < m; ++j)
+        {
+            const double* data2 = A.GetRealData() + j;
+
+            if (power == -1)
+            {
+                D(idx++) = dist1(data1, m, data2, m, n);
+            }
+            else
+            {
+                D(idx++) = dist2(data1, m, data2, m, n, power);
+            }
+        }
+    }
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// Rank elements of a matrix, pre-sorted along dim
+//------------------------------------------------------------------------------
+hwMathStatus RankElements(const hwMatrix& A, int dim, hwMatrix& R)
+{
+    if (!A.IsReal())
+    {
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 1);
+    }
+
+    if (dim != 0 && dim != 1)
+    {
+        return hwMathStatus(HW_MATH_ERR_ARRAYDIM, 2);
+    }
+
+    int m = A.M();
+    int n = A.N();
+    std::vector<int> dims = { m, n };
+    int numVecs = (dim == 0) ? n : m;
+    int stride = (dim == 0) ? 1 : m;
+    hwMathStatus status;
+
+    R.Dimension(m, n, hwMatrix::REAL);
+
+    int row = 0;
+    int col = 0;
+
+    for (int i = 0; i < numVecs; ++i)
+    {
+        // set the matrix indices to the first index in each slice
+        int start = col * m + row;
+        double* reslt = R.GetRealData() + start;
+        const double* real1 = A.GetRealData() + start;
+        const double* real2 = real1 + stride;
+        int rank = 1;
+        int tieCount = 0;
+
+        for (int j = 1; j < dims[dim]; ++j)
+        {
+            if (*real2 == *real1)
+            {
+                ++tieCount;
+                real2 += stride;
+                continue;
+            }
+            else if (tieCount == 0)
+            {
+                *reslt = rank++;
+                real1 += stride;
+                real2 += stride;
+                reslt += stride;
+            }
+            else
+            {
+                for (int k = -1; k < tieCount; ++k)
+                {
+                    *reslt = rank + tieCount / 2.0;
+                    reslt += stride;
+                }
+
+                rank += tieCount + 1;
+                real1 = real2;
+                real2 = real1 + stride;
+                tieCount = 0;
+            }
+        }
+
+        if (tieCount == 0)
+        {
+            *reslt = rank;
+        }
+        else
+        {
+            for (int k = -1; k < tieCount; ++k)
+            {
+                *reslt = rank + tieCount / 2.0;
+                reslt += stride;
+            }
+        }
+
+        if (dim == 0)
+            ++col;
+        else
+            ++row;
+    }
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// Compute distances between ND points  [pdist]
+//------------------------------------------------------------------------------
+bool OmlPDist(EvaluatorInterface           eval,
+              const std::vector<Currency>& inputs,
+              std::vector<Currency>&       outputs)
+{
+    int nargin = static_cast<int> (inputs.size());
+
+    if (nargin < 1 || nargin > 3)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_DATA);
+    }
+
+    const hwMatrix* m1 = inputs[0].ConvertToMatrix();
+
+    if (!m1->IsReal())
+    {
+        throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_DATA);
+    }
+
+    std::string metric = "euclidean";
+    int power = -1;
+
+    if (nargin > 1)
+    {
+        if (!inputs[1].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, 2, OML_VAR_DATA);
+        }
+
+        metric = inputs[1].StringVal();
+    }
+
+    if (nargin > 2)
+    {
+        if (metric != "minkowski")
+            throw OML_Error(OML_ERR_BAD_STRING, 2);
+
+        if (!inputs[2].IsPositiveInteger())
+        {
+            throw OML_Error(OML_ERR_POSINTEGER, 3, OML_VAR_DATA);
+        }
+
+        power = static_cast<int> (inputs[2].Scalar());
+    }
+
+    std::unique_ptr<hwMatrix> distances(EvaluatorInterface::allocateMatrix());
+    hwMathStatus status;
+
+    if (metric == "euclidean")
+        status = PDist<EuclidDistance, nullptr>(*m1, *distances);
+    else if (metric == "sqeuclidean")
+        status = PDist<SqEuclidDistance, nullptr>(*m1, *distances);
+    else if (metric == "seuclidean")
+    {
+        int m = m1->M();
+        int n = m1->N();
+        hwMatrix m1norm(m, n, hwMatrix::REAL);
+        hwMatrix var;
+
+        Variance(*m1, var, true);
+
+        for (int j = 0; j < n; ++j)
+        {
+            double* colDataRHS = (double*)&((*m1)(0, j)); // cppcheck-suppress cstyleCast
+            double* colDataLHS = &(m1norm(0, j));
+            hwMatrix colRHS(m, 1, colDataRHS, hwMatrix::REAL);
+            hwMatrix colLHS(m, 1, colDataLHS, hwMatrix::REAL);
+
+            colLHS = colRHS / sqrt(var(j));
+        }
+
+        status = PDist<EuclidDistance, nullptr>(m1norm, *distances);
+    }
+    else if (metric == "mahalanobis")
+    {
+        int m = m1->M();
+        int n = m1->N();
+        hwMatrix m1weighted(m, n, hwMatrix::REAL);
+        hwMatrix cov;
+        hwMatrix U;
+
+        status = Cov(*m1, cov, true);
+
+        if (!status.IsOk())
+        {
+            throw OML_Error(status);
+        }
+
+        status = cov.Csky(U, true);
+
+        if (!status.IsOk())
+
+        {
+            throw OML_Error(status);
+        }
+
+        m1weighted.DivideRight(*m1, U);
+        status = PDist<EuclidDistance, nullptr>(m1weighted, *distances);
+    }
+    else if (metric == "cityblock")
+        status = PDist<CityBlockDistance, nullptr>(*m1, *distances);
+    else if (metric == "minkowski")
+    {
+        if (power == -1)
+            power = 2;     // default
+
+        status = PDist<nullptr, MinkowskiDistance>(*m1, *distances, power);
+    }
+    else if (metric == "cosine")
+        status = PDist<CosineDistance, nullptr>(*m1, *distances);
+    else if (metric == "correlation")
+        status = PDist<CorrelationDistance, nullptr>(*m1, *distances);
+    else if (metric == "spearman")
+    {
+        // sort m1 by row
+        std::vector<Currency> inputs2;
+        inputs2.push_back(inputs[0]);
+        inputs2.push_back(2);
+        inputs2.push_back("ascend");
+        oml_sort(eval, inputs2, outputs);   // sort(x)
+        hwMatrix* m1sorted = outputs[0].GetWritableMatrix();
+        hwMatrix* m1sortIdx = outputs[1].GetWritableMatrix();
+
+        // rank the sorted elements
+        hwMatrix m1ranked;
+        RankElements(*m1sorted, 1, m1ranked);
+
+        // unsort the ranked values
+        int m = m1ranked.M();
+        int n = m1ranked.N();
+        hwMatrix m1index(m, n, hwMatrix::REAL);
+
+        for (int j = 0; j < n; ++j)
+        {
+            for (int i = 0; i < m; ++i)
+            {
+                m1index(i, static_cast<int>((*m1sortIdx)(i, j) - 1.0)) = m1ranked(i, j);
+            }
+        }
+
+        status = PDist<CorrelationDistance, nullptr>(m1index, *distances);
+    }
+    else if (metric == "hamming")
+        status = PDist<HammingDistance, nullptr>(*m1, *distances);
+    else if (metric == "jaccard")
+        status = PDist<JaccardDistance, nullptr>(*m1, *distances);
+    else if (metric == "chebychev")
+        status = PDist<ChebyshevDistance, nullptr>(*m1, *distances);
+    else
+        throw OML_Error(OML_ERR_BAD_STRING, 2);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+    outputs.clear();
+    outputs.push_back(distances.release());
+
+    return true;
+}
+//------------------------------------------------------------------------------
+// Helper function for pdist2
+//------------------------------------------------------------------------------
+template <double (*dist)(const double* pt1, int stride1,
+                         const double* pt2, int stride2, int n)>
+static hwMathStatus PDist2(const hwMatrix& A, const hwMatrix& B, hwMatrix& D)
+{
+    hwMathStatus status;
+    int m = A.M();
+    int p = A.N();
+    int n = B.M();
+
+    if (B.N() != p)
+    {
+        return status;  // error
+    }
+
+    status = D.Dimension(m, n, hwMatrix::REAL);
+
+    for (int i = 0; i < m; ++i)
+    {
+        const double* data1 = A.GetRealData() + i;
+
+        for (int j = 0; j < n; ++j)
+        {
+            const double* data2 = B.GetRealData() + j;
+            D(i, j) = dist(data1, m, data2, n, p);
+        }
+    }
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// Compute distances between ND points  [pdist2]
+//------------------------------------------------------------------------------
+bool OmlPDist2(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs)
+{
+    int nargin = static_cast<int> (inputs.size());
+
+    if (nargin < 2 || nargin > 3)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    if (!inputs[0].IsMatrix() && !inputs[0].IsScalar())
+    {
+        throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_DATA);
+    }
+
+    if (!inputs[1].IsMatrix() && !inputs[1].IsScalar())
+    {
+        throw OML_Error(OML_ERR_REALMATRIX, 2, OML_VAR_DATA);
+    }
+
+    const hwMatrix* m1 = inputs[0].ConvertToMatrix();
+    const hwMatrix* m2 = inputs[1].ConvertToMatrix();
+
+    if (!m1->IsReal())
+    {
+        throw OML_Error(OML_ERR_REALMATRIX, 1, OML_VAR_DATA);
+    }
+
+    if (!m2->IsReal())
+    {
+        throw OML_Error(OML_ERR_REALMATRIX, 2, OML_VAR_DATA);
+    }
+
+    std::string metric = "euclidean";
+
+    if (nargin > 2)
+    {
+        if (!inputs[2].IsString())
+        {
+            throw OML_Error(OML_ERR_STRING, 3, OML_VAR_DATA);
+        }
+
+        metric = inputs[2].StringVal();
+    }
+
+    std::unique_ptr<hwMatrix> distances(EvaluatorInterface::allocateMatrix());
+    hwMathStatus status;
+
+    if (metric == "euclidean")
+        status = PDist2<EuclidDistance>(*m1, *m2, *distances);
+    else if (metric == "sqeuclidean")
+        status = PDist2<SqEuclidDistance>(*m1, *m2, *distances);
+    else if (metric == "chisq")
+        status = PDist2<ChiSqDistance>(*m1, *m2, *distances);
+    else if (metric == "cosine")
+        status = PDist2<CosineDistance>(*m1, *m2, *distances);
+    else if (metric == "emd")
+        status = PDist2<EarthMoversDistance>(*m1, *m2, *distances);
+    else if (metric == "L1")
+        status = PDist2<L1Distance>(*m1, *m2, *distances);
+    else
+        throw OML_Error(OML_ERR_BAD_STRING, 3);
+
+    BuiltInFuncsUtils::CheckMathStatus(eval, status);
+
+    outputs.push_back(distances.release());
 
     return true;
 }

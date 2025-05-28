@@ -23,8 +23,8 @@
 
 #include <cassert>
 
-FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*> ret_vals, std::vector<const std::string*> params, 
-	                       std::map<const std::string*, Currency> default_vals, OMLTree* stmt_list, std::string file_name, std::string help_str)
+FunctionInfo::FunctionInfo(const std::string& func_name, const std::vector<const std::string*>& ret_vals, const std::vector<const std::string*>& params, 
+	                       const std::map<const std::string*, Currency>& default_vals, OMLTree* stmt_list, const std::string& file_name, const std::string& help_str)
 {
 	_function_name    = Currency::vm.GetStringPointer(func_name);
 	_file_name        = Currency::pm.GetStringPointer(file_name);
@@ -51,7 +51,7 @@ FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*
 	nested_functions = new std::map<const std::string*, FunctionInfo*>;
 }
 
-FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*> ret_vals, std::vector<const std::string*> params, OMLTree* stmt_list, std::string file_name)
+FunctionInfo::FunctionInfo(const std::string& func_name, const std::vector<const std::string*>& ret_vals, const std::vector<const std::string*>& params, const OMLTree* stmt_list, const std::string& file_name)
 {
 	_function_name    = Currency::vm.GetStringPointer(func_name);
 	_file_name        = Currency::pm.GetStringPointer(file_name);
@@ -72,11 +72,11 @@ FunctionInfo::FunctionInfo(std::string func_name, std::vector<const std::string*
 	_is_constructor   = false;
 	_is_encrypted     = false;
 
-	local_functions  = new std::map<const std::string*, FunctionInfo*>;
+	local_functions  = new std::map<const std::string*, FunctionInfo*>; // cppcheck-suppress noOperatorEq
 	nested_functions = new std::map<const std::string*, FunctionInfo*>;
 }
 
-FunctionInfo::FunctionInfo(std::string func_name, FUNCPTR builtin_func)
+FunctionInfo::FunctionInfo(const std::string& func_name, FUNCPTR builtin_func)
 {
 	_function_name    = Currency::vm.GetStringPointer(func_name);
 	_file_name        = Currency::pm.GetStringPointer("");
@@ -95,7 +95,7 @@ FunctionInfo::FunctionInfo(std::string func_name, FUNCPTR builtin_func)
 	_parent_class     = NULL;
 }
 
-FunctionInfo::FunctionInfo(std::string func_name, ALT_FUNCPTR alt_func)
+FunctionInfo::FunctionInfo(const std::string& func_name, ALT_FUNCPTR alt_func)
 {
 	_function_name = Currency::vm.GetStringPointer(func_name);
 	_file_name = Currency::pm.GetStringPointer("");
@@ -147,7 +147,7 @@ FunctionInfo::~FunctionInfo()
 
 		if (local_functions && !is_anon)
 		{
-			for (iter = local_functions->begin(); iter != local_functions->end(); iter++)
+			for (iter = local_functions->begin(); iter != local_functions->end(); ++iter)
 			{
 				FunctionInfo* fi = iter->second;
 
@@ -162,7 +162,7 @@ FunctionInfo::~FunctionInfo()
 
 		if (nested_functions)
 		{
-			for (iter = nested_functions->begin(); iter != nested_functions->end(); iter++)
+			for (iter = nested_functions->begin(); iter != nested_functions->end(); ++iter)
 			{
 				FunctionInfo* fi = iter->second;
 
@@ -179,12 +179,12 @@ FunctionInfo::~FunctionInfo()
 
 FunctionInfo::FunctionInfo(const FunctionInfo& in)
     : _statements (nullptr)
+	, _return_values (in._return_values)
+	, _parameters (in._parameters)
 {
 	_function_name = in._function_name;
 	_file_name = in._file_name;
 	_builtin = in._builtin;
-	_return_values = in._return_values;
-	_parameters = in._parameters;
 	_refcnt = 1;
 	_parent_fi = in._parent_fi;
 	_parent_class = in._parent_class;
@@ -210,8 +210,8 @@ FunctionInfo::FunctionInfo(const FunctionInfo& in)
 
 	_help_string = in._help_string;
 
-	local_functions = in.local_functions;
-	nested_functions = in.nested_functions;
+	local_functions = in.local_functions;    // cppcheck-suppress copyCtorPointerCopying
+	nested_functions = in.nested_functions;  // cppcheck-suppress copyCtorPointerCopying
 
     _alt_fptr = in._alt_fptr;
 }
@@ -220,9 +220,9 @@ bool FunctionInfo::IsReturnValue(const std::string* varname) const
 {
 	std::vector<const std::string*>::const_iterator iter;
 	
-	for (iter = _return_values.begin(); iter != _return_values.end(); iter++)
+	for (iter = _return_values.begin(); iter != _return_values.end(); ++iter)
 	{
-		if (*iter == varname)
+		if (*iter == varname) // cppcheck-suppress useStlAlgorithm
 			return true;
 	}
 
@@ -233,16 +233,16 @@ bool FunctionInfo::IsInputParameter(const std::string* varname) const
 {
 	std::vector<const std::string*>::const_iterator iter;
 	
-	for (iter = _parameters.begin(); iter != _parameters.end(); iter++)
+	for (iter = _parameters.begin(); iter != _parameters.end(); ++iter)
 	{
-		if (*iter == varname)
+		if (*iter == varname) // cppcheck-suppress useStlAlgorithm
 			return true;
 	}
 
 	return false;
 }
 
-bool CheckForReference(const std::string* varname, OMLTree* tree)
+bool CheckForReference(const std::string* varname, const OMLTree* tree) // cppcheck-suppress constParameterPointer
 {
 	int child_count = tree->ChildCount();
 
@@ -295,7 +295,7 @@ int FunctionInfo::Nargout() const
 	return nargout;
 }
 
-bool FunctionInfo::IsLocalFunction(std::string script_name) const
+bool FunctionInfo::IsLocalFunction(std::string script_name) const // cppcheck-suppress passedByValue
 {
 	if (*_file_name == script_name)
 		return false;
@@ -312,16 +312,16 @@ bool FunctionInfo::IsLocalFunction(std::string script_name) const
 
 std::string FunctionInfo::RedirectedFunction() const
 {
-	OMLTree*  statements = _statements;
+	const OMLTree*  statements = _statements;
 	int num_children = statements->ChildCount();
 
 	if (num_children == 1)
 	{
-		OMLTree* child     = statements->GetChild(0);
+		const OMLTree* child     = statements->GetChild(0);
 		
 		if (child->GetType() == FUNC)
 		{
-			OMLTree*    func     = child->GetChild(0);
+			const OMLTree*    func     = child->GetChild(0);
 			return func->GetText();
 		}
 	}
@@ -331,16 +331,16 @@ std::string FunctionInfo::RedirectedFunction() const
 
 int FunctionInfo::NumRedirectedInputs() const
 {
-	OMLTree*  statements = _statements;
+	const OMLTree*  statements = _statements;
 	int num_children = statements->ChildCount();
 
 	if (num_children == 1)
 	{
-		OMLTree*    child     = statements->GetChild(0);
+		const OMLTree*    child     = statements->GetChild(0);
 		
 		if (child->GetType() == FUNC)
 		{
-			OMLTree*    param_list     = child->GetChild(1);
+			const OMLTree*    param_list     = child->GetChild(1);
 
 			if (param_list->GetType() == PARAM_LIST)
 				return param_list->ChildCount();
@@ -366,16 +366,16 @@ int FunctionInfo::MinimumInputs() const
 
 OMLTree* FunctionInfo::RedirectedInput(int index) const
 {
-	OMLTree*  statements = _statements;
+	const OMLTree*  statements = _statements;
 	int num_children = statements->ChildCount();
 
 	if (num_children == 1)
 	{
-		OMLTree*    child     = statements->GetChild(0);
+		const OMLTree*    child     = statements->GetChild(0);
 		
 		if (child->GetType() == FUNC)
 		{
-			OMLTree*    param_list     = child->GetChild(1);
+			const OMLTree*    param_list     = child->GetChild(1);
 
 			if (param_list->GetType() == PARAM_LIST)
 			{
@@ -388,7 +388,7 @@ OMLTree* FunctionInfo::RedirectedInput(int index) const
 	return NULL;
 }
 
-std::string LocalGetAST(OMLTree* tree)
+std::string LocalGetAST(OMLTree* tree)  // cppcheck-suppress constParameterPointer
 {
 	if (!tree)
 		return "";
@@ -494,7 +494,7 @@ OMLTree* FunctionInfo::Statements() const
 	return _statements;
 }
 
-void FunctionInfo::SetAnonymous(MemoryScope* dummy)
+void FunctionInfo::SetAnonymous(MemoryScope* dummy) // cppcheck-suppress constParameterPointer
 { 
 	std::vector<std::string> idents;
 

@@ -1,7 +1,7 @@
 /**
 * @file Currency.h
 * @date August 2013
-* Copyright (C) 2013-2021 Altair Engineering, Inc.  
+* Copyright (C) 2013-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -73,7 +73,7 @@ Currency::Currency(double val, int in_type): type(CurrencyType(in_type)), mask(M
 	data.value = val;
 }
 
-Currency::Currency(double val, std::string info): type(TYPE_ERROR), mask(MASK_NONE), out_name(NULL), _display(0), 
+Currency::Currency(double val, const std::string& info): type(TYPE_ERROR), mask(MASK_NONE), out_name(NULL), _display(0), 
     _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false), _is_linear_range(false)
 {
 	message = new std::string;
@@ -124,7 +124,7 @@ Currency::Currency(const std::vector<double>& in_data): type(TYPE_MATRIX), mask(
 	{
 		double* data_ptr = new double[in_data.size()];
 		memcpy(data_ptr, &in_data.front(), sizeof(double) * in_data.size());
-		data.mtx = ExprTreeEvaluator::allocateMatrix(1, (int)in_data.size(), (void*)data_ptr, true);
+		data.mtx = ExprTreeEvaluator::allocateMatrix(1, static_cast<int>(in_data.size()), (void*)data_ptr, true); // cppcheck-suppress cstyleCast
 		data.mtx->OwnData(true);
 	}
 	else
@@ -222,7 +222,6 @@ Currency::Currency(FunctionInfo* fi): type(TYPE_FUNCHANDLE), mask(MASK_NONE), ou
     _display(0), _outputType (OUTPUT_TYPE_DEFAULT), message(NULL), classname(NULL), _is_utf8(false), _is_linear_range(false)
 {
 	data.func = fi;
-	fi->IncrRefCount();
 }
 
 Currency::Currency(StructData* in_data): type(TYPE_STRUCT), mask(MASK_NONE), out_name(NULL),
@@ -709,7 +708,7 @@ std::string Currency::GetTypeString() const
 	}
 	else if (IsStruct())
 	{
-		StructData* mtx = Struct();
+		const StructData* mtx = Struct();
         if (!mtx)
         {
             output = "struct [ ]";
@@ -1338,7 +1337,6 @@ const hwMatrix* Currency::ConvertToMatrix() const
 	else if (IsCellList())
 	{
 		HML_CELLARRAY* cells   = CellArray();
-		bool           is_real = true;
 
 		int size = cells->Size();
 
@@ -1709,7 +1707,7 @@ void Currency::FlattenCellList()
 			}
 			else if (loc_temp.IsStruct())
 			{
-				StructData* sd = loc_temp.Struct();
+				const StructData* sd = loc_temp.Struct();
 				
 				if (sd->Size() == 1)
 					new_size += 1;
@@ -2115,7 +2113,7 @@ StringManager::~StringManager()
 {
 	StringStorage::iterator iter;
 
-	for (iter = _strings.begin(); iter != _strings.end(); iter++)
+	for (iter = _strings.begin(); iter != _strings.end(); ++iter)
 		delete *iter;
 }
  //------------------------------------------------------------------------------

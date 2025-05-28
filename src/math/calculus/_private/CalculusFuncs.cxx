@@ -15,6 +15,7 @@
 */
 #include "CalculusFuncs.h"
 #include "hwAdaptiveQuadrature.h"
+#include "hwMatrixN.h"
 
 //------------------------------------------------------------------------------
 // Computes forward differences and return status
@@ -86,99 +87,259 @@ hwMathStatus Derivative(const hwMatrix& x,
 
     return status;
 }
+
+//------------------------------------------------------------------------------
+// Computes the integral of a strided vector
+//------------------------------------------------------------------------------
+double TrapZ(const double* x, const double* y,
+             int stride, int n)
+{
+    double integral = 0.0;
+
+    for (int i = 1; i < n; i++)
+    {
+        integral += 0.5 * (*(x + 1) - *x) * (*(y + stride) + *y);
+        ++x;
+        y += stride;
+    }
+
+    return integral;
+}
+
+//------------------------------------------------------------------------------
+// Computes the cumulative integral of a strided vector
+//------------------------------------------------------------------------------
+void CumTrapZ(const double* x, const double* y,
+              int stride, int n, double* integral)
+{
+    *integral = 0.0;
+
+    for (int i = 1; i < n; i++)
+    {
+        *(integral + stride) = *integral
+                           + 0.5 * (*(x + 1) - *x) * (*(y + stride) + *y);
+        ++x;
+        y += stride;
+        integral += stride;
+    }
+}
+
 //------------------------------------------------------------------------------
 // Computes integral using trapezoidal method and returns status
 //------------------------------------------------------------------------------
-hwMathStatus TrapZ(const hwMatrix& x,
-                   const hwMatrix& y,
-                   double&         integral)
+hwMathStatus TrapZ(const hwMatrix&  X,
+                   const hwMatrixN& Y,
+                   int              dim,
+                   hwMatrixN&       integral)
 {    
-    if (!x.IsReal())
+    if (!X.IsReal())
     {
         return hwMathStatus(HW_MATH_ERR_COMPLEX, 1);
     }
-    if (!x.IsEmptyOrVector())
+
+    if (!X.IsEmptyOrVector())
     {
         return hwMathStatus(HW_MATH_ERR_VECTOR, 1);
     }
 
-    if (!y.IsReal())
+    if (!Y.IsReal())
     {
         return hwMathStatus(HW_MATH_ERR_COMPLEX, 2);
     }
-    if (!y.IsEmptyOrVector())
+
+    const std::vector<int>& dims = Y.Dimensions();
+    int numDim = static_cast<int>(dims.size());
+
+    if (dim == -1)
     {
-        return hwMathStatus(HW_MATH_ERR_VECTOR, 2);
+        // use first non-singleton dimension
+        for (int i = 0; i < numDim; ++i)
+        {
+            if (dims[i] != 1)
+            {
+                dim = i;
+                break;
+            }
+
+            dim = 0;
+        }
+    }
+    else if (dim > numDim - 1)
+    {
+        integral.Dimension(dims, hwMatrixN::REAL);
+        integral.SetElements(0.0);
+        return hwMathStatus();
+    }
+    else if (dim < 0)
+    {
+        return hwMathStatus(HW_MATH_ERR_ARRAYDIM, 3);
     }
 
-    int size = x.Size();
-    if (y.Size() != size)
+    int size = X.Size();
+
+    if (dims[dim] != size)
     {
         return hwMathStatus(HW_MATH_ERR_ARRAYSIZE, 1, 2);
     }
 
-    integral = 0.0;
-    for (int k = 1; k < size; k++)
-        integral += 0.5 * (x(k) - x(k-1)) * (y(k) + y(k-1));
+    std::vector<int> newdims = dims;
+
+    if (dim == 0 && numDim == 2 && dims[0] == 0 && dims[1] == 0)
+    {
+        // equivalent of empty sum case
+        newdims[0] = 1;
+        newdims[1] = 1;
+    }
+    else
+    {
+        newdims[dim] = 1;
+    }
+
+    integral.Dimension(newdims, hwMatrixN::REAL);
+
+    if (Y.IsEmpty())
+    {
+        integral.SetElements(0.0);
+        return hwMathStatus();
+    }
+
+    int numVecs = Y.Size() / dims[dim];
+    int stride = Y.Stride(dim);
+    const double* realX = X.GetRealData();
+    std::vector<int> matrixIndex(numDim);
+
+    // operate on each vector along the dimension of interest
+    for (int i = 0; i < numVecs; ++i)
+    {
+        // set the rhsMatrix indices to the first index in each slice
+        int startY = Y.Index(matrixIndex);
+        int startA = integral.Index(matrixIndex);
+        const double* realY = Y.GetRealData() + startY;
+        double* realA = integral.GetRealData() + startA;
+
+        // perform op
+        *realA = TrapZ(realX, realY, stride, size);
+            
+        // advance slice indices
+        for (int j = 0; j < numDim; ++j)
+        {
+            if (j == dim)
+                continue;
+
+            // increment index j if possible
+            if (matrixIndex[j] < static_cast<int> (dims[j]) - 1)
+            {
+                ++matrixIndex[j];
+                break;
+            }
+
+            // index j is maxed out, so reset and continue to j+1
+            matrixIndex[j] = 0;
+        }
+    }
 
     return hwMathStatus();
 }
 //------------------------------------------------------------------------------
 // Computes cumulative integral using trapezoidal method and returns status
 //------------------------------------------------------------------------------
-hwMathStatus CumTrapZ(const hwMatrix& x,
-                      const hwMatrix& y,
-                      hwMatrix&       integral)
+hwMathStatus CumTrapZ(const hwMatrix&  X,
+                      const hwMatrixN& Y,
+                      int              dim,
+                      hwMatrixN&       integral)
 {
-    if (!x.IsReal())
+    if (!X.IsReal())
     {
         return hwMathStatus(HW_MATH_ERR_COMPLEX, 1);
     }
-    if (!x.IsEmptyOrVector())
+
+    if (!X.IsEmptyOrVector())
     {
         return hwMathStatus(HW_MATH_ERR_VECTOR, 1);
     }
 
-    if (!y.IsReal())
+    if (!Y.IsReal())
     {
         return hwMathStatus(HW_MATH_ERR_COMPLEX, 2);
     }
-    if (!y.IsEmptyOrVector())
+
+    const std::vector<int>& dims = Y.Dimensions();
+    int numDim = static_cast<int>(dims.size());
+
+    if (dim == -1)
     {
-        return hwMathStatus(HW_MATH_ERR_VECTOR, 2);
+        // use first non-singleton dimension
+        for (int i = 0; i < numDim; ++i)
+        {
+            if (dims[i] != 1)
+            {
+                dim = i;
+                break;
+            }
+
+            dim = 0;
+        }
+    }
+    else if (dim > numDim - 1)
+    {
+        integral.Dimension(dims, hwMatrixN::REAL);
+        integral.SetElements(0.0);
+        return hwMathStatus();
+    }
+    else if (dim < 0)
+    {
+        return hwMathStatus(HW_MATH_ERR_ARRAYDIM, 3);
     }
 
-    int size = x.Size();
-    if (y.Size() != size)
+    int size = X.Size();
+
+    if (dims[dim] != size)
     {
         return hwMathStatus(HW_MATH_ERR_ARRAYSIZE, 1, 2);
     }
 
-    hwMathStatus status = integral.Dimension(x.M(), x.N(), hwMatrix::REAL);
+    integral.Dimension(dims, hwMatrixN::REAL);
 
-    if (!status.IsOk())
+    if (integral.IsEmpty())
     {
-        if (status.GetArg1() == 0)
+        return hwMathStatus();
+    }
+
+    int numVecs = Y.Size() / dims[dim];
+    int stride = Y.Stride(dim);
+    const double* realX = X.GetRealData();
+    std::vector<int> matrixIndex(numDim);
+
+    // operate on each vector along the dimension of interest
+    for (int i = 0; i < numVecs; ++i)
+    {
+        // set the rhsMatrix indices to the first index in each slice
+        int start = Y.Index(matrixIndex);
+        const double* realY = Y.GetRealData() + start;
+        double* realA = integral.GetRealData() + start;
+
+        // perform op
+        CumTrapZ(realX, realY, stride, size, realA);
+
+        // advance slice indices
+        for (int j = 0; j < numDim; ++j)
         {
-            status.SetArg1(3);
+            if (j == dim)
+                continue;
+
+            // increment index j if possible
+            if (matrixIndex[j] < static_cast<int> (dims[j]) - 1)
+            {
+                ++matrixIndex[j];
+                break;
+            }
+
+            // index j is maxed out, so reset and continue to j+1
+            matrixIndex[j] = 0;
         }
-        else
-        {
-            status.ResetArgs();
-        }
-        return status;
     }
 
-    if (size)
-    {
-        integral(0) = 0.0;
-    }
-
-    for (int k = 1; k < size; k++)
-    {
-        integral(k) = integral(k-1) + 0.5 * (x(k) - x(k-1)) * (y(k) + y(k-1));
-    }
-    return status;
+    return hwMathStatus();
 }
 //------------------------------------------------------------------------------
 // Computes integral using adaptive quadrature and returns status

@@ -14,6 +14,7 @@
 * Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 #include "hwMatrix.h"
+#include "hwMatrixN.h"
 #include "DistributionFuncs.h"
 
 #include <sys/timeb.h>
@@ -40,10 +41,10 @@
 #include "hwMathStatus.h"
 
 #ifndef OS_WIN
-#if defined(OS_UNIX) || defined(_DARWIN)
+#if defined(OS_UNIX) 
 #define _ftime ftime
 #define _timeb timeb
-#endif // _DARWIN
+#endif 
 static void ftime_s_wrapper(struct _timeb *timeptr)
 {
     _ftime(timeptr);
@@ -4426,6 +4427,63 @@ hwMathStatus PoissonRnd(const hwMatrix&         Lambda,
     }
 
     return status;
+}
+//------------------------------------------------------------------------------
+// Generate a random integer on [0:s)
+//------------------------------------------------------------------------------
+#pragma warning(disable:4146)
+
+uint32_t RandInteger(uint32_t s, hwMersenneTwisterState* pMTState)
+{
+    // Fast Random Integer Generation in an Interval,
+    // DANIEL LEMIRE, Université du Québec(TELUQ), Canada
+    // uint32_t max = static_cast<int64_t>(pow(2, 32));
+    uint32_t x = pMTState->NextValue();
+    uint64_t m = static_cast<uint64_t>(x) * static_cast<uint64_t>(s);
+    uint32_t l = static_cast<int32_t>(m);
+
+    if (l < s)
+    {
+        uint32_t t = -s % s;     // = (2^32 - s) % s; disable:4146 applies
+
+        while (l < t)
+        {
+            x = pMTState->NextValue();
+            m = static_cast<int64_t>(x) * static_cast<int64_t>(s);
+            l = static_cast<int32_t>(m);
+        }
+    }
+
+    return static_cast<uint32_t>(m >> 32);
+}
+//------------------------------------------------------------------------------
+// Generate a random integers on [min:max]
+//------------------------------------------------------------------------------
+hwMathStatus RandIntegers(int                     min,
+                          int                     max,
+                          hwMersenneTwisterState* pMTState,
+                          hwMatrixN&              integers)
+{
+    if (max < min)
+    {
+        return hwMathStatus(HW_MATH_ERR_INVALIDINTERVAL, 1, 2);
+    }
+
+    if (!pMTState || !pMTState->Initialized())
+    {
+        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 3);
+    }
+
+    int s = max - min + 1;
+    int numPts = integers.Size();
+
+    for (int i = 0; i < numPts; ++i)
+    {
+        integers(i) = static_cast<double> (min +
+                      static_cast<int> (RandInteger(s, pMTState)));
+    }
+
+    return hwMathStatus();
 }
 //------------------------------------------------------------------------------
 // Generate a random permutation vector on [1:max]

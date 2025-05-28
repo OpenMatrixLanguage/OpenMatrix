@@ -300,6 +300,8 @@ public:
     void Identity();
     //! Generate a diagonal matrix or extract a diagonal from a matrix
     hwMathStatus Diag(const hwTMatrix<T1, T2>& source, int k);
+    //! Reverse the vectors along a direction
+    hwMathStatus FlipVectors(const hwTMatrix<T1, T2>& source, int dim = -1);
     //! Transpose the matrix in place
     hwMathStatus Transpose();
     //! Transpose the matrix argument

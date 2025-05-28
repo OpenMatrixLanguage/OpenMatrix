@@ -160,6 +160,23 @@ STATISTICS_DECLS hwMathStatus Median(const hwMatrix& data,
 STATISTICS_DECLS hwMathStatus Median(const hwMatrix& A,
                                      hwMatrix&       median);
 //!
+//! \param A            Input
+//! \param nb           number of points to the left
+//! \param na           number of points to the right
+//! \param dim          dimension on which to operate
+//! \param includeNaN   include or omit NaN values
+//! \param endproperty  window overlap handling
+//! \param userVal      value for endproperty = 'userval'
+//! \param median
+STATISTICS_DECLS hwMathStatus MovMedian(const hwMatrixN&   data,
+                                        int                nb,
+                                        int                na,
+                                        int                dim,
+                                        bool               includeNaN,
+                                        const std::string& endproperty,
+                                        double             userVal,
+                                        hwMatrixN&         median);
+//!
 //! Compute the quantiles of the columns of a real matrix
 //! \param A        Input
 //! \param P        Probabilities for the quantiles

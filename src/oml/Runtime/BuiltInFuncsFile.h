@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsFile.h
 * @date March 2016
-* Copyright (C) 2016-2022 Altair Engineering, Inc.  
+* Copyright (C) 2016-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -159,6 +159,13 @@ public:
     //! \param 0 based column
     //!
     static void GetRowColInfo(const std::string&, const std::string&, int&, int&);
+    //!
+    //! Returns file contents as a string [fileread]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //! 
+    static bool Fileread(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 
 private:
     //!

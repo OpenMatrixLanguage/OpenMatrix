@@ -1083,12 +1083,12 @@ hwMathStatus MovMean(const hwMatrixN&   A,
 
     if (nb < 0)
     {
-        return hwMathStatus(HW_MATH_ERR_NEGATIVE, 2);
+        return hwMathStatus(HW_MATH_ERR_NONNONNEGINT, 2);
     }
 
     if (na < 0)
     {
-        return hwMathStatus(HW_MATH_ERR_NEGATIVE, 3);
+        return hwMathStatus(HW_MATH_ERR_NONNONNEGINT, 3);
     }
 
     if (dim < 0)
@@ -1116,14 +1116,13 @@ hwMathStatus MovMean(const hwMatrixN&   A,
         return hwMathStatus();
     }
 
+    xBar.SetElements(0.0);
+
     int numVecs = A.Size() / dims[dim];
     int stride = A.Stride(dim);
     std::vector<int> rhsMatrixIndex(numDim);
 
-    xBar.SetElements(0.0);
-
-    enum MovMeanEndType { SHRINK, DISCARD, SAME, USERVAL, PERIODIC };
-    MovMeanEndType endtype;
+    MovingWindowEndType endtype;
 
     if (endproperty == "shrink")
         endtype = SHRINK;
@@ -1802,6 +1801,141 @@ hwMathStatus Median(const hwMatrix& A, hwMatrix& median)
     return status;
 }
 //------------------------------------------------------------------------------
+// Compute the moving median
+//------------------------------------------------------------------------------
+hwMathStatus MovMedian(const hwMatrixN&   data,
+                       int                nb,
+                       int                na,
+                       int                dim,
+                       bool               includeNaN,
+                       const std::string& endproperty,
+                       double             userVal,
+                       hwMatrixN&         median)
+{
+    if (!data.IsReal())
+    {
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 1);
+    }
+
+    if (nb < 0)
+    {
+        return hwMathStatus(HW_MATH_ERR_NONNONNEGINT, 2);
+    }
+
+    if (na < 0)
+    {
+        return hwMathStatus(HW_MATH_ERR_NONNONNEGINT, 3);
+    }
+
+    int winSize = nb + na + 1;
+
+    hwMatrix window(winSize, hwMatrix::REAL);
+    std::vector<int> unsortedIdx(winSize);   // unsorted index for each sorted window index
+    std::vector<int> sortedIdx(winSize);     // sorted index for each unsorted window index
+
+    const std::vector<int>& dims = data.Dimensions();
+    int numDim = static_cast<int> (dims.size());
+
+    if (dim == -1)
+    {
+        // first non-singleton
+        for (int i = 0; i < numDim; ++i)
+        {
+            if (dims[i] != 1)
+            {
+                dim = i;
+                break;
+            }
+        }
+    }
+    else if (dim < 0 || dim > numDim - 1)
+    {
+        return hwMathStatus(HW_MATH_ERR_INVALIDINDEX, 4);
+    }
+
+    MovingWindowEndType endtype;
+
+    if (endproperty == "shrink")
+        endtype = SHRINK;
+    else if (endproperty == "discard")
+        endtype = DISCARD;
+    else if (endproperty == "same")
+        endtype = SAME;
+    else if (endproperty == "periodic")
+        endtype = PERIODIC;
+    else if (endproperty == "userval")
+        endtype = USERVAL;
+    else if (endproperty == "fill")
+    {
+        endtype = USERVAL;
+        userVal = std::numeric_limits<double>::quiet_NaN();
+    }
+    else
+        return hwMathStatus(HW_MATH_ERR_INVALIDINPUT, 6);
+
+    median.Dimension(dims, hwMatrixN::REAL);
+
+    if (median.IsEmpty())
+    {
+        return hwMathStatus();
+    }
+
+    int numVecs = data.Size() / dims[dim];
+    int stride = data.Stride(dim);
+    std::vector<int> matrixIndex(numDim);
+
+    for (int i = 0; i < numVecs; ++i)
+    {
+        // set the matrix indices to the first index in each slice
+        int start = data.Index(matrixIndex);
+        const double* pData = data.GetRealData() + start;
+        double* pMedian = median.GetRealData() + start;
+
+        // compute median
+        MovingMedianHelper(pData, dims[dim], stride, window, nb, includeNaN,
+                           endtype, userVal, unsortedIdx, sortedIdx, pMedian);
+
+        // advance slice indices
+        for (int j = 0; j < numDim; ++j)
+        {
+            if (j == dim)
+                continue;
+
+            // increment index j if possible
+            if (matrixIndex[j] < static_cast<int> (dims[j]) - 1)
+            {
+                ++matrixIndex[j];
+                break;
+            }
+
+            // index j is maxed out, so reset and continue to j+1
+            matrixIndex[j] = 0;
+        }
+    }
+
+    if (endproperty == "discard")
+    {
+        std::vector<hwSliceArg> sliceArg;
+        std::vector<int> vec(dims[dim] - (nb + na));
+
+        for (int i = nb; i < dims[dim] - na; ++i)
+            vec[i - nb] = i;
+
+        for (int i = 0; i < dim; ++i)
+            sliceArg.push_back(hwSliceArg());
+
+        sliceArg.push_back(vec);
+
+        for (int i = dim + 1; i < numDim; ++i)
+            sliceArg.push_back(hwSliceArg());
+
+        hwMatrixN copy(median);
+        copy.SliceRHS(sliceArg, median);
+    }
+
+    return hwMathStatus();
+}
+//------------------------------------------------------------------------------
 // Compute the quantiles of the columns of a sorted real matrix
 //------------------------------------------------------------------------------
 hwMathStatus Quantile(const hwMatrix& A,
@@ -1917,31 +2051,31 @@ hwMathStatus Quantile(const hwMatrix& A,
                     break;
             }
 
-            double alpha = P(i) * (n - nanCount) + m;
-            double g = alpha - floor(alpha);
-            int j = static_cast<int>(alpha) - 1;
-            double gamma;
+        double alpha = P(i) * (n - nanCount) + m;
+        double g = alpha - floor(alpha);
+        int j = static_cast<int>(alpha) - 1;
+        double gamma;
 
-            switch (method)
-            {
-            case 1:
-                gamma = (g == 0.0) ? 0.0 : 1.0;
-                break;
-            case 2:
-                gamma = (g == 0.0) ? 0.5 : 1.0;
-                break;
-            case 3:
-                gamma = (g == 0.0 && j % 2 == 1) ? 0.0 : 1.0;
-                break;
-            case 4:
-            case 5:
-            case 6:
-            case 7:
-            case 8:
-            case 9:
-                gamma = g;
-                break;
-            }
+        switch (method)
+        {
+        case 1:
+            gamma = (g == 0.0) ? 0.0 : 1.0;
+            break;
+        case 2:
+            gamma = (g == 0.0) ? 0.5 : 1.0;
+            break;
+        case 3:
+            gamma = (g == 0.0 && j % 2 == 1) ? 0.0 : 1.0;
+            break;
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+            gamma = g;
+            break;
+        }
 
             Q(i, k) = (1.0 - gamma) * A(j, k) + gamma * A(j + 1, k);
         }

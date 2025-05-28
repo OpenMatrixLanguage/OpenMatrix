@@ -1,7 +1,7 @@
 /**
 * @file BoundClassInfo.h
 * @date October 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -85,6 +85,9 @@ private:
     std::map<std::string, FUNCPTR>* _methods;    //!<  name-func: Methods
     std::vector<BoundProperty*>*    _properties; //!<  Properties
 
+    BoundClassInfo(const BoundClassInfo&);             // Stubbed out 
+    BoundClassInfo& operator=(const BoundClassInfo&);  // Stubbed out
+
     //!
     //! Gets property
     //! \param name Property name
@@ -119,6 +122,10 @@ private:
                    FUNCPTR            getter,
                    FUNCPTR            setter)
                    : _name(name), _getter(getter), _setter(setter) {}
+
+    BoundProperty(const BoundProperty&);             // Stubbed out 
+    BoundProperty& operator=(const BoundProperty&);  // Stubbed out
+
 };
 #endif // __BOUNDCLASSINFO_H__
 

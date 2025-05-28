@@ -1,7 +1,7 @@
 /**
 * @file utf8utils.cpp
 * @date August 2019
-* Copyright (C) 2019 Altair Engineering, Inc.  
+* Copyright (C) 2019 - 2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -19,7 +19,7 @@
 //------------------------------------------------------------------------------
 // Outputs the largest of the dimensions of the input
 //------------------------------------------------------------------------------
-size_t utf8_get_char_size(unsigned char* ptr)
+size_t utf8_get_char_size(const unsigned char* ptr)
 {
 	if ((*ptr & 0x80) == 0)
 		return 1;
@@ -66,7 +66,7 @@ size_t utf8_strlen(unsigned char* ptr)
 //------------------------------------------------------------------------------
 // Converts nominal index to byte position
 //------------------------------------------------------------------------------
-size_t utf8_byte_position_from_index(unsigned char* ptr, size_t index)
+size_t utf8_byte_position_from_index(const unsigned char* ptr, size_t index)
 {
 	int internal_index = 0;
 

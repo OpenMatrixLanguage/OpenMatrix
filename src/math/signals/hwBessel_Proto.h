@@ -16,8 +16,12 @@
 #ifndef _Signals_hwBessel_Proto_h
 #define _Signals_hwBessel_Proto_h
 
+// forward declarations
+template <typename T> class hwTComplex;
+template <typename T1, typename T2> class hwTMatrix;
+typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
+
 #include "hwLowPass_Proto.h"
-#include "hwMatrix.h"
 
 //------------------------------------------------------------------------------
 //!
@@ -55,10 +59,15 @@ public:
     void GetSPlaneInfo(int     i, 
                        double& poleReal, 
                        double& poleMagSq) const;
+    //!
+    //! Compute the poles
+    //! \param poles
+    //!
+    void GetSPlaneInfo(hwMatrix& poles) const;
 
 private:
-    double   m_scale;   //!< Scale
-    hwMatrix m_roots;   //!< Roots
+    double    m_scale;   //!< Scale
+    hwMatrix* m_roots;   //!< Roots
 };
 
 #endif // _Signals_hwBessel_Proto_h

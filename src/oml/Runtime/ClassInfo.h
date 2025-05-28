@@ -1,7 +1,7 @@
 /**
 * @file ClassInfo.h
 * @date March 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -36,7 +36,7 @@ class OMLDLL_DECLS ClassInfo
 public:
     //! Constructor
     //! \param[in] name Name of the external C++ class
-    ClassInfo( const std::string& name) : _class_name(name), _constructor(NULL) {}
+    ClassInfo( const std::string& name) : _class_name(name), _constructor(NULL) {} // cppcheck-suppress noExplicitConstructor
     //! Destructor
     ~ClassInfo();
 
@@ -79,9 +79,9 @@ public:
     //! \param[in] name Name of the property
     bool IsPropertyPrivate( const std::string& name) const;
 	//! Registers a default for a property
-	//! \param[in] name      Property name
-	//! \param[in] value     The default value for the property
-	void AddPropertyDefault(const std::string& name,  Currency value);
+	//! \param[in] Property name
+	//! \param[in] The default value for the property
+	void AddPropertyDefault(const std::string&, const Currency&);
 
     void SetConstructorFunctionInfo(FunctionInfo* cfi);
     FunctionInfo* GetConstructorFunctionInfo() const;
@@ -113,7 +113,7 @@ public:
     //! \param[in] isPrivate True if property is private, defaults to false
     PropertyInfo( const std::string& name,
                   bool               isPrivate = false) 
-        : _name (name), _isPrivate (isPrivate) {}
+        : _name (name), _isPrivate (isPrivate) {} // cppcheck-suppress noExplicitConstructor
     //! Destructor
     ~PropertyInfo() {}
 

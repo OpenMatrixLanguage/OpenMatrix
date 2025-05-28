@@ -119,8 +119,8 @@ void checkMathStatus(EvaluatorInterface& eval, hwMathStatus stat);  // also decl
 // 2D support for sort function
 template <typename T1, typename T2>
 inline Currency oml_Matrix_sort(EvaluatorInterface& eval, const hwTMatrix<T1, T2>* mtx, int dim,
-                    hwTMatrix<T1, T2>* (*func)(EvaluatorInterface&, const hwTMatrix<T1, T2>*, std::pair<int&, hwMatrix*>*),
-                    std::pair<int&, hwMatrix*>* index_data)
+                    hwTMatrix<T1, T2>* (*func)(EvaluatorInterface&, const hwTMatrix<T1, T2>*, int, hwMatrix*),
+                    hwMatrix& indices)
 {
     // todo: evolve function to be more parallel to oml_MatrixNUtil4, at least the signature
     int i;
@@ -139,7 +139,7 @@ inline Currency oml_Matrix_sort(EvaluatorInterface& eval, const hwTMatrix<T1, T2
                 BuiltInFuncsUtils::CheckMathStatus(eval, stat);
             }
 
-            hwTMatrix<T1, T2>* temp = (*func)(eval, col, index_data);
+            hwTMatrix<T1, T2>* temp = (*func)(eval, col, i, &indices);
             if (!i)
                 result = new hwTMatrix<T1, T2>(temp->Size(), mtx->N(), hwTMatrix<T1, T2>::REAL);
 
@@ -162,7 +162,64 @@ inline Currency oml_Matrix_sort(EvaluatorInterface& eval, const hwTMatrix<T1, T2
                 BuiltInFuncsUtils::CheckMathStatus(eval, stat);
             }
 
-            hwTMatrix<T1, T2>* temp = (*func)(eval, row, index_data);
+            hwTMatrix<T1, T2>* temp = (*func)(eval, row, i, &indices);
+            if (!i)
+                result = new hwTMatrix<T1, T2>(mtx->M(), temp->Size(), hwTMatrix<T1, T2>::REAL);
+
+            writeRow(eval, result, temp, i);
+            delete temp;
+        }
+        return i ? result : new hwTMatrix<T1, T2>(0, 0, hwTMatrix<T1, T2>::REAL);
+    }
+}
+
+// 2D support for maxk / mink functions
+template <typename T1, typename T2>
+inline Currency oml_Matrix_partial_sort(EvaluatorInterface& eval, const hwTMatrix<T1, T2>* mtx, int k, int dim,
+            hwTMatrix<T1, T2>* (*func)(EvaluatorInterface&, const hwTMatrix<T1, T2>*, int, int, hwMatrix*),
+            hwMatrix& indices)
+{
+    // todo: evolve function to be more parallel to oml_MatrixNUtil4, at least the signature
+    int i;
+    hwTMatrix<T1, T2>* result;
+    if (dim == 1)
+    {
+        hwTMatrix<T1, T2>* col = new hwTMatrix<T1, T2>;
+        Currency colcur(col);
+        for (i = 0; i < mtx->N(); ++i)
+        {
+            hwMathStatus stat = mtx->ReadColumn(i, *col);
+            if (!stat.IsOk())
+            {
+                if (i)
+                    delete result;
+                BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+            }
+
+            hwTMatrix<T1, T2>* temp = (*func)(eval, col, k, i, &indices);
+            if (!i)
+                result = new hwTMatrix<T1, T2>(temp->Size(), mtx->N(), hwTMatrix<T1, T2>::REAL);
+
+            writeCol(eval, result, temp, i);
+            delete temp;
+        }
+        return i ? result : new hwTMatrix<T1, T2>(0, 0, hwTMatrix<T1, T2>::REAL);
+    }
+    else // dim == 2
+    {
+        hwTMatrix<T1, T2>* row = new hwTMatrix<T1, T2>;
+        Currency rowcur(row);
+        for (i = 0; i < mtx->M(); ++i)
+        {
+            hwMathStatus stat = mtx->ReadRow(i, *row);
+            if (!stat.IsOk())
+            {
+                if (i)
+                    delete result;
+                BuiltInFuncsUtils::CheckMathStatus(eval, stat);
+            }
+
+            hwTMatrix<T1, T2>* temp = (*func)(eval, row, k, i, &indices);
             if (!i)
                 result = new hwTMatrix<T1, T2>(mtx->M(), temp->Size(), hwTMatrix<T1, T2>::REAL);
 

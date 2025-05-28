@@ -1,7 +1,7 @@
 /**
 * @file BoundClassInfo.cpp
 * @date October 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -79,7 +79,6 @@ FUNCPTR BoundClassInfo::GetMethod(const std::string& name) const
         return prop->_getter;
 
     throw OML_Error("Error: Unknown method: " + name);
-    return nullptr;
 }
 //------------------------------------------------------------------------------
 //! Adds a property
@@ -103,7 +102,7 @@ bool BoundClassInfo::HasProperty(const std::string& name) const
     for (std::vector<BoundProperty*>::const_iterator itr = _properties->begin();
          itr != _properties->end(); ++itr)
     {
-        if ((*itr)->_name == name) 
+        if ((*itr)->_name == name) // cppcheck-suppress useStlAlgorithm
             return true;
     }
     return false;

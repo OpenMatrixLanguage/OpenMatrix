@@ -28,6 +28,7 @@ class OMLDLL_DECLS OMLTree
 {
 public:
 	OMLTree(int type, const std::string& text, const std::string* filename, int line, int num_children);
+	OMLTree(int type, const std::string& text);
 	~OMLTree();
 
 	OMLTree(const OMLTree&);

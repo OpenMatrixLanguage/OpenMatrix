@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsString.cpp
 * @date November 2015
-* Copyright (C) 2015-2023 Altair Engineering, Inc.  
+* Copyright (C) 2015-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -21,18 +21,21 @@
 #include <cassert>
 #include <iomanip>
 #include <memory>     // For std::unique_ptr
+#include <regex>
 #include <sstream>
 #include <string>
 
+#include "CellND.cc"
 #include "BuiltInFuncsUtils.h"
-#include "CurrencyDisplay.h"
-#include "ErrorInfo.h"
+#include "CellNDisplay.h"
 #include "MatrixDisplay.h"
+#include "MatrixNDisplay.h"
 #include "OML_Error.h"
 #include "OutputFormat.h"
+#include "utf8utils.h"
 
-#include "hwComplex.h"
-#include "hwMatrix.h"
+#include "hwMatrix_NMKL.h"
+#include "hwMatrixS_NMKL.h"
 
 // End defines/includes
 
@@ -124,10 +127,6 @@ void BuiltInFuncsString::StrvcatHelperCellArray(EvaluatorInterface        eval,
                                                 std::vector<std::string>& out)
 {
     int numelem = cell ? cell->Size() : 0;
-
-    std::vector <std::string> outstr;
-    if (numelem == 0) return; // Should never get into this situation
-
     for (int i = 0; i < numelem; ++i)
     {
         const Currency& cur ((*cell)(i));
@@ -327,7 +326,6 @@ bool BuiltInFuncsString::hml_blanks(EvaluatorInterface           eval,
     if (val < 0 || IsInf_T(val) || IsNaN_T(val) || IsNegInf_T (val))
         throw OML_Error(OML_ERR_FINITE_NATURALNUM);
 
-    hwMatrix* mtx = 0;
     int n = static_cast<int>(val);
     std::string str;
     if (n != 0) 
@@ -396,11 +394,8 @@ bool BuiltInFuncsString::Sscanf(EvaluatorInterface           eval,
     std::vector<bool>        skipfmt;  // True if format is skipped e.g "%*s"
         
     bool showwarn = false;
-    if (!ParseFormat(fmtdesc, basefmt, fullfmt, skipfmt, showwarn))
-    {
-        throw OML_Error(OML_ERR_FORMAT, 2);
-    }
-    else if (showwarn)
+    ParseFormat(fmtdesc, basefmt, fullfmt, skipfmt, showwarn);
+    if (showwarn)
     {
         BuiltInFuncsUtils::SetWarning(eval,
             "Warning: invalid format specified in argument 2; valid formats are %d, %f, %g and %s");
@@ -430,7 +425,6 @@ bool BuiltInFuncsString::Sscanf(EvaluatorInterface           eval,
             bool skip = skipfmt[i];
             std::string base(basefmt[i]);
             std::string fmt(*itr);
-            std::string stringread;
 
             bool result = Sscanf(in, fmt, base, skip, values);
             if (!result || in.empty())
@@ -463,7 +457,6 @@ bool BuiltInFuncsString::Sscanf(EvaluatorInterface           eval,
     int    numrows = numvals;
     int    numcols = 1;
     double rawnumcols = 1.0;
-    size_t firstusablefmt = 0;
     size_t nfmts = 0;
     bool isfirstStringFmt = false;
     size_t i = 0;
@@ -693,13 +686,13 @@ bool BuiltInFuncsString::Mat2Str(EvaluatorInterface           eval,
                 {
                     std::ostringstream os;
                     os << std::fixed << val;
-                    std::string tmp (os.str());
-                    size_t pos = tmp.find(".");
+                    std::string tmp0 (os.str());
+                    size_t pos = tmp0.find(".");
                     if (pos != std::string::npos)
                     {
-                        std::string tmp1 = tmp.substr(0, pos);
-                        std::string tmp2 = tmp.substr(pos);
-                        double decval = atoi(tmp.c_str());
+                        std::string tmp1 = tmp0.substr(0, pos);
+                        //std::string tmp2 = tmp.substr(pos);
+                        double decval = atoi(tmp0.c_str());
                         decval = ceil(decval);
                         os.str("");
                         os.clear();
@@ -779,13 +772,13 @@ bool BuiltInFuncsString::Mat2Str(EvaluatorInterface           eval,
                 {
                     std::ostringstream os;
                     os << std::fixed << ival;
-                    std::string tmp (os.str());
-                    size_t pos = tmp.find(".");
+                    std::string tmp0 (os.str());
+                    size_t pos = tmp0.find(".");
                     if (pos != std::string::npos)
                     {
-                        std::string tmp1 = tmp.substr(0, pos);
-                        std::string tmp2 = tmp.substr(pos);
-                        double decval = atoi(tmp.c_str());
+                        std::string tmp1 = tmp0.substr(0, pos);
+                        //std::string tmp2 = tmp.substr(pos);
+                        double decval = atoi(tmp0.c_str());
                         decval = ceil(decval);
                         os.str("");
                         os.clear();
@@ -849,7 +842,6 @@ bool BuiltInFuncsString::Regexprep(EvaluatorInterface           eval,
     std::vector<std::string> srcvec (funcs.Currency2StringVec(inputs[0], 1));
     std::vector<std::string> patvec (funcs.Currency2StringVec(inputs[1], 2));
     std::vector<std::string> repvec (funcs.Currency2StringVec(inputs[2], 3));
-    std::vector<std::string> opts;
 
     std::regex_constants::match_flag_type replaceflag =
         std::regex_constants::match_default;
@@ -928,12 +920,12 @@ bool BuiltInFuncsString::Regexprep(EvaluatorInterface           eval,
                 // * in the pattern causes a zero search. So replace
                 // with + which includes the rest of the characters
                 size_t len = pat.size();
-                std::string tmp;
+                //std::string tmp;
                 for (size_t k = 0; k < len; ++k)
                 {
                     char ch = pat[k];
                     if (ch != '*' ||
-                        (ch == '*' && ((k > 0 && pat[k - 1] == '\\') || emptymatch)))
+                        ((k > 0 && pat[k - 1] == '\\') || emptymatch))
                     {
                         continue;
                     }
@@ -1996,11 +1988,10 @@ bool BuiltInFuncsString::Strip(EvaluatorInterface eval,
     }
 
     std::vector<std::string> trim;
-    bool isstring3 = true;
     if (nargin > 2)
     {
         const Currency& cur3 = inputs[2];
-        isstring3 = cur3.IsString();
+        bool isstring3 = cur3.IsString();
         if (!isstring3 && !cur3.IsCellArray())
         {
             throw OML_Error(OML_ERR_STRING_STRINGCELL, 3);
@@ -2227,7 +2218,7 @@ void BuiltInFuncsString::RightTrim(std::string&                    in,
             }
             else if (pos + str.length() == in.length())
             {
-                in = in.substr(0, pos);
+                in = in.substr(0, pos); // cppcheck-suppress uselessCallsSubstr
                 itr = trim.erase(itr);
                 continue;
             }
@@ -2239,7 +2230,44 @@ void BuiltInFuncsString::RightTrim(std::string&                    in,
         }
         insize = in.size();
     }
-}//------------------------------------------------------------------------------
+}
+//------------------------------------------------------------------------------
+// Returns true and strips leading/trailing characters from input [strip]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsString::Pad(EvaluatorInterface eval,
+    const std::vector<Currency>& inputs,
+    std::vector<Currency>& outputs)
+{
+    if (inputs.size() != 2)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    Currency string_to_pad = inputs[0];
+    Currency target_width  = inputs[1];
+
+    if (!string_to_pad.IsString())
+        throw OML_Error(OML_ERR_STRING_STRINGCELL, 1);
+
+    if (!target_width.IsScalar())
+        throw OML_Error(OML_ERR_POSITIVE_SCALAR, 1);
+
+    std::string orig_string = string_to_pad.StringVal();
+    int         orig_length = (int)orig_string.length();
+    int         new_width   = (int)target_width.Scalar();
+    std::string out_string;
+
+    for (int j = orig_length; j < new_width; ++j)
+        out_string += " ";
+
+    out_string += orig_string;
+
+    outputs.emplace_back(out_string);
+
+    return true;
+}
+
+//------------------------------------------------------------------------------
 // Returns true if successful in converting string to scalar/complex
 //------------------------------------------------------------------------------
 bool BuiltInFuncsString::IsNumber(const std::string& in, Currency& result)
@@ -2495,7 +2523,7 @@ bool BuiltInFuncsString::IsValidNumericFormat(const std::string& fmt)
     pos = tmp.find(' ');
     if (pos != std::string::npos)
     {
-        tmp = tmp.substr(0, pos);
+        tmp = tmp.substr(0, pos); // cppcheck-suppress uselessCallsSubstr
     }
 
     if (tmp.empty())
@@ -2534,60 +2562,21 @@ bool BuiltInFuncsString::IsValidNumericFormat(const std::string& fmt)
 // Returns a matrix indicating which elements are printable [isprint]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsString::IsPrint(EvaluatorInterface           eval,
-    const std::vector<Currency>& inputs,
-    std::vector<Currency>& outputs)
+                                 const std::vector<Currency>& inputs,
+                                 std::vector<Currency>& outputs)
 {
     if (inputs.size() != 1)
     {
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
-    outputs.emplace_back(IsPrintImpl(inputs[0]));
+    std::string warn;
+    outputs.emplace_back(IsGraphOrPrintImpl(inputs[0], false, warn));
+    if (!warn.empty())
+    {
+        BuiltInFuncsUtils::SetWarning(eval, warn);
+    }
     return true;
-}
-//------------------------------------------------------------------------------
-// Internal implementation of isprint
-//------------------------------------------------------------------------------
-Currency BuiltInFuncsString::IsPrintImpl(const Currency& cur)
-{
-    Currency result(false);
-    if (cur.IsString())
-    {
-        const hwMatrix* mtx = cur.Matrix();
-        int m = mtx->M();
-        int n = mtx->N();
-        std::unique_ptr<hwMatrix> out (
-            EvaluatorInterface::allocateMatrix(m, n, true));
-        for (int i = 0; i < m; ++i)
-        {
-            for (int j = 0; j < n; ++j)
-            {
-                unsigned char ch = static_cast<unsigned char>((*mtx)(i, j));
-                (*out)(i, j) = (isprint(ch) != 0) ? 1 : 0;
-            }
-        }
-        result = out.release();
-        result.SetMask(Currency::MASK_LOGICAL);
-    }
-    else if (cur.IsCellArray())
-    {
-        HML_CELLARRAY* cell = cur.CellArray();
-        int m = cell->M();
-        int n = cell->N();
-        std::unique_ptr<HML_CELLARRAY> out(
-            EvaluatorInterface::allocateCellArray(m, n));
-        for (int i = 0; i < m; ++i)
-        {
-            for (int j = 0; j < n; ++j)
-            {
-                const Currency& child = (*cell)(i, j);
-                (*out)(i, j) = IsPrintImpl((*cell)(i, j));
-            }
-        }
-        result = out.release();
-    }
-
-        return result;
 }
 //------------------------------------------------------------------------------
 // Parse input string to get formats
@@ -2879,10 +2868,9 @@ std::vector<std::string> BuiltInFuncsString::Split(const std::string& input,
     size_t start = 0;
     while (pos < len)
     {
-        std::string token;
         if (pos > start)
         {
-            token = in.substr(start, pos);
+            std::string token = in.substr(start, pos);
             if (!token.empty())
             {
                 vec.emplace_back(token);
@@ -2910,4 +2898,288 @@ std::vector<std::string> BuiltInFuncsString::Split(const std::string& input,
         }
     }
     return vec;
+}
+//------------------------------------------------------------------------------
+// Returns true if double is in valid ascii range (0 - 255)
+//------------------------------------------------------------------------------
+bool BuiltInFuncsString::IsInAsciiRange(double val, bool throwerr, std::string& warn)
+{
+    std::string msg ("Warning: cannot convert to character");
+
+    if (IsNaN_T(val))
+    {
+        if (throwerr)
+        {
+            throw OML_Error(
+                "Error: invalid input in argument 1; cannot convert to character: [NaN]");
+        }
+        warn = (warn.empty()) ? msg + ": [NaN]" : warn;
+        return false;
+    }
+    else if (IsInf_T(val))
+    {
+        warn = (warn.empty()) ? msg + ": [Inf]" : warn;
+        return false;
+    }
+    else if (IsNegInf_T(val))
+    {
+        warn = (warn.empty()) ? msg + ": [-Inf]" : warn;
+        return false;
+    }
+    else if (val < 0 || val > 255)
+    {
+        if (warn.empty())
+        {
+            warn = msg + ": [";
+            Currency cur (val);
+            if (cur.IsInteger())
+            {
+                warn += std::to_string(static_cast<int>(val));
+            }
+            else
+            {
+                warn += std::to_string(val);
+            }
+            warn += "]";
+        }
+        return false;
+    }
+    return true;
+}
+//------------------------------------------------------------------------------
+// Implementation of isgraph/isprint
+//------------------------------------------------------------------------------
+Currency BuiltInFuncsString::IsGraphOrPrintImpl(const Currency& cur, 
+                                                bool            checkspace,
+                                                std::string&    warn)
+{
+    std::string msg ("Warning: cannot convert to character");
+    Currency result(false);
+
+    if (cur.IsString())
+    {
+        const hwMatrix* mtx = cur.Matrix();
+        if (!mtx || mtx->Size() == 0)
+        {
+            return Currency();
+        }
+
+        int m = mtx->M();
+        int n = mtx->N();
+        std::unique_ptr<hwMatrix> out (
+            EvaluatorInterface::allocateMatrix(m, n, true));
+        out->SetElements(1.0);
+        int msize = m * n;
+        for (int i = 0; i < msize;)
+        {
+            double val = (*mtx)(i);
+            if (!IsInAsciiRange(val, false, warn))
+            {
+                (*out)(i) = 0;
+                ++i;
+                continue;
+            }
+            unsigned char ch = static_cast<unsigned char>(val);
+            int charSize = static_cast<int>(utf8_get_char_size(&ch));
+            if (charSize == 1)
+            {
+                if (isprint(ch) == 0 || (checkspace && isspace(ch)))
+                {
+                    (*out)(i) = 0;
+                }
+                ++i;
+                continue;
+            }
+            else
+            {
+                std::string tmp;
+                for (int j = 1; j < charSize; ++j)
+                {
+                    tmp += static_cast<unsigned char>((*mtx)(i + j));
+                }
+                std::wstring wstr (BuiltInFuncsUtils::StdString2WString(tmp));
+                if (!wstr.empty())
+                {
+                    wchar_t wch = wstr [0];
+                    if (iswprint(wch))
+                    {
+                        for (int j = 1; j < charSize; ++j)
+                        {
+                            (*out)(i + j) = 0;
+                        }
+                    }
+                }
+                i += charSize;
+            }
+        }
+        result = out.release();
+    }
+    else if (cur.IsScalar())
+    {
+        double val = cur.Scalar();
+        if (IsInAsciiRange(val, true, warn))
+        {
+            unsigned char ch = static_cast<unsigned char>(val);
+            return (isprint(ch) == 0 || (checkspace && isspace(ch))) ?
+                   result : Currency(true);
+        }
+        return result;
+    }
+    else if (cur.IsComplex() || cur.IsStruct() || cur.IsFunctionHandle() ||
+             cur.IsObject()  || cur.IsBoundObject())
+    {
+        throw OML_Error(OML_ERR_CELLSTRING, 1);
+    }
+    else if (cur.IsSparse())
+    {
+        const hwMatrixS* mtx = cur.MatrixS();
+        if (!mtx || mtx->Size() == 0)
+        {
+            return Currency();
+        }
+        else if (!mtx->IsReal())
+        {
+            throw OML_Error(OML_ERR_CELLSTRING, 1);
+        }
+        int m = mtx->M();
+        int n = mtx->N();
+        std::unique_ptr<hwMatrix> out (
+            EvaluatorInterface::allocateMatrix(m, n, true));
+        out->SetElements(0.0);
+        result = out.release();
+    }
+    else if (cur.IsNDMatrix())
+    {
+        const hwMatrixN* mtx = cur.MatrixN();
+        if (!mtx || mtx->Size() == 0)
+        {
+            return Currency();
+        }
+        else if (!mtx->IsReal())
+        {
+            throw OML_Error(OML_ERR_CELLSTRING, 1);
+        }
+        std::vector<Currency>    slices;
+        std::vector<std::string> labels;
+        MatrixNDisplay::GetSlices(mtx, slices, labels);
+
+        std::unique_ptr<hwMatrixN> out (new hwMatrixN);
+        int index = 0;
+        for (std::vector<Currency>::const_iterator itr = slices.begin();
+             itr != slices.end(); ++itr, ++index)
+        {
+            Currency cur1 = IsGraphOrPrintImpl(*itr, checkspace, warn);
+            assert(cur1.IsMatrix());
+            BuiltInFuncsUtils::SetMatrixNSlice(cur1.Matrix(), index, out.get());
+        }
+        result = out.release();
+    }
+    else if (cur.IsMatrix())
+    {
+        const hwMatrix* mtx = cur.Matrix();
+        if (!mtx || mtx->Size() == 0)
+        {
+            return Currency();
+        }
+        else if (!mtx->IsReal())
+        {
+            throw OML_Error(OML_ERR_CELLSTRING, 1);
+        }
+
+        int m = mtx->M();
+        int n = mtx->N();
+        std::unique_ptr<hwMatrix> out (
+            EvaluatorInterface::allocateMatrix(m, n, true));
+        out->SetElements(1.0);
+        int msize = m * n;
+        for (int i = 0; i < msize; ++i)
+        {
+            double val = (*mtx)(i);
+            if (!IsInAsciiRange(val, false, warn))
+            {
+                (*out)(i) = 0;
+            }
+        }
+        result = out.release();
+    }
+    else if (cur.IsCellArray())
+    {
+        HML_CELLARRAY* cell = cur.CellArray();
+        int m = cell->M();
+        int n = cell->N();
+        std::unique_ptr<HML_CELLARRAY> out(
+            EvaluatorInterface::allocateCellArray(m, n));
+        for (int i = 0; i < m; ++i)
+        {
+            for (int j = 0; j < n; ++j)
+            {
+                const Currency& child = (*cell)(i, j);
+                (*out)(i, j) = IsGraphOrPrintImpl((*cell)(i, j), checkspace, warn);
+            }
+        }
+        result = out.release();
+    }
+    else if (cur.IsNDCellArray())
+    {
+        HML_ND_CELLARRAY* cells = cur.CellArrayND();
+        std::vector<int> dims = cells ? cells->Dimensions() : std::vector<int>();
+        if (dims.empty())
+        {
+            return Currency(false);
+        }
+        std::vector<Currency>    slices;
+        std::vector<std::string> labels;
+        CellNDisplay::GetSlices(cur.CellArrayND(), slices, labels);
+
+        std::unique_ptr<HML_ND_CELLARRAY> LHS (
+            EvaluatorInterface::allocateNDCellArray(dims));        
+
+        int index = 0;
+        for (std::vector<Currency>::const_iterator itr = slices.begin();
+                itr != slices.end(); ++itr)
+        {
+            Currency child = IsGraphOrPrintImpl(*itr, checkspace, warn);
+            if (!child.IsCellArray())
+            {
+                continue;
+            }
+            HML_ND_CELLARRAY* temp = EvaluatorInterface::allocateNDCellArray();
+            temp->Convert2DtoND(*child.CellArray());
+
+            std::vector<hwSliceArg> slices1;
+            slices1.push_back(hwSliceArg());
+            slices1.push_back(hwSliceArg());
+            slices1.push_back(index);
+
+            LHS->SliceLHS(slices1, *temp);
+
+            index++;
+        }
+
+        result = LHS.release();
+    }
+    result.SetMask(Currency::MASK_LOGICAL);
+
+    return result;
+}
+//------------------------------------------------------------------------------
+// Returns a matrix indicating which elements are printable and not spaces [isgraph]
+//------------------------------------------------------------------------------
+bool BuiltInFuncsString::IsGraph(EvaluatorInterface           eval,
+                                 const std::vector<Currency>& inputs,
+                                 std::vector<Currency>& outputs)
+{
+    if (inputs.size() != 1)
+    {
+        throw OML_Error(OML_ERR_NUMARGIN);
+    }
+
+    std::string warn;
+    outputs.emplace_back(IsGraphOrPrintImpl(inputs [0], true, warn));
+    if (!warn.empty())
+    {
+        BuiltInFuncsUtils::SetWarning(eval, warn);
+    }
+
+    return true;
 }

@@ -1,7 +1,7 @@
 /**
 * @file SparseDisplay.h
 * @date June, 2019
-* Copyright (C) 2019-2020 Altair Engineering, Inc.
+* Copyright (C) 2019-2024 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -44,39 +44,32 @@ public:
 
     //!
     //! Gets number of rows and cols in given currency
-    //! \param rows Number of rows
-    //! \param cols Number of columns
+    //! \param Number of rows
+    //! \param Number of columns
     //!
-    virtual void GetCurrencySize(int& rows,
-                                 int& cols) const;
+    virtual void GetCurrencySize(int&, int&) const override;
     //!
     //! Gets values as a string
-    //! \param fmt Output format
+    //! \param Output format
     //!
-    virtual std::string GetValues(const OutputFormat* fmt) const;
-
+    virtual std::string GetValues(const OutputFormat*) const override;
     //!
     //! Initialize
-    //! \param fmt    Output format   
-    //! \param interp Interpreter
-    //! \param parent Parent display
+    //! \param Output format   
+    //! \param Interpreter
+    //! \param Parent display
     //!
-    virtual void Initialize(const OutputFormat* fmt,
-                            Interpreter*        interp,
-                            CurrencyDisplay*    parent = 0);
+    virtual void Initialize(const OutputFormat*, Interpreter*, CurrencyDisplay* = 0) override;
+
 protected:
     //!
     //! Sets data for forward pagination
     //!
-    virtual void SetForwardDisplayData();
+    virtual void SetForwardDisplayData() override;
     //!
     //! Sets data for back pagination
     //!
-    virtual void SetBackDisplayData();
-    ////!
-    ////! Gets values as a string
-    ////! \param fmt Output format
-    ////!
+    virtual void SetBackDisplayData() override;
 
 private:
     mutable int _realwidth;                //!< Widest real value width
@@ -87,52 +80,46 @@ private:
 
     //!
     //! Constructor - Only currency is allowed to construct
-    //! \param cur Currency associated with this display
+    //! \param Currency associated with this display
     //!
     SparseDisplay(const Currency& cur);
 
     // Stubbed out default, copy constructors and assignment operator
-    SparseDisplay();
-    SparseDisplay(const SparseDisplay& src);
-    SparseDisplay& operator=(const SparseDisplay& src);
+    SparseDisplay(); // cppcheck-suppress noExplicitConstructor 
+    SparseDisplay(const SparseDisplay&);
+    SparseDisplay& operator=(const SparseDisplay&);
 
     //!
     //! Gets output
-    //! \param fmt Output format
-    //! \param os  Output stream
+    //! \param Output format
+    //! \param Output stream
     //!
-    virtual std::string GetOutput(const OutputFormat* fmt,
-                                  std::ostringstream& os) const;
+    virtual std::string GetOutput(const OutputFormat*, std::ostringstream&) const override;
     //!
     //! Gets output
-    //! \param index      Index
-    //! \param isreal     True if this is a real mtx
-    //! \param isrealdata True if this is a complex mtx with no imaginary parts
-    //! \param output     Output
+    //! \param Index
+    //! \param True if this is a real mtx
+    //! \param True if this is a complex mtx with no imaginary parts
+    //! \param Output
     //!
-    void GetOutput(int          index,
-                   bool         isreal,
-                   bool         isrealdata,
-                   std::string& output) const;
+    void GetOutput(int, bool, bool, std::string&) const;
     //!
     //! Gets data with no pagination
-    //! \param fmt              Format
-    //! \param os  Output stream
+    //! \param Format
+    //! \param Output stream
     //!
-    std::string GetOutputNoPagination(const OutputFormat* fmt) const;
+    std::string GetOutputNoPagination(const OutputFormat*) const;
     //!
     //! Gets outputfor forward/down pagination
-    //! \param fmt Format
-    //! \param os  Output stream
+    //! \param Format
+    //! \param Output stream
     //!
-    std::string GetOutputForwardPagination(const OutputFormat* fmt) const;
+    std::string GetOutputForwardPagination(const OutputFormat*) const;
     //!
     //! Gets outputfor back/up pagination
-    //! \param fmt Format
+    //! \param Format
     //!
-    std::string GetOutputBackPagination(const OutputFormat* fmt) const;
-
-
+    std::string GetOutputBackPagination(const OutputFormat*) const;
     //!
     //! Returns true if display was paginating
     //!
@@ -143,22 +130,20 @@ private:
     virtual bool WasPaginating() const;
     //!
     //! Gets pagination info for printing
-    //! \param rows Number of rows
+    //! \param Number of rows
     //!
-    std::string GetPaginationHeader(int rows) const;
-
+    std::string GetPaginationHeader(int) const;
     //!
     //! Sets matrix format
-    //! \param fmt    Format
-    //! \param interp Interpreter
+    //! \param Format
+    //! \param Interpreter
     //!
-    virtual void SetFormat(const OutputFormat* fmt,
-                           Interpreter*        interp);
+    virtual void SetFormat(const OutputFormat*, Interpreter*);
     //!
     //! Scan matrix and set the width of different columns
-    //! \param interp Interpreter
+    //! \param Interpreter
     //!
-    virtual void SetWidth(Interpreter* interp);
+    virtual void SetWidth(Interpreter*);
 };
 
 

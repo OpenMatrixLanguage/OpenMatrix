@@ -1,7 +1,7 @@
 /**
 * @file Interpreter.cpp
 * @date February 2015
-* Copyright (C) 2015-2022 Altair Engineering, Inc.  
+* Copyright (C) 2015-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -62,9 +62,9 @@ public:
     //! Constructor
     InterpreterImpl(Interpreter*   intp,
                     ExprTreeEvaluator* src) 
-                    : _interp (intp), _eval (src) { assert(_interp); }
+                    : _interp (intp), _eval (src), syntax_error_line(0) { assert(_interp); }
     //! Constructor
-    InterpreterImpl(Interpreter* intp) : _interp (intp) { assert(_interp); }
+    InterpreterImpl(Interpreter* intp) : _interp (intp), syntax_error_line(0) { assert(_interp); }
     //! Destructor
     ~InterpreterImpl()
     {
@@ -205,6 +205,8 @@ public:
 	Currency GetProfileData() const;
 	void     ClearProfileData();
 	void     Profile(bool on);
+
+	void     RunTree(OMLTree* tree);
 
 	int         syntax_error_line;
 	std::string syntax_error_file;
@@ -567,9 +569,9 @@ Currency InterpreterImpl::CallFunctionInCurrentScope(FunctionInfo* finfo, const 
     MemoryScope         old_scope;
     if (cur_scope)
     {
-        old_scope = *cur_scope; // Done so any local variables declared in callbacks don't get propogated
+        old_scope = *cur_scope; // Done so any local variables declared in callbacks don't get propogated // cppcheck-suppress nullPointerRedundantCheck
     }
-	FunctionInfo*       cur_fi    = cur_scope->GetFunctionInfo();
+	const FunctionInfo*       cur_fi    = cur_scope->GetFunctionInfo();
 
 	// Need a try-catch block to close scopes properly in case of any error
 	try
@@ -740,8 +742,8 @@ bool InterpreterImpl::IsPartialExpression(const std::string& expr)
     }
     else
     { 
-        pANTLR3_BASE_TREE    tree   = (pANTLR3_BASE_TREE)r.tree;
-        pANTLR3_BASE_TREE    child  = (pANTLR3_BASE_TREE)tree->getChild(tree, 0); 
+        pANTLR3_BASE_TREE    tree   = (pANTLR3_BASE_TREE)r.tree; // cppcheck-suppress cstyleCast
+        pANTLR3_BASE_TREE    child  = (pANTLR3_BASE_TREE)tree->getChild(tree, 0);  // cppcheck-suppress cstyleCast
 
 		if (child)
 		{
@@ -750,7 +752,7 @@ bool InterpreterImpl::IsPartialExpression(const std::string& expr)
 			if (tok->getType(tok) == FUNC_DEF)
 			{
 				int                  num_func_children = child->getChildCount(child);
-				pANTLR3_BASE_TREE    end_child         = (pANTLR3_BASE_TREE)child->getChild(child, num_func_children-1);
+				pANTLR3_BASE_TREE    end_child         = (pANTLR3_BASE_TREE)child->getChild(child, num_func_children-1); // cppcheck-suppress cstyleCast
 				pANTLR3_COMMON_TOKEN end_tok           = end_child->getToken(end_child);
 
 				if (end_tok->getType(end_tok) == EOF)
@@ -813,7 +815,7 @@ Interpreter::Interpreter(ExprTreeEvaluator* source)
 //------------------------------------------------------------------------------
 //! Constructor
 //! \param[in] source Evaluator source
-Interpreter::Interpreter(EvaluatorInterface& source)
+Interpreter::Interpreter(EvaluatorInterface& source) // cppcheck-suppress constParameterReference
 {
     _impl = new InterpreterImpl(this, source.eval);
 	_user_data = NULL;
@@ -846,7 +848,7 @@ static void wildcardFileMatch_win(const char* target)
     WIN32_FIND_DATA fileData;
 
     HANDLE currentHandle = FindFirstFile(target, &fileData);
-	char *fileName = fileData.cFileName;
+	//const char *fileName = fileData.cFileName;
 	
     if (currentHandle != INVALID_HANDLE_VALUE)
 	{
@@ -1083,6 +1085,11 @@ bool Interpreter::IsQuit() const
 void Interpreter::RegisterExternalVariableFunction(EXTPTR ep)
 {
     return _impl->RegisterExternalVariableFunction(ep);
+}
+
+void Interpreter::RunTree(OMLTree* tree)
+{
+	return _impl->RunTree(tree);
 }
 
 std::string InterpreterImpl::GetHelpModule(const std::string& funcName, const bool& loadLibraryBrowser)
@@ -1524,4 +1531,8 @@ void InterpreterImpl::Profile(bool on)
 	_eval.Profile(on);
 }
 
+void InterpreterImpl::RunTree(OMLTree* tree)
+{
+	_eval.RunTree(tree);
+}
 // End of file:

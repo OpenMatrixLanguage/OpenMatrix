@@ -1,7 +1,7 @@
 /**
 * @file ClassInfo.cxx
 * @date March 2016
-* Copyright (C) 2016-2018 Altair Engineering, Inc.  
+* Copyright (C) 2016-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -48,7 +48,7 @@ FunctionInfo* ClassInfo::GetFunctionInfo(const std::string& name) const
 	for (std::vector<MethodInfo*>::const_iterator itr = _methods.begin();
 		itr != _methods.end(); ++itr)
 	{
-		if ((*itr)->Name() == name)
+		if ((*itr)->Name() == name) // cppcheck-suppress useStlAlgorithm
 			return (*itr)->GetFunctionInfo();
 	}
 
@@ -66,7 +66,7 @@ FunctionInfo* ClassInfo::GetFunctionInfo(const std::string& name) const
 			return temp_fi;
 	}
 
-	return NULL;
+    return NULL;
 }
 //------------------------------------------------------------------------------
 //! Adds a base class
@@ -130,7 +130,7 @@ void ClassInfo::AddStaticClassMethod(const std::string& name, FunctionInfo* fi)
 //------------------------------------------------------------------------------
 bool ClassInfo::IsClassMethod(FunctionInfo* fi) const
 {
-	if (!fi) return false;
+    if (!fi) return false;
 
 	if (fi->IsConstructor())
 	{
@@ -141,7 +141,7 @@ bool ClassInfo::IsClassMethod(FunctionInfo* fi) const
 	for (std::vector<MethodInfo*>::const_iterator itr = _methods.begin();
 		itr != _methods.end(); ++itr)
 	{
-		if ((*itr)->GetFunctionInfo() == fi)
+		if ((*itr)->GetFunctionInfo() == fi) // cppcheck-suppress useStlAlgorithm
 			return true;
 	}
 
@@ -190,7 +190,7 @@ MethodInfo* ClassInfo::GetMethod(const std::string& name) const
 	for (std::vector<MethodInfo*>::const_iterator itr = _methods.begin();
 		itr != _methods.end(); ++itr)
 	{
-		if ((*itr)->Name() == name)
+		if ((*itr)->Name() == name) // cppcheck-suppress useStlAlgorithm
 			return (*itr);
 	}
 	return NULL;
@@ -198,7 +198,7 @@ MethodInfo* ClassInfo::GetMethod(const std::string& name) const
 
 bool ClassInfo::IsMethodPrivate(const std::string& name) const
 {
-	MethodInfo* method = GetMethod(name);
+	const MethodInfo* method = GetMethod(name);
 	return (method && method->IsPrivate());
 }
 //------------------------------------------------------------------------------
@@ -214,7 +214,7 @@ void ClassInfo::AddProperty(const std::string& name, bool isPrivate)
     _properties.push_back(prop);
 }
 
-void ClassInfo::AddPropertyDefault(const std::string& name, Currency value)
+void ClassInfo::AddPropertyDefault(const std::string& name, const Currency& value)
 {
 	if (name.empty() || !HasProperty(name)) return;
 
@@ -231,7 +231,7 @@ bool ClassInfo::HasProperty(const std::string& name) const
     for (std::vector<PropertyInfo*>::const_iterator itr = _properties.begin();
          itr != _properties.end(); ++itr)
     {
-        if ((*itr)->Name() == name) 
+        if ((*itr)->Name() == name) // cppcheck-suppress useStlAlgorithm
             return true;
     }
 
@@ -254,7 +254,7 @@ PropertyInfo* ClassInfo::GetProperty(const std::string& name) const
     for (std::vector<PropertyInfo*>::const_iterator itr = _properties.begin();
          itr != _properties.end(); ++itr)
     {
-        if ((*itr)->Name() == name) 
+        if ((*itr)->Name() == name) // cppcheck-suppress useStlAlgorithm
             return (*itr);
     }
     return NULL;
@@ -265,7 +265,7 @@ PropertyInfo* ClassInfo::GetProperty(const std::string& name) const
 //------------------------------------------------------------------------------
 bool ClassInfo::IsPropertyPrivate(const std::string& name) const
 {
-    PropertyInfo* prop = GetProperty(name);
+    const PropertyInfo* prop = GetProperty(name);
     return (prop && prop->IsPrivate());
 }
 
@@ -310,7 +310,7 @@ std::vector<std::string> ClassInfo::GetPropertyNames() const
 
 	for (iter = _properties.begin(); iter != _properties.end(); ++iter)
 	{
-		PropertyInfo* pi = *iter;
+		const PropertyInfo* pi = *iter;
 		results.push_back(pi->Name());
 	}
 
@@ -325,7 +325,7 @@ std::vector<std::string> ClassInfo::GetMethodNames(bool public_only) const
 
 	for (iter = _methods.begin(); iter != _methods.end(); ++iter)
 	{
-		MethodInfo* mi = *iter;
+		const MethodInfo* mi = *iter;
 
 		if (!(mi->IsPrivate() && public_only))
 			results.push_back(mi->Name());

@@ -52,6 +52,15 @@ bool OmlRoots(EvaluatorInterface           eval,
               const std::vector<Currency>& inputs, 
               std::vector<Currency>&       outputs);
 //!
+//! Returns true after looking up values in a sorted table
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlLookUp(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs);
+//!
 //! Returns true after interpolating (x,y) data with a cubic spline
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
@@ -60,6 +69,15 @@ bool OmlRoots(EvaluatorInterface           eval,
 bool OmlSpline(EvaluatorInterface           eval, 
                const std::vector<Currency>& inputs, 
                std::vector<Currency>&       outputs);
+//!
+//! Returns true after interpolating (x,y) data with a cubic Hermite polynomial
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlPchip(EvaluatorInterface           eval,
+              const std::vector<Currency>& inputs,
+              std::vector<Currency>&       outputs);
 //!
 //! Returns true after executing one-dimensional interpolation
 //! \param eval    Evaluator interface
@@ -77,6 +95,15 @@ bool OmlInterp1(EvaluatorInterface           eval,
 //!
 bool OmlInterp2(EvaluatorInterface           eval, 
                 const std::vector<Currency>& inputs, 
+                std::vector<Currency>&       outputs);
+//!
+//! Returns true after executing N-dimensional interpolation
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlInterpN(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
                 std::vector<Currency>&       outputs);
 //!
 //! Returns true after executing two-dimensional interpolation
@@ -115,6 +142,39 @@ bool OmlPolyder(EvaluatorInterface           eval,
 bool OmlPolyint(EvaluatorInterface           eval, 
                 const std::vector<Currency>& inputs, 
                 std::vector<Currency>&       outputs);
+
+//!
+//! Returns true and construct a piecewise polynomial 
+//! coefficients are given by the input vector
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlMakePPoly(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs);
+
+//!
+//! Returns true and extracts details of a piecewise polynomial 
+//! coefficients are given by the input vector
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlUnMakePPoly(EvaluatorInterface           eval,
+                    const std::vector<Currency>& inputs,
+                    std::vector<Currency>&        outputs);
+
+//!
+//! Returns true and evaluates a piecewise polynomial 
+//! coefficients are given by the input vector
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlPPolyEval(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs);
 
 //!
 //! Helper method for interp1 command

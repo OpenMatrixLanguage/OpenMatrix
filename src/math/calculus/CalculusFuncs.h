@@ -19,6 +19,11 @@
 #include "CalculusExports.h"
 #include "hwGaussQuadrature.h"
 
+// forward declarations
+template <typename T> class hwTComplex;
+template <typename T1, typename T2> class hwTMatrixN;
+typedef hwTMatrixN<double, hwTComplex<double> > hwMatrixN;
+
 typedef hwMathStatus (*QuadFunc2)(double x, double& y);
 
 //------------------------------------------------------------------------------
@@ -37,23 +42,51 @@ CALCULUS_DECLS hwMathStatus Derivative(const hwMatrix& x,
                                        const hwMatrix& y, 
                                        hwMatrix&       derivative);
 //!
+//! Computes the integral of a strided vector
+//! \param x         Input vector
+//! \param y         Input vector
+//! \param stride    Spacing between y elements
+//! \param n         Vector size
+//!
+double TrapZ(const double* x,
+             const double* y,
+             int           stride,
+             int           n);
+//!
+//! Computes the cumulative integral of a strided vector
+//! \param x         Input vector
+//! \param y         Input vector
+//! \param stride    Spacing between y elements
+//! \param n         Vector size
+//! \param integral      Output
+//!
+void CumTrapZ(const double* x,
+              const double* y,
+              int           stride,
+              int           n,
+              double*       integral);
+//!
 //! Returns hwMathStatus and gets integral using trapezoidal method
 //! \param x        Input x
 //! \param y        Input y
+//! \param dim      dimension on which to operate
 //! \param integral Output integral
 //! 
-CALCULUS_DECLS hwMathStatus TrapZ(const hwMatrix& x, 
-                                  const hwMatrix& y, 
-                                  double&         integral);
+CALCULUS_DECLS hwMathStatus TrapZ(const hwMatrix&  X, 
+                                  const hwMatrixN& Y, 
+                                  int              dim,
+                                  hwMatrixN&       integral);
 //!
 //! Returns hwMathStatus and gets cumulative integral using trapezoidal method
 //! \param x        Input x
 //! \param y        Input y
+//! \param dim      dimension on which to operate
 //! \param integral Output integral
 //! 
-CALCULUS_DECLS hwMathStatus CumTrapZ(const hwMatrix& x, 
-                                     const hwMatrix& y, 
-                                     hwMatrix&       integral);
+CALCULUS_DECLS hwMathStatus CumTrapZ(const hwMatrix&  X, 
+                                     const hwMatrixN& Y, 
+                                     int              dim,
+                                     hwMatrixN&       integral);
 //!
 //! Returns hwMathStatus and gets integral using adaptive quadrature
 //! \param pFunc    

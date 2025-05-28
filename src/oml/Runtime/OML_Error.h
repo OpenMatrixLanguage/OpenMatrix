@@ -1,7 +1,7 @@
 /**
 * @file OML_Error.h
 * @date November 2015
-* Copyright (C) 2015-2023 Altair Engineering, Inc.  
+* Copyright (C) 2015-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -13,16 +13,19 @@
 * Altair's dual-license business model allows companies, individuals, and organizations to create proprietary derivative works of OpenMatrix and distribute them - whether embedded or bundled with other software - under a commercial license agreement.
 * Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
-
 #ifndef _OML_Math_Error_h
 #define _OML_Math_Error_h
 
 #include "OMLDll.h"
 
+#ifdef OS_WIN
+// disable warnings on "needs to have dll-interface to be used by clients of class"
+#   pragma warning (disable : 4251)
+#endif  // OS_WIN
+
 #include <string>
 
-#include <math/kernel/hwMathStatus.h>
-
+#include "math/kernel/hwMathStatus.h"
 
 //!
 //! \enum omlMathErrCode
@@ -34,7 +37,6 @@ enum omlMathErrCode
     OML_ERR_NUMARGIN,                        // invalid function call; incorrect number of input arguments
     OML_ERR_NUMARGOUT,                       // incorrect number of output arguments
     OML_ERR_NUMARGINOUT,                     // incorrect combination of input / output arguments
-    OML_ERR_CELL,                            // must be cell
     OML_ERR_CELLARRAY,                       // must be cell array
     OML_ERR_STRUCT,                          // must be struct
     OML_ERR_STRING,                          // must be string
@@ -145,6 +147,17 @@ enum omlMathErrCode
     OML_ERR_AUTHENTICATE,                    // authentication failure
     OML_ERR_UNICODE_FILENAME,                // file name cannot have Unicode characters
     OML_ERR_STRING_POSINTEGER,               // must be a string or positive integer
+    OML_ERR_FUNCHANDLE_STRING,               // must be a function handle or string
+    OML_ERR_DATATYPE,                        // unsupported data type
+    OML_ERR_INVALIDFORMAT,                   // invalid format
+    OML_ERR_DIMSFINITE,                      // invalid dimensions; must be finite
+    OML_ERR_NOTLOGICAL,                      // cannot be logical
+    OML_ERR_SPECIALCHARS_FILENAME,           // invalid file name; special characters "<>|?*:" cannot be used
+    OML_ERR_MISSING_VALUE,                   // invalid function call; missing value for argument
+    OML_ERR_FILENAME,                        // must be a file name
+    OML_ERR_MIXEDCELL,                       // has elements with mismatched dimensions or data types
+    OML_ERR_INVALID_FIELD,                   // field does not exist
+    OML_ERR_EXEC_FAIL,                       // failed to execute                           
 
     // optimization codes
     OML_ERR_OBJSTRRET1,                      // invalid objective function; must have exactly 1 return
@@ -214,6 +227,7 @@ enum omlMathErrCode
     OML_ERR_HDF5_GROUP_CREATION_FAILED,      // failed to create group
     OML_ERR_HDF5_GROUP_RENAME_FAILED,        // failed to rename group
     OML_ERR_HDF5_GROUP_REMOVE_FAILED,        // failed to remove group
+    OML_ERR_HDF5_GROUP_WRITE_FAILED,          // failed to write group
     OML_ERR_HDF5_DATASET_CREATION_FAILED,    // failed to create dataset
     OML_ERR_HDF5_WRITE_FAILED,               // failed to write
     OML_ERR_HDF5_DATASET_RENAME_FAILED,      // failed to rename dataset
@@ -263,6 +277,7 @@ enum omlMathErrCode
     OML_ERR_HWREADER_INVALID_TYPE,           // invalid datatype
     OML_ERR_HWREADER_INVALID_REQUEST,        // invalid requests
     OML_ERR_HWREADER_MISSING_COMPONENT,      // missing component
+	OML_ERR_HWREADER_MISSING_REQUEST,        // missing requests
     OML_ERR_HWREADER_INVALID_COMPONENT,      // invalid component
     OML_ERR_HWREADER_MISSING_TIME,           // missing time
     OML_ERR_HWREADER_INVALID_TIME,           // invalid time
@@ -304,16 +319,26 @@ enum omlMathErrCode
     OML_ERR_OMLINTERFACE_OP,                 // invalid operation; error with 'oml'(default) interface; use 'com' interface
 
     //omlmqtt Codes
-    OML_ERR_MQTT_INVALID_OPTION,             //Invalid option 
     OML_ERR_MQTT_CLIENTID_INUSE,             // client id is in use
     OML_ERR_MQTT_CLIENTID_INVALID,           // no client with the given client id
     OML_ERR_MQTT_CLIENTCREATION_FAIL,        // failed to create client
     OML_ERR_MQTT_CLIENTID_SIZE,              // client id is more than 23 characters  
-    OML_ERR_MQTT_MIN_IDLETIME,              // minimum idle time is 0.001 seconds 
+    OML_ERR_MQTT_MIN_IDLETIME,               // minimum idle time is 0.001 seconds
+
+    //omwebapi Codes
+    OML_ERR_WEBOPT_URL_TYPE,                 // URL must be a string
+    OML_ERR_WEBOPT_KEY_VALUE_TYPE,           // KEY and VALUE must be a string
+    OML_ERR_WEBOPT_KEY_VALUE_PAIR,           // KEY and VALUE must occur in pairs
+    OML_ERR_WEBOPT_DATA_TYPE,                // Data must be a string
+    OML_ERR_WEBOPT_USERNAME_TYPE,            // username must be a string
+    OML_ERR_WEBOPT_PASSWORD_TYPE,            // password must be a string
+    OML_ERR_WEBOPT_CONTENT_TYPE,             // un-supported content type
+    OML_ERR_WEBOPT_CHAR_ENCODING,            // un-supported char encoding
+    OML_ERR_WEBOPT_REQUEST_METHOD,           // un-supported request
+    OML_ERR_WEBOPT_INVALID_OPTION,           // invalid web option
 
     OML_ERR_END
 };
-
 
 enum omlMathVarCode
 {
@@ -380,6 +405,7 @@ enum omlMathVarCode
 //! 1. throw OML_Error(OML_ERR_ITEM);
 //! 2. throw OML_Error(OML_ERR_ITEM, arg_num);
 //! 3. throw OML_Error(OML_ERR_ITEM, arg_num, omlMathVarCode);
+//! 4. throw OML_Error(OML_ERR_ITEM, arg_num, value);
 //! See the OML_Error constructors for all options
 //!
 //------------------------------------------------------------------------------
@@ -388,50 +414,49 @@ class OMLDLL_DECLS OML_Error
 public:
 	//!
 	//! Constructor
-	//! \param errCode Error code
-	//! \param arg1    First argument index (optional)
-	//! \param arg2    Second argument index (optional)
+	//! \param Error code
+	//! \param Optional first argument index
+	//! \param Optional second argument index
 	//!
-	OML_Error(omlMathErrCode errCode, 
-		      int            arg1 = -1, 
-		      int            arg2 = -1);
+	OML_Error(omlMathErrCode, int = -1, int = -1);
 	//!
 	//! Constructor
-	//! \param errCode Error code
-	//! \param arg1    Argument index
-	//! \param varCode Variable type (optional)
+	//! \param Error code
+	//! \param Argument index
+	//! \param Variable type
 	//!
-	OML_Error(omlMathErrCode errCode,
-		      int            arg1, 
-		      omlMathVarCode varCode);
+	OML_Error(omlMathErrCode, int, omlMathVarCode);
 	//!
 	//! Constructor
-	//! \param errCode Error code
-	//! \param arg1    First argument index 
-	//! \param arg2    Second argument index 
-	//! \param varCode Variable type
+	//! \param Error code
+	//! \param First argument index 
+	//! \param Second argument index 
+	//! \param Variable type
 	//!
-	OML_Error(omlMathErrCode errCode,
-		      int            arg1, 
-		      int            arg2, 
-		      omlMathVarCode varCode);
+	OML_Error(omlMathErrCode, int, int, omlMathVarCode);
+    //!
+    //! Constructor
+    //! \param Error code
+    //! \param Value
+    //! \param Optional argument index
+    //!
+    OML_Error(omlMathErrCode, const std::string&, int = -1);
 	//!
 	//! Constructor
 	//! \param status Math status
 	//!
-	explicit OML_Error(const hwMathStatus& status);
+	explicit OML_Error(const hwMathStatus&);
 	//!
 	//! Constructor - non-standard, please use sparingly
-	//! \param message   Message to display
+	//! \param Message to display
 	//!
-	explicit OML_Error(const std::string& message);
+	explicit OML_Error(const std::string&);
     //!
     //! Constructor - non-standard, please use sparingly
-    //! \param message   Message to display
-    //! \param formatMsg True if line info needs to be appended to message
+    //! \param Message to display
+    //! \param True if line info needs to be appended to message
     //!
-	OML_Error(const std::string& message,
-              bool               formatMsg);   
+	OML_Error(const std::string&, bool);   
 	//!
 	//! Destructor
 	//! 
@@ -481,6 +506,7 @@ private:
     mutable hwMathStatus m_status;    //!< Math error code
     bool                 m_formatMsg; //!< True if format (line info) needs to be added
 
+    OML_Error() : m_errCode(OML_ERR_NONE), m_arg1(-1), m_arg2(-1), m_varCode(OML_VAR_NONE), m_formatMsg(true) {}
 	//!
 	//! Returns error message for given error code
 	//! \param errCode Error code
@@ -496,10 +522,7 @@ private:
 // NOTICE: DEPRECATED #define list. PLEASE DO NOT ADD TO IT.
 // The following messages are used directly. These should be paired with
 // an error code and moved to OML_Error.cpp
-#define HW_ERROR_ALLINPMATCHSPECSIZE "Error: all inputs must match the specified size"
-#define HW_ERROR_ALREADYSETDIM "Error: already set dimension"
-#define HW_ERROR_ALREADYSETALPHA "Error: already set alpha value"
-
+// Optimization
 #define HW_ERROR_POPINITRANGEINCSPEC "Error: 'PopInitRange' is incorrectly specified"
 #define HW_ERROR_INVINITPOPRANGE "Error: invalid initial population range"
 #define HW_ERROR_INITPOPINCSPEC "Error: 'InitialPopulation' is incorrectly specified"
@@ -508,23 +531,15 @@ private:
 #define HW_ERROR_1STAND2NDINPBOTHSCALORBOTHVEC "Error: first and second inputs must be both scalars or both vectors"
 #define HW_ERROR_NOMORE1OUTALLOWEDW1INP "Error: no more than one output is allowed with 1 input"
 
-#define HW_ERROR_UNSUPFORMTYPE "Error: unsupported format type"
-#define HW_ERROR_INVALIDFORMAT "Error: invalid format"
-
-#define HW_ERROR_UNSUPP2DIM "Error: more than 2 dimensions is not supported yet"
-
-#define HW_ERROR_STRINPMUST1DIM "Error: string inputs must be 1 dimensional; use a cell array for multiple strings"
-#define HW_ERROR_TYPE1DSTR "Error: type must be a 1D string"
-#define HW_ERROR_STRDIM "Error: all string inputs must be of the same dimensions"
-
-#define HW_ERROR_OUTMEM "Error: out of memory"
-
+// Oml core
 #define HW_ERROR_MATSIZE "Error: matrix sizes must agree"
 #define HW_ERROR_SIZENOMATCH "Error: sizes do not match"
 #define HW_ERROR_MATRIXDIM "Error: matrices must have the same dimensions"
 #define HW_ERROR_INCOMPDIM "Error: incompatible dimensions"
-#define HW_ERROR_INPMATSAMESIZEALONGSPECDIMEN "Error: input matrices must have the same size along the specified dimension"
-
+#define HW_ERROR_UNSUPP2DIM "Error: more than 2 dimensions is not supported yet"
+#define HW_ERROR_OUTMEM "Error: out of memory"
+#define HW_ERROR_INPUTSTRUCT  "Error: invalid input type; must be struct"
+#define HW_ERROR_NOTCREATEMATRIX "Error: could not create matrix"
 #define HW_ERROR_INV1STIND "Error: invalid first index"
 #define HW_ERROR_INV2NDIND "Error: invalid second index"
 #define HW_ERROR_INVCELLIND "Error: invalid cell index"
@@ -536,28 +551,27 @@ private:
 #define	HW_ERROR_INDGRDIM "Error: index exceeds dimension"
 #define HW_ERROR_INVIND "Error: invalid index"
 #define HW_ERROR_INVINDOP "Error: invalid index operation"
-
 #define HW_ERROR_UNSUPINDOP "Error: unsupported indexing operation"
+#define HW_ERROR_INVCELLEXT "Error: invalid cell extraction"
+#define HW_ERROR_NOTIMP "Error: not implemented yet"
 
-#define HW_ERROR_DIMFINITE "Error: dimensions must be finite"
-#define HW_ERROR_VARIABLENAMETOOLONG "Error: variable name too long"
 
-#define HW_ERROR_MAXFUNCDEPTH "Error: maximum function depth reached"
-#define HW_ERROR_STRSAMENUMOFCOLWCOMPROW "Error: strings must have same number of columns when comparing rows"
-#define HW_ERROR_SAMENUMOFCOLWCOMPROW "Error: must have same number of columns when comparing rows"
-#define HW_ERROR_NOTUSECELLSEARCHFORROW "Error: cannot use cell arrays when searching for rows"
+// Plotting/Gui
+#define HW_ERROR_INVFUNCNAME "Error: invalid function name"
+
+// Statistics library
+#define HW_ERROR_ALREADYSETALPHA "Error: already set alpha value"
+#define HW_ERROR_ALREADYSETDIM "Error: already set dimension"
+#define HW_ERROR_ALLINPMATCHSPECSIZE "Error: all inputs must match the specified size"
+#define HW_ERROR_INPMATSAMESIZEALONGSPECDIMEN "Error: input matrices must have the same size along the specified dimension"
+
+
 #define HW_ERROR_PROBOPENPIPE "Error: problem opening pipe"
-#define HW_ERROR_INVTOL "Error: invalid tolerance"
-#define HW_ERROR_INPSTRMUSTFILEDIR "Error: input must be a string name referring to a file or directory"
 #define HW_ERROR_NOTFINDCURWORKDIR "Error: could not find current working directory"
 #define HW_ERROR_NOTEMPSUBEXPNAME "Error: cannot have an empty sub-expression name"
 #define HW_ERROR_SUBEXPNAMNOCLOSINGGR "Error: sub-expression name in regular expression pattern did not have a closing '>'"
-#define HW_ERROR_NOTCONVINPTODOUBLE "Error: cannot convert input to double"
-#define HW_ERROR_SCALOUTCHARRANGE "Error: scalar outside of character range"
 #define HW_ERROR_INVINPSTRUCTANDCOMPNOTCONVSTR "Error: invalid input type: structs and complex values cannot be converted to strings"
 
-#define HW_ERROR_DATENOTCOMP "Error: date cannot be complex"
-#define HW_ERROR_PROBCREATTEMPF "Error: problem creating temporary file"
 #define HW_ERROR_OPTNOTSING "Error: option is not singular"
 #define HW_ERROR_MATMUST3COL "Error: matrix must have 3 columns"
 #define HW_ERROR_MATMUST2OR3COL "Error: matrix must have 2 or 3 columns"
@@ -565,32 +579,21 @@ private:
 #define HW_ERROR_READ "Error: read error"
 #define HW_ERROR_3INP1STVEC "Error: when using 3 arguments, the first argument must be a vector"
 
-#define HW_ERROR_INVINPTYPE "Error: invalid input type"
-
-#define HW_ERROR_3RDINPMUSTEMPMATSPMATUNSUPP "Error: third input must be an empty matrix; sparse matrices are not yet supported"
-
 #define HW_ERROR_NOTSETDIRECTTWICE "Error: cannot set direction twice"
 #define HW_ERROR_NOTCONVINPTOSTR "Error: error converting input to string"
 #define HW_ERROR_DELCELLINVAMTOFELE "Error: delimiter cell array had an invalid amount of elements"
 #define HW_ERROR_NOTFTELLONSTDINOUTERR "Error: cannot call ftell on stdin, stdout, or stderr"
 #define HW_ERROR_NOTFSEEKONSTDINOUTERR "Error: cannot call fseek on stdin, stdout, or stderr"
-#define HW_ERROR_FRSTINPSTRORFILESTR "Error: first input should be a string of a file name"
 #define HW_ERROR_NOTSKIPBUILTINFUNC "Error: cannot use skip on built-in function streams"
-#define HW_ERROR_INVPRECTYPE "Error: invalid precision type"
 #define HW_ERROR_PRECBLOCKPOSINT "Error: precision block size must be a positive integer"
 #define HW_ERROR_INP1DINPMAT3ELE "Error: input at least one dimension of input matrices must have 3 elements"
 #define HW_ERROR_BADFUNCHANDLE "Error: bad function handle; was the function cleared or created in a different scope?"
 
-#define HW_ERROR_INPSMUSTCELLORSTR "Error: inputs must be cell arrays or strings"
 #define HW_ERROR_VALNOTSTRUCT "Error: value is not a struct"
 #define HW_ERROR_INPVECSORTROW "Error: input must be a vector if not checking sort by rows"
 #define HW_ERROR_OUTNOTUNI "Error: outputs were not uniform"
 #define HW_ERROR_MISSVALUNIFOUTOPT "Error: missing value for UniformOutput option"
-#define HW_ERROR_NOTCONCINPTYPE "Error: cannot concatenate input types"
-#define HW_ERROR_CONCATSTRUCTWSTRUCT "Error: can only concatenate structs with other structs"
-#define HW_ERROR_CONCATMATWSCALCOMPMATORCELL "Error: can only concatenate matrices with scalars, complex values, other matrices, or cells"
 #define HW_ERROR_INVSHAPEFULLSAMEVALID "Error: invalid shape; must be 'full', 'same', or 'valid'"
-#define HW_ERROR_IFCONVMATINPMUSTVEC "Error: if using convolution matrix, other inputs must be vectors"
 #define HW_ERROR_DUPFIELD "Error: duplicate field"
 #define HW_ERROR_FIELDNAMECELLSTR "Error: field names cell array must only contain strings"
 #define HW_ERROR_FIELDNAMEDIMINPCELL "Error: field names did not match dimension of input cell"
@@ -598,16 +601,10 @@ private:
 #define HW_ERROR_STRUCTMUSTSAMEFIELDNAME "Error: struct must have the same field names to add to struct array"
 #define HW_ERROR_NOTINDTYPEOBJ "Error: cannot index this type of object"
 #define HW_ERROR_NOTCELLINDNONCELL "Error: cannot use cell indexing on a non-cell"
-#define HW_ERROR_NOTCOMPTOSTR "Error: cannot convert complex value to string"
 
 #define HW_ERROR_NOTSETEXTRAPMOREONCE "Error: cannot set extrap more than once"
 #define HW_ERROR_NOTSETMETHODMOREONCE "Error: cannot set method more than once"
 
-#define HW_ERROR_NOTCALLRECURSEEVALIN "Error: cannot call evalin inside a call to evalin"
-
-#define HW_ERROR_TEMPLATESTR "Error: template must be a string"
-#define HW_ERROR_FUNCNAMESTR "Error: function name must be a string"
-#define HW_ERROR_FIELDNAMENOTEMPTYSTR "Error: field name cannot be an empty string"
 #define HW_ERROR_EVERYVALFIELD "Error: must have a value for every field"
 
 #define HW_ERROR_FUNCHANDLNAMEINPUT "Error: input must be a function handle or function name"
@@ -618,13 +615,9 @@ private:
 #define HW_ERROR_UNSUPINDCHAIN "Error: no support for index chaining"
 #define HW_ERROR_INVSTRUCTFIELD "Error: invalid struct field"
 #define HW_ERROR_INVSTRUCTFIELDTYPESUB "Error: invalid struct fields; must be 'type' and 'subs'"
-#define HW_ERROR_ASSERTFAIL "Error: assert failed"
 #define HW_ERROR_INVFUNCNARGIN "Error: invalid function to call nargin on"
-#define HW_ERROR_INVFUNCNAME "Error: invalid function name"
-#define HW_ERROR_INVDIR "Error: invalid directory name"
 #define HW_ERROR_INPROWVECT "Error: inputs must be row vectors"
 #define HW_ERROR_PROBCHANGCURDIR "Error: problem changing current directory"
-#define HW_ERROR_INVCELLEXT "Error: invalid cell extraction"
 #define HW_ERROR_INVAST "Error: Invalid AST"
 #define HW_ERROR_NOCONTEXTENDFUNC "Error: no available context for end function"
 #define HW_ERROR_INVFUNCCALLNARGOUT "Error: invalid function to call nargout on"
@@ -653,7 +646,6 @@ private:
 #define HW_ERROR_UNASSIGNEMPTRIGHT "Error: unable to assign empty right hand side"
 #define HW_ERROR_NOTUSEKEY "Error: cannot use reserved keyword"
 #define HW_ERROR_NOTMIXCOMPSTR "Error: cannot mix complex and strings"
-#define HW_ERROR_NOTCREATEMATRIX "Error: could not create matrix"
 #define HW_ERROR_NOTCREATECELLARRAY "Error: could not create cell array"
 #define HW_ERROR_INVMATRIXINP "Error: invalid matrix input"
 #define HW_ERROR_INVSWITCH "Error: invalid switchcase input"
@@ -664,34 +656,25 @@ private:
 #define HW_ERROR_COMPMATUNSUP "Error: complex matrices not supported yet"
 #define HW_ERROR_MISSRETURNS "Error: missing return values"
 #define HW_ERROR_MISSCELLVAL "Error: missing cell values"
-#define HW_ERROR_NOTIMP "Error: not implemented yet"
 #define HW_ERROR_UNSUPRANGEOP "Error: unsupported range operation"
 #define HW_ERROR_UNSUPOP "Error: unsupported operation"
 #define HW_ERROR_UNSUPCOMP "Error: unsupported comparision"
 
-#define HW_ERROR_INPUTSTRUCT  "Error: invalid input type; must be struct"
 #define HW_ERROR_INPUTSCALARCOMPLEXMATRIX  "Error: invalid input type; must be scalar, complex, or a matrix"
-#define HW_ERROR_INPUTSCALARMATRIX  "Error: invalid input type; must be scalar or a matrix"
 #define HW_ERROR_INPUTSCALARCOMPLEXMTXSTRING  "Error: invalid input type; must be scalar, complex, a matrix, or a string"
 #define HW_ERROR_INPUTSCALARMTXSTRING  "Error: invalid input type; must be scalar, a matrix, or a string"
 #define HW_ERROR_INPUTSCALARMTXSTRINGCELL  "Error: invalid input type; must be a scalar, matrix, cell array, or a string"
 #define HW_ERROR_INPUTSTRCELLMTX "Error: input must be a scalar, complex, matrix, cell array, or string"
-#define HW_ERROR_INPUTCELLARRAY "Error: input must be a cell array"
 #define HW_ERROR_INPUTHCATDIM "Error: inputs must have the same number of rows to be concatenated horizontally"
 #define HW_ERROR_INPUTVCATDIM "Error: inputs must have the same number of columns to be concatenated vertically"
 #define HW_ERROR_INPUTCATSTRUCT "Error: structs must have the same field names to be concatenated"
 #define HW_ERROR_INPUTSTRINGCELLARRAY "Error: all inputs must be strings or cell arrays of strings"
-#define HW_ERROR_UNEVENDIMENSIONS "Error: input did not make even dimensions; matrix cannot be constructed"
-#define HW_ERROR_MIXEDCELLELEMS "Error: cell array contains mixed element types; cannot concatenate them"
-#define HW_ERROR_DIM3ELEM "Error: matrices must have 3 elements in specified direction"
-#define HW_ERROR_ADDPATHLOC "Error: append location must be 0, 1, '-begin', or '-end'"
 #define HW_ERROR_INPUTNOCONJ "Error: not all inputs had matching conjugates"
 
 #define HW_ERROR_INPUTALLCELL "Error: all inputs must be cell arrays"
 #define HW_ERROR_INPUTREALSTR "Error: input must be a scalar, real matrix, or string"
 #define HW_ERROR_INPUTSTRINGFUNC "Error: function name must be a string or function handle"
 #define HW_ERROR_CELLELEMSTR "Error: cell array elements must be strings"
-#define HW_ERROR_INPUTISLOGICAL "Error: input cannot be logical"
 
 #define HW_ERROR_CELLINPSAMESASIZE "Error: all cell array inputs must be the same size"
 #define HW_ERROR_CELLARRAYSSAMESIZE "Error: cell arrays must be the same size"

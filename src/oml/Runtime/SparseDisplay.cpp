@@ -1,7 +1,7 @@
 /**
 * @file SparseDisplay.cpp
 * @date June, 2019
-* Copyright (C) 2019-2021 Altair Engineering, Inc.
+* Copyright (C) 2019-2024 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -97,7 +97,7 @@ std::string SparseDisplay::GetOutput(const OutputFormat* fmt,
     std::string output;
     if (!IsValidDisplaySize()) 
     {
-        std::string output(GetOutputNoPagination(fmt));
+        output = GetOutputNoPagination(fmt);
         return (header + output);
     }
 
@@ -296,18 +296,17 @@ void SparseDisplay::SetWidth(Interpreter* interp)
     if (mtx->Size() >= m_skipFormat && mtx->NNZ() > 0) 
     {
         // Flip to fixed width, after examining the first element
-        double      realval = 0.0;
-        double      imagval = 0.0;
-        std::string imagsign;
-
-        int row = 0;
-        int col = 0;
+        double realval = 0.0;
         if (isreal)
         {
+            int row = 0;
+            int col = 0;
             mtx->NZinfo(0, row, col, realval);
         }
         else
         {
+            double      imagval = 0.0;
+            std::string imagsign;
             GetComplexNumberVals(mtx->z(0, 0), realval, imagval, imagsign);
         }
         std::string realstr(_formatvars.RealToString(realval));
@@ -326,11 +325,8 @@ void SparseDisplay::SetWidth(Interpreter* interp)
         }
         int row = 0;
         int col = 0;
-
-
-        double      realval = 0;
-        double      imagval = 0;
-        std::string imagsign;          
+        double realval = 0;
+        double imagval = 0;
 
         if (isreal)
         {
@@ -339,6 +335,9 @@ void SparseDisplay::SetWidth(Interpreter* interp)
         else
         {
             hwComplex cval(0, 0);
+
+            std::string imagsign;
+
             mtx->NZinfo(i, row, col, cval);
             GetComplexNumberVals(cval, realval, imagval, imagsign);
         }
@@ -415,12 +414,12 @@ std::string SparseDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
         {
             if (totalrows == nnz - 1)
             {
-                maxlines += 1;
+                //maxlines += 1;
                 totalrows += 1;
             }
             else if (totalrows == nnz - 2)
             {
-                maxlines += 2;
+                //maxlines += 2;
                 totalrows += 2;
             }
         }
@@ -444,7 +443,7 @@ std::string SparseDisplay::GetOutputForwardPagination(const OutputFormat* fmt) c
     }
 
     std::string header;
-    if (IsPaginating() || (waspaginating && prevstartrow > 0))
+    if (IsPaginating() || (waspaginating && prevstartrow > 0)) // cppcheck-suppress knownConditionTrueFalse
     {
         header = GetPaginationHeader(nnz);
     }

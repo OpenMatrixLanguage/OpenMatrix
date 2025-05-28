@@ -1,7 +1,7 @@
 /**
 * @file CellNDisplay.cxx
 * @date January 2019
-* Copyright (C) 2019-2021 Altair Engineering, Inc.
+* Copyright (C) 2019-2024 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -63,7 +63,7 @@ void CellNDisplay::GetCurrencySize(int& rows, int& cols) const
 		for (std::vector<int>::const_iterator itr = dims.begin() + 2;
 			itr != dims.end(); ++itr)
 		{
-			rows *= *itr;
+			rows *= *itr; // cppcheck-suppress useStlAlgorithm
 		}
 	}
 }
@@ -481,8 +481,8 @@ std::string CellNDisplay::GetOutputBackPagination(const OutputFormat* fmt) const
     CellNDisplay::GetCurrencySize(numrows, numcols);
 
     int endrow = (m_rowEnd >= 0 && m_rowEnd < numrows) ? m_rowEnd : numrows - 1;
-    int endcol = 0;
-    int linestofit = GetNumRowsToFit();
+    //int endcol = 0;
+    //int linestofit = GetNumRowsToFit();
 
     std::string output;
     m_colBegin = 0;
@@ -617,7 +617,7 @@ bool CellNDisplay::HasOnlyEmptySlices(const std::vector<Currency>& slices) const
     for (std::vector<Currency>::const_iterator itr = slices.begin();
         itr != slices.end(); ++itr)
     {
-        if (!(*itr).IsNothing())
+        if (!(*itr).IsNothing()) // cppcheck-suppress useStlAlgorithm
         {
             return false;
         }

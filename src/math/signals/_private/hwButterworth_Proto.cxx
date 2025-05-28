@@ -14,8 +14,7 @@
 * Use of Altair's trademarks and logos is subject to Altair's trademark licensing policies.  To request a copy, email Legal@altair.com and in the subject line, enter: Request copy of trademark and logo usage policy.
 */
 #include "hwButterworth_Proto.h"
-
-#include <math.h>
+#include "hwMatrix.h"
 
 //------------------------------------------------------------------------------
 // Constructor
@@ -46,8 +45,34 @@ void hwButterworth_Proto::GetSPlaneInfo(int     i,
                                         double& poleMagSq) const
 {
     // complex conjugate pole pair
-    double angle = 0.5*PI*(2*i+1) / (double) m_order;   // relative to jOmega axis
+    double angle = 0.5 * PI * (2 * i + 1) / m_order;   // relative to jOmega axis
 
     poleReal = -sin(angle);
     poleMagSq = 1.0;
+}
+//------------------------------------------------------------------------------
+// Compute poles
+//------------------------------------------------------------------------------
+void hwButterworth_Proto::GetSPlaneInfo(hwMatrix& poles) const
+{
+    hwMathStatus status = poles.Dimension(m_order, hwMatrix::COMPLEX);
+
+    if (!status.IsOk())
+        return;
+
+    if (m_order % 2 == 1)
+    {
+        poles.z((m_order - 1) / 2) = -1.0;
+    }
+
+    int index = 0;
+
+    while (index < m_order / 2)
+    {
+        double angle = 0.5 * PI * (2 * index + 1) / m_order;   // relative to jOmega axis
+        double s = sin(angle);
+        double c = cos(angle);
+        poles.z(index++).Set(-s, c);
+        poles.z(m_order - index).Set(-s, -c);
+    }
 }

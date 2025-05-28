@@ -1,7 +1,7 @@
 /**
 * @file StringDisplay.h
 * @date February 2018
-* Copyright (C) 2018 Altair Engineering, Inc.  
+* Copyright (C) 2018 - 2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -43,82 +43,78 @@ public:
 
     //!
     //! Gets output - called from Currency::GetOutputString
-    //! \param fmt Output format
-    //! \param os  Output stream
-    std::string GetOutput( const OutputFormat* fmt,
-                           std::ostringstream& os) const;
-
+    //! \param Output format
+    //! \param Output stream
+    std::string GetOutput(const OutputFormat*, std::ostringstream&) const override;
     //!
     //! Gets number of rows and cols in given currency -  not used
-    //! \param cur  Given cell array/matrix
-    //! \param rows Number of rows
-    //! \param cols Number of columns
+    //! \param Given cell array/matrix
+    //! \param Number of rows
+    //! \param Number of columns
     //!
-    virtual void GetCurrencySize(int& rows, 
-                                 int& cols) const {}
+    virtual void GetCurrencySize(int&, int&) const override {}
     //!
     //! Gets values as a string
-    //! \param fmt Output format
+    //! \param Output format
     //!
-    virtual std::string GetValues(const OutputFormat* fmt) const;
-
+    virtual std::string GetValues(const OutputFormat*) const override;
     //!
     //! Returns true if this is a chained display, which needs to be deleted
     //! along with given currency display
-    //! \param display Given display
+    //! \param Given display
     //!
-    virtual bool IsChainedDisplay(CurrencyDisplay* display) const;
+    virtual bool IsChainedDisplay(CurrencyDisplay*) const override;
     //!
     //! Gets chained display
     //!
-    virtual long GetChainedDisplay() const { return _chaineddisplay; }
+    virtual long GetChainedDisplay() const override { return _chaineddisplay; }
     //!
     //! Sets chained display
-    //! \param id Chained display id
+    //! \param Chained display id
     //!
-    virtual void SetChainedDisplay(long id) { _chaineddisplay = id; }
+    virtual void SetChainedDisplay(long id) override { _chaineddisplay = id; }
 
 protected:
     //!
     //! Sets data for forward pagination
     //!
-    virtual void SetForwardDisplayData();
+    virtual void SetForwardDisplayData() override;
     //!
     //! Sets data for back pagination
     //!
-    virtual void SetBackDisplayData();
+    virtual void SetBackDisplayData() override;
 
 private:
     long int _chaineddisplay;  //!< Chained display id
 
     //!
     //! Constructor - Only currency is allowed to construct
-    //! \param cur Currency associated with this display
+    //! \param Currency associated with this display
     //!
-    StringDisplay(const Currency& cur);
+    StringDisplay(const Currency&);
     
-    StringDisplay();                                      // Stubbed out 
-    StringDisplay(            const StringDisplay& src) ; // Stubbed out 
-    StringDisplay& operator=( const StringDisplay& src);  // Stubbed out
+    StringDisplay();                                     // Stubbed out // cppcheck-suppress noExplicitConstructor 
+    StringDisplay(const StringDisplay&) ;                // Stubbed out 
+    StringDisplay& operator=(const StringDisplay&);      // Stubbed out
     
     //!
 	//! Gets matrix data with no pagination - using defaults
-	//! \param fmt Format
+	//! \param Format
+    //! \param Output stream
     //!
-	std::string GetOutputNoPagination(const OutputFormat* fmt,
-                                      std::ostringstream& os) const;
+	std::string GetOutputNoPagination(const OutputFormat*, std::ostringstream&) const;
     //!
 	//! Gets matrix data with forward pagination
-	//! \param fmt Format
+	//! \param Format
+    //! \param Output stream
     //!
-	std::string GetOutputForwardPagination(const OutputFormat* fmt,
-                                           std::ostringstream& os) const;
+	std::string GetOutputForwardPagination(const OutputFormat*, const std::ostringstream&) const;
     //!
 	//! Gets matrix data with back pagination
-	//! \param fmt Format
+	//! \param Format
+    //! \param Output stream
     //!
-	std::string GetOutputBackPagination(const OutputFormat* fmt,
-                                        std::ostringstream& os) const; 
+	std::string GetOutputBackPagination(const OutputFormat*, std::ostringstream&) const; 
 };
 
 #endif

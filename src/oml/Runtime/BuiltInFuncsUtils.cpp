@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsUtils.cpp
 * @date November 2015
-* Copyright (C) 2015-2022 Altair Engineering, Inc.  
+* Copyright (C) 2015-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -18,6 +18,7 @@
 #include "BuiltInFuncsUtils.h"
 
 #include <cassert>
+#include <chrono>
 #include <cctype>  // For std::isdigit
 #include <climits>
 #include <iomanip>
@@ -48,6 +49,11 @@
 #    include <sys/times.h>
 #    include <time.h>
 #    include <unistd.h>
+
+#    include <float.h>
+# ifndef DECIMAL_DIG
+#     define DECIMAL_DIG 21
+# endif
 #endif
 
 #include "ErrorInfo.h"
@@ -59,6 +65,8 @@
 #include "utf8utils.h"
 
 #include "hwMatrix.h"
+
+#define HW_ERROR_SCALOUTCHARRANGE "Error: scalar outside of character range"
 
 // End defines/includes
 
@@ -95,7 +103,6 @@ Currency BuiltInFuncsUtils::ReadRow(EvaluatorInterface& eval,
     if (alloc && loc)
     {
         delete loc;
-        loc = nullptr;
     }
 
     Currency out(row.release());
@@ -240,8 +247,8 @@ std::vector<std::string> BuiltInFuncsUtils::GetFormats(const std::string& format
     if (formatdesc.empty()) return std::vector<std::string>();
 
     std::vector<std::string> formats;
-    size_t                   startpos      = 0;
-    size_t                   formatdescLen = formatdesc.size();
+    //size_t                   startpos      = 0;
+    //size_t                   formatdescLen = formatdesc.size();
     std::string              allfmt(formatdesc);
 	while (!allfmt.empty())
 	{        
@@ -387,18 +394,22 @@ void BuiltInFuncsUtils::SetMatrixNSlice(const hwMatrix* mtx, size_t index, hwMat
 //------------------------------------------------------------------------------
 bool BuiltInFuncsUtils::IsAbsolutePath(const std::string& in)
 {
-    if (in.empty()) 
+    if (in.empty())
+    {
         return false;
+    }
 
-    std::string path(Normpath(in));
+#ifdef OS_WIN
+    std::wstring path (GetNormpathW(StdString2WString(in)));
 
-    char ch = path[0];
-#if OS_WIN
-    if (!(ch == '/' || ch == '\\' || (path.length() > 1 && path[1] == ':')))
+    wchar_t ch = path [0];
+    if (!(ch == L'\\' || (path.length() > 1 && path[1] == L':') || ch == '/'))
+    {
         return false;
+    }
 #else
-    if (ch != '/')
-        return false;
+    std::string path(Normpath(in));
+    return (path [0] == '/');
 #endif
 
     return true;
@@ -847,7 +858,7 @@ bool BuiltInFuncsUtils::GetFormats(const std::string&        in,
         return true;
     }
 
-    char* tok = strtok((char *)in.c_str(), "%");
+    char* tok = strtok((char *)in.c_str(), "%"); // cppcheck-suppress cstyleCast
 
     while (tok)
     {
@@ -934,7 +945,6 @@ bool BuiltInFuncsUtils::GetFormats(const std::string&        in,
     {
         std::string fmt (*itr);
         size_t      pos     = fmt.find("\\t");
-        bool        replace = false;
         if (pos != std::string::npos)
         {
             fmt.replace(pos, 2, "\t");
@@ -1006,7 +1016,7 @@ bool BuiltInFuncsUtils::GetFormats(const std::string&        in,
         return true;
     }
 
-    char* tok = strtok((char *)in.c_str(), "%");
+    char* tok = strtok((char *)in.c_str(), "%"); // cppcheck-suppress cstyleCast
 
     while (tok)
     {
@@ -1115,7 +1125,6 @@ bool BuiltInFuncsUtils::GetFormats(const std::string&        in,
     {
         std::string fmt (*itr);
         size_t      pos     = fmt.find("\\t");
-        bool        replace = false;
         if (pos != std::string::npos)
         {
             fmt.replace(pos, 2, "\t");
@@ -1263,13 +1272,13 @@ bool BuiltInFuncsUtils::DoesPathExist(const std::string& path)
 //------------------------------------------------------------------------------
 std::string BuiltInFuncsUtils::LTrim(const std::string& in, const std::string& trim)
 {
-    if (in.empty())
+    if (in.empty() || in == trim)
     {
         return std::string();
     }
 
     size_t pos = in.find_first_not_of(trim);
-    if (pos == std::string::npos)
+    if (pos == 0 || pos == std::string::npos)
     {
         return in;
     }
@@ -1280,11 +1289,11 @@ std::string BuiltInFuncsUtils::LTrim(const std::string& in, const std::string& t
 //------------------------------------------------------------------------------
 std::string BuiltInFuncsUtils::RTrim(const std::string& in, const std::string& trim)
 {
-    if (in.empty())
+    if (in.empty() || in == trim)
     {
         return std::string();
     }
-    if (trim.empty())
+    else if (trim.empty())
     {
         return in;
     }
@@ -1359,12 +1368,15 @@ void BuiltInFuncsUtils::SetEnvVariable(const std::string& name,
 //------------------------------------------------------------------------------
 // Returns true if given path is absolute, supports unicode on Windows
 //------------------------------------------------------------------------------
-bool BuiltInFuncsUtils::IsAbsolutePathW(const std::wstring& path)
+bool BuiltInFuncsUtils::IsAbsolutePathW(const std::wstring& in)
 {
-    if (path.empty())
+    if (in.empty())
     {
         return false;
     }
+
+    std::wstring path (GetNormpathW(in));
+
     wchar_t ch = path[0];
     if (!(ch == L'/' || ch == L'\\' || (path.length() > 1 && path[1] == L':')))
     {
@@ -1383,13 +1395,6 @@ std::wstring BuiltInFuncsUtils::StdString2WString(const std::string& input)
         return std::wstring();
     }
 #ifdef OS_WIN
-#if 0
-    // This is a better way of doing in C++ but this had some issues with an
-    // earlier compiler on some machines
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    std::wstring out = converter.from_bytes(input);
-    return out;
-#  endif
     int len = MultiByteToWideChar(CP_UTF8, 0, input.c_str(), -1, NULL, 0);
 
     assert(len != 0);
@@ -1514,7 +1519,7 @@ size_t BuiltInFuncsUtils::GetWidestCharSize(const std::string& str)
 
     size_t width = 1;
     size_t len   = str.length();
-    for (int i = 0; i < len; ++i)
+    for (size_t i = 0; i < len; ++i)
     {
         unsigned char ch = str[i];
         size_t charSize = utf8_get_char_size(&ch);
@@ -1575,8 +1580,8 @@ bool BuiltInFuncsUtils::IsFlushCout(EvaluatorInterface eval, int fid)
     {
         return false;  // Flush only std::cout
     }
-    SignalHandlerBase* handler = eval.GetSignalHandler();
-    return (!handler || (handler && !handler->IsInGuiMode()));
+    const SignalHandlerBase* handler = eval.GetSignalHandler();
+    return (!handler || !handler->IsInGuiMode());
 }
 //------------------------------------------------------------------------------
 // Sets pagination mode with boolean for compatibility with previous versions
@@ -1676,7 +1681,7 @@ void BuiltInFuncsUtils::Mkdir(const std::string& dir)
 #else
         // Use the system command to make recursive directories
         std::string strcmd("mkdir -p \"" + name + "\" > /dev/null");
-        int         result = system(strcmd.c_str());
+        system(strcmd.c_str());
 #endif
     }
 }
@@ -1900,7 +1905,6 @@ std::string BuiltInFuncsUtils::GetFileContents(const std::string& fname)
 
 #ifdef OS_WIN
     //BuiltInFuncsUtils utils;
-    std::wstring wdata;
     std::wstring wname (StdString2WString(fname));
     std::FILE* f = _wfopen(wname.c_str(), L"r, ccs=UTF-8");
     if (f)
@@ -1908,6 +1912,8 @@ std::string BuiltInFuncsUtils::GetFileContents(const std::string& fname)
         struct _stat fstat;
         _wstat(wname.c_str(), &fstat);
         long fsize = fstat.st_size;
+
+        std::wstring wdata;
 
         // Read entire file contents in to memory
         if (fsize > 0)
@@ -1965,7 +1971,6 @@ std::wstring BuiltInFuncsUtils::GetFileContentsW(const std::wstring& in)
         std::replace(wname.begin(), wname.end(), L'/', L'\\');
     }
 
-    std::wstring wdata;
     std::FILE* f = _wfopen(wname.c_str(), L"r, ccs=UTF-8");
     if (f)
     {
@@ -2162,4 +2167,162 @@ Currency BuiltInFuncsUtils::Deque2Currency(const std::deque<std::string>& in, bo
         (*cell)(i) = in[i];
     }
     return cell.release();
+}
+//------------------------------------------------------------------------------
+// Throws error if file name has special chars
+//------------------------------------------------------------------------------
+void BuiltInFuncsUtils::CheckSpecialCharsFileName(const std::string& in, int idx)
+{
+    // Code calling this function should check for empty strings and convert to
+    // norm path later
+    if (in.empty())
+    {
+        return; // Don't throw errors if empty
+    }
+
+#ifdef OS_WIN
+    if (in.find_first_of("<>|?*") != std::string::npos)
+    {
+        throw OML_Error(OML_ERR_SPECIALCHARS_FILENAME, in, idx);
+    }
+    else
+    {
+        size_t pos = in.find_last_of(":");
+        if (pos != 1 && pos != std::string::npos)
+        {
+            throw OML_Error(OML_ERR_SPECIALCHARS_FILENAME, in, idx);
+        }
+    }
+#else
+    if (in.find_first_of("<>|?*:") != std::string::npos)
+    {
+        throw OML_Error(OML_ERR_SPECIALCHARS_FILENAME, in, idx);
+    }
+#endif
+}
+//------------------------------------------------------------------------------
+// Returns count of replaced substrings in the given string
+//------------------------------------------------------------------------------
+int BuiltInFuncsUtils::ReplaceAll(std::string& in, const std::string& from, const std::string& to)
+{
+    if (in.empty() || from.empty())
+    {
+        return 0;
+    }
+    size_t len     = in.length();
+    size_t fromlen = from.length();
+    if (fromlen > len)
+    {
+        return 0;
+    }
+
+    int    count = 0;
+    size_t idx = 0;
+    size_t tolen = to.length();
+
+    while (idx < len)
+    {
+        size_t pos = in.find(from, idx);
+        if (pos == std::string::npos)
+        {
+            break;
+        }
+        in.replace(pos, fromlen, to);
+        idx = pos + tolen;
+        ++count;
+    }
+    return count;
+}
+//------------------------------------------------------------------------------
+// Utility to convert double to string without precision loss
+//------------------------------------------------------------------------------
+std::string BuiltInFuncsUtils::NonFormattedDouble2String(double val,
+                                                         const std::string& strnan,
+                                                         const std::string& strinf,
+                                                         const std::string& strneginf)
+{
+    if (IsNaN_T(val))
+    {
+        return strnan;
+    }
+    else if (IsInf_T(val))
+    {
+        return strinf;
+    }
+    else if (IsNegInf_T(val))
+    {
+        return strneginf;
+    }
+    else
+    {
+        char* tmp = new char [128];
+#ifdef OS_WIN
+        sprintf(tmp, "%.*g", DBL_DECIMAL_DIG, val);
+#else
+        sprintf(tmp, "%.*g", DECIMAL_DIG, val);
+#endif
+
+        std::string out(tmp);
+
+        delete [] tmp;
+        tmp = nullptr;
+
+        return out;
+    }
+    return "";
+}
+//------------------------------------------------------------------------------
+// Gets file size- does not check for existence of file
+//------------------------------------------------------------------------------
+long BuiltInFuncsUtils::FileSize(const std::string& name)
+{
+#ifdef OS_WIN
+    std::wstring wname = StdString2WString(name);
+    struct _stat fstat;
+    if (_wstat(wname.c_str(), &fstat) == 0)
+    {
+        return fstat.st_size;
+    }
+
+#else
+    struct stat fstat;
+    if (stat(name.c_str(), &fstat) == 0)
+    {
+        return fstat.st_size;
+    }
+#endif 
+
+    return 0;
+}
+//------------------------------------------------------------------------------
+// Returns the last modified date, given a file name
+// \todo: In C++ 17, use last_write_time
+//------------------------------------------------------------------------------
+std::string BuiltInFuncsUtils::FileLastModifiedDate(const std::string& name)
+{
+    time_t rawtime;
+#ifdef OS_WIN
+    std::wstring wname = StdString2WString(name);
+    struct _stat fstat;
+    if (_wstat(StdString2WString(name).c_str(), &fstat) == 0)
+    {
+        rawtime = fstat.st_mtime;
+    }
+
+#else
+    struct stat fstat;
+    if (stat(name.c_str(), &fstat) == 0)
+    {
+        rawtime = fstat.st_mtime;
+    }
+#endif 
+
+    std::chrono::system_clock::time_point tp =
+        std::chrono::system_clock::from_time_t(rawtime);
+
+    std::time_t t = std::chrono::system_clock::to_time_t(tp);
+    std::string ts = std::ctime(&t);
+    ts.resize(ts.size() - 1);
+
+    return ts;
 }

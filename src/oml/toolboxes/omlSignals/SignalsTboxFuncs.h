@@ -1,7 +1,7 @@
 /**
 * @file SignalsTboxFuncs.h
 * @date January 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -44,9 +44,6 @@ extern "C"
     //!
     SIGNALSOMLTBOX_DECLS double GetToolboxVersion(EvaluatorInterface eval);
 }
-
-int determineFftSize(const hwMatrix *mtx);
-int determineFftDim(const hwMatrix *mtx);
 
 //!
 //! Inverse Fast Fourier transform
@@ -148,6 +145,51 @@ bool OmlIFftShift(EvaluatorInterface           eval,
                   const std::vector<Currency>& inputs,
                   std::vector<Currency>&       outputs);
 //!
+//! Shift data dimension
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlShiftData(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs);
+//!
+//! Unshift data dimension
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlUnshiftData(EvaluatorInterface           eval,
+                    const std::vector<Currency>& inputs,
+                    std::vector<Currency>&       outputs);
+//!
+//! Hilbert transform
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlHilbert(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs);
+//!
+//! Discrete cosine transform
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlDct(EvaluatorInterface           eval,
+            const std::vector<Currency>& inputs,
+            std::vector<Currency>&       outputs);
+//!
+//! Inverse discrete cosine transform
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlIdct(EvaluatorInterface           eval,
+             const std::vector<Currency>& inputs,
+             std::vector<Currency>&       outputs);
+//!
 //! Generates a vector of frequency locations
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
@@ -174,6 +216,15 @@ bool OmlFold(EvaluatorInterface           eval,
 bool OmlXcorr(EvaluatorInterface           eval, 
               const std::vector<Currency>& inputs, 
               std::vector<Currency>&       outputs);
+//!
+//! Performs cross covariance [xcov command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlXcov(EvaluatorInterface           eval,
+             const std::vector<Currency>& inputs,
+             std::vector<Currency>&       outputs);
 //!
 //! Unwraps a vector of phase angles [unwrap command]
 //! \param eval    Evaluator interface
@@ -337,6 +388,60 @@ bool OmlEllip(EvaluatorInterface           eval,
               const std::vector<Currency>& inputs, 
               std::vector<Currency>&       outputs);
 //!
+//! Creates a Bessel analog prototype filter [besselap command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlBesselap(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs);
+//!
+//! Creates a Bessel analog prototype filter [bessel3ap command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlBessel3ap(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs);
+//!
+//! Creates a Butterworth analog prototype filter [buttap command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlButtap(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs);
+//!
+//! Creates a Chebyshev I analog prototype filter [cheb1ap command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlCheb1ap(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs);
+//!
+//! Creates a Chebyshev II analog prototype filter [cheb2ap command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlCheb2ap(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs);
+//!
+//! Creates a Elliptic analog prototype filter [ellipap command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlEllipap(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs);
+//!
 //! Designs a Butterworth filter [buttord command]
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
@@ -454,14 +559,33 @@ bool OmlFilter(EvaluatorInterface           eval,
                const std::vector<Currency>& inputs, 
                std::vector<Currency>&       outputs);
 //!
-//! Filter a signal forward and then backward, compensating for end effects [filtfilt command]
+//! Returns IIR filter initial conditions that match input/output signals [filtic command]
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
 //! \param outputs Vector of outputs
 //!
-bool OmlFiltfilt(EvaluatorInterface           eval, 
+//!
+bool OmlFiltIC(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs);
+//!
+//! Filters a signal forward and then backward, compensating for end effects [filtfilt command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlFiltfilt(EvaluatorInterface           eval,
                  const std::vector<Currency>& inputs, 
                  std::vector<Currency>&       outputs);
+//!
+//! Filters a signal with a second order section IIR filter [sosfilt command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlSosFilt(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs);
 //!
 //! Filters a signal with a 2D FIR filter [filter2 command]
 //! \param eval    Evaluator interface
@@ -471,6 +595,24 @@ bool OmlFiltfilt(EvaluatorInterface           eval,
 bool OmlFilter2(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs,
                 std::vector<Currency>&       outputs);
+//!
+//! Filters a signal with a moving median filter [medfilt1 command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlMedfilt1(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs);
+//!
+//! Group delay of a digital filter [grpdelay]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlGrpDelay(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs);
 //!
 //! Computes the sinc function [sinc command]
 //! \param eval    Evaluator interface
@@ -633,5 +775,103 @@ bool OmlDiric(EvaluatorInterface           eval,
 bool OmlChirp(EvaluatorInterface           eval,
               const std::vector<Currency>& inputs,
               std::vector<Currency>&       outputs);
-
-#endif // __SIGNALSTBOXFUNCS_OML_H__         
+//!
+//! Computes Morlet wavelet [morlet command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlMorlet(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs);
+//!
+//! Computes Complex Morlet wavelet [cmorwavf command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlCmorwavf(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs);
+//!
+//! Computes Gaussian monopulse wavelet [gmonopuls command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlGmonopuls(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs);
+//!
+//! Computes Shannon wavelet [shanwavf command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlShanwavf(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs);
+//!
+//! Computes Mexican hat wavelet [mexihat command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlMexihat(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs);
+//!
+//! Computes Meyer wavelet auxillary wavelet [meyeraux command]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlMeyerAux(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs);
+//!
+//! Computes root sum squared values [rssq]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlRSSQ(EvaluatorInterface           eval,
+             const std::vector<Currency>& inputs,
+             std::vector<Currency>&       outputs);
+//!
+//! Computes peak to rms values [peak2rms]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlPeak2RMS(EvaluatorInterface           eval,
+                 const std::vector<Currency>& inputs,
+                 std::vector<Currency>&       outputs);
+//!
+//! Computes peak to peak values [peak2peak]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlPeak2Peak(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs);
+//!
+//! Quantizes array values [uencode]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlUencode(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs);
+//!
+//! Reverses quantization of array values [udecode]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlUdecode(EvaluatorInterface           eval,
+                const std::vector<Currency>& inputs,
+                std::vector<Currency>&       outputs);
+#endif // __SIGNALSTBOXFUNCS_OML_H__

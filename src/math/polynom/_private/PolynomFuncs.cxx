@@ -728,7 +728,8 @@ hwMathStatus LinearInterp(const hwMatrix& x_old,
                           const hwMatrix& x_new,
                           hwMatrix&       y_new,
                           bool            requireUniqueX,
-                          bool            extrap)
+                          int             extrap,
+                          double          extrapVal)
 {
     hwMathStatus status;
 
@@ -792,15 +793,16 @@ hwMathStatus LinearInterp(const hwMatrix& x_old,
     if (requireUniqueX && n > 1 && x_old(n - 2) == x_old(n - 1))
         return status(HW_MATH_ERR_NONUNIQUE, 1);
 
-    if (extrap)
+    for (i = 0; i < nn; i++)
     {
-        for (i = 0; i < nn; i++)
-        {
-            if (ascendingX)
-                idx = BinarySearch(x_old.GetRealData(), n, x_new(i));
-            else
-                idx = BinarySearchR(x_old.GetRealData(), n, x_new(i));
+        if (ascendingX)
+            idx = BinarySearch(x_old.GetRealData(), n, x_new(i));
+        else
+            idx = BinarySearchR(x_old.GetRealData(), n, x_new(i));
 
+        if (extrap == 1)
+        {
+            // extrapolate
             if (idx < 0)
                 idx = 0;
             else if (idx >= n - 1)
@@ -819,16 +821,33 @@ hwMathStatus LinearInterp(const hwMatrix& x_old,
                            (x_new(i) - x_old(idx)) + y_old(idx);
             }
         }
-    }
-    else
-    {
-        for (i = 0; i < nn; i++)
+        else if (extrap == 0)
         {
-            if (ascendingX)
-                idx = BinarySearch(x_old.GetRealData(), n, x_new(i));
+            // no extrapolation, assign fill value
+            if (idx < 0)
+            {
+                y_new(i) = extrapVal;
+            }
+            else if (idx == n - 1)
+            {
+                if (fabs(x_new(i) - x_old(idx)) < 1.0e-10)
+                    y_new(i) = y_old(idx);
+                else
+                    y_new(i) = extrapVal;
+            }
+            else if (x_old(idx) == x_old(idx + 1))
+            {
+                y_new(i) = y_old(idx + 1);
+            }
             else
-                idx = BinarySearchR(x_old.GetRealData(), n, x_new(i));
-
+            {
+                y_new(i) = (y_old(idx + 1) - y_old(idx)) / (x_old(idx + 1) - x_old(idx)) *
+                           (x_new(i) - x_old(idx)) + y_old(idx);
+            }
+        }
+        else
+        {
+            // no extrapolation, return error
             if (idx < 0)
             {
                 return status(HW_MATH_ERR_BADRANGE, 3);
@@ -847,9 +866,58 @@ hwMathStatus LinearInterp(const hwMatrix& x_old,
             else
             {
                 y_new(i) = (y_old(idx + 1) - y_old(idx)) / (x_old(idx + 1) - x_old(idx)) *
-                    (x_new(i) - x_old(idx)) + y_old(idx);
+                           (x_new(i) - x_old(idx)) + y_old(idx);
             }
         }
+    }
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// Computes piecewise linear interpolation coefficients and returns status
+//------------------------------------------------------------------------------
+hwMathStatus LinearInterp(const hwMatrix& x_old,
+                          const hwMatrix& y_old,
+                          hwMatrix&       coefs)
+{
+    hwMathStatus status;
+
+    if (!x_old.IsReal())
+        return status(HW_MATH_ERR_COMPLEXSUPPORT, 1);
+
+    if (!x_old.IsVector())
+        return status(HW_MATH_ERR_VECTOR, 1);
+
+    if (!y_old.IsReal())
+        return status(HW_MATH_ERR_COMPLEXSUPPORT, 2);
+
+    if (!y_old.IsVector())
+        return status(HW_MATH_ERR_VECTOR, 2);
+
+    if (x_old.Size() < 2)
+        return status(HW_MATH_ERR_TOOFEWPOINTS, 1);
+
+    if (x_old.Size() != y_old.Size())
+        return status(HW_MATH_ERR_ARRAYSIZE, 1, 2);
+
+    // compute coefficients
+    int n = x_old.Size();
+    status = coefs.Dimension(n - 1, 2, hwMatrix::REAL);
+
+    if (!status.IsOk())
+    {
+        if (status.GetArg1() == 0)
+            status.SetArg1(3);
+        else
+            status.ResetArgs();
+
+        return status;
+    }
+
+    for (int i = 0; i < n - 1; ++i)
+    {
+        coefs(i, 0) = (y_old(i + 1) - y_old(i)) / (x_old(i + 1) - x_old(i));
+        coefs(i, 1) = y_old(i);
     }
 
     return status;
@@ -861,7 +929,8 @@ hwMathStatus PchipInterp(const hwMatrix& x_old,
                          const hwMatrix& y_old,
                          const hwMatrix& x_new,
                          hwMatrix&       y_new,
-                         bool            extrap)
+                         int             extrap,
+                         double          extrapVal)
 {
     hwMathStatus status;
 
@@ -951,55 +1020,177 @@ hwMathStatus PchipInterp(const hwMatrix& x_old,
     else
         ascendingX = false;    // the sign changes take care of themselves
 
-    if (extrap)
+    for (int i = 0; i < nn; i++)
     {
-        for (int i = 0; i < nn; i++)
-        {
-            if (ascendingX)
+        if (ascendingX)
             idx = BinarySearch(x_old.GetRealData(), n, x_new(i));
-            else
-                idx = BinarySearchR(x_old.GetRealData(), n, x_new(i));
+        else
+            idx = BinarySearchR(x_old.GetRealData(), n, x_new(i));
 
+        if (extrap == 1)
+        {
+            // extrapolate
             if (idx < 0)
+            {
                 idx = 0;
+            }
             else if (idx >= n - 1)
+            {
                 idx = n - 2;
+            }
 
-            double c = (3.0 * delta(idx) - 2.0 * d(idx) - d(idx+1)) / h(idx);
-            double b = (d(idx) - 2.0 * delta(idx) + d(idx+1)) / (h(idx)*h(idx));
+            double c = (3.0 * delta(idx) - 2.0 * d(idx) - d(idx + 1)) / h(idx);
+            double b = (d(idx) - 2.0 * delta(idx) + d(idx + 1)) / (h(idx) * h(idx));
             double s = x_new(i) - x_old(idx);
 
             y_new(i) = y_old(idx) + s * (d(idx) + s * (c + s * b));
         }
-    }
-    else
-    {
-        for (int i = 0; i < nn; i++)
+        else if (extrap == 0)
         {
-            if (ascendingX)
-            idx = BinarySearch(x_old.GetRealData(), n, x_new(i));
-            else
-                idx = BinarySearchR(x_old.GetRealData(), n, x_new(i));
-
+            // no extrapolation, assign fill value
             if (idx < 0)
-                return status(HW_MATH_ERR_BADRANGE, 3);
+            {
+                y_new(i) = extrapVal;
+            }
             else if (idx == n - 1)
             {
                 if (fabs(x_new(i) - x_old(idx)) < 1.0e-10)
                 {
                     y_new(i) = y_old(idx);
-                    continue;
                 }
                 else
-                    return status(HW_MATH_ERR_BADRANGE, 3);
+                {
+                    y_new(i) = extrapVal;
+                }
             }
+            else
+            {
+                double c = (3.0 * delta(idx) - 2.0 * d(idx) - d(idx + 1)) / h(idx);
+                double b = (d(idx) - 2.0 * delta(idx) + d(idx + 1)) / (h(idx) * h(idx));
+                double s = x_new(i) - x_old(idx);
 
-            double c = (3.0 * delta(idx) - 2.0 * d(idx) - d(idx+1)) / h(idx);
-            double b = (d(idx) - 2.0 * delta(idx) + d(idx+1)) / (h(idx)*h(idx));
-            double s = x_new(i) - x_old(idx);
-
-            y_new(i) = y_old(idx) + s * (d(idx) + s * (c + s * b));
+                y_new(i) = y_old(idx) + s * (d(idx) + s * (c + s * b));
+            }
         }
+        else
+        {
+            // no extrapolation, return error
+            if (idx < 0)
+            {
+                return status(HW_MATH_ERR_BADRANGE, 3);
+            }
+            else if (idx == n - 1)
+            {
+                if (fabs(x_new(i) - x_old(idx)) < 1.0e-10)
+                {
+                    y_new(i) = y_old(idx);
+                }
+                else
+                {
+                    return status(HW_MATH_ERR_BADRANGE, 3);
+                }
+            }
+            else
+            {
+                double c = (3.0 * delta(idx) - 2.0 * d(idx) - d(idx + 1)) / h(idx);
+                double b = (d(idx) - 2.0 * delta(idx) + d(idx + 1)) / (h(idx) * h(idx));
+                double s = x_new(i) - x_old(idx);
+
+                y_new(i) = y_old(idx) + s * (d(idx) + s * (c + s * b));
+            }
+        }
+    }
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// Computes piecewise cubic hermite coefficients and returns status
+//------------------------------------------------------------------------------
+hwMathStatus PchipInterp(const hwMatrix& x_old,
+                         const hwMatrix& y_old,
+                         hwMatrix&       coefs)
+{
+    hwMathStatus status;
+
+    if (!x_old.IsReal())
+        return status(HW_MATH_ERR_COMPLEXSUPPORT, 1);
+
+    if (!x_old.IsVector())
+        return status(HW_MATH_ERR_VECTOR, 1);
+
+    if (!y_old.IsReal())
+        return status(HW_MATH_ERR_COMPLEXSUPPORT, 2);
+
+    if (!y_old.IsVector())
+        return status(HW_MATH_ERR_VECTOR, 2);
+
+    if (x_old.Size() < 2)
+        return status(HW_MATH_ERR_TOOFEWPOINTS, 1);
+
+    if (x_old.Size() != y_old.Size())
+        return status(HW_MATH_ERR_ARRAYSIZE, 1, 2);
+
+    // compute derivatives
+    int n = x_old.Size();
+
+    hwMatrix d(n, hwMatrix::REAL);
+    hwMatrix h(n - 1, hwMatrix::REAL);
+    hwMatrix delta(n - 1, hwMatrix::REAL);
+
+    d.SetElements(0.0);
+
+    for (int i = 0; i < n - 1; ++i)
+    {
+        h(i) = x_old(i + 1) - x_old(i);
+
+        if (h(i) == 0.0)
+            return status(HW_MATH_ERR_NONUNIQUE, 1);
+
+        delta(i) = (y_old(i + 1) - y_old(i)) / h(i);
+
+        if (i > 0 && (delta(i) * delta(i - 1) > 0.0))
+        {
+            double w1 = 2.0 * h(i) + h(i - 1);
+            double w2 = h(i) + 2.0 * h(i - 1);
+            d(i) = (w1 + w2) / (w1 / delta(i - 1) + w2 / delta(i));
+        }
+    }
+
+    d(0) = ((2.0 * h(0) + h(1)) * delta(0) - h(0) * delta(1)) / (h(0) + h(1));
+
+    if (d(0) * delta(0) < 0.0)
+        d(0) = 0.0;
+    else if (delta(0) * delta(1) < 0.0 && fabs(d(0)) > fabs(3.0 * delta(0)))
+        d(0) = 3.0 * delta(0);
+
+    d(n - 1) = ((2.0 * h(n - 2) + h(n - 3)) * delta(n - 2) - h(n - 2) * delta(n - 3)) / (h(n - 2) + h(n - 3));
+
+    if (d(n - 1) * delta(n - 2) < 0.0)
+        d(n - 1) = 0.0;
+    else if (delta(n - 2) * delta(n - 3) < 0.0 && fabs(d(n - 1)) > fabs(3.0 * delta(n - 2)))
+        d(n - 1) = 3.0 * delta(n - 2);
+
+    // compute coefficients
+    status = coefs.Dimension(n - 1, 4, hwMatrix::REAL);
+
+    if (!status.IsOk())
+    {
+        if (status.GetArg1() == 0)
+            status.SetArg1(3);
+        else
+            status.ResetArgs();
+
+        return status;
+    }
+
+    for (int i = 0; i < n - 1; ++i)
+    {
+        double c = (3.0 * delta(i) - 2.0 * d(i) - d(i+1)) / h(i);
+        double b = (d(i) - 2.0 * delta(i) + d(i + 1)) / (h(i) * h(i));
+        coefs(i, 0) = b;
+        coefs(i, 1) = c;
+        coefs(i, 2) = d(i);
+        coefs(i, 3) = y_old(i);
     }
 
     return status;
@@ -1157,7 +1348,8 @@ hwMathStatus Spline(const hwMatrix& x_old,
                     const hwMatrix& y_old,
 	                const hwMatrix& x_new,
                     hwMatrix&       y_new,
-	                bool            extrap)
+                    int             extrap,
+                    double          extrapVal)
 {
     hwMathStatus status;
 	hwMatrix deriv_2;
@@ -1196,7 +1388,6 @@ hwMathStatus Spline(const hwMatrix& x_old,
 	int n = x_old.Size();
 	int nn = x_new.Size();
     long idx;
-	double s1, s2, s3;
 	const double* x_start = x_old.GetRealData();
     bool ascendingX;
 
@@ -1205,66 +1396,92 @@ hwMathStatus Spline(const hwMatrix& x_old,
     else
         ascendingX = false;    // the sign changes take care of themselves
 
-	if (extrap)
-	{
-		for (i = 0; i < nn; i++)
-		{
-			// idx = BinarySearch(x_start, n, x_new(i));
-            if (ascendingX)
-			idx = BinarySearch(x_start, n, x_new(i));
-            else
-                idx = BinarySearchR(x_start, n, x_new(i));
+    for (i = 0; i < nn; i++)
+    {
+        if (ascendingX)
+            idx = BinarySearch(x_start, n, x_new(i));
+        else
+            idx = BinarySearchR(x_start, n, x_new(i));
 
-			if (idx < 0)
-				idx = 0;
-			else if (idx >= n - 1)
-				idx = n - 2;
-
-			s1 = x_old(idx+1) - x_old(idx);
-			s2 = x_new(i) - x_old(idx);
-			s3 = x_old(idx+1) - x_new(i);
-
-			y_new(i) = deriv_2(idx)*s3*(s3*s3/s1 - s1)/6.0
-				     + deriv_2(idx+1)*s2*(s2*s2/s1 - s1)/6.0
-				     + y_old(idx)*s3/s1 + y_old(idx+1)*s2/s1;
-		}
-	}
-	else
-	{
-		for (i = 0; i < nn; i++)
-		{
-			// idx = BinarySearch(x_start, n, x_new(i));
-            if (ascendingX)
-			idx = BinarySearch(x_start, n, x_new(i));
-            else
-                idx = BinarySearchR(x_start, n, x_new(i));
-
-			if (idx < 0)
+        if (extrap == 1)
+        {
+            // extrapolate
+            if (idx < 0)
             {
-				return status(HW_MATH_ERR_BADRANGE, 3);
+                idx = 0;
             }
-			else if (idx == n - 1)
-			{
-				if (fabs(x_new(i) - x_old(idx)) < 1.0e-10)
-				{
-					y_new(i) = y_old(idx);
-					continue;
-				}
-				else
+            else if (idx >= n - 1)
+            {
+                idx = n - 2;
+            }
+
+            double s1 = x_old(idx + 1) - x_old(idx);
+            double s2 = x_new(i) - x_old(idx);
+            double s3 = x_old(idx + 1) - x_new(i);
+
+            y_new(i) = deriv_2(idx) * s3 * (s3 * s3 / s1 - s1) / 6.0
+                     + deriv_2(idx + 1) * s2 * (s2 * s2 / s1 - s1) / 6.0
+                     + y_old(idx) * s3 / s1 + y_old(idx + 1) * s2 / s1;
+        }
+        else if (extrap == 0)
+        {
+            // no extrapolation, assign fill value
+            if (idx < 0)
+            {
+                y_new(i) = extrapVal;
+            }
+            else if (idx == n - 1)
+            {
+                if (fabs(x_new(i) - x_old(idx)) < 1.0e-10)
                 {
-					return status(HW_MATH_ERR_BADRANGE, 3);
+                    y_new(i) = y_old(idx);
                 }
-			}
+                else
+                {
+                    y_new(i) = extrapVal;
+                }
+            }
+            else
+            {
+                double s1 = x_old(idx + 1) - x_old(idx);
+                double s2 = x_new(i) - x_old(idx);
+                double s3 = x_old(idx + 1) - x_new(i);
 
-			s1 = x_old(idx+1) - x_old(idx);
-			s2 = x_new(i) - x_old(idx);
-			s3 = x_old(idx+1) - x_new(i);
+                y_new(i) = deriv_2(idx) * s3 * (s3 * s3 / s1 - s1) / 6.0
+                    + deriv_2(idx + 1) * s2 * (s2 * s2 / s1 - s1) / 6.0
+                    + y_old(idx) * s3 / s1 + y_old(idx + 1) * s2 / s1;
+            }
+        }
+        else
+        {
+            // no extrapolation, return error
+            if (idx < 0)
+            {
+                return status(HW_MATH_ERR_BADRANGE, 3);
+            }
+            else if (idx == n - 1)
+            {
+                if (fabs(x_new(i) - x_old(idx)) < 1.0e-10)
+                {
+                    y_new(i) = y_old(idx);
+                }
+                else
+                {
+                    return status(HW_MATH_ERR_BADRANGE, 3);
+                }
+            }
+            else
+            {
+                double s1 = x_old(idx + 1) - x_old(idx);
+                double s2 = x_new(i) - x_old(idx);
+                double s3 = x_old(idx + 1) - x_new(i);
 
-			y_new(i) = deriv_2(idx)*s3*(s3*s3/s1 - s1)/6.0
-				     + deriv_2(idx+1)*s2*(s2*s2/s1 - s1)/6.0
-				     + y_old(idx)*s3/s1 + y_old(idx+1)*s2/s1;
-		}
-	}
+                y_new(i) = deriv_2(idx) * s3 * (s3 * s3 / s1 - s1) / 6.0
+                         + deriv_2(idx + 1) * s2 * (s2 * s2 / s1 - s1) / 6.0
+                         + y_old(idx) * s3 / s1 + y_old(idx + 1) * s2 / s1;
+            }
+        }
+    }
 
 	return status;
 }
@@ -1291,6 +1508,7 @@ hwMathStatus Spline(const hwMatrix& x_old,
         return status;
     }
 
+    // compute coefficients
 	status = coefs.Dimension(n-1, 4, hwMatrix::REAL);
 
 	if (!status.IsOk())
@@ -1419,11 +1637,12 @@ hwMathStatus Spline(const hwMatrix& x_old,
                     double          fp2,
                     const hwMatrix& x_new,
                     hwMatrix&       y_new,
-                    bool            extrap)
+                    int             extrap,
+                    double          extrapVal)
 {
     hwMathStatus status;
-	hwMatrix deriv_2;
-    
+    hwMatrix deriv_2;
+
     // get second derivatives
     status = SplineDerivatives2(x_old, y_old, fp1, fp2, deriv_2);
 
@@ -1435,84 +1654,114 @@ hwMathStatus Spline(const hwMatrix& x_old,
         return status;
     }
 
-	if (!x_new.IsReal())
-		return hwMathStatus(HW_MATH_ERR_COMPLEX, 3);
+    if (!x_new.IsReal())
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 3);
 
-	if (!x_new.IsEmptyOrVector())
-		return hwMathStatus(HW_MATH_ERR_VECTOR, 3);
+    if (!x_new.IsEmptyOrVector())
+        return hwMathStatus(HW_MATH_ERR_VECTOR, 3);
 
-	status = y_new.Dimension(x_new.M(), x_new.N(), hwMatrix::REAL);
+    status = y_new.Dimension(x_new.M(), x_new.N(), hwMatrix::REAL);
 
-	if (!status.IsOk())
-	{
-		if (status.GetArg1() == 0)
-			status.SetArg1(6);
-		else
-			status.ResetArgs();
+    if (!status.IsOk())
+    {
+        if (status.GetArg1() == 0)
+            status.SetArg1(6);
+        else
+            status.ResetArgs();
 
-		return status;
-	}
+        return status;
+    }
 
     // compute interpolated/extrapolated points
-	int i;
-	int idx;
-	int n = x_old.Size();
-	int nn = x_new.Size();
-	double s1, s2, s3;
-	const double* x_start = x_old.GetRealData();
+    int i;
+    int idx;
+    int n = x_old.Size();
+    int nn = x_new.Size();
+    const double* x_start = x_old.GetRealData();
 
-	if (extrap)
-	{
-		for (i = 0; i < nn; i++)
-		{
-			idx = BinarySearch(x_start, n, x_new(i));
+    for (i = 0; i < nn; i++)
+    {
+        idx = BinarySearch(x_start, n, x_new(i));
 
-			if (idx < 0)
-				idx = 0;
-			else if (idx >= n - 1)
-				idx = n - 2;
-
-			s1 = x_old(idx+1) - x_old(idx);
-			s2 = x_new(i) - x_old(idx);
-			s3 = x_old(idx+1) - x_new(i);
-
-			y_new(i) = deriv_2(idx)*s3*(s3*s3/s1 - s1)/6.0
-				     + deriv_2(idx+1)*s2*(s2*s2/s1 - s1)/6.0
-				     + y_old(idx)*s3/s1 + y_old(idx+1)*s2/s1;
-		}
-	}
-	else
-	{
-		for (i = 0; i < nn; i++)
-		{
-			idx = BinarySearch(x_start, n, x_new(i));
-
-			if (idx < 0)
+        if (extrap == 1)
+        {
+            // extrapolate
+            if (idx < 0)
             {
-				return status(HW_MATH_ERR_BADRANGE, 3);
+                idx = 0;
             }
-			else if (idx == n - 1)
-			{
-				if (fabs(x_new(i) - x_old(idx)) < 1.0e-10)
-				{
-					y_new(i) = y_old(idx);
-					continue;
-				}
-				else
+            else if (idx >= n - 1)
+            {
+                idx = n - 2;
+            }
+
+            double s1 = x_old(idx + 1) - x_old(idx);
+            double s2 = x_new(i) - x_old(idx);
+            double s3 = x_old(idx + 1) - x_new(i);
+
+            y_new(i) = deriv_2(idx) * s3 * (s3 * s3 / s1 - s1) / 6.0
+                     + deriv_2(idx + 1) * s2 * (s2 * s2 / s1 - s1) / 6.0
+                     + y_old(idx) * s3 / s1 + y_old(idx + 1) * s2 / s1;
+        }
+        else if (extrap == 0)
+        {
+            // no extrapolation, assign fill value
+            if (idx < 0)
+            {
+                y_new(i) = extrapVal;
+            }
+            else if (idx == n - 1)
+            {
+                if (fabs(x_new(i) - x_old(idx)) < 1.0e-10)
                 {
-					return status(HW_MATH_ERR_BADRANGE, 3);
+                    y_new(i) = y_old(idx);
                 }
-			}
+                else
+                {
+                    y_new(i) = extrapVal;
+                }
+            }
+            else
+            {
+                double s1 = x_old(idx + 1) - x_old(idx);
+                double s2 = x_new(i) - x_old(idx);
+                double s3 = x_old(idx + 1) - x_new(i);
 
-			s1 = x_old(idx+1) - x_old(idx);
-			s2 = x_new(i) - x_old(idx);
-			s3 = x_old(idx+1) - x_new(i);
+                y_new(i) = deriv_2(idx) * s3 * (s3 * s3 / s1 - s1) / 6.0
+                         + deriv_2(idx + 1) * s2 * (s2 * s2 / s1 - s1) / 6.0
+                         + y_old(idx) * s3 / s1 + y_old(idx + 1) * s2 / s1;
+            }
+        }
+        else
+        {
+            // no extrapolation, return error
+            if (idx < 0)
+            {
+                return status(HW_MATH_ERR_BADRANGE, 3);
+            }
+            else if (idx == n - 1)
+            {
+                if (fabs(x_new(i) - x_old(idx)) < 1.0e-10)
+                {
+                    y_new(i) = y_old(idx);
+                }
+                else
+                {
+                    return status(HW_MATH_ERR_BADRANGE, 3);
+                }
+            }
+            else
+            {
+                double s1 = x_old(idx + 1) - x_old(idx);
+                double s2 = x_new(i) - x_old(idx);
+                double s3 = x_old(idx + 1) - x_new(i);
 
-			y_new(i) = deriv_2(idx)*s3*(s3*s3/s1 - s1)/6.0
-				     + deriv_2(idx+1)*s2*(s2*s2/s1 - s1)/6.0
-				     + y_old(idx)*s3/s1 + y_old(idx+1)*s2/s1;
-		}
-	}
+                y_new(i) = deriv_2(idx) * s3 * (s3 * s3 / s1 - s1) / 6.0
+                         + deriv_2(idx + 1) * s2 * (s2 * s2 / s1 - s1) / 6.0
+                         + y_old(idx) * s3 / s1 + y_old(idx + 1) * s2 / s1;
+            }
+        }
+    }
 
 	return status;
 }
@@ -1541,7 +1790,8 @@ hwMathStatus Spline(const hwMatrix& x_old,
         return status;
     }
 
-	status = coefs.Dimension(n-1, 4, hwMatrix::REAL);
+    // compute coefficients
+    status = coefs.Dimension(n-1, 4, hwMatrix::REAL);
 
 	if (!status.IsOk())
 	{
@@ -1576,7 +1826,7 @@ static double BilinearPatch(const hwMatrix& x_old,
                             double          x_new, 
                             double          y_new)
 
-{    
+{
     // scale coordinates to unit cube
     double x = (x_new - x_old(idxc)) / (x_old(idxc+1) - x_old(idxc));
     double y = (y_new - y_old(idxr)) / (y_old(idxr+1) - y_old(idxr));
@@ -1596,7 +1846,8 @@ hwMathStatus BilinearInterp(const hwMatrix& x_old,
                             const hwMatrix& x_new,
                             const hwMatrix& y_new,
                             hwMatrix&       z_new,
-                            bool            extrap)
+                            int             extrap,
+                            double          extrapVal)
 {
     hwMathStatus status;
 
@@ -1620,34 +1871,8 @@ hwMathStatus BilinearInterp(const hwMatrix& x_old,
     int zm_new;
     int zn_new;
 
-    if (x_old.IsVector() && y_old.IsVector())
-    {
-        if (x_new.IsVector() && y_new.IsVector())
-        {
-            zm_new = y_new.Size();
-            zn_new = x_new.Size();
-        }
-        else if (x_new.M() == y_new.M() && x_new.N() == y_new.N())
-        {
-            zm_new = x_new.M();
-            zn_new = x_new.N();
-        }
-        else
-        {
- 		    return status(HW_MATH_ERR_ARRAYSIZE, 4, 5);
-        }
-
-        status = z_new.Dimension(zm_new, zn_new, hwMatrix::REAL);
-
-        if (!status.IsOk())
-        {
-            status.SetArg1(6);
-            return status;
-        }
-    }
-    else if (x_old.M() == y_old.M() && x_old.N() == y_old.N() &&
-             x_old.M() == zm_old && x_old.N() == zn_old &&
-             x_new.M() == y_new.M() && x_new.N() == y_new.N())
+    if (x_old.M() == y_old.M() && x_old.N() == y_old.N() &&
+        x_old.M() == zm_old    && x_old.N() == zn_old)
     {
         // extract single vectors from x_old and y_old, assuming that the
         // rows of x_old are identical and columns of y_old are also
@@ -1656,180 +1881,288 @@ hwMathStatus BilinearInterp(const hwMatrix& x_old,
         if (m)
         {
             const double* y_old_col = y_old.GetRealData();
-            hwMatrix y_temp(m, (void*) y_old_col, hwMatrix::REAL);
+            hwMatrix y_temp(m, (void*)y_old_col, hwMatrix::REAL);
             hwMatrix x_temp;
             status = x_old.ReadRow(0, x_temp);
-            return BilinearInterp(x_temp, y_temp, z_old, x_new, y_new, z_new, extrap);
+            return BilinearInterp(x_temp, y_temp, z_old, x_new, y_new, z_new, extrap, extrapVal);
         }
     }
-    else
+
+    if (!x_old.IsVector() || !y_old.IsVector())
     {
         if (x_old.M() != y_old.M() || x_old.N() != y_old.N())
- 		    return status(HW_MATH_ERR_ARRAYSIZE, 1, 2);
+            return status(HW_MATH_ERR_ARRAYSIZE, 1, 2);
 
         if (x_old.M() != z_old.M() || x_old.N() != z_old.N())
- 		    return status(HW_MATH_ERR_ARRAYSIZE, 1, 3);
+            return status(HW_MATH_ERR_ARRAYSIZE, 1, 3);
+    }
+    else if (x_old.Size() != z_old.N())
+    {
+        return status(HW_MATH_ERR_ARRAYSIZE, 1, 3);
+    }
+    else if (y_old.Size() != z_old.M())
+    {
+        return status(HW_MATH_ERR_ARRAYSIZE, 2, 3);
     }
 
-    // interpolate/extrapolate each x,y location using bicubic spline patch 
-    if (x_old.IsVector() && y_old.IsVector())
+    // interpolate/extrapolate each x,y location using bilinear patch 
+    int idxc;
+    int idxr;
+    const double* x_start = x_old.GetRealData();
+    const double* y_start = y_old.GetRealData();
+
+    if (x_new.M() == y_new.M() && x_new.N() == y_new.N())
     {
-        int idxc;
-        int idxr;
-        const double* x_start = x_old.GetRealData();
-        const double* y_start = y_old.GetRealData();
+        zm_new = x_new.M();
+        zn_new = x_new.N();
 
-        if (x_new.IsVector() && y_new.IsVector())
+        status = z_new.Dimension(zm_new, zn_new, hwMatrix::REAL);
+
+        if (!status.IsOk())
         {
-            hwMatrixI idxr_vec(zm_new, hwMatrixI::REAL);
+            status.SetArg1(6);
+            return status;
+        }
 
-            if (extrap)
+        int zsize_old = zm_old * zn_old;
+        int zsize_new = zm_new * zn_new;
+
+        // find row and column indices
+        for (int i = 0; i < zsize_new; ++i)
+        {
+            idxr = BinarySearch(y_start, zm_old, y_new(i));
+            idxc = BinarySearch(x_start, zn_old, x_new(i));
+
+            if (extrap == 1)
             {
-                // find row indices
-                for (int i = 0; i < zm_new; ++i)
+                // extrapolate
+                if (idxr < 0)
                 {
-                    idxr = BinarySearch(y_start, zm_old, y_new(i));
-
-                    if (idxr < 0)
-                        idxr = 0;
-                    else if (idxr >= zm_old - 1)
-                        idxr = zm_old - 2;
-
-                    idxr_vec(i) = idxr;
+                    idxr = 0;
+                }
+                else if (idxr >= zm_old - 1)
+                {
+                    idxr = zm_old - 2;
                 }
 
-                // find column indices
-                for (int j = 0; j < zn_new; ++j)
+                if (idxc < 0)
                 {
-                    idxc = BinarySearch(x_start, zn_old, x_new(j));
-
-                    if (idxc < 0)
-                        idxc = 0;
-                    else if (idxc >= zn_old - 1)
-                        idxc = zn_old - 2;
-
-                    // interpolate each patch
-                    for (int i = 0; i < zm_new; ++i)
+                    idxc = 0;
+                }
+                else if (idxc >= zn_old - 1)
+                {
+                    idxc = zn_old - 2;
+                }
+            }
+            else if (extrap == 0)
+            {
+                // no extrapolation, assign fill value
+                if (idxr < 0)
+                {
+                    z_new(i) = extrapVal;
+                    continue;
+                }
+                else if (idxr == zm_old - 1)
+                {
+                    if (fabs(y_new(i) - y_old(idxr)) > 1.0e-10)
                     {
-                        z_new(i, j) = BilinearPatch(x_old, y_old, z_old, idxr_vec(i), idxc,
-                                                    x_new(j), y_new(i));
+                        z_new(i) = extrapVal;
+                        continue;
                     }
+
+                    --idxr;
+                }
+
+                if (idxc < 0)
+                {
+                    z_new(i) = extrapVal;
+                    continue;
+                }
+                else if (idxc == zn_old - 1)
+                {
+                    if (fabs(x_new(i) - x_old(idxc)) > 1.0e-10)
+                    {
+                        z_new(i) = extrapVal;
+                        continue;
+                    }
+
+                    --idxc;
                 }
             }
             else
             {
-                // find row indices
-                for (int i = 0; i < zm_new; ++i)
+                // no extrapolation, return error
+                if (idxr < 0)
                 {
-                    idxr = BinarySearch(y_start, zm_old, y_new(i));
-
-                    if (idxr < 0)
-                    {
+                    return status(HW_MATH_ERR_BADRANGE, 4);
+                }
+                else if (idxr == zm_old - 1)
+                {
+                    if (fabs(y_new(i) - y_old(idxr)) > 1.0e-10)
                         return status(HW_MATH_ERR_BADRANGE, 4);
-                    }
-                    else if (idxr == zm_old - 1)
-                    {
-                        if (fabs(y_new(i) - y_old(idxr)) > 1.0e-10)
-                            return status(HW_MATH_ERR_BADRANGE, 4);
 
-                        --idxr;
-                    }
-
-                    idxr_vec(i) = idxr;
+                    --idxr;
                 }
 
-                // find column indices
-                for (int j = 0; j < zn_new; ++j)
+                if (idxc < 0)
                 {
-                    idxc = BinarySearch(x_start, zn_old, x_new(j));
+                    return status(HW_MATH_ERR_BADRANGE, 5);
+                }
+                else if (idxc == zn_old - 1)
+                {
+                    if (fabs(x_new(i) - x_old(idxc)) > 1.0e-10)
+                        return status(HW_MATH_ERR_BADRANGE, 5);
+
+                    --idxc;
+                }
+            }
+
+            z_new(i) = BilinearPatch(x_old, y_old, z_old, idxr, idxc,
+                                     x_new(i), y_new(i));
+        }
+    }
+    else if (x_new.IsVector() && y_new.IsVector())
+    {
+        zm_new = y_new.Size();
+        zn_new = x_new.Size();
+
+        status = z_new.Dimension(zm_new, zn_new, hwMatrix::REAL);
+
+        if (!status.IsOk())
+        {
+            status.SetArg1(6);
+            return status;
+        }
+
+        hwMatrixI idxr_vec(zm_new, hwMatrixI::REAL);
+
+        // find row indices
+        for (int i = 0; i < zm_new; ++i)
+        {
+            idxr = BinarySearch(y_start, zm_old, y_new(i));
+
+            if (extrap == 1)
+            {
+                if (idxr < 0)
+                {
+                    idxr = 0;
+                }
+                else if (idxr >= zm_old - 1)
+                {
+                    idxr = zm_old - 2;
+                }
+            }
+            else if (extrap != 0)
+            {
+                if (idxr < 0)
+                {
+                    return status(HW_MATH_ERR_BADRANGE, 4);
+                }
+                else if (idxr == zm_old - 1)
+                {
+                    if (fabs(y_new(i) - y_old(idxr)) > 1.0e-10)
+                        return status(HW_MATH_ERR_BADRANGE, 4);
+
+                    --idxr;
+                }
+            }
+
+            idxr_vec(i) = idxr;
+        }
+
+        // find column indices
+        for (int j = 0; j < zn_new; ++j)
+        {
+            idxc = BinarySearch(x_start, zn_old, x_new(j));
+
+            if (extrap == 1)
+            {
+                // extrapolate
+                if (idxc < 0)
+                {
+                    idxc = 0;
+                }
+                else if (idxc >= zn_old - 1)
+                {
+                    idxc = zn_old - 2;
+                }
+
+                // interpolate each patch
+                for (int i = 0; i < zm_new; ++i)
+                {
+                    z_new(i, j) = BilinearPatch(x_old, y_old, z_old, idxr_vec(i), idxc,
+                                                x_new(j), y_new(i));
+                }
+            }
+            else if (extrap == 0)
+            {
+                // no extrapolation, assign fill value
+                // interpolate each patch
+                for (int i = 0; i < zm_new; ++i)
+                {
+                    if (idxr_vec(i) < 0)
+                    {
+                        z_new(i, j) = extrapVal;
+                        continue;
+                    }
+                    else if (idxr_vec(i) == zm_old - 1)
+                    {
+                        if (fabs(y_new(i) - y_old(idxr_vec(i))) > 1.0e-10)
+                        {
+                            z_new(i, j) = extrapVal;
+                            continue;
+                        }
+
+                        --idxr_vec(i);
+                    }
 
                     if (idxc < 0)
                     {
-                        return status(HW_MATH_ERR_BADRANGE, 5);
+                        z_new(i, j) = extrapVal;
+                        continue;
                     }
                     else if (idxc == zn_old - 1)
                     {
                         if (fabs(x_new(j) - x_old(idxc)) > 1.0e-10)
-                            return status(HW_MATH_ERR_BADRANGE, 5);
+                        {
+                            z_new(i, j) = extrapVal;
+                            continue;
+                        }
 
                         --idxc;
                     }
 
-                    // interpolate each patch
-                    for (int i = 0; i < zm_new; ++i)
-                    {
-                        z_new(i, j) = BilinearPatch(x_old, y_old, z_old, idxr_vec(i), idxc,
-                                                    x_new(j), y_new(i));
-                    }
-                }
-            }
-        }
-        else
-        {
-            int zsize_old = zm_old * zn_old;
-            int zsize_new = zm_new * zn_new;
-
-            if (extrap)
-            {
-                // find row and column indices
-                for (int i = 0; i < zsize_new; ++i)
-                {
-                    idxr = BinarySearch(y_start, zm_old, y_new(i));
-
-                    if (idxr < 0)
-                        idxr = 0;
-                    else if (idxr >= zm_old - 1)
-                        idxr = zm_old - 2;
-
-                    idxc = BinarySearch(x_start, zn_old, x_new(i));
-
-                    if (idxc < 0)
-                        idxc = 0;
-                    else if (idxc >= zn_old - 1)
-                        idxc = zn_old - 2;
-
-                    z_new(i) = BilinearPatch(x_old, y_old, z_old, idxr, idxc,
-                                             x_new(i), y_new(i));
+                    z_new(i, j) = BilinearPatch(x_old, y_old, z_old, idxr_vec(i), idxc,
+                                                x_new(j), y_new(i));
                 }
             }
             else
             {
-                // find row and column indices
-                for (int i = 0; i < zsize_new; ++i)
+                // no extrapolation, return error
+                if (idxc < 0)
                 {
-                    idxr = BinarySearch(y_start, zm_old, y_new(i));
-
-                    if (idxr < 0)
-                    {
-                        return status(HW_MATH_ERR_BADRANGE, 4);
-                    }
-                    else if (idxr == zm_old - 1)
-                    {
-                        if (fabs(y_new(i) - y_old(idxr)) > 1.0e-10)
-                            return status(HW_MATH_ERR_BADRANGE, 4);
-
-                        --idxr;
-                    }
-
-                    idxc = BinarySearch(x_start, zn_old, x_new(i));
-
-                    if (idxc < 0)
-                    {
+                    return status(HW_MATH_ERR_BADRANGE, 5);
+                }
+                else if (idxc == zn_old - 1)
+                {
+                    if (fabs(x_new(j) - x_old(idxc)) > 1.0e-10)
                         return status(HW_MATH_ERR_BADRANGE, 5);
-                    }
-                    else if (idxc == zn_old - 1)
-                    {
-                        if (fabs(x_new(i) - x_old(idxc)) > 1.0e-10)
-                            return status(HW_MATH_ERR_BADRANGE, 5);
 
-                        --idxc;
-                    }
+                    --idxc;
+                }
 
-                    z_new(i) = BilinearPatch(x_old, y_old, z_old, idxr, idxc,
-                                             x_new(i), y_new(i));
+                // interpolate each patch
+                for (int i = 0; i < zm_new; ++i)
+                {
+                    z_new(i, j) = BilinearPatch(x_old, y_old, z_old, idxr_vec(i), idxc,
+                                                x_new(j), y_new(i));
                 }
             }
         }
+    }
+    else
+    {
+        return status(HW_MATH_ERR_ARRAYSIZE, 4, 5);
     }
 
     return status;
@@ -1899,7 +2232,8 @@ hwMathStatus Spline2D(const hwMatrix& x_old,
                       const hwMatrix& x_new,
                       const hwMatrix& y_new,
                       hwMatrix&       z_new,
-                      bool            extrap)
+                      int             extrap,
+                      double          extrapVal)
 {
     hwMathStatus status;
 
@@ -1923,6 +2257,40 @@ hwMathStatus Spline2D(const hwMatrix& x_old,
     int zm_new;
     int zn_new;
 
+    if (x_old.M() == y_old.M() && x_old.N() == y_old.N() &&
+        x_old.M() == zm_old && x_old.N() == zn_old)
+    {
+        // extract single vectors from x_old and y_old, assuming that the
+        // rows of x_old are identical and columns of y_old are also
+        int m = y_old.M();
+
+        if (m)
+        {
+            const double* y_old_col = y_old.GetRealData();
+            hwMatrix y_temp(m, (void*)y_old_col, hwMatrix::REAL);
+            hwMatrix x_temp;
+            status = x_old.ReadRow(0, x_temp);
+            return Spline2D(x_temp, y_temp, z_old, x_new, y_new, z_new, extrap, extrapVal);
+        }
+    }
+
+    if (!x_old.IsVector() || !y_old.IsVector())
+    {
+        if (x_old.M() != y_old.M() || x_old.N() != y_old.N())
+            return status(HW_MATH_ERR_ARRAYSIZE, 1, 2);
+
+        if (x_old.M() != z_old.M() || x_old.N() != z_old.N())
+            return status(HW_MATH_ERR_ARRAYSIZE, 1, 3);
+    }
+    else if (x_old.Size() != z_old.N())
+    {
+        return status(HW_MATH_ERR_ARRAYSIZE, 1, 3);
+    }
+    else if (y_old.Size() != z_old.M())
+    {
+        return status(HW_MATH_ERR_ARRAYSIZE, 2, 3);
+    }
+
     // compute spline partial derivatives
     hwMatrix dzdx(zm_old, zn_old, hwMatrix::REAL);
     hwMatrix dzdy(zm_old, zn_old, hwMatrix::REAL);
@@ -1930,23 +2298,132 @@ hwMathStatus Spline2D(const hwMatrix& x_old,
     hwMatrix coefs;
     hwMatrix polyDeriv(3, hwMatrix::REAL);
 
-    if (x_old.IsVector() && y_old.IsVector())
+    if (x_new.IsVector() && y_new.IsVector())
     {
-        if (x_new.IsVector() && y_new.IsVector())
+        // (y_old, x_old) contain the (row, col) domain values
+        zm_new = y_new.Size();
+        zn_new = x_new.Size();
+    }
+    else if (x_new.M() == y_new.M() && x_new.N() == y_new.N())
+    {
+        zm_new = x_new.M();
+        zn_new = x_new.N();
+    }
+    else
+    {
+        return status(HW_MATH_ERR_ARRAYSIZE, 4, 5);
+    }
+
+    status = z_new.Dimension(zm_new, zn_new, hwMatrix::REAL);
+
+    if (!status.IsOk())
+    {
+        status.SetArg1(6);
+        return status;
+    }
+
+    // compute spline 1st partial derivatives w.r.t. y for each column of z
+    const double* z_old_ptr = z_old.GetRealData();
+
+    for (int j = 0; j < zn_old; ++j)
+    {
+        hwMatrix z_old_col(zm_old, 1, (void*) z_old_ptr, hwMatrix::REAL);
+
+        // get spline coefficients (stored in rows)
+        status = Spline(y_old, z_old_col, coefs);
+
+        if (!status.IsOk())
         {
-            // (y_old, x_old) contain the (row, col) domain values
-            zm_new = y_new.Size();
-            zn_new = x_new.Size();
+            status.ResetArgs();
+            return status;
         }
-        else if (x_new.M() == y_new.M() && x_new.N() == y_new.N())
+
+        // compute derivatives
+        for (int i = 0; i < zm_old-1; ++i)
         {
-            zm_new = x_new.M();
-            zn_new = x_new.N();
+            polyDeriv(2) = 3.0 * coefs(i, 0);
+            polyDeriv(1) = 2.0 * coefs(i, 1);
+            polyDeriv(0) = coefs(i, 2);
+            PolyVal(polyDeriv, 0.0, dzdy(i, j));    // piecewise polynomials have offsets
         }
-        else
+
+        PolyVal(polyDeriv, y_old(zm_old-1)-y_old(zm_old-2), dzdy(zm_old-1, j));
+        z_old_ptr += zm_old;
+    }
+
+    // compute spline 1st partial derivatives w.r.t. x for each row of z
+    hwMatrix z_old_row;
+
+    for (int i = 0; i < zm_old; ++i)
+    {
+        // get spline coefficients (stored in rows)
+        status = z_old.ReadRow(i, z_old_row);
+
+        if (!status.IsOk())
         {
- 		    return status(HW_MATH_ERR_ARRAYSIZE, 4, 5);
+            status.ResetArgs();
+            return status;
         }
+
+        status = Spline(x_old, z_old_row, coefs);
+
+        if (!status.IsOk())
+        {
+            status.ResetArgs();
+            return status;
+        }
+
+        // compute derivatives
+        for (int j = 0; j < zn_old-1; ++j)
+        {
+            polyDeriv(2) = 3.0 * coefs(j, 0);
+            polyDeriv(1) = 2.0 * coefs(j, 1);
+            polyDeriv(0) = coefs(j, 2);
+            PolyVal(polyDeriv, 0.0, dzdx(i, j));    // piecewise polynomials have offsets
+        }
+
+        PolyVal(polyDeriv, x_old(zn_old-1)-x_old(zn_old-2), dzdx(i, zn_old-1));
+    }
+
+    // compute spline 2nd partial derivatives
+    z_old_ptr = dzdx.GetRealData();
+
+    for (int j = 0; j < zn_old; ++j)
+    {
+        hwMatrix z_old_col(zm_old, 1, (void*) z_old_ptr, hwMatrix::REAL);
+
+        // get spline coefficients (stored in rows)
+        status = Spline(y_old, z_old_col, coefs);
+
+        if (!status.IsOk())
+        {
+            status.ResetArgs();
+            return status;
+        }
+
+        // compute derivatives
+        for (int i = 0; i < zm_old-1; ++i)
+        {
+            polyDeriv(2) = 3.0 * coefs(i, 0);
+            polyDeriv(1) = 2.0 * coefs(i, 1);
+            polyDeriv(0) = coefs(i, 2);
+            PolyVal(polyDeriv, 0.0, d2zdxdy(i, j));    // piecewise polynomials have offsets
+        }
+
+        PolyVal(polyDeriv, y_old(zm_old-1)-y_old(zm_old-2), d2zdxdy(zm_old-1, j));
+        z_old_ptr += zm_old;
+    }
+
+    // interpolate/extrapolate each x,y location using bicubic spline patch 
+    int idxc;
+    int idxr;
+    const double* x_start = x_old.GetRealData();
+    const double* y_start = y_old.GetRealData();
+
+    if (x_new.M() == y_new.M() && x_new.N() == y_new.N())
+    {
+        zm_new = x_new.M();
+        zn_new = x_new.N();
 
         status = z_new.Dimension(zm_new, zn_new, hwMatrix::REAL);
 
@@ -1956,285 +2433,247 @@ hwMathStatus Spline2D(const hwMatrix& x_old,
             return status;
         }
 
-        // compute spline 1st partial derivatives w.r.t. y for each column of z
-        const double* z_old_ptr = z_old.GetRealData();
+        int zsize_old = zm_old * zn_old;
+        int zsize_new = zm_new * zn_new;
 
-        for (int j = 0; j < zn_old; ++j)
+        // find row and column indices
+        for (int i = 0; i < zsize_new; ++i)
         {
-            hwMatrix z_old_col(zm_old, 1, (void*) z_old_ptr, hwMatrix::REAL);
+            idxr = BinarySearch(y_start, zm_old, y_new(i));
+            idxc = BinarySearch(x_start, zn_old, x_new(i));
 
-            // get spline coefficients (stored in rows)
-            status = Spline(y_old, z_old_col, coefs);
-
-            if (!status.IsOk())
+            if (extrap == 1)
             {
-                status.ResetArgs();
-                return status;
-            }
-
-            // compute derivatives
-            for (int i = 0; i < zm_old-1; ++i)
-            {
-                polyDeriv(2) = 3.0 * coefs(i, 0);
-                polyDeriv(1) = 2.0 * coefs(i, 1);
-                polyDeriv(0) = coefs(i, 2);
-                PolyVal(polyDeriv, 0.0, dzdy(i, j));    // piecewise polynomials have offsets
-            }
-
-            PolyVal(polyDeriv, y_old(zm_old-1)-y_old(zm_old-2), dzdy(zm_old-1, j));
-            z_old_ptr += zm_old;
-        }
-
-        // compute spline 1st partial derivatives w.r.t. x for each row of z
-        hwMatrix z_old_row;
-
-        for (int i = 0; i < zm_old; ++i)
-        {
-            // get spline coefficients (stored in rows)
-            status = z_old.ReadRow(i, z_old_row);
-
-            if (!status.IsOk())
-            {
-                status.ResetArgs();
-                return status;
-            }
-
-            status = Spline(x_old, z_old_row, coefs);
-
-            if (!status.IsOk())
-            {
-                status.ResetArgs();
-                return status;
-            }
-
-            // compute derivatives
-            for (int j = 0; j < zn_old-1; ++j)
-            {
-                polyDeriv(2) = 3.0 * coefs(j, 0);
-                polyDeriv(1) = 2.0 * coefs(j, 1);
-                polyDeriv(0) = coefs(j, 2);
-                PolyVal(polyDeriv, 0.0, dzdx(i, j));    // piecewise polynomials have offsets
-            }
-
-            PolyVal(polyDeriv, x_old(zn_old-1)-x_old(zn_old-2), dzdx(i, zn_old-1));
-        }
-
-        // compute spline 2nd partial derivatives
-        z_old_ptr = dzdx.GetRealData();
-
-        for (int j = 0; j < zn_old; ++j)
-        {
-            hwMatrix z_old_col(zm_old, 1, (void*) z_old_ptr, hwMatrix::REAL);
-
-            // get spline coefficients (stored in rows)
-            status = Spline(y_old, z_old_col, coefs);
-
-            if (!status.IsOk())
-            {
-                status.ResetArgs();
-                return status;
-            }
-
-            // compute derivatives
-            for (int i = 0; i < zm_old-1; ++i)
-            {
-                polyDeriv(2) = 3.0 * coefs(i, 0);
-                polyDeriv(1) = 2.0 * coefs(i, 1);
-                polyDeriv(0) = coefs(i, 2);
-                PolyVal(polyDeriv, 0.0, d2zdxdy(i, j));    // piecewise polynomials have offsets
-            }
-
-            PolyVal(polyDeriv, y_old(zm_old-1)-y_old(zm_old-2), d2zdxdy(zm_old-1, j));
-            z_old_ptr += zm_old;
-        }
-    }
-    else if (x_old.M() == y_old.M() && x_old.N() == y_old.N() &&
-             x_old.M() == zm_old && x_old.N() == zn_old &&
-             x_new.M() == y_new.M() && x_new.N() == y_new.N())
-    {
-        // extract single vectors from x_old and y_old, assuming that the
-        // rows of x_old are identical and columns of y_old are also
-        int m = y_old.M();
-
-        if (m)
-        {
-            const double* y_old_col = y_old.GetRealData();
-            hwMatrix y_temp(m, (void*) y_old_col, hwMatrix::REAL);
-            hwMatrix x_temp;
-            status = x_old.ReadRow(0, x_temp);
-            return Spline2D(x_temp, y_temp, z_old, x_new, y_new, z_new, extrap);
-        }
-    }
-    else
-    {
-        if (x_old.M() != y_old.M() || x_old.N() != y_old.N())
- 		    return status(HW_MATH_ERR_ARRAYSIZE, 1, 2);
-
-        if (x_old.M() != z_old.M() || x_old.N() != z_old.N())
- 		    return status(HW_MATH_ERR_ARRAYSIZE, 1, 3);
-    }
-
-    // interpolate/extrapolate each x,y location using bicubic spline patch 
-    if (x_old.IsVector() && y_old.IsVector())
-    {
-        int idxc;
-        int idxr;
-        const double* x_start = x_old.GetRealData();
-        const double* y_start = y_old.GetRealData();
-
-        if (x_new.IsVector() && y_new.IsVector())
-        {
-            hwMatrixI idxr_vec(zm_new, hwMatrixI::REAL);
-
-            if (extrap)
-            {
-                // find row indices
-                for (int i = 0; i < zm_new; ++i)
+                // extrapolate
+                if (idxr < 0)
                 {
-                    idxr = BinarySearch(y_start, zm_old, y_new(i));
-
-                    if (idxr < 0)
-                        idxr = 0;
-                    else if (idxr >= zm_old - 1)
-                        idxr = zm_old - 2;
-
-                    idxr_vec(i) = idxr;
+                    idxr = 0;
+                }
+                else if (idxr >= zm_old - 1)
+                {
+                    idxr = zm_old - 2;
                 }
 
-                // find column indices
-                for (int j = 0; j < zn_new; ++j)
+                if (idxc < 0)
                 {
-                    idxc = BinarySearch(x_start, zn_old, x_new(j));
-
-                    if (idxc < 0)
-                        idxc = 0;
-                    else if (idxc >= zn_old - 1)
-                        idxc = zn_old - 2;
-
-                    // interpolate each patch
-                    for (int i = 0; i < zm_new; ++i)
+                    idxc = 0;
+                }
+                else if (idxc >= zn_old - 1)
+                {
+                    idxc = zn_old - 2;
+                }
+            }
+            else if (extrap == 0)
+            {
+                // no extrapolation, assign fill value
+                if (idxr < 0)
+                {
+                    z_new(i) = extrapVal;
+                    continue;
+                }
+                else if (idxr == zm_old - 1)
+                {
+                    if (fabs(y_new(i) - y_old(idxr)) > 1.0e-10)
                     {
-                        z_new(i, j) = BicubicPatch(x_old, y_old, z_old, idxr_vec(i), idxc,
-                                                   x_new(j), y_new(i), dzdx, dzdy, d2zdxdy);
+                        z_new(i) = extrapVal;
+                        continue;
                     }
+
+                    --idxr;
+                }
+
+                if (idxc < 0)
+                {
+                    z_new(i) = extrapVal;
+                    continue;
+                }
+                else if (idxc == zn_old - 1)
+                {
+                    if (fabs(x_new(i) - x_old(idxc)) > 1.0e-10)
+                    {
+                        z_new(i) = extrapVal;
+                        continue;
+                    }
+
+                    --idxc;
                 }
             }
             else
             {
-                // find row indices
-                for (int i = 0; i < zm_new; ++i)
+                // no extrapolation, return error
+                if (idxr < 0)
                 {
-                    idxr = BinarySearch(y_start, zm_old, y_new(i));
-
-                    if (idxr < 0)
-                    {
+                    return status(HW_MATH_ERR_BADRANGE, 4);
+                }
+                else if (idxr == zm_old - 1)
+                {
+                    if (fabs(y_new(i) - y_old(idxr)) > 1.0e-10)
                         return status(HW_MATH_ERR_BADRANGE, 4);
-                    }
-                    else if (idxr == zm_old - 1)
-                    {
-                        if (fabs(y_new(i) - y_old(idxr)) > 1.0e-10)
-                            return status(HW_MATH_ERR_BADRANGE, 4);
 
-                        --idxr;
-                    }
-
-                    idxr_vec(i) = idxr;
+                    --idxr;
                 }
 
-                // find column indices
-                for (int j = 0; j < zn_new; ++j)
+                if (idxc < 0)
                 {
-                    idxc = BinarySearch(x_start, zn_old, x_new(j));
+                    return status(HW_MATH_ERR_BADRANGE, 5);
+                }
+                else if (idxc == zn_old - 1)
+                {
+                    if (fabs(x_new(i) - x_old(idxc)) > 1.0e-10)
+                        return status(HW_MATH_ERR_BADRANGE, 5);
+
+                    --idxc;
+                }
+            }
+
+            z_new(i) = BicubicPatch(x_old, y_old, z_old, idxr, idxc,
+                                    x_new(i), y_new(i), dzdx, dzdy, d2zdxdy);
+        }
+    }
+    else if (x_new.IsVector() && y_new.IsVector())
+    {
+        zm_new = y_new.Size();
+        zn_new = x_new.Size();
+
+        status = z_new.Dimension(zm_new, zn_new, hwMatrix::REAL);
+
+        if (!status.IsOk())
+        {
+            status.SetArg1(6);
+            return status;
+        }
+
+        hwMatrixI idxr_vec(zm_new, hwMatrixI::REAL);
+
+        // find row indices
+        for (int i = 0; i < zm_new; ++i)
+        {
+            idxr = BinarySearch(y_start, zm_old, y_new(i));
+
+            if (extrap == 1)
+            {
+                if (idxr < 0)
+                {
+                    idxr = 0;
+                }
+                else if (idxr >= zm_old - 1)
+                {
+                    idxr = zm_old - 2;
+                }
+            }
+            else if (extrap != 0)
+            {
+                if (idxr < 0)
+                {
+                    return status(HW_MATH_ERR_BADRANGE, 4);
+                }
+                else if (idxr == zm_old - 1)
+                {
+                    if (fabs(y_new(i) - y_old(idxr)) > 1.0e-10)
+                        return status(HW_MATH_ERR_BADRANGE, 4);
+
+                    --idxr;
+                }
+            }
+
+            idxr_vec(i) = idxr;
+        }
+
+        // find column indices
+        for (int j = 0; j < zn_new; ++j)
+        {
+            idxc = BinarySearch(x_start, zn_old, x_new(j));
+
+            if (extrap == 1)
+            {
+                // extrapolate
+                if (idxc < 0)
+                {
+                    idxc = 0;
+                }
+                else if (idxc >= zn_old - 1)
+                {
+                    idxc = zn_old - 2;
+                }
+
+                // interpolate each patch
+                for (int i = 0; i < zm_new; ++i)
+                {
+                    z_new(i, j) = BicubicPatch(x_old, y_old, z_old, idxr_vec(i), idxc,
+                                               x_new(j), y_new(i), dzdx, dzdy, d2zdxdy);
+                }
+            }
+            else if (extrap == 0)
+            {
+                // no extrapolation, assign fill value
+                // interpolate each patch
+                for (int i = 0; i < zm_new; ++i)
+                {
+                    if (idxr_vec(i) < 0)
+                    {
+                        z_new(i, j) = extrapVal;
+                        continue;
+                    }
+                    else if (idxr_vec(i) == zm_old - 1)
+                    {
+                        if (fabs(y_new(i) - y_old(idxr_vec(i))) > 1.0e-10)
+                        {
+                            z_new(i, j) = extrapVal;
+                            continue;
+                        }
+
+                        --idxr_vec(i);
+                    }
 
                     if (idxc < 0)
                     {
-                        return status(HW_MATH_ERR_BADRANGE, 5);
+                        z_new(i, j) = extrapVal;
+                        continue;
                     }
                     else if (idxc == zn_old - 1)
                     {
                         if (fabs(x_new(j) - x_old(idxc)) > 1.0e-10)
-                            return status(HW_MATH_ERR_BADRANGE, 5);
+                        {
+                            z_new(i, j) = extrapVal;
+                            continue;
+                        }
 
                         --idxc;
                     }
 
-                    // interpolate each patch
-                    for (int i = 0; i < zm_new; ++i)
-                    {
-                        z_new(i, j) = BicubicPatch(x_old, y_old, z_old, idxr_vec(i), idxc,
-                                                   x_new(j), y_new(i), dzdx, dzdy, d2zdxdy);
-                    }
-                }
-            }
-        }
-        else
-        {
-            int zsize_old = zm_old * zn_old;
-            int zsize_new = zm_new * zn_new;
-
-            if (extrap)
-            {
-                // find row and column indices
-                for (int i = 0; i < zsize_new; ++i)
-                {
-                    idxr = BinarySearch(y_start, zm_old, y_new(i));
-
-                    if (idxr < 0)
-                        idxr = 0;
-                    else if (idxr >= zm_old - 1)
-                        idxr = zm_old - 2;
-
-                    idxc = BinarySearch(x_start, zn_old, x_new(i));
-
-                    if (idxc < 0)
-                        idxc = 0;
-                    else if (idxc >= zn_old - 1)
-                        idxc = zn_old - 2;
-
-                    z_new(i) = BicubicPatch(x_old, y_old, z_old, idxr, idxc,
-                                            x_new(i), y_new(i), dzdx, dzdy, d2zdxdy);
+                    z_new(i, j) = BicubicPatch(x_old, y_old, z_old, idxr_vec(i), idxc,
+                                               x_new(j), y_new(i), dzdx, dzdy, d2zdxdy);
                 }
             }
             else
             {
-                // find row and column indices
-                for (int i = 0; i < zsize_new; ++i)
+                // no extrapolation, return error
+                if (idxc < 0)
                 {
-                    idxr = BinarySearch(y_start, zm_old, y_new(i));
-
-                    if (idxr < 0)
-                    {
-                        return status(HW_MATH_ERR_BADRANGE, 4);
-                    }
-                    else if (idxr == zm_old - 1)
-                    {
-                        if (fabs(y_new(i) - y_old(idxr)) > 1.0e-10)
-                            return status(HW_MATH_ERR_BADRANGE, 4);
-
-                        --idxr;
-                    }
-
-                    idxc = BinarySearch(x_start, zn_old, x_new(i));
-
-                    if (idxc < 0)
-                    {
+                    return status(HW_MATH_ERR_BADRANGE, 5);
+                }
+                else if (idxc == zn_old - 1)
+                {
+                    if (fabs(x_new(j) - x_old(idxc)) > 1.0e-10)
                         return status(HW_MATH_ERR_BADRANGE, 5);
-                    }
-                    else if (idxc == zn_old - 1)
-                    {
-                        if (fabs(x_new(i) - x_old(idxc)) > 1.0e-10)
-                            return status(HW_MATH_ERR_BADRANGE, 5);
 
-                        --idxc;
-                    }
+                    --idxc;
+                }
 
-                    z_new(i) = BicubicPatch(x_old, y_old, z_old, idxr, idxc,
-                                            x_new(i), y_new(i), dzdx, dzdy, d2zdxdy);
+                // interpolate each patch
+                for (int i = 0; i < zm_new; ++i)
+                {
+                    z_new(i, j) = BicubicPatch(x_old, y_old, z_old, idxr_vec(i), idxc,
+                                               x_new(j), y_new(i), dzdx, dzdy, d2zdxdy);
                 }
             }
         }
     }
-    
+    else
+    {
+        return status(HW_MATH_ERR_ARRAYSIZE, 4, 5);
+    }
+
     return status;
 }
 //------------------------------------------------------------------------------
@@ -2543,6 +2982,263 @@ hwMathStatus TrilinearInterpGrad(const hwMatrix&  x_old,
     status = grad.WriteColumn(0, dVdx);
     status = grad.WriteColumn(1, dVdy);
     status = grad.WriteColumn(2, dVdz);
+
+    return hwMathStatus();
+}
+//------------------------------------------------------------------------------
+// Performs multilinear interpolation
+//------------------------------------------------------------------------------
+hwMathStatus MultilinearInterp(const hwMatrix** x_old,
+                               const hwMatrixN& val_old,
+                               const hwMatrix** x_new,
+                               hwMatrixN&       val_new,
+                               int              extrap,
+                               double           extrapVal)
+{
+    // check inputs
+    // assumption: x_old = new hwMatrix** [numDims];
+    // assumption: x_new = new hwMatrix** [numDims];
+    const std::vector<int>& dims = val_old.Dimensions();
+    int numDims = static_cast<int> (dims.size());
+
+    if (!val_old.IsReal())
+    {
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 1, numDims + 1);
+    }
+
+    if (numDims == 2 && dims[1] == 1)
+    {
+        numDims = 1;    // vector val_old case
+    }
+
+    for (int i = 0; i < numDims; ++i)
+    {
+        if (x_old[i]->Size() != dims[i])
+            return hwMathStatus(HW_MATH_ERR_ARRAYSIZE, i + 1, numDims);
+    }
+
+    hwMatrixI** index_x_old = new hwMatrixI* [numDims];
+    hwMatrix** coef1 = new hwMatrix* [numDims];
+    hwMatrix** coef2 = new hwMatrix* [numDims];
+    std::vector<int> newDims(numDims);
+
+    // allocate work space and outputs
+    for (int i = 0; i < numDims; ++i)
+    {
+        newDims[i] = x_new[i]->Size();
+        index_x_old[i] = new hwMatrixI(newDims[i], hwMatrixI::REAL);
+        coef1[i] = new hwMatrix(newDims[i], hwMatrix::REAL);
+        coef2[i] = new hwMatrix(newDims[i], hwMatrix::REAL);
+    }
+
+    val_new.Dimension(newDims, hwMatrixN::REAL);
+
+    // look up the index of each x_new[i](j) value in x_old[i]
+    // and compute interval fractions
+    for (int i = 0; i < numDims; ++i)
+    {
+        int xoldsz = dims[i];
+        int xnewsz = newDims[i];
+
+        if (!x_old[i]->IsReal())
+        {
+            return hwMathStatus(HW_MATH_ERR_COMPLEX, i + 1);
+        }
+
+        if (!x_new[i]->IsReal())
+        {
+            return hwMathStatus(HW_MATH_ERR_COMPLEX, numDims + i + 1);
+        }
+
+        const double* xold = x_old[i]->GetRealData();
+        const double* xnew = x_new[i]->GetRealData();
+        int* xoldIdx = index_x_old[i]->GetRealData();
+        double* coef1Vals = coef1[i]->GetRealData();
+        double* coef2Vals = coef2[i]->GetRealData();
+
+        for (int j = 0; j < xnewsz; ++j)
+        {
+            int k = BinarySearch(xold, xoldsz, xnew[j]);
+
+            if (k >= 0 && k < xoldsz - 1)
+            {
+                xoldIdx[j] = k;
+                coef1Vals[j] = (xnew[j] - xold[k]) / (xold[k + 1] - xold[k]);
+                coef2Vals[j] = 1.0 - coef1Vals[j];
+            }
+            else if (k == xoldsz - 1 && xnew[j] == xold[xoldsz - 1])
+            {
+                xoldIdx[j] = k - 1;
+                coef1Vals[j] = 1.0;
+                coef2Vals[j] = 0.0;
+            }
+            else if (extrap == 1)
+            {
+                if (k == -1)
+                {
+                    k = 0;
+                }
+
+                if (k == xoldsz - 1)
+                {
+                    --k;
+                }
+
+                xoldIdx[j] = k;
+                coef1Vals[j] = (xnew[j] - xold[k]) / (xold[k + 1] - xold[k]);
+                coef2Vals[j] = 1.0 - coef1Vals[j];
+            }
+            else
+            {
+                xoldIdx[j] = k;
+                coef1Vals[j] = std::numeric_limits<double>::quiet_NaN();
+                coef2Vals[j] = std::numeric_limits<double>::quiet_NaN();
+            }
+        }
+    }
+
+    // allocate a hypercube
+    int numHCvertices = 1 << numDims;     // = 2 ^ numDims
+    std::vector<int> HCdims(numDims);
+
+    for (int i = 0; i < numDims; ++i)
+        HCdims[i] = 2;
+
+    hwMatrixN HCvals(HCdims, hwMatrixN::REAL);
+
+    // interpolate each new point over its hypercube
+    int numPnts = val_new.Size();
+    std::vector<int> HCvertex(numDims);     // relative to val_old
+    std::vector<int> HCindices(numDims);    // relative to vertex 0
+    std::vector<int> val_new_indices(numDims);
+
+    for (int i = 0; i < numPnts; ++i)
+    {
+        // locate hypercube vertex 0 for this point
+        bool outOfRange = false;
+
+        for (int j = 0; j < numDims; ++j)
+        {
+            int* xoldIdx = index_x_old[j]->GetRealData();
+            int k = xoldIdx[val_new_indices[j]];
+
+            if (k < 0)
+            {
+                outOfRange = true;
+                k = 0;
+            }
+            else if (k > dims[j] - 2)
+            {
+                outOfRange = true;
+                k = dims[j] - 2;
+            }
+
+            HCvertex[j] = k;
+        }
+
+        if (outOfRange)
+        {
+            if (extrap == 0)
+            {
+                val_new(val_new_indices) = extrapVal;
+            }
+            else if (extrap == -1)
+            {
+                // no extrapolation, return error
+                return hwMathStatus(HW_MATH_ERR_BADRANGE);
+            }
+        }
+
+        if (!outOfRange || extrap == 1)
+        {
+            // populate the hypercube
+            for (int j = 0; j < numHCvertices; ++j)
+            {
+                HCvals(HCindices) = val_old(HCvertex);
+
+                // advance indices to next hypercube vertex
+                for (int k = 0; k < numDims; ++k)
+                {
+                    // increment index j if possible
+                    if (HCindices[k] == 0)
+                    {
+                        HCindices[k] = 1;
+                        ++HCvertex[k];
+                        break;
+                    }
+
+                    // index j is maxed out, so reset and continue to j+1
+                    HCindices[k] = 0;
+                    --HCvertex[k];
+                }
+            }
+
+            // interpolate the hypercube one dimension at a time
+            for (int j = 0; j < numDims; ++j)
+            {
+                int* xoldIdx = index_x_old[j]->GetRealData();
+                double* coef1Vals = coef1[j]->GetRealData();
+                double* coef2Vals = coef2[j]->GetRealData();
+
+                for (int k = 0; k < numHCvertices >> (j + 1); ++k)
+                {
+                    double val1 = HCvals(HCindices);
+                    HCindices[j] = 1;
+                    double val2 = HCvals(HCindices);
+                    HCindices[j] = 0;
+
+                    // the interpolated values are overwritten back onto
+                    // location 0 of that hypercube dimension, ignoring
+                    // location 1 thereafter, so that in concept, the
+                    // dimensions successively collapse back onto vertex 0
+                    HCvals(HCindices) = coef1Vals[val_new_indices[j]] * val2 +
+                                        coef2Vals[val_new_indices[j]] * val1;
+
+                    // advance indices to next hypercube vertex
+                    for (int ii = j + 1; ii < numDims; ++ii)
+                    {
+                        // increment index j if possible
+                        if (HCindices[ii] == 0)
+                        {
+                            HCindices[ii] = 1;
+                            break;
+                        }
+
+                        // index ii is maxed out, so reset and continue to ii+1
+                        HCindices[ii] = 0;
+                    }
+                }
+            }
+
+            val_new(val_new_indices) = HCvals(0);
+        }
+
+        // advance to next interpolation point
+        for (int j = 0; j < numDims; ++j)
+        {
+            // increment index j if possible
+            if (val_new_indices[j] < newDims[j] - 1)
+            {
+                ++val_new_indices[j];
+                break;
+            }
+
+            // index j is maxed out, so reset and continue to j+1
+            val_new_indices[j] = 0;
+        }
+    }
+
+    // clean up work space
+    for (int i = 0; i < numDims; ++i)
+    {
+        delete index_x_old[i];
+        delete coef1[i];
+        delete coef2[i];
+    }
+
+    delete [] index_x_old;
+    delete [] coef1;
+    delete [] coef2;
 
     return hwMathStatus();
 }

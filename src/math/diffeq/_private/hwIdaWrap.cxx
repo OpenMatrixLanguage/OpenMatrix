@@ -448,51 +448,51 @@ hwIdaWrap::hwIdaWrap(IDAResFn_client      sysfunc,
 
         if (rootFound)
         {
-            // Take a small step
-            flag = IDASolve(ida_mem, tin + 0.0001, &t_init, y, yp, IDA_NORMAL);
+        // Take a small step
+        flag = IDASolve(ida_mem, tin + 0.0001, &t_init, y, yp, IDA_NORMAL);
 
-            if (flag == IDA_ROOT_RETURN)
-            {
+        if (flag == IDA_ROOT_RETURN)
+        {
                 m_y = y_temp;     // reset
                 m_yp = yp_temp;   // reset
-                flag = ManageEvents(tin, true);
-            }
-            else if (flag == IDA_SUCCESS)
-            {
+            flag = ManageEvents(tin, true);
+        }
+        else if (flag == IDA_SUCCESS)
+        {
                 // Check for events after small step, just in case
                 // solver did not detect a root
-                flag = rootfunc_client(t_init, m_y.GetRealData(), m_yp.GetRealData(), gout2.GetRealData(), nullptr);
+            flag = rootfunc_client(t_init, m_y.GetRealData(), m_yp.GetRealData(), gout2.GetRealData(), nullptr);
 
-                if (flag != 0)
-                {
-                    m_status(HW_MATH_ERR_USERFUNCFAIL);
-                    return;
-                }
-
-                // Set event direction flags
-                for (int i = 0; i < m_nrtfn; ++i)
-                {
-                    event_directon_actual[i] = 0;
-
-                    if (fabs(gout1(i)) < MACHEP2)
-                    {
-                        if (gout2(i) > 0.0)
-                            event_directon_actual[i] = 1;
-                        else if (gout2(i) < 0.0)
-                            event_directon_actual[i] = -1;
-                    }
-                }
-
-                m_y = y_temp;     // reset
-                m_yp = yp_temp;   // reset
-                flag = ManageEvents(tin, true);
-            }
-            else
+            if (flag != 0)
             {
                 m_status(HW_MATH_ERR_USERFUNCFAIL);
                 return;
             }
+
+            // Set event direction flags
+            for (int i = 0; i < m_nrtfn; ++i)
+            {
+                    event_directon_actual[i] = 0;
+
+                    if (fabs(gout1(i)) < MACHEP2)
+                {
+                    if (gout2(i) > 0.0)
+                        event_directon_actual[i] = 1;
+                    else if (gout2(i) < 0.0)
+                        event_directon_actual[i] = -1;
+                }
+            }
+
+                m_y = y_temp;     // reset
+                m_yp = yp_temp;   // reset
+            flag = ManageEvents(tin, true);
         }
+        else
+        {
+            m_status(HW_MATH_ERR_USERFUNCFAIL);
+            return;
+        }
+    }
     }
 }
 //------------------------------------------------------------------------------

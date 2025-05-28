@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsSystem.cpp
 * @date October 2016
-* Copyright (C) 2016-2023 Altair Engineering, Inc.  
+* Copyright (C) 2016-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -199,7 +199,7 @@ bool BuiltInFuncsSystem::Ls(EvaluatorInterface           eval,
     {
         char buf[256];
         memset(buf, 0, sizeof(buf));
-        if (fgets(buf, sizeof(buf), cmdoutput) <= 0)
+        if (!fgets(buf, sizeof(buf), cmdoutput))
         {
             std::cout << std::flush;
             break;
@@ -367,7 +367,7 @@ bool BuiltInFuncsSystem::Dir(EvaluatorInterface           eval,
     {
         startupPath =  dir + DIRECTORY_DELIM;
     }
-    else if (isfile || (!isfile && !isdir && dir.find("*") != std::string::npos))
+    else if (isfile || dir.find("*") != std::string::npos)
     {
         startupPath = BuiltInFuncsUtils::GetBaseDir(dir) + DIRECTORY_DELIM;
     }
@@ -383,14 +383,14 @@ bool BuiltInFuncsSystem::Dir(EvaluatorInterface           eval,
         struct stat st;
         std::string timestr;
         long long      numbytes = 0;
-        int         isdir    = 0;
+        int         isdir1    = 0;
 
         int result = stat(fullname.c_str(), &st);
         if (result == 0)
         {
             timestr  = funcs.GetTimeString(st.st_mtime);
             numbytes = static_cast<long long>(st.st_size);
-            isdir = (st.st_mode & S_IFDIR) ? 1 : 0;
+            isdir1 = (st.st_mode & S_IFDIR) ? 1 : 0;
         }
         else // (errno == 132) // File maybe too big
         {
@@ -405,7 +405,7 @@ bool BuiltInFuncsSystem::Dir(EvaluatorInterface           eval,
         }
         sd->SetValue(i, 0, "date",  timestr);
         sd->SetValue(i, 0, "bytes", static_cast<double>(numbytes));
-        sd->SetValue(i, 0, "isdir", isdir);
+        sd->SetValue(i, 0, "isdir", isdir1);
     }
     outputs.push_back(sd.release());
     return true;
@@ -415,7 +415,7 @@ bool BuiltInFuncsSystem::Dir(EvaluatorInterface           eval,
 //------------------------------------------------------------------------------
 std::string BuiltInFuncsSystem::GetTimeString(time_t rawtime)
 {
-    struct tm * tinfo = localtime (&rawtime);
+    const struct tm * tinfo = localtime (&rawtime);
     if (!tinfo)
         return "";
 
@@ -453,8 +453,8 @@ std::string BuiltInFuncsSystem::GetTimeString(time_t rawtime)
 // Returns true after running a system command [system command]
 //------------------------------------------------------------------------------
 bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
-    const std::vector<Currency>& inputs,
-    std::vector<Currency>& outputs)
+                                const std::vector<Currency>& inputs,
+                                std::vector<Currency>&       outputs)
 {
     if (inputs.empty())
     {
@@ -596,7 +596,7 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
         if (maxThreadAffinity)
         {
             // Set thread affinity to use all cores
-            int s = pthread_setaffinity_np(t.native_handle(), sizeof(cpuset), &cpuset);
+            pthread_setaffinity_np(t.native_handle(), sizeof(cpuset), &cpuset);
         }
 
 		std::stringstream ss;
@@ -652,7 +652,6 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
 
 #ifdef OS_WIN
     BuiltInFuncsSystem funcs;
-    std::wstring line;
     if (saveoutput || echo)
     {
         if (oldlocale)
@@ -660,6 +659,7 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
             funcs.SetToUtf8Locale(); // Set to utf locale before getting char
             fflush(stdout);
         }
+        std::wstring line;
 
         while (!feof(pipe))
         {
@@ -708,13 +708,14 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
 
     }
     returncode = _pclose(pipe);
+    
 #else
 	if (saveoutput || echo)
 	{
 		while (1)
 		{
 			char buf[256];
-			if (fgets(buf, sizeof(buf), pipe) <= 0)
+			if (!fgets(buf, sizeof(buf), pipe))
 			{
 				break;
 			}
@@ -741,10 +742,25 @@ bool BuiltInFuncsSystem::System(EvaluatorInterface           eval,
 #endif
 
     outputs.push_back(returncode);
-    if (saveoutput)
+
+    std::string msg(BuiltInFuncsUtils::RTrim(output, "\n"));
+    if (!msg.empty())
     {
-        outputs.push_back(output);
+        output = msg;
+        msg = BuiltInFuncsUtils::RTrim(output, "\r");
     }
+    if (!msg.empty())
+    {
+        output = msg;
+    }
+
+    if (returncode != 0 && !echo)
+    {
+        eval.PrintResult(output);
+    }
+
+    outputs.push_back(output);
+
     return true;
 }
 //------------------------------------------------------------------------------
@@ -767,7 +783,8 @@ bool BuiltInFuncsSystem::Unix(EvaluatorInterface           eval,
     }
     return true;
 #else
-    return BuiltInFuncsSystem::System(eval, inputs, outputs);
+    BuiltInFuncsSystem::System(eval, inputs, outputs);
+    return true;
 #endif
 }
 //------------------------------------------------------------------------------
@@ -783,7 +800,7 @@ bool BuiltInFuncsSystem::Delete(EvaluatorInterface           eval,
         throw OML_Error(OML_ERR_NUMARGIN);
     }
 
-    BuiltInFuncsUtils utils;
+    BuiltInFuncsUtils utils; // cppcheck-suppress unusedVariable
     std::string warn;
     for (int i = 0; i < nargin; ++i)
     {
@@ -1156,7 +1173,7 @@ bool BuiltInFuncsSystem::Cd(EvaluatorInterface           eval,
 //------------------------------------------------------------------------------
 // Returns true if given path is a directory, supports unicode on Windows
 //------------------------------------------------------------------------------
-bool BuiltInFuncsSystem::IsDir(std::wstring& path)
+bool BuiltInFuncsSystem::IsDir(const std::wstring& path)
 {
     if (path.empty())
     {
@@ -1442,6 +1459,13 @@ bool BuiltInFuncsSystem::Genpath(EvaluatorInterface           eval,
 
     BuiltInFuncsSystem funcs;
     funcs.ListDirW(wpath, exclude, paths);
+
+    size_t pos = 0;
+    std::wstring toReplace = L"\"";
+
+    while ((pos = paths.find(toReplace, pos)) != std::wstring::npos) 
+        paths.replace(pos, toReplace.length(), L"");
+
     outputs.push_back(utils.WString2StdString(paths));
 
 #else
@@ -1500,7 +1524,7 @@ void BuiltInFuncsSystem::ListDirW(const std::wstring&   parent,
         bool         addpath = true;
         if (name == L"." || name == L"..")
         {
-            addpath = false; // Ignore this
+            addpath = false; // Ignore this // cppcheck-suppress unreadVariable
         }
         else if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
         {
@@ -1515,7 +1539,7 @@ void BuiltInFuncsSystem::ListDirW(const std::wstring&   parent,
             for (std::vector< std::pair<std::wstring, bool> > ::const_iterator itr = exclude.begin();
                  itr != exclude.end(); ++itr)
             {
-                std::pair<std::wstring, bool> val = *itr;
+                //std::pair<std::wstring, bool> val = *itr;
 
                 std::wstring lower = lowername;
                 std::wstring ignorepath = (*itr).first;
@@ -1564,7 +1588,7 @@ void BuiltInFuncsSystem::ListDir(const std::string& parent,
     utils.AddTrailingSlash(base);
 
     DIR* dir = opendir(base.c_str());
-    struct dirent* epdf;
+    //struct dirent* epdf;
     if (dir)
     {
         while (1)
@@ -1578,7 +1602,7 @@ void BuiltInFuncsSystem::ListDir(const std::string& parent,
             bool        addpath = true;
             if (name == "." || name == "..")
             {
-                addpath = false; // Ignore this
+                addpath = false; // Ignore this // cppcheck-suppress unreadVariable
             }
             else if (contents->d_type == DT_DIR)
             {
@@ -1589,8 +1613,6 @@ void BuiltInFuncsSystem::ListDir(const std::string& parent,
                 for (std::vector< std::pair<std::string, bool> > ::const_iterator itr = exclude.begin();
                     itr != exclude.end(); ++itr)
                 {
-                    std::pair<std::string, bool> val = *itr;
-
                     std::string lower = lowername;
                     std::string ignorepath = (*itr).first;
 
@@ -1740,13 +1762,14 @@ std::string BuiltInFuncsSystem::GetInputForSystemCommand(const std::string& str)
     // quotes from that
     
     size_t numLeadingQuotes = cmd.find_first_not_of("\"");
-    size_t numTrailingQuotes = 0;
     if (numLeadingQuotes == std::string::npos)
     {
-        numLeadingQuotes = 0;
+        numLeadingQuotes = 0; // cppcheck-suppress unreadVariable
     }
     else
     {
+        size_t numTrailingQuotes = 0;
+
         size_t len1 = cmd.length();
         size_t numquotesremoved = 0;
         std::string tmp;
@@ -1778,7 +1801,7 @@ std::string BuiltInFuncsSystem::GetInputForSystemCommand(const std::string& str)
         }
         if (numTrailingQuotes > 0 && !in.empty())
         {
-            in = in.substr(0, in.length() - numTrailingQuotes);
+            in = in.substr(0, in.length() - numTrailingQuotes); // cppcheck-suppress uselessCallsSubstr
         }
     }
     

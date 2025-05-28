@@ -31,12 +31,12 @@ class MemoryScope
 	friend class MemoryScopeManager;
 
 public:
-    //!
-    //! Constructor
-    //! \param fi Function info pointer
-    //!
+	//!
+	//! Constructor
+	//! \param fi Function info pointer
+	//!
 	MemoryScope();
-    MemoryScope(FunctionInfo* info);
+	MemoryScope(FunctionInfo* info);
 	~MemoryScope();
 	MemoryScope(const MemoryScope&);
 	MemoryScope(const MemoryScope&, FunctionInfo* fi);
@@ -61,22 +61,25 @@ public:
 	std::vector<std::string> GetVariableNames() const;
 	std::vector<const std::string*> GetVariableNamePtrs() const;
 
-	FunctionInfo*   GetNestedFunction(const std::string* func_name);
-	FunctionInfo*   GetLocalFunction(const std::string* func_name);
+	FunctionInfo* GetNestedFunction(const std::string* func_name);
+	FunctionInfo* GetLocalFunction(const std::string* func_name);
 
-	FunctionInfo*   GetFunctionInfo() const { return fi; }
+	FunctionInfo* GetFunctionInfo() const { return fi; }
 	void            SetFunctionInfo(FunctionInfo* new_fi) { fi = new_fi; }
 
 	void               SetDebugInfo(const std::string* fname, int line) { debug_filename = fname; debug_line = line; }
 	const std::string& GetFilename() const;
 	const std::string* GetFilenamePtr() const { return debug_filename; }
 	int                GetLineNumber() const { return debug_line; }
-	void               RegisterNestedFunction(FunctionInfo* fi);
+	bool               RegisterNestedFunction(FunctionInfo* fi);
 
 	void			   Remove(const std::string& varname);
 
 	void               AddGlobalReference(const std::string& varname);
 	void			   Reset();
+
+	void               CacheNestedFunction(FunctionInfo* fi);
+	void               CreateCachedScopes();
 
 	bool               break_on_continue;
 
@@ -85,28 +88,30 @@ protected:
 	void            AddPersistentReference(const std::string& varname);
 	bool            Remove(const std::regex& varname);
 	bool			RemoveVariablesExcept(const std::vector<std::string>& varnames,
-								const std::vector<std::regex>& varwildnames,
-								const std::vector<std::string>& exceptnames,
-								const std::vector<std::regex>& exceptwildnames);
+		const std::vector<std::regex>& varwildnames,
+		const std::vector<std::string>& exceptnames,
+		const std::vector<std::regex>& exceptwildnames);
 	bool			RemoveGlobalsExcept(const std::vector<std::string>& varnames,
-								const std::vector<std::regex>& varwildnames,
-								const std::vector<std::string>& exceptnames,
-								const std::vector<std::regex>& exceptwildnames);
+		const std::vector<std::regex>& varwildnames,
+		const std::vector<std::string>& exceptnames,
+		const std::vector<std::regex>& exceptwildnames);
 	void            HideGlobal(const std::string& varname);
 	void            ClearLocals();
 	void            ClearGlobals();
 	void            ClearObjects();
 	void            ClearFromGlobals(const std::string& varname);
 	bool            ClearFromGlobals(const std::regex& varname);
-	Currency&       GetMutableValue(const std::string& varname);
-	Currency&       GetMutableValue(const std::string* var_ptr);
-	Currency*       GetMutablePointer(const std::string* var_ptr);
+	Currency& GetMutableValue(const std::string& varname);
+	Currency& GetMutableValue(const std::string* var_ptr);
+	Currency* GetMutablePointer(const std::string* var_ptr);
 
 private:
 	std::map<const std::string*, Currency> scope;
 	std::set<std::string> global_names;
 
 	static std::map<std::string, Currency> globals;
+
+	std::vector <FunctionInfo*> incomplete_nested_handles;
 
 	FunctionInfo*       fi;
     const std::string*  debug_filename;
@@ -170,7 +175,7 @@ public:
 	FunctionInfo*   GetNestedFunction(const std::string* func_name) const;
 	FunctionInfo*   GetLocalFunction(const std::string* func_name) const;
 
-	void     RegisterNestedFunction(FunctionInfo* fi);
+	bool     RegisterNestedFunction(FunctionInfo* fi);
 
 	int      GetBaseEnvHandle();
 	int      GetCurrentEnvHandle();

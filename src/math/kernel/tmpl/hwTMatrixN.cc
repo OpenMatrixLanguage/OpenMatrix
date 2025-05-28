@@ -1081,6 +1081,92 @@ void hwTMatrixN<T1, T2>::Repmat(const hwTMatrix<T1, T2>& source, const std::vect
     throw hwMathException(HW_MATH_ERR_NOTIMPLEMENT);
 }
 
+//! Reverse the vectors along a direction
+template<typename T1, typename T2>
+void hwTMatrixN<T1, T2>::FlipVectors(const hwTMatrixN<T1, T2>& source, int dim)
+{
+    const std::vector<int>& dims = source.Dimensions();
+    int numDim = static_cast<int> (dims.size());
+
+    if (dim == -1)
+    {
+        // use first non-singleton dimension
+        for (int i = 0; i < dims.size(); ++i)
+        {
+            if (dims[i] != 1)
+            {
+                dim = i;
+                break;
+            }
+        }
+    }
+    else if (dim > numDim - 1)
+    {
+        (*this) = source;
+        return;
+    }
+    else if (dim < 0)
+    {
+        throw hwMathException(HW_MATH_ERR_ARRAYDIM, 2);
+    }
+
+    int numVecs = source.Size() / dims[dim];
+    int stride = source.Stride(dim);
+    std::vector<int> matrixIndex(numDim);
+
+    Dimension(dims, source.Type());
+
+    for (int i = 0; i < numVecs; ++i)
+    {
+        // set the matrix indices to the first index in each vector
+        int start = source.Index(matrixIndex);
+
+        if (source.IsReal())
+        {
+            const T1* data_real = source.GetRealData() + start;
+            T1* flip_real = GetRealData() + start;
+            flip_real += (dims[dim] - 1) * stride;
+
+            for (int j = 0; j < dims[dim]; ++j)
+            {
+                *flip_real = *data_real;
+                data_real += stride;
+                flip_real -= stride;
+            }
+        }
+        else    // complex
+        {
+            const T2* data_cplx = source.GetComplexData() + start;
+            T2* flip_cplx = GetComplexData() + start;
+            flip_cplx += (dims[dim] - 1) * stride;
+
+            for (int j = 0; j < dims[dim]; ++j)
+            {
+                *flip_cplx = *data_cplx;
+                data_cplx += stride;
+                flip_cplx -= stride;
+            }
+        }
+
+        // advance slice indices
+        for (int j = 0; j < numDim; ++j)
+        {
+            if (j == dim)
+                continue;
+
+            // increment index j if possible
+            if (matrixIndex[j] < static_cast<int> (dims[j]) - 1)
+            {
+                ++matrixIndex[j];
+                break;
+            }
+
+            // index j is maxed out, so reset and continue to j+1
+            matrixIndex[j] = 0;
+        }
+    }
+}
+
 //! Reorder matrix dimensions, a generalized transpose
 template<typename T1, typename T2>
 void hwTMatrixN<T1, T2>::Permute(const hwTMatrixN<T1, T2>& source, const std::vector<int>& permuteVec)
@@ -1862,6 +1948,14 @@ void hwTMatrixN<T1, T2>::SliceRHS(const std::vector<hwSliceArg>& sliceArg,
     {
         // keyDim[j]  = dimension of largest contiguous vector or colon
         // keySize[j] = size of dimension keyDim[j]
+        if (keySize[0] > 31 || keySize[1] > 31 || keySize[2] > 31)
+        {
+            // stop as soon as some keySize reaches 32.
+            // the benefit of a larger keySize in a higher dimension
+            // would be offset by a larger stride.
+            break;
+        }
+
         if (sliceArg[j].IsColon())
         {
             if (m_dim[j] > keySize[1])
@@ -2091,14 +2185,14 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
             {
                 if (sliceArg[0].IsColon())    // handle a(:)
                 {
-                    newDim.push_back(1);
-                    std::vector<hwSliceArg> newSliceArg;
-                    newSliceArg.push_back(hwSliceArg());
-                    newSliceArg.push_back(0);
-                    reshaped.Reshape(newDim);
-                    reshaped.SliceLHS(newSliceArg, rhsMatrix);
-                    return;
-                }
+                newDim.push_back(1);
+                std::vector<hwSliceArg> newSliceArg;
+                newSliceArg.push_back(hwSliceArg());
+                newSliceArg.push_back(0);
+                reshaped.Reshape(newDim);
+                reshaped.SliceLHS(newSliceArg, rhsMatrix);
+                return;
+            }
                 else
                 {
                     throw hwMathException(HW_MATH_ERR_SLICE_INDEX);
@@ -2149,15 +2243,8 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
             else
                 newDim[lhsDim] = sliceArg[lhsDim].Scalar() + 1;
 
-            if (rhsMatrix.m_dim[rhsDim] == 1)
-            {
-                dimMap[lhsDim++] = rhsDim;
-            }
-            else
-            {
-                dimMap[lhsDim++] = -1;
-                --rhsDim;
-            }
+            dimMap[lhsDim++] = -1;
+            --rhsDim;
         }
         else if (sliceArg[lhsDim].IsColon())
         {
@@ -2355,6 +2442,14 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
     {
         // keyDim[j]  = dimension of largest contiguous vector or colon
         // keySize[j] = size of dimension keyDim[j]
+        if (keySize[0] > 31 || keySize[1] > 31 || keySize[2] > 31)
+        {
+            // stop as soon as some keySize reaches 32.
+            // the benefit of a larger keySize in a higher dimension
+            // would be offset by a larger stride.
+            break;
+        }
+
         if (sliceArg[j].IsColon())
         {
             if (m_dim[j] > keySize[1])
@@ -2481,7 +2576,8 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg,
         // advance rhs matrix indices
         for (int j = startIndx; j < numSlices; ++j)
         {
-            if (sliceArg[j].IsScalar() || j == keyDim[S_case])
+            if (sliceArg[j].IsScalar() || j == keyDim[S_case] ||
+                dimMap[j] == -1)
             {
                 continue;
             }
@@ -2790,6 +2886,14 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, T1 re
     {
         // keyDim[j]  = dimension of largest contiguous vector or colon
         // keySize[j] = size of dimension keyDim[j]
+        if (keySize[0] > 31 || keySize[1] > 31 || keySize[2] > 31)
+        {
+            // stop as soon as some keySize reaches 32.
+            // the benefit of a larger keySize in a higher dimension
+            // would be offset by a larger stride.
+            break;
+        }
+
         if (sliceArg[j].IsColon())
         {
             if (m_dim[j] > keySize[1])
@@ -3236,6 +3340,14 @@ void hwTMatrixN<T1, T2>::SliceLHS(const std::vector<hwSliceArg>& sliceArg, const
     {
         // keyDim[j]  = dimension of largest contiguous vector or colon
         // keySize[j] = size of dimension keyDim[j]
+        if (keySize[0] > 31 || keySize[1] > 31 || keySize[2] > 31)
+        {
+            // stop as soon as some keySize reaches 32.
+            // the benefit of a larger keySize in a higher dimension
+            // would be offset by a larger stride.
+            break;
+        }
+
         if (sliceArg[j].IsColon())
         {
             if (m_dim[j] > keySize[1])

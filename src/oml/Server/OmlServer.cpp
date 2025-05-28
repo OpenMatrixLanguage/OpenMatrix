@@ -58,7 +58,7 @@ DWORD WINAPI RunServer(LPVOID args)
 void* RunServer(void* args)
 #endif
 {
-    ServerArgs* servArgs = (ServerArgs*)(args);
+    ServerArgs* servArgs = (ServerArgs*)(args); // cppcheck-suppress cstyleCast
     if (servArgs)
     {
         std::unique_ptr<OmlServer> omlserver(new OmlServer(servArgs->interp, servArgs->handler));
@@ -123,7 +123,7 @@ DWORD WINAPI RunScript(LPVOID arg)
 void* RunScript(void *arg)
 #endif
 {
-    CommandArgs *pArgs = (CommandArgs*)arg;
+    CommandArgs *pArgs = (CommandArgs*)arg; // cppcheck-suppress cstyleCast
     if(pArgs && pArgs->interp)
     {
         Currency ret;
@@ -239,7 +239,6 @@ public:
             std::string cmd(recvbuf);
                         
             size_t splitIndex = cmd.find_first_of(",");
-            int cmdNumber = -1;
 			std::string command = "";
             if(splitIndex > 0)
             {
@@ -267,8 +266,6 @@ public:
             }
 			else if("ispartialexpression" ==  command)
 			{
-				bool isPartial = _interp->IsPartialExpression(cmd.substr(splitIndex+1));
-
 				std::string status;
 				if(_interp->IsPartialExpression(cmd.substr(splitIndex+1)))
 				{
@@ -292,7 +289,7 @@ public:
                     std::string result_str(cur.StringVal());
                     if (!result_str.empty())
                     {
-                        result_str = result_str.substr(0, result_str.find_last_of("\n"));
+                        result_str = result_str.substr(0, result_str.find_last_of("\n")); // cppcheck-suppress uselessCallsSubstr
                         std::string signatures = "{\"type\":\"signatures\",\"data\":\"" + result_str + "\"}";
                         Send(signatures);
                         std::string status = "{\"type\":\"status\",\"data\":\"ready\"}";

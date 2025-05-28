@@ -1,7 +1,7 @@
 /**
 * @file Evaluator.h
 * @date August 2013
-* Copyright (C) 2013-2020 Altair Engineering, Inc.  
+* Copyright (C) 2013-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -58,7 +58,7 @@ struct UserFile
     std::FILE*  file;
     std::string name;
     std::string mode;
-    UserFile    (std::FILE* filepointer, std::string filename, std::string filemode) :
+    UserFile    (std::FILE* filepointer, const std::string& filename, const std::string& filemode) :
                 isopen(true), file(filepointer), name(filename), mode(filemode) {}
 };
 
@@ -66,24 +66,24 @@ struct BuiltinFunc
 {
     FUNCPTR     fptr;
 	ALT_FUNCPTR alt_fptr;
-
 	FunctionMetaData md;
-    BuiltinFunc(FUNCPTR func, FunctionMetaData in_md, const std::string* context = NULL, bool safe = true) : fptr(func), alt_fptr(nullptr), md(in_md), locked(false), hidden(false), dll(context), hierarchy(nullptr), thread_safe(safe) {}
+	bool locked;
+	bool hidden;
+	bool thread_safe;
+	const std::string* dll;
+	const std::string* hierarchy;
+
+    BuiltinFunc(FUNCPTR func, const FunctionMetaData& in_md, const std::string* context = NULL, bool safe = true) : fptr(func), alt_fptr(nullptr), md(in_md), locked(false), hidden(false), dll(context), hierarchy(nullptr), thread_safe(safe) {}
     BuiltinFunc(ALT_FUNCPTR func, const std::string* context, const std::string* meta, bool safe = true) : fptr(nullptr), alt_fptr(func), locked(false), hidden(false), dll(context), hierarchy(meta), thread_safe(safe) {}
-	BuiltinFunc(ALT_FUNCPTR func, FunctionMetaData in_md, const std::string* context, const std::string* meta, bool safe = true) : fptr(nullptr), alt_fptr(func), md(in_md), locked(false), hidden(false), dll(context), hierarchy(meta), thread_safe(safe) {}
-    BuiltinFunc() : fptr(nullptr), alt_fptr(nullptr), locked(false), dll(nullptr), hierarchy(nullptr), thread_safe(true) {}
+	BuiltinFunc(ALT_FUNCPTR func, const FunctionMetaData& in_md, const std::string* context, const std::string* meta, bool safe = true) : fptr(nullptr), alt_fptr(func), md(in_md), locked(false), hidden(false), dll(context), hierarchy(meta), thread_safe(safe) {}
+    BuiltinFunc() : fptr(nullptr), alt_fptr(nullptr), locked(false), dll(nullptr), hierarchy(nullptr), thread_safe(true), hidden(false) {}
+	BuiltinFunc(FUNCPTR func, const FunctionMetaData& md, bool hide) : fptr(func), md(md), hidden(hide), locked(false), dll(nullptr), hierarchy(nullptr), thread_safe(true) {}
 
 	void Lock() { locked = true; hidden = true; }
 	void LockOnly() { locked = true; hidden = false; }
 
 	bool IsThreadSafe()  { return thread_safe; }
 
-	bool locked;
-	bool hidden;
-	bool thread_safe;
-
-	const std::string* dll;
-	const std::string* hierarchy;
 };
 
 struct UserFunc
@@ -98,7 +98,7 @@ struct UserFunc
 class ProfileTimer
 {
 public:
-	ProfileTimer() { total = 0.0; }
+	ProfileTimer() : baseline(0) { total = 0.0; }
 	~ProfileTimer() {};
 
 	void Start() { baseline = clock(); }
@@ -250,7 +250,7 @@ public:
 	Currency CallInternalFunction(FunctionInfo*, const std::vector<Currency>&);
 	Currency CallInternalFunction(FunctionInfo*, const std::vector<Currency>&, bool, const std::string&, const Currency&);
 	Currency CallStaticClassMethod(const std::string&, const std::string&, const std::vector<Currency>&);
-	
+
 	HML_CELLARRAY* CreateVararginCell(const std::vector<Currency>& params, int start_index);
 
 	inline bool IsUserFunction(const std::string& func_name) { return functions->find(func_name) != functions->end(); }
@@ -277,7 +277,7 @@ public:
 	int						AddFile(std::FILE *newfile, const std::string &fname, const std::string &fmode);
 	int						GetNumFiles() { return (int)userFileStreams->size(); }
 	void                    AddPath(const std::string& pathname, bool end);
-	void                    AddHiddenPath(const std::string pathname);
+	void                    AddHiddenPath(const std::string& pathname);
 	void                    AddPath2(const std::string& pathname, const std::vector<std::string>& func_names);
 	bool                    RemovePath(const std::string &pathname);
 	bool                    RemoveHiddenPath(const std::string& pathname);
@@ -423,7 +423,7 @@ public:
 	void NDAssignmetHelper(Currency& target, const std::vector<Currency>& params, const Currency& value, int refcnt_target = 1);
 	void NDCellAssignmetHelper(Currency& target, const std::vector<Currency>& params, const Currency& value, int refcnt_target = 1);
 
-	void SetScriptName(std::string script) { _script_name = script; }
+	void SetScriptName(const std::string& script) { _script_name = script; }
 
 	FunctionInfo* FunctionInfoFromString(const std::string&);
 
@@ -506,7 +506,7 @@ public:
 	void WritePFile(const std::string& infile, const std::string& outfile);
 
 	Currency Analyze(const std::string& infile);
-	Currency GetMetadata(const std::string& infile);
+	Currency GetMetadata(const std::string& infile, bool library_names = false);
 
 	void RegisterFunction(OMLTree* tree);
 
@@ -529,6 +529,9 @@ public:
 	void     Profile(bool on) { _profiling = on; }
 
 	std::string GetFunctionArgumentName(int index);
+
+	OMLTree* CreateASTFromFile(const std::string& filename);
+	OMLTree* GetTreeFromDLL(const char* dll_path);
 
 private:
 	Currency AddOperator(const Currency&, const Currency&);
@@ -736,7 +739,6 @@ private:
     bool        _owns_pathnames;
     bool        _owns_format;
 	bool        suppress_multi_ret_output;
-	bool        _diary_on;
 	bool        _store_suppressed;
     bool        _suspendFunclistUpdate; //! Suspends function list update
 	bool        _suppress_all;
@@ -802,6 +804,9 @@ private:
 
 	std::vector<ProfileTimer*> profile_timers;
 	std::map<const std::string*, std::map<int, std::tuple<double, int>>> profile_data;
+
+	ExprTreeEvaluator(const ExprTreeEvaluator&);             // Stubbed out 
+	ExprTreeEvaluator& operator=(const ExprTreeEvaluator&);  // Stubbed out
 };
 
 #endif

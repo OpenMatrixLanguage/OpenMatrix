@@ -57,7 +57,8 @@ hwMathStatus hwFilterManager::CreateFilter(const hwMatrix& numerCoef,
 //------------------------------------------------------------------------------
 hwMathStatus hwFilterManager::ApplyFilter(const hwMatrix& inSignal, 
                                           hwMatrix&       outSignal,
-                                          const hwMatrix* initCond)
+                                          const hwMatrix* initCond,
+                                          hwMatrix*       finalCond)
 {
     if (!m_pFilter)
     {
@@ -100,16 +101,15 @@ hwMathStatus hwFilterManager::ApplyFilter(const hwMatrix& inSignal,
         return status;
     }
 
-    int max;
-    int size = inSignal.Size();
-
     const double* pInSignal  = inSignal.GetRealData();
     double*       pOutSignal = outSignal.GetRealData();
 
+    int     size          = inSignal.Size();
     int     numNumerCoefs = m_pFilter->GetNumerCoefs()->Size();
     int     numDenomCoefs = 0;
     double* numerCoef     = m_pFilter->GetNumerCoefs()->GetRealData();
     double* denomCoef     = nullptr;
+
     if (m_pFilter->GetDenomCoefs())
     {
         denomCoef     = m_pFilter->GetDenomCoefs()->GetRealData();
@@ -126,7 +126,7 @@ hwMathStatus hwFilterManager::ApplyFilter(const hwMatrix& inSignal,
 
     for (int i = 0; i < size; ++i)
     {
-        max = _min(i + 1, numNumerCoefs);
+        int max = _min(i + 1, numNumerCoefs);
         outSignal(i) = 0.0;
 
         for (int j = 0; j < max; ++j)
@@ -142,16 +142,61 @@ hwMathStatus hwFilterManager::ApplyFilter(const hwMatrix& inSignal,
             {
                 pOutSignal[i] -= denomCoef[j] * pOutSignal[i-j];
             }
+
             if (denomCoef[0] != 1.0)
             {
                 pOutSignal[i] /= denomCoef[0];
             }
+
             // initCond values are for the state vector, not for the output signal.
             if (initCond && i < numDenomCoefs - 1)
             {
                 pOutSignal[i] += (*initCond)(i);
             }
         }
+    }
+
+    if (finalCond)
+    {
+        int nz = numDenomCoefs - 1;
+
+        if (outSignal.M() == 1)
+        {
+            status = finalCond->Dimension(1, nz, hwMatrix::REAL);
+        }
+        else
+        {
+            status = finalCond->Dimension(nz, 1, hwMatrix::REAL);
+        }
+
+        if (!status.IsOk())
+        {
+            if (status.GetArg1() == 0)
+            {
+                status.SetArg1(4);
+            }
+            return status;
+        }
+
+        finalCond->SetElements(0.0);
+
+        const hwMatrix& b = *m_pFilter->GetNumerCoefs();
+        const hwMatrix& a = *m_pFilter->GetDenomCoefs();
+        const hwMatrix& y = outSignal;
+        const hwMatrix& x = inSignal;
+        hwMatrix& zf = *finalCond;
+
+        for (int i = 0; i < nz; ++i)
+        {
+            for (int j = 0; j < nz - 1; ++j)
+            {
+                zf(j) = b(j + 1) * x(size - nz + i) - a(j + 1) * y(size - nz + i) + zf(j + 1);
+            }
+
+            zf(nz - 1) = b(nz) * x(size - nz + i) - a(nz) * y(size - nz + i);
+        }
+
+        zf /= a(0);
     }
 
     return status;
@@ -474,7 +519,7 @@ hwMathStatus hwFilterManager::ApplyZeroPhaseFilter(const hwMatrix& inSignal,
     double* pTempSignal_2 = tempSignal_2.GetRealData();
 
     initCond = ssCond * pTempSignal_1[0];
-    status = ApplyFilter(tempSignal_1, tempSignal_2, &initCond);     // filter
+    status = ApplyFilter(tempSignal_1, tempSignal_2, &initCond, nullptr);     // filter
 
     if (!status.IsOk())
     {

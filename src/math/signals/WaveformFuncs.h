@@ -139,5 +139,70 @@ SIGNALS_DECLS hwMathStatus ChirpPulse(const hwMatrix& time,
                                       const char*     shape,
                                       double          phase,
                                       hwMatrix&       waveform);
-
+//!
+//! Computes the Morlet wavelet and returns status
+//! \param lb          lower bound
+//! \param ub          upper bound
+//! \param n           number of points
+//!
+SIGNALS_DECLS hwMathStatus Morlet(double    lb,
+                                  double    ub,
+                                  int       n,
+                                  hwMatrix& time,
+                                  hwMatrix& waveform);
+//!
+//! Computes the complex Morlet wavelet and returns status
+//! \param lb          lower bound
+//! \param ub          upper bound
+//! \param n           number of points
+//! \param fb          frequency bandwidth
+//! \param fc          frequency center
+//!
+SIGNALS_DECLS hwMathStatus CMorWavf(double    lb,
+                                    double    ub,
+                                    int       n,
+                                    double    fb,
+                                    double    fc,
+                                    hwMatrix& time,
+                                    hwMatrix& waveform);
+//!
+//! Computes the Gaussian monopulse and returns status
+//! \param time        time vector
+//! \param fc          frequency center
+//!
+SIGNALS_DECLS hwMathStatus Gmonopuls(const hwMatrix& time,
+                                     double          fc,
+                                     hwMatrix&       waveform);
+//!
+//! Computes the complex Shannon wavelet and returns status
+//! \param lb          lower bound
+//! \param ub          upper bound
+//! \param n           number of points
+//! \param fb          frequency bandwidth
+//! \param fc          frequency center
+//!
+SIGNALS_DECLS hwMathStatus ShanWavf(double    lb,
+                                    double    ub,
+                                    int       n,
+                                    double    fb,
+                                    double    fc,
+                                    hwMatrix& time,
+                                    hwMatrix& waveform);
+//!
+//! Computes Mexican hat wavelet and returns status
+//! \param lb          lower bound
+//! \param ub          upper bound
+//! \param n           number of points
+//!
+SIGNALS_DECLS hwMathStatus Mexihat(double    lb,
+                                   double    ub,
+                                   int       n,
+                                   hwMatrix& time,
+                                   hwMatrix& waveform);
+//!
+//! Computes Meyer wavelet auxillary and returns status
+//! \param time        time vector
+//!
+SIGNALS_DECLS void MeyerAux(const hwMatrix& time,
+                            hwMatrix&       waveform);
 #endif // _Signals_WaveformFuncs_h

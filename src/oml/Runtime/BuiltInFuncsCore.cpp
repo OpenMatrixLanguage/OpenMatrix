@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsCore.cpp
 * @date February 2016
-* Copyright (C) 2016-2023 Altair Engineering, Inc.  
+* Copyright (C) 2016-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -901,10 +901,10 @@ bool BuiltInFuncsCore::RemoveToolbox(EvaluatorInterface           eval,
 	{
 		void* handle = libs[removeDll];
 
-		if (handle)
+        if (handle)
         {
             Finalize(handle);
-			DyFreeLibrary(handle);
+            DyFreeLibrary(handle);
         }
 		libs.erase(removeDll);
 	}
@@ -1025,7 +1025,7 @@ std::string BuiltInFuncsCore::GetBuildNumber(const std::string& versionfile)
         return "";
 
     std::string buildnumber;
-    std::string search ("BuildNumber value = \"");
+    std::string search ("BuildNumber value");
     while (1)
     {
         std::string thisline;
@@ -1043,16 +1043,17 @@ std::string BuiltInFuncsCore::GetBuildNumber(const std::string& versionfile)
         {
             pos = buildnumber.find("\"");
             if (pos != std::string::npos)
-                buildnumber = buildnumber.substr(0, pos);
+                buildnumber = buildnumber.substr(pos + 1);
+            pos = buildnumber.find("\"");
+            if (pos != std::string::npos)
+                buildnumber.erase(pos);
         }
         break;
     }
     ifs.close();
 
-    if (!buildnumber.empty())
-       return (" Build " + buildnumber);
-
-    return "";
+    std::string buildNum = (!buildnumber.empty()) ? " Build " + buildnumber : "";
+    return buildNum;
 }
 //------------------------------------------------------------------------------
 // Returns true after getting current file name being processed [omlfilename]

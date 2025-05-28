@@ -1,7 +1,7 @@
 /**
 * @file omlmatio.cxx
 * @date August 2020
-* Copyright (C) 2020-2022 Altair Engineering, Inc.
+* Copyright (C) 2020-2023 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -53,11 +53,17 @@ OmlMatio::OmlMatio(const std::string& filename, int verbose, MATFILEVERSION ver)
     }
     _name += '_';
 }
+//------------------------------------------------------------------------------
+// Reset the class
+//------------------------------------------------------------------------------
 void OmlMatio::Reset()
 {
     _idx = 1;
     _name = "empty_";
 }
+//------------------------------------------------------------------------------
+// Sets the name prefix
+//------------------------------------------------------------------------------
 void OmlMatio::SetNamePrefix(const std::string& name)
 {
     if (!name.empty())
@@ -347,8 +353,8 @@ std::string OmlMatio::GetName(matvar_t* var,bool warn)
         name = _name + std::to_string(static_cast<long long>(_idx++));
         if (warn)
         {
-        AddWarning("Variable name is [], creating name [" + name + "]");
-    }
+            AddWarning("Variable name is [], creating name [" + name + "]");
+        }
     }
     return name;
 }
@@ -978,10 +984,7 @@ matvar_t* OmlMatio::CurrencyToMatVar(const char* name, const Currency& cur)
         }
         std::wstring wstr(utils.StdString2WString(data));
         dims[1] = wstr.length();
-        matio_types type = (_version == MATFILEVERSION_5) ?
-            MAT_T_UTF16 : MAT_T_UINT8;
-
-        return Mat_VarCreate(name, MAT_C_CHAR, type, 2, dims,
+        return Mat_VarCreate(name, MAT_C_CHAR, MAT_T_UTF16, 2, dims,
                (void*)(wstr.c_str()), 0);
     }
     else if (cur.IsComplex())
@@ -1600,4 +1603,41 @@ std::vector<matvar_t*> OmlMatio::GetChildren(EvaluatorInterface eval, matvar_t* 
         }
     }
     return children;
+}
+//------------------------------------------------------------------------------
+// Gets version description
+//------------------------------------------------------------------------------
+std::string OmlMatio::MatioError(int errorcode)
+{
+    std::string code (" [" + std::to_string(errorcode) + "]");
+
+    switch (errorcode)
+    {
+        case MATIO_E_NO_ERROR:                return "";
+        case MATIO_E_GENERIC_READ_ERROR:      return "read error";
+        case MATIO_E_GENERIC_WRITE_ERROR:     return "write error";
+        case MATIO_E_INDEX_TOO_BIG:           return "index is too big";
+        case MATIO_E_FILE_FORMAT_VIOLATION:   return "file format violation";
+        case MATIO_E_FAIL_TO_IDENTIFY:        return "identification failure";
+        case MATIO_E_BAD_ARGUMENT:            return "invalid argument";
+        case MATIO_E_OUTPUT_BAD_DATA:         return "invalid data";
+        case MATIO_E_OPERATION_NOT_SUPPORTED: return "invalid operation";
+        case MATIO_E_OUT_OF_MEMORY:           return "invalid operation";
+        case MATIO_E_BAD_VARIABLE_NAME:       return "invalid variable name";
+        case MATIO_E_OPERATION_PROHIBITED_IN_WRITE_MODE: return "invalid operation in write mode";
+        case MATIO_E_OPERATION_PROHIBITED_IN_READ_MODE:  return "invalid operation in read mode";
+
+        case MATIO_E_FILESYSTEM_COULD_NOT_OPEN: return "cannot open file";
+        case MATIO_E_FILESYSTEM_COULD_NOT_OPEN_TEMPORARY: return "cannot open temporary file";
+        case MATIO_E_FILESYSTEM_COULD_NOT_REOPEN: return "cannot reopen file";
+        case MATIO_E_BAD_OPEN_MODE: return "invalid file open mode";
+        case MATIO_E_FILESYSTEM_ERROR_ON_CLOSE: return "file close error";
+
+        case MATIO_E_WRITE_VARIABLE_DOES_NOT_EXIST:
+        case MATIO_E_READ_VARIABLE_DOES_NOT_EXIST: return "variable does not exist" + code;
+
+        case MATIO_E_UNKNOWN_ERROR:
+        default: return "error" + code;        
+    }
+    return "";
 }

@@ -1,7 +1,7 @@
 /**
 * @file ErrorInfo.cpp
 * @date March 2014
-* Copyright (C) 2014-2018 Altair Engineering, Inc.  
+* Copyright (C) 2014-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -24,16 +24,16 @@ ErrorInfo::ErrorInfo()
 {
 }
 
-ErrorInfo::ErrorInfo(std::string file_name, int line_num, int ch_pos)
+ErrorInfo::ErrorInfo(const std::string& file_name, int line_num, int ch_pos)
+	: _fileName(file_name)
 {
-	_fileName = file_name;
 	_lineNum = line_num;
 	_chPos = ch_pos;
 }
 
 ErrorInfo::ErrorInfo(const ErrorInfo& other)
+	: _fileName(other._fileName)
 { 
-	_fileName = other._fileName; 
 	_lineNum = other._lineNum; 
 	_chPos = other._chPos;
 }

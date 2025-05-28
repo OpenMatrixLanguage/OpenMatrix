@@ -1,7 +1,7 @@
 /**
 * @file hwTComplex.cc
 * @date March 2012
-* Copyright (C) 2012-2018 Altair Engineering, Inc.  
+* Copyright (C) 2012-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -20,6 +20,10 @@
 //  Template complex number class implementation file
 //
 //:---------------------------------------------------------------------------
+
+// The entire class could be replaced by <complex>. For now, utilize <complex> when
+// needed for compatibility issues.
+#include <complex>
 
 #include "../GeneralFuncs.h"
 #include "../hwMathStatus.h"
@@ -572,6 +576,12 @@ inline hwTComplex<T> hwTComplex<T>::log10(const hwTComplex<T>& z)
 template < typename T >
 inline hwTComplex<T> hwTComplex<T>::sqrt(const hwTComplex<T>& z)
 {
+    // convert to std::complex to access its algorithm, which has
+    // less rounding error than the standard algebraic solution
+    std::complex<T> zz(z.x, z.y);
+    std::complex<T> sqrz = std::sqrt(zz);
+    return hwTComplex<T>(sqrz.real(), sqrz.imag());
+/*
     // the principal value is on (-pi, pi]
     // this method bypasses the trig using the half angle
     // identities to improve accuracy
@@ -581,6 +591,7 @@ inline hwTComplex<T> hwTComplex<T>::sqrt(const hwTComplex<T>& z)
         return hwTComplex<T>(::sqrt((T)0.5 * (mag + z.x)), -::sqrt((T)0.5 * (mag - z.x)));
     else
         return hwTComplex<T>(::sqrt((T)0.5 * (mag + z.x)), ::sqrt((T)0.5 * (mag - z.x)));
+*/
 }
 
 //! Power function for complex base to a real exponent
@@ -754,10 +765,11 @@ inline hwTComplex<T> hwTComplex<T>::pow_c(T base, T power)
 
     if (base < (T) 0)
     {
-        // check for pure real or imaginary solutions
+/*
+        // check for pure real or imaginary solutions (skip for compatibility)
         T factor = (T)2 * power; // = arg / (PI/2)
 
-        if (IsInteger(factor, 1.0e-15).IsOk())      // needs modification of T != double
+        if (IsInteger(factor, 1.0e-15).IsOk())      // needs modification if T != double
         {
             int numQuads = ((int) RoundT(factor)) %4;
 
@@ -770,7 +782,7 @@ inline hwTComplex<T> hwTComplex<T>::pow_c(T base, T power)
             if (numQuads == 3)   // arg = -PI/2
                 return hwTComplex<T>((T)0, -mag);
         }
-
+*/
         return hwTComplex<T>(mag * ::cos(PI*power), mag * ::sin(PI*power));
     }
     else
@@ -779,7 +791,7 @@ inline hwTComplex<T> hwTComplex<T>::pow_c(T base, T power)
 
 //! Write the value to the output stream
 template < typename T >
-inline void hwTComplex<T>::emitVarVal (std::ostringstream &os)
+inline void hwTComplex<T>::emitVarVal(std::ostringstream &os)
 { 
     os << x;
 

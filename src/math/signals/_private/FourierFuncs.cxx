@@ -21,13 +21,16 @@
 #include "hwPSD.h"
 #include "hwCSD.h"
 #include "hwWindowFunc.h"
+#include "MKLutilities.h"
+
+#define MKLuD MKLutilitiesD
 
 //------------------------------------------------------------------------------
 // Get the mean sample rate from a time vector and compute the std deviation
 //------------------------------------------------------------------------------
-hwMathStatus SampleRate(const hwMatrix& time,
+hwMathStatus SampleRate(const hwMatrix& time, 
                         double&         meanSampRate,
-                        double&         stdDevRate,
+                        double&         stdDevRate, 
                         double          scale)
 {
     if (!time.IsReal())
@@ -646,9 +649,10 @@ hwMathStatus FftN(const hwMatrixN& signal,
         fftw_execute(p);
 
         // process columns
-        // Note: ND conjugate symmetry means that:
-        // 1. A = conj( A ([1 n1:-1:2], [1 n2:-1:2], ... [1 np:-1:2]) )
-        // 2. A ([n1/2+2:1:n1], ... [np/2+1:1:np]) = conj( A ([(n1+1)/2:-1:2], ... [(np+1)/2:-1:2]) )
+        // Note: ND conjugate symmetry means that the following equivalent
+        // conditions are true:
+        // 1. A = conj( A([1 n1:-1:2], [1 n2:-1:2], ... [1 np:-1:2]) )
+        // 2. A([n1/2+1:1:n1], ... [np/2+1:1:np]) = conj( A([(n1+1)/2:-1:2], ... [(np+1)/2:-1:2]) )
 
         int inc = 1;
         int conjSize = dims[0] - dims_Nyquist[0];
@@ -765,9 +769,10 @@ hwMathStatus Ifft2(const hwMatrix& freqRes,
     int negFreqIndex = 0;
     bool conjSym = true;
 
-    // Note: 2D conjugate symmetry means that:
-    // 1. A = conj( A ([1 m:-1:2], [1 n:-1:2] )
-    // 2. A ([m/2+2:1:m], [n/2+1:1:n]) = conj( A ([(m+1)/2:-1:2], [(n+1)/2:-1:2]) )
+    // Note: 2D conjugate symmetry means that the following equivalent
+    // conditions are true:
+    // 1. A = conj( A([1 m:-1:2], [1 n:-1:2]) )
+    // 2. A([m/2+1:1:m], [n/2+1:1:n]) = conj( A([(m+1)/2:-1:2], [(n+1)/2:-1:2]) )
     if (!assumeConjSym && freqResData1)
     {
         if (freqRes.z(0, 0).Imag() != 0.0)
@@ -965,9 +970,10 @@ hwMathStatus Ifft2(const hwMatrix& freqRes,
     int negFreqIndex = 0;
     bool conjSym = true;
 
-    // Note: 2D conjugate symmetry means that:
-    // 1. A = conj( A ([1 m:-1:2], [1 n:-1:2] )
-    // 2. A ([m/2+2:1:m], [n/2+1:1:n]) = conj( A ([(m+1)/2:-1:2], [(n+1)/2:-1:2]) )
+    // Note: 2D conjugate symmetry means that the following equivalent
+    // conditions are true:
+    // 1. A = conj( A([1 m:-1:2], [1 n:-1:2]) )
+    // 2. A([m/2+1:1:m], [n/2+1:1:n]) = conj( A([(m+1)/2:-1:2], [(n+1)/2:-1:2]) )
     if (!assumeConjSym && freqResData1)
     {
         if (freqRes.z(0, 0).Imag() != 0.0)
@@ -1211,9 +1217,10 @@ hwMathStatus IfftN(const hwMatrixN& freqRes,
     std::vector<int> negFreqIndex(rank);
     bool conjSym = true;
 
-    // Note: ND conjugate symmetry means that:
-    // 1. A = conj( A ([1 n1:-1:2], [1 n2:-1:2], ... [1 np:-1:2]) )
-    // 2. A ([n1/2+2:1:n1], ... [np/2+1:1:np]) = conj( A ([(n1+1)/2:-1:2], ... [(np+1)/2:-1:2]) )
+    // Note: ND conjugate symmetry means that the following equivalent
+    // conditions are true:
+    // 1. A = conj( A([1 n1:-1:2], [1 n2:-1:2], ... [1 np:-1:2]) )
+    // 2. A([n1/2+1:1:n1], ... [np/2+1:1:np]) = conj( A([(n1+1)/2:-1:2], ... [(np+1)/2:-1:2]) )
 
     // The code below checks the conjugate symmetry, but currently omits checking the dc
     // and Nyquist frequency hyperplanes for dimension 0.
@@ -1390,9 +1397,10 @@ hwMathStatus Fft(const hwMatrixN& signal,
 //------------------------------------------------------------------------------
 hwMathStatus Ifft(const hwMatrix& freqRes,
                   hwMatrix&       signal,
-                  int             fftSize)
+                  int             fftSize,
+                  bool            assumeConjSym)
 {
-    hwFFT_r ifft(fftSize, false);
+    hwFFT_r ifft(fftSize, assumeConjSym);
 
     hwMathStatus status = ifft.Status();
     if (!status.IsOk())
@@ -1411,9 +1419,10 @@ hwMathStatus Ifft(const hwMatrix& freqRes,
 hwMathStatus Ifft(const hwMatrix& freqRes,
                   hwMatrix&       signal,
                   int             dim,
-                  int             fftSize)   // ignored for now
+                  int             fftSize,   // ignored for now
+                  bool            assumeConjSym)
 {
-    hwFFT_r ifft(0, false);
+    hwFFT_r ifft(0, assumeConjSym);
 
     hwMathStatus status = ifft.Status();
     if (!status.IsOk())
@@ -1432,9 +1441,10 @@ hwMathStatus Ifft(const hwMatrix& freqRes,
 hwMathStatus Ifft(const hwMatrixN& freqRes,
                   hwMatrixN&       signal,
                   int              dim,
-                  int              fftSize)   // ignored for now
+                  int              fftSize,   // ignored for now
+                  bool             assumeConjSym)
 {
-    hwFFT_r ifft(0, false);
+    hwFFT_r ifft(0, assumeConjSym);
 
     hwMathStatus status = ifft.Status();
     if (!status.IsOk())
@@ -1459,7 +1469,7 @@ hwMathStatus Stft(const hwMatrix& signal,
 //------------------------------------------------------------------------------
 // Circular convolution of a real signal pair for periodic signals 
 //------------------------------------------------------------------------------
-hwMathStatus ConvCirc(const hwMatrix& signal1,
+hwMathStatus ConvCirc(const hwMatrix& signal1, 
                       const hwMatrix& signal2,
                       hwMatrix&       conv, 
                       int             fftSize)
@@ -1566,9 +1576,9 @@ hwMathStatus ConvCirc(const hwMatrix& signal1,
 //------------------------------------------------------------------------------
 // Circular correlation of a real signal pair for periodic signals 
 //------------------------------------------------------------------------------
-hwMathStatus CorrCirc(const hwMatrix& signal1,
+hwMathStatus CorrCirc(const hwMatrix& signal1, 
                       const hwMatrix& signal2,
-                      hwMatrix&       corr,
+                      hwMatrix&       corr, 
                       int             fftSize)
 {
     if (!signal1.IsReal())
@@ -1694,11 +1704,11 @@ hwMathStatus CorrCirc(const hwMatrix& signal1,
 //------------------------------------------------------------------------------
 // Coherence of a real signal pair with a window function for periodic signals 
 //------------------------------------------------------------------------------
-hwMathStatus Coherence(const hwMatrix& sysInput,
+hwMathStatus Coherence(const hwMatrix& sysInput, 
                        const hwMatrix& sysOutput,
-                       const hwMatrix& window,
+                       const hwMatrix& window, 
                        int             num_overlap_points,
-                       hwMatrix&       cohere,
+                       hwMatrix&       cohere, 
                        int             fftSize)
 {
     if (!sysInput.IsReal())
@@ -1835,11 +1845,11 @@ hwMathStatus Coherence(const hwMatrix& sysInput,
 //------------------------------------------------------------------------------
 // Coherence of a real signal pair for periodic signals 
 //------------------------------------------------------------------------------
-hwMathStatus Coherence(const hwMatrix& sysInput,
+hwMathStatus Coherence(const hwMatrix& sysInput, 
                        const hwMatrix& sysOutput,
                        int             blockSize,
                        int             num_overlap_points,
-                       hwMatrix&       cohere,
+                       hwMatrix&       cohere, 
                        int             fftSize)
 {
     if (!sysInput.IsReal())
@@ -1990,9 +2000,9 @@ hwMathStatus Coherence(const hwMatrix& sysInput,
 //------------------------------------------------------------------------------
 // Power spectral density of a real signal 
 //------------------------------------------------------------------------------
-hwMathStatus PSD(const hwMatrix& signal,
+hwMathStatus PSD(const hwMatrix& signal, 
                  double          sampFreq,
-                 hwMatrix&       density,
+                 hwMatrix&       density, 
                  int             fftSize)
 {
     int numPnts = signal.Size();
@@ -2039,7 +2049,7 @@ hwMathStatus PSD(const hwMatrix& signal,
 //------------------------------------------------------------------------------
 // Cross power spectral density of a real signal pair
 //------------------------------------------------------------------------------
-hwMathStatus CPSD(const hwMatrix& signal1,
+hwMathStatus CPSD(const hwMatrix& signal1, 
                   const hwMatrix& signal2,
                   double          sampFreq,
                   hwMatrix&       density,
@@ -2106,12 +2116,12 @@ hwMathStatus CPSD(const hwMatrix& signal1,
 //------------------------------------------------------------------------------
 // Block power spectral density of a real signal with a window function
 //------------------------------------------------------------------------------
-hwMathStatus BlockPSD(const hwMatrix& signal,
+hwMathStatus BlockPSD(const hwMatrix& signal, 
                       const hwMatrix& window,
-                      int             num_overlap_points,
+                      int             num_overlap_points, 
                       double          sampFreq,
                       bool            powerSpectrum,
-                      hwMatrix&       density,
+                      hwMatrix&       density, 
                       int             fftSize)
 {
     if (!signal.IsReal())
@@ -2240,11 +2250,11 @@ hwMathStatus BlockPSD(const hwMatrix& signal,
 //------------------------------------------------------------------------------
 // Block power spectral density of a real signal
 //------------------------------------------------------------------------------
-hwMathStatus BlockPSD(const hwMatrix& signal,
+hwMathStatus BlockPSD(const hwMatrix& signal, 
                       int             blockSize,
-                      int             num_overlap_points,
+                      int             num_overlap_points, 
                       double          sampFreq,
-                      hwMatrix&       density,
+                      hwMatrix&       density, 
                       int             fftSize)
 {
     if (!signal.IsReal())
@@ -2364,12 +2374,12 @@ hwMathStatus BlockPSD(const hwMatrix& signal,
 //------------------------------------------------------------------------------
 // Block crosss power spectral density of a real signal pair with a window function
 //------------------------------------------------------------------------------
-hwMathStatus BlockCPSD(const hwMatrix& signal1,
+hwMathStatus BlockCPSD(const hwMatrix& signal1, 
                        const hwMatrix& signal2,
-                       const hwMatrix& window,
+                       const hwMatrix& window, 
                        int             num_overlap_points,
-                       double          sampFreq,
-                       hwMatrix&       density,
+                       double          sampFreq, 
+                       hwMatrix&       density, 
                        int             fftSize)
 {
     if (!signal1.IsReal())
@@ -2493,12 +2503,12 @@ hwMathStatus BlockCPSD(const hwMatrix& signal1,
 //------------------------------------------------------------------------------
 // Block crosss power spectral density of a real signal pair
 //------------------------------------------------------------------------------
-hwMathStatus BlockCPSD(const hwMatrix& signal1,
+hwMathStatus BlockCPSD(const hwMatrix& signal1, 
                        const hwMatrix& signal2,
-                       int             blockSize,
+                       int             blockSize, 
                        int             num_overlap_points,
-                       double          sampFreq,
-                       hwMatrix&       density,
+                       double          sampFreq, 
+                       hwMatrix&       density, 
                        int             fftSize)
 {   
     if (!signal1.IsReal())
@@ -2632,4 +2642,102 @@ hwMathStatus BlockCPSD(const hwMatrix& signal1,
     density = sum * value;
 
     return status;
+}
+//------------------------------------------------------------------------------
+// Group delay of a digital filter
+//------------------------------------------------------------------------------
+hwMathStatus GroupDelay(const hwMatrix& numerCoef,
+                        const hwMatrix& denomCoef,
+                        int             fftSize,
+                        hwMatrix&       delay)
+{
+    hwMathStatus status;
+
+    if (!numerCoef.IsReal())
+    {
+        return status(HW_MATH_ERR_COMPLEX, 1);
+    }
+
+    if (!numerCoef.IsVector())
+    {
+        if (numerCoef.IsEmpty())
+        {
+            delay.Dimension(fftSize, 1, hwMatrix::REAL);
+            delay.SetElements(0.0);
+            return status;
+        }
+
+        return status(HW_MATH_ERR_VECTOR, 1);
+    }
+
+    if (!denomCoef.IsReal())
+    {
+        return status(HW_MATH_ERR_COMPLEX, 2);
+    }
+
+    if (!denomCoef.IsVector())
+    {
+        return status(HW_MATH_ERR_VECTOR, 2);
+    }
+
+    if (fftSize < 0)
+    {
+        return status(HW_MATH_ERR_NONPOSINT, 3);
+    }
+
+    // algorithm from https://ccrma.stanford.edu/~jos/filters/Numerical_Computation_Group_Delay.html
+    int numOrder = _max(numerCoef.Size() - 1, 0);
+    int denOrder = _max(denomCoef.Size() - 1, 0);
+    int cOrder = numOrder + denOrder;
+
+    hwMatrix conv;
+    hwMatrix denrev;
+    hwMatrix ramp(1, cOrder + 1, hwMatrix::REAL);
+    hwMatrix convr;
+    hwMatrix num;
+    hwMatrix den;
+
+    status = denrev.FlipVectors(denomCoef, -1);
+
+    if (denrev.M() == numerCoef.N() || denrev.N() == numerCoef.M())
+    {
+        status = denrev.Transpose();
+    }
+
+    status = conv.ConvLin(numerCoef, denrev);
+
+    if (ramp.M() == conv.N() || ramp.N() == conv.M())
+    {
+        status = ramp.Transpose();
+    }
+
+    for (int i = 0; i <= cOrder; ++i)
+        ramp(i) = i;
+
+    convr = MKLuD::MultByElems(conv, ramp);
+
+    status = Fft(convr, num, fftSize);
+    status = Fft(conv, den, fftSize);
+
+    for (int i = 0; i <= fftSize; ++i)
+    {
+        if (den.z(i).Mag() < 10.0 * MACHEP2)
+        {
+            num.z(i) = denOrder;    // changes to 0 later
+            den.z(i) = 1.0;
+            status(HW_MATH_ERR_DIVIDEZERO, i);
+        }
+    }
+
+    hwMatrix ratio = MKLuD::DivideByElems(num, den);
+
+    hwMathStatus status2 = ratio.UnpackComplex(&delay, nullptr);
+
+    delay -= denOrder;
+    status2 = delay.Reshape(fftSize, 1);
+
+    if (!status.IsOk())
+        return status;
+    else
+        return status2;
 }

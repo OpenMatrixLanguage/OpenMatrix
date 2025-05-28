@@ -41,18 +41,18 @@ public:
 
     //!
     //! Returns status after computing Power Spectral Density for const input
-    //! \param input    Const input
+    //! \param input Const input
     //! \param dataSize Utilized input length
-    //! \param psd      Power spectral density of input
+    //! \param psd   Power spectral density of input
     //!
-    hwMathStatus Compute(const hwMatrix& input,
+    hwMathStatus Compute(const hwMatrix& input, 
                          int             dataSize,
                          hwMatrix&       psd);
     //!
     //! Returns status after computing Power Spectral Density for non-const input
-    //! \param input    Non-const input
+    //! \param input Non-const input
     //! \param dataSize Utilized input length
-    //! \param psd      Power spectral density of input
+    //! \param psd   Power spectral density of input
     //!
     hwMathStatus Compute(hwMatrix& input,
                          int       dataSize,

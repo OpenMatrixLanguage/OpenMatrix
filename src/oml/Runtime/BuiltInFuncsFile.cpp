@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsFile.cpp
 * @date March 2016
-* Copyright (C) 2016-2023 Altair Engineering, Inc.  
+* Copyright (C) 2016-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -434,7 +434,7 @@ bool BuiltInFuncsFile::Textread(EvaluatorInterface           eval,
         delete[] lineC;
         lineC = nullptr;
     }
-    fclose(f);
+     fclose(f);
 
     // Create the outputs. 
     if (!hasdata || (!outputs.empty() && outputs.size() != formats.size()))
@@ -473,6 +473,8 @@ bool BuiltInFuncsFile::Dlmwrite(EvaluatorInterface           eval,
     {
         filename = cur1.StringVal();
         filename = BuiltInFuncsUtils::Normpath(filename);
+
+        BuiltInFuncsUtils::CheckSpecialCharsFileName(filename, 1);
     }
     else 
     {
@@ -734,6 +736,8 @@ bool BuiltInFuncsFile::Copyfile(EvaluatorInterface           eval,
 
     src = BuiltInFuncsUtils::Normpath(src);
     dst = BuiltInFuncsUtils::Normpath(dst);
+    BuiltInFuncsUtils::CheckSpecialCharsFileName(dst, 2);
+
 
     bool forcecopy = false;
     if (nargin > 2)
@@ -880,73 +884,99 @@ bool BuiltInFuncsFile::Copyfile(EvaluatorInterface           eval,
 //------------------------------------------------------------------------------
 // Returns true after moving files/directories [movefile]
 //------------------------------------------------------------------------------
-// #ifdef _DEBUG
-#if 1
-#    define DEBUG_PRINT(s) { std::cout << s << std::endl; }
-#else
-#    define DEBUG_PRINT(s)
-#endif // 0
 bool BuiltInFuncsFile::Movefile(EvaluatorInterface           eval,
                                 const std::vector<Currency>& inputs,
                                 std::vector<Currency>&       outputs)
 {
-    std::string debugoutput;    // VSM-6719
-
     size_t nargin = inputs.empty() ? 0 : inputs.size();
     if (nargin < 2)
     {
         throw OML_Error(OML_ERR_NUMARGIN);
     }
-    if (!inputs[0].IsString())
+    else if (!inputs[0].IsString())
     {
         throw OML_Error(OML_ERR_STRING, 1, OML_VAR_TYPE);
     }
+
     std::string src(inputs[0].StringVal());
     if (src.empty())
     {
         throw OML_Error(OML_ERR_NONEMPTY_STR, 1);
     }
-    bool srcwildcard;
-    if (src.find_first_of("?*") != std::string::npos)
+    src = BuiltInFuncsUtils::Normpath(src);
+    bool srcwildcard = (src.find_first_of("?*") != std::string::npos);
+    bool srxexists = BuiltInFuncsUtils::FileExists(src);
+    if (!srcwildcard && !srxexists)
     {
-        srcwildcard = true;
+        throw OML_Error(OML_ERR_FILE_NOTFOUND, 1);
     }
-    else
+    std::string specialchars("<>|");
+    // Check for special chars. Can't use BuiltInFuncsUtils because of wild chars
+    bool hasspecialchars = (src.find_first_of(specialchars) != std::string::npos);
+    if (hasspecialchars)
     {
-        srcwildcard = false;
+        std::string msg ("Error: invalid file name in argument 1; ");
+        msg += "special characters \"<>|\" cannot be used: [" + src + "]";
+        throw OML_Error(msg);
     }
-    bool srcincludespath;
+
+    if (!inputs [1].IsString())
+    {
+        throw OML_Error(OML_ERR_STRING, 2, OML_VAR_TYPE);
+    }
+    std::string dst(inputs [1].StringVal());
+    if (dst.empty())
+    {
+        throw OML_Error(OML_ERR_NONEMPTY_STR, 2);
+    }  
+    dst = BuiltInFuncsUtils::Normpath(dst);
+
+    if (!hasspecialchars)
+    {
+        specialchars += "?*";
+    }
+#ifndef OS_WIN
+    specialchars += ":\"";
+#else
+    if (!BuiltInFuncsUtils::IsAbsolutePath(dst))
+    {
+        specialchars += ":";
+    }
+#endif
+
+    if (dst.find_first_of(specialchars) != std::string::npos)
+    {
+        if (!hasspecialchars)
+        {
+            throw OML_Error(OML_ERR_SPECIALCHARS_FILENAME, dst, 2);
+        }
+        std::string msg ("Error: invalid file name in argument 2; ");
+        msg += "special characters \"" + specialchars + "\" cannot be used: [" + dst + "]";
+        throw OML_Error(msg);
+    }
+
+
+    bool srcincludespath = false;
+    std::string src_object = src;  // this will be the src name, stripping any path elements
     std::size_t src_path = src.find_last_of("/\\");
-    std::string src_object;  // this will be the src name, stripping any path elements
     if (src_path != std::string::npos)
     {
         // source argument includes path delimiters.  
         // This saves the last name in the path which needs to be checked for non force moves.
         srcincludespath = true;
-        src_object = src.substr(src_path + 1, string::npos);
+        src_object = src.substr(src_path + 1, std::string::npos);
     }
-    else
+
+    outputs.reserve(3);
+    if (!srcwildcard && src == dst)
     {
-        srcincludespath = false;
-        src_object = src;
-    }
-        
-
-
-
-
-    if (!inputs[1].IsString())
-    {
-        throw OML_Error(OML_ERR_STRING, 2, OML_VAR_TYPE);
-    }
-    std::string dst(inputs[1].StringVal());
-    if (dst.empty())
-    {
-        throw OML_Error(OML_ERR_NONEMPTY_STR, 2);
+        outputs.emplace_back(1);
+        outputs.emplace_back("");
+        outputs.emplace_back("");
+        return true;
     }
 
     bool forcecopy = false;
-    bool testdisplay = false;
     if (nargin > 2)
     {
         if (!inputs[2].IsString())
@@ -954,51 +984,17 @@ bool BuiltInFuncsFile::Movefile(EvaluatorInterface           eval,
             throw OML_Error(OML_ERR_STRING, 3, OML_VAR_TYPE);
         }
         std::string opt(inputs[2].StringVal());
-        if (!opt.empty())
+        std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
+        if (opt != "f")
         {
-            std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
+            throw OML_Error(OML_ERR_OPTION, 3);
         }
-        // if (opt != "f")
-        // {
-        //    throw OML_Error(OML_ERR_OPTION, 3, OML_VAR_VALUE);
-        // }
-        if (opt.find_first_of('f') != std::string::npos)
-        {
-            forcecopy = true;
-        }
-        if (opt.find_first_of('t') != std::string::npos)
-        {
-            testdisplay = true;
-        }
-        if (testdisplay)
-        {
-            if(forcecopy)
-                DEBUG_PRINT("FORCECOPY!")
-            else
-                DEBUG_PRINT("NO forcecopy")
-            if(srcwildcard)
-                DEBUG_PRINT("WILDCARD!")
-            else
-                DEBUG_PRINT("NO wildcard")
-        }
-        // forcecopy = true;
+        forcecopy = true;
     }
 
     bool issrcdir = BuiltInFuncsUtils::IsDir(src);
     bool isdstdir = BuiltInFuncsUtils::IsDir(dst);
-    bool srxexists = BuiltInFuncsUtils::FileExists(src);
-    if (testdisplay)
-    {
-        debugoutput = "movefile '" + src + "' " + (issrcdir ? " IsDirectory " : " Not Directory");
-        DEBUG_PRINT(debugoutput);
-        debugoutput = "movefile '" + dst + "' " + (isdstdir ? " IsDirectory " : " Not Directory");
-        DEBUG_PRINT(debugoutput);
-        debugoutput = "movefile '" + src + "' " + (srxexists ? " Source Exists " : " Source NOT Exists");
-        DEBUG_PRINT(debugoutput);
-    }
 
-
-#if 1
     // Additional checks if not force copy otherwise application will wait for
     // user input which should not happen
     if (!forcecopy && srxexists)
@@ -1020,33 +1016,22 @@ bool BuiltInFuncsFile::Movefile(EvaluatorInterface           eval,
             if (!dstfile.empty())
                 msg += BuiltInFuncsUtils::Normpath(dstfile);
             else
-                msg += BuiltInFuncsUtils::Normpath(dst);
+                msg += dst;
             msg += "] in argument 2; use 'f' option to force move";
-            // throw OML_Error(msg);
             outputs.push_back(0);
             outputs.push_back(msg);
             outputs.push_back(0);
         }
     }
-#endif 
     std::string strcmd;
     int         returncode = 0;
     bool        runcommand = true;  //  this will be turned off when the system command is run.
 
 
 #ifdef OS_WIN    
-    std::wstring tdisplay1, tdisplay2;
-    if (testdisplay)
-    {
-        tdisplay1 = L"";
-        tdisplay2 = L"";
-    }
-    else
-    {
-        // suppress output from the wsystem call.
-        tdisplay1 = L"@";
-        tdisplay2 = L" > nul ";
-    }
+    // suppress output from the wsystem call.
+    std::wstring tdisplay1 = L"@";
+    std::wstring tdisplay2 (L" >nul 2>nul");
 
     BuiltInFuncsUtils utils;
     std::wstring str1(utils.StdString2WString(src));
@@ -1064,12 +1049,6 @@ bool BuiltInFuncsFile::Movefile(EvaluatorInterface           eval,
         if (forcecopy)
         {
             wcmd = tdisplay1 + L"move /Y \"" + wsrc + L"\" \"" + wdst + L"\"" + tdisplay2;
-            if(testdisplay)
-            {
-                std::string command_str(utils.WString2StdString(wcmd));
-                debugoutput = "BuiltInFuncsFile::Movefile force " + command_str;
-                DEBUG_PRINT(debugoutput);
-            }
         }
         else
         {
@@ -1088,12 +1067,6 @@ bool BuiltInFuncsFile::Movefile(EvaluatorInterface           eval,
             {
                 wcmd = tdisplay1 + L"if not exist \"" + wdst + L"\" move \"" + wsrc + L"\" \"" + wdst + L"\"" + tdisplay2;
             }
-            if (testdisplay)
-            {
-                std::string command_str(utils.WString2StdString(wcmd));
-                debugoutput = "BuiltInFuncsFile::Movefile no force " + command_str;
-                DEBUG_PRINT(debugoutput);
-            }
         }
  
     }
@@ -1105,8 +1078,6 @@ bool BuiltInFuncsFile::Movefile(EvaluatorInterface           eval,
 
         if (forcecopy)
         {
-            // wcmd = tdisplay1 + L"for %a in (\"" + wsrc + L"\") do move /Y %a \"" + wdst + L"\\%~nxa\" " + tdisplay2 +
-            //     L"& " + tdisplay1 + L"for /D %a in (\"" + wsrc + L"\") do move /Y %a \"" + wdst + L"\\%~nxa\"" + tdisplay2;
             wcmd1 = tdisplay1 + L"for %a in (\"" + wsrc + L"\") do " + tdisplay1 + L"move /Y \"%a\" \"" + wdst + L"\\%~nxa\" " + tdisplay2;
             int returncode1 = _wsystem(wcmd1.c_str());
             wcmd2 = tdisplay1 + L"for /D %a in (\"" + wsrc + L"\") do " + tdisplay1 + L"move /Y \"%a\" \"" + wdst + L"\\%~nxa\"" + tdisplay2;
@@ -1119,30 +1090,18 @@ bool BuiltInFuncsFile::Movefile(EvaluatorInterface           eval,
             // When forcecopy is not enabled, we will never overwrite an existing file.
             // For wildcard processing using system call with command for loop.
             // Complexity here is a bit increased because separate "for" loops are requred to process files and directories.
-            // wcmd = tdisplay1 + L"for %a in (\"" + wsrc + L"\") do " + tdisplay1 + L"if not exist \"" + wdst + L"\\%~nxa\" move %a \"" + wdst + L"\\%~nxa\" " + tdisplay2 +
-            //    L"& " + tdisplay1 + L"for /D %a in (\"" + wsrc + L"\") do " + tdisplay1 + L"if not exist \"" + wdst + L"\\%~nxa\" move %a \"" + wdst + L"\\%~nxa\"" + tdisplay2;
             wcmd1 = tdisplay1 + L"for %a in (\"" + wsrc + L"\") do " + tdisplay1 + L"if not exist \"" + wdst + L"\\%~nxa\" move \"%a\" \"" + wdst + L"\\%~nxa\" " + tdisplay2;
             int returncode1 = _wsystem(wcmd1.c_str());
             wcmd2 = tdisplay1 + L"for /D %a in (\"" + wsrc + L"\") do " + tdisplay1 + L"if not exist \"" + wdst + L"\\%~nxa\" move \"%a\" \"" + wdst + L"\\%~nxa\"" + tdisplay2;
             int returncode2 = _wsystem(wcmd2.c_str());
             runcommand = false;  // This more complex move requires a pair of sysetm commands.  Do not need to run the standard system call
             returncode = returncode1 || returncode2;
-        }
-
-        if (testdisplay)
-        {
-            // std::string command_str3(wcmd.begin(), wcmd.end());
-            // debugoutput = "BuiltInFuncsFile::Movefile 2 Windows move command: '" + command_str3 + "'";
-            // DEBUG_PRINT(debugoutput);
-        }
-        
+        }        
         // End Windows wildcard
     }
     if( runcommand )  // run the standard system call if system calls have not previous been run.
         returncode = _wsystem(wcmd.c_str());
-// End of Windows Block
 #else
-//Linux Block
     strcmd = "mv ";
     if (!forcecopy)
         strcmd += "-n ";  // --no-clobber
@@ -1157,26 +1116,22 @@ bool BuiltInFuncsFile::Movefile(EvaluatorInterface           eval,
         dst = '\"' + dst + '\"';
     }
 
-    src = BuiltInFuncsUtils::Normpath(src);
-    dst = BuiltInFuncsUtils::Normpath(dst);
+    strcmd += src + " " + dst + " 2>/dev/null";
 
-    strcmd += src + " " + dst;
-
-    if (testdisplay)
-    {
-        debugoutput = "BuiltInFuncsFile::Movefile  Linux MOVE command: '" + strcmd + "'";
-        DEBUG_PRINT(debugoutput);
-    }
     returncode = system(strcmd.c_str());
-// End of Linux Block
 #endif
 
     std::string msg;
     int         msgid = 0;
     if (returncode != 0)
     {
-        msgid = (errno != 0) ? errno : returncode;
+        {
+            // Throw error if dst file has special chars
+            BuiltInFuncsUtils::CheckSpecialCharsFileName(dst, 2);
+        }
 
+        msgid = (errno != 0) ? errno : returncode;
+        
         std::string err(strerror(errno));
         if (!err.empty() && err != "No error")
             msg = err;
@@ -1184,14 +1139,8 @@ bool BuiltInFuncsFile::Movefile(EvaluatorInterface           eval,
         if (!msg.empty())
             msg += "\n";
 
-#ifdef OS_WIN
-        msg += "Move failed from [" + utils.WString2StdString(wsrc);
-        msg += "] to [" + utils.WString2StdString(wdst) + "]";
+        msg += "Move failed from [" + src + "] to [" + dst + "]";
 
-#else
-        msg += "Move failed from [" + BuiltInFuncsUtils::Normpath(src);
-        msg += "] to [" + BuiltInFuncsUtils::Normpath(dst) + "]";
-#endif
         outputs.push_back(0);
         outputs.push_back(msg);
         outputs.push_back(msgid);
@@ -1259,7 +1208,7 @@ bool BuiltInFuncsFile::Importdata(EvaluatorInterface           eval,
         }
         throw OML_Error(err + tboxerr + "[omlMatio]");
     }
-   
+    
     bool istxtfile     = (ext == "csv" || ext == "txt");
     FUNCPTR xlsfuncptr = nullptr;
 
@@ -2600,6 +2549,8 @@ bool BuiltInFuncsFile::Rename(EvaluatorInterface           eval,
     }
     std::string newname (inputs[1].StringVal());
     newname = BuiltInFuncsUtils::Normpath(newname);
+    
+    BuiltInFuncsUtils::CheckSpecialCharsFileName(newname, 2);
 
     int result = 0;
 #ifdef OS_WIN
@@ -3648,7 +3599,8 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
          if (mode[0] == 'a' || mode[0] == 'w' || mode.find("r+") != std::string::npos)
          {
              std::string normpath(utils.Normpath(fname));
-             int result = chmod(utils.GetAbsolutePath(normpath).c_str(), S_IRWXU);
+             int result = chmod(utils.GetAbsolutePath(normpath).c_str(),
+                 S_IRWXU | S_IRWXU | S_IRGRP | S_IWGRP | S_IROTH);
              if (result != 0)
              {
                  utils.SetWarning(eval, strerror(errno));
@@ -4124,6 +4076,34 @@ bool BuiltInFuncsFile::Dlmread(EvaluatorInterface           eval,
              rawfmts[i] = fmt;
          }
      }
+
+     return true;
+ }
+ //------------------------------------------------------------------------------
+// Reads contents of a file as a string [fileread]
+//------------------------------------------------------------------------------
+ bool BuiltInFuncsFile::Fileread(EvaluatorInterface           eval,
+                                 const std::vector<Currency>& inputs,
+                                 std::vector<Currency>& outputs)
+ {
+     if (inputs.size() != 1)
+     {
+         throw OML_Error(OML_ERR_NUMARGIN);
+     }
+     else if (!inputs[0].IsString())
+     {
+         throw OML_Error(OML_ERR_FILENAME, 1);
+     }
+
+     std::string filename (inputs[0].StringVal());
+     BuiltInFuncsUtils utils;
+     if (!utils.DoesPathExist(filename))
+     {
+         throw OML_Error(OML_ERR_FILE_NOTFOUND, filename, 1);
+     }
+
+     std::string data (utils.GetFileContents(filename));
+     outputs.emplace_back(data);
 
      return true;
  }

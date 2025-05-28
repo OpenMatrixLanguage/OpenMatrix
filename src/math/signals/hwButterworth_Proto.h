@@ -16,6 +16,11 @@
 #ifndef _Signals_hwButterworth_Proto_h
 #define _Signals_hwButterworth_Proto_h
 
+// forward declarations
+template <typename T> class hwTComplex;
+template <typename T1, typename T2> class hwTMatrix;
+typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
+
 #include "hwLowPass_Proto.h"
 //------------------------------------------------------------------------------
 //!
@@ -51,6 +56,11 @@ public:
     void GetSPlaneInfo(int     i,
                        double& poleReal, 
                        double& poleMagSq) const;
+    //!
+    //! Compute the poles
+    //! \param poles
+    //!
+    void GetSPlaneInfo(hwMatrix& poles) const;
 };
 
 #endif // _Signals_hwButterworth_Proto_h

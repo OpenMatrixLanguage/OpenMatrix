@@ -1,7 +1,7 @@
 /**
 * @file FunctionMetaData.h
 * @date November 2015
-* Copyright (C) 2015-2018 Altair Engineering, Inc.  
+* Copyright (C) 2015-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -24,8 +24,9 @@ class OMLDLL_DECLS FunctionMetaData
 public:
 	FunctionMetaData() : nargin(0), nargout(0) {}
 	FunctionMetaData(int in, int out) : nargin(in), nargout(out) {}
-	FunctionMetaData(int in, int out, std::string mod) : nargin(in), nargout(out), module(mod) {}
-	FunctionMetaData(const FunctionMetaData& old) { nargin = old.nargin; nargout = old.nargout; module = old.module; }
+	FunctionMetaData(int in, int out, const std::string& mod) : nargin(in), nargout(out), module(mod) {}
+	FunctionMetaData(const FunctionMetaData& old)
+		: nargin(old.nargin), nargout(old.nargout), module(old.module) {}
 	~FunctionMetaData() {}
 
 	int nargin;

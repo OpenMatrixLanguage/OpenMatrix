@@ -1,7 +1,7 @@
 /**
 * @file StructDisplay.cpp
 * @date February 2016
-* Copyright (C) 2016-2020 Altair Engineering, Inc.  
+* Copyright (C) 2016-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -63,9 +63,7 @@ std::string StructDisplay::GetOutput(const OutputFormat* fmt,
         return ""; // Do nothing
     }
 
-    StructData* sd = m_currency.Struct();
-//    assert(sd);
-
+    const StructData* sd = m_currency.Struct();
     if (!sd || sd->IsEmpty() || !CanPaginate(m_currency) || !IsValidDisplaySize())
     {
         return GetOutputNoPagination(fmt, os);
@@ -92,7 +90,7 @@ std::string StructDisplay::GetOutputNoPagination(const OutputFormat* fmt,
 {
 	std::map<std::string, int> fields;
 	
-    StructData* sd = m_currency.Struct();
+    const StructData* sd = m_currency.Struct();
     if (sd)
     {
         fields = sd->GetFieldNames();
@@ -255,7 +253,6 @@ std::string StructDisplay::GetOutputBackPagination(const OutputFormat* fmt) cons
 
     int         cindent = m_indent + 1;
     std::string childindent = (GetIndentString(cindent));
-    std::string myindent = (GetIndentString(m_indent));
 
     for (int j = numcols - 1; j >= 0 && m_linesPrinted <= linestofit && ritr != fields.rend();
          --j, ++ritr)

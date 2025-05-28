@@ -91,7 +91,7 @@ public:
     void HandleException(void);
     void SetErrorMessage(const std::string &error);
     std::string GetErrorMessage();
-    
+
     void RegisterOmlPythonBridgeExt(EvaluatorInterface& eval, const std::vector<Currency>& inputs, std::vector<Currency>& outputs);
     //! 
     //! Gets argv as Py_initialize does not set sys.argv

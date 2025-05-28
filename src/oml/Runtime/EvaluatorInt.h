@@ -1,7 +1,7 @@
 /**
 * @file EvaluatorInt.h
 * @date June 2014
-* Copyright (C) 2014-2021 Altair Engineering, Inc.  
+* Copyright (C) 2014-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -25,6 +25,7 @@
 #include <regex>
 #define OML_NO_NARG 0xFFFFFF00
 
+class ClassInfo;
 class BoundClassInfo;
 class ExprTreeEvaluator;
 class EvaluatorInterface;
@@ -72,9 +73,9 @@ public:
     const OutputFormat* GetOutputFormat() const;
     bool FindFunctionByName(const std::string& func_name, FunctionInfo** fi, FUNCPTR* fptr, ALT_FUNCPTR* aptr);
     
-    const Currency& GetValue(std::string varname) const;
-	const Currency& GetGlobalValue(std::string varname) const;
-    bool SetValue(std::string varname, const Currency& value);
+    const Currency& GetValue(const std::string& varname) const;
+	const Currency& GetGlobalValue(const std::string& varname) const;
+    bool SetValue(const std::string& varname, const Currency& value);
     
     bool IsUserFunction(const std::string& func_name);
     bool IsStdFunction(const std::string& func_name);
@@ -97,7 +98,7 @@ public:
 	void WritePFile(const std::string& infile, const std::string& outfile);
 
    	Currency Analyze(const std::string& infile);
-   	Currency GetMetadata(const std::string& infile);
+   	Currency GetMetadata(const std::string& infile, bool library_names);
 
 	std::vector<std::string> GetProperties(const std::string& classname);
 	std::vector<std::string> GetMethods(const std::string& classname, bool public_only = true);
@@ -293,6 +294,8 @@ public:
 
     //! Gets signal handler
     SignalHandlerBase* GetSignalHandler() const;
+    //! Gets class info
+    ClassInfo* GetClassInfoFromName(const std::string& classname) const;
 
 	int      GetBaseEnvHandle();
 	int		 GetCurrentEnvHandle();
@@ -347,6 +350,10 @@ public:
 
     void CacheBCIPointer(OMLImplBase* ptr);
     void BCIGarbageCollect();
+
+    OMLTree* CreateASTFromFile(const std::string& filename);
+    OMLTree* GetTreeFromDLL(const char* dll_path);
+    void RunTree(OMLTree* tree);
 
     //!
     //! Returns diary filestream

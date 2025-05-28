@@ -305,15 +305,6 @@ public:
                       const std::vector<Currency>& inputs,
                       std::vector<Currency>&       outputs);
     //!
-    //! Returns exponential of input [exp command]
-    //! \param eval    Evaluator interface
-    //! \param inputs  Vector of inputs
-    //! \param outputs Vector of outputs
-    //!
-    static bool Exp(EvaluatorInterface           eval,
-                    const std::vector<Currency>& inputs,
-                    std::vector<Currency>&       outputs);
-    //!
     //! Returns inverse hyperbolic cosine of input [acosh command]
     //! \param eval    Evaluator interface
     //! \param inputs  Vector of inputs
@@ -362,6 +353,33 @@ public:
                       const std::vector<Currency>& inputs,
                       std::vector<Currency>&       outputs);
 
+    //!
+    //! Returns exponential of input [exp command]
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //!
+    static bool Exp(EvaluatorInterface           eval,
+                    const std::vector<Currency>& inputs,
+                    std::vector<Currency>&       outputs);
+    //!
+    //! Returns exponential of input, minus 1 [expm1 command]
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //!
+    static bool Expm1(EvaluatorInterface           eval,
+                    const std::vector<Currency>& inputs,
+                    std::vector<Currency>&       outputs);
+    //!
+    //! Returns natural logarithm of input + 1 [log1p command]
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //!
+    static bool Log1p(EvaluatorInterface           eval,
+                      const std::vector<Currency>& inputs,
+                      std::vector<Currency>&       outputs);
     //!
     //! Returns square root of input [sqrt command]
     //! \param eval    Evaluator interface

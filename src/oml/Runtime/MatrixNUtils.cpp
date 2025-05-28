@@ -395,10 +395,10 @@ bool oml_MatrixNUtil4(EvaluatorInterface eval, const std::vector<Currency>& inpu
     }
     else if (dimArg > 0)
     {
-        if (!inputs[dimArg-1].IsPositiveInteger())     // sort(ND, dim, mode), cumsum(ND, dim)
+        if (!inputs[dimArg - 1].IsPositiveInteger())     // sort(ND, dim, mode), cumsum(ND, dim)
             throw OML_Error(OML_ERR_POSINTEGER, 1, OML_VAR_TYPE);
-        
-        dim = static_cast<int>(inputs[dimArg-1].Scalar()) - 1;
+    
+        dim = static_cast<int>(inputs[dimArg - 1].Scalar()) - 1;
     }
     else
     {
@@ -473,6 +473,9 @@ bool oml_MatrixNUtil4(EvaluatorInterface eval, const std::vector<Currency>& inpu
 
             if (nargin == 3 && inputs[1].IsInteger())   // circshift(ND, n, dim)
                 inputs2.push_back(inputs[1]);
+
+            if (nargin == 4)                            // ifft(ND, n, dim, 'symmetric')
+                inputs2.push_back(inputs[3]);
             break;
         case 4:
             inputs2.push_back(slice2D);                 // resample(ND, p, q)
@@ -485,31 +488,42 @@ bool oml_MatrixNUtil4(EvaluatorInterface eval, const std::vector<Currency>& inpu
 
             inputs2.push_back(slice2D);
 
-            for (int j = ndArg; j < dimArg - 2; ++j)
-                inputs2.push_back(inputs[j]);
+            if (inputs[ndArg].IsNDMatrix())
+            {
+                const hwMatrixN* matrixIC = inputs[ndArg].MatrixN();
+                hwMatrixN sliceIC;
+                hwMatrix* sliceIC2D = new hwMatrix;
+                matrixIC->SliceRHS(sliceArgs, sliceIC);
+                sliceIC.Reshape(sliceDims2D);     // reshape to a column
+                sliceIC.ConvertNDto2D(*sliceIC2D, false);
+
+                inputs2.push_back(sliceIC2D);
+
+                for (int j = ndArg + 1; j < dimArg - 2; ++j)
+                    inputs2.push_back(inputs[j]);
+            }
+            else
+            {
+                for (int j = ndArg; j < dimArg - 2; ++j)
+                    inputs2.push_back(inputs[j]);
+            }
+
             break;
         }
 
         oml_func(eval, inputs2, outputs2);
 
         // convert from vector to ND
-        slice = hwMatrixN();
-        slice.Convert2DtoND(*outputs2[0].GetWritableMatrix(), false);
-
         if (i == 0)
         {
-            // dimension output
-            std::vector<int> outdims(dims);
-
-            if (dim < outdims.size())
-                outdims[dim] = slice.Size();
-
-            outMatrix1 = new hwMatrixN(outdims, slice.Type());
+            outMatrix1 = new hwMatrixN;
 
             if (nargout == 2)
-                outMatrix2 = new hwMatrixN(outdims, hwMatrixN::REAL);
+                outMatrix2 = new hwMatrixN;
         }
 
+        slice = hwMatrixN();
+        slice.Convert2DtoND(*outputs2[0].GetWritableMatrix(), false);
         outMatrix1->SliceLHS(sliceArgs, slice);
 
         if (nargout == 2)
@@ -541,12 +555,16 @@ bool oml_MatrixNUtil4(EvaluatorInterface eval, const std::vector<Currency>& inpu
 
     if (!numVecs)
     {
-        // dimension output for the empty matrix case
-        // this needs to be enhanced if ever dims[dim] != slice.Size()
         outMatrix1 = new hwMatrixN(dims, hwMatrixN::REAL);
 
         if (nargout == 2)
-            outMatrix2 = new hwMatrixN(dims, hwMatrixN::REAL);
+        {
+            int nb = inputs[0].ConvertToMatrix()->Size();
+            int na = inputs[1].ConvertToMatrix()->Size();
+            std::vector<int> outdims(dims);
+            outdims[dim] = _max(na, nb) - 1;
+            outMatrix2 = new hwMatrixN(outdims, hwMatrixN::REAL);
+        }
     }
 
     outputs.push_back(outMatrix1);

@@ -1521,7 +1521,7 @@ namespace omlplot{
         return false;
     }
 
-#define TBOXVERSION 1.13
+#define TBOXVERSION 1.14
     extern "C" OMLPLOT_EXPORT
     double GetToolboxVersion(EvaluatorInterface eval){
         return TBOXVERSION;

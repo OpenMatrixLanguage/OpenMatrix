@@ -754,15 +754,30 @@ const std::string& MemoryScope::GetFilename() const
 	return *(Currency::pm.GetStringPointer("Unknown"));
 }
 
-void MemoryScope::RegisterNestedFunction(FunctionInfo* in_fi)
+bool MemoryScope::RegisterNestedFunction(FunctionInfo* in_fi)
 {
 	const std::string* fi_name = in_fi->FunctionNamePtr();
 
 	// we already have this registered, so don't overwrite it
 	if (GetNestedFunction(in_fi->FunctionNamePtr()))
-		return;
+		return false;
 
 	(*fi->nested_functions)[fi_name] = in_fi;
+
+	return true;
+}
+
+void MemoryScope::CacheNestedFunction(FunctionInfo* fi)
+{
+	incomplete_nested_handles.push_back(fi);
+}
+
+void MemoryScope::CreateCachedScopes()
+{
+	for (int j = 0; j < incomplete_nested_handles.size(); ++j)
+		incomplete_nested_handles[j]->SetAnonymous(this);
+
+	incomplete_nested_handles.clear();
 }
 
 MemoryScopeManager::MemoryScopeManager() : delete_scopes(true), first_scope_with_nested(-1), pool_in_use(0)
@@ -866,7 +881,13 @@ void MemoryScopeManager::CloseScope()
 		}
 	}
 
+	temp->CreateCachedScopes();
+
 	ClearEnv(temp);
+
+	// Since Reset sets the fi pointer to NULL
+	if (temp->fi)
+		temp->fi->DecrRefCount();
 
 	temp->Reset();
 	unused_scopes.push_back(temp);
@@ -1266,12 +1287,14 @@ FunctionInfo* MemoryScopeManager::GetLocalFunction(const std::string* func_name)
 	return NULL;
 }
 
-void MemoryScopeManager::RegisterNestedFunction(FunctionInfo* fi)
+bool MemoryScopeManager::RegisterNestedFunction(FunctionInfo* fi)
 {
-	GetCurrentScope()->RegisterNestedFunction(fi);
+	bool ret_val = GetCurrentScope()->RegisterNestedFunction(fi);
 
 	if (first_scope_with_nested == -1)
 		first_scope_with_nested = GetStackDepth()-1;
+
+	return ret_val;
 }
 
 // fenv functions

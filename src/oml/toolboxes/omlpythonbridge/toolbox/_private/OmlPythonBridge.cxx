@@ -1,7 +1,7 @@
 /**
 * @file OmlPythonBridge.cxx
 * @date December, 2017
-* Copyright (C) 2015-2020 Altair Engineering, Inc.  
+* Copyright (C) 2015-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -79,7 +79,7 @@ OmlPythonBridge::~OmlPythonBridge()
 {
     if (Py_IsInitialized())
     {
-        PyEval_RestoreThread((PyThreadState*)_threadState);
+        PyEval_RestoreThread((PyThreadState*)_threadState); // cppcheck-suppress cstyleCast
         Py_Finalize();
     }
 }
@@ -224,9 +224,9 @@ bool OmlPythonBridge::RunFile(const std::string& python_file, PyObject* globals,
     if ( (0 == ext.compare("py")) && !BuiltInFuncsUtils::FileExists(file) &&
         BuiltInFuncsUtils::FileExists(file.substr(0, dot_index)+".pyc"))
     {
-        ext = "pyc";
+        ext = "pyc"; // cppcheck-suppress unreadVariable
         is_pyc = true;
-        file = file.substr(0, dot_index) + ".pyc";
+        file = file.substr(0, dot_index) + ".pyc"; // cppcheck-suppress uselessCallsSubstr
     }
     else if (0 == ext.compare("pyc"))
     {
@@ -247,7 +247,7 @@ bool OmlPythonBridge::RunFile(const std::string& python_file, PyObject* globals,
     FILE* fp = _Py_fopen_obj(fileobj, read_mode);
     bool closeit = true;
 #else
-    PyObject* fileobj = PyFile_FromString((char *)file.c_str(), (char *) read_mode);
+    PyObject* fileobj = PyFile_FromString((char *)file.c_str(), (char *) read_mode); // cppcheck-suppress cstyleCast
     FILE* fp = PyFile_AsFile (fileobj);
     bool closeit = false;
 #endif
@@ -289,7 +289,7 @@ bool OmlPythonBridge::RunFile(const std::string& python_file, PyObject* globals,
 #ifdef IS_PY3
                 PyObject* code = PyEval_EvalCode(filedata, globals, locals);
 #else
-                PyObject* code = PyEval_EvalCode((PyCodeObject*) filedata, globals, locals);
+                PyObject* code = PyEval_EvalCode((PyCodeObject*) filedata, globals, locals); // cppcheck-suppress cstyleCast
 #endif
                 success = (NULL != code)?(true):(false);
                 Py_XDECREF (code);

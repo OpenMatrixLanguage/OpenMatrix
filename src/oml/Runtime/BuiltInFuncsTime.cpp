@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsTime.cpp
 * @date April 2019
-* Copyright (C) 2019-2022 Altair Engineering, Inc.
+* Copyright (C) 2019-2024 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -1059,7 +1059,7 @@ std::vector<std::array<double, 6> > datesFromInput(const std::vector<Currency>& 
             const hwMatrix* mtx = cur.Matrix();
 
             if (!mtx->IsRealData())
-                throw OML_Error(HW_ERROR_DATENOTCOMP);
+                throw OML_Error(OML_ERR_REAL, static_cast<int>(i + 1));
             if (mtx->Size() != 1)
             {
                 if (*m == 1 && *n == 1)
@@ -1094,7 +1094,7 @@ std::vector<std::array<double, 6> > datesFromInput(const std::vector<Currency>& 
         }
         else if (cur.IsComplex())
         {
-            throw OML_Error(HW_ERROR_DATENOTCOMP);
+            throw OML_Error(OML_ERR_REAL, static_cast<int>(i + 1));
         }
         else if (cur.IsMatrix() || cur.IsString())
         {
@@ -1132,7 +1132,7 @@ bool BuiltInFuncsTime::Now(EvaluatorInterface           eval,
     }
 
     time_t rawtime = time(nullptr);
-    struct tm* curtime = localtime(&rawtime);
+    const struct tm* curtime = localtime(&rawtime);
 
     double year = curtime->tm_year + 1900;
     double mon = curtime->tm_mon;
@@ -1184,15 +1184,12 @@ bool BuiltInFuncsTime::Datenum(EvaluatorInterface           eval,
                                std::vector<Currency>&       outputs)
 {
     int nargout = eval.GetNargoutValue();
-    int nargin = (int)inputs.size();
     int m, n;
 
     std::vector<std::array<double, 6> > dates = datesFromInput(inputs, &m, &n);
 
     hwMatrix* result = EvaluatorInterface::allocateMatrix(m, n, true);
     hwMatrix* resultSecs = EvaluatorInterface::allocateMatrix(m, n, true);
-
-    double daynum;
 
     for (int i = 0; i < dates.size(); i++)
     {
@@ -1204,7 +1201,7 @@ bool BuiltInFuncsTime::Datenum(EvaluatorInterface           eval,
         months = rem(months, 12.0);
 
         // deal with leap years
-        daynum = years-- * 365;
+        double daynum = years-- * 365;
         daynum += floor(years / 4.0) - floor(years / 100.0) + floor(years / 400.0) + 1;
 
         //months
@@ -1382,12 +1379,12 @@ int getDateVectorFromString(const std::vector<std::string>& dates,
                 std::string mStr(monthBuf);
                 bool abbr = mStr.length() == 3;
                 month = -1;
-                for (int i = 1; i <= 12; ++i)
+                for (int ii = 1; ii <= 12; ++ii)
                 {
-                    std::string mN = getMonthName(i, abbr);
+                    std::string mN = getMonthName(ii, abbr);
                     if (mN == mStr)
                     {
-                        month = i;
+                        month = ii;
                         break;
                     }
                 }
@@ -1405,7 +1402,7 @@ int getDateVectorFromString(const std::vector<std::string>& dates,
                 
                 if (result == 3)
                 {
-                    std::string a(buf1), b(buf2), c(buf3);
+                    std::string a(buf1), c(buf3);
                     if (a.length() == 4)
                     {
                         // yyyy/mm/dd
@@ -1458,14 +1455,14 @@ int getDateVectorFromString(const std::vector<std::string>& dates,
             {
                 // look into the other predefined formats               
                 bool fmtFound = false;
-                for (int i = 0; i < (int)dateFMTVec.size(); ++i)
+                for (int ii = 0; ii < (int)dateFMTVec.size(); ++ii)
                 {
                     std::string tmpD(date);
-                    std::string tmpFMT(dateFMTVec[i]);
+                    std::string tmpFMT(dateFMTVec[ii]);
                     bool hasPM = false;
                     // Linux is not reading the %p identifier - remove it
 #ifndef OS_WIN
-                    if (i == 3 || i == 5)
+                    if (ii == 3 || ii == 5)
                     {
                         std::transform(tmpD.begin(), tmpD.end(), tmpD.begin(), ::tolower);
                         bool hasAM = tmpD.find("am") != std::string::npos;
@@ -1493,12 +1490,12 @@ int getDateVectorFromString(const std::vector<std::string>& dates,
                             hour += 12;
                         
                         // format has only the time
-                        if (i >= 3 && i <= 6)
+                        if (ii >= 3 && ii <= 6)
                         {
                             year = curYear;
                             month = 1;
                             day = 1;
-                            if (i == 3 || i == 5)
+                            if (ii == 3 || ii == 5)
                             {
                                 if (hour == 24)
                                     hour = 12;
@@ -1506,10 +1503,10 @@ int getDateVectorFromString(const std::vector<std::string>& dates,
                                     hour = 0;
                             }
                         }
-                        else if (i == 9 || i == 11)
+                        else if (ii == 9 || ii == 11)
                         {
                             day = 1;
-                            if (i == 9)
+                            if (ii == 9)
                             {
                                 // adjust year based on the reference year
                                 int rd = (int)mod(refYear, 100);
@@ -1607,20 +1604,20 @@ int getDateVectorFromString(const std::vector<std::string>& dates,
             int msec = 0;
             if (hasMilliseconds)
             {
-                if (msec < 0 || msec>999)
+                if (msec < 0 || msec>999) // cppcheck-suppress knownConditionTrueFalse
                     return 1;
                 int res = sscanf(date.c_str(), millisecFmt.c_str(), &msec);
                 if (res == 1)
                 {
-                    std::string tmp = std::to_string(msec);
+                    std::string tmp1 = std::to_string(msec);
                     size_t s = 0;
-                    while ((s = date.find(tmp, s)) != std::string::npos)
+                    while ((s = date.find(tmp1, s)) != std::string::npos)
                     {
                         // replace only if it is in a position >= than the position
                         // in the original fmt
                         if (s >= millisecIdx)
                         {
-                            date.replace(s, tmp.length(), " ");
+                            date.replace(s, tmp1.length(), " ");
                             break;
                         }
                         ++s;
@@ -1633,7 +1630,7 @@ int getDateVectorFromString(const std::vector<std::string>& dates,
             if (ampmOcc == 1)
             {
                 std::transform(date.begin(), date.end(), date.begin(), ::tolower);
-                bool hasAM = date.find("am") != std::string::npos;
+                //bool hasAM = date.find("am") != std::string::npos;
                 hasPM = date.find("pm") != std::string::npos;
                 findDatePatternAndReplace(date, "am", "");
                 findDatePatternAndReplace(date, "pm", "");
@@ -1661,7 +1658,7 @@ int getDateVectorFromString(const std::vector<std::string>& dates,
             if (dayOWOcc == 0 && dayNOWOcc == 0)
                 (*out)(i, 2) = 1;
 
-            if (hasPM)
+            if (hasPM) // cppcheck-suppress knownConditionTrueFalse
                 (*out)(i, 3) += 12;
 
             if (yearShortOcc)
@@ -1730,16 +1727,16 @@ bool BuiltInFuncsTime::Datevec(EvaluatorInterface           eval,
             {
                 double tmp = remainingDays;
                 bool isLY = isLeapYear((int)year);
-                for (int i = 1; i < 13; ++i)
+                for (int ii = 1; ii < 13; ++ii)
                 {
-                    if (i == 12)
+                    if (ii == 12)
                     {
-                        month = i;
+                        month = ii;
                         day = tmp;
                         break;
                     }
-                    int dm = getDaysInMonth(i);
-                    if (i == 2 && isLY)
+                    int dm = getDaysInMonth(ii);
+                    if (ii == 2 && isLY)
                         dm++;
                     if (tmp - dm > 0)
                     {
@@ -1747,7 +1744,7 @@ bool BuiltInFuncsTime::Datevec(EvaluatorInterface           eval,
                     }
                     else
                     {
-                        month = i;
+                        month = ii;
                         day = tmp;
                         break;
                     }
@@ -1916,7 +1913,7 @@ bool BuiltInFuncsTime::Weekday(EvaluatorInterface           eval,
     else if (inputs[0].IsString() || inputs[0].IsCellArray())
     {
         // first convert to date vector
-        std::vector<Currency> ins, outs;
+        std::vector<Currency> ins;
         ins.push_back(inputs[0]);
         Currency tmp = eval.CallFunction("datevec", ins);
         
@@ -2000,7 +1997,7 @@ bool BuiltInFuncsTime::Weekday(EvaluatorInterface           eval,
     if (nargout == 2)
     {
         // convert from cell of strings to matrix
-        std::vector<Currency> ins, outs;
+        std::vector<Currency> ins;
         ins.push_back(outNames);
         Currency tmp = eval.CallFunction("str2mat", ins);
         outputs.push_back(tmp);
@@ -2333,7 +2330,6 @@ bool BuiltInFuncsTime::Datestr(EvaluatorInterface           eval,
     if (weekdayOut.empty() || !weekdayOut[0].IsMatrix())
         throw OML_Error(OML_ERR_INTERNAL);
 
-    std::vector<Currency> str2MatOut;
     ins.clear();
     // create the date strings and convert cell of strings to matrix
     ins.push_back(getDateStringFromDateVec(dateMat, dateFormat, weekdayOut[0]));

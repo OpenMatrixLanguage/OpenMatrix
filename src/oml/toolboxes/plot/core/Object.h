@@ -230,6 +230,7 @@ namespace omlplot{
         void setSecondaryYAxisVisible(bool visible);
         Property& getProperty(const string&) override;
         bool setPropertyValue(const string& name, VALUETYPE value) override;
+        VALUETYPE getPropertyValue(const string&) override;
         double getSecondaryYAxisHandle() const;
         void setGridIndex(int idx);
         void getTipToTailCoordinates(double& x, double& y, double& t, double& r) const;
@@ -243,7 +244,6 @@ namespace omlplot{
         bool is3DPlot();
         void initColorbarRange();
         void setAxisOption(const string& option);
-        bool getAxesOn() const { return _axesOn; }
         void getAxesPosition(double& x, double& y, double& w, double& h);
         void setAxisDatetick(const string& axis, const std::string& datefmt, int datefmtIdx);
         void getAxisDatetickOptions(const string& axis, bool& enabled, std::string& fmt, int& fmtIdx);
@@ -259,7 +259,6 @@ namespace omlplot{
         unique_ptr<Colorbar> m_colorbar;
         unique_ptr<SecondaryYAxis> m_secYAxis;
         bool _borderOn;
-        bool _axesOn;
         string m_barlayout;
         double m_barWidth;
         bool m_secYAxisVisible;

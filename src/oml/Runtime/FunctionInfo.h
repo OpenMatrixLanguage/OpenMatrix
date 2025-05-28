@@ -1,7 +1,7 @@
 /**
 * @file FunctionInfo.h
 * @date August 2013
-* Copyright (C) 2013-2018 Altair Engineering, Inc.  
+* Copyright (C) 2013-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -26,10 +26,10 @@ class MemoryScope;
 class OMLDLL_DECLS FunctionInfo 
 {
 public:
-	FunctionInfo(std::string, std::vector<const std::string*>, std::vector<const std::string*>, std::map<const std::string*, Currency>, OMLTree*, std::string, std::string);
-	FunctionInfo(std::string, std::vector<const std::string*>, std::vector<const std::string*>, OMLTree*, std::string);
-	FunctionInfo(std::string, FUNCPTR);
-	FunctionInfo(std::string, ALT_FUNCPTR);
+	FunctionInfo(const std::string&, const std::vector<const std::string*>&, const std::vector<const std::string*>&, const std::map<const std::string*, Currency>&, OMLTree*, const std::string&, const std::string&);
+	FunctionInfo(const std::string&, const std::vector<const std::string*>&, const std::vector<const std::string*>&, const OMLTree*, const std::string&);
+	FunctionInfo(const std::string&, FUNCPTR);
+	FunctionInfo(const std::string&, ALT_FUNCPTR);
 	FunctionInfo();
 	~FunctionInfo();
 	FunctionInfo(const FunctionInfo&);
@@ -113,6 +113,8 @@ private:
 	FunctionInfo* _parent_fi;
 
 	ClassInfo*    _parent_class;
+
+	FunctionInfo& operator=(const FunctionInfo&);   // Stubbed out
 }; 
 
 #endif

@@ -1,7 +1,7 @@
 /**
 * @file EvaluatorInt.cpp
 * @date June 2014
-* Copyright (C) 2014-2020 Altair Engineering, Inc.  
+* Copyright (C) 2014-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -76,12 +76,12 @@ const OutputFormat* EvaluatorInterface::GetOutputFormat() const
     return eval->GetOutputFormat();
 }
 
-const Currency& EvaluatorInterface::GetValue(std::string varname) const
+const Currency& EvaluatorInterface::GetValue(const std::string&  varname) const
 {
     return eval->GetValue(varname);
 }
 
-const Currency& EvaluatorInterface::GetGlobalValue(std::string varname) const
+const Currency& EvaluatorInterface::GetGlobalValue(const std::string& varname) const
 {
     return eval->GetGlobalValue(varname);
 }
@@ -91,7 +91,7 @@ bool EvaluatorInterface::FindFunctionByName(const std::string& func_name, Functi
     return eval->FindFunctionByName(func_name, fi, fptr, aptr);
 }
 
-bool EvaluatorInterface::SetValue(std::string varname, const Currency& value)
+bool EvaluatorInterface::SetValue(const std::string& varname, const Currency& value)
 {
     return eval->SetValue(varname, value);
 }
@@ -839,6 +839,14 @@ SignalHandlerBase* EvaluatorInterface::GetSignalHandler() const
     return eval->GetSignalHandler();
 }
 //------------------------------------------------------------------------------
+//! Gets class info
+//------------------------------------------------------------------------------
+ClassInfo* EvaluatorInterface::GetClassInfoFromName(const std::string& classname) const
+{
+    assert(eval);
+    return eval->GetClassInfoFromName(classname);
+}
+//------------------------------------------------------------------------------
 //! Returns a vector of function names
 //------------------------------------------------------------------------------
 std::vector<std::string> EvaluatorInterface::GetFunctionNames() const
@@ -961,9 +969,9 @@ Currency EvaluatorInterface::Analyze(const std::string& infile)
 	return eval->Analyze(infile);
 }
 
-Currency EvaluatorInterface::GetMetadata(const std::string& infile)
+Currency EvaluatorInterface::GetMetadata(const std::string& infile, bool library_names)
 {
-	return eval->GetMetadata(infile);
+	return eval->GetMetadata(infile, library_names);
 }
 
 void EvaluatorInterface::RegisterChildEvaluator(ExprTreeEvaluator* child)
@@ -1067,7 +1075,23 @@ void EvaluatorInterface::CacheBCIPointer(OMLImplBase* ptr)
 void EvaluatorInterface::BCIGarbageCollect()
 {
     eval->BCIGarbageCollect();
-}void EvaluatorInterface::RefreshPathCache()
+}
+void EvaluatorInterface::RefreshPathCache()
 {
     eval->RefreshPathCache();
+}
+
+OMLTree* EvaluatorInterface::CreateASTFromFile(const std::string& filename)
+{
+    return eval->CreateASTFromFile(filename);
+}
+
+OMLTree* EvaluatorInterface::GetTreeFromDLL(const char* dll_path)
+{
+    return eval->GetTreeFromDLL(dll_path);
+}
+
+void EvaluatorInterface::RunTree(OMLTree* tree)
+{
+    eval->RunTree(tree);
 }

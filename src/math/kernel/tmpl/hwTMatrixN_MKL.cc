@@ -62,6 +62,78 @@ inline void hwTMatrixN<double>::CopyData(void* dest, int stride_dest,
         zcopy_((int*)&count, (complexD*)src, &stride_src, (complexD*)dest, &stride_dest);
 }
 
+//! Reverse the vectors along a direction
+template<>
+inline void hwTMatrixN<double>::FlipVectors(const hwTMatrixN<double>& source, int dim)
+{
+    const std::vector<int>& dims = source.Dimensions();
+    int numDim = static_cast<int> (dims.size());
+
+    if (dim == -1)
+    {
+        // use first non-singleton dimension
+        for (int i = 0; i < dims.size(); ++i)
+        {
+            if (dims[i] != 1)
+            {
+                dim = i;
+                break;
+            }
+        }
+    }
+    else if (dim > numDim - 1)
+    {
+        (*this) = source;
+        return;
+    }
+    else if (dim < 0)
+    {
+        throw hwMathException(HW_MATH_ERR_ARRAYDIM, 2);
+    }
+
+    int numVecs = source.Size() / dims[dim];
+    int stride = source.Stride(dim);
+    std::vector<int> matrixIndex(numDim);
+
+    Dimension(dims, source.Type());
+
+    for (int i = 0; i < numVecs; ++i)
+    {
+        // set the matrix indices to the first index in each vector
+        int start = source.Index(matrixIndex);
+
+        if (source.IsReal())
+        {
+            const double* data_real = source.GetRealData() + start;
+            double* flip_real = GetRealData() + start;
+            CopyData(flip_real, -stride, data_real, stride, dims[dim]);
+        }
+        else    // complex
+        {
+            const hwTComplex<double>* data_cplx = source.GetComplexData() + start;
+            hwTComplex<double>* flip_cplx = GetComplexData() + start;
+            CopyData(flip_cplx, -stride, data_cplx, stride, dims[dim]);
+        }
+
+        // advance slice indices
+        for (int j = 0; j < numDim; ++j)
+        {
+            if (j == dim)
+                continue;
+
+            // increment index j if possible
+            if (matrixIndex[j] < static_cast<int> (dims[j]) - 1)
+            {
+                ++matrixIndex[j];
+                break;
+            }
+
+            // index j is maxed out, so reset and continue to j+1
+            matrixIndex[j] = 0;
+        }
+    }
+}
+
 //! Reorder matrix dimensions, a generalized transpose
 template<>
 inline void hwTMatrixN<double>::Permute(const hwTMatrixN<double>& source, const std::vector<int>& permuteVec)

@@ -1,7 +1,7 @@
 /**
 * @file MatrixDisplay.h
 * @date November, 2015
-* Copyright (C) 2015-2021 Altair Engineering, Inc.  
+* Copyright (C) 2015-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -51,67 +51,56 @@ public:
 
     //!
     //! Initialize
-    //! \param fmt    Output format   
-    //! \param interp Interpreter
-    //! \param parent Parent display
-    virtual void Initialize(const OutputFormat* fmt,
-                            Interpreter*        interp,
-                            CurrencyDisplay*    parent = 0);
+    //! \param Output format   
+    //! \param Interpreter
+    //! \param Parent display
+    virtual void Initialize(const OutputFormat*, Interpreter*, CurrencyDisplay* = 0) override;
     //!
     //! True if columns can be paginated
     //!
-    virtual bool CanPaginateColumns() const { return true; }
+    virtual bool CanPaginateColumns() const override { return true; }
     //!
-    //! Gets number of rows and cols in given currency
-    //! \param cur  Given cell array/matrix
-    //! \param rows Number of rows
-    //! \param cols Number of columns
+    //! Gets number of rows and cols in matrix
+    //! \param Number of rows
+    //! \param Number of columns
     //!
-    virtual void GetCurrencySize(int& rows, 
-                                 int& cols) const;
+    virtual void GetCurrencySize(int&, int&) const override;
     //!
     //! Sets indices for back pagination
     //!
-	virtual void SetBackDisplayData();
+	virtual void SetBackDisplayData() override;
     //!
 	//! Sets indices for forward pagination
     //!
-	virtual void SetForwardDisplayData();
+	virtual void SetForwardDisplayData() override;
     //!
 	//! Sets indices for right pagination
     //!
-	virtual void SetRightDisplayData();
+	virtual void SetRightDisplayData() override;
     //!
 	//! Sets indices for left pagination
     //!
-	virtual void SetLeftDisplayData();
+	virtual void SetLeftDisplayData() override;
     //!
 	//! Sets indices for down pagination
     //!
-	virtual void SetDownDisplayData();
+	virtual void SetDownDisplayData() override;
     //!
 	//! Sets indices for up pagination
     //!
-	virtual void SetUpDisplayData();
-
+	virtual void SetUpDisplayData() override;
 
     //!
     //! Utility which returns matrix values as string
-    //! \param in            Input currency
-    //! \param fmt           Format
-    //! \param rdelim        Delimiter for rows
-    //! \param cdelim        Delimiter for columns
-    //! \param precisionreal Custom precision for real part
-    //! \param precisionimag Custom precision for imaginary part
-    //! \param coffset       Number of columns which need cdelim prepended
+    //! \param Input currency
+    //! \param Format
+    //! \param Delimiter for rows
+    //! \param Delimiter for columns
+    //! \param Custom precision for real part
+    //! \param Custom precision for imaginary part
+    //! \param Number of columns which need cdelim prepended
     //!   
-    static std::string GetOutputValues(const Currency&     in,
-                                       const OutputFormat* fmt,
-                                       const std::string&  rdelim,
-                                       const std::string&  cdelim,
-                                       const std::string&  precisionreal,
-                                       const std::string&  precisionimag,
-                                       int                 coffset);
+    static std::string GetOutputValues(const Currency&, const OutputFormat*, const std::string&, const std::string&, const std::string&, const std::string&, int);
     //!
     //! Utility which returns matrix values as string, without formatting output
     //! \param Input currency
@@ -119,20 +108,16 @@ public:
     //! \param Column delimiter
     //! \param Number of columns which need col delim prepended - col offset
     //!
-    static void WriteNonFormattedOutputValues(const Currency&,
-                                              const std::string&,
-                                              const std::string&,
-                                              int,
-                                              std::FILE*);
+    static void WriteNonFormattedOutputValues(const Currency&, const std::string&, const std::string&, int, std::FILE*);
     //!
     //! Gets values as a string
-    //! \param fmt Output format
+    //! \param Output format
     //!
-    virtual std::string GetValues(const OutputFormat* fmt) const;
+    virtual std::string GetValues(const OutputFormat*) const override;
     //!
     //! Returns true if end of pagination message needs to be printed
-    //! \param msg Additional message that needs to be printed
-    virtual bool GetPaginationEndMsg(std::string& msg) const;
+    //! \param Additional message that needs to be printed
+    virtual bool GetPaginationEndMsg(std::string&) const override;
 
 private:
     mutable bool             _haslargeint;     //!< True if matrix has large ints
@@ -164,109 +149,91 @@ private:
     
     //!
 	//! Gets pagination info for printing
-    //! \param rows Number of rows
-    //! \param cols Number of columns
+    //! \param Number of rows
+    //! \param Number of columns
     //!
-	std::string GetPaginationHeader(int rows,
-                                    int cols) const;
+	std::string GetPaginationHeader(int, int) const;
     //!
     //! Gets output
-    //! \param fmt Output format
-    //! \param os  Output stream
+    //! \param Output format
+    //! \param Output stream
     //!
-    std::string GetOutput(const OutputFormat* fmt,
-                          std::ostringstream& os) const;
+    std::string GetOutput(const OutputFormat*, std::ostringstream&) const override;
     //!
 	//! Gets matrix data with no pagination - using defaults
-	//! \param fmt Format
+	//! \param Format
     //!
-	std::string GetOutputNoPagination(const OutputFormat* fmt) const;
+	std::string GetOutputNoPagination(const OutputFormat*) const;
     //!
 	//! Gets matrix data with no pagination
-	//! \param fmt              Format
-    //! \param rowdelim         Delimiter for rows
-    //! \param startwithnewline Appends a new line to the start of a row
-    //! \param coffset          Number of columns which need cdelim prepended
+	//! \param Format
+    //! \param Delimiter for rows
+    //! \param Appends a new line to the start of a row
+    //! \param Number of columns which need cdelim prepended
     //!
-	std::string GetOutputNoPagination(const OutputFormat* fmt,
-                                      const std::string&  rowdelim,
-                                      bool                startwithnewline,
-                                      int                 coffset) const;
+	std::string GetOutputNoPagination(const OutputFormat*, const std::string&, bool, int) const;
     //!
 	//! Gets matrix data with forward pagination
-	//! \param fmt Format
+	//! \param Format
     //!
-	std::string GetOutputForwardPagination(const OutputFormat* fmt) const;
+	std::string GetOutputForwardPagination(const OutputFormat*) const;
     //!
 	//! Gets matrix data with back pagination
-	//! \param fmt Format
+	//! \param Format
     //!
-	std::string GetOutputBackPagination(const OutputFormat* fmt) const; 
+	std::string GetOutputBackPagination(const OutputFormat*) const; 
     //!
     //! Gets output
-    //! \param row        Row
-    //! \param col        Column
-    //! \param realwidth  Width of real field
-    //! \param imagwidth  Width of imaginary field
-    //! \param isreal     True if this is a real mtx
-    //! \param isrealdata True if this is a complex mtx with no imaginary parts
-    //! \param output     Output
+    //! \param Row
+    //! \param Column
+    //! \param Width of real field
+    //! \param Width of imaginary field
+    //! \param True if this is a real mtx
+    //! \param True if this is a complex mtx with no imaginary parts
+    //! \param Output
     //!
-    void GetOutput(int          row,
-                   int          col,
-                   int          realwidth,
-                   int          imagwidth,
-                   bool         isreal,
-                   bool         isrealdata,
-                   std::string& output) const;
+    void GetOutput(int, int, int, int, bool, bool, std::string&) const;
     //!
     //! Gets number of columns to fit
-    //! \param refcol  Column to start from
-    //! \param numcols Total number of columns
-    //! \param forward True if forward paginating
-    //! \param isreal  True if there is only real data
+    //! \param Column to start from
+    //! \param Total number of columns
+    //! \param True if forward paginating
+    //! \param True if there is only real data
     //!
-    int GetNumColumnsToFit(int  refcol,
-                           int  numcols,
-                           bool forward,
-                           bool isreal) const;
+    int GetNumColumnsToFit(int, int, bool, bool) const;
     //!
     //! Converts real value to formatted string
-    //! \param fmt Format
-    //! \param val Value
+    //! \param Value
     //!
     std::string RealToString(double val) const { return RealToString(val, _displayformat); }
     //!
     //! Converts real value to formatted string
-    //! \param val Value
-    //! \param fmt Format
+    //! \param Value
+    //! \param Format
     //!
-    std::string RealToString(double        val,
-                             DisplayFormat fmt) const; 
+    std::string RealToString(double, DisplayFormat) const; 
     //!
     //! Utility which returns real value to string
-    //! \param val       Value
-    //! \param precision Custom precision
+    //! \param Value
+    //! \param Custom precision
     //!
-    static std::string RealToString(double             val,
-                                    const std::string& precision);
+    static std::string RealToString(double, const std::string&);
     //!
     //! Gets format for given double
-    //! \param val Given value
+    //! \param Given value
     //!
-    DisplayFormat GetFormat(double val) const;
+    DisplayFormat GetFormat(double) const;
     //!
     //! Returns format for complex numbers
-    //! \param val Given value
+    //! \param Given value
     //!
-    DisplayFormat GetFormat(const hwComplex& val) const;
+    DisplayFormat GetFormat(const hwComplex&) const;
     //!
     //! Sets matrix format
-    //! \param fmt    Format
-    //! \param interp Interpreter
+    //! \param Format
+    //! \param Interpreter
     //!
-    void SetFormat(const OutputFormat* fmt, 
-                   Interpreter*        interp);
+    void SetFormat(const OutputFormat*, Interpreter*);
     //!
     //! Resets format
     //!
@@ -274,14 +241,14 @@ private:
 
     //!
     //! Scan matrix and set the width of different columns
-    //! \param interp Interpreter
+    //! \param Interpreter
     //!
-    void SetWidth(Interpreter* interp);
+    void SetWidth(Interpreter*);
     //!
     //! Sets the delimiter
-    //! \param delim Delimiter to set, if empty, default delim will be used
+    //! \param Delimiter to set, if empty, default delim will be used
     //!
-    void SetDelimiter(const std::string& delim);
+    void SetDelimiter(const std::string&);
     //!
     //! Returns true if matrix was paginating
     //!
@@ -306,9 +273,7 @@ private:
     //! \param index
     //! \param True if this is real data
     //!
-    int GetImagWidth(int,
-                     bool) const;
-
+    int GetImagWidth(int, bool) const;
 };
 
 #endif

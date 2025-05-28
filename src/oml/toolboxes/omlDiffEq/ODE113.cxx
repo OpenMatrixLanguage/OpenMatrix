@@ -561,15 +561,15 @@ bool OmlOde113(EvaluatorInterface           eval,
     }
     else
     {
-        outputs.push_back(timeSolution);
-        outputs.push_back(ySolution);
+    outputs.push_back(timeSolution);
+    outputs.push_back(ySolution);
 
-        if (nargout == 5)
-        {
-            outputs.push_back(pEventTime.release());
-            outputs.push_back(pEventFnVal.release());
-            outputs.push_back(pEventIndx.release());
-        }
+    if (nargout == 5)
+    {
+        outputs.push_back(pEventTime.release());
+        outputs.push_back(pEventFnVal.release());
+        outputs.push_back(pEventIndx.release());
+    }
     }
 
     return true;

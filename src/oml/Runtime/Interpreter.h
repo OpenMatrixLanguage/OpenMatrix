@@ -213,6 +213,8 @@ public:
     void     ClearProfileData();
     void     Profile(bool on);
 
+    void     RunTree(OMLTree* tree);
+
 private:
     friend class InterpreterImpl; //! Access private/protected members
     InterpreterImpl* _impl;       //! Internal implementation

@@ -741,6 +741,15 @@ bool OmlMean(EvaluatorInterface           eval,
              const std::vector<Currency>& inputs, 
              std::vector<Currency>&       outputs);
 //!
+//! Computes zero mean, or centered values [center]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlCenter(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs);
+//!
 //! Computes mode values [mean]
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
@@ -758,6 +767,15 @@ bool OmlMode(EvaluatorInterface           eval,
 bool OmlMovMean(EvaluatorInterface           eval,
                 const std::vector<Currency>& inputs,
                 std::vector<Currency>&       outputs);
+//!
+//! Computes moving median values [movmedian]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlMovMedian(EvaluatorInterface           eval,
+                  const std::vector<Currency>& inputs,
+                  std::vector<Currency>&       outputs);
 //!
 //! Computes covariances [cov]
 //! \param eval    Evaluator interface
@@ -857,6 +875,15 @@ bool OmlMultiregress(EvaluatorInterface           eval,
                      const std::vector<Currency>& inputs, 
                      std::vector<Currency>&       outputs);
 //!
+//! Generates a vector of random integers [randi]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlRandIntegers(EvaluatorInterface           eval,
+                     const std::vector<Currency>& inputs,
+                     std::vector<Currency>&       outputs);
+//!
 //! Generates a random permutation vector [randperm]
 //! \param eval    Evaluator interface
 //! \param inputs  Vector of inputs
@@ -910,5 +937,23 @@ bool OmlPolyfit(EvaluatorInterface           eval,
 bool OmlNchooseK(EvaluatorInterface           eval,
                  const std::vector<Currency>& inputs,
                  std::vector<Currency>&       outputs);
+//!
+//! Compute distances between ND points  [pdist]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlPDist(EvaluatorInterface           eval,
+              const std::vector<Currency>& inputs,
+              std::vector<Currency>&       outputs);
+//!
+//! Compute distances between ND points  [pdist2]
+//! \param eval    Evaluator interface
+//! \param inputs  Vector of inputs
+//! \param outputs Vector of outputs
+//!
+bool OmlPDist2(EvaluatorInterface           eval,
+               const std::vector<Currency>& inputs,
+               std::vector<Currency>&       outputs);
 
 #endif // __STATISTICSTBOXFUNCS_OML_H__

@@ -1,7 +1,7 @@
 /**
 * @file OmlServer.h
 * @date April 2023
-* Copyright (C) 2023 Altair Engineering, Inc.  
+* Copyright (C) 2023-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -48,22 +48,33 @@ class SERVERDLL_DECLS OmlServer
 {
 public:
     //! Constructor
-    //! \param[in] interpreter
-    OmlServer(Interpreter* interp, SignalHandlerBase* handler);
+    //! \param interpreter
+    //! \param Signal handler
+    OmlServer(Interpreter*, SignalHandlerBase*);
+    //!
     //! Destructor
+    //! 
     ~OmlServer();
 
+    //!
     //! Start OML server at given port
-    //! \param[in] port port no in string format
-    void Start(const std::string& port);
+    //! \param Port no in string format
+    //! 
+    void Start(const std::string&);
+    //!
     //! Send data to server
-    //! \param[in] data in string format<json>
-    void Send(const std::string &data);
+    //! \param Data in string format<json>
+    //! 
+    void Send(const std::string &);
 
 private:
     //! class to encapsulate internal details of server
     class Internal;
     Internal* _internal;
+
+    OmlServer(const OmlServer&) = delete;            // Stubbed out
+    OmlServer& operator=(const OmlServer&) = delete; // Stubbed out
+
 };
 
 

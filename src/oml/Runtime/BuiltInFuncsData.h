@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsData.h
 * @date June 2016
-* Copyright (C) 2016-2019 Altair Engineering, Inc.  
+* Copyright (C) 2016-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -38,58 +38,74 @@ public:
     ~BuiltInFuncsData() {}
     //!
     //! Returns true after converting matrix to cell array [mat2cell command]
-    //! \param eval    Evaluator interface
-    //! \param inputs  Vector of inputs
-    //! \param outputs Vector of outputs
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
     //!
-    static bool Mat2Cell( EvaluatorInterface           eval,
-                          const std::vector<Currency>& inputs,
-                          std::vector<Currency>&       outputs);
+    static bool Mat2Cell(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 	//!
 	//! Returns true after converting number/matrix to cell array [num2cell]
-	//! \param eval    Evaluator interface
-	//! \param inputs  Vector of inputs
-	//! \param outputs Vector of outputs
+	//! \param Evaluator interface
+	//! \param Vector of inputs
+	//! \param Vector of outputs
 	//!
-	static bool Num2Cell(EvaluatorInterface           eval,
-		                 const std::vector<Currency>& inputs,
-		                 std::vector<Currency>&       outputs);
+	static bool Num2Cell(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
     //!
     //! Sets fields recursively. First currency is the input, last currency is value
-    //! \param eval    Evaluator interface
-    //! \param inputs  Vector of inputs
-    //! \param outputs Vector of outputs
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
     //!
-    static bool Setfield( EvaluatorInterface           eval,
-                          const std::vector<Currency>& inputs,
-                          std::vector<Currency>&       outputs);
+    static bool Setfield(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
     //!
     //! Returns true if input is a row vector [isrow]
-    //! \param eval    Evaluator interface
-    //! \param inputs  Vector of inputs
-    //! \param outputs Vector of outputs
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
     //!
-    static bool IsRow(EvaluatorInterface           eval,
-                      const std::vector<Currency>& inputs,
-                      std::vector<Currency>&       outputs);
+    static bool IsRow(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
     //!
     //! Returns true if input is a column vector [iscolumn]
-    //! \param eval    Evaluator interface
-    //! \param inputs  Vector of inputs
-    //! \param outputs Vector of outputs
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
     //!
-    static bool IsColumn(EvaluatorInterface           eval,
-                         const std::vector<Currency>& inputs,
-                         std::vector<Currency>&       outputs);
+    static bool IsColumn(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
     //!
-    //! Returns true after sorting rows in the matrix [sortrows]
-    //! \param eval    Evaluator interface
-    //! \param inputs  Vector of inputs
-    //! \param outputs Vector of outputs
+    //! Sorts rows in a matrix [sortrows]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
     //!
-    static bool Sortrows(EvaluatorInterface           eval,
-                         const std::vector<Currency>& inputs,
-                         std::vector<Currency>&       outputs);
+    static bool Sortrows(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
+    //!
+    //! Outputs an array indicating which fields are empty in a struct [fieldempty]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //!
+    static bool FieldEmpty(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
+    //!
+    //! Outputs a cell which contains the contents of the given field [fields2cell]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //!
+    static bool Fields2Cell(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
+    //!
+    //! Converts cell array to struct of specified fields [cell2fields]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //!
+    static bool Cell2Fields(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
+    //!
+    //! Concatenates structures along a specified dimension [structcat]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //!
+    static bool Structcat(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 
 private:
     //!
@@ -98,84 +114,72 @@ private:
     BuiltInFuncsData() {}
     //!
     //! Helper method for Setfield to get indices from cell array
-    //! \param in       Input currency  
-    //! \param inputIdx Input currency index - for error messages
+    //! \param Input currency  
+    //! \param Input currency index for error messages
     //!
-    std::pair<int, int> GetFieldIndex(const Currency& in,
-                                      int             idx) const;
+    std::pair<int, int> GetFieldIndex(const Currency&, int) const;
     //!
     //! Helper method for setfield which grows cell and gets requested element
-    //! \param eval  Evaluator
-    //! \param in    Cell
-    //! \param index Index to the cell element
+    //! \param Evaluator
+    //! \param Cell
+    //! \param Index to the cell element
     //!
-    Currency* GetCellElement( EvaluatorInterface         eval,
-                              HML_CELLARRAY*             cell,
-                              const std::pair<int, int>& index) const;
+    Currency* GetCellElement(EvaluatorInterface, HML_CELLARRAY*, const std::pair<int, int>&) const;
     //!
     //! Helper method for setfield which grows matrix and gets requested element
-    //! \param eval  Evaluator
-    //! \param in    Given input currency
-    //! \param index Index to the matrix element
+    //! \param Evaluator
+    //! \param Given input currency
+    //! \param Index to the matrix element
     //!
-    Currency GetMatrixElement( EvaluatorInterface         eval,
-                               const Currency&            in,
-                               const std::pair<int, int>& index) const;
+    Currency GetMatrixElement(EvaluatorInterface, const Currency&, const std::pair<int, int>&) const;
     //!
     //! Helper method for setfield which returns matrix after setting an element
-    //! \param eval   Evaluator interface
-    //! \param in     Matrix to set
-    //! \param value  Element value
-    //! \param index  Element index
-    //! \param argidx Argument index - for error handling
+    //! \param Evaluator interface
+    //! \param Matrix to set
+    //! \param Element value
+    //! \param Element index
+    //! \param Argument index - for error handling
     //!
-    Currency SetMatrixElement(EvaluatorInterface         eval,
-                              const Currency&            in,
-                              const Currency&            value,
-                              const std::pair<int, int>& index,
-                              int                        argidx) const;
+    Currency SetMatrixElement(EvaluatorInterface, const Currency&, const Currency&, const std::pair<int, int>&, int) const;
     //!
     //! Helper method for setfield which sets matrix parent
-    //! \param mtx    Matrix
-    //! \param index  Index in parent
-    //! \param field  Field name in parent, if applicable
-    //! \param parent Matrix parent
+    //! \param Matrix
+    //! \param Index in parent
+    //! \param Field name in parent, if applicable
+    //! \param Matrix parent
     //!
-    void SetMatrixParent(const Currency&            mtx,
-                         const std::pair<int, int>& index,
-                         const std::string&         field,
-                         Currency*&                 parent) const;
+    void SetMatrixParent(const Currency&, const std::pair<int, int>&, const std::string&, Currency*&) const;
     //!
     //! Helper method for setfield which grows struct and gets requested element
-    //! \param in        Struct
-    //! \param fieldname Field name
-    //! \param index     Index to the struct element
+    //! \param Struct
+    //! \param Field name
+    //! \param Index to the struct element
     //!
-    Currency* GetStructElement( StructData*                in,
-                                const std::string&         field,
-                                const std::pair<int, int>& index) const;
+    Currency* GetStructElement(StructData*, const std::string&, const std::pair<int, int>&) const;
     //!
     //! Helper method for setfield which sets a struct value
-    //! \param value    Value to set
-    //! \param field    Field name
-    //! \param index    Field index
-    //! \param hasindex True if field index was explicitly set
-    //! \param cur      Currency to set
+    //! \param Value to set
+    //! \param Field name
+    //! \param Field index
+    //! \param True if field index was explicitly set
+    //! \param Currency to set
     //!
-    void SetStructElement(const Currency&            value,
-                          const std::string&         field,
-                          const std::pair<int, int>& index,
-                          bool                       hasindex,
-                          Currency&                  cur) const;
+    void SetStructElement(const Currency&, const std::string&, const std::pair<int, int>&, bool, Currency&) const;
     //!
     //! Gets dimensions of sub-matrices from given vector
-    //! \param cur   Given currency
-    //! \param index Input index for error messages
-    //! \param ref   True if row dimensions are being set
+    //! \param Given currency
+    //! \param Input index for error messages
+    //! \param True if row dimensions are being set
     //!
-    std::vector<int> GetDimensions(const Currency& cur,
-                                   int             index,
-                                   int             ref) const;
+    std::vector<int> GetDimensions(const Currency&, int, int) const;
+    //!
+    //! Returns 1 if struct field at given index is empty, returns 0 otherwise
+    //! \param Struct
+    //! \param Field
+    //! \param Row
+    //! \param Column
+    //! 
+    static double IsStructFieldEmpty(const StructData*, const std::string&, int, int);
 };
 
 #endif // __BUILTINFUNCSDATA__

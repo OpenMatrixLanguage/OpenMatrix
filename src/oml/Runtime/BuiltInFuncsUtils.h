@@ -1,7 +1,7 @@
 /**
 * @file BuiltInFuncsUtils.h
 * @date November 2015
-* Copyright (C) 2015-2022 Altair Engineering, Inc.  
+* Copyright (C) 2015-2023 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -53,10 +53,10 @@ public:
     //!
     static std::string GetCurrentWorkingDir();
     //!
-    //! Returns absolute path
-    //! \param path Given path
+    //! Returns absolute path, works with wide characters
+    //! \param Given path
     //!
-    static std::string GetAbsolutePath( const std::string& path);
+    static std::string GetAbsolutePath(const std::string&);
     //!
     //! Gets relative path
     //! \param path Given path
@@ -314,6 +314,7 @@ public:
     //! \param Matrix
     //!
     static bool HasWideChars(const hwMatrix*);
+
 #ifdef OS_WIN
     //!
     //! Gets absolute path, supports unicode on Windows
@@ -321,10 +322,10 @@ public:
     //!
     std::wstring GetAbsolutePathW(const std::wstring& input);
     //!
-    //! Returns true if given path is absolute, supports unicode on Windows
-    //! \param input Input string
+    //! Returns true if given path is absolute, supports wide chars
+    //! \param Input string
     //!
-    bool IsAbsolutePathW(const std::wstring& input);
+    static bool IsAbsolutePathW(const std::wstring&);
 
     //!
     //! Gets current working directory on windows
@@ -387,7 +388,7 @@ public:
     //! chained and deleted even if one of them in the chain is deleted. Used 
     //! for displaying multiline strings
     //!
-    long CreateChainedDisplayId();
+    static long CreateChainedDisplayId();
     //!
     //! Helper method to set environment variable
     //! \param name Env variable to set
@@ -437,8 +438,7 @@ public:
     //! \param File name
     //! \param Mode
     //!
-    std::FILE* FileOpen(const std::string&,
-                        const std::string&);
+    static std::FILE* FileOpen(const std::string&, const std::string&);
     //!
     //! Returns true if output log is open
     //!
@@ -529,16 +529,47 @@ public:
     //! 
     static Currency Vector2Currency(const std::vector<std::string>&, bool = true);
 
+    //!
+    //! Throws error if file name has special chars
+    //! \param Name to check
+    //! \param Index of this input, if applicable for displaying in error
+    //! 
+    static void CheckSpecialCharsFileName(const std::string&, int = -1);
+    //!
+    //! Returns count of replaced substrings in the given string
+    //! \param String to replace in
+    //! \param String to replace
+    //! \param Replacement string
+    //! 
+    static int ReplaceAll(std::string&, const std::string&, const std::string&);
+    //!
+    //! Returns an unformatted string for the given double
+    //! \param Double input
+    //! \param NaN string
+    //! \param Infinity string
+    //! \param Negative infinity string
+    //! 
+    static std::string NonFormattedDouble2String(double, const std::string&, const std::string&, const std::string&);
+    //!
+    //! Returns file size - words with utf8 file names
+    //! \param File name
+    //! 
+    static long FileSize(const std::string&);
+    //!
+    //! Returns the last modified date, given a file name
+    //! \param File name
+    //! 
+    static std::string FileLastModifiedDate(const std::string&);
+
 private: 
     //!
     //! Returns true if strtod conversion is successful
-    //! \param in  Input string
-    //! \param end End string
-    //! \param val Value converted by strtod
+    //! \param Input string
+    //! \param End string
+    //! \param Value converted by strtod
     //!
-    static bool IsValidStrtodResult(const std::string& in,
-                                    const std::string& end,
-                                    double             val);
+    static bool IsValidStrtodResult(const std::string&, const std::string&, double);
+
 };
 
 #endif // __BUILTINFUNCSUTILS__

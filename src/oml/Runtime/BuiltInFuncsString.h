@@ -19,8 +19,6 @@
 
 #include "EvaluatorInt.h"
 
-#include <regex>
-
 class OutputFormat;
 
 //------------------------------------------------------------------------------
@@ -131,13 +129,11 @@ public:
 		const std::vector<Currency>& inputs,
 		std::vector<Currency>& outputs);
 	//! Returns true and creates a cell array from an input string array [cellstr2]
-	//! \param eval    Evaluator interface
-	//! \param inputs  Vector of inputs
-	//! \param outputs Vector of outputs
+	//! \param Evaluator interface
+	//! \param Vector of inputs
+	//! \param Vector of outputs
 	//!
-	static bool CellStr2(EvaluatorInterface           eval,
-		const std::vector<Currency>& inputs,
-		std::vector<Currency>& outputs);
+	static bool CellStr2(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
 	//!
     //! Returns true and creates single matrix from string inputs [str2mat]
     //! \param eval    Evaluator interface
@@ -174,6 +170,15 @@ public:
     static bool Strip(EvaluatorInterface           eval,
                       const std::vector<Currency>& inputs,
                       std::vector<Currency>&       outputs);
+    //!
+    //! Returns true and pads input string with spaces
+    //! \param eval    Evaluator interface
+    //! \param inputs  Vector of inputs
+    //! \param outputs Vector of outputs
+    //!
+    static bool Pad(EvaluatorInterface           eval,
+        const std::vector<Currency>& inputs,
+        std::vector<Currency>& outputs);
     //!
     //! Returns true successful in converting string to scalar/complex
     //! \param in       Input string
@@ -217,6 +222,13 @@ public:
     //! \param Vector of outputs
     //!
     static bool IsPrint(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
+    //!
+    //! Returns a matrix indicating which elements are printable and not spaces [isgraph]
+    //! \param Evaluator interface
+    //! \param Vector of inputs
+    //! \param Vector of outputs
+    //!
+    static bool IsGraph(EvaluatorInterface, const std::vector<Currency>&, std::vector<Currency>&);
     //!
     //! Helper method to split an input string into substrings
     //! \param Input string
@@ -347,7 +359,6 @@ private:
     //! 
     static bool IsValidNumericFormat(const std::string&);
 
-    static Currency IsPrintImpl(const Currency&);
     //!
     //! Parse input string to get formats
     //! \param Input
@@ -365,12 +376,7 @@ private:
     //! \param Outputs
     //! \param String read
     //! \param Number of chars read
-    static bool SscanfFloat(const std::string&,
-        const std::string& fmt,
-        bool usefmt,
-        std::vector<Currency>& outvals,
-        std::string& stringread,
-        int& numread);
+    static bool SscanfFloat(const std::string&, const std::string&, bool, std::vector<Currency>&, std::string&, int&);
     //!
     //! sscanf helper function, returns true after reading formatted string
     //! \param Input string
@@ -381,6 +387,20 @@ private:
     //! \param True if warning about invalid formats needs to be shown
     //! 
     static bool Sscanf(std::string&, const std::string&, const std::string&, bool, std::vector<Currency>&);
+    //!
+    //! Implementation of isgraph/isprint
+    //! \param Input
+    //! \param True if check for spaces needs to be done
+    //! \param Warning
+    //! 
+    static Currency IsGraphOrPrintImpl(const Currency&, bool, std::string&);
+    //!
+    //! Returns true if double is in valid ascii range (0 - 255)
+    //! \param Double value
+    //! \param True if error should be thrown
+    //! \param Warning
+    //! 
+    static bool IsInAsciiRange(double, bool, std::string&);
 };
 #endif
 

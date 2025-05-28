@@ -27,7 +27,7 @@
 #include "hwMatrixN.h"
 #include "MatrixNUtils.h"
 
-#if defined(_DARWIN) || defined(LINUX)
+#if defined(LINUX)
   #include <stdlib.h>   // for _fcvt in omlRat
 #endif
 
@@ -467,7 +467,7 @@ bool OmlRat(EvaluatorInterface           eval,
             int  sign;
             std::string str;
 
-            #if defined(_DARWIN) || defined(LINUX)
+            #if defined(LINUX)
               char* argChar;
             #else
               char argChar[313];
@@ -475,7 +475,7 @@ bool OmlRat(EvaluatorInterface           eval,
 
             if (cfTerms(0) != 0.0)
             {
-                #if defined(_DARWIN) || defined(LINUX)
+                #if defined(LINUX)
                   argChar = fcvt(cfTerms(0), 0, &decimal, &sign);
                 #else
                   _fcvt_s(argChar, 313, cfTerms(0), 0, &decimal, &sign);
@@ -493,7 +493,7 @@ bool OmlRat(EvaluatorInterface           eval,
 
             for (int i = 1; i < cfsize-1; ++i)
             {
-                #if defined(_DARWIN) || defined(LINUX)
+                #if defined(LINUX)
                   argChar = fcvt(cfTerms(i), 0, &decimal, &sign);
                 #else
                   _fcvt_s(argChar, 313, cfTerms(i), 0, &decimal, &sign);
@@ -507,7 +507,7 @@ bool OmlRat(EvaluatorInterface           eval,
 
             if (cfsize > 1)
             {
-                #if defined(_DARWIN) || defined(LINUX)
+                #if defined(LINUX)
                   argChar = fcvt(cfTerms(cfsize - 1), 0, &decimal, &sign);
                 #else
                   _fcvt_s(argChar, 313, cfTerms(cfsize - 1), 0, &decimal, &sign);
@@ -558,7 +558,7 @@ bool OmlRat(EvaluatorInterface           eval,
                 int  sign;
                 std::string str;
 
-                #if defined(_DARWIN) || defined(LINUX)
+                #if defined(LINUX)
                   char* argChar;
                 #else
                   char argChar[313];
@@ -566,7 +566,7 @@ bool OmlRat(EvaluatorInterface           eval,
 
                 if (cfTerms(0) != 0.0)
                 {
-                    #if defined(_DARWIN) || defined(LINUX)
+                    #if defined(LINUX)
                       argChar = fcvt(cfTerms(0), 0, &decimal, &sign);
                     #else
                       _fcvt_s(argChar, 313, cfTerms(0), 0, &decimal, &sign);
@@ -584,7 +584,7 @@ bool OmlRat(EvaluatorInterface           eval,
 
                 for (int j = 1; j < cfsize-1; ++j)
                 {
-                    #if defined(_DARWIN) || defined(LINUX)
+                    #if defined(LINUX)
                       argChar = fcvt(cfTerms(j), 0, &decimal, &sign);
                     #else
                       _fcvt_s(argChar, 313, cfTerms(j), 0, &decimal, &sign);
@@ -598,7 +598,7 @@ bool OmlRat(EvaluatorInterface           eval,
 
                 if (cfsize > 1)
                 {
-                    #if defined(_DARWIN) || defined(LINUX)
+                    #if defined(LINUX)
                       argChar = fcvt(cfTerms(cfsize-1), 0, &decimal, &sign);
                     #else
                       _fcvt_s(argChar, 313, cfTerms(cfsize-1), 0, &decimal, &sign);

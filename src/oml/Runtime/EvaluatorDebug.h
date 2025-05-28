@@ -1,7 +1,7 @@
 /**
 * @file EvaluatorDebug.h
 * @date July 2014
-* Copyright (C) 2014-2018 Altair Engineering, Inc.  
+* Copyright (C) 2014-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -19,10 +19,11 @@
 
 struct DebugStateInfo
 {
-	DebugStateInfo(std::string function): function_name(function), line_number(0) {}
-	DebugStateInfo(std::string file, int line): filename(file), line_number(line) {}
-	DebugStateInfo(std::string func, std::string file, int line): filename(file), line_number(line), function_name(func) {}
-
+	DebugStateInfo(const std::string& function): function_name(function), line_number(0) {}
+	DebugStateInfo(const std::string& file, int line): filename(file), line_number(line) {}
+	DebugStateInfo(const std::string& func, const std::string& file, int line): filename(file), line_number(line), function_name(func) {}
+	DebugStateInfo() : line_number(0) {}
+	
 	std::string filename;
 	std::string function_name;
 	int         line_number;

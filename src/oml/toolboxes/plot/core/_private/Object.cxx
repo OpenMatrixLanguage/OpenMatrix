@@ -1,7 +1,7 @@
 /**
 * @file Object.cxx
 * @date May 2018
-* Copyright (C) 2018-2023 Altair Engineering, Inc.  
+* Copyright (C) 2018-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -261,8 +261,8 @@ namespace omlplot{
         {
             vector<double> p = parent.Vector();
             Object* o = getObject(p[0]);
-            o->repaint();
-        }
+        o->repaint();
+    }
     }
 
     ObjectType Object::getObjectType() const
@@ -302,7 +302,9 @@ namespace omlplot{
             name == "xgrid"             || name == "ygrid"              || name == "zgrid"      ||
             name == "xminorgrid"        || name == "yminorgrid"         || name == "zminorgrid" ||
             name == "barlabels"         || name == "polartiptotail"     || name == "tiptotail"  ||
-            name == "meshlines"         || name == "showarrowhead"      || name == "autoscale")
+            name == "meshlines"         || name == "showarrowhead"      || name == "autoscale"  ||
+            name == "xvisible"          || name == "yvisible"           || name == "zvisible"   ||
+            name == "box")
         {
             // 'on'/'off' options
             if (cur.IsString())
@@ -329,7 +331,7 @@ namespace omlplot{
                  name == "polarmethod"          || name == "xaxislocation"      || name == "yaxislocation"      ||
                  name == "displayname"          || name == "linestyle"          || name == "marker"             ||
                  name == "barlayout"            || name == "string"             || name == "horizontalalignment"||
-                 name == "verticalalignment")
+                 name == "verticalalignment"    || name == "xdir"               || name == "ydir")
         {
             // string options
             if (!cur.IsString())
@@ -371,7 +373,7 @@ namespace omlplot{
         {
             // cell
             if (!cur.IsCellArray())
-                throw OML_Error(OML_Error(OML_ERR_CELL).GetErrorMessage() + " to set [" + name + "]");
+                throw OML_Error(OML_Error(OML_ERR_CELLARRAY).GetErrorMessage() + " to set [" + name + "]");
         }
         else if (name == "colorlevels" || name == "xtick" || name == "ytick" || name == "ztick")
         {
@@ -781,7 +783,7 @@ namespace omlplot{
         m_updateXAxisRange(false), m_updateYAxisRange(false), m_updateY2AxisRange(false), 
         m_updateZAxisRange(false), m_gridIndex(1), m_tailX(0.0), m_tailY(0.0), 
         m_tailTheta(0.0), m_tailR(0.0), m_rotX(60), m_rotZ(315), m_legend(new Legend()), 
-        m_colorbar(new Colorbar()), _axesOn(true), m_xdateTicks(false), m_ydateTicks(false)
+        m_colorbar(new Colorbar()), m_xdateTicks(false), m_ydateTicks(false)
     {
         m_type = ObjectType::AXES;
 
@@ -866,6 +868,12 @@ namespace omlplot{
         m_ps.push_back(Property("gridcolor", Color(gridColor), PropertyType::COLOR));
         m_ps.push_back(Property("framecolor", Color(string("white")), PropertyType::COLOR));
         m_ps.push_back(Property("zerolinecolor", Color(string("white")), PropertyType::COLOR));
+        m_ps.push_back(Property("clim", lim, PropertyType::VEC_DOUBLE));
+        m_ps.push_back(Property("xdir", string("normal"), PropertyType::STRING));
+        m_ps.push_back(Property("ydir", string("normal"), PropertyType::STRING));
+        m_ps.push_back(Property("xvisible", string("on"), PropertyType::STRING));
+        m_ps.push_back(Property("yvisible", string("on"), PropertyType::STRING));
+        m_ps.push_back(Property("zvisible", string("on"), PropertyType::STRING));
 
         m_objectMap[handle] = this;
         m_title->setParent(this);
@@ -924,7 +932,6 @@ namespace omlplot{
         m_title->setPropertyValue("string", string(""));
 
         _borderOn = true;
-        _axesOn = true;
         m_colorbar->setVisible(true);
 
         m_updateXAxisRange = false;
@@ -1029,30 +1036,63 @@ namespace omlplot{
         string bgcolor = getPropertyValue("color").ColorString();
         out->printf("set obj rectangle from graph 0,0 to graph 1,1 behind fc rgb '%s' fs border rgb '%s'\n", bgcolor.c_str(), bgcolor.c_str());
 
-        bool topXAxis = !is3DPlot() && !isPolarPlot && !isContourPlot && 
+        bool is3D = is3DPlot();
+        bool topXAxis = !is3D && !isPolarPlot && !isContourPlot && 
             !isPColorPlot && getPropertyValue("xaxislocation").StringVal() == "top";
-        bool rightYAxis = !m_secYAxisVisible && !is3DPlot() && !isPolarPlot && !isContourPlot &&
+        bool rightYAxis = !m_secYAxisVisible && !is3D && !isPolarPlot && !isContourPlot &&
             !isPColorPlot && getPropertyValue("yaxislocation").StringVal() == "right";
 
+        bool xReversed = getPropertyValue("xdir").StringVal() == "reverse";
         // set the range only for the axes that a range has been specified
         if (m_updateXAxisRange && !isPolarPlot) {
             vector<double> xrange = getPropertyValue("xlim").Vector();
-            out->printf("set %s [%g:%g]\n", topXAxis ? "x2range" : "xrange", xrange[0], xrange[1]);
+            if (xReversed && !is3D)
+                out->printf("set %s [%g:%g]\n", topXAxis ? "x2range" : "xrange", xrange[1], xrange[0]);
+            else
+                out->printf("set %s [%g:%g]\n", topXAxis ? "x2range" : "xrange", xrange[0], xrange[1]);
         }
+        else
+        {
+            if (xReversed && !is3D)
+                out->printf("set xrange reverse\n");
+        }
+
+        bool yReversed = getPropertyValue("ydir").StringVal() == "reverse";
         if (m_updateYAxisRange && !isPolarPlot) {
             vector<double> yrange = getPropertyValue("ylim").Vector();
-            out->printf("set %s [%g:%g]\n", rightYAxis ? "y2range" : "yrange", yrange[0], yrange[1]);
+            if (yReversed && !is3D)
+                out->printf("set %s [%g:%g]\n", rightYAxis ? "y2range" : "yrange", yrange[1], yrange[0]);
+            else
+                out->printf("set %s [%g:%g]\n", rightYAxis ? "y2range" : "yrange", yrange[0], yrange[1]);
         }
+        else
+        {
+            if (yReversed && !is3D)
+                out->printf("set yrange reverse\n");
+        }
+
         if (m_updateZAxisRange) {
             vector<double> zrange = getPropertyValue("zlim").Vector();
             out->printf("set zrange [%g:%g]\n", zrange[0], zrange[1]);
         }
+
+        bool y2Reversed = m_secYAxis->getPropertyValue("ydir").StringVal() == "reverse";
         if (m_updateY2AxisRange) {
             vector<double> y2range = m_secYAxis->getPropertyValue("ylim").Vector();
-            out->printf("set y2range [%g:%g]\n", y2range[0], y2range[1]);
+            if (y2Reversed)
+                out->printf("set y2range [%g:%g]\n", y2range[1], y2range[0]);
+            else
+                out->printf("set y2range [%g:%g]\n", y2range[0], y2range[1]);
+        }
+        else if (y2Reversed)
+        {
+            out->printf("set y2range reverse\n");
         }
 
-        if (_axesOn) {
+        bool xVisible = getPropertyValue("xvisible").StringVal() == "on";
+        bool yVisible = getPropertyValue("yvisible").StringVal() == "on";
+        bool zVisible = getPropertyValue("zvisible").StringVal() == "on";
+
         string tickFontName = getPropertyValue("fontname").StringVal();
         double tickFontSize = getPropertyValue("fontsize").Scalar();
         string tickFontWeight = getPropertyValue("fontweight").StringVal();
@@ -1061,221 +1101,238 @@ namespace omlplot{
         string boldString = tickFontWeight == "bold" ? "/:Bold" : "";
         string italicString = tickFontAngle == "italic" ? "/:Italic" : "";
 
-        string xcolor = getPropertyValue("xcolor").ColorString();
-        string xnf = getPropertyValue("xnumericformat").StringVal();
-        int xnp = int(getPropertyValue("xnumericprecision").Scalar());
-        string f = "g";
-        if (xnf == "scientific")
-            f = "e";
-        else if (xnf == "fixed")
-            f = "f";
-        char numF[24];
-        sprintf(numF, "%s.%d%s", "%", xnp, f.c_str());
+        if (xVisible)
+        {
+            string xcolor = getPropertyValue("xcolor").ColorString();
+            string xnf = getPropertyValue("xnumericformat").StringVal();
+            int xnp = int(getPropertyValue("xnumericprecision").Scalar());
+            string f = "g";
+            if (xnf == "scientific")
+                f = "e";
+            else if (xnf == "fixed")
+                f = "f";
+            char numF[24];
+            sprintf(numF, "%s.%d%s", "%", xnp, f.c_str());
 
             string xtag(topXAxis ? "x2tics" : "xtics");
 
-            out->printf("set %s format \"{%s {%s %s}}\" textcolor rgb '%s' font \"%s,%g\" \n", 
-                xtag.c_str(), boldString.c_str(), italicString.c_str(), numF, xcolor.c_str(), 
+            out->printf("set %s format \"{%s {%s %s}}\" textcolor rgb '%s' font \"%s,%g\" \n",
+                xtag.c_str(), boldString.c_str(), italicString.c_str(), numF, xcolor.c_str(),
                 tickFontName.c_str(), tickFontSize);
             int xtick = (int)getPropertyValue("xminortick").Scalar();
             if (xtick > 0)
                 out->printf("set m%s %d\n", xtag.c_str(), xtick);
 
-        // override xticks if it is a 3d bar plot and 'xcategories' are set
-        Currency xcat = getPropertyValue("xcategories").getCurrency();
-        if (isBar3Plot && xcat.IsCellArray() && xcat.CellArray()->Size() > 0)
-        {
-            // find all x values from the hggroupbar3 objects
-            std::vector<double> xValues;
-            it = children.cbegin();
-            for (; it != children.cend(); ++it) {
-                Object* obj = getObject(*it);
-                if (!obj)
-                    continue;
-
-                if (obj->getObjectType() == ObjectType::HGGROUPBAR3) {
-                    Currency tmpX = obj->getPropertyValue("xdata").getCurrency();
-                    if (!tmpX.IsVector())
+            // override xticks if it is a 3d bar plot and 'xcategories' are set
+            Currency xcat = getPropertyValue("xcategories").getCurrency();
+            if (isBar3Plot && xcat.IsCellArray() && xcat.CellArray()->Size() > 0)
+            {
+                // find all x values from the hggroupbar3 objects
+                std::vector<double> xValues;
+                it = children.cbegin();
+                for (; it != children.cend(); ++it) {
+                    Object* obj = getObject(*it);
+                    if (!obj)
                         continue;
-                 
-                    std::vector<double> tmp = tmpX.Vector();
-                    std::vector<double>::const_iterator xit = tmp.cbegin();
-                    for (; xit != tmp.cend(); ++xit)
+
+                    if (obj->getObjectType() == ObjectType::HGGROUPBAR3) {
+                        Currency tmpX = obj->getPropertyValue("xdata").getCurrency();
+                        if (!tmpX.IsVector())
+                            continue;
+
+                        std::vector<double> tmp = tmpX.Vector();
+                        std::vector<double>::const_iterator xit = tmp.cbegin();
+                        for (; xit != tmp.cend(); ++xit)
+                        {
+                            if (std::find(xValues.begin(), xValues.end(), (*xit)) == xValues.end())
+                                xValues.push_back(*xit);
+                        }
+                    }
+                }
+
+                std::sort(xValues.begin(), xValues.end());
+
+                HML_CELLARRAY* ca = xcat.CellArray();
+                out->printf("set %s (", xtag.c_str());
+                for (int i = 0; i < ca->Size() && i < static_cast<int>(xValues.size()); ++i) {
+                    string lbl = "";
+                    if ((*ca)(i).IsString())
+                        lbl = (*ca)(i).StringVal();
+                    out->printf("\"%s\" %g, ", lbl.c_str(), xValues[i]);
+                }
+                out->printf(")\n");
+            }
+            else
+            {
+                Currency tmp = getPropertyValue("xtick").getCurrency();
+                if (tmp.IsScalar())
+                {
+                    if (!IsZero(tmp.Scalar()))
+                        out->printf("set %s %g\n", xtag.c_str(), tmp.Scalar());
+                }
+                else
+                {
+                    vector<double> xticks = tmp.Vector();
+                    Currency tickLbl = getPropertyValue("xticklabel").getCurrency();
+                    if (tickLbl.IsCellArray() && tickLbl.CellArray()->Size() > 0)
                     {
-                        if (std::find(xValues.begin(), xValues.end(), (*xit)) == xValues.end())
-                            xValues.push_back(*xit);
+                        HML_CELLARRAY* ca = tickLbl.CellArray();
+                        int S = min((int)xticks.size(), ca->Size());
+                        out->printf("set %s (", xtag.c_str());
+                        for (int i = 0; i < S; ++i)
+                        {
+                            string lbl = "";
+                            if ((*ca)(i).IsString())
+                                lbl = (*ca)(i).StringVal();
+                            out->printf("\"%s\" %g, ", lbl.c_str(), xticks[i]);
+                        }
+                        out->printf(")\n");
+                    }
+                    else
+                    {
+                        vector<double>::const_iterator it = xticks.cbegin();
+                        out->printf("set %s (", xtag.c_str());
+                        for (; it != xticks.cend(); ++it)
+                            out->printf("%g,", *it);
+                        out->printf(")\n");
                     }
                 }
             }
-
-            std::sort(xValues.begin(), xValues.end());
-
-            HML_CELLARRAY* ca = xcat.CellArray();
-            out->printf("set %s (", xtag.c_str());
-            for (int i = 0; i < ca->Size() && i<static_cast<int>(xValues.size()); ++i) {
-                string lbl = "";
-                if ((*ca)(i).IsString())
-                    lbl = (*ca)(i).StringVal();
-                out->printf("\"%s\" %g, ", lbl.c_str(), xValues[i]);
-            }
-            out->printf(")\n");
         }
-        else
+
+        if (yVisible)
         {
-            Currency tmp = getPropertyValue("xtick").getCurrency();
-            if (tmp.IsScalar()) {
-                if (!IsZero(tmp.Scalar()))
-                    out->printf("set %s %g\n", xtag.c_str(), tmp.Scalar());
-            }
-            else {
-                vector<double> xticks = tmp.Vector();
-                Currency tickLbl = getPropertyValue("xticklabel").getCurrency();
-                if (tickLbl.IsCellArray() && tickLbl.CellArray()->Size() > 0) {
-                    HML_CELLARRAY* ca = tickLbl.CellArray();
-                    int S = min((int)xticks.size(), ca->Size());
-                    out->printf("set %s (", xtag.c_str());
-                    for (int i = 0; i < S; ++i) {
-                        string lbl = "";
-                        if ((*ca)(i).IsString())
-                            lbl = (*ca)(i).StringVal();
-                        out->printf("\"%s\" %g, ", lbl.c_str(), xticks[i]);
-                    }
-                    out->printf(")\n");
-                }
-                else {
-                    vector<double>::const_iterator it = xticks.cbegin();
-                    out->printf("set %s (", xtag.c_str());
-                    for (; it != xticks.cend(); ++it) {
-                        out->printf("%g,", *it);
-                    }
-                    out->printf(")\n");
-                }
-            }
-        }
-
-        string ycolor = getPropertyValue("ycolor").ColorString();
-        string ynf = getPropertyValue("ynumericformat").StringVal();
-        int ynp = int(getPropertyValue("ynumericprecision").Scalar());
-        f = "g";
-        if (ynf == "scientific")
-            f = "e";
-        else if (ynf == "fixed")
-            f = "f";
-        sprintf(numF, "%s.%d%s", "%", ynp, f.c_str());
+            string ycolor = getPropertyValue("ycolor").ColorString();
+            string ynf = getPropertyValue("ynumericformat").StringVal();
+            int ynp = int(getPropertyValue("ynumericprecision").Scalar());
+            string f = "g";
+            if (ynf == "scientific")
+                f = "e";
+            else if (ynf == "fixed")
+                f = "f";
+            char numF[24];
+            sprintf(numF, "%s.%d%s", "%", ynp, f.c_str());
 
             string ytag(rightYAxis ? "y2tics" : "ytics");
             out->printf("set %s format \"{%s {%s %s}}\" textcolor rgb '%s' font \"%s,%g\" \n", ytag.c_str(), boldString.c_str(),
-            italicString.c_str(), numF, ycolor.c_str(), tickFontName.c_str(), tickFontSize);
+                italicString.c_str(), numF, ycolor.c_str(), tickFontName.c_str(), tickFontSize);
             int ytick = (int)getPropertyValue("yminortick").Scalar();
             if (ytick > 0)
                 out->printf("set m%s %d\n", ytag.c_str(), ytick);
 
-        // override yticks if it is a 3d bar plot and 'ycategories' are set
-        Currency ycat = getPropertyValue("ycategories").getCurrency();
-        if (isBar3Plot && ycat.IsCellArray() && ycat.CellArray()->Size() > 0)
-        {
-            // find all x values from the hggroupbar3 objects
-            std::vector<double> yValues;
-            it = children.cbegin();
-            for (; it != children.cend(); ++it) {
-                Object* obj = getObject(*it);
-                if (!obj)
-                    continue;
-
-                if (obj->getObjectType() == ObjectType::HGGROUPBAR3) {
-                    Currency tmpY = obj->getPropertyValue("ydata").getCurrency();
-                    if (!tmpY.IsVector())
+            // override yticks if it is a 3d bar plot and 'ycategories' are set
+            Currency ycat = getPropertyValue("ycategories").getCurrency();
+            if (isBar3Plot && ycat.IsCellArray() && ycat.CellArray()->Size() > 0)
+            {
+                // find all x values from the hggroupbar3 objects
+                std::vector<double> yValues;
+                it = children.cbegin();
+                for (; it != children.cend(); ++it)
+                {
+                    Object* obj = getObject(*it);
+                    if (!obj)
                         continue;
 
-                    std::vector<double> tmp = tmpY.Vector();
-                    std::vector<double>::const_iterator yit = tmp.cbegin();
-                    for (; yit != tmp.cend(); ++yit)
+                    if (obj->getObjectType() == ObjectType::HGGROUPBAR3)
                     {
-                        if (std::find(yValues.begin(), yValues.end(), (*yit)) == yValues.end())
-                            yValues.push_back(*yit);
+                        Currency tmpY = obj->getPropertyValue("ydata").getCurrency();
+                        if (!tmpY.IsVector())
+                            continue;
+
+                        std::vector<double> tmp = tmpY.Vector();
+                        std::vector<double>::const_iterator yit = tmp.cbegin();
+                        for (; yit != tmp.cend(); ++yit)
+                        {
+                            if (std::find(yValues.begin(), yValues.end(), (*yit)) == yValues.end())
+                                yValues.push_back(*yit);
+                        }
+                    }
+                }
+
+                std::sort(yValues.begin(), yValues.end());
+
+                HML_CELLARRAY* ca = ycat.CellArray();
+                out->printf("set %s (", ytag.c_str());
+                for (int i = 0; i < ca->Size() && i < static_cast<int>(yValues.size()); ++i)
+                {
+                    string lbl = "";
+                    if ((*ca)(i).IsString())
+                        lbl = (*ca)(i).StringVal();
+                    out->printf("\"%s\" %g, ", lbl.c_str(), yValues[i]);
+                }
+                out->printf(")\n");
+            }
+            else
+            {
+                Currency tmp = getPropertyValue("ytick").getCurrency();
+                if (tmp.IsScalar())
+                {
+                    if (!IsZero(tmp.Scalar()))
+                        out->printf("set %s %g\n", ytag.c_str(), tmp.Scalar());
+                }
+                else
+                {
+                    vector<double> yticks = tmp.Vector();
+                    Currency tickLbl = getPropertyValue("yticklabel").getCurrency();
+                    if (tickLbl.IsCellArray() && tickLbl.CellArray()->Size() > 0)
+                    {
+                        HML_CELLARRAY* ca = tickLbl.CellArray();
+                        int S = min((int)yticks.size(), ca->Size());
+                        out->printf("set %s (", ytag.c_str());
+                        for (int i = 0; i < S; ++i)
+                        {
+                            string lbl = "";
+                            if ((*ca)(i).IsString())
+                                lbl = (*ca)(i).StringVal();
+                            out->printf("\"%s\" %g, ", lbl.c_str(), yticks[i]);
+                        }
+                        out->printf(")\n");
+                    }
+                    else
+                    {
+                        vector<double>::const_iterator it = yticks.cbegin();
+                        out->printf("set %s (", ytag.c_str());
+                        for (; it != yticks.cend(); ++it)
+                            out->printf("%g,", *it);
+                        out->printf(")\n");
                     }
                 }
             }
-
-            std::sort(yValues.begin(), yValues.end());
-
-            HML_CELLARRAY* ca = ycat.CellArray();
-            out->printf("set %s (", ytag.c_str());
-            for (int i = 0; i < ca->Size() && i < static_cast<int>(yValues.size()); ++i) {
-                string lbl = "";
-                if ((*ca)(i).IsString())
-                    lbl = (*ca)(i).StringVal();
-                out->printf("\"%s\" %g, ", lbl.c_str(), yValues[i]);
-            }
-            out->printf(")\n");
         }
-        else
+
+        if (zVisible)
         {
-            Currency tmp = getPropertyValue("ytick").getCurrency();
-            if (tmp.IsScalar()) {
-                if (!IsZero(tmp.Scalar()))
-                    out->printf("set %s %g\n", ytag.c_str(), tmp.Scalar());
-            }
-            else {
-                vector<double> yticks = tmp.Vector();
-                Currency tickLbl = getPropertyValue("yticklabel").getCurrency();
-                if (tickLbl.IsCellArray() && tickLbl.CellArray()->Size() > 0) {
-                    HML_CELLARRAY* ca = tickLbl.CellArray();
-                    int S = min((int)yticks.size(), ca->Size());
-                    out->printf("set %s (", ytag.c_str());
-                    for (int i = 0; i < S; ++i) {
-                        string lbl = "";
-                        if ((*ca)(i).IsString())
-                            lbl = (*ca)(i).StringVal();
-                        out->printf("\"%s\" %g, ", lbl.c_str(), yticks[i]);
-                    }
-                    out->printf(")\n");
-                }
-                else {
-                    vector<double>::const_iterator it = yticks.cbegin();
-                    out->printf("set %s (", ytag.c_str());
-                    for (; it != yticks.cend(); ++it) {
-                        out->printf("%g,", *it);
-                    }
-                    out->printf(")\n");
-                }
-            }
-        }
-
-        string zcolor = getPropertyValue("zcolor").ColorString();
-        string znf = getPropertyValue("znumericformat").StringVal();
-        int znp = int(getPropertyValue("znumericprecision").Scalar());
-        f = "g";
-        if (znf == "scientific")
-            f = "e";
-        else if (znf == "fixed")
-            f = "f";
-        sprintf(numF, "%s.%d%s", "%", znp, f.c_str());
-        out->printf("set ztics format \"{%s {%s %s}}\" textcolor rgb '%s' font \"%s,%g\" \n", boldString.c_str(),
-            italicString.c_str(), numF, zcolor.c_str(), tickFontName.c_str(), tickFontSize);
+            string zcolor = getPropertyValue("zcolor").ColorString();
+            string znf = getPropertyValue("znumericformat").StringVal();
+            int znp = int(getPropertyValue("znumericprecision").Scalar());
+            string f = "g";
+            if (znf == "scientific")
+                f = "e";
+            else if (znf == "fixed")
+                f = "f";
+            char numF[24];
+            sprintf(numF, "%s.%d%s", "%", znp, f.c_str());
+            out->printf("set ztics format \"{%s {%s %s}}\" textcolor rgb '%s' font \"%s,%g\" \n", boldString.c_str(),
+                italicString.c_str(), numF, zcolor.c_str(), tickFontName.c_str(), tickFontSize);
             int ztick = (int)getPropertyValue("zminortick").Scalar();
             if (ztick > 0)
                 out->printf("set mztics %d\n", ztick);
 
-        Currency tmp = getPropertyValue("ztick").getCurrency();
-            if (tmp.IsScalar()) {
+            Currency tmp = getPropertyValue("ztick").getCurrency();
+            if (tmp.IsScalar())
+            {
                 if (!IsZero(tmp.Scalar()))
                     out->printf("set ztics %g\n", tmp.Scalar());
-        }
-        else {
+            }
+            else
+            {
                 vector<double> zticks = tmp.Vector();
                 vector<double>::const_iterator it = zticks.cbegin();
                 out->printf("set ztics (");
-                for (; it != zticks.cend(); ++it) {
+                for (; it != zticks.cend(); ++it)
                     out->printf("%g,", *it);
-        }
                 out->printf(")\n");
             }
-        }
-        else {
-            out->printf("set xtics format \"\" scale 0\nset ytics format \"\" scale 0\n");
-            out->printf("set y2tics format \"\" scale 0\nset ztics format \"\" scale 0\n");
-            out->printf("set x2tics format \"\" scale 0\n");
         }
 
         string xscale = getPropertyValue("xscale").StringVal();
@@ -1289,11 +1346,13 @@ namespace omlplot{
             out->printf("set logscale z\n");
 
         m_title->update(out, "title");
-        if (_axesOn) {
+
+        if (xVisible)
             m_xlabel->update(out, topXAxis ? "x2label" : "xlabel");
+        if (yVisible)
             m_ylabel->update(out, rightYAxis ? "y2label" : "ylabel");
-        m_zlabel->update(out, "zlabel");
-        }
+        if (zVisible)
+            m_zlabel->update(out, "zlabel");
 
         if (m_secYAxisVisible)
             m_secYAxis->update(out);
@@ -1329,7 +1388,8 @@ namespace omlplot{
         if (zmgrid == "on") 
             out->printf("set grid mztics\n");
 
-        if (!is3DPlot() && !isPolarPlot && !isContourPlot && !isPColorPlot) {
+        if (!is3D && !isPolarPlot && !isContourPlot && !isPColorPlot) 
+        {
             string zerocolor = getPropertyValue("zerolinecolor").ColorString();
             out->printf("set %s lt 1 lc rgb '%s'\n", topXAxis ? "x2zeroaxis" : "xzeroaxis", zerocolor.c_str());
             out->printf("set %s lt 1 lc rgb '%s'\n", rightYAxis ? "y2zeroaxis" : "yzeroaxis", zerocolor.c_str());
@@ -1338,7 +1398,8 @@ namespace omlplot{
         }
         m_legend->update(out);
 
-        if (_borderOn) {
+        if (_borderOn) 
+        {
             out->printf("set border 31\n");
             if (m_secYAxisVisible)
                 out->printf("set ytics nomirror\n");
@@ -1348,23 +1409,26 @@ namespace omlplot{
                 out->printf("set x2tics mirror\n");
 
         }
-        else {
-            if (topXAxis) {
+        else 
+        {
+            if (topXAxis) 
+            {
                 if (m_secYAxisVisible)
                     out->printf("set border 14\n");
                 else if (rightYAxis)
                     out->printf("set border 12\n");
-        else
+                else
                     out->printf("set border 6\n");
                 out->printf("set x2tics nomirror\n");
                 out->printf("set %s nomirror\n", rightYAxis ? "y2tics" : "ytics");
             }
-            else {
+            else 
+            {
                 if (m_secYAxisVisible)
                     out->printf("set border 11\n");
                 else if (rightYAxis)
                     out->printf("set border 9\n");
-        else
+                else
                     out->printf("set border 3\n");
                 out->printf("set xtics nomirror\n");
                 out->printf("set %s nomirror\n", rightYAxis ? "y2tics" : "ytics");
@@ -1429,7 +1493,6 @@ namespace omlplot{
             ++lineId;
         }
 
-        bool is3D = zdata.size() > 0 && zdata[0].size() > 0;
         // set view
         if (is3D) {
             if (isContourPlot || isPColorPlot)
@@ -1584,9 +1647,6 @@ namespace omlplot{
                 }
             }
         }
-        if (!is3D && m_legend->getVisible())
-            out->printf("set key opaque\n");
-
         out->printf("\n\n");
     }
 
@@ -1661,20 +1721,20 @@ namespace omlplot{
                 double min, max;
                 if (pChild->getMinMaxZ(min, max))
                 {
-                    if (ret.empty())
-                    {
-                        ret.push_back(min);
-                        ret.push_back(max);
-                    }
-                    else
-                    {
-                        if (min < ret[0])
-                            ret[0] = min;
-                        if (max > ret[1])
-                            ret[1] = max;
-                    }
+                if (ret.empty())
+                {
+                    ret.push_back(min);
+                    ret.push_back(max);
+                }
+                else
+                {
+                    if (min < ret[0])
+                        ret[0] = min;
+                    if (max > ret[1])
+                        ret[1] = max;
                 }
             }
+        }
         }
         if (ret.empty())
         {
@@ -1744,11 +1804,22 @@ namespace omlplot{
         return Object::getProperty(name);
     }
 
+    VALUETYPE Axes::getPropertyValue(const string& name)
+    {
+        if (name == "clim")
+            return m_colorbar->getPropertyValue(name);
+        return Object::getPropertyValue(name);
+    }
+
     bool Axes::setPropertyValue(const string& name, VALUETYPE value)
     {
         if (name == "colorbarscale" || name == "colormap" ||
             name == "colorlevels") {
             return  m_colorbar->setPropertyValue(name, value);
+        }
+        else if (name == "clim")
+        {
+            return m_colorbar->setPropertyValue(name, value);
         }
 
         bool ret = Object::setPropertyValue(name, value);
@@ -1792,6 +1863,7 @@ namespace omlplot{
                     CoreMain::getInstance()->setUpdateDatetickFlag(getHandle(), "y");
             }
         }
+        
         return ret;
     }
 
@@ -2047,10 +2119,16 @@ namespace omlplot{
     void Axes::setAxisOption(const string& option)
     {
         if (option == "on") {
-            _axesOn = true;
+            setPropertyValue("xvisible", "on");
+            setPropertyValue("yvisible", "on");
+            setPropertyValue("zvisible", "on");
+            m_secYAxis->setPropertyValue("visible", "on");
         }
         else if (option == "off") {
-            _axesOn = false;
+            setPropertyValue("xvisible", "off");
+            setPropertyValue("yvisible", "off");
+            setPropertyValue("zvisible", "off");
+            m_secYAxis->setPropertyValue("visible", "off");
         }
         else if (option == "tight") {
             setAxisRangeFromData();
@@ -3101,6 +3179,7 @@ namespace omlplot{
         m_ps.push_back(Property("meshlines", string("on"), PropertyType::STRING));
         m_ps.push_back(Property("color", string("blue"), PropertyType::COLOR));
         m_ps.push_back(Property("visible", string("on"), PropertyType::STRING));
+        m_ps.push_back(Property("edgecolor", string("black"), PropertyType::COLOR));
 
 		// not yet supported properties
         m_ps.push_back(Property("units", string("units"), PropertyType::UNSUPPORTED));
@@ -3142,8 +3221,9 @@ namespace omlplot{
         stringstream ss;
                 
         if (getPropertyValue("meshlines").StringVal() == "on") {
+            string edgeColor = getPropertyValue("edgecolor").ColorString();
             ss << "unset style line " << line << "\n";
-            ss << "set style line " << line << " lc \"black\" \n";
+            ss << "set style line " << line << " lc rgb '"<<edgeColor<<"' \n";
             ss << "set pm3d border linestyle " << line << "\n";
         }
         else {
@@ -3712,7 +3792,8 @@ namespace omlplot{
         m_ps.push_back(Property("yminortick", 0.0, PropertyType::DOUBLE));
         m_ps.push_back(Property("ytick", 0.0, PropertyType::VEC_DOUBLE));
         m_ps.push_back(Property("yticklabel", string(""), PropertyType::CELL));
-        
+        m_ps.push_back(Property("ydir", string("normal"), PropertyType::STRING));
+
         // not yet supported properties
         m_ps.push_back(Property("ytickmethod", string("ytickmethod"), PropertyType::UNSUPPORTED));
 
@@ -3724,9 +3805,8 @@ namespace omlplot{
         if (getPropertyValue("visible").StringVal() == "off")
             return;
 
-        Axes* ax = getParentObject() ? dynamic_cast<Axes*>(getParentObject()):nullptr;
-        bool axisVisible = ax ? ax->getAxesOn() : true;
-        if (axisVisible) {
+        Axes* ax = getParentObject() ? dynamic_cast<Axes*>(getParentObject()) : nullptr;
+
         string tickFontName = getPropertyValue("fontname").StringVal();
         double tickFontSize = getPropertyValue("fontsize").Scalar();
         string tickFontWeight = getPropertyValue("fontweight").StringVal();
@@ -3742,59 +3822,55 @@ namespace omlplot{
             f = "e";
         else if (nf == "fixed")
             f = "f";
-        
+
         char numF[24];
         sprintf(numF, "%s.%d%s", "%", np, f.c_str());
         out->printf("set y2tics format \"{%s {%s %s}}\" textcolor rgb '%s' font \"%s,%g\" \n", boldString.c_str(),
             italicString.c_str(), numF, color.c_str(), tickFontName.c_str(), tickFontSize);
-            int ytick = (int)getPropertyValue("yminortick").Scalar();
-            if (ytick > 0)
-                out->printf("set my2tics %d\n", ytick);
+        int ytick = (int)getPropertyValue("yminortick").Scalar();
+        if (ytick > 0)
+            out->printf("set my2tics %d\n", ytick);
 
-            Currency tmp = getPropertyValue("ytick").getCurrency();
-            if (tmp.IsScalar()) {
-                if (!IsZero(tmp.Scalar()))
-                    out->printf("set y2tics %g\n", tmp.Scalar());
+        Currency tmp = getPropertyValue("ytick").getCurrency();
+        if (tmp.IsScalar()) {
+            if (!IsZero(tmp.Scalar()))
+                out->printf("set y2tics %g\n", tmp.Scalar());
         }
         else {
-                vector<double> yticks = tmp.Vector();
-                Currency tickLbl = getPropertyValue("yticklabel").getCurrency();
-                if (tickLbl.IsCellArray() && tickLbl.CellArray()->Size()>0) {
-                    HML_CELLARRAY* ca = tickLbl.CellArray();
-                    int S = min((int)yticks.size(), ca->Size());
-                    out->printf("set y2tics (");
-                    for (int i = 0; i < S; ++i) {
-                        string lbl = "";
-                        if ((*ca)(i).IsString())
-                            lbl = (*ca)(i).StringVal();
-                        out->printf("\"%s\" %g, ", lbl.c_str(), yticks[i]);
-        }
-                    out->printf(")\n");
-        }
-        else {
-                    vector<double>::const_iterator it = yticks.cbegin();
-                    out->printf("set y2tics (");
-                    for (; it != yticks.cend(); ++it) {
-                        out->printf("%g,", *it);
-        }
-                    out->printf(")\n");
-        }
-        }
+            vector<double> yticks = tmp.Vector();
+            Currency tickLbl = getPropertyValue("yticklabel").getCurrency();
+            if (tickLbl.IsCellArray() && tickLbl.CellArray()->Size() > 0) {
+                HML_CELLARRAY* ca = tickLbl.CellArray();
+                int S = min((int)yticks.size(), ca->Size());
+                out->printf("set y2tics (");
+                for (int i = 0; i < S; ++i) {
+                    string lbl = "";
+                    if ((*ca)(i).IsString())
+                        lbl = (*ca)(i).StringVal();
+                    out->printf("\"%s\" %g, ", lbl.c_str(), yticks[i]);
+                }
+                out->printf(")\n");
+            }
+            else {
+                vector<double>::const_iterator it = yticks.cbegin();
+                out->printf("set y2tics (");
+                for (; it != yticks.cend(); ++it) {
+                    out->printf("%g,", *it);
+                }
+                out->printf(")\n");
+            }
         }
 
         if (getPropertyValue("yscale").StringVal() == "log")
             out->printf("set logscale y2\n");
 
         string ygrid = getPropertyValue("ygrid").StringVal();
-        if (ygrid == "on") 
+        if (ygrid == "on")
             out->printf("set grid y2tics\n");
-        
+
         string ymgrid = getPropertyValue("yminorgrid").StringVal();
         if (ymgrid == "on")
             out->printf("set grid my2tics\n");
-        
-        if (axisVisible)
-        m_ylabel->update(out, "y2label");
     }
 
     bool SecondaryYAxis::isAxes()
@@ -5355,6 +5431,7 @@ namespace omlplot{
         m_ps.push_back(Property("fontangle", string("regular"), PropertyType::STRING));
         m_ps.push_back(Property("location",string("northeast"), PropertyType::STRING));
         m_ps.push_back(Property("visible", string("on"), PropertyType::STRING));
+        m_ps.push_back(Property("box", string("on"), PropertyType::STRING));
 
         m_objectMap[handle] = this;
 
@@ -5372,12 +5449,19 @@ namespace omlplot{
             double fs = getPropertyValue("fontsize").Scalar();
             string fw = getPropertyValue("fontweight").StringVal();
             string fa = getPropertyValue("fontangle").StringVal();
-            
+            bool box = getPropertyValue("box").StringVal() == "on";
             stringstream ss;
             ss << "set key on " << m_legendLocation;
-            ss << " box linestyle 1000 lc rgb '" << bc << "'";
-            ss << " linewidth " << bw;
-            ss << " font \"" << fn << "," << fs << "\"\n";
+            if (box)
+            {
+                ss << " opaque box linestyle 1000 lc rgb '" << bc << "'";
+                ss << " linewidth " << bw;
+                ss << " font \"" << fn << "," << fs << "\"\n";
+            }
+            else
+            {
+                ss << " noopaque nobox\n";
+            }
             out->printf(ss.str());
         }
         else

@@ -51,7 +51,8 @@ public:
     //!
     hwMathStatus ApplyFilter(const hwMatrix& inSignal, 
                              hwMatrix&       outSignal,
-                             const hwMatrix* initCond = NULL);
+                             const hwMatrix* initCond = nullptr,
+                             hwMatrix*       finalCond = nullptr);
     //!
     //! Returns status after applying filter to signal data in reverse
     //! \param inSignal  Input signal

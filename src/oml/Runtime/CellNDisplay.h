@@ -1,7 +1,7 @@
 /**
 * @file CellNDisplay.h
 * @date January 2019
-* Copyright (C) 2019-2021 Altair Engineering, Inc.
+* Copyright (C) 2019-2024 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -41,57 +41,53 @@ public:
 
 	//!
 	//! Gets output - called from Currency::GetOutputString
-	//! \param fmt Output format
-	//! \param os  Output stream
+	//! \param Output format
+	//! \param Output stream
 	//!
-	std::string GetOutput(const OutputFormat* fmt,
-		                  std::ostringstream& os) const;
+	virtual std::string GetOutput(const OutputFormat*, std::ostringstream&) const override; // cppcheck-suppress missingOverride
 	//!
 	//! Gets number of rows and cols in given currency
-	//! \param rows Number of rows
-	//! \param cols Number of columns
+	//! \param Number of rows
+	//! \param Number of columns
 	//!
-	virtual void GetCurrencySize(int& rows,
-		                         int& cols) const;
+	virtual void GetCurrencySize(int&, int&) const override;
 	//!
 	//! Returns true if parent is ND cell array
 	//!
-	virtual bool IsNDCellDisplay() const { return true; }
+	virtual bool IsNDCellDisplay() const override { return true; }
 
 	//!
 	//! Helper to slice a given ND cell array to 2D cells
-	//! \param cell    Given cell array
-	//! \param curs   Vector of currencies of 2D component cell arrays
-	//! \param labels Vector of slice labels
+	//! \param Given cell array
+	//! \param Vector of currencies of 2D component cell arrays
+	//! \param Vector of slice labels
 	//!
-	static void GetSlices(HML_ND_CELLARRAY*         cell,
-		                  std::vector<Currency>&    curs,
-		                  std::vector<std::string>& labels);
+	static void GetSlices(HML_ND_CELLARRAY*, std::vector<Currency>&, std::vector<std::string>&);
 
 protected:
     //!
     //! Sets data for forward pagination
     //!
-    virtual void SetForwardDisplayData();
+    virtual void SetForwardDisplayData() override;
     //!
     //! Sets data for back pagination
     //!
-    virtual void SetBackDisplayData();
+    virtual void SetBackDisplayData() override;
 
     //!
     //! Gets number of rows that can be fit
     //!
-    virtual int GetNumRowsToFit() const;
+    virtual int GetNumRowsToFit() const override;
 
     //!
     //! Gets values as a string
-    //! \param fmt Output format
+    //! \param Output format
     //!
-    virtual std::string GetValues(const OutputFormat* fmt) const;
+    virtual std::string GetValues(const OutputFormat*) const override;
     //!
     //! True if rows are being processed during pagination
     //!
-    virtual bool IsPaginatingRows() const;
+    virtual bool IsPaginatingRows() const override;
 	//!
 	//! True if paginating
 	//!
@@ -102,38 +98,38 @@ private:
 	mutable int  _lastRowPrinted;      //!< Last row that was printed in interactive pagination
 	//!
 	//! Constructor - Only currency is allowed to construct
-	//! \param cur Currency associated with this display
+	//! \param Currency associated with this display
 	//!
-	CellNDisplay(const Currency& cur);
+	CellNDisplay(const Currency&);
 
-	CellNDisplay();                                    // Stubbed out 
+	CellNDisplay();                                    // Stubbed out  // cppcheck-suppress noExplicitConstructor
 	CellNDisplay(const CellNDisplay& src);             // Stubbed out 
 	CellNDisplay& operator=(const CellNDisplay& src);  // Stubbed out
 
 	//!
 	//! Gets output with no pagination
-	//! \param fmt Format
+	//! \param Format
 	//!
-	std::string GetOutputNoPagination(const OutputFormat* fmt) const;
+	std::string GetOutputNoPagination(const OutputFormat*) const;
     //!
     //! Gets outputfor forward/down pagination
-    //! \param fmt Format
+    //! \param Format
     //!
-    std::string GetOutputForwardPagination(const OutputFormat* fmt) const;
+    std::string GetOutputForwardPagination(const OutputFormat*) const;
     //!
     //! Gets outputfor back/up pagination
-    //! \param fmt Format
+    //! \param Format
     //!
-    std::string GetOutputBackPagination(const OutputFormat* fmt) const;
+    std::string GetOutputBackPagination(const OutputFormat*) const;
     //!
     //! Updates the number of rows to fit
     //!
     void UpdateNumLinesPrinted();
     //!
     //! True if this ND matrix has only empty slices
-    //! \param slices Slices
+    //! \param Slices
     //!
-    bool HasOnlyEmptySlices(const std::vector<Currency>& slices) const;
+    bool HasOnlyEmptySlices(const std::vector<Currency>&) const;
     //!
     //! Gets display string if matrix ND has only empty slices
     //! 
@@ -141,15 +137,12 @@ private:
 
 	//!
 	//! Helper to slice a given ND cell array to 2D cells
-	//! \param cell   Given cell
-	//! \param slices Slices
-	//! \param curs   Vector of currencies of 2D component cells
-	//! \param labels Vector of slice labels
+	//! \param Given cell
+	//! \param Slices
+	//! \param Vector of currencies of 2D component cells
+	//! \param Vector of slice labels
 	//
-	static void GetSlicesHelper(HML_ND_CELLARRAY*         cell,
-								std::vector<hwSliceArg>   slices,
-								std::vector<Currency>&    curs,
-								std::vector<std::string>& sliceLabels);
+	static void GetSlicesHelper(HML_ND_CELLARRAY*, std::vector<hwSliceArg>, std::vector<Currency>&, std::vector<std::string>&);
 };
 #endif
 

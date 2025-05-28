@@ -665,12 +665,12 @@ bool BuiltInFuncsElemMath::Flip(EvaluatorInterface           eval,
 
     if (cur1.IsMatrix() || cur1.IsString())
     {
-        BuiltInFuncsElemMath funcs;
         const hwMatrix* inmtx = cur1.Matrix();
         if (nargin == 1)
         {
-            int dim = (inmtx->IsVector()) ? 0 : 1;
-            hwMatrix* outmtx = funcs.FlipHelper(inmtx, dim);
+            hwMatrix* outmtx = EvaluatorInterface::allocateMatrix();
+            hwMathStatus status = outmtx->FlipVectors(*inmtx, -1);
+            BuiltInFuncsUtils::CheckMathStatus(eval, status);
             Currency out (outmtx);
             out.SetMask(cur1.GetMask());
             outputs.push_back(out);
@@ -681,11 +681,9 @@ bool BuiltInFuncsElemMath::Flip(EvaluatorInterface           eval,
             throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_DATA);
 
         int dim = static_cast<int>(cur2.Scalar());
-
-        if (dim != 1 && dim != 2)
-            throw OML_Error(OML_ERR_UNSUPPORTDIM, 2);
-
-        hwMatrix* outmtx = funcs.FlipHelper(inmtx, dim);
+        hwMatrix* outmtx = EvaluatorInterface::allocateMatrix();
+        hwMathStatus status = outmtx->FlipVectors(*inmtx, dim - 1);
+        BuiltInFuncsUtils::CheckMathStatus(eval, status);
         Currency out (outmtx);
         out.SetMask(cur1.GetMask());
 
@@ -693,14 +691,28 @@ bool BuiltInFuncsElemMath::Flip(EvaluatorInterface           eval,
     }
     else if (cur1.IsNDMatrix())
     {
+        const hwMatrixN* inmtx = cur1.MatrixN();
         if (nargin == 1)
         {
-            return oml_MatrixNUtil4(eval, inputs, outputs, BuiltInFuncsElemMath::Flip);
+            hwMatrixN* outmtx = EvaluatorInterface::allocateMatrixN();
+            outmtx->FlipVectors(*inmtx, -1);
+            Currency out(outmtx);
+            out.SetMask(cur1.GetMask());
+            outputs.push_back(out);
+            return true;
         }
-        else
-        {
-            return oml_MatrixNUtil4(eval, inputs, outputs, BuiltInFuncsElemMath::Flip, 2);
-        }
+        Currency cur2 = inputs[1];
+        if (!cur2.IsPositiveInteger())
+            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_DATA);
+
+        int dim = static_cast<int>(cur2.Scalar());
+
+        hwMatrixN* outmtx = EvaluatorInterface::allocateMatrixN();
+        outmtx->FlipVectors(*inmtx, dim - 1);
+        Currency out(outmtx);
+        out.SetMask(cur1.GetMask());
+
+        outputs.push_back(out);
     }
     else if (cur1.IsScalar() || cur1.IsComplex())
     {
@@ -712,66 +724,6 @@ bool BuiltInFuncsElemMath::Flip(EvaluatorInterface           eval,
     }
 
     return true;
-}
-//------------------------------------------------------------------------------
-// Helper function for flip methods which returns flipped matrix 
-//------------------------------------------------------------------------------
-hwMatrix* BuiltInFuncsElemMath::FlipHelper(const hwMatrix* in, int dim)
-{
-    assert(in);
-    if (!in)
-        return EvaluatorInterface::allocateMatrix();
-
-    int       m   = in->M();
-    int       n   = in->N();
-    hwMatrix* out = EvaluatorInterface::allocateMatrix(m, n, in->IsReal());
-    assert(out);
-
-    bool isreal = in->IsReal();
-
-    if (in->IsVector() && dim == 0)
-    {
-        int matrixSize = in->Size();
-        for (int i = 0; i < matrixSize; ++i)
-        {
-            if (isreal)
-                (*out)(i) = (*in)(matrixSize - 1 - i);
-            else
-                out->z(i) = in->z(matrixSize - 1 - i);
-        }
-        return out;
-    }
-    switch (dim)
-    {
-        case 2:
-            for (int j = 0; j < n; ++j)
-            {
-                for (int i = 0; i < m; ++i)
-                {
-                    if (isreal)
-                        (*out)(i, j) =  (*in)(i, n - 1 - j);
-                    else
-                        out->z(i, j) =  in->z(i, n - 1 - j);
-
-                }
-            }
-            break;
-            
-        case 1:
-        default:
-            for (int j = 0; j < n; ++j)
-            {
-                for (int i = 0; i < m; ++i)
-                {
-                    if (isreal)
-                        (*out)(i, j) = (*in)(m - 1 - i, j);
-                    else
-                        out->z(i, j) = in->z(m - 1 - i, j);
-                }
-            }
-            break;
-    }
-    return out;
 }
 //------------------------------------------------------------------------------
 // Returns true after flipping matrix from left to right

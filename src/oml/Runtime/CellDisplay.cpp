@@ -1,7 +1,7 @@
 /**
 * @file CellDisplay.cxx
 * @date June 2016
-* Copyright (C) 2016-2020 Altair Engineering, Inc.  
+* Copyright (C) 2016-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -352,7 +352,6 @@ std::string CellDisplay::GetOutputBackPagination(const OutputFormat* fmt) const
 
     int         cindent     = m_indent + 1;
     std::string childindent = (GetIndentString(cindent));
-    std::string myindent    = (GetIndentString(m_indent));
 
     std::string output;
 	for (int i = endrow; i >= 0 && m_linesPrinted <= linestofit; --i)
@@ -571,7 +570,6 @@ std::string CellDisplay::GetCellListOutputBackPagination(const OutputFormat* fmt
     assert(cells);
 
     int numrows = cells->M();
-    int numcols = cells->N();
 
     int endrow = (m_rowEnd >= 0 && m_rowEnd < numrows) ? m_rowEnd : numrows - 1;
     int endcol = m_colEnd;

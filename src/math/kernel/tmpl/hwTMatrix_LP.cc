@@ -224,7 +224,7 @@ inline void hwTMatrix<double>::CopyData(void* dest, int stride_dest,
         zcopy_((int*) &count, (complexD*)src, &stride_src, (complexD*)dest, &stride_dest);
 }
 
-//! Transpose the matrix
+//! Replicate a matrix in each dimension
 template<>
 inline hwMathStatus hwTMatrix<double>::Repmat(const hwTMatrix<double>& source, int repm, int repn)
 {
@@ -393,6 +393,68 @@ inline hwMathStatus hwTMatrix<double>::Repmat(const hwTMatrix<double>& source, i
             memcpy_s(dest, numBytesToCopy, src, numBytesToCopy);
             src = dest;
         }
+    }
+
+    return status;
+}
+
+//! Reverse the vectors along a direction
+template<>
+inline hwMathStatus hwTMatrix<double>::FlipVectors(const hwTMatrix<double>& source, int dim)
+{
+    if (dim == -1)
+    {
+        if (source.M() == 1)
+            dim = 1;
+        else
+            dim = 0;
+    }
+    else if (dim > 1)
+    {
+        (*this) = source;
+        return hwMathStatus();
+    }
+    else if (dim < 0)
+    {
+        return hwMathStatus(HW_MATH_ERR_ARRAYDIM, 2);
+    }
+
+    int m = source.M();
+    int n = source.N();
+    std::vector<int> dims = { m, n };
+    int numVecs = (dim == 0) ? n : m;
+    int stride = (dim == 0) ? 1 : m;
+    int row = 0;
+    int col = 0;
+
+    hwMathStatus status = Dimension(m, n, source.Type());
+
+    if (!status.IsOk())
+        return status;
+
+    for (int i = 0; i < numVecs; ++i)
+    {
+        // set the matrix indices to the first index in each vector
+        int start = col * m + row;
+
+        if (source.IsReal())
+        {
+            const double* data_real = source.GetRealData() + start;
+            double* flip_real = GetRealData() + start;
+            CopyData(flip_real, -stride, data_real, stride, dims[dim]);
+        }
+        else    // complex
+        {
+            const hwComplex* data_cplx = source.GetComplexData() + start;
+            hwComplex* flip_cplx = GetComplexData() + start;
+            CopyData(flip_cplx, -stride, data_cplx, stride, dims[dim]);
+        }
+
+        // advance slice indices
+        if (dim == 0)
+            ++col;
+        else
+            ++row;
     }
 
     return status;

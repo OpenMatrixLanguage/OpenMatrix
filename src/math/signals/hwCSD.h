@@ -46,8 +46,8 @@ public:
     //! \param dataSize
     //! \param csd
     //!
-    hwMathStatus Compute(const hwMatrix& input1,
-                         const hwMatrix& input2,
+    hwMathStatus Compute(const hwMatrix& input1, 
+                         const hwMatrix& input2, 
                          int             dataSize,
                          hwMatrix&       csd);
     //!
@@ -57,7 +57,7 @@ public:
     //! \param dataSize
     //! \param csd
     //!
-    hwMathStatus Compute(hwMatrix& input1,
+    hwMathStatus Compute(hwMatrix& input1, 
                          hwMatrix& input2,
                          int       dataSize,
                          hwMatrix& csd);

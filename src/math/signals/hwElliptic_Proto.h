@@ -16,6 +16,11 @@
 #ifndef _Signals_hwElliptic_Proto_h
 #define _Signals_hwElliptic_Proto_h
 
+// forward declarations
+template <typename T> class hwTComplex;
+template <typename T1, typename T2> class hwTMatrix;
+typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
+
 #include "hwLowPass_Proto.h"
 
 //------------------------------------------------------------------------------
@@ -59,6 +64,13 @@ public:
                        double& poleReal, 
                        double& poleMagSq,
                        double& zeroMagSq) const;
+    //!
+    //! Compute the zeros and poles
+    //! \param zeros
+    //! \param poles
+    //!
+    void GetSPlaneInfo(hwMatrix& zeros,
+                       hwMatrix& poles) const;
     //! 
     //! Compute low pass ripple factor
     //! 

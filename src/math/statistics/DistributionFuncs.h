@@ -26,6 +26,8 @@ template <typename T1, typename T2> class hwTMatrix;
 typedef hwTMatrix<double, hwTComplex<double> > hwMatrix;
 typedef hwTMatrix<int, hwTComplex<int> > hwMatrixI;
 typedef hwTMatrix<int64_t, hwTComplex<int64_t> > hwMatrixI64;
+template <typename T1, typename T2> class hwTMatrixN;
+typedef hwTMatrixN<double, hwTComplex<double> > hwMatrixN;
 
 //------------------------------------------------------------------------------
 //!
@@ -1022,6 +1024,18 @@ STATISTICS_DECLS hwMathStatus PoissonRnd(const hwMatrix&         lambda,
                                          hwMatrixI&              matrix);
 
 // Misc functions
+//!
+//! Generate a random integers on [min:max]
+//! \param min
+//! \param max
+//! \param numPts
+//! \param pMTState
+//! \param integerVec
+//!
+STATISTICS_DECLS hwMathStatus RandIntegers(int                     min,
+                                           int                     max,
+                                           hwMersenneTwisterState* pMTState,
+                                           hwMatrixN&              integers);
 //!
 //! Generate a random permutation vector on [1:max]
 //! \param max

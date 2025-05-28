@@ -1,7 +1,7 @@
 /**
 * @file StructData.h
 * @date September 2013
-* Copyright (C) 2013-2018 Altair Engineering, Inc.  
+* Copyright (C) 2013-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -34,7 +34,7 @@ public:
 
 	const Currency& GetValue(int index_1, int index_2, const std::string& field) const;
 	const Currency& GetValue(int index_1, int index_2, const std::string* field) const;
-	void            SetValue(int index_1, int index_2, const std::string& field, Currency value);
+	void            SetValue(int index_1, int index_2, const std::string& field, const Currency& value);
 	void            SetValue(int index_1, int index_2, const std::string* field, Currency value);
 	const Currency* GetPointer(int index_1, int index_2, const std::string& field) const;
 	const Currency* GetPointer(int index_1, int index_2, const std::string* field) const;

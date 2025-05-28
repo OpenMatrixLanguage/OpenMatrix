@@ -1,7 +1,7 @@
 /**
 * @file OMLInterface.h
 * @date January 2017
-* Copyright (C) 2017-2018 Altair Engineering, Inc.  
+* Copyright (C) 2017-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -42,6 +42,8 @@ public:
 
 protected:
 	EvaluatorInterface* _eval;
+
+	OMLImplBase() : _eval(nullptr) {}
 };
 
 class OMLInterfaceImpl : public OMLInterface5, OMLImplBase
@@ -50,52 +52,52 @@ public:
 	OMLInterfaceImpl(EvaluatorInterface* in_eval);
 	~OMLInterfaceImpl();
 
-	void RegisterFunction(const char*, ALT_FUNCPTR);
-	void RegisterHiddenFunction(const char*, ALT_FUNCPTR);
-	void RegisterFunctionWithMetadata(const char*, ALT_FUNCPTR, const char*, int, int);
-	void RegisterFunctionWithMetadata(const char*, ALT_FUNCPTR, const char*, int, int, bool);
+	void RegisterFunction(const char*, ALT_FUNCPTR) override;
+	void RegisterHiddenFunction(const char*, ALT_FUNCPTR) override;
+	void RegisterFunctionWithMetadata(const char*, ALT_FUNCPTR, const char*, int, int) override;
+	void RegisterFunctionWithMetadata(const char*, ALT_FUNCPTR, const char*, int, int, bool) override;
 
-	void ThrowError(const char*);
+	void ThrowError(const char*) override;
 
-	int  Nargout() const;
+	int  Nargout() const override;
 
-	const OMLCurrency* GetGlobalValue(const char*);
+	const OMLCurrency* GetGlobalValue(const char*) override;
 
-	const OMLCurrency* CallFunction(const OMLFunctionHandle* handle, OMLCurrencyList* inputs);
-	const OMLCurrency* CallFunction(const char* name, OMLCurrencyList* inputs);
+	const OMLCurrency* CallFunction(const OMLFunctionHandle*, OMLCurrencyList*) override;
+	const OMLCurrency* CallFunction(const char*, OMLCurrencyList*) override;
 
-	OMLCurrencyList* CreateCurrencyList();
+	OMLCurrencyList* CreateCurrencyList() override;\
 };
 
 class OMLCurrencyImpl : public OMLCurrency4, OMLImplBase
 {
 public:
-	OMLCurrencyImpl(EvaluatorInterface* in_eval, Currency in_cur);
+	OMLCurrencyImpl(EvaluatorInterface* in_eval, const Currency& in_cur);
 	~OMLCurrencyImpl();
 
-	bool IsScalar() const;
-	bool IsComplex() const;
-	bool IsString() const;
-	bool IsMatrix() const;
-	bool IsNDMatrix() const;
-	bool IsCellArray() const;
-	bool IsNDCellArray() const;
-	bool IsSparseMatrix() const;
-	bool IsStruct() const;
-	bool IsFunctionHandle() const;
-	bool IsLogical() const;
+	bool IsScalar() const override;
+	bool IsComplex() const override;
+	bool IsString() const override;
+	bool IsMatrix() const override;
+	bool IsNDMatrix() const override;
+	bool IsCellArray() const override;
+	bool IsNDCellArray() const override;
+	bool IsSparseMatrix() const override;
+	bool IsStruct() const override;
+	bool IsFunctionHandle() const override;
+	bool IsLogical() const override;
 
 	Currency GetCurrency() const { return _cur; }
 
-	double                   GetScalar() const;
-	const char*              GetString() const;
-	const OMLCellArray*      GetCellArray() const;
-	const OMLMatrix*         GetMatrix() const;
-	const OMLNDMatrix*       GetNDMatrix() const;
-	const OMLComplex*        GetComplex() const;
-	const OMLStruct*         GetStruct() const;
-	const OMLFunctionHandle* GetFunctionHandle() const;
-	bool                     GetLogical() const;
+	double                   GetScalar() const override;
+	const char*              GetString() const override;
+	const OMLCellArray*      GetCellArray() const override;
+	const OMLMatrix*         GetMatrix() const override;
+	const OMLNDMatrix*       GetNDMatrix() const override;
+	const OMLComplex*        GetComplex() const override;
+	const OMLStruct*         GetStruct() const override;
+	const OMLFunctionHandle* GetFunctionHandle() const override;
+	bool                     GetLogical() const override;
 
 private:
 	Currency _cur;
@@ -107,10 +109,10 @@ public:
 	OMLComplexImpl(EvaluatorInterface* in_eval, double real, double imag);
 	~OMLComplexImpl();
 
-	double GetReal() const;
-	double GetImag() const;
+	double GetReal() const override;
+	double GetImag() const override;
 
-	OMLCurrency* GetCurrency() const;
+	OMLCurrency* GetCurrency() const override;
 
 	static void GarbageCollect();
 
@@ -124,15 +126,15 @@ public:
 	OMLMatrixImpl(EvaluatorInterface* in_eval, const hwMatrix* in_mtx);
 	~OMLMatrixImpl();
 
-	bool    IsReal() const;
+	bool    IsReal() const override;
 
-	int     GetRows() const;
-	int     GetCols() const;
+	int     GetRows() const override;
+	int     GetCols() const override;
 
-	const double* GetRealData() const;
-	const double* GetImaginaryData() const;
+	const double* GetRealData() const override;
+	const double* GetImaginaryData() const override;
 
-	OMLCurrency*   GetCurrency() const;
+	OMLCurrency*   GetCurrency() const override;
 	hwMatrix*      GetMatrixPointer() const;
 
 private:
@@ -145,15 +147,15 @@ public:
 	OMLNDMatrixImpl(EvaluatorInterface* in_eval, const hwMatrixN* in_mtx);
 	~OMLNDMatrixImpl();
 
-	bool    IsReal() const;
+	bool    IsReal() const override;
 
-	int     GetNumDimension() const;
-	int     GetDimension(int) const;
+	int     GetNumDimension() const override;
+	int     GetDimension(int) const override;
 
-	const double* GetRealData() const;
-	const double* GetImaginaryData() const;
+	const double* GetRealData() const override;
+	const double* GetImaginaryData() const override;
 
-	OMLCurrency*   GetCurrency() const;
+	OMLCurrency*   GetCurrency() const override;
 	hwMatrixN*     GetMatrixPointer() const;
 
 private:
@@ -166,18 +168,18 @@ public:
 	OMLSparseMatrixImpl(EvaluatorInterface* in_eval, const hwMatrixS* in_mtx);
 	~OMLSparseMatrixImpl();
 
-	bool    IsReal() const;
+	bool    IsReal() const override;
 
-	int     GetRows() const;
-	int     GetCols() const;
+	int     GetRows() const override;
+	int     GetCols() const override;
 
-	const double* GetRealData() const;
-	const double* GetImaginaryData() const;
+	const double* GetRealData() const override;
+	const double* GetImaginaryData() const override;
 
-	const int* GetRowVector() const;
-	const int* GetColumnVector() const;
+	const int* GetRowVector() const override;
+	const int* GetColumnVector() const override;
 
-	OMLCurrency*   GetCurrency() const;
+	OMLCurrency*   GetCurrency() const override;
 	hwMatrixS*      GetMatrixPointer() const;
 
 private:
@@ -192,16 +194,16 @@ public:
 
 	~OMLCellArrayImpl();
 
-	OMLCurrency* GetValue(int index1) const;
-	OMLCurrency* GetValue(int index1, int index2) const;
+	OMLCurrency* GetValue(int index1) const override;
+	OMLCurrency* GetValue(int index1, int index2) const override;
 
-	int          GetRows() const;
-	int          GetCols() const;
+	int          GetRows() const override;
+	int          GetCols() const override;
 
-	void         SetValue(int index1, OMLCurrency* val);
-	void         SetValue(int index1, int index2, OMLCurrency* val);
+	void         SetValue(int index1, OMLCurrency* val) override;
+	void         SetValue(int index1, int index2, OMLCurrency* val) override;
 
-	OMLCurrency*   GetCurrency() const;
+	OMLCurrency*   GetCurrency() const override;
 	HML_CELLARRAY* GetCells() const;
 
 private:
@@ -216,13 +218,13 @@ public:
 	OMLNDCellArrayImpl(EvaluatorInterface* in_eval, HML_ND_CELLARRAY* in_cells);
 	~OMLNDCellArrayImpl();
 
-	int     GetNumDimension() const;
-	int     GetDimension(int) const;
+	int     GetNumDimension() const override;
+	int     GetDimension(int) const override;
 
-	OMLCurrency* GetValue(int index1) const;
-	void         SetValue(int index1, OMLCurrency* val);
+	OMLCurrency* GetValue(int index1) const override;
+	void         SetValue(int index1, OMLCurrency* val) override;
 
-	OMLCurrency*      GetCurrency() const;
+	OMLCurrency*      GetCurrency() const override;
 	HML_ND_CELLARRAY* GetCells() const;
 
 private:
@@ -235,16 +237,16 @@ public:
 	OMLStructImpl(EvaluatorInterface* in_eval, StructData* in_sd);
 	~OMLStructImpl();
 
-	OMLCurrency* GetValue(int index1, const char* field) const;
-	OMLCurrency* GetValue(int index1, int index2, const char* field) const;
+	OMLCurrency* GetValue(int index1, const char* field) const override;
+	OMLCurrency* GetValue(int index1, int index2, const char* field) const override;
 
-	int          GetRows() const;
-	int          GetCols() const;
+	int          GetRows() const override;
+	int          GetCols() const override;
 
-	void         SetValue(int index, const char* field, OMLCurrency* val);
-	void         SetValue(int index1, int index2, const char* field, OMLCurrency* val);
+	void         SetValue(int index, const char* field, OMLCurrency* val) override;
+	void         SetValue(int index1, int index2, const char* field, OMLCurrency* val) override;
 
-	OMLCurrency* GetCurrency() const;
+	OMLCurrency* GetCurrency() const override;
 	StructData*  GetStructData() const;
 
 private:
@@ -263,54 +265,72 @@ private:
 	FunctionInfo* _fi;
 };
 
-class OMLCurrencyListImpl : public OMLCurrencyList3, OMLImplBase
+
+class OMLASTImpl : public OMLAST
+{
+public:
+	OMLASTImpl(EvaluatorInterface* in_eval, OMLTree* in_tree);
+	~OMLASTImpl();
+
+	virtual void AddChild(OMLAST* child_tree) override;
+	OMLTree* GetTree();
+
+private:
+	OMLTree* _tree;
+
+	OMLASTImpl() : _tree (nullptr) {}
+};
+
+
+class OMLCurrencyListImpl : public OMLCurrencyList4, OMLImplBase
 {
 public:
 	OMLCurrencyListImpl(EvaluatorInterface* in_eval);
 	~OMLCurrencyListImpl();
 
-	int Size() const;
-	const OMLCurrency* Get(int idx) const;
+	int Size() const override;
+	const OMLCurrency* Get(int idx) const override;
 
-	void AddScalar(double);
-	void AddString(const char*);
-	void AddLogical(bool);
-	void AddCellArray(OMLCellArray*);
+	void AddScalar(double) override;
+	void AddString(const char*) override;
+	void AddLogical(bool) override;
+	void AddCellArray(OMLCellArray*) override;
 	void AddCellArray(HML_CELLARRAY* cells);
 	void AddNDCellArray(HML_ND_CELLARRAY* cells);
-	void AddNDCellArray(OMLNDCellArray*);
-	void AddMatrix(OMLMatrix*);
+	void AddNDCellArray(OMLNDCellArray*) override;
+	void AddMatrix(OMLMatrix*) override;
 	void AddMatrix(const hwMatrix*);
 	void AddNDMatrix(OMLNDMatrix*);
 	void AddNDMatrix(const hwMatrixN*);
-	void AddSparseMatrix(OMLSparseMatrix*);
+	void AddSparseMatrix(OMLSparseMatrix*) override;
 	void AddSparseMatrix(const hwMatrixS*);
-	void AddComplex(OMLComplex*);
+	void AddComplex(OMLComplex*) override;
 	void AddComplex(hwComplex);
-	void AddStruct(OMLStruct*);
-	void AddStruct(StructData*);
+	void AddStruct(OMLStruct*) override;
+	void AddStruct(const StructData*);
 	void AddFunctionHandle(FunctionInfo*);
 
-	double* AllocateData(int size);
+	double* AllocateData(int size) override;
 
 	// I'd love for these to be static, but since there are no static virtual functions,
 	// I have to either do this or play the factory game
-	OMLCurrency*  CreateCurrencyFromDouble(double dbl);
-	OMLCurrency*  CreateCurrencyFromString(const char* str);
+	OMLCurrency*  CreateCurrencyFromDouble(double dbl) override;
+	OMLCurrency*  CreateCurrencyFromString(const char* str) override;
 
-	OMLCellArray* CreateCellArray(int rows, int cols);
-	OMLMatrix*    CreateMatrix(int rows, int cols, double* data);
-	OMLMatrix*    CreateMatrix(int rows, int cols, double* real, double* imag);
-	OMLNDMatrix*  CreateNDMatrix(int num_dims, int* dims, double* real);
-	OMLNDMatrix*  CreateNDMatrix(int num_dims, int* dims, double* real, double* imag);
-	OMLComplex*   CreateComplex(double real, double imag);
-	OMLStruct*    CreateStruct(int rows, int cols);
-
+	OMLCellArray* CreateCellArray(int rows, int cols) override;
+	OMLMatrix*    CreateMatrix(int rows, int cols, double* data) override;
+	OMLMatrix*    CreateMatrix(int rows, int cols, double* real, double* imag) override;
+	OMLNDMatrix*  CreateNDMatrix(int num_dims, int* dims, double* real) override;
+	OMLNDMatrix*  CreateNDMatrix(int num_dims, int* dims, double* real, double* imag) override;
+	OMLComplex*   CreateComplex(double real, double imag) override;
+	OMLStruct*    CreateStruct(int rows, int cols) override;
 
 	OMLNDCellArray*  CreateNDCellArray(int num_dims, int* dims);
 	OMLSparseMatrix* CreateSparseMatrix(int num_vals, int* ivec, int* jvec, double* vals, int rows, int cols);
 
 	OMLCellArray* CreateTemporaryCellArray(int rows, int cols);
+
+	OMLAST*       CreateAST(int type, const char* label);
 
 private:
 	void Expand();
@@ -318,5 +338,6 @@ private:
 	OMLCurrency** _list;
 	int           _count;
 };
+
 
 #endif

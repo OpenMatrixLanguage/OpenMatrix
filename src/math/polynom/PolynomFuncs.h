@@ -17,6 +17,7 @@
 #define _Polynom_WrapperFuncs_h
 
 #include "PolynomExports.h"
+#include <limits>
 
 // forward declarations
 class hwMathStatus;
@@ -123,14 +124,14 @@ POLYNOM_DECLS hwMathStatus PolyInt(const hwMatrix& A,
 //! \param npts Number of points
 //! \param find Value to find
 //!
-int BinarySearchR(const double* data,
-                  int           npts,
-                  double        find);
+POLYNOM_DECLS int BinarySearchR(const double* data,
+                                int           npts,
+                                double        find);
 //!
 //! Performs linear interpolation and returns status
-//! \param x_old 
-//! \param y_old 
-//! \param x_new 
+//! \param x_old
+//! \param y_old
+//! \param x_new
 //! \param y_new
 //! \param extrap Optional argument
 //!
@@ -139,12 +140,22 @@ POLYNOM_DECLS hwMathStatus LinearInterp(const hwMatrix& x_old,
                                         const hwMatrix& x_new, 
                                         hwMatrix&       y_new, 
                                         bool            requireUniqueX,
-                                        bool            extrap);
+                                        int             extrap,
+                                        double          extrapVal = std::numeric_limits<double>::quiet_NaN());
+//!
+//! Computes piecewise linear interpolation coefficients and returns status
+//! \param x_old
+//! \param y_old
+//! \param coefs Coefficients
+//!
+POLYNOM_DECLS hwMathStatus LinearInterp(const hwMatrix& x_old,
+                                        const hwMatrix& y_old,
+                                        hwMatrix&       coefs);
 //!
 //! Performs piecewise cubic hermite interpolation and returns status
-//! \param x_old 
-//! \param y_old 
-//! \param x_new 
+//! \param x_old
+//! \param y_old
+//! \param x_new
 //! \param y_new
 //! \param extrap Optional argument
 //!
@@ -152,12 +163,22 @@ POLYNOM_DECLS hwMathStatus PchipInterp(const hwMatrix& x_old,
                                        const hwMatrix& y_old,
                                        const hwMatrix& x_new, 
                                        hwMatrix&       y_new,
-                                       bool            extrap = false);
+                                       int             extrap,
+                                       double          extrapVal = std::numeric_limits<double>::quiet_NaN());
+//!
+//! Computes piecewise cubic hermite coefficients and returns status
+//! \param x_old
+//! \param y_old
+//! \param coefs Coefficients
+//!
+POLYNOM_DECLS hwMathStatus PchipInterp(const hwMatrix& x_old,
+                                       const hwMatrix& y_old,
+                                       hwMatrix&       coefs);
 //!
 //! Performs knot-a-not cubic spline interpolation and returns status
-//! \param x_old 
-//! \param y_old 
-//! \param x_new 
+//! \param x_old
+//! \param y_old
+//! \param x_new
 //! \param y_new
 //! \param extrap Optional argument
 //!
@@ -165,12 +186,13 @@ POLYNOM_DECLS hwMathStatus Spline(const hwMatrix& x_old,
                                   const hwMatrix& y_old,
                                   const hwMatrix& x_new, 
                                   hwMatrix&       y_new,
-                                  bool            extrap = false);
+                                  int             extrap,
+                                  double          extrapVal = std::numeric_limits<double>::quiet_NaN());
 
 //!
 //! Computes knot-a-not cubic spline coefficients and returns status
-//! \param x_old 
-//! \param y_old 
+//! \param x_old
+//! \param y_old
 //! \param coefs Coefficients
 //!
 POLYNOM_DECLS hwMathStatus Spline(const hwMatrix& x_old, 
@@ -178,8 +200,8 @@ POLYNOM_DECLS hwMathStatus Spline(const hwMatrix& x_old,
                                   hwMatrix&       coefs);
 //!
 //! Performs clamped cubic spline interpolation and returns status
-//! \param x_old 
-//! \param y_old 
+//! \param x_old
+//! \param y_old
 //! \param fp1
 //! \param fp2
 //! \param x_new
@@ -191,12 +213,13 @@ POLYNOM_DECLS hwMathStatus Spline(const hwMatrix& x_old,
                                   double          fp1,
                                   double          fp2, 
                                   const hwMatrix& x_new,
-                                  hwMatrix&       y_new, 
-                                  bool            extrap = false);
+                                  hwMatrix&       y_new,
+                                  int             extrap,
+                                  double          extrapVal = std::numeric_limits<double>::quiet_NaN());
 //!
 //! Computes clamped cubic spline coefficients and returns status
-//! \param x_old 
-//! \param y_old 
+//! \param x_old
+//! \param y_old
 //! \param fp1
 //! \param fp2
 //! \param coefs Coefficients
@@ -208,12 +231,12 @@ POLYNOM_DECLS hwMathStatus Spline(const hwMatrix& x_old,
                                   hwMatrix&       coefs);
 //!
 //! Performs bilinear interpolation and returns status
-//! \param x_old 
-//! \param y_old 
-//! \param z_old 
-//! \param x_new 
+//! \param x_old
+//! \param y_old
+//! \param z_old
+//! \param x_new
 //! \param y_new
-//! \param z_new 
+//! \param z_new
 //! \param extrap Optional argument
 //!
 POLYNOM_DECLS hwMathStatus BilinearInterp(const hwMatrix& x_old, 
@@ -222,12 +245,13 @@ POLYNOM_DECLS hwMathStatus BilinearInterp(const hwMatrix& x_old,
                                           const hwMatrix& x_new, 
                                           const hwMatrix& y_new, 
                                           hwMatrix&       z_new,
-                                          bool            extrap = false);
+                                          int             extrap,
+                                          double          extrapVal = std::numeric_limits<double>::quiet_NaN());
 //!
 //! Performs spline surface interpolation and returns status
-//! \param x_old 
-//! \param y_old 
-//! \param z_old 
+//! \param x_old
+//! \param y_old
+//! \param z_old
 //! \param x_new
 //! \param y_new
 //! \param z_new
@@ -239,12 +263,13 @@ POLYNOM_DECLS hwMathStatus Spline2D(const hwMatrix& x_old,
                                     const hwMatrix& x_new, 
                                     const hwMatrix& y_new, 
                                     hwMatrix&       z_new,
-                                    bool            extrap = false);
+                                    int             extrap,
+                                    double          extrapVal = std::numeric_limits<double>::quiet_NaN());
 //!
 //! Computes gradient of trilinear interpolation and returns status
-//! \param x_old 
-//! \param y_old 
-//! \param z_old 
+//! \param x_old
+//! \param y_old
+//! \param z_old
 //! \param v_new
 //! \param grad
 //! \param extrap Optional argument
@@ -256,5 +281,18 @@ POLYNOM_DECLS hwMathStatus TrilinearInterpGrad(const hwMatrix&  x_old,
                                                const hwMatrixN& val_old,
                                                const hwMatrix&  v_new,
                                                hwMatrix&        grad);
+//!
+//! Performs multilinear interpolation
+//! \param x_old
+//! \param val_old 
+//! \param x_new
+//! \param val_new
+//! 
+POLYNOM_DECLS hwMathStatus MultilinearInterp(const hwMatrix** x_old,
+                                             const hwMatrixN& val_old,
+                                             const hwMatrix** x_new,
+                                             hwMatrixN&       val_new,
+                                             int              extrap,
+                                             double           extrapVal = std::numeric_limits<double>::quiet_NaN());
 
 #endif // _Polynom_WrapperFuncs_h

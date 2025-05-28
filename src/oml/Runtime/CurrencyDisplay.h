@@ -353,9 +353,10 @@ protected:
     
     //!
     //! Constructor - Only currency or derived classes can access constructor
-    //! \param cur Currency associated with this display
+    //! \param Currency associated with this display
     //!
-    CurrencyDisplay(const Currency& cur);
+    CurrencyDisplay(const Currency&);
+    CurrencyDisplay();
 
     //!
     //! True if header needs to be printed
@@ -418,7 +419,6 @@ protected:
     std::string GetIndentString(int val) const;
     
 private:
-    CurrencyDisplay();                                        //!< Stubbed out 
     CurrencyDisplay(const CurrencyDisplay& src) ;             //!< Stubbed out 
     CurrencyDisplay& operator=(const CurrencyDisplay& src);  //!< Stubbed out
 

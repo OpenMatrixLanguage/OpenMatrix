@@ -1,7 +1,7 @@
 /**
 * @file OML_Error.cpp
 * @date November 2015
-* Copyright (C) 2015-2022 Altair Engineering, Inc.  
+* Copyright (C) 2015-2024 Altair Engineering, Inc.  
 * This file is part of the OpenMatrix Language ("OpenMatrix") software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -30,7 +30,6 @@
 #define OML_MSG_NUMARGIN      "Error: invalid function call; incorrect number of input arguments"
 #define OML_MSG_NUMARGOUT     "Error: invalid function call; incorrect number of output arguments"
 #define OML_MSG_NUMARGINOUT   "Error: invalid function call; incorrect combination of input/output arguments"
-#define OML_MSG_CELL          "Error: invalid input; must be cell"
 #define OML_MSG_CELLARRAY     "Error: invalid input; must be cell array"
 #define OML_MSG_STRUCT        "Error: invalid input; must be struct"
 #define OML_MSG_STRING        "Error: invalid input; must be string"
@@ -141,6 +140,17 @@
 #define OML_MSG_AUTHENTICATE                "Error: authentication failure"
 #define OML_MSG_UNICODE_FILENAME            "Error: invalid input: file name cannot have Unicode characters"
 #define OML_MSG_STRING_POSINTEGER           "Error: invalid input: must be a string or positive integer"
+#define OML_MSG_FUNCHANDLE_STRING           "Error: invalid input; must be a function handle or string"
+#define OML_MSG_DATATYPE                    "Error: invalid input; unsupported data type"
+#define OML_MSG_INVALIDFORMAT               "Error: invalid format"
+#define OML_MSG_DIMSFINITE                  "Error: invalid dimensions; must be finite"
+#define OML_MSG_NOTLOGICAL                  "Error: invalid input; cannot be logical"
+#define OML_MSG_SPECIALCHARS_FILENAME       "Error: invalid file name; special characters \"<>|?*:\" cannot be used"
+#define OML_MSG_MISSING_VALUE               "Error: invalid function call; missing value for argument"
+#define OML_MSG_FILENAME                    "Error: invalid input; must be a file name"
+#define OML_MSG_MIXEDCELL                   "Error: invalid input; has elements with mismatched dimensions or data types"
+#define OML_MSG_INVALID_FIELD               "Error: invalid input; field does not exist"
+#define OML_MSG_EXEC_FAIL                   "Error: failed to execute"
 
 // optimization messages
 #define OML_MSG_OBJSTRRET1                  "Error: invalid objective function; must have exactly 1 return"
@@ -212,6 +222,7 @@
 #define OML_MSG_HDF5_GROUP_CREATION_FAILED       "Error: failed to create group"
 #define OML_MSG_HDF5_GROUP_RENAME_FAILED         "Error: failed to rename group"
 #define OML_MSG_HDF5_GROUP_REMOVE_FAILED         "Error: failed to remove group"
+#define OML_MSG_HDF5_GROUP_WRITE_FAILED          "Error: failed to write group"
 #define OML_MSG_HDF5_DATASET_CREATION_FAILED     "Error: failed to create dataset"
 #define OML_MSG_HDF5_WRITE_FAILED                "Error: failed to write"
 #define OML_MSG_HDF5_DATASET_RENAME_FAILED       "Error: failed to rename dataset"
@@ -261,6 +272,7 @@
 #define OML_MSG_HWREADER_INVALID_TYPE            "Error: invalid datatype"
 #define OML_MSG_HWREADER_INVALID_REQUEST         "Error: invalid requests"
 #define OML_MSG_HWREADER_MISSING_COMPONENT       "Error: missing component"
+#define OML_MSG_HWREADER_MISSING_REQUEST         "Error: missing requests"
 #define OML_MSG_HWREADER_INVALID_COMPONENT       "Error: invalid component"
 #define OML_MSG_HWREADER_MISSING_TIME            "Error: missing time"
 #define OML_MSG_HWREADER_FAIL_READER_INIT        "Error: reader initialization failed"
@@ -301,12 +313,22 @@
 #define OML_MSG_FILEALREADYOPEN_OP               "Error: invalid operation; file is already open in other application(s)"
 #define OML_MSG_OMLINTERFACE_OP                  "Error: invalid operation; cannot complete operation with 'oml'(default) interface"
 
-#define OML_MSG_MQTT_INVALID_OPTION              "Error: invalid option"
 #define OML_MSG_MQTT_CLIENTID_INUSE              "Error: client id is in use"
 #define OML_MSG_MQTT_CLIENTID_INVALID            "Error: no client exists with given client id"
 #define OML_MSG_MQTT_CLIENTCREATION_FAIL         "Error: failed to create client"
 #define OML_MSG_MQTT_CLIENTID_SIZE               "Error: invalid client id; client id length must be less than 24"
 #define OML_MSG_MQTT_MIN_IDLETIME                "Error: invalid idle time; idle time must be at least 0.001 seconds"
+
+#define OML_MSG_WEBOPT_URL_TYPE                  "Error: URL must be a string"
+#define OML_MSG_WEBOPT_KEY_VALUE_TYPE            "Error: KEY and VALUE must be string"
+#define OML_MSG_WEBOPT_KEY_VALUE_PAIR            "Error: KEY and VALUE must occur in pair"
+#define OML_MSG_WEBOPT_DATA_TYPE                 "Error: Data must be a string"
+#define OML_MSG_WEBOPT_USERNAME_TYPE             "Error: Username must be a string"
+#define OML_MSG_WEBOPT_PASSWORD_TYPE             "Error: Password must be a string"
+#define OML_MSG_WEBOPT_CONTENT_TYPE              "Error: invalid content type value"
+#define OML_MSG_WEBOPT_CHAR_ENCODING             "Error: invalid char encoding value"
+#define OML_MSG_WEBOPT_REQUEST_METHOD            "Error: invalid request method value"
+#define OML_MSG_WEBOPT_INVALID_OPTION            "Error: invalid option"
 
 
 // Variable type definitions
@@ -439,6 +461,22 @@ OML_Error::OML_Error(const std::string& message, bool formatMsg)
     // This should be used mainly for special cases. Other CTORs ensure better
     // standardization of errors
 }
+//-----------------------------------------------------------------------------
+// Constructor
+//-----------------------------------------------------------------------------
+OML_Error::OML_Error(omlMathErrCode errCode, const std::string& val, int arg1)
+    : m_formatMsg (true)
+    , m_errCode   (errCode)
+    , m_arg1      (arg1)
+    , m_arg2      (-1)
+    , m_varCode   (OML_VAR_NONE)
+{
+    std::string msg(GetErrorMessage());
+    if (!msg.empty() && !val.empty())
+    {
+        m_message = msg + ": [" + val + "]";
+    }
+}
 //------------------------------------------------------------------------------
 // Returns error message
 //------------------------------------------------------------------------------
@@ -560,7 +598,6 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode code) const
         case OML_ERR_NUMARGIN:                    return OML_MSG_NUMARGIN;
         case OML_ERR_NUMARGOUT:                   return OML_MSG_NUMARGOUT;
         case OML_ERR_NUMARGINOUT:                 return OML_MSG_NUMARGINOUT;
-        case OML_ERR_CELL:                        return OML_MSG_CELL;
         case OML_ERR_CELLARRAY:                   return OML_MSG_CELLARRAY;
         case OML_ERR_STRUCT:                      return OML_MSG_STRUCT;
         case OML_ERR_STRING:                      return OML_MSG_STRING;
@@ -671,6 +708,17 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode code) const
         case OML_ERR_AUTHENTICATE:                return OML_MSG_AUTHENTICATE;
         case OML_ERR_UNICODE_FILENAME:            return OML_MSG_UNICODE_FILENAME;
         case OML_ERR_STRING_POSINTEGER:           return OML_MSG_STRING_POSINTEGER;
+        case OML_ERR_FUNCHANDLE_STRING:           return OML_MSG_FUNCHANDLE_STRING;
+        case OML_ERR_DATATYPE:                    return OML_MSG_DATATYPE;
+        case OML_ERR_INVALIDFORMAT:               return OML_MSG_INVALIDFORMAT;
+        case OML_ERR_DIMSFINITE:                  return OML_MSG_DIMSFINITE;
+        case OML_ERR_NOTLOGICAL:                  return OML_MSG_NOTLOGICAL;
+        case OML_ERR_SPECIALCHARS_FILENAME:       return OML_MSG_SPECIALCHARS_FILENAME;
+        case OML_ERR_MISSING_VALUE:               return OML_MSG_MISSING_VALUE;
+        case OML_ERR_FILENAME:                    return OML_MSG_FILENAME;
+        case OML_ERR_MIXEDCELL:                   return OML_MSG_MIXEDCELL;
+        case OML_ERR_INVALID_FIELD:               return OML_MSG_INVALID_FIELD;
+        case OML_ERR_EXEC_FAIL:                   return OML_MSG_EXEC_FAIL;
 
         // optimization error messages:
         case OML_ERR_OBJSTRRET1:                  return OML_MSG_OBJSTRRET1;
@@ -739,6 +787,7 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode code) const
         case OML_ERR_HDF5_GROUP_CREATION_FAILED:     return OML_MSG_HDF5_GROUP_CREATION_FAILED;
         case OML_ERR_HDF5_GROUP_RENAME_FAILED:       return OML_MSG_HDF5_GROUP_RENAME_FAILED;
         case OML_ERR_HDF5_GROUP_REMOVE_FAILED:       return OML_MSG_HDF5_GROUP_REMOVE_FAILED;
+        case OML_ERR_HDF5_GROUP_WRITE_FAILED:        return OML_MSG_HDF5_GROUP_WRITE_FAILED;
         case OML_ERR_HDF5_DATASET_CREATION_FAILED:   return OML_MSG_HDF5_DATASET_CREATION_FAILED;
         case OML_ERR_HDF5_WRITE_FAILED:              return OML_MSG_HDF5_WRITE_FAILED;
         case OML_ERR_HDF5_DATASET_RENAME_FAILED:     return OML_MSG_HDF5_DATASET_RENAME_FAILED;
@@ -786,6 +835,7 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode code) const
         case OML_ERR_HWREADER_INVALID_TYPE:           return OML_MSG_HWREADER_INVALID_TYPE;
         case OML_ERR_HWREADER_INVALID_REQUEST:        return OML_MSG_HWREADER_INVALID_REQUEST;
         case OML_ERR_HWREADER_MISSING_COMPONENT:      return OML_MSG_HWREADER_MISSING_COMPONENT;
+		case OML_ERR_HWREADER_MISSING_REQUEST:        return OML_MSG_HWREADER_MISSING_REQUEST;
         case OML_ERR_HWREADER_INVALID_COMPONENT:      return OML_MSG_HWREADER_INVALID_COMPONENT;
         case OML_ERR_HWREADER_MISSING_TIME:           return OML_MSG_HWREADER_MISSING_TIME;
         case OML_ERR_HWREADER_FAIL_READER_INIT:       return OML_MSG_HWREADER_FAIL_READER_INIT;
@@ -826,13 +876,23 @@ std::string OML_Error::GetOmlErrorMessage(omlMathErrCode code) const
         case OML_ERR_FILEALREADYOPEN_OP: return OML_MSG_FILEALREADYOPEN_OP;
         case OML_ERR_OMLINTERFACE_OP:    return OML_MSG_OMLINTERFACE_OP;
 
-        case OML_ERR_MQTT_INVALID_OPTION:             return OML_MSG_MQTT_INVALID_OPTION;
         case OML_ERR_MQTT_CLIENTID_INUSE:             return OML_MSG_MQTT_CLIENTID_INUSE;
         case OML_ERR_MQTT_CLIENTID_INVALID:           return OML_MSG_MQTT_CLIENTID_INVALID;
         case OML_ERR_MQTT_CLIENTCREATION_FAIL:        return OML_MSG_MQTT_CLIENTCREATION_FAIL;
         case OML_ERR_MQTT_CLIENTID_SIZE:              return OML_MSG_MQTT_CLIENTID_SIZE;
         case OML_ERR_MQTT_MIN_IDLETIME:               return OML_MSG_MQTT_MIN_IDLETIME;
 
+        case OML_ERR_WEBOPT_URL_TYPE:                 return OML_MSG_WEBOPT_URL_TYPE;
+        case OML_ERR_WEBOPT_KEY_VALUE_TYPE:           return OML_MSG_WEBOPT_KEY_VALUE_TYPE;
+        case OML_ERR_WEBOPT_KEY_VALUE_PAIR:           return OML_MSG_WEBOPT_KEY_VALUE_PAIR;
+        case OML_ERR_WEBOPT_DATA_TYPE:                return OML_MSG_WEBOPT_DATA_TYPE;
+        case OML_ERR_WEBOPT_USERNAME_TYPE:            return OML_MSG_WEBOPT_USERNAME_TYPE;
+        case OML_ERR_WEBOPT_PASSWORD_TYPE:            return OML_MSG_WEBOPT_PASSWORD_TYPE;
+        case OML_ERR_WEBOPT_CONTENT_TYPE:             return OML_MSG_WEBOPT_CONTENT_TYPE;
+        case OML_ERR_WEBOPT_CHAR_ENCODING:            return OML_MSG_WEBOPT_CHAR_ENCODING;
+        case OML_ERR_WEBOPT_REQUEST_METHOD:           return OML_MSG_WEBOPT_REQUEST_METHOD;
+        case OML_ERR_WEBOPT_INVALID_OPTION:           return OML_MSG_WEBOPT_INVALID_OPTION;
+        
         default: break;
     }
 

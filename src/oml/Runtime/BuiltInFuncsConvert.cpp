@@ -402,7 +402,7 @@ bool BuiltInFuncsConvert::hml_bin2dec(EvaluatorInterface           eval,
 //------------------------------------------------------------------------------
 Currency BuiltInFuncsConvert::Bin2DecHelper(const std::string& str)
 {
-    if (str.empty()) 
+    if (str.empty())
     {
         return Currency();
     }
@@ -415,25 +415,41 @@ Currency BuiltInFuncsConvert::Bin2DecHelper(const std::string& str)
         char c = str[i];
         if (c != '0' && c != '1' && c != ' ')
         {
-            Currency result (std::numeric_limits<double>::quiet_NaN());
+            Currency result(std::numeric_limits<double>::quiet_NaN());
             result.SetMask(Currency::TYPE_SCALAR);
             return result;
         }
-        if (c != ' ') 
+        if (c != ' ')
         {
             input += c;
         }
     }
+
+#if OLD_CODE
     long long num = atol(input.c_str());
 
-    double result = 0;
-    double i = 0;
-    while (num != 0)
+    double result = 0.0;
+    size_t array_size = input.size();
+
+    for (int j = 0; j < array_size; ++j)
     {
-        int rem = num % 10;
-        num /= 10;
-        result += rem * std::pow(2, i);
-        ++i;
+        size_t index = array_size - j - 1;
+        char test = input[index];
+
+        if (test != '0')
+            result += std::pow(2, j);
+    }
+#endif
+    double result = 0.0;
+    size_t array_size = input.size();
+
+    for (int j = 0; j < array_size; ++j)
+    {
+        size_t index = array_size - j - 1;
+        char test = input[index];
+
+        if (test != '0')
+            result += std::pow(2, j);
     }
 
     return Currency(result);
@@ -655,14 +671,14 @@ bool BuiltInFuncsConvert::De2Bi(EvaluatorInterface           eval,
         {
             if (!cur2.Matrix()->IsEmpty())
             {
+                    throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_TYPE);
+                }
+            }
+        else
+            {
                 throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_TYPE);
             }
         }
-        else
-        {
-            throw OML_Error(OML_ERR_POSINTEGER, 2, OML_VAR_TYPE);
-        }
-    }
 
     int base = 2;
     if (nargin >= 3)

@@ -22,6 +22,9 @@
 #include "MathUtilsFuncs.h"
 #include "StatisticsFuncs.h"
 #include "hwFilterManager.h"
+#include "MKLutilities.h"
+
+#define MKLuD MKLutilitiesD
 
 // digital
 #include "hwBessel_z.h"
@@ -36,6 +39,11 @@
 #include "hwChebyshev_I_s.h"
 #include "hwChebyshev_II_s.h"
 #include "hwElliptic_s.h"
+#include "hwBessel_Proto.h"
+#include "hwButterworth_Proto.h"
+#include "hwChebyshev_I_Proto.h"
+#include "hwChebyshev_II_Proto.h"
+#include "hwElliptic_Proto.h"
 // design
 #include "hwBessel_Design.h"
 #include "hwButterworth_Design.h"
@@ -53,7 +61,46 @@
 #include "hwKaiserBessel.h"
 
 //------------------------------------------------------------------------------
-// Computes filter transfer function coefficients and returns status
+// Computes Bessel analog prototype filter zero-pole-gain values
+//------------------------------------------------------------------------------
+hwMathStatus Besselap(int         order,
+                      const char* type,
+                      hwMatrix&   zeros,
+                      hwMatrix&   poles,
+                      double&     gain)
+{
+    hwBessel_Proto filter(order, type);
+
+    if (!filter.Status().IsOk())
+    {
+        return filter.Status();
+    }
+
+    zeros.Dimension(0, 1, hwMatrix::REAL);
+    filter.GetSPlaneInfo(poles);
+    int index = 0;
+    double magAccum = 1.0;
+
+    if (order % 2 == 1)
+    {
+        filter.GetSPlaneInfo(magAccum);
+        magAccum = -magAccum;
+    }
+
+    while (index < order / 2)
+    {
+        double dummy;
+        double magSq;
+        filter.GetSPlaneInfo(index++, dummy, magSq);
+        magAccum *= magSq;
+    }
+
+    gain = magAccum;
+
+    return hwMathStatus();
+}
+//------------------------------------------------------------------------------
+// Computes Bessel filter transfer function coefficients and returns status
 //------------------------------------------------------------------------------
 hwMathStatus Besself(int         order, 
                      double      lowCutoffFreq, 
@@ -103,7 +150,7 @@ hwMathStatus Besself(int         order,
     return status;
 }
 //------------------------------------------------------------------------------
-// Computes filter transfer function coefficients and returns status
+// Computes Bessel filter transfer function coefficients and returns status
 //------------------------------------------------------------------------------
 hwMathStatus Besself3(int         order, 
                       double      lowCutoffFreq, 
@@ -152,6 +199,44 @@ hwMathStatus Besself3(int         order,
     return status;
 }
 //------------------------------------------------------------------------------
+// Computes Butterworth analog prototype filter zero-pole-gain values
+//------------------------------------------------------------------------------
+hwMathStatus Buttap(int       order,
+                    hwMatrix& zeros,
+                    hwMatrix& poles,
+                    double&   gain)
+{
+    hwButterworth_Proto filter(order);
+
+    if (!filter.Status().IsOk())
+    {
+        return filter.Status();
+    }
+
+    zeros.Dimension(0, 1, hwMatrix::REAL);
+    filter.GetSPlaneInfo(poles);
+    int index = 0;
+    double magAccum = 1.0;
+
+    if (order % 2 == 1)
+    {
+        filter.GetSPlaneInfo(magAccum);
+        magAccum = -magAccum;
+    }
+
+    while (index < order / 2)
+    {
+        double dummy;
+        double magSq;
+        filter.GetSPlaneInfo(index++, dummy, magSq);
+        magAccum *= magSq;
+    }
+
+    gain = magAccum;
+
+    return hwMathStatus();
+}
+//------------------------------------------------------------------------------
 // Computes Butterworth filter transfer function coefficients and returns status
 //------------------------------------------------------------------------------
 hwMathStatus Butter(int         order, 
@@ -193,6 +278,46 @@ hwMathStatus Butter(int         order,
     delete pFilter;
 
     return status;
+}
+//------------------------------------------------------------------------------
+// Computes Chebyshev type I analog prototype filter zero-pole-gain values
+//------------------------------------------------------------------------------
+hwMathStatus Cheb1ap(int       order,
+                     double    passEdgeDb,
+                     hwMatrix& zeros,
+                     hwMatrix& poles,
+                     double&   gain)
+{
+    hwChebyshev_I_Proto filter(order, passEdgeDb);
+
+    if (!filter.Status().IsOk())
+    {
+        return filter.Status();
+    }
+
+    zeros.Dimension(0, 1, hwMatrix::REAL);
+    filter.GetSPlaneInfo(poles);
+    double ripple = filter.GetRippleFactor();
+    int index = 0;
+    double magAccum = 1.0;
+
+    if (order % 2 == 1)
+    {
+        filter.GetSPlaneInfo(magAccum);
+        magAccum = -magAccum;
+    }
+
+    while (index < order / 2)
+    {
+        double dummy;
+        double magSq;
+        filter.GetSPlaneInfo(index++, dummy, magSq);
+        magAccum *= magSq;
+    }
+
+    gain = ripple * magAccum;
+
+    return hwMathStatus();
 }
 //------------------------------------------------------------------------------
 // Computes Chebyshev type I filter transfer function coefficients
@@ -239,6 +364,47 @@ hwMathStatus Cheby1(int         order,
     return status;
 }
 //------------------------------------------------------------------------------
+// Computes Chebyshev type II analog prototype filter zero-pole-gain values
+//------------------------------------------------------------------------------
+hwMathStatus Cheb2ap(int       order,
+                     double    stopEdgeDb,
+                     hwMatrix& zeros,
+                     hwMatrix& poles,
+                     double&   gain)
+{
+    hwChebyshev_II_Proto filter(order, stopEdgeDb);
+
+    if (!filter.Status().IsOk())
+    {
+        return filter.Status();
+    }
+
+    filter.GetSPlaneInfo(zeros, poles);
+    int index = 0;
+    double poleMagAcc = 1.0;
+    double zeroMagAcc = 1.0;
+
+    if (order % 2 == 1)
+    {
+        filter.GetSPlaneInfo(poleMagAcc);
+        poleMagAcc = -poleMagAcc;
+    }
+
+    while (index < order / 2)
+    {
+        double dummy;
+        double poleMagSq;
+        double zeroMagSq;
+        filter.GetSPlaneInfo(index++, dummy, poleMagSq, zeroMagSq);
+        zeroMagAcc *= zeroMagSq;
+        poleMagAcc *= poleMagSq;
+    }
+
+    gain = poleMagAcc / zeroMagAcc;
+
+    return hwMathStatus();
+}
+//------------------------------------------------------------------------------
 // Computes Chebyshev type II filter transfer function coefficients
 //------------------------------------------------------------------------------
 hwMathStatus Cheby2(int         order, 
@@ -281,6 +447,49 @@ hwMathStatus Cheby2(int         order,
     delete pFilter;
 
     return status;
+}
+//------------------------------------------------------------------------------
+// Computes Elliptic type II analog prototype filter zero-pole-gain values
+//------------------------------------------------------------------------------
+hwMathStatus Ellipap(int       order,
+                     double    passEdgeDb,
+                     double    stopEdgeDb,
+                     hwMatrix& zeros,
+                     hwMatrix& poles,
+                     double&   gain)
+{
+    hwElliptic_Proto filter(order, passEdgeDb, stopEdgeDb);
+
+    if (!filter.Status().IsOk())
+    {
+        return filter.Status();
+    }
+
+    filter.GetSPlaneInfo(zeros, poles);
+    int index = 0;
+    double ripple = filter.GetRippleFactor();
+    double poleMagAcc = 1.0;
+    double zeroMagAcc = 1.0;
+
+    if (order % 2 == 1)
+    {
+        filter.GetSPlaneInfo(poleMagAcc);
+        poleMagAcc = -poleMagAcc;
+    }
+
+    while (index < order / 2)
+    {
+        double dummy;
+        double poleMagSq;
+        double zeroMagSq;
+        filter.GetSPlaneInfo(index++, dummy, poleMagSq, zeroMagSq);
+        zeroMagAcc *= zeroMagSq;
+        poleMagAcc *= poleMagSq;
+    }
+
+    gain = ripple * poleMagAcc / zeroMagAcc;
+
+    return hwMathStatus();
 }
 //------------------------------------------------------------------------------
 // Computes Elliptic filter transfer function coefficients and returns status
@@ -886,14 +1095,14 @@ hwMathStatus EllipOrd(double      passBandFreq,
 //------------------------------------------------------------------------------
 // Designs an Elliptic filter and returns the status
 //------------------------------------------------------------------------------
-hwMathStatus EllipOrd(const hwMatrix& passBandFreq, 
-                      const hwMatrix& stopBandFreq,
-                      double          passEdgeDb, 
-                      double          stopEdgeDb, 
-                      int&            order,
-                      hwMatrix&       freqC1,
-                      hwMatrix&       freqC2, 
-                      const char*     type)
+hwMathStatus EllipOrd(const hwMatrix& passBandFreq,
+    const hwMatrix& stopBandFreq,
+    double          passEdgeDb,
+    double          stopEdgeDb,
+    int& order,
+    hwMatrix& freqC1,
+    hwMatrix& freqC2,
+    const char* type)
 {
     hwElliptic_Design ellip;
     hwMathStatus status;
@@ -905,12 +1114,12 @@ hwMathStatus EllipOrd(const hwMatrix& passBandFreq,
     else if (!strcmp(type, "z"))
     {
         status = ellip.Digital(passBandFreq, stopBandFreq, passEdgeDb, stopEdgeDb,
-                               order, freqC1, freqC2);
+            order, freqC1, freqC2);
     }
     else if (!strcmp(type, "s"))
     {
         status = ellip.Analog(passBandFreq, stopBandFreq, passEdgeDb, stopEdgeDb,
-                              order, freqC1, freqC2);
+            order, freqC1, freqC2);
     }
     else
     {
@@ -922,10 +1131,12 @@ hwMathStatus EllipOrd(const hwMatrix& passBandFreq,
 //------------------------------------------------------------------------------
 // Filter a signal using the transfer function and return the status
 //------------------------------------------------------------------------------
-hwMathStatus Filter(const hwMatrix& numerCoef, 
+hwMathStatus Filter(const hwMatrix& numerCoef,
                     const hwMatrix* denomCoef,
-                    const hwMatrix& inSignal, 
-                    hwMatrix&       outSignal)
+                    const hwMatrix& inSignal,
+                    const hwMatrix* initCond,
+                    hwMatrix&       outSignal,
+                    hwMatrix*       finalCond)
 {
     hwFilterManager manager;
     hwMathStatus    status = manager.CreateFilter(numerCoef, denomCoef);
@@ -934,7 +1145,7 @@ hwMathStatus Filter(const hwMatrix& numerCoef,
         return status;
     }
 
-    status = manager.ApplyFilter(inSignal, outSignal);
+    status = manager.ApplyFilter(inSignal, outSignal, initCond, finalCond);
 
     if (!status.IsOk())
     {
@@ -955,6 +1166,136 @@ hwMathStatus Filter(const hwMatrix& numerCoef,
             status.ResetArgs();
         }
     }
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// Compute IIR filter initial conditions that match input/output signals and return the status
+//------------------------------------------------------------------------------
+hwMathStatus FiltIC(const hwMatrix& numerCoef,
+                    const hwMatrix& denomCoef,
+                    const hwMatrix& outSignal,
+                    const hwMatrix* inSignal,
+                    hwMatrix&       initCond)
+{
+    if (!numerCoef.IsReal())
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 1);
+
+    if (!numerCoef.IsVector())
+        return hwMathStatus(HW_MATH_ERR_VECTOR, 1);
+
+    if (!denomCoef.IsReal())
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 2);
+
+    if (!denomCoef.IsVector())
+        return hwMathStatus(HW_MATH_ERR_VECTOR, 2);
+
+    if (!outSignal.IsReal())
+        return hwMathStatus(HW_MATH_ERR_COMPLEX, 3);
+
+    if (!outSignal.IsVector())
+        return hwMathStatus(HW_MATH_ERR_VECTOR, 3);
+
+    if (IsZero(denomCoef(0), 1.0e-12))
+        return hwMathStatus(HW_MATH_ERR_FILTERDENZERO);
+
+    int numNumerCoefs = numerCoef.Size();
+    int numDenomCoefs = denomCoef.Size();
+
+    if (numNumerCoefs < numDenomCoefs)
+    {
+        hwMatrix temp(numDenomCoefs, hwMatrix::REAL);
+
+        for (int i = 0; i < numNumerCoefs; ++i)
+            temp(i) = numerCoef(i);
+
+        for (int i = numNumerCoefs; i < numDenomCoefs; ++i)
+            temp(i) = 0.0;
+
+        return FiltIC(temp, denomCoef, outSignal, inSignal, initCond);
+    }
+
+    if (numNumerCoefs > numDenomCoefs)
+    {
+        hwMatrix temp(numNumerCoefs, hwMatrix::REAL);
+
+        for (int i = 0; i < numDenomCoefs; ++i)
+            temp(i) = denomCoef(i);
+
+        for (int i = numDenomCoefs; i < numNumerCoefs; ++i)
+            temp(i) = 0.0;
+
+        return FiltIC(numerCoef, temp, outSignal, inSignal, initCond);
+    }
+
+    int numOutSamples = outSignal.Size();
+
+    if (numOutSamples < numDenomCoefs)
+    {
+        hwMatrix temp(numDenomCoefs, hwMatrix::REAL);
+
+        for (int i = 0; i < numOutSamples; ++i)
+            temp(i) = outSignal(i);
+
+        for (int i = numOutSamples; i < numDenomCoefs; ++i)
+            temp(i) = 0.0;
+
+        return FiltIC(numerCoef, denomCoef, temp, inSignal, initCond);
+    }
+
+    if (inSignal)
+    {
+        if (!inSignal->IsReal())
+            return hwMathStatus(HW_MATH_ERR_COMPLEX, 4);
+
+        int numInpSamples = inSignal->Size();
+
+        if (numInpSamples < numDenomCoefs)
+        {
+            hwMatrix temp(numDenomCoefs, hwMatrix::REAL);
+
+            for (int i = 0; i < numInpSamples; ++i)
+                temp(i) = (*inSignal)(i);
+
+            for (int i = numInpSamples; i < numDenomCoefs; ++i)
+                temp(i) = 0.0;
+
+            return FiltIC(numerCoef, denomCoef, outSignal, &temp, initCond);
+        }
+    }
+    else
+    {
+        hwMatrix temp(numDenomCoefs, hwMatrix::REAL);
+        temp.SetElements(0.0);
+        return FiltIC(numerCoef, denomCoef, outSignal, &temp, initCond);
+    }
+
+    int numIC = numDenomCoefs - 1;
+    hwMathStatus status = initCond.Dimension(numIC, 1, hwMatrix::REAL);
+
+    if (!status.IsOk())
+    {
+        return status;
+    }
+
+    const hwMatrix& b = numerCoef;
+    const hwMatrix& a = denomCoef;
+    const hwMatrix& y = outSignal;
+    const hwMatrix& x = *inSignal;
+    hwMatrix& zi = initCond;
+    int nz = numIC;
+
+    for (int i = nz - 1; i > -1; --i)
+    {
+        for (int j = i; j < nz - 1; ++j)
+        {
+            zi(j) = b(j + 1) * x(i) - a(j + 1) * y(i) + zi(j + 1);
+        }
+
+        zi(nz - 1) = b(nz) * x(i) - a(nz) * y(i);
+    }
+
+    zi /= a(0);
 
     return status;
 }
@@ -1573,7 +1914,7 @@ hwMathStatus ImpulseRes(const hwMatrix& numerCoef,
     signal.SetElements(0.0);
     signal(0) = 1.0;
 
-    status = Filter(numerCoef, denomCoef, signal, impulseRes);
+    status = Filter(numerCoef, denomCoef, signal, nullptr, impulseRes, nullptr);
 
     if (!status.IsOk())
     {
@@ -2537,8 +2878,8 @@ hwMathStatus FindPeaks(const hwMatrix& signal,
 
     for (int i = 0; i < numPeaks; ++i)
     {
-        int left  = _max(index(i) - (static_cast<int>(minPeakDistance)+1)/2, 0);
-        int right = _min(index(i) + (static_cast<int>(minPeakDistance)+1)/2, n-1);
+        int left = _max(index(i) - (static_cast<int>(minPeakDistance) + 1) / 2, 0);
+        int right = _min(index(i) + (static_cast<int>(minPeakDistance) + 1) / 2, n - 1);
         int size = right - left + 1;
         hwMatrix indexD(size, hwMatrix::REAL);
         hwMatrix neighbors(size, hwMatrix::REAL);
@@ -2560,15 +2901,15 @@ hwMathStatus FindPeaks(const hwMatrix& signal,
         double a = coef(2);
         double b = coef(1);
         double c = coef(0);
-        double height = c - b*b/(4.0*a);
+        double height = c - b * b / (4.0 * a);
         double zero1;
         double zero2;
         bool isOk;
 
         if (height > minPeakHeight) // maxima peak for a good parabola fit
-            isOk = quadraticRoots(a, b, c-(height+minPeakHeight)/2.0, zero1, zero2);
+            isOk = quadraticRoots(a, b, c - (height + minPeakHeight) / 2.0, zero1, zero2);
         else                        // minima peak for a good parabola fit
-            isOk = quadraticRoots(a, b, c+(height-minPeakHeight)/2.0, zero1, zero2);
+            isOk = quadraticRoots(a, b, c + (height - minPeakHeight) / 2.0, zero1, zero2);
 
         double width = abs(zero2 - zero1);
 
@@ -2596,11 +2937,11 @@ hwMathStatus FindPeaks(const hwMatrix& signal,
             }
             else
             {
-                extra->parabol_pp->Resize(i+1, 3);
-                extra->parabol_x->Resize(i+1, 2);
-                extra->height->Resize(1, i+1);
-                extra->baseline->Resize(1, i+1);
-                extra->roots->Resize(i+1, 2);
+                extra->parabol_pp->Resize(i + 1, 3);
+                extra->parabol_x->Resize(i + 1, 2);
+                extra->height->Resize(1, i + 1);
+                extra->baseline->Resize(1, i + 1);
+                extra->roots->Resize(i + 1, 2);
             }
 
             (*extra->parabol_pp)(i, 0) = a;
@@ -2609,7 +2950,7 @@ hwMathStatus FindPeaks(const hwMatrix& signal,
             (*extra->parabol_x)(i, 0) = left * sampleRate + origin;
             (*extra->parabol_x)(i, 1) = right * sampleRate + origin;
             (*extra->height)(0, i) = height;
-            (*extra->baseline)(0, i) = (height+minPeakHeight) / 2.0;
+            (*extra->baseline)(0, i) = (height + minPeakHeight) / 2.0;
 
             if (zero1 < zero2)
             {
@@ -2641,4 +2982,112 @@ hwMathStatus FindPeaks(const hwMatrix& signal,
     }
 
     return status;
+}
+//------------------------------------------------------------------------------
+// Group delay of a digital filter
+//------------------------------------------------------------------------------
+hwMathStatus GroupDelay(const hwMatrix& numerCoef,
+                        const hwMatrix& denomCoef,
+                        const hwMatrix& freq,
+                        double          sampFreq,
+                        hwMatrix&       delay)
+{
+    hwMathStatus status;
+
+    if (!numerCoef.IsReal())
+    {
+        return status(HW_MATH_ERR_COMPLEX, 1);
+    }
+
+    if (!numerCoef.IsVector())
+    {
+        return status(HW_MATH_ERR_VECTOR, 1);
+    }
+
+    if (!denomCoef.IsReal())
+    {
+        return status(HW_MATH_ERR_COMPLEX, 2);
+    }
+
+    if (!denomCoef.IsVector())
+    {
+        return status(HW_MATH_ERR_VECTOR, 2);
+    }
+
+    if (!freq.IsReal())
+    {
+        return status(HW_MATH_ERR_COMPLEX, 3);
+    }
+
+    if (!freq.IsVector())
+    {
+        return status(HW_MATH_ERR_VECTOR, 3);
+    }
+
+    if (sampFreq < 1.0e-10 && sampFreq != -1.0)
+    {
+        return status(HW_MATH_ERR_NONPOSITIVE, 4);
+    }
+
+    int numOrder = _max(numerCoef.Size() - 1, 0);
+    int denOrder = _max(denomCoef.Size() - 1, 0);
+    int cOrder = numOrder + denOrder;
+    int n = freq.Size();
+
+    hwMatrix conv;
+    hwMatrix denrev;
+    hwMatrix ramp(1, cOrder + 1, hwMatrix::REAL);
+    hwMatrix convr;
+    hwMatrix num(n, 1, hwMatrix::COMPLEX);
+    hwMatrix den(n, 1, hwMatrix::COMPLEX);
+
+    status = denrev.FlipVectors(denomCoef, -1);
+
+    if (denrev.M() == numerCoef.N() || denrev.N() == numerCoef.M())
+    {
+        status = denrev.Transpose();
+    }
+
+    status = conv.ConvLin(numerCoef, denrev);
+
+    if (ramp.M() == conv.N() || ramp.N() == conv.M())
+    {
+        status = ramp.Transpose();
+    }
+
+    for (int i = 0; i <= cOrder; ++i)
+        ramp(i) = i;
+
+    convr = MKLuD::MultByElems(conv, ramp);
+
+    double fac = (sampFreq != -1.0) ? (2.0 * PI / sampFreq) : 1.0;
+    hwMathStatus status2;
+
+    for (int i = 0; i <= n; ++i)
+    {
+        // could use Response(), but it lacks the zero denom check
+        double fn = fac * freq(i);
+        hwComplex z(cos(fn), -sin(fn));
+        status2 = PolyVal(convr, z, num.z(i));
+        status2 = PolyVal(conv, z, den.z(i));
+
+        if (den.z(i).Mag() < 10.0 * MACHEP2)
+        {
+            num.z(i) = denOrder;    // changes to 0 later
+            den.z(i) = 1.0;
+            status(HW_MATH_ERR_DIVIDEZERO, i);
+        }
+    }
+
+    hwMatrix ratio = MKLuD::DivideByElems(num, den);
+
+    status2 = ratio.UnpackComplex(&delay, nullptr);
+
+    delay -= denOrder;
+    status2 = delay.Reshape(n, 1);
+
+    if (!status.IsOk())
+        return status;
+    else
+        return status2;
 }

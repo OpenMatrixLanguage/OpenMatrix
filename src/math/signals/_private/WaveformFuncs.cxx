@@ -839,3 +839,202 @@ hwMathStatus ChirpPulse(const hwMatrix& time,
 
     return hwMathStatus();
 }
+
+//------------------------------------------------------------------------------
+// Computes equally spaced values and returns status
+//------------------------------------------------------------------------------
+hwMathStatus LinSpace(double    lb,
+                      double    ub,
+                      int       n,
+                      hwMatrix& domain)
+{
+    hwMathStatus status;
+
+    if (n < 1)
+        return status(HW_MATH_ERR_NONPOSINT, 3);
+
+    if (ub < lb)
+        return status(HW_MATH_ERR_MINMAXVALUES, 1, 2);
+
+    status = domain.Dimension(1, n, hwMatrix::REAL);
+
+    if (status.IsOk())
+    {
+        double delta = (ub - lb) / (n - 1);
+
+        domain(0) = lb;
+        domain(n - 1) = ub;
+
+        for (int i = 0; i < n - 1; ++i)
+        {
+            domain(i) = lb + delta * i;
+        }
+    }
+
+    return status;
+}
+
+//------------------------------------------------------------------------------
+// Computes the Morlet wavelet and returns status
+//------------------------------------------------------------------------------
+hwMathStatus Morlet(double    lb,
+                    double    ub,
+                    int       n,
+                    hwMatrix& time,
+                    hwMatrix& waveform)
+{
+    // get time vector
+    hwMathStatus status = LinSpace(lb, ub, n, time);
+
+    if (!status.IsOk())
+        return status;
+
+    // construct waveform
+    hwMatrix arg1 = 5.0 * time;
+    hwMatrix arg2 = MKLuD::PowerByElems(time, 2.0) * -0.5;
+    waveform = MKLuD::MultByElems(MKLuD::Cos(arg1), MKLuD::Exp(arg2));
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// Computes the complex Morlet wavelet and returns status
+//------------------------------------------------------------------------------
+hwMathStatus CMorWavf(double    lb,
+                      double    ub,
+                      int       n,
+                      double    fb,
+                      double    fc,
+                      hwMatrix& time,
+                      hwMatrix& waveform)
+{
+    if (fb < 0.0)
+        return hwMathStatus(HW_MATH_ERR_NONPOSITIVE, 4);
+
+    if (fc < 0.0)
+        return hwMathStatus(HW_MATH_ERR_NONPOSITIVE, 5);
+
+    // get time vector
+    hwMathStatus status = LinSpace(lb, ub, n, time);
+
+    if (!status.IsOk())
+        return status;
+
+    // construct waveform
+    hwMatrix arg1 = (2.0 * PI * hwComplex(0.0, 1.0) * fc) * time;
+    hwMatrix arg2 = (-1.0 / fb) * MKLuD::PowerByElems(time, 2.0);
+
+    waveform = MKLuD::MultByElems(MKLuD::Exp(arg1), MKLuD::Exp(arg2)) / sqrt(PI * fb);
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// Computes the Gaussian monopulse and returns status
+//------------------------------------------------------------------------------
+hwMathStatus Gmonopuls(const hwMatrix& time,
+                       double          fc,
+                       hwMatrix&       waveform)
+{
+    hwMathStatus status;
+
+    if (fc < 0.0)
+        return hwMathStatus(HW_MATH_ERR_NONPOSITIVE, 2);
+
+    // construct waveform
+    hwMatrix arg1 = 2.0 * sqrt(exp(1.0)) * PI * fc * time;
+    hwMatrix arg2 = -2.0 * MKLuD::PowerByElems(PI * fc * time, 2.0);
+
+    waveform = MKLuD::MultByElems(arg1, MKLuD::Exp(arg2));
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// Computes the complex Shannon wavelet and returns status
+//------------------------------------------------------------------------------
+hwMathStatus ShanWavf(double    lb,
+                      double    ub,
+                      int       n,
+                      double    fb,
+                      double    fc,
+                      hwMatrix& time,
+                      hwMatrix& waveform)
+{
+    if (fb < 0.0)
+        return hwMathStatus(HW_MATH_ERR_NONPOSITIVE, 4);
+
+    if (fc < 0.0)
+        return hwMathStatus(HW_MATH_ERR_NONPOSITIVE, 5);
+
+    // get time vector
+    hwMathStatus status = LinSpace(lb, ub, n, time);
+
+    if (!status.IsOk())
+        return status;
+
+    // construct waveform
+    hwMatrix arg1 = fb * PI * time;
+    hwMatrix arg2 = (2.0 * PI * hwComplex(0.0, 1.0) * fc) * time;
+    hwMatrix sinc = MKLuD::DivideByElems(MKLuD::Sin(arg1), arg1);
+
+    if (lb < 0.0 && ub > 0.0)
+    {
+        if (lb + ub == 0.0)
+        {
+            if (n % 2 == 1)
+            {
+                sinc((n - 1) / 2) = 1.0;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < n; ++i)
+            {
+                if (arg1(i) == 0.0)
+                {
+                    sinc(i) = 1.0;
+                    break;
+                }
+            }
+        }
+    }
+
+    waveform = sqrt(fb) * MKLuD::MultByElems(sinc, MKLuD::Exp(arg2));
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// Computes Mexican hat wavelet and returns status
+//------------------------------------------------------------------------------
+hwMathStatus Mexihat(double    lb,
+                     double    ub,
+                     int       n,
+                     hwMatrix& time,
+                     hwMatrix& waveform)
+{
+    // get time vector
+    hwMathStatus status = LinSpace(lb, ub, n, time);
+
+    if (!status.IsOk())
+        return status;
+
+    // construct waveform
+    hwMatrix arg1 = MKLuD::PowerByElems(time, 2.0);
+    hwMatrix arg2 = (1.0 - arg1) * (2.0 / (sqrt(3.0) * pow(PI, 0.25)));
+    hwMatrix arg3 = MKLuD::PowerByElems(time, 2.0) * -0.5;
+
+    waveform = MKLuD::MultByElems(arg2, MKLuD::Exp(arg3));
+
+    return status;
+}
+//------------------------------------------------------------------------------
+// Computes Meyer wavelet auxillary and returns status
+//------------------------------------------------------------------------------
+void MeyerAux(const hwMatrix& time,
+              hwMatrix&       waveform)
+{
+    hwMatrix arg1 = MKLuD::PowerByElems(time, 7.0);
+    hwMatrix arg2 = MKLuD::PowerByElems(time, 6.0);
+    hwMatrix arg3 = MKLuD::PowerByElems(time, 5.0);
+    hwMatrix arg4 = MKLuD::PowerByElems(time, 4.0);
+
+    waveform = 35.0 * arg4 - 84.0 * arg3 + 70.0 * arg2 - 20.0 * arg1;
+}

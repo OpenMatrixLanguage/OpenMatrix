@@ -1,7 +1,7 @@
 /**
 * @file OmlPythonBridgeCore.cxx
 * @date February, 2015
-* Copyright (C) 2015-2023 Altair Engineering, Inc.
+* Copyright (C) 2015-2024 Altair Engineering, Inc.
 * This file is part of the OpenMatrix Language (“OpenMatrix”) software.
 * Open Source License Information:
 * OpenMatrix is free software. You can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -185,7 +185,7 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
         if (data->IsReal())
         {
             obj = PyArray_ZEROS(nd, dims, NPY_DOUBLE, 1);
-            double* dptr = (npy_double *)PyArray_DATA(reinterpret_cast<PyArrayObject*>(obj));
+            double* dptr = (npy_double *)PyArray_DATA(reinterpret_cast<PyArrayObject*>(obj)); // cppcheck-suppress unreadVariable
 
             for (int i = 0; i < data->Size(); i++)
             {
@@ -196,7 +196,7 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
         {
             const hwTComplex<double>* cmpxdata = data->GetComplexData();
             obj = PyArray_ZEROS(nd, dims, NPY_COMPLEX128, 1);
-            npy_complex128* outdata = (npy_complex128 *)PyArray_DATA(reinterpret_cast<PyArrayObject*>(obj));
+            npy_complex128* outdata = (npy_complex128 *)PyArray_DATA(reinterpret_cast<PyArrayObject*>(obj)); // cppcheck-suppress unreadVariable
 
             for (int i = 0; i < data->Size(); i++)
             {
@@ -400,7 +400,7 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
         if (data->IsReal())
         {
             obj = PyArray_ZEROS(static_cast<int>(nd), dims, NPY_DOUBLE, 1);
-            double* dptr = (npy_double *)PyArray_DATA(reinterpret_cast<PyArrayObject*>(obj));
+            double* dptr = (npy_double *)PyArray_DATA(reinterpret_cast<PyArrayObject*>(obj)); // cppcheck-suppress cstyleCast
 
             for (int i = 0; i < data->Size(); i++)
             {
@@ -410,7 +410,7 @@ bool OmlPythonBridgeCore::ConvertCurrencyToPyObject(PyObject*& obj, const Curren
         else
         {
             obj = PyArray_ZEROS(static_cast<int>(nd), dims, NPY_COMPLEX128, 1);
-            npy_complex128* outdata = (npy_complex128 *)PyArray_DATA(reinterpret_cast<PyArrayObject*>(obj));
+            npy_complex128* outdata = (npy_complex128 *)PyArray_DATA(reinterpret_cast<PyArrayObject*>(obj)); // cppcheck-suppress cstyleCast
 
             for (int i = 0; i < data->Size(); i++)
             {
@@ -507,7 +507,7 @@ PyObject* OmlPythonBridgeCore::ConvertSparseToPyObject(const hwMatrixS* spm)
         if (spm->IsReal())
         {
             data_pyobj = PyArray_ZEROS(1, indices_dims, NPY_DOUBLE, 1);
-            dptr = (npy_double*)PyArray_DATA(reinterpret_cast<PyArrayObject*>(data_pyobj));
+            dptr = (npy_double*)PyArray_DATA(reinterpret_cast<PyArrayObject*>(data_pyobj)); // cppcheck-suppress cstyleCast
 
             const double* data = spm->GetRealData();
             for (int i = 0; i < num_elements; i++)
@@ -519,7 +519,7 @@ PyObject* OmlPythonBridgeCore::ConvertSparseToPyObject(const hwMatrixS* spm)
         {
             const hwTComplex<double>* cmpxdata = spm->GetComplexData();
             data_pyobj = PyArray_ZEROS(1, indices_dims, NPY_COMPLEX128, 1);
-            npy_complex128* data_py = (npy_complex128*)PyArray_DATA(reinterpret_cast<PyArrayObject*>(data_pyobj));
+            npy_complex128* data_py = (npy_complex128*)PyArray_DATA(reinterpret_cast<PyArrayObject*>(data_pyobj)); // cppcheck-suppress cstyleCast
 
             for (int i = 0; i < num_elements; i++)
             {
@@ -529,14 +529,14 @@ PyObject* OmlPythonBridgeCore::ConvertSparseToPyObject(const hwMatrixS* spm)
         }
 
         indices_pyobj = PyArray_ZEROS(1, indices_dims, NPY_DOUBLE, 1);
-        dptr = (npy_double*)PyArray_DATA(reinterpret_cast<PyArrayObject*>(indices_pyobj));
+        dptr = (npy_double*)PyArray_DATA(reinterpret_cast<PyArrayObject*>(indices_pyobj)); // cppcheck-suppress cstyleCast
         for (int i = 0; i < num_elements; i++)
         {
             dptr[i] = rows[i];
         }
 
         indptr_pyobj = PyArray_ZEROS(1, indptr_dims, NPY_DOUBLE, 1);
-        dptr = (npy_double*)PyArray_DATA(reinterpret_cast<PyArrayObject*>(indptr_pyobj));
+        dptr = (npy_double*)PyArray_DATA(reinterpret_cast<PyArrayObject*>(indptr_pyobj)); // cppcheck-suppress cstyleCast
         for (int i = 0; i < num_cols; i++)
         {
             dptr[i] = pointer_b[i];
@@ -845,7 +845,7 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
             PyArrayObject* array_obj = reinterpret_cast<PyArrayObject*>(obj);
             int nd = PyArray_NDIM(array_obj);
             npy_intp* dimenstions = PyArray_DIMS(array_obj);
-            int size = static_cast<int>(PyArray_SIZE(array_obj));
+            //int size = static_cast<int>(PyArray_SIZE(array_obj)); // cppcheck-suppress unreadVariable
             std::vector<int> dims;
             bool hasZeroDimSize = false;
 
@@ -886,7 +886,7 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
                     if (PyArray_ISCOMPLEX(array_obj))
                     {
                         matN->Dimension(dims, hwMatrixN::COMPLEX);
-                        PyObject* obj_itr = PyArray_IterNew(obj);
+                        PyObject* obj_itr = PyArray_IterNew(obj); // cppcheck-suppress unreadVariable
 
                         do
                         {
@@ -896,21 +896,21 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
                             {
                             case NPY_CFLOAT:
                             {
-                                npy_cfloat* outdata = (npy_cfloat*)data;
+                                npy_cfloat* outdata = (npy_cfloat*)data; // cppcheck-suppress cstyleCast
                                 matN->z(i) = hwTComplex<double>((*outdata).real, (*outdata).imag);
                                 break;
                             }
 
                             case NPY_CDOUBLE:
                             {
-                                npy_cdouble* outdata = (npy_cdouble*)data;
+                                npy_cdouble* outdata = (npy_cdouble*)data; // cppcheck-suppress cstyleCast
                                 matN->z(i) = hwTComplex<double>((*outdata).real, (*outdata).imag);
                                 break;
                             }
 
                             case NPY_CLONGDOUBLE:
                             {
-                                npy_clongdouble*outdata = (npy_clongdouble*)data;
+                                npy_clongdouble*outdata = (npy_clongdouble*)data; // cppcheck-suppress cstyleCast
                                 matN->z(i) = hwTComplex<double>((*outdata).real, (*outdata).imag);
                                 break;
                             }
@@ -938,85 +938,85 @@ bool OmlPythonBridgeCore::ConvertPyObjectToCurrency(std::vector<Currency>& outpu
                             {
                             case NPY_BOOL:
                             {
-                                npy_bool* outdata = (npy_bool*)data;
+                                npy_bool* outdata = (npy_bool*)data; // cppcheck-suppress cstyleCast
                                 (*matN)(i) = (*outdata);
                                 break;
                             }
                             case NPY_BYTE:
                             {
-                                npy_byte* outdata = (npy_byte*)data;
+                                npy_byte* outdata = (npy_byte*)data; // cppcheck-suppress cstyleCast
                                 (*matN)(i) = (*outdata);
                                 break;
                             }
                             case NPY_UBYTE:
                             {
-                                npy_ubyte* outdata = (npy_ubyte*)data;
+                                npy_ubyte* outdata = (npy_ubyte*)data; // cppcheck-suppress cstyleCast
                                 (*matN)(i) = (*outdata);
                                 break;
                             }
                             case NPY_SHORT:
                             {
-                                npy_short* outdata = (npy_short*)data;
+                                npy_short* outdata = (npy_short*)data; // cppcheck-suppress cstyleCast
                                 (*matN)(i) = (*outdata);
                                 break;
                             }
                             case NPY_USHORT:
                             {
-                                npy_ushort* outdata = (npy_ushort*)data;
+                                npy_ushort* outdata = (npy_ushort*)data; // cppcheck-suppress cstyleCast
                                 (*matN)(i) = (*outdata);
                                 break;
                             }
                             case NPY_INT:
                             {
-                                npy_int* outdata = (npy_int*)data;
+                                npy_int* outdata = (npy_int*)data; // cppcheck-suppress cstyleCast
                                 (*matN)(i) = (*outdata);
                                 break;
                             }
                             case NPY_UINT:
                             {
-                                npy_uint* outdata = (npy_uint*)data;
+                                npy_uint* outdata = (npy_uint*)data; // cppcheck-suppress cstyleCast
                                 (*matN)(i) = (*outdata);
                                 break;
                             }
                             case NPY_LONG:
                             {
-                                npy_long* outdata = (npy_long*)data;
+                                npy_long* outdata = (npy_long*)data; // cppcheck-suppress cstyleCast
                                 (*matN)(i) = (*outdata);
                                 break;
                             }
                             case NPY_ULONG:
                             {
-                                npy_ulong* outdata = (npy_ulong*)data;
+                                npy_ulong* outdata = (npy_ulong*)data; // cppcheck-suppress cstyleCast
                                 (*matN)(i) = (*outdata);
                                 break;
                             }
                             case NPY_LONGLONG:
                             {
-                                npy_longlong* outdata = (npy_longlong*)data;
+                                npy_longlong* outdata = (npy_longlong*)data; // cppcheck-suppress cstyleCast
                                 (*matN)(i) = static_cast<long double>((*outdata));
                                 break;
                             }
                             case NPY_ULONGLONG:
                             {
-                                npy_ulonglong* outdata = (npy_ulonglong*)data;
+                                npy_ulonglong* outdata = (npy_ulonglong*)data; // cppcheck-suppress cstyleCast
                                 (*matN)(i) = static_cast<long double>((*outdata));
                                 break;
                             }
                             case NPY_FLOAT:
                             {
-                                npy_float* outdata = (npy_float*)data;
+                                npy_float* outdata = (npy_float*)data; // cppcheck-suppress cstyleCast
                                 (*matN)(i) = (*outdata);
                                 break;
                             }
                             case NPY_DOUBLE:
                             {
-                                npy_double* outdata = (npy_double*)data;
+                                npy_double* outdata = (npy_double*)data; // cppcheck-suppress cstyleCast
                                 (*matN)(i) = (*outdata);
                                 break;
                             }
                             case NPY_LONGDOUBLE:
                             {
-                                npy_longdouble* outdata = (npy_longdouble*)data;
+                                npy_longdouble* outdata = (npy_longdouble*)data; // cppcheck-suppress cstyleCast
                                 (*matN)(i) = (*outdata);
                                 break;
                             }
