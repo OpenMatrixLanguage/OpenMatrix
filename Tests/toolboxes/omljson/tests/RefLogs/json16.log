@@ -1,0 +1,46 @@
+decode = struct [
+  data: struct [
+    compatibility: 
+    diagrams: struct [
+      Struct array of size 2 x 1 with fields:
+      comment
+      points
+      unit
+      variant
+      vkey
+    ]
+    models: [Matrix] 0 x 0
+    moisturedep: 0
+    name: A36
+    producer: 
+    quality: 
+    texts: struct [ ]
+    type: Iron alloys
+    uid: 
+    values: struct [
+      x70: struct [
+        unit: Pa
+        value: 2.217016e+11
+      ]
+      x72: struct [
+        value: 0.2849973
+      ]
+      x74: struct [
+        unit: kg/m^3
+        value: 7907.622
+      ]
+      x86: struct [
+        unit: Pa
+        value: 8.62487e+10
+      ]
+    ]
+  ]
+  meta: struct [
+    basepath: links/
+    provider: Some customer name
+  ]
+]
+ans = struct [
+  basepath: links/
+  provider: Some customer name
+]

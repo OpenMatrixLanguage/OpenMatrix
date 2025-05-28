@@ -1,0 +1,11 @@
+load1 = struct [
+  a: 10
+]
+load2 = struct [
+  a: 10
+  b: 15
+  m: [Matrix] 2 x 2
+  1  0
+  0  1
+  str: foo
+]

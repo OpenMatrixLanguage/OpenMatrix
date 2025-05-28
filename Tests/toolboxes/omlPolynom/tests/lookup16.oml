@@ -1,0 +1,7 @@
+addToolbox omlpolynom
+
+idx = lookup({'raisin', 'pear', 'orange', 'apple'}, 'pear')
+idx = lookup({'raisin', 'pear', 'orange', 'apple'}, 'pears')
+idx = lookup({'raisin', 'pear', 'orange', 'apple'}, 'pea')
+idx = lookup({'raisin', 'pear', 'orange', 'apple'}, 'peas')
+idx = lookup({'raisin', 'pear', 'orange', 'apple'}, 'peak')

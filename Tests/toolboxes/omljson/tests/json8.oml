@@ -1,0 +1,20 @@
+addtoolbox('omljson')
+
+cell1 = {Inf 'foo' 2+ 3i 53 {} [1:10]};
+encode = jsonencode(cell1)
+decode = jsondecode(encode)
+
+
+%encode = jsonencode(cell1, 'prettyprint', true)
+% %m = [+55 -4.5 NaN -88; Inf -Inf 0.3 10e45];
+% % s.a = 5;
+% % s.b = 'StructVal';
+% % c = {'foo' 2 {Inf [1:10]} s m};
+
+% % encode = jsonencode(c, 'prettyprint', true)
+%m = [+55 -4.5 NaN -88; Inf -Inf 0.3 10e45];
+% s.a = 5;
+% s.b = 'StructVal';
+% c = {'foo' 2 {Inf [1:10]} s m};
+
+% encode = jsonencode(c, 'prettyprint', true)

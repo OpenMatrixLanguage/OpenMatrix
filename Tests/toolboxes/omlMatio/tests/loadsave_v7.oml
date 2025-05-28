@@ -20,30 +20,51 @@ Double = 3./[1:10];
 addtoolbox omlmatio
 save([filepath '/Cell.mat'],'Cell');
 R = load('Cell.mat');
+try
+  delete('Cell.mat');
+end    
 assert(isequal(R.Cell, Cell));
 
 save([filepath '/Str.mat'],'Str');
 R = load('Str.mat');
+try
+  delete('Str.mat');
+end  
 assert(isequal(R.Str, Str));
 
 save([filepath '/Mat.mat'],'Mat');
 R = load('Mat.mat');
+try
+  delete('Mat.mat');
+end  
 assert(isequal(R.Mat, Mat));
 
 save([filepath '/Stu.mat'],'Stu');
 R = load('Stu.mat');
+try
+  delete('Stu.mat');
+end  
 assert(isequal(R.Stu, Stu));
 
 save([filepath '/Comp.mat'],'Comp');
 R = load('Comp.mat');
+try
+  delete('Comp.mat');
+end  
 assert(isequal(R.Comp, Comp));
 
 save([filepath '/Int.mat'],'Int');
 R = load('Int.mat');
+try
+  delete('Int.mat');
+end  
 assert(isequal(R.Int, Int));
 
 save([filepath '/Double.mat'],'Double');
 R = load('Double.mat');
+try
+  delete('Double.mat');
+end  
 assert(isequal(R.Double, Double));
 
 disp(strcat('test [', omlfilename,'] finished'))

@@ -1,0 +1,4 @@
+addtoolbox omlsignals
+
+x = [1, 3, 2, 4, 3, 5, NaN, 4, 6, 5, 7, 6, 8, 7, 9, 8, 10];
+m = medfilt1(x, 7, 'truncate')

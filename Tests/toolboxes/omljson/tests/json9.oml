@@ -1,0 +1,9 @@
+addtoolbox('omljson')
+
+m = [+55 -4.5 NaN -88; Inf -Inf 0.3 10e45];
+s.a = 5;
+s.b = 'StructVal';
+c = {'foo' 2 {Inf [1:10]} s m};
+
+encode = jsonencode(c)
+decode = jsondecode(encode)

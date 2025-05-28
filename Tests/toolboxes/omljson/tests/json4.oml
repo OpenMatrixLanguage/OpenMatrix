@@ -1,0 +1,9 @@
+addtoolbox('omljson')
+msg = 'Test passed: [Struct]';
+
+s = struct('access_token','ory_at_XXShG-4C','expires_in',86399,'scope','data thing','token_type','bearer');
+
+encode = jsonencode(s)
+decode = jsondecode(encode);
+assert(isequal(s, decode))
+disp(msg);

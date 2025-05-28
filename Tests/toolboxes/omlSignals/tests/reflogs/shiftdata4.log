@@ -1,0 +1,27 @@
+out = 
+slice(:, :, 1) = 
+[Matrix] 1 x 5
+1  2  3  4  5
+
+slice(:, :, 2) = 
+[Matrix] 1 x 5
+6  7  8  9  10
+
+slice(:, :, 3) = 
+[Matrix] 1 x 5
+11  12  13  14  15
+
+slice(:, :, 4) = 
+[Matrix] 1 x 5
+16  17  18  19  20
+
+slice(:, :, 5) = 
+[Matrix] 1 x 5
+21  22  23  24  25
+
+slice(:, :, 6) = 
+[Matrix] 1 x 5
+26  27  28  29  30
+perm = [Matrix] 1 x 3
+3  1  2
+shifts = [Matrix] 0 x 0

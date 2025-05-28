@@ -1,0 +1,8 @@
+addtoolbox('omljson')
+
+
+jsonencode(122.52650653140645)
+jsonencode(207)
+jsonencode(1.14208913634e12)
+jsonencode(-1.5)
+

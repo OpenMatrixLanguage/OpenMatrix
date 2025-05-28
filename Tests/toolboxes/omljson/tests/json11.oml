@@ -1,0 +1,11 @@
+addtoolbox('omljson')
+
+str = '   ';
+encode = jsonencode(str)
+decode = jsondecode(encode);
+
+assert(isequal(str, decode));
+
+encode = jsonencode(str, 'prettyprint', 1)
+decode = jsondecode(encode);
+assert(isequal(str, decode));

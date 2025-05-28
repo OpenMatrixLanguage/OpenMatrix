@@ -1,0 +1,11 @@
+addtoolbox('omljson')
+
+m = [+55 -4.5 NaN -88; Inf -Inf 0.3 10e45];
+encode = jsonencode(m)
+decode = jsondecode(encode)
+
+encode = jsonencode(m, 'convertinfandnan', false)
+decode = jsondecode(encode)
+
+encode = jsonencode(m, 'convertinfandnan', false, 'prettyprint', true)
+decode = jsondecode(encode)

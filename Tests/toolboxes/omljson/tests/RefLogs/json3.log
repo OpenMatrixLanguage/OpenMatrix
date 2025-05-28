@@ -1,0 +1,13 @@
+encode1 = ["str1str2","foo1foo2"]
+encode2 = [
+  "str1str2",
+  "foo1foo2"
+]
+encode3 = [["str1str2","foo1foo2"],45]
+encode4 = [
+  [
+    "str1str2",
+    "foo1foo2"
+  ],
+  45
+]

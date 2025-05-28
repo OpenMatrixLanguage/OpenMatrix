@@ -1,0 +1,5 @@
+addToolbox omlstatistics
+
+m = [1, 2, 3; 5, 8, 3; 12, 24, 13; 7, 4, 3; 1, 9, 0];
+center(m)
+

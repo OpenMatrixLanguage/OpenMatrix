@@ -1,0 +1,12 @@
+idx = 
+slice(:, :, 1) = 
+[Matrix] 1 x 2
+5  6
+
+slice(:, :, 2) = 
+[Matrix] 1 x 2
+1  2
+
+slice(:, :, 3) = 
+[Matrix] 1 x 2
+3  4

@@ -1,0 +1,7 @@
+addtoolbox omlcalculus
+
+x = [0:0.05:1]*pi;
+y1 = sin(x);
+y2 = cos(x + pi/4);
+y = [y1;y2];
+area = trapz(y,2)

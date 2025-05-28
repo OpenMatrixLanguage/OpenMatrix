@@ -1,0 +1,9 @@
+addToolbox omlpolynom
+
+x = [10, 20, 30];
+y = [20, 40, 60]';
+z = [1 2 3; 4 5 6; 7 8 9];
+z = 2*(z.*z)
+xi = [5:5:35];
+yi = [10:10:70]';
+zi = interp2(x,y,z,xi,yi,'linear','extrap')

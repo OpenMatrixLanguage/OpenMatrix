@@ -1,0 +1,9 @@
+addToolbox omlpolynom
+
+idx = lookup({'raisin', 'pear', 'orange', 'apple'}, 'aaa')
+idx = lookup({'raisin', 'pear', 'orange', 'apple'}, 'zzz')
+idx = lookup({'raisin', 'peach', 'orange', 'apple'}, 'pear')
+idx = lookup({'raisin', 'pears', 'orange', 'apple'}, 'pear')
+idx = lookup({'raisin', 'pears', 'orange', 'apple'}, 'pear')
+idx = lookup({'pears', 'orange', 'apple'}, {'apple', 'orange'})
+idx = lookup({'raisin', 'pear', 'orange', 'grape', 'banana', 'apple'}, {'apple', 'grape', 'raisin'; 'banana', 'orange', 'pear'})

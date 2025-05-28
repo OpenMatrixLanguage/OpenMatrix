@@ -1,0 +1,6 @@
+addToolbox omlstatistics
+rand('seed', 2021);
+s = 7;
+v = randi([1,s]-4, 1, 700000);
+n = histc(v, [1:s]-4)
+sm = sum(n)

@@ -1,0 +1,13 @@
+addtoolbox omlpolynom
+
+breaks = [10, 20, 30, 40, 50];
+L = length(breaks) - 1;
+order = 3;
+coefs = zeros(L, order);
+coefs(1, :) = [2, 3, 4];
+coefs(2, :) = [3, 4, 5];
+coefs(3, :) = [4, 5, 6];
+coefs(4, :) = [6, 7, 8];
+pp = mkpp(breaks,coefs);
+yi = ppval(pp, [24, 36])
+

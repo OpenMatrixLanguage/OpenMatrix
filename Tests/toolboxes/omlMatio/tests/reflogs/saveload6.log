@@ -1,0 +1,8 @@
+load1 = struct [
+  a: 10
+]
+Warning: Incompatible format [v7.3]; saving format [v5] in call to function save at line number 10 in file saveload6.oml
+load2 = struct [
+  a: 10
+  b: 15
+]

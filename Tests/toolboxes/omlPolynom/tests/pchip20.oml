@@ -1,0 +1,6 @@
+addtoolbox omlpolynom
+
+x = [0, 0.4, 1.0, 1.4, 1.7];
+y = [0, 0.7, 1.0, 0.6, 0.35];
+xi = [0:0.05:1.4];
+yi = pchip(x,y,xi)

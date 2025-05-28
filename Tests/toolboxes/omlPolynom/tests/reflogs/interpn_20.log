@@ -1,0 +1,15 @@
+VI = 
+slice(:, :, 1) = 
+[Matrix] 2 x 3
+NaN  NaN  NaN
+NaN  NaN  NaN
+
+slice(:, :, 2) = 
+[Matrix] 2 x 3
+479.60000  494.60000  NaN
+      NaN        NaN  NaN
+
+slice(:, :, 3) = 
+[Matrix] 2 x 3
+779.60000  794.60000  NaN
+      NaN        NaN  NaN

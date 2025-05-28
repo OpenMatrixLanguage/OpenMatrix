@@ -1,0 +1,5 @@
+z = [Matrix] 3 x 3
+ 2    8   18
+32   50   72
+98  128  162
+Error: invalid data in argument 4; value is out of range in call to function interp2 at line number 9 in file interp2_14.oml

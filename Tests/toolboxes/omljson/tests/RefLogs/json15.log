@@ -1,0 +1,12 @@
+encode = [{"field1":[{"a":"val1","b":[[1,0,0],[0,1,0]]},{"a":[],"b":[]},{"a":"val2","b":[]},{"a":[],"b":[53]}],"field2":20},{"field1":100,"field2":[]}]
+decode = struct [
+  Struct array of size 2 x 1 with fields:
+  field1
+  field2
+]
+ans = struct [
+  Struct array of size 4 x 1 with fields:
+  a
+  b
+]
+ans = 100

@@ -1,0 +1,20 @@
+ans = struct [
+  _2foo: two
+  first_one: one
+]
+ans = struct [
+  field_12: two
+  first_one: one
+]
+ans = struct [
+  firstone: one
+  x2: two
+]
+ans = struct [
+  first0x24one: one
+  x0x2F2: two
+]
+ans = struct [
+  first0x24one: one
+  x20x2F: two
+]

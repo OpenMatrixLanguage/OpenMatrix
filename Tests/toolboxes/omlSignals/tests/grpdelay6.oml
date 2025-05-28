@@ -1,0 +1,6 @@
+addtoolbox omlsignals
+[b,a] = cheby1(4,1,0.3);
+fs = 1000;
+omega = [125.00000  187.50000  250.00000] * (2 * pi / fs);
+d = grpdelay(b,a,omega);
+d = d'

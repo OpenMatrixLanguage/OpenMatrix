@@ -1,0 +1,19 @@
+addtoolbox('omljson')
+
+s.a='val1';
+s.b = eye(2,3);
+s(1,2).a='val2';
+s(2,2).b = 53 + i;
+
+encode1 = jsonencode(s)
+decode1 = jsondecode(encode1);
+assert(isequal(s(1, 1).a, decode1(1, 1).a))
+assert(isequal(s(1, 2).a, decode1(3, 1).a))
+decode1(4, 1).b
+
+% encode2 = jsonencode(s, 'prettyprint', true)
+% decode1 = jsondecode(encode2)
+% t.field1 = s;
+% t.field2 = 20;
+% t(1,2).field1 = 100;
+% encode3 = jsonencode(t)

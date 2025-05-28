@@ -1,0 +1,9 @@
+addToolbox omlstatistics
+addToolbox omlsignals
+a = 5;
+b = 8;
+v = [0.01:0.02:0.99];
+x = betainv(v, a, b);
+m = length(x);
+x1 = x(1:2:m-1);
+r = peak2rms(x1')

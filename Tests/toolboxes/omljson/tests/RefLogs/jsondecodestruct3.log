@@ -1,0 +1,18 @@
+ans = struct [
+  p_1: one
+  x_2: two
+  x_3: three
+  x_4: four
+]
+ans = struct [
+  p1: one
+  x2: two
+  x3: three
+  x4: four
+]
+ans = struct [
+  p0x211: one
+  x0x233: three
+  x0x244: four
+  x0x402: two
+]

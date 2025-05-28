@@ -1,0 +1,22 @@
+addlibrary omlmatio;
+
+Strt = struct('ImportData',[],'CurveFitting',[],...	
+					'Extrapolation',[],'FinalCurves',[]);
+	
+Strt.ImportData = {'Akulon® Care K1G6'};
+Strt.CurveFitting = 0;
+Strt.Extrapolation = 0;
+Strt.FinalCurves = 0;
+
+sscurves_structt = struct('name',[]);
+
+sscurves_structt.name = 'Akulon® Care K1G6';
+
+save('savewidestring2.mat','sscurves_structt','Strt');
+
+clear all;
+
+load('savewidestring2.mat');
+sscurves_structt
+Strt
+delete('savewidestring2.mat');

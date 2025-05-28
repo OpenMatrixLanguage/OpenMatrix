@@ -1,0 +1,6 @@
+ans = struct [
+  Num_1: one
+  Num_2: two
+  Num_3: three
+  Num_4: four
+]

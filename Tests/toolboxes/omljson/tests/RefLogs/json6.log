@@ -1,0 +1,25 @@
+encode = [[55,-4.5,null,-88],[null,null,0.3,1e+46]]
+decode = [Matrix] 2 x 4
+5.50000e+01  -4.50000e+00          NaN  -8.80000e+01
+        NaN           NaN  3.00000e-01   1.00000e+46
+encode = [[55,-4.5,NaN,-88],[Infinity,-Infinity,0.3,1e+46]]
+decode = [Matrix] 2 x 4
+5.50000e+01  -4.50000e+00          NaN  -8.80000e+01
+        Inf          -Inf  3.00000e-01   1.00000e+46
+encode = [
+  [
+    55,
+    -4.5,
+    NaN,
+    -88
+  ],
+  [
+    Infinity,
+    -Infinity,
+    0.3,
+    1e+46
+  ]
+]
+decode = [Matrix] 2 x 4
+5.50000e+01  -4.50000e+00          NaN  -8.80000e+01
+        Inf          -Inf  3.00000e-01   1.00000e+46

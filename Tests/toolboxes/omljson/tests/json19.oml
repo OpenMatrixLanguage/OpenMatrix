@@ -1,0 +1,4 @@
+addtoolbox('omljson')
+
+jsondecode('{"1":"one", "2":"two"}', 'makevalidname', false)
+jsondecode('{"1":"one", "2":"two"}', 'prefix', 'field_', 'makevalidname', true)

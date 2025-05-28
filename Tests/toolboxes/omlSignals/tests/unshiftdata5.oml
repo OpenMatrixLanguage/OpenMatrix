@@ -1,0 +1,5 @@
+addtoolbox omlsignals
+
+x = reshape([1:120],4,5,6);
+[out, perm, shifts] = shiftdata(x, 2);
+in = unshiftdata(out, perm, shifts)

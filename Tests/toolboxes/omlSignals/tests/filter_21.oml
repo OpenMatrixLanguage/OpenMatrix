@@ -1,0 +1,19 @@
+addtoolbox omlsignals
+
+N = 10;
+t = [0:1:N-1] * 0.001;
+[b,a] = butter(5,0.4);
+a(1) = 1.5;
+x1 = cos(2*pi*100*t);
+y1 = filter(b,a,x1)
+x = x1(N:-1:1);
+y = y1(N:-1:1);
+zi = filtic(b,a,y,x)
+
+t = [N:1:2*N-1] * 0.001;
+x2 = cos(2*pi*100*t);
+y2 = filter(b,a,x2,zi)
+
+t = [0:1:2*N-1] * 0.001;
+x3 = cos(2*pi*100*t);
+y3 = filter(b,a,x3)

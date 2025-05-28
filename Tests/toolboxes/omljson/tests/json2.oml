@@ -1,0 +1,11 @@
+addtoolbox('omljson')
+msg = 'Test passed: [NaN]';
+
+in = NaN;
+encode = jsonencode(in)
+decode = jsondecode(encode)
+
+encode = jsonencode(in, 'convertinfandnan', false, 'prettyprint', true)
+decode = jsondecode(encode)
+
+disp(msg)

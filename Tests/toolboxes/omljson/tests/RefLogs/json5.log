@@ -1,0 +1,7 @@
+encode = {
+  "access_token":"ory_at_XXShG-4C",
+  "expires_in":86399,
+  "scope":"data thing",
+  "token_type":"bearer"
+}
+Test passed: [Struct - formatted print]

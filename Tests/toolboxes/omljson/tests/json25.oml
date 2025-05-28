@@ -1,0 +1,16 @@
+addtoolbox('omljson')
+
+req.Age=10;
+req.AverageTransactionValue=122.52650653140645;
+req.CustomerId=207;
+req.Gender='w';
+req.MostRecentTransactionDate=1.14208913634E11;
+req.PostalCode=4;
+req.TotalCount=1;
+req.TotalTransactionValue=122.52650653140645;
+req.countPaymentMethod_cash=1.0;
+req.countPaymentMethod_cheque=0.0;
+req.countPaymentMethod_creditcard=0.0;
+
+encode = jsonencode(struct('data',{{req}}))
+decode = jsondecode(encode)

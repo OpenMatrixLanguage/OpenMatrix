@@ -1,0 +1,9 @@
+addpath(strcat(getenv('OMLBVT') ,'/RegressionTests/functions'));
+addtoolbox omlsignals
+
+lb = -2;
+ub = 2;
+n = 11;
+[psi,x] = morlet(lb,ub,n);
+psi = lowbitcleanup(psi, 2)
+x

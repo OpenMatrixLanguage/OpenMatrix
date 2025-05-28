@@ -1,0 +1,14 @@
+addtoolbox('omljson')
+
+s.a='val1';
+s.b = eye(2,3);
+s(1,2).a='val2';
+s(2,2).b = 53 + i;
+
+t.field1 = s;
+t.field2 = 20;
+t(1,2).field1 = 100;
+encode = jsonencode(t)
+
+decode = jsondecode(encode)
+decode.field1

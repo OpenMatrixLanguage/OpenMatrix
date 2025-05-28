@@ -1,0 +1,7 @@
+addtoolbox('omljson')
+
+jsondecode('{"1":"one", "2":"two"}')
+jsondecode('{"1":"one", "2":"two"}', 'prefix', 'field_')
+
+jsondecode('{"8ij":"one", "2":"two"}')
+jsondecode('{"jig":"one", "2":"two"}')

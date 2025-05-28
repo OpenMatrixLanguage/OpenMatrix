@@ -1,0 +1,16 @@
+ans = struct [
+  x1: one
+  x2: two
+]
+ans = struct [
+  field_1: one
+  field_2: two
+]
+ans = struct [
+  x2: two
+  x8ij: one
+]
+ans = struct [
+  jig: one
+  x2: two
+]

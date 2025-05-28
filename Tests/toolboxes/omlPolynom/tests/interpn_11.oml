@@ -1,0 +1,8 @@
+addtoolbox omlpolynom
+
+sz = [5, 7];
+n = prod(sz);
+V = reshape([1:n], sz);
+V(:,[1:2]) = V(:,[2,1]);
+V([1:2],:) = V([2,1],:);
+VI = interpn(V, 2)

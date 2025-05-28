@@ -1,0 +1,8 @@
+ans = struct [
+  1: one
+  2: two
+]
+ans = struct [
+  field_1: one
+  field_2: two
+]

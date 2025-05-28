@@ -1,0 +1,4 @@
+addtoolbox('omljson')
+
+str = '{"meta": {"provider": "Some customer name", "basepath": "links/"},"data":[{"name": "A36", "uid": ""}]}';
+decode = jsondecode(str)

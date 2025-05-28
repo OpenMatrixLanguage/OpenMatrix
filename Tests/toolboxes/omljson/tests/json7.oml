@@ -1,0 +1,10 @@
+addtoolbox('omljson')
+
+vec = [1:10];
+encode = jsonencode(vec)
+decode = jsondecode(encode);
+assert(isequal(vec, decode))
+
+encode = jsonencode(vec, 'prettyprint', true)
+decode = jsondecode(encode);
+assert(isequal(vec, decode))

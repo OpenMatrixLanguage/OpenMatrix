@@ -17,5 +17,5 @@ disp(z_old);
 
 % interpolate with interp2
 x_new = [9, 11, 12, 16];
-y_new = [3, 5, 7, 11, 16];
+y_new = [3, 5, 7, 11, 16]';
 z_new = interp2(x_old, y_old, z_old, x_new, y_new, 'spline', 'extrap')

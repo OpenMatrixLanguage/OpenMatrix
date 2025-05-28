@@ -1,0 +1,10 @@
+decode = struct [
+  data: struct [
+    name: A36
+    uid: 
+  ]
+  meta: struct [
+    basepath: links/
+    provider: Some customer name
+  ]
+]

@@ -1,0 +1,11 @@
+addpath(strcat(getenv('OMLBVT') ,'/RegressionTests/functions'));
+addtoolbox omlsignals
+
+lb = -2;
+ub = 2;
+n = 11;
+fb = 2;
+fc = 1;
+[psi,x] = cmorwavf(lb,ub,n,fb,fc);
+psi = lowbitcleanup(psi, 2)
+x

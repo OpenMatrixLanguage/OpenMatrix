@@ -1,0 +1,148 @@
+y = 
+slice(:, :, 1) = 
+[Matrix] 1 x 4
+1  1  5  5
+
+slice(:, :, 2) = 
+[Matrix] 1 x 4
+3  5  6  6
+
+slice(:, :, 3) = 
+[Matrix] 1 x 4
+3  6  6  6
+
+slice(:, :, 4) = 
+[Matrix] 1 x 4
+5  6  7  7
+
+slice(:, :, 5) = 
+[Matrix] 1 x 4
+5  6  7  7
+
+slice(:, :, 6) = 
+[Matrix] 1 x 4
+6  6  7  7
+
+slice(:, :, 7) = 
+[Matrix] 1 x 4
+6  6  7  7
+
+slice(:, :, 8) = 
+[Matrix] 1 x 4
+6  5  6  6
+
+slice(:, :, 9) = 
+[Matrix] 1 x 4
+6  5  6  6
+
+slice(:, :, 10) = 
+[Matrix] 1 x 4
+8  5  5  5
+
+slice(:, :, 11) = 
+[Matrix] 1 x 4
+7  4  5  5
+
+slice(:, :, 12) = 
+[Matrix] 1 x 4
+7  3  5  5
+
+slice(:, :, 13) = 
+[Matrix] 1 x 4
+6  3  4  5
+
+slice(:, :, 14) = 
+[Matrix] 1 x 4
+6  3  4  5
+
+slice(:, :, 15) = 
+[Matrix] 1 x 4
+5  4  4  5
+
+slice(:, :, 16) = 
+[Matrix] 1 x 4
+5  3  4  4
+
+slice(:, :, 17) = 
+[Matrix] 1 x 4
+4  3  3  4
+
+slice(:, :, 18) = 
+[Matrix] 1 x 4
+4  4  3  4
+
+slice(:, :, 19) = 
+[Matrix] 1 x 4
+5  4  4  4
+
+slice(:, :, 20) = 
+[Matrix] 1 x 4
+5  4  5  4
+
+slice(:, :, 21) = 
+[Matrix] 1 x 4
+6  4  6  4
+
+slice(:, :, 22) = 
+[Matrix] 1 x 4
+6  6  6  6
+
+slice(:, :, 23) = 
+[Matrix] 1 x 4
+6  8  8  8
+
+slice(:, :, 24) = 
+[Matrix] 1 x 4
+6  8  8  8
+
+slice(:, :, 25) = 
+[Matrix] 1 x 4
+8  8  8  8
+
+slice(:, :, 26) = 
+[Matrix] 1 x 4
+6  8  8  8
+
+slice(:, :, 27) = 
+[Matrix] 1 x 4
+6  8  8  8
+
+slice(:, :, 28) = 
+[Matrix] 1 x 4
+5  7  7  8
+
+slice(:, :, 29) = 
+[Matrix] 1 x 4
+5  6  6  7
+
+slice(:, :, 30) = 
+[Matrix] 1 x 4
+4  6  6  6
+
+slice(:, :, 31) = 
+[Matrix] 1 x 4
+5  5  5  5
+
+slice(:, :, 32) = 
+[Matrix] 1 x 4
+4  5  5  5
+
+slice(:, :, 33) = 
+[Matrix] 1 x 4
+3  3  3  3
+
+slice(:, :, 34) = 
+[Matrix] 1 x 4
+3  3  3  3
+
+slice(:, :, 35) = 
+[Matrix] 1 x 4
+3  3  3  3
+
+slice(:, :, 36) = 
+[Matrix] 1 x 4
+2  3  3  3
+
+slice(:, :, 37) = 
+[Matrix] 1 x 4
+1  1  1  1

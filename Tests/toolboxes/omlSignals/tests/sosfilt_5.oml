@@ -1,0 +1,13 @@
+addToolbox omlsignals
+sos = [0.5, 1.0, 0.5, 1.6, -0.9, 1.4;
+       0.3, 0.6, 0.3, 1.5, -1.4, 1.0;
+       0.1, 0.2, 0.1, 1.4, -1.8, 0.7];
+output1 = sosfilt(sos, [1:20])
+
+num = conv(sos(1,1:3), sos(2,1:3));
+num = conv(num, sos(3,1:3));
+den = conv(sos(1,4:6), sos(2,4:6));
+den = conv(den, sos(3,4:6));
+output2 = filter(num, den, [1:20]);
+
+check = max(abs(output1 - output2))

@@ -1,0 +1,12 @@
+sscurves_structt = struct [
+  name: Akulon® Care K1G6
+]
+Strt = struct [
+  CurveFitting: 0
+  Extrapolation: 0
+  FinalCurves: 0
+  ImportData: 
+  {
+    [1,1] Akulon® Care K1G6
+  }
+]

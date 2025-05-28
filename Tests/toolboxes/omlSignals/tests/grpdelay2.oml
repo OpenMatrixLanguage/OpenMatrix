@@ -1,0 +1,6 @@
+addtoolbox omlsignals
+[b,a] = cheby1(4,1,0.3);
+fs = 1000;
+[d, w] = grpdelay(b,a,8,fs);
+d = d'
+w = w'

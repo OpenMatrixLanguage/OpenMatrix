@@ -1,0 +1,7 @@
+addtoolbox('omljson')
+msg = 'Test passed: [Empty matrix]';
+in = [];
+encode = jsonencode(in);
+decode = jsondecode(encode);
+assert(size(decode) == 0);
+disp(msg)

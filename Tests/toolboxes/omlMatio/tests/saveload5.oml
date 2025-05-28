@@ -1,0 +1,20 @@
+addlibrary('omlmatio');
+
+a = 10;
+save('saveload.mat');
+clear all
+load1 = load('saveload.mat')
+clear('load1');
+
+b = 15;
+save('saveload.mat', '-append');
+clear all
+load2 = load('saveload.mat')
+clear('load2');
+
+a = 25;
+save('saveload.mat', '-append');
+clear all
+load3 = load('saveload.mat')
+
+delete('saveload.mat');

@@ -1,0 +1,16 @@
+encode = {"data":[{"Age":10,"AverageTransactionValue":122.52650653140645,"CustomerId":207,"Gender":"w","MostRecentTransactionDate":114208913634,"PostalCode":4,"TotalCount":1,"TotalTransactionValue":122.52650653140645,"countPaymentMethod_cash":1,"countPaymentMethod_cheque":0,"countPaymentMethod_creditcard":0}]}
+decode = struct [
+  data: struct [
+    Age: 10
+    AverageTransactionValue: 122.526507
+    CustomerId: 207
+    Gender: w
+    MostRecentTransactionDate: 1.14208914e+11
+    PostalCode: 4
+    TotalCount: 1
+    TotalTransactionValue: 122.526507
+    countPaymentMethod_cash: 1
+    countPaymentMethod_cheque: 0
+    countPaymentMethod_creditcard: 0
+  ]
+]

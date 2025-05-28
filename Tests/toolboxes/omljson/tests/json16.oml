@@ -1,0 +1,14 @@
+addtoolbox('omljson')
+
+fid = fopen('./json16.txt');
+
+str = '';
+newline = char(10);
+while feof(fid) == false
+	str1 = fgetl(fid);
+	str = strcat(str, newline, str1);
+end
+fclose(fid);
+
+decode = jsondecode(str)
+decode.meta

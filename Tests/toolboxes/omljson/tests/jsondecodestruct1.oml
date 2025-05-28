@@ -1,0 +1,3 @@
+addtoolbox('omljson')
+
+jsondecode('{"8ij":"one", "2":"two", "x123":"three","123":"four"}')

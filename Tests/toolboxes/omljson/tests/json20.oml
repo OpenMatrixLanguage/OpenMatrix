@@ -1,0 +1,9 @@
+addtoolbox('omljson')
+
+jsondecode('{"first$one":"one", "_2foo":"two"}')
+jsondecode('{"first$one":"one", "2":"two"}', 'replacementstyle', 'underscore', 'prefix', 'field_1')
+
+jsondecode('{"first$one":"one", "2":"two"}', 'replacementstyle', 'delete')
+
+jsondecode('{"first$one":"one", "/2":"two"}', 'replacementstyle', 'hex')
+jsondecode('{"first$one":"one", "2/":"two"}', 'replacementstyle', 'hex')

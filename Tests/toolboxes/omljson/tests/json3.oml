@@ -1,0 +1,10 @@
+addtoolbox('omljson')
+
+in = ['str1', 'str2'; 'foo1', 'foo2'];
+
+encode1 = jsonencode(in)
+encode2 = jsonencode(in, 'prettyprint', true)
+
+c = {in, 45};
+encode3 = jsonencode(c)
+encode4 = jsonencode(c, 'prettyprint', true)

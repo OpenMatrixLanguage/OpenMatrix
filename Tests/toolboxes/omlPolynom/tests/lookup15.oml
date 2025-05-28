@@ -1,0 +1,9 @@
+addToolbox omlpolynom
+
+data{1,1,1} = 'pear';
+data{1,1,2} = 'apple';
+data{1,1,3} = 'grape';
+data{1,2,1} = 'raisin';
+data{1,2,2} = 'banana';
+data{1,2,3} = 'orange';
+idx = lookup({'apple', 'banana', 'grape', 'orange', 'pear', 'raisin'}, data)

@@ -1,0 +1,11 @@
+load1 = struct [
+  a: 10
+]
+load2 = struct [
+  a: 10
+  b: 15
+]
+load3 = struct [
+  a: 25
+  b: 15
+]

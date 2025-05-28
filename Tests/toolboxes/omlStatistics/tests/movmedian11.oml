@@ -1,0 +1,3 @@
+addToolbox omlstatistics
+x = [5,2,3,4,8,-4,9,-3,-2,-1,9,3,4,2,6];
+y = movmedian(x, [5,3], [], 'Endpoints', 'shrink')

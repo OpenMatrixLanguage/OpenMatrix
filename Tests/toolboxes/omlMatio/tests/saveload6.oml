@@ -1,0 +1,23 @@
+addlibrary('omlmatio');
+
+a = 10;
+save('saveload6.mat');
+clear all
+load1 = load('saveload6.mat')
+clear('load1');
+
+b = 15;
+save('saveload6.mat', '-append', '-v7.3');
+clear all
+load2 = load('saveload6.mat')
+clear('load2');
+
+a = 25;
+save('saveload6.mat', '-append');
+clear all
+load('saveload6.mat')
+
+delete('saveload6.mat');
+
+
+

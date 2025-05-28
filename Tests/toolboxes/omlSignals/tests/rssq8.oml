@@ -1,0 +1,10 @@
+addToolbox omlstatistics
+addToolbox omlsignals
+a = 5;
+b = 8;
+v = [0.01:0.02:0.99];
+x = betainv(v, a, b);
+m = length(x);
+x1 = x(1:2:m-1);
+x2 = x(2:2:m) - 0.3;
+r = rssq([x1+1+x2*i;x2-x1*i],2)

@@ -1,0 +1,5 @@
+encode = null
+decode = [Matrix] 0 x 0
+encode = NaN
+decode = NaN
+Test passed: [NaN]

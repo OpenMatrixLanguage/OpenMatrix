@@ -6,3 +6,6 @@ d = 'fun';
 save('saveload1.mat')
 clear all
 R = load('saveload1.mat')
+try
+  delete('saveload1.mat');
+end  

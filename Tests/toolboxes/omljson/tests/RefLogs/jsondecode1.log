@@ -1,0 +1,48 @@
+datajson = 
+{
+  [1,1] struct [
+    annual_salary: 97974
+    department: DEPARTMENT OF POLICE
+    full_or_part_time: F
+    job_titles: POLICE OFFICER
+    name: HERNANDEZ, JUAN C
+    salary_or_hourly: SALARY
+  ]
+  [2,1] struct [
+    annual_salary: 110196
+    department: FIRE DEPARTMENT
+    full_or_part_time: F
+    job_titles: FIREFIGHTER-EMT
+    name: HERNANDEZ, JUAN C
+    salary_or_hourly: SALARY
+  ]
+  [3,1] struct [
+    annual_salary: 206472
+    department: FIRE DEPARTMENT
+    full_or_part_time: F
+    job_titles: ASST DEPUTY FIRE COMMISSIONER
+    name: HERNANDEZ, JUAN C
+    salary_or_hourly: SALARY
+  ]
+  [4,1] struct [
+    annual_salary: 131184
+    department: DEPT OF BUILDINGS
+    full_or_part_time: F
+    job_titles: SUPRVNG BUILDING/CONTRUCT INSPECTOR
+    name: HERNANDEZ, JUAN C
+    salary_or_hourly: SALARY
+  ]
+  [5,1] struct [
+    department: CHICAGO DEPT OF TRANSPORTATION
+    full_or_part_time: F
+    hourly_rate: 45.68
+    job_titles: POOL MOTOR TRUCK DRIVER
+    name: HERNANDEZ, JUAN C
+    salary_or_hourly: HOURLY
+    typical_hours: 40
+  ]
+}
+ Attr Name     Size Bytes Class
+ ==== ====     ==== ===== =====
+      datajson 5x1    363 cell 
+

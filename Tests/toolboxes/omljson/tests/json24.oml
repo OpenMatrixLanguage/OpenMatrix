@@ -1,0 +1,12 @@
+addtoolbox('omljson')
+
+s.name = 'test1';
+s.errmsg = sprintf('abc\ndef');
+s.msg1 = sprintf('abc\tdef');
+s.msg2 = sprintf('abc"def');
+encode = jsonencode(s)
+decode = jsondecode(encode);
+assert(s.errmsg == decode.errmsg)
+assert(s.msg1 == s.msg1)
+assert(s.msg2 == s.msg2)
+disp('Struct test passed')

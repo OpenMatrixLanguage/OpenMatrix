@@ -1,0 +1,7 @@
+addpath(strcat(getenv('OMLBVT') ,'/RegressionTests/functions'));
+addtoolbox omlsignals
+
+lb = -4;
+ub = 4;
+n = 17;
+[psi,x] = mexihat(lb,ub,n)

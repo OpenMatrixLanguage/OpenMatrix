@@ -1,0 +1,18 @@
+addtoolbox omlpolynom
+
+breaks = [10, 20, 30, 40, 50, 60];
+L = length(breaks) - 1;
+order = 3;
+d = [3,1,2];
+coefs = zeros(3, 1, 2, L, order);
+coefs(1, 1, 1, 1, :) = [111, 112, 113];
+coefs(1, 1, 1, 2, :) = [121, 122, 123];
+coefs(1, 1, 1, 3, :) = [131, 132, 133];
+coefs(1, 1, 1, 4, :) = [141, 142, 143];
+coefs(1, 1, 1, 5, :) = [151, 152, 153];
+coefs(2, 1, 1, :, :) = coefs(1, 1, 1, :, :) + 100;
+coefs(3, 1, 1, :, :) = coefs(1, 1, 1, :, :) + 200;
+coefs(2, 1, 2, :, :) = coefs(1, 1, 1, :, :) + 300;
+coefs(3, 1, 2, :, :) = coefs(1, 1, 1, :, :) + 400;
+pp = mkpp(breaks,coefs,d);
+yi = ppval(pp, [27, 43; 17, 51; 34, 20])

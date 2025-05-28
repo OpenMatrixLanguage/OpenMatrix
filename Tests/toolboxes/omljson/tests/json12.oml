@@ -1,0 +1,10 @@
+addtoolbox('omljson')
+
+s.a='val1';
+s.b = eye(2,3);
+s(1,2).a='val2';
+s(2,2).b = 53 + i;
+
+encode = jsonencode(s)
+
+encode = jsonencode(s, 'prettyprint', true)

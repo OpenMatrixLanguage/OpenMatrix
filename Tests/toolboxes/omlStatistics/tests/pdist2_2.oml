@@ -1,0 +1,4 @@
+addToolbox omlstatistics
+m1 = [1,2,3;4,6,8;5,10,15;16,26,36];
+m2 = [2,4,6;3,6,9;4,8,12];
+p = pdist2(m1, m2, 'euclidean')

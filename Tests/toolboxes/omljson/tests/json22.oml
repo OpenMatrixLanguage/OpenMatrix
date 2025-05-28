@@ -1,0 +1,9 @@
+addtoolbox('omljson')
+
+str = sprintf('abc\tdef');
+
+jstr = jsonencode(str);
+decode = jsondecode(jstr);
+
+assert(str == decode)
+disp('Tab test passed')

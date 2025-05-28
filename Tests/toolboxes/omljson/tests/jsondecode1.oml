@@ -1,0 +1,10 @@
+addtoolbox('omljson')
+
+data = '[{"name":"HERNANDEZ, JUAN C","job_titles":"POLICE OFFICER","department":"DEPARTMENT OF POLICE","full_or_part_time":"F","salary_or_hourly":"SALARY","annual_salary":"97974"}';
+data = strcat(data, ',{"name":"HERNANDEZ, JUAN C","job_titles":"FIREFIGHTER-EMT","department":"FIRE DEPARTMENT","full_or_part_time":"F","salary_or_hourly":"SALARY","annual_salary":"110196"}');
+data = strcat(data, ',{"name":"HERNANDEZ, JUAN C","job_titles":"ASST DEPUTY FIRE COMMISSIONER","department":"FIRE DEPARTMENT","full_or_part_time":"F","salary_or_hourly":"SALARY","annual_salary":"206472"}');
+data = strcat(data, ',{"name":"HERNANDEZ, JUAN C","job_titles":"SUPRVNG BUILDING/CONTRUCT INSPECTOR","department":"DEPT OF BUILDINGS","full_or_part_time":"F","salary_or_hourly":"SALARY","annual_salary":"131184"}');
+data = strcat(data, ',{"name":"HERNANDEZ, JUAN C","job_titles":"POOL MOTOR TRUCK DRIVER","department":"CHICAGO DEPT OF TRANSPORTATION","full_or_part_time":"F","salary_or_hourly":"HOURLY","typical_hours":"40","hourly_rate":"45.68"}]');
+
+datajson = jsondecode(data)
+whos('datajson')

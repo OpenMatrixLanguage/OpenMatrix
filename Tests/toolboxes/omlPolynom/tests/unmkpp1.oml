@@ -1,0 +1,13 @@
+addtoolbox omlpolynom
+
+breaks = [101, 102, 103, 104, 105, 106];
+L = length(breaks) - 1;
+k = 3;
+coefs = zeros(L, k);
+coefs(1, :) = [11, 12, 13];
+coefs(2, :) = [21, 22, 23];
+coefs(3, :) = [31, 32, 33];
+coefs(4, :) = [41, 42, 43];
+coefs(5, :) = [51, 52, 53];
+pp = mkpp(breaks,coefs);
+[breaks,coefs,l,k,d] = unmkpp(pp)

@@ -1,0 +1,6 @@
+ans = [Matrix] 1 x 2
+10  14
+VI = [Matrix] 3 x 4
+NaN  54.60000  71.26667  87.93333
+NaN  56.90000  73.56667  90.23333
+NaN       NaN       NaN       NaN

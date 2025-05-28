@@ -1,0 +1,6 @@
+addtoolbox omlsignals
+addpath(strcat(getenv('OMLBVT') ,'/RegressionTests/functions'));
+x = [2,3,4,5,6];
+y = [4,6,7,8,9];
+Rxy = xcorr(x,y,5);
+Rxy = lowbitcleanup(Rxy, 8)

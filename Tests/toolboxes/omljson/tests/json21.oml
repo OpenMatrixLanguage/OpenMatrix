@@ -1,0 +1,11 @@
+addtoolbox('omljson')
+
+str = sprintf('abc\ndef');
+
+jstr = jsonencode(str);
+decode = jsondecode(jstr);
+
+assert(str == decode)
+disp('Newline test passed')
+
+
