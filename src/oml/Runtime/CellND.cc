@@ -51,34 +51,34 @@ void hwTMatrixN<Currency, void*>::CopyMatrixLHS(const hwTMatrixN<Currency, void*
 
 	for (int i = 0; i < size; ++i)
 	{
-        int startLHS = Index(m_lhsMatrixIndex);
-        int startRHS = rhsMatrix.Index(m_rhsMatrixIndex);
+            int startLHS = Index(m_lhsMatrixIndex);
+            int startRHS = rhsMatrix.Index(m_rhsMatrixIndex);
 
-        CopyData(m_real + startLHS, strideLHS, rhsMatrix.m_real + startRHS, strideRHS, keySize[S_case]);
-        i += keySize[S_case] - 1;
+            CopyData(m_real + startLHS, strideLHS, rhsMatrix.m_real + startRHS, strideRHS, keySize[S_case]);
+            i += keySize[S_case] - 1;
 
-        // advance rhs matrix indices
-        for (int j = startIndx; j < rhsMatrix.m_dim.size(); ++j)
-        {
+            // advance rhs matrix indices
+            for (int j = startIndx; j < rhsMatrix.m_dim.size(); ++j)
+            {
             if (j == keyDim[S_case])
             {
                 continue;
             }
 
-            // increment index j if possible
-            if (m_rhsMatrixIndex[j] < (int)rhsMatrix.m_dim[j] - 1)
-            {
-                ++m_lhsMatrixIndex[j];
-                ++m_rhsMatrixIndex[j];
-                break;
-            }
+                // increment index j if possible
+                if (m_rhsMatrixIndex[j] < (int)rhsMatrix.m_dim[j] - 1)
+                {
+                    ++m_lhsMatrixIndex[j];
+                    ++m_rhsMatrixIndex[j];
+                    break;
+                }
 
-            // index j is maxed out, so reset and continue to j+1
-            m_lhsMatrixIndex[j] = 0;
-            m_rhsMatrixIndex[j] = 0;
+                // index j is maxed out, so reset and continue to j+1
+                m_lhsMatrixIndex[j] = 0;
+                m_rhsMatrixIndex[j] = 0;
+            }
         }
     }
-}
 
 //! Grow a matrix
 template<> inline
@@ -170,7 +170,7 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
             newDim[i] = m_dim[i];
 
         newDim[numSlices - 1] = -1;
-        void* dataPtr = (void*)m_real;
+        void* dataPtr = (void*)m_real; // cppcheck-suppress cstyleCast
 
         hwTMatrixN<Currency, void*> reshaped(m_dim, dataPtr, Type());
 
@@ -581,9 +581,9 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
         void* dataPtr;
 
         if (IsReal())
-            dataPtr = (void*)m_real;
+            dataPtr = (void*)m_real; // cppcheck-suppress cstyleCast
         else
-            dataPtr = (void*)m_complex;
+            dataPtr = (void*)m_complex; // cppcheck-suppress cstyleCast
 
         hwTMatrixN<Currency, void*> reshaped(m_dim, dataPtr, Type());
 
@@ -704,8 +704,8 @@ void hwTMatrixN<Currency, void*>::SliceLHS(const std::vector<hwSliceArg>& sliceA
                 newDim[lhsDim] = maxVectorDim;
                 dimMap[lhsDim++] = rhsDim;
             }
-            else if (rhsMatrix.m_dim[rhsDim] == sliceArg[lhsDim].Vector().size() &&
-                     lhsDim < m_dim.size())
+            else if (lhsDim < m_dim.size() && 
+                     rhsMatrix.m_dim[rhsDim] == sliceArg[lhsDim].Vector().size())
             {
                 newDim[lhsDim] = _max(m_dim[lhsDim], maxVectorDim);
                 dimMap[lhsDim++] = rhsDim;
