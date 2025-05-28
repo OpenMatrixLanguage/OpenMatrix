@@ -1,0 +1,5 @@
+fid = 3
+error = 
+path = EmptyFile.txt
+mode = ab
+ans = 0

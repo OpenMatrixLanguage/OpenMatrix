@@ -1,0 +1,12 @@
+x = struct();
+x.a = [];
+x.b = ones(10,10);
+x.c = {};
+x.d = struct();
+x.d.a1 = [];
+
+out1 = fieldempty(x)
+out2 = fieldempty(x,'a')
+out3 = fieldempty(x,{'b','c','a'})
+out4 = fieldempty(x.d,'a1')
+out5 = fieldempty(x.d)

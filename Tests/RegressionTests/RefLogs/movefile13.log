@@ -1,0 +1,6 @@
+r = 0
+m = Error: cannot overwrite [movefile_src_13_2.txt] in argument 2; use 'f' option to force move
+c = 0
+r = 1
+m = 
+c = 

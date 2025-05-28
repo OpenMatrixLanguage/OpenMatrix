@@ -1,0 +1,12 @@
+function z = foo()
+   a = 1;
+
+   function q = goo()
+      q = a+1;
+   end
+
+   z = @goo;
+end
+
+b = foo();
+pp = b()

@@ -1,4 +1,5 @@
-addpath([getenv('OML_ROOT') '/Tests/RegressionTests/functions']);
+addpath('functions');
+
 a = zeros(5,5);
 a(1, 1) =  1;
 a(2, 1) =  2;

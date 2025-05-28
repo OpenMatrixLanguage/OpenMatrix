@@ -1,1 +1,1 @@
-Error: input did not make even dimensions; matrix cannot be constructed in call to function cell2mat at line number 1 in file cell2mat47.oml
+Error: invalid input in argument 1; has elements with mismatched dimensions or data types in call to function cell2mat at line number 1 in file cell2mat47.oml

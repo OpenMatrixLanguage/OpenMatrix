@@ -1,0 +1,14 @@
+% movefile-note move a single file - rename
+
+cd FileManipulation
+
+src = 'movefile_src_02.txt';
+dst = 'movefile_dst_02.txt';
+
+csvwrite(src, eye(2)); % Create the source
+
+[r, m] = movefile(src, dst)
+
+exist(dst)     % Returns 2 if file exists
+
+delete(dst);   % cleanup

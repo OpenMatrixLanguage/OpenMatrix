@@ -1,0 +1,16 @@
+v = 
+slice(:, :, 1) = 
+[Matrix] 1 x 5
+12  10  9  8  4
+
+slice(:, :, 2) = 
+[Matrix] 1 x 5
+11  6  5  2  -8
+idx = 
+slice(:, :, 1) = 
+[Matrix] 1 x 5
+2  6  3  5  1
+
+slice(:, :, 2) = 
+[Matrix] 1 x 5
+4  3  5  1  6

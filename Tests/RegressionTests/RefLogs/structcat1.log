@@ -1,0 +1,21 @@
+R = struct [
+  Struct array of size 1 x 4 with fields:
+  Area
+  Lake
+]
+ans = struct [
+  Area: 31700
+  Lake: Superior
+]
+ans = struct [
+  Area: 22300
+  Lake: Michigan
+]
+ans = struct [
+  Area: 23000
+  Lake: Huron
+]
+ans = struct [
+  Area: 9910
+  Lake: Erie
+]

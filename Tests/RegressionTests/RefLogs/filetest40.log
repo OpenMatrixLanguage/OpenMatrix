@@ -1,0 +1,2 @@
+ftell returns expected value: 11 for Windows, 10 for Linux
+ans = 0

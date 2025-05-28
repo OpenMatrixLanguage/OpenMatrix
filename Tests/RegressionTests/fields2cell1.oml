@@ -1,0 +1,7 @@
+S(1).name = 'John';
+S(1).age = 28;
+S(2).name = 'Jane';
+S(2).age = 32;
+
+names = fields2cell(S,'name')
+ages = fields2cell(S,'age')

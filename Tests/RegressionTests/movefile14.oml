@@ -1,0 +1,14 @@
+% movefile-note movefile with spaces
+
+cd FileManipulation
+
+name = 'movefile_src_14   ';
+src1 = [name, '_1.txt'];
+src2 = [name, '_2.txt'];
+
+csvwrite(src1, eye(2));
+
+success = movefile(src1, src2)
+fileexist = exist(src2)
+
+delete(src2)

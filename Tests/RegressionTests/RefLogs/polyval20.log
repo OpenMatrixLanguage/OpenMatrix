@@ -1,1 +1,1 @@
-Error: third input must be an empty matrix; sparse matrices are not yet supported in call to function polyval at line number 1 in file polyval20.oml
+Error: invalid input in argument 3; must be empty [] matrix in call to function polyval at line number 1 in file polyval20.oml

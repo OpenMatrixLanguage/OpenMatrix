@@ -1,7 +1,7 @@
 function clean = lowbitcleanup(matrix, numbits)
 	% round off the lowest numbits bits of each matrix element
 	maxmag = norm(matrix, 'inf');
-	if maxmag < 1.0e-10
+	if maxmag < 1.0  %e-10
 		% relative to 1.0
 		right_bits = 53 - 1 - numbits;
 	else

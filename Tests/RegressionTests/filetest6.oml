@@ -1,0 +1,10 @@
+fname = 'filetest.txt';
+[fid, error] = fopen(fname, 'r+');
+[path, mode] = fopen(fid);
+fclose(fid);
+
+error
+path
+mode
+
+system('rm -rf filetest.txt');

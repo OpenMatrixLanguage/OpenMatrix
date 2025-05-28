@@ -1,0 +1,28 @@
+% movefile-note move between wildcard files and <dir>
+
+cd FileManipulation
+
+src    = 'movefile_src_05';
+dstdir = 'movefiledir_05';
+dst    = [dstdir, '/', src];
+
+% Create the source
+csvwrite([src, '1.txt'], eye(2));
+csvwrite([src, '2.txt'], eye(2));
+mkdir(dstdir);
+
+% Wildcard files to dir
+success = movefile([src, '*.txt'], dstdir)
+
+fileexist = exist([dstdir, '/', src, '1.txt'])
+fileexist = exist([dstdir, '/', src, '2.txt'])
+
+% dir to current directory
+success = movefile([dstdir, '/', src, '*'], '.')
+
+fileexist = exist([src, '1.txt'])
+fileexist = exist([src, '2.txt'])
+
+delete([src, '1.txt']);
+delete([src, '2.txt']);
+rmdir(dstdir);

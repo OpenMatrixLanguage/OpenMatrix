@@ -1,0 +1,20 @@
+% movefile-note movefile with special chars
+
+
+cd FileManipulation
+
+name = 'movefile_src_15';
+src1 = [name, '_1.txt'];
+src2 = [name, '>_2.txt'];
+
+csvwrite(src1, eye(2));
+
+try
+  movefile(src1, src2)
+ 
+catch omlerr
+  omlerr.message
+end
+
+delete (src1);
+

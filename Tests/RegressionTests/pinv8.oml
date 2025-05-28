@@ -1,0 +1,6 @@
+addpath('functions');
+
+A = [1,2,3;4,5,6;7,8,10;11,12,14];
+B = pinv(A);
+B = lowbitcleanup(B, 7)
+lowbitcleanup(pinv(A) * A, 9)

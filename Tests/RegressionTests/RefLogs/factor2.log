@@ -1,1 +1,1 @@
-ans = -5
+Error: invalid input; value must be positive integer in call to function factor at line number 1 in file factor2.oml

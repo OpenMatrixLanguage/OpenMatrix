@@ -1,0 +1,5 @@
+isprint(65)
+isprint(355)
+isprint(Inf)
+isprint(-Inf)
+isprint(2+3i)

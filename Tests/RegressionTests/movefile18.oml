@@ -1,0 +1,15 @@
+% movefile-note movefile directories with spaces with force overwrite
+
+
+cd FileManipulation
+
+dir1 = 'dir1    end';
+dir2 = 'dir2  123';
+
+mkdir(dir1);
+
+success = movefile(dir1, dir2)
+success = movefile(dir2, dir1)
+
+fileexist = exist(dir1);
+rmdir(dir1);

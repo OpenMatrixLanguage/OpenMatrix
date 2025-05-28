@@ -1,0 +1,20 @@
+% movefile-note move wildcard files to a directory that does not exist
+
+
+cd FileManipulation
+
+name    = 'movefile_src_06';
+src1 = [name, '_1.txt'];
+src2 = [name, '_2.txt'];
+
+dstdir = 'movefiledir_06';
+
+% Create the source
+csvwrite(src1, eye(2));
+csvwrite(src2, eye(2));
+
+% Wildcard files to dir
+[r, m, t] = movefile([name, '*.txt'], dstdir)
+
+delete(src1);
+delete(src2);

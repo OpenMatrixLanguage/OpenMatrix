@@ -1,0 +1,5 @@
+isprint('こんにちは')
+isprint('zwölf')
+isprint('hello ')
+
+isprint({'foo', 123, 'こんにちは'})

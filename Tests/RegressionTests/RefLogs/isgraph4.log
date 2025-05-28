@@ -1,0 +1,8 @@
+ans = 1
+Warning: cannot convert to character: [355] in call to function isgraph at line number 2 in file isgraph4.oml
+ans = 0
+Warning: cannot convert to character: [Inf] in call to function isgraph at line number 3 in file isgraph4.oml
+ans = 0
+Warning: cannot convert to character: [-Inf] in call to function isgraph at line number 4 in file isgraph4.oml
+ans = 0
+Error: invalid input in argument 1; must be a cell array or string in call to function isgraph at line number 5 in file isgraph4.oml

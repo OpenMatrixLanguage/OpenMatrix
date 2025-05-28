@@ -1,0 +1,14 @@
+R1(1).Lake = 'Superior' ;
+R1(1).Area = 31700 ;
+R1(2).Lake = 'Michigan' ;
+R1(2).Area = 22300 ;
+
+R2(2).Lake = 'Erie' ;
+R2(1).Area = 23000 ;
+R2(2).Foo = 9910 ;
+
+R = structcat(1,45, R1,R2)
+R(1)
+R(2)
+R(3)
+R(4)

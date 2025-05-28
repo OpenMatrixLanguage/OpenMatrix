@@ -1,0 +1,5 @@
+isgraph(65)
+isgraph(355)
+isgraph(Inf)
+isgraph(-Inf)
+isgraph(2+3i)

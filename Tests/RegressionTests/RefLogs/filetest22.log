@@ -1,0 +1,8 @@
+text = This File
+len = 9
+len returns expected value: 2 for Windows, 1 for Linux
+len returns expected value: 15 for Windows, 14 for Linux
+len returns expected value: 15 for Windows, 14 for Linux
+len returns expected value: 19 for Windows, 18 for Linux
+text = -1
+len = 0

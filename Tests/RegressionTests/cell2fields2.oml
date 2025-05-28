@@ -1,0 +1,3 @@
+c = {2;'test';ones(5,5);'test1';{0.10968  0.39688  0.32170  0.45320  0.42659}};
+names = {'a','b','c','d','e'};
+out = cell2fields(c,names, 1)

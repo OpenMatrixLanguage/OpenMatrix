@@ -1,1 +1,4 @@
-Error: unsupported operation in call to function mpower at line number 1 in file mpower104.oml
+ans = [Matrix] 3 x 3
+-0.09791 + 0.23812i  -0.09224 + 0.22431i  -0.13835 + 0.33647i
+-0.11166 + 0.27155i  -0.10519 + 0.25580i  -0.15778 + 0.38370i
+-0.12541 + 0.30498i  -0.11813 + 0.28729i  -0.17720 + 0.43094i

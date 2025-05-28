@@ -1,0 +1,10 @@
+fid1 = 3
+error = 
+fid2 = 4
+error = 
+filepath = FileManipulation/FileToRead.txt
+filemode = rb
+len returns expected value: 11 for Windows, 10 for Linux
+len returns expected value: 11 for Windows, 10 for Linux
+ans = 0
+ans = 0

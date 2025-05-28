@@ -1,0 +1,20 @@
+fname = FileManipulation/WeirdLineEndings.txt
+fid = 3
+ans = [Matrix] 1 x 2
+1  15
+len = 15
+ans = [Matrix] 1 x 2
+1  28
+len = 28
+len = 1
+ans = [Matrix] 1 x 2
+1  1
+ans = [Matrix] 1 x 2
+1  21
+len = 21
+ans = [Matrix] 1 x 2
+1  29
+len = 29
+readline = -1
+len = 0
+ans = 0

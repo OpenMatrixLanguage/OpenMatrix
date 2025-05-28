@@ -1,0 +1,25 @@
+fname = 'FileManipulation/WeirdLineEndings.txt'
+fid = fopen(fname)
+
+[readline,len] = fgets(fid);
+size(readline)
+len
+
+[readline,len] = fgets(fid);
+size(readline)
+len
+
+[readline,len] = fgets(fid);
+len
+size(readline)
+
+[readline,len] = fgets(fid);
+size(readline)
+len
+
+[readline,len] = fgets(fid);
+size(readline)
+len
+
+[readline,len] = fgets(fid)
+fclose(fid)

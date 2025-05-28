@@ -1,0 +1,5 @@
+ans = struct [
+  pin: struct [
+    r: 3
+  ]
+]

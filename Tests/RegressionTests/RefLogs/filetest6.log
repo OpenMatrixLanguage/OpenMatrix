@@ -1,0 +1,3 @@
+error = 
+path = filetest.txt
+mode = r+b

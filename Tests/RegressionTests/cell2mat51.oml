@@ -1,0 +1,2 @@
+M = cell2mat({1:10});
+class(M)

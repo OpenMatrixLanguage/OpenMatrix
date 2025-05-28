@@ -1,0 +1,10 @@
+% movefile-note movefile without force should fail
+cd FileManipulation
+
+dir1 = 'dir1';
+
+mkdir(dir1);
+
+[r m c] = movefile(dir1, dir1)  
+
+rmdir(dir1);

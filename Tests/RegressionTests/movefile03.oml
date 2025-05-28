@@ -1,0 +1,22 @@
+% movefile-note move between <file> and <dir>
+
+cd FileManipulation
+
+src    = 'movefile_src_03.txt';
+dstdir = 'movefiledir_03';
+dst    = [dstdir, '/', src];
+
+% Create the source
+csvwrite(src, eye(2));
+mkdir(dstdir);
+
+% File to dir
+success = movefile(src, dstdir)
+fileexist = exist(dst)
+
+% Dir to file
+success = movefile(dst, '.')
+fileexist = exist(src)
+
+delete(src);
+rmdir(dstdir);

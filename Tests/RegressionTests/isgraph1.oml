@@ -1,0 +1,5 @@
+isgraph('こんにちは')
+isgraph('zwölf')
+isgraph('hello ')
+
+isgraph({'foo', 123, 'こんにちは'})
