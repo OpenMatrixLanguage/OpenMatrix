@@ -176,6 +176,7 @@
     <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwWindowFunc.cxx" />
     <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\hwBartlettHann.cxx" />
     <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\WaveformFuncs.cxx" />
+    <ClCompile Include="$(OML_ROOT)\src\math\signals\_private\SignalStatsFuncs.cxx" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(OML_ROOT)\src\math\signals\FilterFuncs.h" />
@@ -229,6 +230,7 @@
     <ClInclude Include="$(OML_ROOT)\src\math\signals\SignalsExports.h" />
     <ClInclude Include="$(OML_ROOT)\src\math\signals\hwBartlettHann.h" />
     <ClInclude Include="$(OML_ROOT)\src\math\signals\WaveformFuncs.h" />
+    <ClInclude Include="$(OML_ROOT)\src\math\signals\SignalStatsFuncs.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
