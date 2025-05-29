@@ -25,6 +25,7 @@ before_install:
 env:
   SH=bash
   OML_ROOT=$PWD
+  OMLBVT=$OML_ROOT/Tests
   OML_THIRDPARTY=$PWD/Linux/third_party
   PATH=$PATH:$OML_ROOT/src/bin/linux64
   OML_PYTHONHOME=/usr

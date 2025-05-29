@@ -19,6 +19,7 @@ init:
 
 environment:
   OML_ROOT: c:\oss
+  OML_BVT: %OML_ROOT%\Tests
   OML_THIRDPARTY: c:\oss\third_party\third_party
   OML_APPVEYOR: TRUE
   OML_PYTHON: c:\python36-x64
