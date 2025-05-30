@@ -61,7 +61,7 @@ script:
 - set | grep LD_LIBRARY_PATH
 - set | grep OML
 - cd $OML_THIRDPARTY/intel
-- find . -name "*mkl*.so"
+- find . -name "*mkl*.so" -printf "%s  %p\n"
 - cd $OML_THIRDPARTY/ANTLR
 - find . -iname "libantlr3c*"
 - echo ==============================
