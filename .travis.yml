@@ -35,13 +35,20 @@ env:
 before_script:
 script:
 - echo BEFORE $LD_LIBRARY_PATH
-- export LD_LIBRARY_PATH=$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/mkl/lib/intel64_lin:$LD_LIBRARY_PATH
-- export LD_LIBRARY_PATH=$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/compiler/lib/intel64_lin:$LD_LIBRARY_PATH
-- export LD_LIBRARY_PATH=$OML_THIRDPARTY/fftw/fftw-3.2.2/.libs:$OML_THIRDPARTY/ANTLR/libantlr3c-3.4/.libs:$LD_LIBRARY_PATH
-- export LD_LIBRARY_PATH=$OML_THIRDPARTY/matio/matio-1.5.19/linux64/lib64:$OML_THIRDPARTY/hdf/hdf5-1.12.0/linux64/lib:$LD_LIBRARY_PATH
-- export LD_LIBRARY_PATH=$OML_THIRDPARTY/sundials/sundials-6.2.0/linux64/lib:$OML_THIRDPARTY/qhull/qhull-2015.2/lib:$LD_LIBRARY_PATH
-- export LD_LIBRARY_PATH=$OML_ROOT/src/bin/linux64:$LD_LIBRARY_PATH
-- export LD_LIBRARY_PATH=/usr/bin:/usr/lib:/usr/lib64:/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+#- export LD_LIBRARY_PATH=$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/mkl/lib/intel64_lin:$LD_LIBRARY_PATH
+#- export LD_LIBRARY_PATH=$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/compiler/lib/intel64_lin:$LD_LIBRARY_PATH
+#- export LD_LIBRARY_PATH=$OML_THIRDPARTY/fftw/fftw-3.2.2/.libs:$OML_THIRDPARTY/ANTLR/libantlr3c-3.4/.libs:$LD_LIBRARY_PATH
+#- export LD_LIBRARY_PATH=$OML_THIRDPARTY/matio/matio-1.5.19/linux64/lib64:$OML_THIRDPARTY/hdf/hdf5-1.12.0/linux64/lib:$LD_LIBRARY_PATH
+#- export LD_LIBRARY_PATH=$OML_THIRDPARTY/sundials/sundials-6.2.0/linux64/lib:$OML_THIRDPARTY/qhull/qhull-2015.2/lib:$LD_LIBRARY_PATH
+#- export LD_LIBRARY_PATH=$OML_ROOT/src/bin/linux64:$LD_LIBRARY_PATH
+#- export LD_LIBRARY_PATH=/usr/bin:/usr/lib:/usr/lib64:/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+- export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/mkl/lib/intel64_lin
+- export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/compiler/lib/intel64_lin
+- export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/fftw/fftw-3.2.2/.libs:$OML_THIRDPARTY/ANTLR/libantlr3c-3.4/.libs
+- export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/matio/matio-1.5.19/linux64/lib64:$OML_THIRDPARTY/hdf/hdf5-1.12.0/linux64/lib
+- export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_THIRDPARTY/sundials/sundials-6.2.0/linux64/lib:$OML_THIRDPARTY/qhull/qhull-2015.2/lib
+- export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OML_ROOT/src/bin/linux64
+- export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/bin:/usr/lib:/usr/lib64:/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu
 - g++ --version
 - $CXX --version
 - which $CXX
