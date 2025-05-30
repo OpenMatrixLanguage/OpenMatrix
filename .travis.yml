@@ -21,6 +21,7 @@ before_install:
 - sudo apt-get update -y
 - sudo -E apt-get -yq --no-install-suggests --no-install-recommends $(travis_apt_get_options) install gfortran
 - git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Linux_OS66.git Linux
+- git lfs pull
 #- if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
 env:
   SH=bash
