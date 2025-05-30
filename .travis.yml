@@ -34,6 +34,7 @@ env:
   KMP_AFFINITY=compact,1,0,granularity=fine
 before_script:
 script:
+- echo BEFORE $LD_LIBRARY_PATH
 - export LD_LIBRARY_PATH=$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/mkl/lib/intel64_lin:$LD_LIBRARY_PATH
 - export LD_LIBRARY_PATH=$OML_THIRDPARTY/intel/compilers_and_libraries_2019.5.281/linux/compiler/lib/intel64_lin:$LD_LIBRARY_PATH
 - export LD_LIBRARY_PATH=$OML_THIRDPARTY/fftw/fftw-3.2.2/.libs:$OML_THIRDPARTY/ANTLR/libantlr3c-3.4/.libs:$LD_LIBRARY_PATH
