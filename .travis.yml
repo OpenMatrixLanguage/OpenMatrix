@@ -22,8 +22,8 @@ before_install:
 - sudo -E apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
 - sudo apt-get update -y
 - sudo -E apt-get -yq --no-install-suggests --no-install-recommends $(travis_apt_get_options) install gfortran
-- git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Linux_OS66.git Linux
 - echo -e "machine github.com\n  login $GITHUB_TOKEN" > ~/.netrc
+- git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Linux_OS66.git Linux
 - git lfs pull
 #- if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
 env:
