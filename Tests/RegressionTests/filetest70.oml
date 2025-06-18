@@ -1,4 +1,0 @@
-fname = 'FileManipulation/FileToRead.txt'
-fid = fopen(fname, 'r')
-fread(fid, [inf, inf])
-fclose(fid)

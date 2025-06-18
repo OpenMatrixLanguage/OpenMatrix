@@ -1,2 +1,0 @@
-badfname = 'FileManipulation'
-[fid, error] = fopen(badfname)

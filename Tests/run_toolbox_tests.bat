@@ -12,6 +12,8 @@ REM call :run_test omlpythonbridge
 call :run_test omlPolynom
 call :run_test omlSignals
 call :run_test omlStatistics
+call :run_test omljson
+
 goto :end
 
 :run_test 

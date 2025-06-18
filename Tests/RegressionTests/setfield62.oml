@@ -1,2 +1,0 @@
-clear all, clc
-setfield(struct,'pin',struct('r',3))

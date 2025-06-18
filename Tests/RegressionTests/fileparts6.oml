@@ -1,1 +1,0 @@
-[a,b,c]=fileparts('directory\\file.txt')
