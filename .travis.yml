@@ -23,10 +23,10 @@ before_install:
 - sudo apt-get update -y
 - sudo -E apt-get -yq --no-install-suggests --no-install-recommends $(travis_apt_get_options) install gfortran
 - echo -e "machine github.com\n  login $GITHUB_TOKEN" > ~/.netrc
-- git lfs install
-#- git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Linux_OS66.git Linux
-- git clone --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Linux_OS66.git Linux
+- git clone --depth=50 --branch=master https://github.com/OpenMatrixLanguage/Continuous_Integration_Linux_OS66.git Linux
+- cd Linux
 - git lfs pull
+- cd ..
 #- if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
 env:
   SH=bash
@@ -66,6 +66,7 @@ script:
 ##- ls -alF /lib/x86_64-linux-gnu | grep fortran
 - set | grep LD_LIBRARY_PATH
 - set | grep OML
+- echo Show sizes of MKL shared object files...
 - cd $OML_THIRDPARTY/intel
 - find . -name "*mkl*.so" -printf "%s  %p\n"
 - cd $OML_THIRDPARTY/ANTLR
