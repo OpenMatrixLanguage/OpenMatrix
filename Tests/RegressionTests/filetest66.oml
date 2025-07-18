@@ -1,0 +1,8 @@
+fname = 'FileManipulation/FileToWrite19.txt'
+fid = fopen(fname, 'w')
+fwrite(fid, [50,60,-20;13,-5,0], 'long')
+fclose(fid)
+fid = fopen(fname,'r')
+fread(fid, inf, 'unsigned long')
+fclose(fid)
+delete(fname)

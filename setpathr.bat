@@ -5,6 +5,7 @@ if not /%OML_ROOT%/==// call :error1 "OML_ROOT already defined!" & goto :end
 
 @echo on
 set OML_ROOT=%cd%
+set OMLBVT=%OML_ROOT%\Tests
 set path=%OML_ROOT%\src\bin\win64;%path%
 set OML_ROOT=%OML_ROOT:\=/%
 set OML_DEBUG=

@@ -6,6 +6,7 @@
 export PATH=$PWD/src/bin/linux64:$PATH
 export OML_THIRDPARTY=~/ombuild/Continuous_Integration_Linux_OS66/third_party
 export OML_ROOT=$PWD
+export OMLBVT=$OML_ROOT/Tests
 export OML_HELP=$PWD/help/win/en/topics/reference/oml_language/
 
 #Set python environment variables

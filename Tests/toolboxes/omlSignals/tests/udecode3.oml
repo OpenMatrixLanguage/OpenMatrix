@@ -1,0 +1,7 @@
+addtoolbox omlsignals
+% this test produces defective output. udecode
+% assumes that q is an unsigned encoding since all(x) > 0
+
+x = [9,16,25,49,64];
+q = uencode(x,10,60,'signed');
+y = udecode([q,600],10,60,'saturate')

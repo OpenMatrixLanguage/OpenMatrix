@@ -1,0 +1,36 @@
+addToolbox omlsignals
+% define signal
+f1 = 62.5;
+f2 = 250;
+omega1 = 2*pi*f1;
+omega2 = 2*pi*f2;
+fs = 1000;
+ts = 1/fs;
+n = 100;
+time = [0:ts:n*ts];
+signal = sqrt(2) * sin(0.5*omega1*time) + sin(omega1*time) + 0.25 * sin(omega2*time);
+% filter
+[b,a] = butter(6, 200/(fs/2));
+signal = signal';
+output1 = filter(b,a,signal);
+
+% repeat with sosfilt
+b0 = 0.52786404500042050;
+b1 = 1.0557280900008410;
+b2 = 0.52786404500042050;
+a0 =  1.9039501316498584;
+a1 = -0.94427190999915900;
+a2 =  1.1517779583509826;
+sos(1,:) = [b0, b1, b2, a0, a1, a2] / a0;
+a0 =  2.5553503417464358;
+a1 = -0.94427190999915900;
+a2 =  0.50037774825440506;
+sos(2,:) = [b0, b1, b2, a0, a1, a2] / a0;
+a0 =  2.9314364283958740;
+a1 = -0.94427190999915900;
+a2 =  0.12429166160496707;
+sos(3,:) = [b0, b1, b2, a0, a1, a2] / a0;
+output2 = sosfilt(sos, signal);
+
+check = max(abs(output1 - output2))
+

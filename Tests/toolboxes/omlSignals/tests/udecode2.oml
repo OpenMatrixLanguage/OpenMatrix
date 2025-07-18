@@ -1,0 +1,5 @@
+addtoolbox omlsignals
+
+x = [-64,-49,-25,-16,-9,9,16,25,49,64];
+q = uencode(x,10,60,'unsigned');
+y = udecode([q,1200],10,60,'saturate')

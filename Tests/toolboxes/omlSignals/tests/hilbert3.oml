@@ -1,0 +1,4 @@
+addtoolbox omlsignals
+x = [1:10;2:2:20];
+x = permute(x,[3,2,1]);
+h = hilbert(x,12,2)
