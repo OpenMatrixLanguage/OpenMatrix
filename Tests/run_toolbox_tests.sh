@@ -42,4 +42,5 @@ run_test omlPolynom
 #run_test omlpythonbridge
 run_test omlSignals
 run_test omlStatistics
+run_test omljson
 
