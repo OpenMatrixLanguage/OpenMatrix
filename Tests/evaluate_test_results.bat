@@ -21,6 +21,7 @@ call :eval_toolbox_test omlPolynom
 rem call :eval_toolbox_test omlpythonbridge
 call :eval_toolbox_test omlSignals
 call :eval_toolbox_test omlStatistics
+call :eval_toolbox_test omljson
 
 echo evaluate_result %evaluate_result%
 if /i %evaluate_result% NEQ 0 (

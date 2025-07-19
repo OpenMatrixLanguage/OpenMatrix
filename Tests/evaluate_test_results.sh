@@ -48,6 +48,7 @@ eval_toolbox_test omlPolynom
 #eval_toolbox_test omlpythonbridge
 eval_toolbox_test omlSignals
 eval_toolbox_test omlStatistics
+eval_toolbox_test omljson
 
 echo test_result $test_result
 if [ $test_result -ne 0 ]; then
